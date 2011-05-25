@@ -1,5 +1,11 @@
 
 SET DEFINE OFF;
+
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('Mutually Agreed', 'Mutually Agreed');
+
 Insert into SLS_STATIC_LIST_SETUP
    (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
  Values
@@ -21,7 +27,7 @@ COMMIT;
 
 
 update GMC_GRID_MENU_CONFIGURATION set LINK_CALLED = 'function(){modifyContract();}'
-where MENU_ID= 'LOC_1_2'
+where MENU_ID= 'LOC_1_2';
 
 
   SET DEFINE OFF;
