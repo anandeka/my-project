@@ -54,6 +54,14 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_4.
 
 
 
+Revision: 71140
+Author: soubhagya
+Date: 1:40:41 PM, Wednesday, June 22, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_4.sql
+
 
 
 
