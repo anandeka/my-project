@@ -48,7 +48,17 @@ Message:
 sls scripts added
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_3.sql
+
+Revision: 71148
+Author: sriveenam
+Date: 2:38:48 PM, Wednesday, June 22, 2011
+Message:
+payable formula added
+----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_3.sql
+
+
+
 
 
 
