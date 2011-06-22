@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_Patch_0002
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal Meena
+ 
+Created on*        		:  22-Jun-2011
+
+Bug / Enhancement* 		:  Bug & Enhancement
+ 
+Bug ID*            		:  55156
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Logistics
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+
+ 
+Description of Bug / Issue / Enhancement* : 
+-----------------------------------------
+Revision: 71104
+Author: babulal.meena
+Date: 10:13:07 AM, Wednesday, June 22, 2011
+Message:
+Logistics Module DB Script for Build-3 drop 1
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_2.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_2.sql
