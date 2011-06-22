@@ -1,0 +1,64 @@
+Patch No*          		:  EKA_METALS_Patch_0001
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Soubhagya
+ 
+Created on*        		:  22-Jun-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Assay Management
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+ 
+Description of Bug / Issue / Enhancement* : 
+-----------------------------------------
+
+Revision: 71128
+Author: soubhagya
+Date: 1:16:04 PM, Wednesday, June 22, 2011
+Message:
+Assay Management Table's script
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_4.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
