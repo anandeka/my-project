@@ -40,22 +40,15 @@ Schema type (Transaction / EOD)* :  Transaction
  
 Description of Bug / Issue / Enhancement* : 
 -----------------------------------------
-
-Revision: 71146
+Revision: 71177
 Author: sriveenam
-Date: 2:24:20 PM, Wednesday, June 22, 2011
+Date: 4:53:08 PM, Wednesday, June 22, 2011
 Message:
-sls scripts added
+contract patches
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_3.sql
-
-Revision: 71148
-Author: sriveenam
-Date: 2:38:48 PM, Wednesday, June 22, 2011
-Message:
-payable formula added
-----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_3.sql
+
 
 
 
