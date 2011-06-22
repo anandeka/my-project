@@ -50,6 +50,18 @@ For concentrate provisional invoice menu.
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_5.sql
 
 
+Revision: 71209
+Author: anandp
+Date: 7:32:04 PM, Wednesday, June 22, 2011
+Message:
+For primary key change in IIED table.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_5.sql
+
+
+
+
+
 
 
 
