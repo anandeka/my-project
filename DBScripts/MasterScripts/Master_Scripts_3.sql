@@ -235,3 +235,20 @@ Insert into AMC_APP_MENU_CONFIGURATION
     NULL, 'P2', NULL, 'Physical', NULL);
 COMMIT;
 
+SET DEFINE OFF;
+Insert into SLS_STATIC_LIST_SETUP
+   (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
+ Values
+   ('partnershipTypeSales', 'Agency', 'N', 2);
+Insert into SLS_STATIC_LIST_SETUP
+   (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
+ Values
+   ('partnershipTypeSales', 'Normal', 'Y', 1);
+Insert into SLS_STATIC_LIST_SETUP
+   (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
+ Values
+   ('partnershipTypeSales', 'Joint Venture', 'N', 3);
+Insert into SLS_STATIC_LIST_SETUP
+   (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
+ Values
+   ('partnershipTypeSales', 'Consignment', 'N', 4);
