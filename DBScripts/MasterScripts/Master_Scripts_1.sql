@@ -1,3 +1,4 @@
+set define off;
 update GM_GRID_MASTER gm
 set GM.DEFAULT_COLUMN_MODEL_STATE='[     
                                   {header: "Contract Ref. No.", width: 150, sortable: true, dataIndex: "contractRefNo"},
@@ -32,7 +33,7 @@ Insert into AMC_APP_MENU_CONFIGURATION
    (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
     ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
  Values
-   ('P71', 'List Of Price Process', 1, 3, '/metals/loadListOfPriceProcess.action?gridId=LOPP', 
+   ('PHY-PP-71', 'List Of Price Process', 1, 3, '/metals/loadListOfPriceProcess.action?gridId=LOPP', 
     NULL, 'CDC-MM-9', NULL, 'Derivative', NULL);
 
 
@@ -64,3 +65,7 @@ Insert into GM_GRID_MASTER
                                     {header: "Price Fixed Treasury", width: 150, sortable: true, dataIndex: "priceFixedTreasury"},
                                     {header: "Price Fix Failures Treasury", width: 150, sortable: true, dataIndex: "priceFixFailuresTreasury"}
                              ]', NULL, 'periodend/listOfPriceProcess.jsp', '/private/js/periodend/listOfPriceProcess.js');
+
+
+
+set define on;
