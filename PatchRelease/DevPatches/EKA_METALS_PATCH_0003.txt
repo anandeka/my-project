@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_Patch_0001
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  22-Jun-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Contract
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+ 
+Description of Bug / Issue / Enhancement* : 
+-----------------------------------------
+
+Revision: 71125
+Author: sriveenam
+Date: 1:11:16 PM, Wednesday, June 22, 2011
+Message:
+contract scripts
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_3.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_3.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
