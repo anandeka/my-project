@@ -50,3 +50,11 @@ Logistics Module DB Script for Build-3 drop 1
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_2.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_2.sql
+
+Revision: 71279
+Author: babulal.meena
+Date: 12:32:38 PM, Thursday, June 23, 2011
+Message:
+increased the size of seller column into SDD_D table
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_2.sql
