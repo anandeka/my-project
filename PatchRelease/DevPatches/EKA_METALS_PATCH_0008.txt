@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_Patch_0008
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  06-Jul-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Invoicing
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 72120
+Author: anandp
+Date: 5:59:50 PM, Wednesday, July 06, 2011
+Message:
+For treatment charge calculations.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_8.sql
+
+
+
