@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_Patch_0009
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  06-Jul-2011
+
+Bug / Enhancement* 		:  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Cost
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction and EOD
+==================================================================
+Revision: 72129
+Author: sachin
+Date: 6:43:24 PM, Wednesday, July 06, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_9.sql
+
+
+
+
