@@ -40,21 +40,16 @@ Schema type (Transaction / EOD)* :  Transaction
  
 Description of Bug / Issue / Enhancement* : 
 -----------------------------------------
-Revision: 72177
+Revision: 72386
 Author: sriveenam
-Date: 12:25:45 PM, Thursday, July 07, 2011
-Message:
-contract scripts
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_6.sql
-
-Revision: 72189
-Author: sriveenam
-Date: 1:05:37 PM, Thursday, July 07, 2011
+Date: 6:19:58 PM, Friday, July 08, 2011
 Message:
 modified
 ----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_6.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_10.sql
+
+
 
 
 
