@@ -1,0 +1,1 @@
+alter table ASH_ASSAY_HEADER add internal_action_ref_no varchar2(30);
