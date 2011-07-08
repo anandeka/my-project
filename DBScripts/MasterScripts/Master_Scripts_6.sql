@@ -48,3 +48,6 @@ COMMIT;
 update SLS_STATIC_LIST_SETUP set IS_DEFAULT='N' where LIST_TYPE='chargeBasis' and VALUE_ID='absolute';
 
 update SLS_STATIC_LIST_SETUP set IS_DEFAULT='N' where LIST_TYPE='chargeBasis' and VALUE_ID='fractions Pro-Rata';
+
+delete from SLS_STATIC_LIST_SETUP where LIST_TYPE = 'listOfTradePriceTypes' 
+and VALUE_ID = 'Average';
