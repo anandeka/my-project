@@ -251,6 +251,7 @@ AS
       AND (pci.is_called_off = 'Y' OR pcdi.is_phy_optionality_present = 'N');
 
 
+
 CREATE TABLE AAM_ASSAY_ACTION_MAPPING
 (
   INTERNAL_ACTION_REF_NO  VARCHAR2(15 BYTE),
