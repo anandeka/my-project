@@ -1,0 +1,90 @@
+Patch No*          		:  EKA_METALS_Patch_0014
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  10-July-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Assay
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+ 
+Description of Bug / Issue / Enhancement* : 
+-----------------------------------------
+Revision: 72498
+Author: girishkv
+Date: 7:19:38 PM, Sunday, July 10, 2011
+Message:
+SQL script for Assay.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_15.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_8.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
