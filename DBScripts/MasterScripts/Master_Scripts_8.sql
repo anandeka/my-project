@@ -1,40 +1,37 @@
-Insert into GMC_GRID_MENU_CONFIGURATION
-   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
-    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
- Values
-   ('OAFD', 'LOAFD', 'Operations', 1, 1, 
-    NULL, 'function(){}', NULL, NULL, NULL);
-    
 
 Insert into GMC_GRID_MENU_CONFIGURATION
    (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
     FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
  Values
-   ('OAFD-RR', 'LOAFD', 'View', 2, 2, 
-    NULL, 'function(){callViewResults()}', NULL, 'OAFD', NULL);
-    
- Insert into GMC_GRID_MENU_CONFIGURATION
-   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
-    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
- Values
-   ('OAFD-MO', 'LOAFD', 'Modify', 3, 2, 
-    NULL, 'function(){callModifyResults()}', NULL, 'OAFD', NULL);
-    
-  Insert into GMC_GRID_MENU_CONFIGURATION
-   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
-    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
- Values
-   ('OAFD-DL', 'LOAFD', 'Delete', 4, 2, 
-    NULL, 'function(){callDeleteResults()}', NULL, 'OAFD', NULL);     
+   ('LOGA-3', 'LOG', 'Weighing and Sampling', 2, 2, 
+    NULL, 'function(){loadWeighingAndSampling();}', NULL, 'LOGA', NULL);
 
-
+delete from GMC_GRID_MENU_CONFIGURATION gmc where GMC.GRID_ID='LOAFD';
+ 
 Insert into GMC_GRID_MENU_CONFIGURATION
    (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
     FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
  Values
    ('AFD', 'LOAFD', 'Assay', 1, 1, 
     NULL, 'function(){}', NULL, NULL, NULL);
-    
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('AFD-NCA', 'LOAFD', 'New Counterparty Assay', 3, 2, 
+    NULL, 'function(){callNewCounterpartyAssay()}', NULL, 'AFD', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('OAFD-NUA', 'LOAFD', 'New Umpire Assay', 4, 2, 
+    NULL, 'function(){callNewUmpireAssay()}', NULL, 'AFD', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('OAFD-NFA', 'LOAFD', 'Assay Finalization', 5, 2, 
+    NULL, 'function(){callAssayFinalization()}', NULL, 'AFD', NULL);
 
 Insert into GMC_GRID_MENU_CONFIGURATION
    (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
@@ -42,27 +39,8 @@ Insert into GMC_GRID_MENU_CONFIGURATION
  Values
    ('AFD-NSA', 'LOAFD', 'New Self Assay', 2, 2, 
     NULL, 'function(){callNewSelfAssay()}', NULL, 'AFD', NULL);
-    
- Insert into GMC_GRID_MENU_CONFIGURATION
-   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
-    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
- Values
-   ('AFD-NCA', 'LOAFD', 'New Counterparty Assay', 3, 2, 
-    NULL, 'function(){callNewCounterpartyAssay()}', NULL, 'AFD', NULL);
-    
-  Insert into GMC_GRID_MENU_CONFIGURATION
-   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
-    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
- Values
-   ('OAFD-NUA', 'LOAFD', 'New Umpire Assay', 4, 2, 
-    NULL, 'function(){callNewUmpireAssay()}', NULL, 'AFD', NULL);     
 
-  Insert into GMC_GRID_MENU_CONFIGURATION
-   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
-    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
- Values
-   ('OAFD-NFA', 'LOAFD', 'Assay Finalization', 5, 2, 
-    NULL, 'function(){callAssayFinalization()}', NULL, 'AFD', NULL); 
+
 
 Insert into AXM_ACTION_MASTER
    (ACTION_ID, ENTITY_ID, ACTION_NAME, IS_NEW_GMR_APPLICABLE, ACTION_DESC, 
