@@ -2,7 +2,7 @@
 CREATE TABLE SAM_STOCK_ASSAY_MAPPING
 (
   SAM_ID               VARCHAR2(15 BYTE)        NOT NULL,
-  intenral_grd_ref_no                VARCHAR2(15 BYTE),
+  internal_grd_ref_no                VARCHAR2(15 BYTE),
   internal_dgrd_ref_no                VARCHAR2(15 BYTE),
   ash_id                              VARCHAR2(15 BYTE) not null,
   version              number(10), 
