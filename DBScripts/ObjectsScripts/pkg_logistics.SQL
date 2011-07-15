@@ -12,7 +12,7 @@ IS
       pn_tolerence_qty              NUMBER
    )
       RETURN NUMBER;
-  FUNCTION f_get_warehouse_shed_name(pc_input_shed_id VARCHAR2)
+  FUNCTION f_get_warehouse_shed_name(pc_input_warehouse_id VARCHAR2,pc_input_shed_id VARCHAR2)
     RETURN VARCHAR2;
  
 END;
@@ -123,7 +123,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_logistics IS
         RETURN(vn_max_tolerence_value);
     END;
 
-    FUNCTION f_get_warehouse_shed_name(pc_input_shed_id VARCHAR2) RETURN VARCHAR2 IS
+    FUNCTION f_get_warehouse_shed_name(pc_input_warehouse_id VARCHAR2,pc_input_shed_id VARCHAR2) RETURN VARCHAR2 IS
         vc_warehouse_shed_name VARCHAR2(150);
     BEGIN
         SELECT phd.companyname || ', ' || sld.storage_location_name
@@ -136,7 +136,8 @@ CREATE OR REPLACE PACKAGE BODY pkg_logistics IS
         AND    bpsld.is_deleted = 'N'
         AND    sld.is_active = 'Y'
         AND    sld.is_deleted = 'N'
-        AND    sld.storage_loc_id = pc_input_shed_id;
+        AND    sld.storage_loc_id = pc_input_shed_id
+        and    bpsld.profile_id = pc_input_warehouse_id;
         RETURN(vc_warehouse_shed_name);
     END;
 
