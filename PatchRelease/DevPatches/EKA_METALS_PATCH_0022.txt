@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_Patch_0022
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal Meena
+ 
+Created on*        		:  17-July-2011
+
+Bug / Enhancement* 		:  Bug
+ 
+Bug ID*            		:  55623
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Logistics
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 73007
+Author: babulal.meena
+Date: 2:56:04 PM, Sunday, July 17, 2011
+Message:
+Db patch for Fix of Bug 55623
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_22.sql
