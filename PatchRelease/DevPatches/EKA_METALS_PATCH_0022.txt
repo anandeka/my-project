@@ -37,10 +37,11 @@ Dependent patches:		:  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :  Transaction
 ==================================================================
-Revision: 73007
+Revision: 73043
 Author: babulal.meena
-Date: 2:56:04 PM, Sunday, July 17, 2011
+Date: 11:53:22 AM, Monday, July 18, 2011
 Message:
-Db patch for Fix of Bug 55623
+Removed DML script from Object Script Folder
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_22.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_11.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_22.sql
