@@ -46,9 +46,17 @@ Date: 12:48:53 PM, Monday, July 18, 2011
 Message:
 M2M setup change
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_12.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_24.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_vca_price_details.sql
+
+Revision: 73067
+Author: sriveenam
+Date: 3:10:35 PM, Monday, July 18, 2011
+Message:
+M2M setup change
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_12.sql
+
 
 
 
