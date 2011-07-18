@@ -8,7 +8,7 @@ Insert into AMC_APP_MENU_CONFIGURATION
    (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
     ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
  Values
-   ('CDC-M6', 'TC RC Charges', 5, 2, '/metals/loadDeductionChargeDetails.action?method=loadDeductionChargeDetails', 
+   ('CDC-M8', 'TC RC Charges', 5, 2, '/metals/loadDeductionChargeDetails.action?method=loadDeductionChargeDetails', 
     NULL, 'CDC-M1', NULL, 'Market Data', NULL);
 COMMIT;
 
@@ -20,7 +20,7 @@ Insert into AMC_APP_MENU_CONFIGURATION
    (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
     ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
  Values
-   ('CDC-M5', 'Valuation Curve Setup', 4, 2, '/metals/loadListOfValuationCurve.action?method=loadListOfValuationCurve&gridId=VCS_LIST', 
+   ('CDC-M9', 'Valuation Curve Setup', 4, 2, '/metals/loadListOfValuationCurve.action?method=loadListOfValuationCurve&gridId=VCS_LIST', 
     NULL, 'CDC-M1', NULL, 'Market Data', NULL);
 COMMIT;
 
