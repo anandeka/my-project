@@ -45,3 +45,12 @@ Removed DML script from Object Script Folder
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_11.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_22.sql
+
+Revision: 73136
+Author: babulal.meena
+Date: 12:16:41 PM, Tuesday, July 19, 2011
+Message:
+Sprint for 1-Aug-2011 Build
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/Corporate_Scripts_1.SQL
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_22.sql
