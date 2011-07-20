@@ -1,0 +1,1 @@
+alter table MDCD_M2M_DED_CHARGE_DETAILS add VALUATION_CURVE_ID varchar2(15);
