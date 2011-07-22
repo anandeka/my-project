@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_Patch_0026
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  20-Jul-2011
+
+Bug / Enhancement* 		:  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  EOD
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+ 
+Revision: 73470
+Author: sivachalabathi.s
+Date: 8:14:41 PM, Friday, July 22, 2011
+Message:
+56353
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Basemetal_pkg_phy_physical_process.sql
