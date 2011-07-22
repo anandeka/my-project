@@ -46,8 +46,18 @@ Date: 12:20:38 PM, Wednesday, July 20, 2011
 Message:
 contract 
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_13.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_25.sql
+
+Revision: 73419
+Author: sriveenam
+Date: 2:17:54 PM, Friday, July 22, 2011
+Message:
+amend contract
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_13.sql
+
+
+
 
 
 
