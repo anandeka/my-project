@@ -1,0 +1,44 @@
+SET DEFINE OFF;
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
+    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+ Values
+   ('RPT-D21', 'Online', 11, 3, NULL, 
+    NULL, 'RPT-D2', NULL, 'Reports', NULL);
+COMMIT;
+SET DEFINE OFF;
+Insert into RML_REPORT_MASTER_LIST
+   (REPORT_ID, SECTION_ID, REPORT_FILE_NAME, REPORT_DISPLAY_NAME, FEATURE_ID, 
+    REPORT_DISPLAY_NAME_DE, REPORT_DISPLAY_NAME_ES, ACTION_METHOD, REPORT_TYPE, IS_ACTIVE)
+ Values
+   ('211', '11', 'PhysicalPosition.rpt', 'Physical Position Report', NULL, 
+    NULL, NULL, 'populateFilter', 'ONLINE', 'Y');
+    
+Insert into RML_REPORT_MASTER_LIST
+   (REPORT_ID, SECTION_ID, REPORT_FILE_NAME, REPORT_DISPLAY_NAME, FEATURE_ID, 
+    REPORT_DISPLAY_NAME_DE, REPORT_DISPLAY_NAME_ES, ACTION_METHOD, REPORT_TYPE, IS_ACTIVE)
+ Values
+   ('212', '11', 'PositionDeliveryPricing.rpt', 'Position Delivery Pricing Report', NULL, 
+    NULL, NULL, 'populateFilter', 'ONLINE', 'Y');
+
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
+    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+ Values
+   ('RPT-D216', 'Position - Delivery/Pricing', 16, 4, '/mdm/CommonFilter.do?method=populateJRCReport&docType=ONLINE&ReportID=212&ReportName=PositionDeliveryPricing.rpt&ExportFormat=HTML', 
+    NULL, 'RPT-D21', NULL, 'Reports', NULL);
+  
+delete from  AMC_APP_MENU_CONFIGURATION where MENU_ID = 'RPT-D212';
+commit;
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
+    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+ Values
+   ('RPT-D212', 'Physical Position', 12, 4, '/mdm/CommonFilter.do?method=populateJRCReport&docType=ONLINE&ReportID=211&ReportName=PhysicalPosition.rpt&ExportFormat=HTML', 
+    NULL, 'RPT-D21', NULL, 'Reports', NULL);
+
+COMMIT;
+delete from amc_app_menu_configuration 
+where tab_id = 'Reports'
+and menu_id in ('RPT-D211','RPT-D213','RPT-D214','RPT-D215');
+commit;
