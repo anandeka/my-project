@@ -1,14 +1,15 @@
+define corpId=LDE
 Insert into ARF_ACTION_REF_NUMBER_FORMAT
    (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
     MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
  Values
-   ('ARF-PC', 'ContractRefNo', '&corpId', 'PC-', 1, 
+   ('ARF-PC-&corpId', 'ContractRefNo', '&corpId', 'PC-', 1, 
     0,  '-&corpId', 1, 'N');
 
 Insert into ARFM_ACTION_REF_NO_MAPPING
    (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
  Values
-   ('ARFM-PC', '&corpId', 'CREATE_PC', 'ContractRefNo', 'N');
+   ('ARFM-PC-&corpId', '&corpId', 'CREATE_PC', 'ContractRefNo', 'N');
 
 Insert into ERC_EXTERNAL_REF_NO_CONFIG
    (CORPORATE_ID, EXTERNAL_REF_NO_KEY, PREFIX, MIDDLE_NO_LAST_USED_VALUE, SUFFIX)
@@ -19,13 +20,13 @@ Insert into ARF_ACTION_REF_NUMBER_FORMAT
    (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
     MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
  Values
-   ('ARF-SC', 'SalesRefNo', '&corpId', 'SC-', 1, 
+   ('ARF-SC-&corpId', 'SalesRefNo', '&corpId', 'SC-', 1, 
     0,  '-&corpId', 1, 'N');
 
 Insert into ARFM_ACTION_REF_NO_MAPPING
    (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
  Values
-   ('ARFM-SC', '&corpId', 'CREATE_SC', 'SalesRefNo', 'N');
+   ('ARFM-SC-&corpId', '&corpId', 'CREATE_SC', 'SalesRefNo', 'N');
 
 
 Insert into ERC_EXTERNAL_REF_NO_CONFIG
@@ -37,13 +38,13 @@ Insert into ARF_ACTION_REF_NUMBER_FORMAT
    (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
     MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
  Values
-   ('ARF-TC', 'TollingRefNo', '&corpId', 'TC-', 1, 
+   ('ARF-TC-&corpId', 'TollingRefNo', '&corpId', 'TC-', 1, 
     0,  '-&corpId', 1, 'N');
 
 Insert into ARFM_ACTION_REF_NO_MAPPING
    (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
  Values
-   ('ARFM-TC', '&corpId', 'CREATE_TC', 'TollingRefNo', 'N');
+   ('ARFM-TC-&corpId', '&corpId', 'CREATE_TC', 'TollingRefNo', 'N');
 
 
 Insert into ERC_EXTERNAL_REF_NO_CONFIG

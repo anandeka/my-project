@@ -1,14 +1,15 @@
+
 Insert into ARF_ACTION_REF_NUMBER_FORMAT
    (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
     MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
  Values
-   ('ARF-MFT', 'MFTRefNo', '&corpId', 'MFT-', 1, 
-    0, 'EKA', 1, 'N');
+   ('ARF-MFT-&corpId', 'MFTRefNo', '&corpId', 'MFT-', 1, 
+    0, '&corpId', 1, 'N');
 
 Insert into ARFM_ACTION_REF_NO_MAPPING
    (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
  Values
-   ('ARFM-MFT', '&corpId', 'MARK_FOR_TOLLING', 'MFTRefNo', 'N');
+   ('ARFM-MFT-&corpId', '&corpId', 'MARK_FOR_TOLLING', 'MFTRefNo', 'N');
 
 
 
@@ -21,13 +22,13 @@ Insert into ARF_ACTION_REF_NUMBER_FORMAT
    (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
     MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
  Values
-   ('ARF-ROPT', 'ROPTRefNo', '&corpId', 'RO-', 1, 
-    0, 'EKA', 1, 'N');
+   ('ARF-ROPT-&corpId', 'ROPTRefNo', '&corpId', 'RO-', 1, 
+    0, '&corpId', 1, 'N');
 
 Insert into ARFM_ACTION_REF_NO_MAPPING
    (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
  Values
-   ('ARFM-ROPT', '&corpId', 'RECORD_OUT_PUT_TOLLING', 'ROPTRefNo', 'N');
+   ('ARFM-ROPT-&corpId', '&corpId', 'RECORD_OUT_PUT_TOLLING', 'ROPTRefNo', 'N');
 
 
 
