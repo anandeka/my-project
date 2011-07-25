@@ -39,11 +39,11 @@ Schema type (Transaction / EOD)* :  Transaction
 ==================================================================
 NOTE: Revision: 73639 should be applied
 ==================================================================
-Revision: 73639
+Revision: 73644
 Author: sriveenam
-Date: 8:23:48 PM, Monday, July 25, 2011
+Date: 8:32:41 PM, Monday, July 25, 2011
 Message:
-updated
+
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_15.sql
 
@@ -54,6 +54,5 @@ Date: 8:16:34 PM, Monday, July 25, 2011
 Message:
 DB script for Tolling feature 
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_15.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR.SQL
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_27.sql

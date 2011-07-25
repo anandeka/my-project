@@ -1,0 +1,95 @@
+Patch No*          		:  EKA_METALS_Patch_0030
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  20-Jul-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Physical Contract
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+ 
+Description of Bug / Issue / Enhancement* : 
+-----------------------------------------
+Revision: 73642
+Author: sriveenam
+Date: 8:28:48 PM, Monday, July 25, 2011
+Message:
+tolling contract changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_29.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
