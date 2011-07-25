@@ -37,8 +37,6 @@ Dependent patches:		:  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :  Transaction 
 ==================================================================
-NOTE: Revision: 73639 should be applied
-==================================================================
 Revision: 73644
 Author: sriveenam
 Date: 8:32:41 PM, Monday, July 25, 2011
