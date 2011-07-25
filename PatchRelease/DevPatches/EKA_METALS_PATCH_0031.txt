@@ -1,0 +1,101 @@
+Patch No*          		:  EKA_METALS_Patch_0031
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  girish
+ 
+Created on*        		:  20-Jul-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Tolling Logistics
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+ 
+Description of Bug / Issue / Enhancement* : 
+-----------------------------------------
+Revision: 73649
+Author: girishkv
+Date: 8:47:30 PM, Monday, July 25, 2011
+Message:
+mark for tooling and output tolling.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/Corporate_Scripts_2.SQL
+
+
+Revision: 73651
+Author: girishkv
+Date: 8:49:29 PM, Monday, July 25, 2011
+Message:
+tolling outPut and mar for tooling scripts.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_16.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
