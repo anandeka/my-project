@@ -311,3 +311,62 @@ Insert into SLS_STATIC_LIST_SETUP
    (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
  Values
    ('Process', 'Tolling', 'Y', 1);
+
+
+ SET DEFINE OFF;
+Insert into URM_UMPIRE_RULE_MASTER
+   (URM_ID, RULE_DESC, RULE_FORMULA, IS_ACTIVE, VERSION, 
+    RULE_NAME)
+ Values
+   ('1', 'RULE-1', '<?xml version="1.0" encoding="UTF-8"?>
+<rule-execution-set>
+   <name>RuleExecutionSet1</name>
+   <description>Rule Execution Set</description>
+
+   <synonymn name="assay" class="com.ekaplus.dao.assaying.UmpireAssay" />
+
+    <!--
+      If the credit limit of the customer is greater than the amount of the
+      invoice and the status of the invoice is "unpaid" then
+      decrement the credit limit with the amount of the invoice and
+      set the status of the invoice to "paid".
+    -->
+    
+   <rule name="Rule1" description="Assay Umpiring rule" >
+        <if leftTerm="assay.getCpAssay" op="&lt;" rightTerm="assay.getSelfAssay" />
+        <if leftTerm="assay.getCpAssay" op="&gt;" rightTerm="assay.getUmpiringAssay" />
+        <then method="assay.setUmpireAssay" arg1="cp1" />
+   </rule>
+   <rule name="Rule2" description="Assay Umpiring rule" >
+        <if leftTerm="assay.getCpAssay" op="&lt;" rightTerm="assay.getSelfAssay" />
+        <if leftTerm="assay.getSelfAssay" op="&lt;" rightTerm="assay.getUmpiringAssay" />
+        <then method="assay.setUmpireAssay" arg1="self1" />
+   </rule>
+   <rule name="Rule3" description="Assay Umpiring rule" >
+        <if leftTerm="assay.getCpAssay" op="&lt;" rightTerm="assay.getSelfAssay" />
+        <if leftTerm="assay.getUmpiringAssay" op="&gt;" rightTerm="assay.getCpAssay" />
+        <if leftTerm="assay.getUmpiringAssay" op="&lt;" rightTerm="assay.getSelfAssay" />
+        <then method="assay.setUmpireAssay" arg1="umpire1" />
+   </rule>
+   <rule name="Rule4" description="Assay Umpiring rule" >
+        <if leftTerm="assay.getSelfAssay" op="&lt;" rightTerm="assay.getCpAssay" />
+        <if leftTerm="assay.getSelfAssay" op="&gt;" rightTerm="assay.getUmpiringAssay" />
+        <then method="assay.setUmpireAssay" arg1="self1" />
+   </rule>
+   <rule name="Rule5" description="Assay Umpiring rule" >
+        <if leftTerm="assay.getSelfAssay" op="&lt;" rightTerm="assay.getCpAssay" />
+        <if leftTerm="assay.getCpAssay" op="&lt;" rightTerm="assay.getUmpiringAssay" />
+        <then method="assay.setUmpireAssay" arg1="cp1" />
+   </rule>
+   <rule name="Rule7" description="Assay Umpiring rule" >
+        <if leftTerm="assay.getSelfAssay" op="=" rightTerm="assay.getUmpiringAssay" />
+        <then method="assay.setUmpireAssay" arg1="umpire1" />
+   </rule>  
+   <rule name="Rule8" description="Assay Umpiring rule" >
+          <if leftTerm="assay.getCpAssay" op="=" rightTerm="assay.getUmpiringAssay" />
+          <then method="assay.setUmpireAssay" arg1="umpire1" />
+   </rule> 
+</rule-execution-set>', 'Y', 0, 
+    'RULE-1');
+COMMIT;
+
