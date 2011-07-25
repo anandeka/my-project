@@ -49,6 +49,15 @@ tolling contract changes
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_29.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
 
+Revision: 73650
+Author: sriveenam
+Date: 8:48:55 PM, Monday, July 25, 2011
+Message:
+External RefNo for purchase sales and tolling contract
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/Corporate_Scripts_2.sql
+
+
 
 
 

@@ -37,11 +37,11 @@ Dependent patches:		:  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :  Transaction 
 ==================================================================
-Revision: 73644
+Revision: 73652
 Author: sriveenam
-Date: 8:32:41 PM, Monday, July 25, 2011
+Date: 8:49:31 PM, Monday, July 25, 2011
 Message:
-
+removed corporate scripts
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_15.sql
 
