@@ -11,23 +11,6 @@ Insert into AKM_ACTION_REF_KEY_MASTER
  Values
    ('ContractRefNo', 'Contract Ref No', 'SELECT COUNT(*) FROM   AXS_ACTION_SUMMARY axs WHERE  axs.action_ref_no = :pc_action_ref_no AND    axs.corporate_id = :pc_corporate_id');
 
-Insert into ARF_ACTION_REF_NUMBER_FORMAT
-   (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('ARF-PC', 'ContractRefNo', '&corpId', 'PC-', 1, 
-    0,  '-&corpId', 1, 'N');
-
-Insert into ARFM_ACTION_REF_NO_MAPPING
-   (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
- Values
-   ('ARFM-PC', '&corpId', 'CREATE_PC', 'ContractRefNo', 'N');
-
-Insert into ERC_EXTERNAL_REF_NO_CONFIG
-   (CORPORATE_ID, EXTERNAL_REF_NO_KEY, PREFIX, MIDDLE_NO_LAST_USED_VALUE, SUFFIX)
- Values
-   ('&corpId', 'CREATE_PC', 'PC-', 0, '-&corpId');
-
 Insert into CAC_CORPORATE_ACTION_CONFIG
    (ACTION_ID, IS_ACCRUAL_POSSIBLE, IS_ESTIMATE_POSSIBLE, EFF_DATE_FIELD, IS_DOC_APPLICABLE, 
     GMR_STATUS_ID, SHIPMENT_STATUS, IS_AFLOAT, IS_INV_POSTING_REQD)
@@ -39,25 +22,6 @@ Insert into AKM_ACTION_REF_KEY_MASTER
    (ACTION_KEY_ID, ACTION_KEY_DESC, VALIDATION_QUERY)
  Values
    ('SalesRefNo', 'Sales Ref No', 'SELECT COUNT(*) FROM   AXS_ACTION_SUMMARY axs WHERE  axs.action_ref_no = :pc_action_ref_no AND    axs.corporate_id = :pc_corporate_id');
-
-Insert into ARF_ACTION_REF_NUMBER_FORMAT
-   (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('ARF-SC', 'SalesRefNo', '&corpId', 'SC-', 1, 
-    0,  '-&corpId', 1, 'N');
-
-Insert into ARFM_ACTION_REF_NO_MAPPING
-   (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
- Values
-   ('ARFM-SC', '&corpId', 'CREATE_SC', 'SalesRefNo', 'N');
-
-
-Insert into ERC_EXTERNAL_REF_NO_CONFIG
-   (CORPORATE_ID, EXTERNAL_REF_NO_KEY, PREFIX, MIDDLE_NO_LAST_USED_VALUE, SUFFIX)
- Values
-   ('&corpId', 'CREATE_SC', 'SC-', 0, '-&corpId');
-
 
 Insert into AXM_ACTION_MASTER
    (ACTION_ID, ENTITY_ID, ACTION_NAME, IS_NEW_GMR_APPLICABLE, ACTION_DESC, 
@@ -78,23 +42,6 @@ Insert into AKM_ACTION_REF_KEY_MASTER
  Values
    ('TollingRefNo', 'Tolling Ref No', 'SELECT COUNT(*) FROM   AXS_ACTION_SUMMARY axs WHERE  axs.action_ref_no = :pc_action_ref_no AND    axs.corporate_id = :pc_corporate_id');
 
-Insert into ARF_ACTION_REF_NUMBER_FORMAT
-   (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('ARF-TC', 'TollingRefNo', '&corpId', 'TC-', 1, 
-    0,  '-&corpId', 1, 'N');
-
-Insert into ARFM_ACTION_REF_NO_MAPPING
-   (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
- Values
-   ('ARFM-TC', '&corpId', 'CREATE_TC', 'TollingRefNo', 'N');
-
-
-Insert into ERC_EXTERNAL_REF_NO_CONFIG
-   (CORPORATE_ID, EXTERNAL_REF_NO_KEY, PREFIX, MIDDLE_NO_LAST_USED_VALUE, SUFFIX)
- Values
-   ('&corpId', 'CREATE_TC', 'TC-', 0, '-&corpId');
 
 update AMC_APP_MENU_CONFIGURATION set DISPLAY_SEQ_NO = '7' where MENU_ID ='CDC-M8';
 update AMC_APP_MENU_CONFIGURATION set DISPLAY_SEQ_NO = '8' where MENU_ID ='CDC-M9';
@@ -106,11 +53,7 @@ Insert into AMC_APP_MENU_CONFIGURATION
  Values
    ('TOL-M3', 'List of Tolling Contracts', 3, 2, '/metals/loadTollingContractList.action?method=loadTollingContractList&gridId=TOLLING_LOC', 
     NULL, 'TOL-M', NULL, 'Tolling', NULL);
-    
-
-
-
-
+ 
 
 SET DEFINE OFF;
 Insert into AMC_APP_MENU_CONFIGURATION
@@ -119,8 +62,6 @@ Insert into AMC_APP_MENU_CONFIGURATION
  Values
    ('TOL-M4', 'List of Tolling Contract Items', 4, 2, '/metals/loadTollingContractItemList.action?method=loadTollingContractItemList&gridId=TOLLING_LOCI', 
     NULL, 'TOL-M', NULL, 'Tolling', NULL);
-    
-
 
 
 SET DEFINE OFF;
