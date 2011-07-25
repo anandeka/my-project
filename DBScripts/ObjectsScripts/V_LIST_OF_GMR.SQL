@@ -37,10 +37,9 @@ SELECT gmr.corporate_id,
         AND    gcim.internal_contract_item_ref_no =
                pci.internal_contract_item_ref_no) productspec,
        nvl(nvl(gmr.current_qty,
-               0) - nvl(gmr.released_qty,
-                        0) - nvl(moved_out_qty,
-                                 0) - nvl(gmr.write_off_qty,
-                                          0),
+               0) - nvl(moved_out_qty,
+                        0) - nvl(gmr.write_off_qty,
+                                 0),
            0) current_qty,
        gmr.qty_unit_id,
        qum.qty_unit,
@@ -192,5 +191,7 @@ AND    gmr.internal_gmr_ref_no = cp.internal_gmr_ref_no(+)
 AND    gmr.internal_gmr_ref_no = bl_details.internal_gmr_ref_no(+)
 AND    nvl(gmr.is_settlement_gmr,
            'N') = 'N'
+AND    nvl(gmr.tolling_gmr_type,
+           'None Tolling') NOT IN ('Input Process', 'Output Process')
 AND    gam.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
 AND    vd.status(+) = 'Active';
