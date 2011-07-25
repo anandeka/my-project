@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_Patch_0027
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand
+ 
+Created on*        		:  25-Jul-2011
+
+Bug / Enhancement* 		:  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Invoicing output document
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction 
+==================================================================
+ 
+Revision: 73627
+Author: anandp
+Date: 7:48:03 PM, Monday, July 25, 2011
+Message:
+For invoice output documents
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_1.sql
+
+
