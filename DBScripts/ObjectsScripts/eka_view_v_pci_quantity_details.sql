@@ -14,19 +14,9 @@ select pcdi.pcdi_id,
        itm.incoterm,
        cym.country_name,
        cim.city_name,
-       (case
-         when pci.delivery_period_type = 'Date' then
-          pci.delivery_to_date
-         when pci.delivery_period_type = 'Month' then
-          to_date(('01' ||
-                  nvl(pci.delivery_to_month, pci.expected_delivery_month) || '-' ||
-                  nvl(pci.delivery_to_year, pci.expected_delivery_year)),
-                  'dd-Mon-yyyy')
-         when pci.delivery_period_type is null then
-          to_date(('01' || pci.expected_delivery_month || '-' ||
+       to_date(('01' || pci.expected_delivery_month || '-' ||
                   pci.expected_delivery_year),
-                  'dd-Mon-yyyy')
-       end) delivery_date,
+                  'dd-Mon-yyyy')delivery_date,
        pcm.purchase_sales,
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             pci.item_qty_unit_id,
