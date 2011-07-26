@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_Patch_0032
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  26-Jul-2011
+
+Bug / Enhancement* 		:  Bug fixes
+ 
+Bug ID*            		:  56177
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  EOD
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+ 
+Description of Bug / Issue / Enhancement* : 56177
+-----------------------------------------
+Revision: 73809
+Author: sivachalabathi.s
+Date: 7:58:08 PM, Tuesday, July 26, 2011
+Message:
+bug id : 56177
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/ddl_gpd_gmr_price_daily.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Basemetal_pkg_phy_physical_process.sql
+
+
