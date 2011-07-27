@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_Patch_0039
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sachin
+ 
+Created on*        		:  28-Jul-2011
+
+Bug / Enhancement* 		:  enahancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Assay finalization
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+ 
+Description of Bug / Issue / Enhancement* : 
+-----------------------------------------
+Revision: 73919
+Author: sachin
+Date: 6:07:51 PM, Wednesday, July 27, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_20.sql
+
+
+
