@@ -44,3 +44,11 @@ Message:
 Changed The activity Name
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_19.sql
+
+Revision: 73870
+Author: babulal.meena
+Date: 3:01:10 PM, Wednesday, July 27, 2011
+Message:
+Master data related Db script Added 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_19.sql
