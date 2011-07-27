@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_Patch_0037
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal Meena
+ 
+Created on*        		:  27-Jul-2011
+
+Bug / Enhancement* 		:  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Logistics
+ 
+Sub-Module  	                :  Tolling
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 73851
+Author: babulal.meena
+Date: 1:12:41 PM, Wednesday, July 27, 2011
+Message:
+Changed The activity Name
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_19.sql
