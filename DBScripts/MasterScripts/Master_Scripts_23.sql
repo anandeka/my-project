@@ -1,0 +1,8 @@
+SET DEFINE OFF;
+INSERT INTO GM_GRID_MASTER
+   (GRID_ID, GRID_NAME, DEFAULT_COLUMN_MODEL_STATE, TAB_ID, URL, 
+    DEFAULT_RECORD_MODEL_STATE, OTHER_URL, SCREEN_SPECIFIC_JSP, SCREEN_SPECIFIC_JS)
+ VALUES
+   ('TOLL_LOS', 'List of  Stocks For Tolling', '[{"dataIndex":"","fixed":true,"header":"<div class=\"x-grid3-hd-checker\">&#160;</div>","id":"checker","sortable":false,"width":20},{"dataIndex":"stockNo","header":"Stock Ref No.","id":1,"sortable":true,"width":75},{"dataIndex":"contractItemRefNo","header":"Contract Item Ref No.","id":2,"sortable":true,"width":75},{"dataIndex":"gmrRefNo","header":"GMR Ref No.","id":3,"sortable":true,"width":75},{"dataIndex":"productName","header":"Product ","id":4,"sortable":true,"width":160},{"dataIndex":"qualityName","header":"Quality","id":5,"sortable":true,"width":160},{"dataIndex":"warehouseCountryName","header":"WarehouseCountryName","id":6,"sortable":true,"width":160},{"dataIndex":"currentQty","header":"Stock Quantity","id":7,"sortable":true,"width":100},{"dataIndex":"duty","header":"Duty","id":8,"sortable":true,"width":75},{"dataIndex":"customs","header":"Custom","id":9,"sortable":true,"width":75},{"dataIndex":"tax","header":"Tax","id":10,"sortable":true,"width":160}]', NULL, NULL, 
+    NULL, '/private/jsp/tolling/logistics/ListOfStockPopTolling.jsp', '/private/jsp/tolling/logistics/StockPopUpListingFilter.jsp', '/metals/private/js/tolling/logistics/ListOfStockPopUpTolling.js');
+SET DEFINE ON;
