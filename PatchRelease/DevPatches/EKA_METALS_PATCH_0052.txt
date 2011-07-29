@@ -1,0 +1,73 @@
+Patch No*          		:  EKA_METALS_Patch_0052
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  29-Jul-2011
+
+Bug / Enhancement* 		:  New feature
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Physical Position Report
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+RPT Files
+------------
+Revision: 74189
+Author: sivachalabathi.s
+Date: 6:28:19 PM, Friday, July 29, 2011
+Message:
+dry qty changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/Reports/PhysicalPosition.rpt
+
+
+DB Files:
+-------------------
+
+Revision: 74178
+Author: sivachalabathi.s
+Date: 5:51:27 PM, Friday, July 29, 2011
+Message:
+
+----
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_report_general.sql
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_concentrate_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_stock_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_pcdi_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details.sql
+
+Revision: 74138
+Author: sivachalabathi.s
+Date: 11:39:34 AM, Friday, July 29, 2011
+Message:
+Tolling trades should not impact position
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details_by_qp.sql
