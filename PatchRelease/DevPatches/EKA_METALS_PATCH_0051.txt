@@ -1,0 +1,120 @@
+Patch No*          		:  EKA_METALS_Patch_0051
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam
+ 
+Created on*        		:  29-Jul-2011
+
+Bug / Enhancement* 		:  New feature
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Deal Management
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+
+Revision: 74177
+Author: uttam
+Date: 5:44:17 PM, Friday, July 29, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_29.sql
+
+
+Revision: 74175
+Author: uttam
+Date: 5:43:07 PM, Friday, July 29, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_36.sql
+
+
+Revision: 74174
+Author: uttam
+Date: 5:41:38 PM, Friday, July 29, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_35.sql
+
+
+ Revision: 74179
+Author: uttam
+Date: 5:52:52 PM, Friday, July 29, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_37.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
