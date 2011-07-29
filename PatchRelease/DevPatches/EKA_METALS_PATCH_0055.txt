@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_Patch_0054
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand
+ 
+Created on*        		:  29-Jul-2011
+
+Bug / Enhancement* 		:  Document issues
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Invoicing documents
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+
+Revision: 74227
+Author: anandp
+Date: 10:16:07 PM, Friday, July 29, 2011
+Message:
+For invoice documents child tables.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_39.sql
+
+
+Revision: 74226
+Author: anandp
+Date: 10:14:25 PM, Friday, July 29, 2011
+Message:
+For invoice documents child tables.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_30.sql
+
+
