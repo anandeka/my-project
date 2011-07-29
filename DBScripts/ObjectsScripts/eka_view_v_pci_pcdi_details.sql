@@ -36,3 +36,4 @@ select pcdi.pcdi_id,
    and nvl(pcm.is_tolling_contract,'N') = 'N'
    and pcm.contract_status <> 'Cancelled'
    and pcm.is_active = 'Y' 
+/

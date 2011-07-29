@@ -7,6 +7,8 @@ select pcdi.pcdi_id,
        akc.corporate_name,
        cpc.profit_center_short_name profit_center,
        css.strategy_name strategy,
+       pdm.product_desc comp_product_name,
+       qat.quality_name comp_quality,
        pdm.product_desc product_name,
        qat.quality_name quality,
        gab.firstname || ' ' || gab.lastname trader,
@@ -24,6 +26,7 @@ select pcdi.pcdi_id,
                                             1) baseqty_conv_rate,
        pfs.price_fixation_status,
        ciqs.total_qty,
+       ciqs.open_qty item_open_qty,
        ciqs.open_qty,
        (case
          when pfs.price_fixation_status = 'Fixed' then
@@ -72,7 +75,14 @@ select pcdi.pcdi_id,
        null attribute_name,
        null element_qty_unit_id,
        null underlying_product_id,
-       pcm.contract_type position_type
+       pcm.contract_type position_type,
+       1 contract_row,
+       pkg_general.f_get_converted_quantity(pcpd.product_id,
+                                            pci.item_qty_unit_id,
+                                            pdm.base_quantity_unit,
+                                            1) compqty_base_conv_rate,
+       qum.qty_unit comp_base_qty_unit,
+       qum.qty_unit_id comp_base_qty_unit_id
   from pcm_physical_contract_main    pcm,
        ciqs_contract_item_qty_status ciqs,
        ak_corporate                  akc,
@@ -139,6 +149,8 @@ select pcdi.pcdi_id,
        akc.corporate_name,
        cpc.profit_center_short_name profit_center,
        css.strategy_name strategy,
+       pdm.product_desc comp_product_name,
+       qat.quality_name comp_quality,
        (case
          when pdtm.product_type_name = 'Composite' then
           nvl(pdm_under.product_desc, pdm.product_desc)
@@ -173,22 +185,25 @@ select pcdi.pcdi_id,
                                                    pdm.base_quantity_unit),
                                                1)
        end) else(pkg_general.f_get_converted_quantity(pcpd.product_id, pci.item_qty_unit_id, pdm.base_quantity_unit, 1)) end) baseqty_conv_rate,
-       
        null price_fixation_status,
        pkg_report_general.fn_get_element_qty(pci.internal_contract_item_ref_no,
                                              ciqs.total_qty,
                                              ciqs.item_qty_unit_id,
                                              pcpq.assay_header_id,
-                                             aml.attribute_id)total_qty,
+                                             aml.attribute_id) total_qty,
+       pkg_report_general.fn_get_assay_dry_qty(pdm.product_id,
+                                               pcpq.assay_header_id,
+                                               ciqs.open_qty,
+                                               ciqs.item_qty_unit_id) item_open_qty,
        pkg_report_general.fn_get_element_qty(pci.internal_contract_item_ref_no,
                                              ciqs.open_qty,
                                              ciqs.item_qty_unit_id,
                                              pcpq.assay_header_id,
-                                             aml.attribute_id)open_qty,
+                                             aml.attribute_id) open_qty,
        0 price_fixed_qty,
        0 unfixed_qty,
        pci.item_qty_unit_id,
-       nvl(qum_under.qty_unit, qum.qty_unit)qty_unit,
+       nvl(qum_under.qty_unit, qum.qty_unit) qty_unit,
        pcm.contract_ref_no,
        pcm.issue_date,
        pcdi.delivery_item_no,
@@ -224,7 +239,14 @@ select pcdi.pcdi_id,
           rm.qty_unit_id_numerator
        end) element_qty_unit_id,
        aml.underlying_product_id,
-       pcm.contract_type position_type
+       pcm.contract_type position_type,
+       row_number() over(partition by pci.internal_contract_item_ref_no order by pci.internal_contract_item_ref_no, aml.attribute_id) contract_row,
+       (pkg_general.f_get_converted_quantity(pcpd.product_id,
+                                             pci.item_qty_unit_id,
+                                             pdm.base_quantity_unit,
+                                             1)) compqty_base_conv_rate,
+       qum.qty_unit comp_base_qty_unit,
+       qum.qty_unit_id comp_base_qty_unit_id
   from pcm_physical_contract_main     pcm,
        ciqs_contract_item_qty_status  ciqs,
        ak_corporate                   akc,
@@ -240,9 +262,7 @@ select pcdi.pcdi_id,
        qav_quality_attribute_values   qav,
        qat_quality_attributes         qav_qat,
        qat_quality_attributes         qat,
---       pdd_product_derivative_def     pdd,
-       -- dim_der_instrument_master     dim,
-       pcpq_pc_product_quality pcpq,
+       pcpq_pc_product_quality        pcpq,
        ----
        ash_assay_header            ash,
        asm_assay_sublot_mapping    asm,
@@ -251,7 +271,7 @@ select pcdi.pcdi_id,
        rm_ratio_master             rm,
        pdm_productmaster           pdm_under,
        qum_quantity_unit_master    qum_under,
-       ----              
+       ----
        itm_incoterm_master           itm,
        css_corporate_strategy_setup  css,
        pcpd_pc_product_definition    pcpd,
@@ -288,15 +308,12 @@ select pcdi.pcdi_id,
     and nvl(pcm.is_tolling_contract,'N') = 'N'
    and qav.comp_quality_id = qav_qat.quality_id(+)
    and pcpq.quality_template_id = qat.quality_id(+)
-      --   and pcm.corporate_id = qat.corporate_id
-      --  and qat.instrument_id = dim.instrument_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
    and pcpd.profit_center_id = cpc.profit_center_id
    and pcpd.product_id = pdm.product_id
    and pdm.product_type_id = pdtm.product_type_id
    and pcpd.strategy_id = css.strategy_id
    and pdm.base_quantity_unit = qum.qty_unit_id
-      -- and qat.product_derivative_id = pdd.derivative_def_id
    and pcm.contract_status = 'In Position'
    and pcm.contract_type = 'CONCENTRATES'
    and akc.groupid = gcd.groupid
@@ -305,4 +322,5 @@ select pcdi.pcdi_id,
    and pcdi.pcdi_id = diqs.pcdi_id
    and akcu.gabid = gab.gabid
    and pcdb.country_id = cym.country_id
-   and pcdb.city_id = cim.city_id 
+   and pcdb.city_id = cim.city_id
+
