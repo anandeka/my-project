@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_Patch_0054
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  29-Jul-2011
+
+Bug / Enhancement* 		:  EOD Bug fixes
+ 
+Bug ID*            		:  56492,56494
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  EOD
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+
+DB Files:
+-------------------
+Revision: 74216
+Author: sivachalabathi.s
+Date: 9:02:29 PM, Friday, July 29, 2011
+Message:
+56492,56494
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/001_DDL_EODDB_TABLE_ALTER_SCRIPTS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_cdc_derivatives_process.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+
+
