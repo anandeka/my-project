@@ -1,0 +1,1 @@
+alter table PCMUL_PHY_CONTRACT_MAIN_UL modify IS_TOLLING_CONTRACT default null;
