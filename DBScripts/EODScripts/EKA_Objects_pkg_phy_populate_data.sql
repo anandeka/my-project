@@ -2,7 +2,7 @@ create or replace package pkg_phy_populate_data is
 
   -- Author  : SURESHGOTTIPATI
   -- Created : 5/2/2011 5:33:53 PM
-  -- Purpose : 
+  -- Purpose :
   gvc_dbd_id varchar2(15);
 
   gvc_process varchar2(15);
@@ -116,14 +116,14 @@ create or replace package pkg_phy_populate_data is
   procedure sp_phy_create_vd_data(pc_corporate_id varchar2,
                                   pd_trade_date   date,
                                   pc_user_id      varchar2);
-end pkg_phy_populate_data; 
+end pkg_phy_populate_data;
 /
 create or replace package body pkg_phy_populate_data is
 
   procedure sp_phy_populate_table_data
   /*******************************************************************************************************************************************
     procedure name                           : sp_populate_table_data
-    author                                   : 
+    author                                   :
     created date                             : 12TH JAN 2011
     purpose                                  : populate transfer transaction data
     parameters
@@ -147,13 +147,13 @@ create or replace package body pkg_phy_populate_data is
   begin
     gvc_dbd_id  := pc_dbd_id;
     gvc_process := pc_process;
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -161,13 +161,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_agd_data');
     sp_phy_create_agd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -175,13 +175,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_agh_data');
     sp_phy_create_agh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -189,13 +189,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_cigc_data');
     sp_phy_create_cigc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -203,13 +203,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_cs_data');
     sp_phy_create_cs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -217,13 +217,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_dgrd_data');
     sp_phy_create_dgrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -231,13 +231,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_gmr_data');
     sp_phy_create_gmr_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -245,13 +245,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_mogrd_data');
     sp_phy_create_mogrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -259,13 +259,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcad_data');
     sp_phy_create_pcad_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -273,13 +273,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcbpd_data');
     sp_phy_create_pcbpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -287,13 +287,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcbph_data');
     sp_phy_create_pcbph_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -301,13 +301,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdb_data');
     sp_phy_create_pcdb_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -315,13 +315,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdd_data');
     sp_phy_create_pcdd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -329,13 +329,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdiob_data');
     sp_phy_create_pcdiob_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -343,13 +343,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdipe_data');
     sp_phy_create_pcdipe_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -362,7 +362,7 @@ create or replace package body pkg_phy_populate_data is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -370,13 +370,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdi_data');
     sp_phy_create_pcdi_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -384,13 +384,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcipf_data');
     sp_phy_create_pcipf_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -398,13 +398,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pci_data');
     sp_phy_create_pci_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -412,13 +412,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcjv_data');
     sp_phy_create_pcjv_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -426,13 +426,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcm_data');
     sp_phy_create_pcm_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -440,7 +440,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpdqd_data');
     sp_phy_create_pcpdqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -453,7 +453,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpd_data');
     sp_phy_create_pcpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -466,7 +466,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpq_data');
     sp_phy_create_pcpq_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -479,7 +479,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcqpd_data');
     sp_phy_create_pcqpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -492,7 +492,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pffxd_data');
     sp_phy_create_pffxd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -505,7 +505,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pfqpp_data');
     sp_phy_create_pfqpp_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -518,7 +518,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ppfd_data');
     sp_phy_create_ppfd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -531,7 +531,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ppfh_data');
     sp_phy_create_ppfh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -544,7 +544,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ciqs_data');
     sp_phy_create_ciqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -557,7 +557,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_diqs_data');
     sp_phy_create_diqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -570,7 +570,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_cqs_data');
     sp_phy_create_cqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -595,7 +595,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_vd_data');
     sp_phy_create_vd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -627,7 +627,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -727,7 +727,7 @@ create or replace package body pkg_phy_populate_data is
                                    agdul.int_alloc_group_id
                                 end),
                             24) int_alloc_group_id,
-                     
+
                      substr(max(case
                                   when agdul.internal_contract_item_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -863,7 +863,7 @@ create or replace package body pkg_phy_populate_data is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by agdul.int_alloc_group_detail_id) t;
-  
+
   exception
     when others then
       vobj_error_log.extend;
@@ -880,14 +880,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
   procedure sp_phy_create_agh_data(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -999,7 +999,7 @@ create or replace package body pkg_phy_populate_data is
                                    aghul.int_sales_contract_item_ref_no
                                 end),
                             24) int_sales_contract_item_ref_no,
-                     
+
                      substr(max(case
                                   when aghul.alloc_group_name is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1159,7 +1159,7 @@ create or replace package body pkg_phy_populate_data is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by aghul.int_alloc_group_id) t;
-  
+
   exception
     when others then
       vobj_error_log.extend;
@@ -1176,7 +1176,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_cigc_data(pc_corporate_id varchar2,
@@ -1184,7 +1184,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -1197,7 +1197,7 @@ create or replace package body pkg_phy_populate_data is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   begin
-  
+
     insert into cigc_contract_item_gmr_cost
       (cog_ref_no,
        internal_gmr_ref_no,
@@ -1248,7 +1248,7 @@ create or replace package body pkg_phy_populate_data is
                                    cigcul.internal_gmr_ref_no
                                 end),
                             24) internal_gmr_ref_no,
-                     
+
                      substr(max(case
                                   when cigcul.int_contract_item_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1318,7 +1318,7 @@ create or replace package body pkg_phy_populate_data is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by cigcul.cog_ref_no) t;
-  
+
   exception
     when others then
       vobj_error_log.extend;
@@ -1335,14 +1335,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
   procedure sp_phy_create_cs_data(pc_corporate_id varchar2,
                                   pd_trade_date   date,
                                   pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -1468,7 +1468,7 @@ create or replace package body pkg_phy_populate_data is
                                    csul.cog_ref_no
                                 end),
                             24) cog_ref_no,
-                     
+
                      substr(max(case
                                   when csul.cost_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1523,7 +1523,7 @@ create or replace package body pkg_phy_populate_data is
                                    csul.fx_to_base
                                 end),
                             24) fx_to_base,
-                     
+
                      substr(max(case
                                   when csul.transact_amt_sign is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1578,7 +1578,7 @@ create or replace package body pkg_phy_populate_data is
                                    csul.parent_estimated_cost_ref_no
                                 end),
                             24) parent_estimated_cost_ref_no,
-                     
+
                      substr(max(case
                                   when csul.estimated_amt is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1642,7 +1642,7 @@ create or replace package body pkg_phy_populate_data is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by csul.internal_cost_id) t;
-  
+
   exception
     when others then
       vobj_error_log.extend;
@@ -1659,7 +1659,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_dgrd_data(pc_corporate_id varchar2,
@@ -1667,7 +1667,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -1889,7 +1889,7 @@ create or replace package body pkg_phy_populate_data is
                     internal_grd_ref_no),
              decode(stock_condition, 'Empty_String', null, stock_condition),
              decode(gravity_type_id, 'Empty_String', null, gravity_type_id),
-             
+
              decode(gravity, 'Empty_String', null, gravity),
              decode(density_mass_qty_unit_id,
                     'Empty_String',
@@ -2142,7 +2142,7 @@ create or replace package body pkg_phy_populate_data is
                                    dgrdul.bank_account_id
                                 end),
                             24) bank_account_id,
-                     
+
                      substr(max(case
                                   when dgrdul.inventory_status is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2155,7 +2155,7 @@ create or replace package body pkg_phy_populate_data is
                                    dgrdul.is_afloat
                                 end),
                             24) is_afloat,
-                     
+
                      substr(max(case
                                   when dgrdul.crop_year_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2168,7 +2168,7 @@ create or replace package body pkg_phy_populate_data is
                                    dgrdul.current_qty
                                 end),
                             24) current_qty,
-                     
+
                      substr(max(case
                                   when dgrdul.internal_contract_item_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2373,7 +2373,7 @@ create or replace package body pkg_phy_populate_data is
                                    dgrdul.phy_attribute_group_no
                                 end),
                             24) phy_attribute_group_no,
-                     
+
                      substr(max(case
                                   when dgrdul.assay_header_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2478,7 +2478,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -2824,7 +2824,7 @@ create or replace package body pkg_phy_populate_data is
                                    gmrul.created_by
                                 end),
                             24) created_by,
-                     
+
                      pd_trade_date created_date,
                      substr(max(case
                                   when gmrul.contract_type is not null then
@@ -3319,7 +3319,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_mogrd_data(pc_corporate_id varchar2,
@@ -3327,7 +3327,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3458,7 +3458,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pcad_data(pc_corporate_id varchar2,
@@ -3466,7 +3466,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcad_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3478,9 +3478,9 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
-  
+
     insert into pcad_pc_agency_detail
       (pcad_id,
        internal_contract_ref_no,
@@ -3659,7 +3659,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pcbpd_data(pc_corporate_id varchar2,
@@ -3667,7 +3667,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcbpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3679,7 +3679,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcbpd_pc_base_price_detail
       (pcbpd_id,
@@ -3809,7 +3809,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pcbph_data(pc_corporate_id varchar2,
@@ -3817,7 +3817,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcbpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3829,21 +3829,21 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcbph_pc_base_price_header
       (pcbph_id,
-       optionality_desc,
+     --  optionality_desc,
        version,
        is_active,
        internal_contract_ref_no,
        price_description,
        dbd_id)
       select decode(pcbph_id, 'Empty_String', null, pcbph_id),
-             decode(optionality_desc,
+           /*  decode(optionality_desc,
                     'Empty_String',
                     null,
-                    optionality_desc),
+                    optionality_desc),*/
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(internal_contract_ref_no,
@@ -3862,13 +3862,12 @@ create or replace package body pkg_phy_populate_data is
                                    pcbphul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                     
-                     substr(max(case
+                   /*  substr(max(case
                                   when pcbphul.optionality_desc is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcbphul.optionality_desc
                                 end),
-                            24) optionality_desc,
+                            24) optionality_desc,*/
                      substr(max(case
                                   when pcbphul.version is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -3918,7 +3917,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pcdb_data(pc_corporate_id varchar2,
@@ -3926,7 +3925,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdb_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3938,7 +3937,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcdb_pc_delivery_basis
       (pcdb_id,
@@ -3988,7 +3987,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcdbul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                     
+
                      substr(max(case
                                   when pcdbul.inco_term_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4111,7 +4110,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdb_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4123,7 +4122,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcdd_document_details
       (pcdd_id,
@@ -4174,7 +4173,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcddul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                     
+
                      gvc_dbd_id
                 from pcddul_document_details_ul pcddul,
                      axs_action_summary         axs,
@@ -4206,7 +4205,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pcdiob_data(pc_corporate_id varchar2,
@@ -4214,7 +4213,7 @@ create or replace package body pkg_phy_populate_data is
                                       pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdiob_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4226,7 +4225,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcdiob_di_optional_basis
       (pcdiob_id, pcdi_id, pcdb_id, version, is_active, dbd_id)
@@ -4249,7 +4248,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcdiobul.pcdb_id
                                 end),
                             24) pcdb_id,
-                     
+
                      substr(max(case
                                   when pcdiobul.version is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4293,14 +4292,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
   procedure sp_phy_create_pcdipe_data(pc_corporate_id varchar2,
                                       pd_trade_date   date,
                                       pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdipe_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4312,7 +4311,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcdipe_di_pricing_elements
       (pcdipe_id, pcdi_id, pcbph_id, version, is_active, dbd_id)
@@ -4384,7 +4383,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pcdiqd_data(pc_corporate_id varchar2,
@@ -4392,7 +4391,7 @@ create or replace package body pkg_phy_populate_data is
                                       pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdiqd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4404,7 +4403,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcdiqd_di_quality_details
       (pcdiqd_id, pcdi_id, pcpq_id, version, is_active, dbd_id)
@@ -4476,7 +4475,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pcdi_data(pc_corporate_id varchar2,
@@ -4484,7 +4483,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdi_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4496,7 +4495,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcdi_pc_delivery_item
       (pcdi_id,
@@ -4640,7 +4639,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcdiul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                     
+
                      substr(max(case
                                   when pcdiul.delivery_item_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4883,7 +4882,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4895,7 +4894,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcipf_pci_pricing_formula
       (pcipf_id,
@@ -4920,14 +4919,14 @@ create or replace package body pkg_phy_populate_data is
                                    pcipful.internal_contract_item_ref_no
                                 end),
                             24) internal_contract_item_ref_no,
-                     
+
                      substr(max(case
                                   when pcipful.pcbph_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcipful.pcbph_id
                                 end),
                             24) pcbph_id,
-                     
+
                      substr(max(case
                                   when pcipful.version is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4971,14 +4970,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
   procedure sp_phy_create_pci_data(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pci_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4990,7 +4989,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pci_physical_contract_item
       (internal_contract_item_ref_no,
@@ -5146,7 +5145,7 @@ create or replace package body pkg_phy_populate_data is
                                    pciul.delivery_from_date
                                 end),
                             24) delivery_from_date,
-                     
+
                      substr(max(case
                                   when pciul.delivery_to_date is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5257,7 +5256,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcjv_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -5269,9 +5268,9 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
-  
+
     insert into pcjv_pc_jv_detail
       (pcjv_id,
        internal_contract_ref_no,
@@ -5307,7 +5306,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcjvul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                     
+
                      substr(max(case
                                   when pcjvul.cp_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5382,7 +5381,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -5562,7 +5561,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcmul.contract_ref_no
                                 end),
                             24) contract_ref_no,
-                     
+
                      substr(max(case
                                   when pcmul.issue_date is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5842,7 +5841,7 @@ create or replace package body pkg_phy_populate_data is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by pcmul.internal_contract_ref_no) t
-               where is_tolling_contract <> 'Y';
+               where nvl(is_tolling_contract,'N') <> 'Y';
   exception
     when others then
       vobj_error_log.extend;
@@ -5866,7 +5865,7 @@ create or replace package body pkg_phy_populate_data is
                                       pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcpdqd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -5878,7 +5877,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcpdqd_pd_quality_details
       (pcpdqd_id, pcqpd_id, pcpq_id, version, is_active, dbd_id)
@@ -5944,7 +5943,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pcpd_data(pc_corporate_id varchar2,
@@ -5952,7 +5951,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -5964,7 +5963,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcpd_pc_product_definition
       (pcpd_id,
@@ -6206,7 +6205,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pcpq_data(pc_corporate_id varchar2,
@@ -6214,7 +6213,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcpq_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -6226,7 +6225,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcpq_pc_product_quality
       (pcpq_id,
@@ -6284,7 +6283,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcpqul.pcpd_id
                                 end),
                             24) pcpd_id,
-                     
+
                      substr(max(case
                                   when pcpqul.quality_template_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -6413,7 +6412,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -6425,7 +6424,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pcqpd_pc_qual_premium_discount
       (pcqpd_id,
@@ -6543,7 +6542,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pffxd_data(pc_corporate_id varchar2,
@@ -6551,7 +6550,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -6563,7 +6562,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into pffxd_phy_formula_fx_details
       (pffxd_id,
@@ -6780,7 +6779,7 @@ create or replace package body pkg_phy_populate_data is
                                    pffxdul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                     
+
                      gvc_dbd_id
                 from pffxdul_phy_formula_fx_dtl_ul pffxdul,
                      axs_action_summary            axs,
@@ -6812,7 +6811,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_pfqpp_data(pc_corporate_id varchar2,
@@ -6820,7 +6819,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -6832,9 +6831,9 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
-  
+
     insert into pfqpp_phy_formula_qp_pricing
       (pfqpp_id,
        ppfh_id,
@@ -7092,7 +7091,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_ppfd_data(pc_corporate_id varchar2,
@@ -7100,7 +7099,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7112,7 +7111,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into ppfd_phy_price_formula_details
       (ppfd_id,
@@ -7269,7 +7268,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_ppfh_data(pc_corporate_id varchar2,
@@ -7277,7 +7276,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7289,7 +7288,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into ppfh_phy_price_formula_header
       (ppfh_id,
@@ -7398,7 +7397,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_ciqs_data(pc_corporate_id varchar2,
@@ -7406,7 +7405,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7418,9 +7417,9 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
-  
+
     insert into ciqs_contract_item_qty_status
       (ciqs_id,
        internal_contract_item_ref_no,
@@ -7510,14 +7509,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
   procedure sp_phy_create_diqs_data(pc_corporate_id varchar2,
                                     pd_trade_date   date,
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7529,7 +7528,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into diqs_delivery_item_qty_status
       (diqs_id,
@@ -7629,7 +7628,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7641,7 +7640,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into cqs_contract_qty_status
       (cqs_id,
@@ -7719,7 +7718,7 @@ create or replace package body pkg_phy_populate_data is
          and dbd_ul.corporate_id = pc_corporate_id
          and dbd_ul.process = gvc_process
        group by cqsul.cqs_id;
-  
+
   exception
     when others then
       vobj_error_log.extend;
@@ -7736,7 +7735,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_phy_create_grd_data(pc_corporate_id varchar2,
@@ -7744,7 +7743,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7756,7 +7755,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert into grd_goods_record_detail
       (internal_grd_ref_no,
@@ -8134,7 +8133,7 @@ create or replace package body pkg_phy_populate_data is
                            grdul.source_int_pool_ref_no
                         end),
                     24) source_int_pool_ref_no,
-             
+
              substr(max(case
                           when grdul.is_fulfilled is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -8290,14 +8289,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
   procedure sp_phy_create_vd_data(pc_corporate_id varchar2,
                                   pd_trade_date   date,
                                   pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   : 
+    author                                                   :
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -8309,7 +8308,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
     insert all into vd_voyage_detail
       (internal_gmr_ref_no,
@@ -8882,8 +8881,8 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
-end pkg_phy_populate_data; 
+end pkg_phy_populate_data;
 /
