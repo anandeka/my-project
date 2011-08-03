@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_Patch_0062
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam
+ 
+Created on*        		:  03-Aug-2011
+
+Bug / Enhancement* 		:  bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Deal Management
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 74464
+Author: uttam
+Date: 6:42:30 PM, Wednesday, August 03, 2011
+Message:
+Deal management pnl changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_derivative_deal_value.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_derivative_pnl_value.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_inventory_deal_value.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_inventory_pnl_value.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_open_deal_value.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_open_item_pnl_value.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_42.sql
+
+
