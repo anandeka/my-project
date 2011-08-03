@@ -1,0 +1,63 @@
+Patch No*          		:  EKA_METALS_Patch_0061
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  01-Aug-2011
+
+Bug / Enhancement* 		:  Physical Position Report
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Physical Position Report
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+DB Files:
+-----------
+Revision: 74421
+Author: sivachalabathi.s
+Date: 3:24:32 PM, Wednesday, August 03, 2011
+Message:
+bug fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_PKG_GENERAL.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details_by_qp.sql
+
+
+RPT Files
+--------
+Revision: 74422
+Author: sivachalabathi.s
+Date: 3:25:19 PM, Wednesday, August 03, 2011
+Message:
+bug fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/PhysicalPosition.rpt
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/PositionDeliveryPricing.rpt
+
