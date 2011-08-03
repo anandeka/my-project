@@ -71,7 +71,17 @@ select pcdi.pcdi_id,
        null attribute_name,
        null element_qty_unit_id,
        null underlying_product_id,
-       pcm.contract_type position_type
+       pcm.contract_type position_type,
+       pdm.product_desc  comp_product_name,
+       qat.quality_name comp_quality,
+       ciqs.open_qty item_open_qty,
+       pkg_general.f_get_converted_quantity(pcpd.product_id,
+                                            pci.item_qty_unit_id,
+                                            pdm.base_quantity_unit,
+                                            1)compqty_base_conv_rate,
+       qum.qty_unit comp_base_qty_unit,
+       qum.qty_unit_id comp_base_qty_unit_id,
+       1 contract_row       
   from pcm_physical_contract_main    pcm,
        ciqs_contract_item_qty_status ciqs,
        ak_corporate                  akc,
@@ -147,7 +157,7 @@ select tt.pcdi_id,
        tt.country_name,
        tt.city_name,
        to_date(pkg_report_general.fn_get_element_pricing_month(tt.internal_contract_item_ref_no,
-                                                       tt.attribute_id),
+                                                               tt.attribute_id),
                'dd-Mon-yyyy') delivery_date,
        tt.purchase_sales,
        tt.baseqty_conv_rate,
@@ -219,10 +229,27 @@ select tt.pcdi_id,
        tt.attribute_name,
        tt.element_qty_unit_id,
        tt.underlying_product_id,
-       tt.position_type
+       tt.position_type,
+       tt.comp_product_name,
+       tt.comp_quality,
+       (case
+         when tt.open_qty > 0 then
+          pkg_report_general.fn_get_element_qty(tt.internal_contract_item_ref_no,
+                                                tt.open_qty,
+                                                tt.item_qty_unit_id,
+                                                tt.assay_header_id,
+                                                tt.attribute_id)
+         else
+          0
+       end) item_open_qty,
+       tt.baseqty_conv_rate compqty_base_conv_rate,
+       tt.qty_unit comp_base_qty_unit,
+       tt.qty_unit_id comp_base_qty_unit_id,
+       tt.contract_row
   from (select pcdi.pcdi_id,
                 pci.internal_contract_item_ref_no,
                 gcd.groupname corporate_group,
+                ---------
                 blm.business_line_name business_line,
                 akc.corporate_id,
                 akc.corporate_name,
@@ -263,18 +290,9 @@ select tt.pcdi_id,
                                                         1)
                 end) else(pkg_general.f_get_converted_quantity(pcpd.product_id, pci.item_qty_unit_id, pdm.base_quantity_unit, 1)) end) baseqty_conv_rate,
                 pfs.price_fixation_status,
-                /*pkg_report_general.fn_get_element_qty(pci.internal_contract_item_ref_no,
-                                                                                                                                                                    ciqs.total_qty,
-                                                                                                                                                                    ciqs.item_qty_unit_id,
-                                                                                                                                                                    pcpq.assay_header_id,
-                                                                                                                                                                    aml.attribute_id) total_qty,
-                                                                                                                              pkg_report_general.fn_get_element_qty(pci.internal_contract_item_ref_no,
-                                                                                                                                                                    ciqs.open_qty,
-                                                                                                                                                                    ciqs.item_qty_unit_id,
-                                                                                                                                                                    pcpq.assay_header_id,
-                                                                                                                                                                    aml.attribute_id) open_qty,*/
                 ciqs.total_qty total_qty,
-                ciqs.open_qty  open_qty,
+                ciqs.open_qty open_qty,
+                ciqs.open_qty item_open_qty,
                 ------
                 round((case
                         when pfs.price_fixation_status = 'Fixed' then
@@ -297,10 +315,9 @@ select tt.pcdi_id,
                          0
                       end) end), 4) unfixed_qty,
                 -------                                                          
-                -- 0 price_fixed_qty,
-                -- 0 unfixed_qty,
                 pci.item_qty_unit_id,
                 nvl(qum_under.qty_unit, qum.qty_unit) qty_unit,
+                nvl(qum_under.qty_unit_id, qum.qty_unit_id) qty_unit_id,
                 pcm.contract_ref_no,
                 pcm.issue_date,
                 pcdi.delivery_item_no,
@@ -336,7 +353,12 @@ select tt.pcdi_id,
                   rm.qty_unit_id_numerator
                end) element_qty_unit_id,
                aml.underlying_product_id,
-               pcm.contract_type position_type
+               pcm.contract_type position_type,
+               pdm.product_desc comp_product_name,
+               qat.quality_name comp_quality,
+               qum.qty_unit comp_base_qty_unit,
+               qum.qty_unit_id comp_base_qty_unit_id,
+               row_number() over(partition by pci.internal_contract_item_ref_no order by pci.internal_contract_item_ref_no, aml.attribute_id) contract_row
           from pcm_physical_contract_main     pcm,
                ciqs_contract_item_qty_status  ciqs,
                ak_corporate                   akc,
@@ -352,9 +374,7 @@ select tt.pcdi_id,
                qav_quality_attribute_values   qav,
                qat_quality_attributes         qav_qat,
                qat_quality_attributes         qat,
-               --       pdd_product_derivative_def     pdd,
-               -- dim_der_instrument_master     dim,
-               pcpq_pc_product_quality pcpq,
+               pcpq_pc_product_quality        pcpq,
                ----
                ash_assay_header            ash,
                asm_assay_sublot_mapping    asm,
@@ -404,8 +424,6 @@ select tt.pcdi_id,
            and pci.internal_contract_item_ref_no =
                pfs.internal_contract_item_ref_no
            and pqca.element_id = pfs.element_id
-              --   and pcm.corporate_id = qat.corporate_id
-              --  and qat.instrument_id = dim.instrument_id
            and pcm.internal_contract_ref_no =
                pcpd.internal_contract_ref_no(+)
            and pcpd.profit_center_id = cpc.profit_center_id
@@ -413,14 +431,15 @@ select tt.pcdi_id,
            and pdm.product_type_id = pdtm.product_type_id
            and pcpd.strategy_id = css.strategy_id
            and pdm.base_quantity_unit = qum.qty_unit_id
-              -- and qat.product_derivative_id = pdd.derivative_def_id
            and pcm.contract_status = 'In Position'
            and pcm.contract_type = 'CONCENTRATES'
-              and nvl(pcm.is_tolling_contract,'N') = 'N'
+           and nvl(pcm.is_tolling_contract, 'N') = 'N'
            and akc.groupid = gcd.groupid
            and pcm.trader_id = akcu.user_id(+)
            and cpc.business_line_id = blm.business_line_id(+)
            and pcdi.pcdi_id = diqs.pcdi_id
            and akcu.gabid = gab.gabid
            and pcdb.country_id = cym.country_id
-           and pcdb.city_id = cim.city_id) tt 
+           and pfs.price_fixation_status <> 'Fixed'
+           and pcdb.city_id = cim.city_id) tt
+where tt.open_qty >0 
