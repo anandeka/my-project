@@ -1,0 +1,63 @@
+Patch No*          		:  EKA_METALS_Patch_0064
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena M
+ 
+Created on*        		:  04-Aug-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Physical Contract
+ 
+Sub-Module  	    :  Stock
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+Revision: 74425
+Author: sriveenam
+Date: 3:37:42 PM, Wednesday, August 03, 2011
+Message:
+origin added
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
+
+Revision: 74426
+Author: sriveenam
+Date: 3:57:17 PM, Wednesday, August 03, 2011
+Message:
+as part of bug fix fro conversion rate
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_40.sql
+
+Revision: 74499
+Author: sriveenam
+Date: 1:01:50 PM, Thursday, August 04, 2011
+Message:
+m2m
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_44.sql
