@@ -54,18 +54,9 @@ begin
         -- dbms_output.put_line(' base_unit_unit_id ' || base_unit_unit_id);
         -- dbms_output.put_line(' base_unit_unit_id ' || pnl_qty);
         --  dbms_output.put_line(' pc_open_qty ' || pc_open_qty);
-        RESULT := RESULT +
-                  ((pnl_value /
-                  (pkg_general.f_get_converted_quantity(pc_product_id,
-                                                          pc_from_qty_id,
-                                                          base_unit_unit_id,
-                                                          pnl_qty))) *
-                  (pkg_general.f_get_converted_quantity(pc_product_id,
-                                                         pc_from_qty_id,
-                                                         base_unit_unit_id,
-                                                         pc_open_qty)));
-      ELSE
         RESULT := RESULT + pnl_value;
+      ELSE
+        RESULT := 0;
       END IF;
     
     END LOOP;
