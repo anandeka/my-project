@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_Patch_0065
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam
+ 
+Created on*        		:  05-Aug-2011
+
+Bug / Enhancement* 		:  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Deal Management
+ 
+Sub-Module  	    :  Stock
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 74636
+Author: uttam
+Date: 6:52:05 PM, Friday, August 05, 2011
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_derivative_deal_value.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_derivative_pnl_value.sql
+
+
