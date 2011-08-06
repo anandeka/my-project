@@ -60,10 +60,14 @@ Message:
 APP DB CONCENTRATE OPEN PNL RELEASE
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_42_Report Menu.txt
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_45_DDL_MVIEWLOGS_CONC.sql
 
 
 
-
-
+Revision: 74686
+Author: sivachalabathi.s
+Date: 7:59:52 PM, Saturday, August 06, 2011
+Message:
+APP DB CONCENTRATE OPEN PNL RELEASE
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_45_DDL_MVIEWLOGS_CONC.sql
 

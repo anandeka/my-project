@@ -44,7 +44,11 @@ EOD DB CONCENTRATE OPEN PNL RELEASE
 ----
 1 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/002_DML_EEM_Script.sql
 2 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/003-DDL_PHY_TABLES.sql
+
+Revision: 74687
 3 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/004-MVIEW_EODDB.sql
+
+Revision: 74688/74658
 4 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
 5 ) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
 6 ) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
