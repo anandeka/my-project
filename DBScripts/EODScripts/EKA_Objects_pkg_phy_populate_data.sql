@@ -2,7 +2,7 @@ create or replace package pkg_phy_populate_data is
 
   -- Author  : SURESHGOTTIPATI
   -- Created : 5/2/2011 5:33:53 PM
-  -- Purpose :
+  -- Purpose : 
   gvc_dbd_id varchar2(15);
 
   gvc_process varchar2(15);
@@ -116,14 +116,69 @@ create or replace package pkg_phy_populate_data is
   procedure sp_phy_create_vd_data(pc_corporate_id varchar2,
                                   pd_trade_date   date,
                                   pc_user_id      varchar2);
-end pkg_phy_populate_data;
+  procedure sp_phy_create_pcpch_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);
+  procedure sp_phy_create_pqd_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
+  procedure sp_phy_create_pcepc_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);
+  procedure sp_phy_create_pcth_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
+  procedure sp_phy_create_ted_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
+  procedure sp_phy_create_tqd_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
+  procedure sp_phy_create_pcetc_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);
+  procedure sp_phy_create_pcar_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
+  procedure sp_phy_create_pcaesl_data(pc_corporate_id varchar2,
+                                      pd_trade_date   date,
+                                      pc_user_id      varchar2);
+  procedure sp_phy_create_arqd_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
+  procedure sp_phy_create_pcaph_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);
+  procedure sp_phy_create_pcap_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
+  procedure sp_phy_create_pqdp_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
+  procedure sp_phy_create_pad_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
+  procedure sp_phy_create_pcrh_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
+  procedure sp_phy_create_rqd_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
+  procedure sp_phy_create_red_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
+  procedure sp_phy_create_pcerc_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);
+                                     
+end pkg_phy_populate_data; 
 /
 create or replace package body pkg_phy_populate_data is
 
   procedure sp_phy_populate_table_data
   /*******************************************************************************************************************************************
     procedure name                           : sp_populate_table_data
-    author                                   :
+    author                                   : 
     created date                             : 12TH JAN 2011
     purpose                                  : populate transfer transaction data
     parameters
@@ -147,13 +202,13 @@ create or replace package body pkg_phy_populate_data is
   begin
     gvc_dbd_id  := pc_dbd_id;
     gvc_process := pc_process;
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -161,13 +216,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_agd_data');
     sp_phy_create_agd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -175,13 +230,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_agh_data');
     sp_phy_create_agh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -189,13 +244,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_cigc_data');
     sp_phy_create_cigc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -203,13 +258,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_cs_data');
     sp_phy_create_cs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -217,13 +272,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_dgrd_data');
     sp_phy_create_dgrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -231,13 +286,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_gmr_data');
     sp_phy_create_gmr_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -245,13 +300,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_mogrd_data');
     sp_phy_create_mogrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -259,13 +314,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcad_data');
     sp_phy_create_pcad_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -273,13 +328,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcbpd_data');
     sp_phy_create_pcbpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -287,13 +342,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcbph_data');
     sp_phy_create_pcbph_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -301,13 +356,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdb_data');
     sp_phy_create_pcdb_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -315,13 +370,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdd_data');
     sp_phy_create_pcdd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -329,13 +384,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdiob_data');
     sp_phy_create_pcdiob_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -343,13 +398,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdipe_data');
     sp_phy_create_pcdipe_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -362,7 +417,7 @@ create or replace package body pkg_phy_populate_data is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -370,13 +425,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdi_data');
     sp_phy_create_pcdi_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -384,13 +439,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcipf_data');
     sp_phy_create_pcipf_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -398,13 +453,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pci_data');
     sp_phy_create_pci_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -412,13 +467,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcjv_data');
     sp_phy_create_pcjv_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -426,13 +481,13 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcm_data');
     sp_phy_create_pcm_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -440,7 +495,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpdqd_data');
     sp_phy_create_pcpdqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -453,7 +508,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpd_data');
     sp_phy_create_pcpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -466,7 +521,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpq_data');
     sp_phy_create_pcpq_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -479,7 +534,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcqpd_data');
     sp_phy_create_pcqpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -492,7 +547,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pffxd_data');
     sp_phy_create_pffxd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -505,7 +560,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pfqpp_data');
     sp_phy_create_pfqpp_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -518,7 +573,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ppfd_data');
     sp_phy_create_ppfd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -531,7 +586,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ppfh_data');
     sp_phy_create_ppfh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -544,7 +599,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ciqs_data');
     sp_phy_create_ciqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -557,7 +612,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_diqs_data');
     sp_phy_create_diqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -570,7 +625,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_cqs_data');
     sp_phy_create_cqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -583,6 +638,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_grd_data');
     sp_phy_create_grd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -595,7 +651,241 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_vd_data');
     sp_phy_create_vd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcpch_data');
+    sp_phy_create_pcpch_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pqd_data');
+    sp_phy_create_pqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcepc_data');
+    sp_phy_create_pcepc_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcth_data');
+    sp_phy_create_pcth_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_ted_data');
+    sp_phy_create_ted_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_tqd_data');
+    sp_phy_create_tqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcetc_data');
+    sp_phy_create_pcetc_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcar_data');
+    sp_phy_create_pcar_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcaesl_data');
+    sp_phy_create_pcaesl_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_arqd_data');
+    sp_phy_create_arqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcaph_data');
+    sp_phy_create_pcaph_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcap_data');
+    sp_phy_create_pcap_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pqdp_data');
+    sp_phy_create_pqdp_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pad_data');
+    sp_phy_create_pad_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcrh_data');
+    sp_phy_create_pcrh_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_rqd_data');
+    sp_phy_create_rqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_red_data');
+    sp_phy_create_red_data(pc_corporate_id, pd_trade_date, pc_user_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_pcerc_data');
+    sp_phy_create_pcerc_data(pc_corporate_id, pd_trade_date, pc_user_id);    
+    
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -627,7 +917,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -727,7 +1017,7 @@ create or replace package body pkg_phy_populate_data is
                                    agdul.int_alloc_group_id
                                 end),
                             24) int_alloc_group_id,
-
+                     
                      substr(max(case
                                   when agdul.internal_contract_item_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -813,17 +1103,17 @@ create or replace package body pkg_phy_populate_data is
                                 end),
                             24) is_deleted,
                      /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                       when agdul.no_of_bales is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                        to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                        agdul.no_of_bales
-                                                                                                                                                                                                                                                                                                                                                                                                     end),
-                                                                                                                                                                                                                                                                                                                                                                                                 24) no_of_bales,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 when agdul.no_of_bales is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  agdul.no_of_bales
+                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                           24) no_of_bales,*/
                      /* substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                       when agdul.pool_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                        to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                        agdul.pool_id
-                                                                                                                                                                                                                                                                                                                                                                                                     end),
-                                                                                                                                                                                                                                                                                                                                                                                                 24) pool_id,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 when agdul.pool_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  agdul.pool_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                           24) pool_id,*/
                      substr(max(case
                                   when agdul.internal_action_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -863,7 +1153,7 @@ create or replace package body pkg_phy_populate_data is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by agdul.int_alloc_group_detail_id) t;
-
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -880,14 +1170,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
   procedure sp_phy_create_agh_data(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -923,9 +1213,9 @@ create or replace package body pkg_phy_populate_data is
        --today_status,
        internal_action_ref_no,
        /*gravity,
-                                                                                                                         gravity_type,
-                                                                                                                         density_mass_qty_unit_id,
-                                                                                                                         density_volume_qty_unit_id,*/
+                                                                                                                                       gravity_type,
+                                                                                                                                       density_mass_qty_unit_id,
+                                                                                                                                       density_volume_qty_unit_id,*/
        partnership_type,
        dbd_id)
       select decode(int_alloc_group_id,
@@ -984,9 +1274,9 @@ create or replace package body pkg_phy_populate_data is
                     null,
                     internal_action_ref_no),
              /*decode(gravity, 'Empty_String', null, gravity),
-                                                                                                                                                                                                                                      decode(gravity_type, 'Empty_String', null, gravity_type),
-                                                                                                                                                                                                                                      decode(density_mass_qty_unit_id, 'Empty_String', null, density_mass_qty_unit_id),
-                                                                                                                                                                                                                                      decode(density_volume_qty_unit_id, 'Empty_String', null, internal_action_ref_no),*/
+                                                                                                                                                                                                                                                                decode(gravity_type, 'Empty_String', null, gravity_type),
+                                                                                                                                                                                                                                                                decode(density_mass_qty_unit_id, 'Empty_String', null, density_mass_qty_unit_id),
+                                                                                                                                                                                                                                                                decode(density_volume_qty_unit_id, 'Empty_String', null, internal_action_ref_no),*/
              decode(partnership_type,
                     'Empty_String',
                     null,
@@ -999,7 +1289,7 @@ create or replace package body pkg_phy_populate_data is
                                    aghul.int_sales_contract_item_ref_no
                                 end),
                             24) int_sales_contract_item_ref_no,
-
+                     
                      substr(max(case
                                   when aghul.alloc_group_name is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1103,11 +1393,11 @@ create or replace package body pkg_phy_populate_data is
                                 end),
                             24) realized_creation_date,
                      /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                       when aghul.today_status is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                        to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                        aghul.today_status
-                                                                                                                                                                                                                                                                                                                                                                                                     end),
-                                                                                                                                                                                                                                                                                                                                                                                                 24) today_status,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.today_status is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.today_status
+                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                           24) today_status,*/
                      substr(max(case
                                   when aghul.internal_action_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1115,29 +1405,29 @@ create or replace package body pkg_phy_populate_data is
                                 end),
                             24) internal_action_ref_no,
                      /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                       when aghul.gravity is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                        to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                        aghul.gravity
-                                                                                                                                                                                                                                                                                                                                                                                                     end),
-                                                                                                                                                                                                                                                                                                                                                                                                 24) gravity,
-                                                                                                                                                                                                                                                                                                                                                                                         substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                       when aghul.gravity_type is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                        to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                        aghul.gravity_type
-                                                                                                                                                                                                                                                                                                                                                                                                     end),
-                                                                                                                                                                                                                                                                                                                                                                                                 24) gravity_type,
-                                                                                                                                                                                                                                                                                                                                                                                          substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                       when aghul.density_mass_qty_unit_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                        to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                        aghul.density_mass_qty_unit_id
-                                                                                                                                                                                                                                                                                                                                                                                                     end),
-                                                                                                                                                                                                                                                                                                                                                                                                 24) density_mass_qty_unit_id,
-                                                                                                                                                                                                                                                                                                                                                                                          substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                       when aghul.density_volume_qty_unit_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                        to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                        aghul.density_volume_qty_unit_id
-                                                                                                                                                                                                                                                                                                                                                                                                     end),
-                                                                                                                                                                                                                                                                                                                                                                                                 24) density_volume_qty_unit_id, */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.gravity is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.gravity
+                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                           24) gravity,
+                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.gravity_type is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.gravity_type
+                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                           24) gravity_type,
+                                                                                                                                                                                                                                                                                                                                                                                                                                    substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.density_mass_qty_unit_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.density_mass_qty_unit_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                           24) density_mass_qty_unit_id,
+                                                                                                                                                                                                                                                                                                                                                                                                                                    substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.density_volume_qty_unit_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.density_volume_qty_unit_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                           24) density_volume_qty_unit_id, */
                      substr(max(case
                                   when aghul.partnership_type is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1159,7 +1449,7 @@ create or replace package body pkg_phy_populate_data is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by aghul.int_alloc_group_id) t;
-
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -1176,7 +1466,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_cigc_data(pc_corporate_id varchar2,
@@ -1184,7 +1474,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -1197,7 +1487,7 @@ create or replace package body pkg_phy_populate_data is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   begin
-
+  
     insert into cigc_contract_item_gmr_cost
       (cog_ref_no,
        internal_gmr_ref_no,
@@ -1248,7 +1538,7 @@ create or replace package body pkg_phy_populate_data is
                                    cigcul.internal_gmr_ref_no
                                 end),
                             24) internal_gmr_ref_no,
-
+                     
                      substr(max(case
                                   when cigcul.int_contract_item_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1318,7 +1608,7 @@ create or replace package body pkg_phy_populate_data is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by cigcul.cog_ref_no) t;
-
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -1335,14 +1625,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
   procedure sp_phy_create_cs_data(pc_corporate_id varchar2,
                                   pd_trade_date   date,
                                   pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -1468,7 +1758,7 @@ create or replace package body pkg_phy_populate_data is
                                    csul.cog_ref_no
                                 end),
                             24) cog_ref_no,
-
+                     
                      substr(max(case
                                   when csul.cost_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1523,7 +1813,7 @@ create or replace package body pkg_phy_populate_data is
                                    csul.fx_to_base
                                 end),
                             24) fx_to_base,
-
+                     
                      substr(max(case
                                   when csul.transact_amt_sign is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1578,7 +1868,7 @@ create or replace package body pkg_phy_populate_data is
                                    csul.parent_estimated_cost_ref_no
                                 end),
                             24) parent_estimated_cost_ref_no,
-
+                     
                      substr(max(case
                                   when csul.estimated_amt is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1642,7 +1932,7 @@ create or replace package body pkg_phy_populate_data is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by csul.internal_cost_id) t;
-
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -1659,7 +1949,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_dgrd_data(pc_corporate_id varchar2,
@@ -1667,7 +1957,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -1696,13 +1986,13 @@ create or replace package body pkg_phy_populate_data is
        net_weight,
        net_weight_unit_id,
        /*discharge_date,
-                                                                                                                                 discharge_country_id,
-                                                                                                                                 discharge_port_id,
-                                                                                                                                 fulfillment_date,
-                                                                                                                                 remarks,
-                                                                                                                                 vessel_qty_before_discharge,
-                                                                                                                                 is_voyage_stock,
-                                                                                                                                 container_size,*/
+                                                                                                                                               discharge_country_id,
+                                                                                                                                               discharge_port_id,
+                                                                                                                                               fulfillment_date,
+                                                                                                                                               remarks,
+                                                                                                                                               vessel_qty_before_discharge,
+                                                                                                                                               is_voyage_stock,
+                                                                                                                                               container_size,*/
        bl_date,
        bl_number,
        shed_id,
@@ -1796,16 +2086,16 @@ create or replace package body pkg_phy_populate_data is
                     null,
                     net_weight_unit_id),
              /*decode(discharge_date, 'Empty_String', null, discharge_date),
-                                                                                                                                                                                                                                                   decode(discharge_country_id, 'Empty_String', null, discharge_country_id),
-                                                                                                                                                                                                                                                   decode(discharge_port_id, 'Empty_String', null, discharge_port_id),
-                                                                                                                                                                                                                                                   decode(fulfillment_date, 'Empty_String', null, fulfillment_date),
-                                                                                                                                                                                                                                                   decode(remarks, 'Empty_String', null, remarks),
-                                                                                                                                                                                                                                                   decode(vessel_qty_before_discharge, 'Empty_String', null, vessel_qty_before_discharge),
-                                                                                                                                                                                                                                                   decode(is_voyage_stock, 'Empty_String', null, is_voyage_stock),
-                                                                                                                                                                                                                                                   decode(container_size,
-                                                                                                                                                                                                                                                          'Empty_String',
-                                                                                                                                                                                                                                                          null,
-                                                                                                                                                                                                                                                          container_size),*/
+                                                                                                                                                                                                                                                                             decode(discharge_country_id, 'Empty_String', null, discharge_country_id),
+                                                                                                                                                                                                                                                                             decode(discharge_port_id, 'Empty_String', null, discharge_port_id),
+                                                                                                                                                                                                                                                                             decode(fulfillment_date, 'Empty_String', null, fulfillment_date),
+                                                                                                                                                                                                                                                                             decode(remarks, 'Empty_String', null, remarks),
+                                                                                                                                                                                                                                                                             decode(vessel_qty_before_discharge, 'Empty_String', null, vessel_qty_before_discharge),
+                                                                                                                                                                                                                                                                             decode(is_voyage_stock, 'Empty_String', null, is_voyage_stock),
+                                                                                                                                                                                                                                                                             decode(container_size,
+                                                                                                                                                                                                                                                                                    'Empty_String',
+                                                                                                                                                                                                                                                                                    null,
+                                                                                                                                                                                                                                                                                    container_size),*/
              decode(bl_date, 'Empty_String', null, bl_date),
              decode(bl_number, 'Empty_String', null, bl_number),
              decode(shed_id, 'Empty_String', null, shed_id),
@@ -1889,7 +2179,7 @@ create or replace package body pkg_phy_populate_data is
                     internal_grd_ref_no),
              decode(stock_condition, 'Empty_String', null, stock_condition),
              decode(gravity_type_id, 'Empty_String', null, gravity_type_id),
-
+             
              decode(gravity, 'Empty_String', null, gravity),
              decode(density_mass_qty_unit_id,
                     'Empty_String',
@@ -2017,53 +2307,53 @@ create or replace package body pkg_phy_populate_data is
                                 end),
                             24) net_weight_unit_id,
                      /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                        when dgrdul.discharge_date is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                         to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                         dgrdul.discharge_date
-                                                                                                                                                                                                                                                                                                                                                                                                                      end),
-                                                                                                                                                                                                                                                                                                                                                                                                                  24) discharge_date,
-                                                                                                                                                                                                                                                                                                                                                                                        substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                        when dgrdul.discharge_country_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                         to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                         dgrdul.discharge_country_id
-                                                                                                                                                                                                                                                                                                                                                                                                                      end),
-                                                                                                                                                                                                                                                                                                                                                                                                                  24) discharge_country_id,
-                                                                                                                                                                                                                                                                                                                                                                                         substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                        when dgrdul.discharge_port_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                         to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                         dgrdul.discharge_port_id
-                                                                                                                                                                                                                                                                                                                                                                                                                      end),
-                                                                                                                                                                                                                                                                                                                                                                                                                  24) discharge_port_id,
-                                                                                                                                                                                                                                                                                                                                                                                         substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                        when dgrdul.fulfillment_date is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                         to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                         dgrdul.fulfillment_date
-                                                                                                                                                                                                                                                                                                                                                                                                                      end),
-                                                                                                                                                                                                                                                                                                                                                                                                                  24) fulfillment_date,
-                                                                                                                                                                                                                                                                                                                                                                                         substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                        when dgrdul.remarks is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                         to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                         dgrdul.remarks
-                                                                                                                                                                                                                                                                                                                                                                                                                      end),
-                                                                                                                                                                                                                                                                                                                                                                                                                  24) remarks,
-                                                                                                                                                                                                                                                                                                                                                                                         substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                        when dgrdul.vessel_qty_before_discharge is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                         to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                         dgrdul.vessel_qty_before_discharge
-                                                                                                                                                                                                                                                                                                                                                                                                                      end),
-                                                                                                                                                                                                                                                                                                                                                                                                                  24) vessel_qty_before_discharge,
-                                                                                                                                                                                                                                                                                                                                                                                         substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                        when dgrdul.is_voyage_stock is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                         to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                         dgrdul.is_voyage_stock
-                                                                                                                                                                                                                                                                                                                                                                                                                      end),
-                                                                                                                                                                                                                                                                                                                                                                                                                  24) is_voyage_stock,
-                                                                                                                                                                                                                                                                                                                                                                                        substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                        when dgrdul.container_size is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                         to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                         dgrdul.container_size
-                                                                                                                                                                                                                                                                                                                                                                                                                      end),
-                                                                                                                                                                                                                                                                                                                                                                                                                  24) container_size,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.discharge_date is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.discharge_date
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) discharge_date,
+                                                                                                                                                                                                                                                                                                                                                                                                                                  substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.discharge_country_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.discharge_country_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) discharge_country_id,
+                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.discharge_port_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.discharge_port_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) discharge_port_id,
+                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.fulfillment_date is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.fulfillment_date
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) fulfillment_date,
+                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.remarks is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.remarks
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) remarks,
+                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.vessel_qty_before_discharge is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.vessel_qty_before_discharge
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) vessel_qty_before_discharge,
+                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.is_voyage_stock is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.is_voyage_stock
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) is_voyage_stock,
+                                                                                                                                                                                                                                                                                                                                                                                                                                  substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.container_size is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.container_size
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) container_size,*/
                      substr(max(case
                                   when dgrdul.bl_date is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2101,11 +2391,11 @@ create or replace package body pkg_phy_populate_data is
                                 end),
                             24) internal_stock_ref_no,
                      /* substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                        when dgrdul.warehouse_ref_no is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                         to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                         dgrdul.warehouse_ref_no
-                                                                                                                                                                                                                                                                                                                                                                                                                      end),
-                                                                                                                                                                                                                                                                                                                                                                                                                  24) warehouse_ref_no,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.warehouse_ref_no is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.warehouse_ref_no
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) warehouse_ref_no,*/
                      substr(max(case
                                   when dgrdul.warehouse_profile_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2142,7 +2432,7 @@ create or replace package body pkg_phy_populate_data is
                                    dgrdul.bank_account_id
                                 end),
                             24) bank_account_id,
-
+                     
                      substr(max(case
                                   when dgrdul.inventory_status is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2155,7 +2445,7 @@ create or replace package body pkg_phy_populate_data is
                                    dgrdul.is_afloat
                                 end),
                             24) is_afloat,
-
+                     
                      substr(max(case
                                   when dgrdul.crop_year_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2168,7 +2458,7 @@ create or replace package body pkg_phy_populate_data is
                                    dgrdul.current_qty
                                 end),
                             24) current_qty,
-
+                     
                      substr(max(case
                                   when dgrdul.internal_contract_item_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2373,7 +2663,7 @@ create or replace package body pkg_phy_populate_data is
                                    dgrdul.phy_attribute_group_no
                                 end),
                             24) phy_attribute_group_no,
-
+                     
                      substr(max(case
                                   when dgrdul.assay_header_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2478,7 +2768,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -2779,13 +3069,13 @@ create or replace package body pkg_phy_populate_data is
                     null,
                     place_of_delivery_city_id),
              /* decode(total_gross_weight,
-                                                                                     'Empty_String',
-                                                                                     null,
-                                                                                     total_gross_weight),
-                                                                              decode(total_tare_weight,
-                                                                                     'Empty_String',
-                                                                                     null,
-                                                                                     total_tare_weight), */
+                                                                                                               'Empty_String',
+                                                                                                               null,
+                                                                                                               total_gross_weight),
+                                                                                                        decode(total_tare_weight,
+                                                                                                               'Empty_String',
+                                                                                                               null,
+                                                                                                               total_tare_weight), */
              gvc_dbd_id
         from (select gmrul.internal_gmr_ref_no,
                      substr(max(case
@@ -2824,7 +3114,7 @@ create or replace package body pkg_phy_populate_data is
                                    gmrul.created_by
                                 end),
                             24) created_by,
-
+                     
                      pd_trade_date created_date,
                      substr(max(case
                                   when gmrul.contract_type is not null then
@@ -3277,17 +3567,17 @@ create or replace package body pkg_phy_populate_data is
                                 end),
                             24) place_of_delivery_city_id,
                      /* substr(max(case
-                                                                                                                                           when gmrul.total_gross_weight is not null then
-                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                            gmrul.total_gross_weight
-                                                                                                                                         end),
-                                                                                                                                     24) total_gross_weight,
-                                                                                                                              substr(max(case
-                                                                                                                                           when gmrul.total_tare_weight is not null then
-                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                            gmrul.total_tare_weight
-                                                                                                                                         end),
-                                                                                                                                     24) total_tare_weight,*/
+                                                                                                                                                                                     when gmrul.total_gross_weight is not null then
+                                                                                                                                                                                      to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                      gmrul.total_gross_weight
+                                                                                                                                                                                   end),
+                                                                                                                                                                               24) total_gross_weight,
+                                                                                                                                                                        substr(max(case
+                                                                                                                                                                                     when gmrul.total_tare_weight is not null then
+                                                                                                                                                                                      to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                      gmrul.total_tare_weight
+                                                                                                                                                                                   end),
+                                                                                                                                                                               24) total_tare_weight,*/
                      gvc_dbd_id
                 from gmrul_gmr_ul       gmrul,
                      axs_action_summary axs,
@@ -3319,7 +3609,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_mogrd_data(pc_corporate_id varchar2,
@@ -3327,7 +3617,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3458,7 +3748,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pcad_data(pc_corporate_id varchar2,
@@ -3466,7 +3756,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcad_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3478,9 +3768,9 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
-
+  
     insert into pcad_pc_agency_detail
       (pcad_id,
        internal_contract_ref_no,
@@ -3659,7 +3949,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pcbpd_data(pc_corporate_id varchar2,
@@ -3667,7 +3957,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcbpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3679,7 +3969,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcbpd_pc_base_price_detail
       (pcbpd_id,
@@ -3809,7 +4099,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pcbph_data(pc_corporate_id varchar2,
@@ -3817,7 +4107,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcbpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3829,21 +4119,21 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcbph_pc_base_price_header
       (pcbph_id,
-     --  optionality_desc,
+       optionality_desc,
        version,
        is_active,
        internal_contract_ref_no,
        price_description,
        dbd_id)
       select decode(pcbph_id, 'Empty_String', null, pcbph_id),
-           /*  decode(optionality_desc,
+             decode(optionality_desc,
                     'Empty_String',
                     null,
-                    optionality_desc),*/
+                    optionality_desc),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(internal_contract_ref_no,
@@ -3862,12 +4152,13 @@ create or replace package body pkg_phy_populate_data is
                                    pcbphul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                   /*  substr(max(case
+                     
+                     substr(max(case
                                   when pcbphul.optionality_desc is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcbphul.optionality_desc
                                 end),
-                            24) optionality_desc,*/
+                            24) optionality_desc,
                      substr(max(case
                                   when pcbphul.version is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -3917,7 +4208,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pcdb_data(pc_corporate_id varchar2,
@@ -3925,7 +4216,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdb_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -3937,7 +4228,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcdb_pc_delivery_basis
       (pcdb_id,
@@ -3987,7 +4278,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcdbul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-
+                     
                      substr(max(case
                                   when pcdbul.inco_term_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4110,7 +4401,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdb_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4122,7 +4413,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcdd_document_details
       (pcdd_id,
@@ -4173,7 +4464,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcddul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-
+                     
                      gvc_dbd_id
                 from pcddul_document_details_ul pcddul,
                      axs_action_summary         axs,
@@ -4205,7 +4496,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pcdiob_data(pc_corporate_id varchar2,
@@ -4213,7 +4504,7 @@ create or replace package body pkg_phy_populate_data is
                                       pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdiob_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4225,7 +4516,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcdiob_di_optional_basis
       (pcdiob_id, pcdi_id, pcdb_id, version, is_active, dbd_id)
@@ -4248,7 +4539,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcdiobul.pcdb_id
                                 end),
                             24) pcdb_id,
-
+                     
                      substr(max(case
                                   when pcdiobul.version is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4292,14 +4583,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
   procedure sp_phy_create_pcdipe_data(pc_corporate_id varchar2,
                                       pd_trade_date   date,
                                       pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdipe_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4311,7 +4602,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcdipe_di_pricing_elements
       (pcdipe_id, pcdi_id, pcbph_id, version, is_active, dbd_id)
@@ -4383,7 +4674,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pcdiqd_data(pc_corporate_id varchar2,
@@ -4391,7 +4682,7 @@ create or replace package body pkg_phy_populate_data is
                                       pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdiqd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4403,7 +4694,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcdiqd_di_quality_details
       (pcdiqd_id, pcdi_id, pcpq_id, version, is_active, dbd_id)
@@ -4475,7 +4766,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pcdi_data(pc_corporate_id varchar2,
@@ -4483,7 +4774,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcdi_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4495,7 +4786,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcdi_pc_delivery_item
       (pcdi_id,
@@ -4639,7 +4930,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcdiul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-
+                     
                      substr(max(case
                                   when pcdiul.delivery_item_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4882,7 +5173,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4894,7 +5185,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcipf_pci_pricing_formula
       (pcipf_id,
@@ -4919,14 +5210,14 @@ create or replace package body pkg_phy_populate_data is
                                    pcipful.internal_contract_item_ref_no
                                 end),
                             24) internal_contract_item_ref_no,
-
+                     
                      substr(max(case
                                   when pcipful.pcbph_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcipful.pcbph_id
                                 end),
                             24) pcbph_id,
-
+                     
                      substr(max(case
                                   when pcipful.version is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4970,14 +5261,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
   procedure sp_phy_create_pci_data(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pci_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -4989,7 +5280,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pci_physical_contract_item
       (internal_contract_item_ref_no,
@@ -5145,7 +5436,7 @@ create or replace package body pkg_phy_populate_data is
                                    pciul.delivery_from_date
                                 end),
                             24) delivery_from_date,
-
+                     
                      substr(max(case
                                   when pciul.delivery_to_date is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5256,7 +5547,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcjv_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -5268,9 +5559,9 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
-
+  
     insert into pcjv_pc_jv_detail
       (pcjv_id,
        internal_contract_ref_no,
@@ -5306,7 +5597,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcjvul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-
+                     
                      substr(max(case
                                   when pcjvul.cp_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5381,7 +5672,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcm_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -5416,6 +5707,7 @@ create or replace package body pkg_phy_populate_data is
        contract_type,
        purchase_sales,
        corporate_id,
+       --sub_corporate_id,
        contract_status,
        prod_qual_comments,
        base_price_comments,
@@ -5429,6 +5721,7 @@ create or replace package body pkg_phy_populate_data is
        is_active,
        is_optionality_contract,
        payment_term_id,
+       --payment_due_date,
        provisional_pymt_pctg,
        provisional_pymt_at,
        payment_text,
@@ -5439,7 +5732,7 @@ create or replace package body pkg_phy_populate_data is
        internal_comments,
        weight_allowance,
        weight_allowance_unit_id,
-       unit_of_measure,is_tolling_contract,
+       unit_of_measure,
        dbd_id)
       select decode(internal_contract_ref_no,
                     'Empty_String',
@@ -5492,6 +5785,10 @@ create or replace package body pkg_phy_populate_data is
              decode(contract_type, 'Empty_String', null, contract_type),
              decode(purchase_sales, 'Empty_String', null, purchase_sales),
              decode(corporate_id, 'Empty_String', null, corporate_id),
+             /*decode(sub_corporate_id,
+                                                                                                                                                                   'Empty_String',
+                                                                                                                                                                   null,
+                                                                                                                                                                   sub_corporate_id),*/
              decode(contract_status, 'Empty_String', null, contract_status),
              decode(prod_qual_comments,
                     'Empty_String',
@@ -5523,6 +5820,10 @@ create or replace package body pkg_phy_populate_data is
                     null,
                     is_optionality_contract),
              decode(payment_term_id, 'Empty_String', null, payment_term_id),
+             /* decode(payment_due_date,
+                                                                                                                                                                   'Empty_String',
+                                                                                                                                                                   null,
+                                                                                                                                                                   payment_due_date), */
              decode(provisional_pymt_pctg,
                     'Empty_String',
                     null,
@@ -5552,7 +5853,6 @@ create or replace package body pkg_phy_populate_data is
                     null,
                     weight_allowance_unit_id),
              decode(unit_of_measure, 'Empty_String', null, unit_of_measure),
-             decode(is_tolling_contract, 'Empty_String', null, is_tolling_contract),
              gvc_dbd_id
         from (select pcmul.internal_contract_ref_no,
                      substr(max(case
@@ -5561,7 +5861,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcmul.contract_ref_no
                                 end),
                             24) contract_ref_no,
-
+                     
                      substr(max(case
                                   when pcmul.issue_date is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5676,6 +5976,12 @@ create or replace package body pkg_phy_populate_data is
                                    pcmul.corporate_id
                                 end),
                             24) corporate_id,
+                     /*substr(max(case
+                                                                                                                                                                                                                                                                         when pcmul.sub_corporate_id is not null then
+                                                                                                                                                                                                                                                                          to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                          pcmul.sub_corporate_id
+                                                                                                                                                                                                                                                                       end),
+                                                                                                                                                                                                                                                                   24) sub_corporate_id,*/
                      substr(max(case
                                   when pcmul.contract_status is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5754,6 +6060,12 @@ create or replace package body pkg_phy_populate_data is
                                    pcmul.payment_term_id
                                 end),
                             24) payment_term_id,
+                     /*  substr(max(case
+                                                                                                                                                                                                                                                                         when pcmul. payment_due_date is not null then
+                                                                                                                                                                                                                                                                          to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                          pcmul. payment_due_date
+                                                                                                                                                                                                                                                                       end),
+                                                                                                                                                                                                                                                                   24) payment_due_date, */
                      substr(max(case
                                   when pcmul.provisional_pymt_pctg is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5820,12 +6132,6 @@ create or replace package body pkg_phy_populate_data is
                                    pcmul.unit_of_measure
                                 end),
                             24) unit_of_measure,
-                     substr(max(case
-                                  when pcmul.is_tolling_contract is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   pcmul.is_tolling_contract
-                                end),
-                            24) is_tolling_contract,
                      gvc_dbd_id
                 from pcmul_phy_contract_main_ul pcmul,
                      axs_action_summary         axs,
@@ -5840,8 +6146,7 @@ create or replace package body pkg_phy_populate_data is
                  and pcmul.dbd_id = dbd_ul.dbd_id
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
-               group by pcmul.internal_contract_ref_no) t
-               where nvl(is_tolling_contract,'N') <> 'Y';
+               group by pcmul.internal_contract_ref_no) t;
   exception
     when others then
       vobj_error_log.extend;
@@ -5865,7 +6170,7 @@ create or replace package body pkg_phy_populate_data is
                                       pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcpdqd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -5877,7 +6182,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcpdqd_pd_quality_details
       (pcpdqd_id, pcqpd_id, pcpq_id, version, is_active, dbd_id)
@@ -5943,7 +6248,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pcpd_data(pc_corporate_id varchar2,
@@ -5951,7 +6256,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -5963,7 +6268,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcpd_pc_product_definition
       (pcpd_id,
@@ -6205,7 +6510,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pcpq_data(pc_corporate_id varchar2,
@@ -6213,7 +6518,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcpq_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -6225,7 +6530,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcpq_pc_product_quality
       (pcpq_id,
@@ -6283,7 +6588,7 @@ create or replace package body pkg_phy_populate_data is
                                    pcpqul.pcpd_id
                                 end),
                             24) pcpd_id,
-
+                     
                      substr(max(case
                                   when pcpqul.quality_template_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -6412,7 +6717,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -6424,7 +6729,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pcqpd_pc_qual_premium_discount
       (pcqpd_id,
@@ -6542,7 +6847,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pffxd_data(pc_corporate_id varchar2,
@@ -6550,7 +6855,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -6562,7 +6867,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into pffxd_phy_formula_fx_details
       (pffxd_id,
@@ -6779,7 +7084,7 @@ create or replace package body pkg_phy_populate_data is
                                    pffxdul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-
+                     
                      gvc_dbd_id
                 from pffxdul_phy_formula_fx_dtl_ul pffxdul,
                      axs_action_summary            axs,
@@ -6811,7 +7116,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_pfqpp_data(pc_corporate_id varchar2,
@@ -6819,7 +7124,7 @@ create or replace package body pkg_phy_populate_data is
                                      pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -6831,9 +7136,9 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
-
+  
     insert into pfqpp_phy_formula_qp_pricing
       (pfqpp_id,
        ppfh_id,
@@ -6917,9 +7222,9 @@ create or replace package body pkg_phy_populate_data is
                     null,
                     no_of_event_months),
              /* decode(event_id,
-                                                                                                  'Empty_String',
-                                                                                                  null,
-                                                                                                  event_id),*/
+                                                                                                                            'Empty_String',
+                                                                                                                            null,
+                                                                                                                            event_id),*/
              gvc_dbd_id
         from (select pfqppul.pfqpp_id,
                      substr(max(case
@@ -7055,11 +7360,11 @@ create or replace package body pkg_phy_populate_data is
                                 end),
                             24) no_of_event_months,
                      /* substr(max(case
-                                                                                                                                                                when pfqppul.event_id is not null then
-                                                                                                                                                                 to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                 pfqppul.event_id
-                                                                                                                                                              end),
-                                                                                                                                                          24) event_id, */
+                                                                                                                                                                                                          when pfqppul.event_id is not null then
+                                                                                                                                                                                                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                           pfqppul.event_id
+                                                                                                                                                                                                        end),
+                                                                                                                                                                                                    24) event_id, */
                      gvc_dbd_id
                 from pfqppul_phy_formula_qp_prc_ul pfqppul,
                      axs_action_summary            axs,
@@ -7091,7 +7396,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_ppfd_data(pc_corporate_id varchar2,
@@ -7099,7 +7404,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7111,7 +7416,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into ppfd_phy_price_formula_details
       (ppfd_id,
@@ -7268,7 +7573,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_ppfh_data(pc_corporate_id varchar2,
@@ -7276,7 +7581,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7288,7 +7593,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into ppfh_phy_price_formula_header
       (ppfh_id,
@@ -7397,7 +7702,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_ciqs_data(pc_corporate_id varchar2,
@@ -7405,7 +7710,7 @@ create or replace package body pkg_phy_populate_data is
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7417,9 +7722,9 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
-
+  
     insert into ciqs_contract_item_qty_status
       (ciqs_id,
        internal_contract_item_ref_no,
@@ -7509,14 +7814,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
   procedure sp_phy_create_diqs_data(pc_corporate_id varchar2,
                                     pd_trade_date   date,
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7528,7 +7833,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into diqs_delivery_item_qty_status
       (diqs_id,
@@ -7628,7 +7933,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcqpd_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7640,7 +7945,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into cqs_contract_qty_status
       (cqs_id,
@@ -7718,7 +8023,7 @@ create or replace package body pkg_phy_populate_data is
          and dbd_ul.corporate_id = pc_corporate_id
          and dbd_ul.process = gvc_process
        group by cqsul.cqs_id;
-
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -7735,7 +8040,7 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
   procedure sp_phy_create_grd_data(pc_corporate_id varchar2,
@@ -7743,7 +8048,7 @@ create or replace package body pkg_phy_populate_data is
                                    pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -7755,7 +8060,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert into grd_goods_record_detail
       (internal_grd_ref_no,
@@ -8133,7 +8438,7 @@ create or replace package body pkg_phy_populate_data is
                            grdul.source_int_pool_ref_no
                         end),
                     24) source_int_pool_ref_no,
-
+             
              substr(max(case
                           when grdul.is_fulfilled is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -8289,14 +8594,14 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
   procedure sp_phy_create_vd_data(pc_corporate_id varchar2,
                                   pd_trade_date   date,
                                   pc_user_id      varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
-    author                                                   :
+    author                                                   : 
     created date                                             : 12TH JAN 2011
     purpose                                                  : populate pcm table data for day end processing
     parameters
@@ -8308,7 +8613,7 @@ create or replace package body pkg_phy_populate_data is
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+  
   begin
     insert all into vd_voyage_detail
       (internal_gmr_ref_no,
@@ -8881,8 +9186,2275 @@ create or replace package body pkg_phy_populate_data is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 
-end pkg_phy_populate_data;
+  procedure sp_phy_create_pcpch_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into pcpch_pc_payble_content_header
+      (pcpch_id,
+       internal_contract_ref_no,
+       range_type,
+       range_unit_id,
+       element_id,
+       slab_tier,
+       version,
+       is_active,
+       dbd_id)
+      select decode(pcpch_id, 'Empty_String', null, pcpch_id),
+             decode(internal_contract_ref_no,
+                    'Empty_String',
+                    null,
+                    internal_contract_ref_no),
+             decode(range_type, 'Empty_String', null, range_type),
+             decode(range_unit_id, 'Empty_String', null, range_unit_id),
+             decode(element_id, 'Empty_String', null, element_id),
+             decode(slab_tier, 'Empty_String', null, slab_tier),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pcpchul.pcpch_id,
+                     substr(max(case
+                                  when pcpchul.internal_contract_ref_no is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpchul.internal_contract_ref_no
+                                end),
+                            24) internal_contract_ref_no,
+                     substr(max(case
+                                  when pcpchul.range_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpchul.range_type
+                                end),
+                            24) range_type,
+                     substr(max(case
+                                  when pcpchul.range_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpchul.range_unit_id
+                                end),
+                            24) range_unit_id,
+                     substr(max(case
+                                  when pcpchul.element_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpchul.element_id
+                                end),
+                            24) element_id,
+                     substr(max(case
+                                  when pcpchul.slab_tier is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpchul.slab_tier
+                                end),
+                            24) slab_tier,
+                     substr(max(case
+                                  when pcpchul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpchul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcpchul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpchul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from pcpchul_payble_contnt_headr_ul pcpchul,
+                     axs_action_summary             axs,
+                     dbd_database_dump              dbd,
+                     dbd_database_dump              dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcpchul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcpchul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcpchul.pcpch_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcpch_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
+
+  procedure sp_phy_create_pqd_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into pqd_payable_quality_details
+      (pqd_id, pcpch_id, pcpq_id, version, is_active, dbd_id)
+      select decode(pqd_id, 'Empty_String', null, pqd_id),
+             decode(pcpch_id, 'Empty_String', null, pcpch_id),
+             decode(pcpq_id, 'Empty_String', null, pcpq_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pqdul.pqd_id,
+                     substr(max(case
+                                  when pqdul.pcpch_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pqdul.pcpch_id
+                                end),
+                            24) pcpch_id,
+                     substr(max(case
+                                  when pqdul.pcpq_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pqdul.pcpq_id
+                                end),
+                            24) pcpq_id,
+                     substr(max(case
+                                  when pqdul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pqdul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pqdul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pqdul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from pqdul_payable_quality_dtl_ul pqdul,
+                     axs_action_summary           axs,
+                     dbd_database_dump            dbd,
+                     dbd_database_dump            dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pqdul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pqdul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pqdul.pqd_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pqd_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
+  procedure sp_phy_create_pcepc_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into pcepc_pc_elem_payable_content
+      (pcepc_id,
+       range_min_op,
+       range_min_value,
+       range_max_op,
+       range_max_value,
+       payable_formula_id,
+       payable_content_value,
+       payable_content_unit_id,
+       assay_deduction,
+       assay_deduction_unit_id,
+       include_ref_charges,
+       refining_charge_value,
+       refining_charge_unit_id,
+       version,
+       is_active,
+       pcpch_id,
+       position,
+       dbd_id)
+      select decode(pcepc_id, 'Empty_String', null, pcepc_id),
+             decode(range_min_op, 'Empty_String', null, range_min_op),
+             decode(range_min_value, 'Empty_String', null, range_min_value),
+             decode(range_max_op, 'Empty_String', null, range_max_op),
+             decode(range_max_value, 'Empty_String', null, range_max_value),
+             decode(payable_formula_id,
+                    'Empty_String',
+                    null,
+                    payable_formula_id),
+             decode(payable_content_value,
+                    'Empty_String',
+                    null,
+                    payable_content_value),
+             decode(payable_content_unit_id,
+                    'Empty_String',
+                    null,
+                    payable_content_unit_id),
+             decode(assay_deduction, 'Empty_String', null, assay_deduction),
+             decode(assay_deduction_unit_id,
+                    'Empty_String',
+                    null,
+                    assay_deduction_unit_id),
+             decode(include_ref_charges,
+                    'Empty_String',
+                    null,
+                    include_ref_charges),
+             decode(refining_charge_value,
+                    'Empty_String',
+                    null,
+                    refining_charge_value),
+             decode(refining_charge_unit_id,
+                    'Empty_String',
+                    null,
+                    refining_charge_unit_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             decode(pcpch_id, 'Empty_String', null, pcpch_id),
+             decode(position, 'Empty_String', null, position),
+             gvc_dbd_id
+        from (select pcepcul.pcepc_id,
+                     substr(max(case
+                                  when pcepcul.range_min_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.range_min_op
+                                end),
+                            24) range_min_op,
+                     substr(max(case
+                                  when pcepcul.range_min_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.range_min_value
+                                end),
+                            24) range_min_value,
+                     substr(max(case
+                                  when pcepcul.range_max_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.range_max_op
+                                end),
+                            24) range_max_op,
+                     substr(max(case
+                                  when pcepcul.range_max_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.range_max_value
+                                end),
+                            24) range_max_value,
+                     substr(max(case
+                                  when pcepcul.payable_formula_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.payable_formula_id
+                                end),
+                            24) payable_formula_id,
+                     substr(max(case
+                                  when pcepcul.payable_content_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.payable_content_value
+                                end),
+                            24) payable_content_value,
+                     substr(max(case
+                                  when pcepcul.payable_content_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.payable_content_unit_id
+                                end),
+                            24) payable_content_unit_id,
+                     substr(max(case
+                                  when pcepcul.assay_deduction is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.assay_deduction
+                                end),
+                            24) assay_deduction,
+                     substr(max(case
+                                  when pcepcul.assay_deduction_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.assay_deduction_unit_id
+                                end),
+                            24) assay_deduction_unit_id,
+                     substr(max(case
+                                  when pcepcul.include_ref_charges is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.include_ref_charges
+                                end),
+                            24) include_ref_charges,
+                     substr(max(case
+                                  when pcepcul.refining_charge_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.refining_charge_value
+                                end),
+                            24) refining_charge_value,
+                     substr(max(case
+                                  when pcepcul.refining_charge_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.refining_charge_unit_id
+                                end),
+                            24) refining_charge_unit_id,
+                     substr(max(case
+                                  when pcepcul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcepcul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.is_active
+                                end),
+                            24) is_active,
+                     substr(max(case
+                                  when pcepcul.pcpch_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.pcpch_id
+                                end),
+                            24) pcpch_id,
+                     substr(max(case
+                                  when pcepcul.position is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcepcul.position
+                                end),
+                            24) position,
+                     gvc_dbd_id
+              
+                from pcepcul_elem_payble_content_ul pcepcul,
+                     axs_action_summary             axs,
+                     dbd_database_dump              dbd,
+                     dbd_database_dump              dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcepcul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcepcul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcepcul.pcepc_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcepc_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+  procedure sp_phy_create_pcth_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+  
+    insert all into pcth_pc_treatment_header
+      (pcth_id,
+       internal_contract_ref_no,
+       range_type,
+       range_unit_id,
+       price_unit_id,
+       slab_tier,
+       version,
+       is_active,
+       dbd_id)
+      select decode(pcth_id, 'Empty_String', null, pcth_id),
+             decode(internal_contract_ref_no,
+                    'Empty_String',
+                    null,
+                    internal_contract_ref_no),
+             decode(range_type, 'Empty_String', null, range_type),
+             decode(range_unit_id, 'Empty_String', null, range_unit_id),
+             decode(price_unit_id, 'Empty_String', null, price_unit_id),
+             decode(slab_tier, 'Empty_String', null, slab_tier),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pcthul.pcth_id,
+                     substr(max(case
+                                  when pcthul.internal_contract_ref_no is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcthul.internal_contract_ref_no
+                                end),
+                            24) internal_contract_ref_no,
+                     substr(max(case
+                                  when pcthul.range_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcthul.range_type
+                                end),
+                            24) range_type,
+                     substr(max(case
+                                  when pcthul.range_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcthul.range_unit_id
+                                end),
+                            24) range_unit_id,
+                     
+                     substr(max(case
+                                  when pcthul.price_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcthul.price_unit_id
+                                end),
+                            24) price_unit_id,
+                     substr(max(case
+                                  when pcthul.slab_tier is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcthul.slab_tier
+                                end),
+                            24) slab_tier,
+                     substr(max(case
+                                  when pcthul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcthul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcthul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcthul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from pcthul_treatment_header_ul pcthul,
+                     axs_action_summary         axs,
+                     dbd_database_dump          dbd,
+                     dbd_database_dump          dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcthul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcthul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcthul.pcth_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcth_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
+
+  procedure sp_phy_create_ted_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert  all into ted_treatment_element_details
+      (ted_id, pcth_id, element_id, version, is_active, dbd_id)
+      select decode(ted_id, 'Empty_String', null, ted_id),
+             decode(pcth_id, 'Empty_String', null, pcth_id),
+             decode(element_id, 'Empty_String', null, element_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select tedul.ted_id,
+                     substr(max(case
+                                  when tedul.pcth_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tedul.pcth_id
+                                end),
+                            24) pcth_id,
+                     substr(max(case
+                                  when tedul.element_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tedul.element_id
+                                end),
+                            24) element_id,
+                     substr(max(case
+                                  when tedul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tedul.version
+                                end),
+                            24) version,
+                     
+                     substr(max(case
+                                  when tedul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tedul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from tedul_treatment_element_dtl_ul tedul,
+                     axs_action_summary             axs,
+                     dbd_database_dump              dbd,
+                     dbd_database_dump              dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and tedul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and tedul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by tedul.ted_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_ted_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+  procedure sp_phy_create_tqd_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into tqd_treatment_quality_details
+      (tqd_id, pcth_id, pcpq_id, version, is_active, dbd_id)
+      select decode(tqd_id, 'Empty_String', null, tqd_id),
+             decode(pcth_id, 'Empty_String', null, pcth_id),
+             decode(pcpq_id, 'Empty_String', null, pcpq_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select tqdul.tqd_id,
+                     substr(max(case
+                                  when tqdul.pcth_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tqdul.pcth_id
+                                end),
+                            24) pcth_id,
+                     substr(max(case
+                                  when tqdul.pcpq_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tqdul.pcpq_id
+                                end),
+                            24) pcpq_id,
+                     substr(max(case
+                                  when tqdul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tqdul.version
+                                end),
+                            24) version,
+                     
+                     substr(max(case
+                                  when tqdul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tqdul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from tqdul_treatment_quality_dtl_ul tqdul,
+                     axs_action_summary             axs,
+                     dbd_database_dump              dbd,
+                     dbd_database_dump              dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and tqdul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and tqdul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by tqdul.tqd_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_tqd_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+
+  procedure sp_phy_create_pcetc_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into pcetc_pc_elem_treatment_charge
+      (pcetc_id,
+       pcth_id,
+       range_min_op,
+       range_min_value,
+       range_max_op,
+       range_max_value,
+       charge_type,
+       position,
+       treatment_charge,
+       treatment_charge_unit_id,
+       weight_type,
+       charge_basis,
+       esc_desc_value,
+       esc_desc_unit_id,
+       version,
+       is_active,
+       dbd_id)
+      select decode(pcetc_id, 'Empty_String', null, pcetc_id),
+             decode(pcth_id, 'Empty_String', null, pcth_id),
+             decode(range_min_op, 'Empty_String', null, range_min_op),
+             decode(range_min_value, 'Empty_String', null, range_min_value),
+             decode(range_max_op, 'Empty_String', null, range_max_op),
+             decode(range_max_value, 'Empty_String', null, range_max_value),
+             decode(charge_type, 'Empty_String', null, charge_type),
+             decode(position, 'Empty_String', null, position),
+             decode(treatment_charge,
+                    'Empty_String',
+                    null,
+                    treatment_charge),
+             decode(treatment_charge_unit_id,
+                    'Empty_String',
+                    null,
+                    treatment_charge_unit_id),
+             decode(weight_type, 'Empty_String', null, weight_type),
+             decode(charge_basis, 'Empty_String', null, charge_basis),
+             decode(esc_desc_value, 'Empty_String', null, esc_desc_value),
+             decode(esc_desc_unit_id,
+                    'Empty_String',
+                    null,
+                    esc_desc_unit_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pcetcul.pcetc_id,
+                     substr(max(case
+                                  when pcetcul.pcth_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.pcth_id
+                                end),
+                            24) pcth_id,
+                     substr(max(case
+                                  when pcetcul.range_min_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.range_min_op
+                                end),
+                            24) range_min_op,
+                     substr(max(case
+                                  when pcetcul.range_min_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.range_min_value
+                                end),
+                            24) range_min_value,
+                     
+                     substr(max(case
+                                  when pcetcul.range_max_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.range_max_op
+                                end),
+                            24) range_max_op,
+                     substr(max(case
+                                  when pcetcul.range_max_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.range_max_value
+                                end),
+                            24) range_max_value,
+                     substr(max(case
+                                  when pcetcul.charge_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.charge_type
+                                end),
+                            24) charge_type,
+                     substr(max(case
+                                  when pcetcul.position is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.position
+                                end),
+                            24) position,
+                     
+                     substr(max(case
+                                  when pcetcul.treatment_charge is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.treatment_charge
+                                end),
+                            24) treatment_charge,
+                     substr(max(case
+                                  when pcetcul.treatment_charge_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.treatment_charge_unit_id
+                                end),
+                            24) treatment_charge_unit_id,
+                     substr(max(case
+                                  when pcetcul.weight_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.weight_type
+                                end),
+                            24) weight_type,
+                     substr(max(case
+                                  when pcetcul.charge_basis is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.charge_basis
+                                end),
+                            24) charge_basis,
+                     
+                     substr(max(case
+                                  when pcetcul.esc_desc_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.esc_desc_value
+                                end),
+                            24) esc_desc_value,
+                     substr(max(case
+                                  when pcetcul.esc_desc_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.esc_desc_unit_id
+                                end),
+                            24) esc_desc_unit_id,
+                     substr(max(case
+                                  when pcetcul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcetcul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcetcul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from pcetcul_elem_treatmnt_chrg_ul pcetcul,
+                     axs_action_summary            axs,
+                     dbd_database_dump             dbd,
+                     dbd_database_dump             dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcetcul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcetcul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcetcul.pcetc_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcetc_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+  procedure sp_phy_create_pcar_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+  
+    insert all into pcar_pc_assaying_rules
+      (pcar_id,
+       internal_contract_ref_no,
+       element_id,
+       final_assay_basis_id,
+       comparision,
+       split_limit_basis,
+       split_limit,
+       split_limit_unit_id,
+       version,
+       is_active,
+       dbd_id)
+      select decode(pcar_id, 'Empty_String', null, pcar_id),
+             decode(internal_contract_ref_no,
+                    'Empty_String',
+                    null,
+                    internal_contract_ref_no),
+             decode(element_id, 'Empty_String', null, element_id),
+             decode(final_assay_basis_id,
+                    'Empty_String',
+                    null,
+                    final_assay_basis_id),
+             decode(comparision, 'Empty_String', null, comparision),
+             decode(split_limit_basis,
+                    'Empty_String',
+                    null,
+                    split_limit_basis),
+             decode(split_limit, 'Empty_String', null, split_limit),
+             decode(split_limit_unit_id,
+                    'Empty_String',
+                    null,
+                    split_limit_unit_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pcarul.pcar_id,
+                     substr(max(case
+                                  when pcarul.internal_contract_ref_no is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.internal_contract_ref_no
+                                end),
+                            24) internal_contract_ref_no,
+                     substr(max(case
+                                  when pcarul.element_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.element_id
+                                end),
+                            24) element_id,
+                     substr(max(case
+                                  when pcarul.final_assay_basis_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.final_assay_basis_id
+                                end),
+                            24) final_assay_basis_id,
+                     
+                     substr(max(case
+                                  when pcarul.comparision is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.comparision
+                                end),
+                            24) comparision,
+                     substr(max(case
+                                  when pcarul.split_limit_basis is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.split_limit_basis
+                                end),
+                            24) split_limit_basis,
+                     substr(max(case
+                                  when pcarul.split_limit is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.split_limit
+                                end),
+                            24) split_limit,
+                     substr(max(case
+                                  when pcarul.split_limit_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.split_limit_unit_id
+                                end),
+                            24) split_limit_unit_id,
+                     
+                     substr(max(case
+                                  when pcarul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcarul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from pcarul_assaying_rules_ul pcarul,
+                     axs_action_summary       axs,
+                     dbd_database_dump        dbd,
+                     dbd_database_dump        dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcarul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcarul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcarul.pcar_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcar_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+
+  procedure sp_phy_create_pcaesl_data(pc_corporate_id varchar2,
+                                      pd_trade_date   date,
+                                      pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into pcaesl_assay_elem_split_limits
+      (pcaesl_id,
+       pcar_id,
+       assay_min_op,
+       assay_min_value,
+       assay_max_op,
+       assay_max_value,
+       applicable_value,
+       version,
+       is_active,
+       dbd_id)
+      select decode(pcaesl_id, 'Empty_String', null, pcaesl_id),
+             decode(pcar_id, 'Empty_String', null, pcar_id),
+             decode(assay_min_op, 'Empty_String', null, assay_min_op),
+             decode(assay_min_value, 'Empty_String', null, assay_min_value),
+             decode(assay_max_op, 'Empty_String', null, assay_max_op),
+             decode(assay_max_value, 'Empty_String', null, assay_max_value),
+             decode(applicable_value,
+                    'Empty_String',
+                    null,
+                    applicable_value),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pcaeslul.pcaesl_id,
+                     substr(max(case
+                                  when pcaeslul.pcar_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaeslul.pcar_id
+                                end),
+                            24) pcar_id,
+                     substr(max(case
+                                  when pcaeslul.assay_min_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaeslul.assay_min_op
+                                end),
+                            24) assay_min_op,
+                     substr(max(case
+                                  when pcaeslul.assay_min_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaeslul.assay_min_value
+                                end),
+                            24) assay_min_value,
+                     
+                     substr(max(case
+                                  when pcaeslul.assay_max_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaeslul.assay_max_op
+                                end),
+                            24) assay_max_op,
+                     substr(max(case
+                                  when pcaeslul.assay_max_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaeslul.assay_max_value
+                                end),
+                            24) assay_max_value,
+                     substr(max(case
+                                  when pcaeslul.applicable_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaeslul.applicable_value
+                                end),
+                            24) applicable_value,
+                     
+                     substr(max(case
+                                  when pcaeslul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaeslul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcaeslul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaeslul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from pcaeslul_assay_elm_splt_lmt_ul pcaeslul,
+                     axs_action_summary             axs,
+                     dbd_database_dump              dbd,
+                     dbd_database_dump              dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcaeslul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcaeslul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcaeslul.pcaesl_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcaesl_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+  procedure sp_phy_create_arqd_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into arqd_assay_quality_details
+      (arqd_id, pcar_id, pcpq_id, version, is_active, dbd_id)
+      select decode(arqd_id, 'Empty_String', null, arqd_id),
+             decode(pcar_id, 'Empty_String', null, pcar_id),
+             decode(pcpq_id, 'Empty_String', null, pcpq_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select arqdul.arqd_id,
+                     substr(max(case
+                                  when arqdul.pcar_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   arqdul.pcar_id
+                                end),
+                            24) pcar_id,
+                     substr(max(case
+                                  when arqdul.pcpq_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   arqdul.pcpq_id
+                                end),
+                            24) pcpq_id,
+                     substr(max(case
+                                  when arqdul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   arqdul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when arqdul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   arqdul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from arqdul_assay_quality_dtl_ul arqdul,
+                     axs_action_summary          axs,
+                     dbd_database_dump           dbd,
+                     dbd_database_dump           dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and arqdul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and arqdul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by arqdul.arqd_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_arqd_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
+  procedure sp_phy_create_pcaph_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into pcaph_pc_attr_penalty_header
+      (pcaph_id,
+       internal_contract_ref_no,
+       attribute_type,
+       range_unit_id,
+       slab_tier,
+       version,
+       is_active,
+       dbd_id)
+      select decode(pcaph_id, 'Empty_String', null, pcaph_id),
+             decode(internal_contract_ref_no,
+                    'Empty_String',
+                    null,
+                    internal_contract_ref_no),
+             decode(attribute_type, 'Empty_String', null, attribute_type),
+             decode(range_unit_id, 'Empty_String', null, range_unit_id),
+             decode(slab_tier, 'Empty_String', null, slab_tier),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pcaphul.pcaph_id,
+                     substr(max(case
+                                  when pcaphul.internal_contract_ref_no is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaphul.internal_contract_ref_no
+                                end),
+                            24) internal_contract_ref_no,
+                     substr(max(case
+                                  when pcaphul.attribute_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaphul.attribute_type
+                                end),
+                            24) attribute_type,
+                     substr(max(case
+                                  when pcaphul.range_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaphul.range_unit_id
+                                end),
+                            24) range_unit_id,
+                     substr(max(case
+                                  when pcaphul.slab_tier is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaphul.slab_tier
+                                end),
+                            24) slab_tier,
+                     substr(max(case
+                                  when pcaphul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaphul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcaphul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcaphul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id
+              
+                from pcaphul_attr_penalty_header_ul pcaphul,
+                     axs_action_summary             axs,
+                     dbd_database_dump              dbd,
+                     dbd_database_dump              dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcaphul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcaphul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcaphul.pcaph_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcaph_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+  procedure sp_phy_create_pcap_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+  
+    insert all into pcap_pc_attribute_penalty
+      (pcap_id,
+       range_min_op,
+       range_min_value,
+       range_max_op,
+       range_max_value,
+       penalty_charge_type,
+       penalty_basis,
+       penalty_amount,
+       penalty_unit_id,
+       penalty_weight_type,
+       per_increase_value,
+       per_increase_unit_id,
+       deducted_payable_element,
+       deducted_payable_value,
+       deducted_payable_unit_id,
+       charge_basis,
+       version,
+       is_active,
+       pcaph_id,
+       position,
+       dbd_id)
+      select decode(pcap_id, 'Empty_String', null, pcap_id),
+             decode(range_min_op, 'Empty_String', null, range_min_op),
+             decode(range_min_value, 'Empty_String', null, range_min_value),
+             decode(range_max_op, 'Empty_String', null, range_max_op),
+             decode(range_max_value, 'Empty_String', null, range_max_value),
+             decode(penalty_charge_type,
+                    'Empty_String',
+                    null,
+                    penalty_charge_type),
+             decode(penalty_basis, 'Empty_String', null, penalty_basis),
+             decode(penalty_amount, 'Empty_String', null, penalty_amount),
+             decode(penalty_unit_id, 'Empty_String', null, penalty_unit_id),
+             decode(penalty_weight_type,
+                    'Empty_String',
+                    null,
+                    penalty_weight_type),
+             decode(per_increase_value,
+                    'Empty_String',
+                    null,
+                    per_increase_value),
+             decode(per_increase_unit_id,
+                    'Empty_String',
+                    null,
+                    per_increase_unit_id),
+             decode(deducted_payable_element,
+                    'Empty_String',
+                    null,
+                    deducted_payable_element),
+             decode(deducted_payable_value,
+                    'Empty_String',
+                    null,
+                    deducted_payable_value),
+             decode(deducted_payable_unit_id,
+                    'Empty_String',
+                    null,
+                    deducted_payable_unit_id),
+             decode(charge_basis, 'Empty_String', null, charge_basis),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             decode(pcaph_id, 'Empty_String', null, pcaph_id),
+             decode(position, 'Empty_String', null, position),
+             gvc_dbd_id
+        from (select pcapul.pcap_id,
+                     substr(max(case
+                                  when pcapul.range_min_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.range_min_op
+                                end),
+                            24) range_min_op,
+                     substr(max(case
+                                  when pcapul.range_min_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.range_min_value
+                                end),
+                            24) range_min_value,
+                     substr(max(case
+                                  when pcapul.range_max_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.range_max_op
+                                end),
+                            24) range_max_op,
+                     substr(max(case
+                                  when pcapul.range_max_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.range_max_value
+                                end),
+                            24) range_max_value,
+                     substr(max(case
+                                  when pcapul.penalty_charge_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.penalty_charge_type
+                                end),
+                            24) penalty_charge_type,
+                     substr(max(case
+                                  when pcapul.penalty_basis is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.penalty_basis
+                                end),
+                            24) penalty_basis,
+                     substr(max(case
+                                  when pcapul.penalty_amount is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.penalty_amount
+                                end),
+                            24) penalty_amount,
+                     substr(max(case
+                                  when pcapul.penalty_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.penalty_unit_id
+                                end),
+                            24) penalty_unit_id,
+                     substr(max(case
+                                  when pcapul.penalty_weight_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.penalty_weight_type
+                                end),
+                            24) penalty_weight_type,
+                     substr(max(case
+                                  when pcapul.per_increase_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.per_increase_value
+                                end),
+                            24) per_increase_value,
+                     substr(max(case
+                                  when pcapul.per_increase_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.per_increase_unit_id
+                                end),
+                            24) per_increase_unit_id,
+                     substr(max(case
+                                  when pcapul.deducted_payable_element is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.deducted_payable_element
+                                end),
+                            24) deducted_payable_element,
+                     substr(max(case
+                                  when pcapul.deducted_payable_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.deducted_payable_value
+                                end),
+                            24) deducted_payable_value,
+                     substr(max(case
+                                  when pcapul.deducted_payable_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.deducted_payable_unit_id
+                                end),
+                            24) deducted_payable_unit_id,
+                     substr(max(case
+                                  when pcapul.charge_basis is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.charge_basis
+                                end),
+                            24) charge_basis,
+                     substr(max(case
+                                  when pcapul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcapul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.is_active
+                                end),
+                            24) is_active,
+                     substr(max(case
+                                  when pcapul.pcaph_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.pcaph_id
+                                end),
+                            24) pcaph_id,
+                     substr(max(case
+                                  when pcapul.position is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcapul.position
+                                end),
+                            24) position,
+                     gvc_dbd_id
+              
+                from pcapul_attribute_penalty_ul pcapul,
+                     axs_action_summary          axs,
+                     dbd_database_dump           dbd,
+                     dbd_database_dump           dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcapul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcapul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcapul.pcap_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcap_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+
+  procedure sp_phy_create_pqdp_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into pqd_penalty_quality_details
+      (pqd_id, pcaph_id, pcpq_id, version, is_active, dbd_id)
+      select decode(pqd_id, 'Empty_String', null, pqd_id),
+             decode(pcaph_id, 'Empty_String', null, pcaph_id),
+             decode(pcpq_id, 'Empty_String', null, pcpq_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pcdul.pqd_id,
+                     substr(max(case
+                                  when pcdul.pcaph_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdul.pcaph_id
+                                end),
+                            24) pcaph_id,
+                     substr(max(case
+                                  when pcdul.pcpq_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdul.pcpq_id
+                                end),
+                            24) pcpq_id,
+                     
+                     substr(max(case
+                                  when pcdul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcdul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdul.is_active
+                                end),
+                            24) is_active,
+                     
+                     gvc_dbd_id
+              
+                from pqdul_penalty_quality_dtl_ul pcdul,
+                     axs_action_summary           axs,
+                     dbd_database_dump            dbd,
+                     dbd_database_dump            dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcdul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcdul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcdul.pqd_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pqdp_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+  procedure sp_phy_create_pad_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+  
+    insert all into pad_penalty_attribute_details
+      (pad_id, pcaph_id, element_id, pqpa_id, version, is_active, dbd_id)
+      select decode(pad_id, 'Empty_String', null, pad_id),
+             decode(pcaph_id, 'Empty_String', null, pcaph_id),
+             decode(element_id, 'Empty_String', null, element_id),
+             decode(pqpa_id, 'Empty_String', null, pqpa_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select padul.pad_id,
+                     substr(max(case
+                                  when padul.pcaph_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   padul.pcaph_id
+                                end),
+                            24) pcaph_id,
+                     substr(max(case
+                                  when padul.element_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   padul.element_id
+                                end),
+                            24) element_id,
+                     substr(max(case
+                                  when padul.pqpa_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   padul.pqpa_id
+                                end),
+                            24) pqpa_id,
+                     
+                     substr(max(case
+                                  when padul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   padul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when padul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   padul.is_active
+                                end),
+                            24) is_active,
+                     
+                     gvc_dbd_id
+              
+                from padul_penalty_attribute_dtl_ul padul,
+                     axs_action_summary             axs,
+                     dbd_database_dump              dbd,
+                     dbd_database_dump              dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and padul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and padul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by padul.pad_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pad_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+  procedure sp_phy_create_pcrh_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into pcrh_pc_refining_header
+      (pcrh_id,
+       internal_contract_ref_no,
+       range_type,
+       range_unit_id,
+       price_unit_id,
+       slab_tier,
+       version,
+       is_active,
+       dbd_id)
+      select decode(pcrh_id, 'Empty_String', null, pcrh_id),
+             decode(internal_contract_ref_no,
+                    'Empty_String',
+                    null,
+                    internal_contract_ref_no),
+             decode(range_type, 'Empty_String', null, range_type),
+             decode(range_unit_id, 'Empty_String', null, range_unit_id),
+             decode(price_unit_id, 'Empty_String', null, price_unit_id),
+             decode(slab_tier, 'Empty_String', null, slab_tier),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pcrhul.pcrh_id,
+                     substr(max(case
+                                  when pcrhul.internal_contract_ref_no is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcrhul.internal_contract_ref_no
+                                end),
+                            24) internal_contract_ref_no,
+                     substr(max(case
+                                  when pcrhul.range_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcrhul.range_type
+                                end),
+                            24) range_type,
+                     substr(max(case
+                                  when pcrhul.range_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcrhul.range_unit_id
+                                end),
+                            24) range_unit_id,
+                     substr(max(case
+                                  when pcrhul.price_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcrhul.price_unit_id
+                                end),
+                            24) price_unit_id,
+                     substr(max(case
+                                  when pcrhul.slab_tier is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcrhul.slab_tier
+                                end),
+                            24) slab_tier,
+                     
+                     substr(max(case
+                                  when pcrhul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcrhul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcrhul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcrhul.is_active
+                                end),
+                            24) is_active,
+                     
+                     gvc_dbd_id
+              
+                from pcrhul_refining_header_ul pcrhul,
+                     axs_action_summary        axs,
+                     dbd_database_dump         dbd,
+                     dbd_database_dump         dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcrhul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcrhul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcrhul.pcrh_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcrh_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
+  procedure sp_phy_create_rqd_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into rqd_refining_quality_details
+      (rqd_id, pcrh_id, pcpq_id, version, is_active, dbd_id)
+      select decode(rqd_id, 'Empty_String', null, rqd_id),
+             decode(pcrh_id, 'Empty_String', null, pcrh_id),
+             decode(pcpq_id, 'Empty_String', null, pcpq_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select rqdul.rqd_id,
+                     substr(max(case
+                                  when rqdul.pcrh_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   rqdul.pcrh_id
+                                end),
+                            24) pcrh_id,
+                     substr(max(case
+                                  when rqdul.pcpq_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   rqdul.pcpq_id
+                                end),
+                            24) pcpq_id,
+                     
+                     substr(max(case
+                                  when rqdul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   rqdul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when rqdul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   rqdul.is_active
+                                end),
+                            24) is_active,
+                     
+                     gvc_dbd_id
+              
+                from rqdul_refining_quality_dtl_ul rqdul,
+                     axs_action_summary            axs,
+                     dbd_database_dump             dbd,
+                     dbd_database_dump             dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and rqdul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and rqdul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by rqdul.rqd_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_rqd_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
+
+  procedure sp_phy_create_red_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert all into red_refining_element_details
+      (red_id, pcrh_id, element_id, version, is_active, dbd_id)
+      select decode(red_id, 'Empty_String', null, red_id),
+             decode(pcrh_id, 'Empty_String', null, pcrh_id),
+             decode(element_id, 'Empty_String', null, element_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select redul.red_id,
+                     substr(max(case
+                                  when redul.pcrh_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   redul.pcrh_id
+                                end),
+                            24) pcrh_id,
+                     substr(max(case
+                                  when redul.element_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   redul.element_id
+                                end),
+                            24) element_id,
+                     
+                     substr(max(case
+                                  when redul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   redul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when redul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   redul.is_active
+                                end),
+                            24) is_active,
+                     
+                     gvc_dbd_id
+              
+                from redul_refining_element_dtl_ul redul,
+                     axs_action_summary            axs,
+                     dbd_database_dump             dbd,
+                     dbd_database_dump             dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and redul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and redul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by redul.red_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_red_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+  procedure sp_phy_create_pcerc_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+    procedure name                                           : sp_create_pcipf_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+  
+    insert all into pcerc_pc_elem_refining_charge
+      (pcerc_id,
+       pcrh_id,
+       range_min_op,
+       range_min_value,
+       range_max_op,
+       range_max_value,
+       charge_type,
+       position,
+       refining_charge,
+       refining_charge_unit_id,
+       weight_type,
+       charge_basis,
+       esc_desc_value,
+       esc_desc_unit_id,
+       version,
+       is_active,
+       dbd_id)
+      select decode(pcerc_id, 'Empty_String', null, pcerc_id),
+             decode(pcrh_id, 'Empty_String', null, pcrh_id),
+             decode(range_min_op, 'Empty_String', null, range_min_op),
+             decode(range_min_value, 'Empty_String', null, range_min_value),
+             decode(range_max_op, 'Empty_String', null, range_max_op),
+             decode(range_max_value, 'Empty_String', null, range_max_value),
+             decode(charge_type, 'Empty_String', null, charge_type),
+             decode(position, 'Empty_String', null, position),
+             decode(refining_charge, 'Empty_String', null, refining_charge),
+             decode(refining_charge_unit_id,
+                    'Empty_String',
+                    null,
+                    refining_charge_unit_id),
+             decode(weight_type, 'Empty_String', null, weight_type),
+             decode(charge_basis, 'Empty_String', null, charge_basis),
+             decode(esc_desc_value, 'Empty_String', null, esc_desc_value),
+             decode(esc_desc_unit_id,
+                    'Empty_String',
+                    null,
+                    esc_desc_unit_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select pcercul.pcerc_id,
+                     substr(max(case
+                                  when pcercul.pcrh_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.pcrh_id
+                                end),
+                            24) pcrh_id,
+                     substr(max(case
+                                  when pcercul.range_min_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.range_min_op
+                                end),
+                            24) range_min_op,
+                     substr(max(case
+                                  when pcercul.range_min_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.range_min_value
+                                end),
+                            24) range_min_value,
+                     substr(max(case
+                                  when pcercul.range_max_op is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.range_max_op
+                                end),
+                            24) range_max_op,
+                     substr(max(case
+                                  when pcercul.range_max_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.range_max_value
+                                end),
+                            24) range_max_value,
+                     substr(max(case
+                                  when pcercul.charge_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.charge_type
+                                end),
+                            24) charge_type,
+                     substr(max(case
+                                  when pcercul.position is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.position
+                                end),
+                            24) position,
+                     substr(max(case
+                                  when pcercul.refining_charge is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.refining_charge
+                                end),
+                            24) refining_charge,
+                     substr(max(case
+                                  when pcercul.refining_charge_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.refining_charge_unit_id
+                                end),
+                            24) refining_charge_unit_id,
+                     substr(max(case
+                                  when pcercul.weight_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.weight_type
+                                end),
+                            24) weight_type,
+                     substr(max(case
+                                  when pcercul.charge_basis is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.charge_basis
+                                end),
+                            24) charge_basis,
+                     substr(max(case
+                                  when pcercul.esc_desc_value is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.esc_desc_value
+                                end),
+                            24) esc_desc_value,
+                     substr(max(case
+                                  when pcercul.esc_desc_unit_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.esc_desc_unit_id
+                                end),
+                            24) esc_desc_unit_id,
+                     substr(max(case
+                                  when pcercul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when pcercul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcercul.is_active
+                                end),
+                            24) is_active,
+                     
+                     gvc_dbd_id
+              
+                from pcercul_elem_refing_charge_ul pcercul,
+                     axs_action_summary            axs,
+                     dbd_database_dump             dbd,
+                     dbd_database_dump             dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and pcercul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and pcercul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by pcercul.pcerc_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_pcerc_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;
+end pkg_phy_populate_data; 
 /

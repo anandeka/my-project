@@ -172,7 +172,8 @@ create or replace package body pkg_phy_transfer_data is
                            pd_trade_date,
                            pc_user_id,
                            pc_process,
-                           pc_dbd_id);
+                           pc_dbd_id);                           
+                            
   
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while transafer data');
@@ -227,7 +228,6 @@ create or replace package body pkg_phy_transfer_data is
     delete from lds_location_diff_setup
      where corporate_id = pc_corporate_id;
   
-     
     --Moved 
     delete from mvpl_m2m_valuation_point_loc
      where mvp_id in (select mvp_id
@@ -382,7 +382,7 @@ create or replace package body pkg_phy_transfer_data is
                    (SELECT mvp_id
                     FROM   mvp_m2m_valuation_point
                     WHERE  corporate_id = pc_corporate_id));*/
-                    
+  
     insert into lds_location_diff_setup
       (loc_diff_id,
        corporate_id,
@@ -408,7 +408,7 @@ create or replace package body pkg_phy_transfer_data is
              valuation_city_id
         from lds_location_diff_setup@eka_appdb ldh
        where corporate_id = pc_corporate_id;
-       
+  
     insert into ldc_location_diff_cost
       (loc_diff_id, cost_component_id, cost_value, cost_price_unit_id)
       select loc_diff_id,
@@ -491,7 +491,6 @@ create or replace package body pkg_phy_transfer_data is
       dbms_mview.refresh('itm_incoterm_master', 'c');
       dbms_mview.refresh('gsm_gmr_stauts_master', 'c');
       dbms_mview.refresh('orm_origin_master', 'c');
-    
       dbms_mview.refresh('BGM_BP_GROUP_MASTER', 'c');
       dbms_mview.refresh('BPC_BP_CORPORATES', 'c');
       dbms_mview.refresh('BPSLD_BP_STORAGE_LOC_DET', 'c');
@@ -515,12 +514,24 @@ create or replace package body pkg_phy_transfer_data is
       dbms_mview.refresh('VCS_VALUATION_CURVE_SETUP', 'c');
       dbms_mview.refresh('VCA_VALUATION_CURVE_ATTRIBUTE', 'c');
       dbms_mview.refresh('PFD_PRICE_FIXATION_DETAILS', 'c');
-
       dbms_mview.refresh('PP_PRODUCT_PREMIUM', 'c');
       dbms_mview.refresh('PPBM_PRODUCT_PREMIUM_BY_MONTH', 'c');
       dbms_mview.refresh('QP_QUALITY_PREMIUM', 'c');
       dbms_mview.refresh('QPBM_QUALITY_PREMIUM_BY_MONTH', 'c');
-
+      dbms_mview.refresh('ASH_ASSAY_HEADER', 'c');
+      dbms_mview.refresh('ASM_ASSAY_SUBLOT_MAPPING', 'c');
+      dbms_mview.refresh('PQCA_PQ_CHEMICAL_ATTRIBUTES', 'c');
+      dbms_mview.refresh('PQPA_PQ_PHYSICAL_ATTRIBUTES', 'c');
+      dbms_mview.refresh('DIPQ_DELIVERY_ITEM_PAYABLE_QTY', 'c');
+      dbms_mview.refresh('CIPQ_CONTRACT_ITEM_PAYABLE_QTY', 'c');
+      dbms_mview.refresh('RM_RATIO_MASTER', 'c');
+      dbms_mview.refresh('AML_ATTRIBUTE_MASTER_LIST', 'c');
+      dbms_mview.refresh('PPM_PRODUCT_PROPERTIES_MAPPING', 'c');
+      dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'c');
+      dbms_mview.refresh('MDCD_M2M_DED_CHARGE_DETAILS', 'c');
+      dbms_mview.refresh('MDCBM_DED_CHARGES_BY_MONTH', 'c');
+      
+    
     end if;
   exception
     when others then
@@ -1693,7 +1704,7 @@ create or replace package body pkg_phy_transfer_data is
        weight_allowance,
        weight_allowance_unit_id,
        entry_type,
-       unit_of_measure,is_tolling_contract,
+       unit_of_measure,
        dbd_id)
       select ul.pcmul_id,
              ul.internal_action_ref_no,
@@ -1742,7 +1753,7 @@ create or replace package body pkg_phy_transfer_data is
              ul.weight_allowance,
              ul.weight_allowance_unit_id,
              ul.entry_type,
-             ul.unit_of_measure,ul.is_tolling_contract,
+             ul.unit_of_measure,
              pc_dbd_id
         from pcmul_phy_contract_main_ul@eka_appdb ul,
              axs_action_summary@eka_appdb         axs
@@ -2663,6 +2674,614 @@ create or replace package body pkg_phy_transfer_data is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
   
+    insert all into pcpchul_payble_contnt_headr_ul
+      (pcpchul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcpch_id,
+       internal_contract_ref_no,
+       range_type,
+       range_unit_id,
+       element_id,
+       slab_tier,
+       version,
+       is_active,
+       dbd_id)
+      select ul.pcpchul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcpch_id,
+             ul.internal_contract_ref_no,
+             ul.range_type,
+             ul.range_unit_id,
+             ul.element_id,
+             ul.slab_tier,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from pcpchul_payble_contnt_headr_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pqdul_payable_quality_dtl_ul
+      (pqdul_id,
+       internal_action_ref_no,
+       entry_type,
+       pqd_id,
+       pcpch_id,
+       pcpq_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.pqdul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pqd_id,
+             ul.pcpch_id,
+             ul.pcpq_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from pqdul_payable_quality_dtl_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb           axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pcepcul_elem_payble_content_ul
+      (pcepcul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcepc_id,
+       range_min_op,
+       range_min_value,
+       range_max_op,
+       range_max_value,
+       payable_formula_id,
+       payable_content_value,
+       payable_content_unit_id,
+       assay_deduction,
+       assay_deduction_unit_id,
+       include_ref_charges,
+       refining_charge_value,
+       refining_charge_unit_id,
+       version,
+       is_active,
+       pcpch_id,
+       position,
+       dbd_id)
+      select ul.pcepcul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcepc_id,
+             ul.range_min_op,
+             ul.range_min_value,
+             ul.range_max_op,
+             range_max_value,
+             ul.payable_formula_id,
+             ul.payable_content_value,
+             ul.payable_content_unit_id,
+             ul.assay_deduction,
+             ul.assay_deduction_unit_id,
+             ul.include_ref_charges,
+             ul.refining_charge_value,
+             ul.refining_charge_unit_id,
+             ul.version,
+             ul.is_active,
+             ul.pcpch_id,
+             ul.position,
+             pc_dbd_id
+        from pcepcul_elem_payble_content_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pcthul_treatment_header_ul
+      (pcthul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcth_id,
+       internal_contract_ref_no,
+       range_type,
+       range_unit_id,
+       price_unit_id,
+       slab_tier,
+       version,
+       is_active,
+       dbd_id)
+      select ul.pcthul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcth_id,
+             ul.internal_contract_ref_no,
+             ul.range_type,
+             ul.range_unit_id,
+             ul.price_unit_id,
+             ul.slab_tier,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from pcthul_treatment_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb         axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into tedul_treatment_element_dtl_ul
+      (tedul_id,
+       internal_action_ref_no,
+       entry_type,
+       ted_id,
+       pcth_id,
+       element_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.tedul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.ted_id,
+             ul.pcth_id,
+             ul.element_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from tedul_treatment_element_dtl_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into tqdul_treatment_quality_dtl_ul
+      (tqdul_id,
+       internal_action_ref_no,
+       entry_type,
+       tqd_id,
+       pcth_id,
+       pcpq_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.tqdul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.tqd_id,
+             ul.pcth_id,
+             ul.pcpq_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from tqdul_treatment_quality_dtl_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pcetcul_elem_treatmnt_chrg_ul
+      (pcetcul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcetc_id,
+       pcth_id,
+       range_min_op,
+       range_min_value,
+       range_max_op,
+       range_max_value,
+       position,
+       treatment_charge,
+       treatment_charge_unit_id,
+       weight_type,
+       charge_basis,
+       esc_desc_value,
+       esc_desc_unit_id,
+       version,
+       is_active,
+       charge_type,
+       dbd_id)
+      select ul.pcetcul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcetc_id,
+             ul.pcth_id,
+             ul.range_min_op,
+             ul.range_min_value,
+             ul.range_max_op,
+             ul.range_max_value,
+             ul.position,
+             ul.treatment_charge,
+             ul.treatment_charge_unit_id,
+             ul.weight_type,
+             ul.charge_basis,
+             ul.esc_desc_value,
+             ul.esc_desc_unit_id,
+             ul.version,
+             ul.is_active,
+             ul.charge_type,
+             pc_dbd_id
+        from pcetcul_elem_treatmnt_chrg_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb            axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pcarul_assaying_rules_ul
+      (pcarul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcar_id,
+       internal_contract_ref_no,
+       element_id,
+       final_assay_basis_id,
+       comparision,
+       split_limit_basis,
+       split_limit,
+       split_limit_unit_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.pcarul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcar_id,
+             ul.internal_contract_ref_no,
+             ul.element_id,
+             ul.final_assay_basis_id,
+             ul.comparision,
+             ul.split_limit_basis,
+             ul.split_limit,
+             ul.split_limit_unit_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from pcarul_assaying_rules_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb       axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pcaeslul_assay_elm_splt_lmt_ul
+      (pcaeslul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcaesl_id,
+       pcar_id,
+       assay_min_op,
+       assay_min_value,
+       assay_max_op,
+       assay_max_value,
+       applicable_value,
+       version,
+       is_active,
+       dbd_id)
+      select ul.pcaeslul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcaesl_id,
+             ul.pcar_id,
+             ul.assay_min_op,
+             ul.assay_min_value,
+             ul.assay_max_op,
+             ul.assay_max_value,
+             ul.applicable_value,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from pcaeslul_assay_elm_splt_lmt_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into arqdul_assay_quality_dtl_ul
+      (arqdul_id,
+       internal_action_ref_no,
+       entry_type,
+       arqd_id,
+       pcar_id,
+       pcpq_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.arqdul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.arqd_id,
+             ul.pcar_id,
+             ul.pcpq_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from arqdul_assay_quality_dtl_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb          axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pcaphul_attr_penalty_header_ul
+      (pcaphul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcaph_id,
+       internal_contract_ref_no,
+       attribute_type,
+       range_unit_id,
+       slab_tier,
+       version,
+       is_active,
+       dbd_id)
+      select ul.pcaphul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcaph_id,
+             ul.internal_contract_ref_no,
+             ul.attribute_type,
+             ul.range_unit_id,
+             ul.slab_tier,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from pcaphul_attr_penalty_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pcapul_attribute_penalty_ul
+      (pcapul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcap_id,
+       range_min_op,
+       range_min_value,
+       range_max_op,
+       range_max_value,
+       penalty_charge_type,
+       penalty_basis,
+       penalty_amount,
+       penalty_unit_id,
+       penalty_weight_type,
+       per_increase_value,
+       per_increase_unit_id,
+       deducted_payable_element,
+       deducted_payable_value,
+       deducted_payable_unit_id,
+       charge_basis,
+       version,
+       is_active,
+       pcaph_id,
+       position,
+       dbd_id)
+      select ul.pcapul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcap_id,
+             ul.range_min_op,
+             ul.range_min_value,
+             ul.range_max_op,
+             ul.range_max_value,
+             ul.penalty_charge_type,
+             ul.penalty_basis,
+             ul.penalty_amount,
+             ul.penalty_unit_id,
+             ul.penalty_weight_type,
+             ul.per_increase_value,
+             ul.per_increase_unit_id,
+             ul.deducted_payable_element,
+             ul.deducted_payable_value,
+             ul.deducted_payable_unit_id,
+             ul.charge_basis,
+             ul.version,
+             ul.is_active,
+             ul.pcaph_id,
+             ul.position,
+             pc_dbd_id
+        from pcapul_attribute_penalty_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb          axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pqdul_penalty_quality_dtl_ul
+      (pqdul_id,
+       internal_action_ref_no,
+       entry_type,
+       pqd_id,
+       pcaph_id,
+       pcpq_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.pqdul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pqd_id,
+             ul.pcaph_id,
+             ul.pcpq_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from pqdul_penalty_quality_dtl_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb           axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into padul_penalty_attribute_dtl_ul
+      (padul_id,
+       internal_action_ref_no,
+       entry_type,
+       pad_id,
+       pcaph_id,
+       element_id,
+       pqpa_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.padul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pad_id,
+             ul.pcaph_id,
+             ul.element_id,
+             ul.pqpa_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from padul_penalty_attribute_dtl_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pcrhul_refining_header_ul
+      (pcrhul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcrh_id,
+       internal_contract_ref_no,
+       range_type,
+       range_unit_id,
+       price_unit_id,
+       slab_tier,
+       version,
+       is_active,
+       dbd_id)
+      select ul.pcrhul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcrh_id,
+             ul.internal_contract_ref_no,
+             ul.range_type,
+             ul.range_unit_id,
+             ul.price_unit_id,
+             ul.slab_tier,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from pcrhul_refining_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb        axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into rqdul_refining_quality_dtl_ul
+      (rqdul_id,
+       internal_action_ref_no,
+       entry_type,
+       rqd_id,
+       pcrh_id,
+       pcpq_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.rqdul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.rqd_id,
+             ul.pcrh_id,
+             ul.pcpq_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from rqdul_refining_quality_dtl_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb            axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into redul_refining_element_dtl_ul
+      (redul_id,
+       internal_action_ref_no,
+       entry_type,
+       red_id,
+       pcrh_id,
+       element_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.redul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.red_id,
+             ul.pcrh_id,
+             ul.element_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from redul_refining_element_dtl_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb            axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert all into pcercul_elem_refing_charge_ul
+      (pcercul_id,
+       internal_action_ref_no,
+       entry_type,
+       pcerc_id,
+       pcrh_id,
+       range_min_op,
+       range_min_value,
+       range_max_op,
+       range_max_value,
+       charge_type,
+       position,
+       refining_charge,
+       refining_charge_unit_id,
+       weight_type,
+       charge_basis,
+       esc_desc_value,
+       esc_desc_unit_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.pcercul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcerc_id,
+             ul.pcrh_id,
+             ul.range_min_op,
+             ul.range_min_value,
+             ul.range_max_op,
+             ul.range_max_value,
+             ul.charge_type,
+             ul.position,
+             ul.refining_charge,
+             ul.refining_charge_unit_id,
+             ul.weight_type,
+             ul.charge_basis,
+             ul.esc_desc_value,
+             ul.esc_desc_unit_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from pcercul_elem_refing_charge_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb            axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -2844,6 +3463,8 @@ create or replace package body pkg_phy_transfer_data is
       sp_insert_error_log(vobj_error_log);
     
   end;
+
+  
 
 end pkg_phy_transfer_data; 
 /
