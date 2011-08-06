@@ -1,0 +1,69 @@
+Patch No*          		:  EKA_METALS_Patch_0067
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  05-Aug-2011
+
+Bug / Enhancement* 		:  Concentrates open pnl
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  EOD
+ 
+Sub-Module  			:  Concentrates open pnl
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+RPT Files:
+------------
+
+Revision: 74659
+Author: sivachalabathi.s
+Date: 7:19:52 AM, Saturday, August 06, 2011
+Message:
+APP DB CONCENTRATE OPEN PNL RELEASE
+----
+Added : /7.3/Engg/Metals/Release/Patch/Reports/DailyOpenUnrealizedPhysicalConc.rpt
+
+
+
+SQL Files:
+----------------
+Revision: 74659
+Author: sivachalabathi.s
+Date: 7:19:52 AM, Saturday, August 06, 2011
+Message:
+APP DB CONCENTRATE OPEN PNL RELEASE
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_42_Report Menu.txt
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_45_DDL_MVIEWLOGS_CONC.sql
+
+
+
+
+
+

@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_Patch_0068
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  05-Aug-2011
+
+Bug / Enhancement* 		:  Concentrates open pnl
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  EOD
+ 
+Sub-Module  			:  Concentrates open pnl
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+Revision: 74658
+Author: sivachalabathi.s
+Date: 7:11:51 AM, Saturday, August 06, 2011
+Message:
+EOD DB CONCENTRATE OPEN PNL RELEASE
+----
+1 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/002_DML_EEM_Script.sql
+2 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/003-DDL_PHY_TABLES.sql
+3 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/004-MVIEW_EODDB.sql
+4 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+5 ) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+6 ) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+7 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+8 ) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
+---------------
