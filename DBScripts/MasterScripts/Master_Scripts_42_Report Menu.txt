@@ -1,0 +1,17 @@
+-- Inserted phys pnl for concentrates Into RML Table
+SET DEFINE OFF;
+insert into rml_report_master_list (REPORT_ID, SECTION_ID, REPORT_FILE_NAME, REPORT_DISPLAY_NAME, FEATURE_ID, REPORT_DISPLAY_NAME_DE, REPORT_DISPLAY_NAME_ES, ACTION_METHOD, REPORT_TYPE, IS_ACTIVE)
+values ('213', '21', 'DailyOpenUnrealizedPhysicalConc.rpt', 'Daily Open Unrealized Physical P&L (Concentrate)', '', '', '', 'populateFilter', 'EOD', 'Y');
+
+insert into AMC_APP_MENU_CONFIGURATION (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+values ('RPT-D224', 'Daily Open Unrealized Physical P&L (Concentrate)', 14, 4, '/mdm/CommonFilter.do?method=populateJRCReport&docType=EOD&ReportID=213&ReportName=DailyOpenUnrealizedPhysicalConc.rpt&ExportFormat=HTML', '', 'RPT-D22', '', 'Reports', '');
+commit;
+insert into rpd_report_parameter_data (CORPORATE_ID, REPORT_ID, REPORT_PARAMETER_NAME, REPORT_PARAM_ID)
+values ('LDE', '213', 'AsOfDate', 'RPQ-003');
+
+insert into rpd_report_parameter_data (CORPORATE_ID, REPORT_ID, REPORT_PARAMETER_NAME, REPORT_PARAM_ID)
+values ('EKA', '213', 'AsOfDate', 'RPQ-003');
+
+
+COMMIT;
+
