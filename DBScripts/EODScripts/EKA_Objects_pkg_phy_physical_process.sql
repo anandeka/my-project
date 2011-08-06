@@ -122,7 +122,7 @@ create or replace package pkg_phy_physical_process is
                                pn_price         out number,
                                pc_price_unit_id out varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_phy_physical_process is
 
@@ -1852,7 +1852,7 @@ create or replace package body pkg_phy_physical_process is
       begin
         select cm.cur_id,
                cm.cur_code,
-               nvl(ppu.weight, 1),
+               ppu.weight,
                ppu.weight_unit_id,
                qum.qty_unit
           into vc_price_cur_id,
@@ -2075,7 +2075,10 @@ create or replace package body pkg_phy_physical_process is
              apm.available_price_name,
              pum.price_unit_name,
              vdip.ppu_price_unit_id,
-             div.price_unit_id
+             div.price_unit_id,
+             dim.delivery_calender_id,
+             pdc.is_daily_cal_applicable,
+             pdc.is_monthly_cal_applicable
       
         from pcdi_pc_delivery_item         pcdi,
              ceqs_contract_ele_qty_status  ceqs,
@@ -2091,7 +2094,8 @@ create or replace package body pkg_phy_physical_process is
              ps_price_source               ps,
              apm_available_price_master    apm,
              pum_price_unit_master         pum,
-             v_der_instrument_price_unit   vdip
+             v_der_instrument_price_unit   vdip,
+             pdc_prompt_delivery_calendar  pdc
       
        where pcdi.pcdi_id = pci.pcdi_id
          and pci.internal_contract_item_ref_no =
@@ -2113,6 +2117,7 @@ create or replace package body pkg_phy_physical_process is
          and div.available_price_id = apm.available_price_id
          and div.price_unit_id = pum.price_unit_id
          and dim.instrument_id = vdip.instrument_id
+         and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id
          and pci.item_qty > 0
          and ceqs.payable_qty > 0
          and pcdi.process_id = pc_process_id
@@ -2245,6 +2250,9 @@ create or replace package body pkg_phy_physical_process is
     vc_price_option_call_off_sts   varchar2(50);
     vc_pcdi_id                     varchar2(15);
     vc_element_id                  varchar2(15);
+    vc_prompt_month                varchar2(15);
+    vc_prompt_year                 number;
+    vc_prompt_date                 date;
   
   begin
   
@@ -2437,71 +2445,123 @@ create or replace package body pkg_phy_physical_process is
               if vc_period = 'Before QP' then
                 vc_price_fixation_status := 'Un-priced';
               
-                vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date, 'Wed', 3);
-              
-                while true
-                loop
-                  if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                      vd_3rd_wed_of_qp) then
-                    vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
-                  else
-                    exit;
-                  end if;
-                end loop;
-                --- get 3rd wednesday  before QP period 
-                -- Get the quotation date = Trade Date +2 working Days
-                if vd_3rd_wed_of_qp <= pd_trade_date then
-                  workings_days  := 0;
-                  vd_quotes_date := pd_trade_date + 1;
-                  while workings_days <> 2
+                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
+                  vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date,
+                                                     'Wed',
+                                                     3);
+                
+                  while true
                   loop
                     if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                        vd_quotes_date) then
-                      vd_quotes_date := vd_quotes_date + 1;
+                                        vd_3rd_wed_of_qp) then
+                      vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
                     else
-                      workings_days := workings_days + 1;
-                      if workings_days <> 2 then
-                        vd_quotes_date := vd_quotes_date + 1;
-                      end if;
+                      exit;
                     end if;
                   end loop;
-                  vd_3rd_wed_of_qp := vd_quotes_date;
+                  --- get 3rd wednesday  before QP period 
+                  -- Get the quotation date = Trade Date +2 working Days
+                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                    workings_days  := 0;
+                    vd_quotes_date := pd_trade_date + 1;
+                    while workings_days <> 2
+                    loop
+                      if f_is_day_holiday(cur_pcdi_rows.instrument_id,
+                                          vd_quotes_date) then
+                        vd_quotes_date := vd_quotes_date + 1;
+                      else
+                        workings_days := workings_days + 1;
+                        if workings_days <> 2 then
+                          vd_quotes_date := vd_quotes_date + 1;
+                        end if;
+                      end if;
+                    end loop;
+                    vd_3rd_wed_of_qp := vd_quotes_date;
+                  end if;
+                  ---- get the dr_id             
+                  begin
+                    select drm.dr_id
+                      into vc_before_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.prompt_date = vd_3rd_wed_of_qp
+                       and rownum <= 1
+                       and drm.price_point_id is null
+                       and drm.is_deleted = 'N';
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR_ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vd_3rd_wed_of_qp,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                    
+                  end;
                 end if;
-                ---- get the dr_id             
-                begin
-                  select drm.dr_id
-                    into vc_before_price_dr_id
-                    from drm_derivative_master drm
-                   where drm.instrument_id = cur_pcdi_rows.instrument_id
-                     and drm.prompt_date = vd_3rd_wed_of_qp
-                     and rownum <= 1
-                     and drm.price_point_id is null
-                     and drm.is_deleted = 'N';
-                exception
-                  when no_data_found then
-                    vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                         'procedure sp_calc_contract_price',
-                                                                         'PHY-002',
-                                                                         'DR_ID missing for ' ||
-                                                                         cur_pcdi_rows.instrument_name ||
-                                                                         ',Price Source:' ||
-                                                                         cur_pcdi_rows.price_source_name ||
-                                                                         ' Contract Ref No: ' ||
-                                                                         cur_pcdi_rows.contract_ref_no ||
-                                                                         ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                                                         cur_pcdi_rows.available_price_name ||
-                                                                         ' Price,Prompt Date:' ||
-                                                                         vd_3rd_wed_of_qp,
-                                                                         '',
-                                                                         gvc_process,
-                                                                         pc_user_id,
-                                                                         sysdate,
-                                                                         pd_trade_date);
-                    sp_insert_error_log(vobj_error_log);
-                  
-                end;
+              
+                if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
+                   cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                
+                  vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                                      pd_trade_date);
+                  vc_prompt_month := to_char(vc_prompt_date, 'Mon');
+                  vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
+                
+                  ---- get the dr_id             
+                  begin
+                    select drm.dr_id
+                      into vc_before_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.period_month = vc_prompt_month
+                       and drm.period_year = vc_prompt_year
+                       and rownum <= 1
+                       and drm.price_point_id is null
+                       and drm.is_deleted = 'N';
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR_ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vc_prompt_month || ' ' ||
+                                                                           vc_prompt_year,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                    
+                  end;
+                
+                end if;
               
                 --get the price              
                 begin
@@ -2670,73 +2730,124 @@ create or replace package body pkg_phy_physical_process is
                   vn_market_flag := 'Y';
                 end if;
               
-                -- get the third wednes day
-                vd_3rd_wed_of_qp := f_get_next_day(vd_dur_qp_end_date,
-                                                   'Wed',
-                                                   3);
-                while true
-                loop
-                  if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                      vd_3rd_wed_of_qp) then
-                    vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
-                  else
-                    exit;
-                  end if;
-                end loop;
-              
-                --- get 3rd wednesday  before QP period 
-                -- Get the quotation date = Trade Date +2 working Days
-                if vd_3rd_wed_of_qp <= pd_trade_date then
-                  workings_days  := 0;
-                  vd_quotes_date := pd_trade_date + 1;
-                  while workings_days <> 2
+                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
+                  -- get the third wednes day
+                  vd_3rd_wed_of_qp := f_get_next_day(vd_dur_qp_end_date,
+                                                     'Wed',
+                                                     3);
+                  while true
                   loop
                     if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                        vd_quotes_date) then
-                      vd_quotes_date := vd_quotes_date + 1;
+                                        vd_3rd_wed_of_qp) then
+                      vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
                     else
-                      workings_days := workings_days + 1;
-                      if workings_days <> 2 then
-                        vd_quotes_date := vd_quotes_date + 1;
-                      end if;
+                      exit;
                     end if;
                   end loop;
-                  vd_3rd_wed_of_qp := vd_quotes_date;
+                
+                  --- get 3rd wednesday  before QP period 
+                  -- Get the quotation date = Trade Date +2 working Days
+                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                    workings_days  := 0;
+                    vd_quotes_date := pd_trade_date + 1;
+                    while workings_days <> 2
+                    loop
+                      if f_is_day_holiday(cur_pcdi_rows.instrument_id,
+                                          vd_quotes_date) then
+                        vd_quotes_date := vd_quotes_date + 1;
+                      else
+                        workings_days := workings_days + 1;
+                        if workings_days <> 2 then
+                          vd_quotes_date := vd_quotes_date + 1;
+                        end if;
+                      end if;
+                    end loop;
+                    vd_3rd_wed_of_qp := vd_quotes_date;
+                  end if;
+                  --Get the DR-id
+                  begin
+                    select drm.dr_id
+                      into vc_during_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.prompt_date = vd_3rd_wed_of_qp
+                       and rownum <= 1
+                       and drm.price_point_id is null
+                       and drm.is_deleted = 'N';
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR-ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vd_3rd_wed_of_qp,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                  end;
                 end if;
-                --Get the DR-id
-                begin
-                  select drm.dr_id
-                    into vc_during_price_dr_id
-                    from drm_derivative_master drm
-                   where drm.instrument_id = cur_pcdi_rows.instrument_id
-                     and drm.prompt_date = vd_3rd_wed_of_qp
-                     and rownum <= 1
-                     and drm.price_point_id is null
-                     and drm.is_deleted = 'N';
-                exception
-                  when no_data_found then
-                    vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                         'procedure sp_calc_contract_price',
-                                                                         'PHY-002',
-                                                                         'DR-ID missing for ' ||
-                                                                         cur_pcdi_rows.instrument_name ||
-                                                                         ',Price Source:' ||
-                                                                         cur_pcdi_rows.price_source_name ||
-                                                                         ' Contract Ref No: ' ||
-                                                                         cur_pcdi_rows.contract_ref_no ||
-                                                                         ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                                                         cur_pcdi_rows.available_price_name ||
-                                                                         ' Price,Prompt Date:' ||
-                                                                         vd_3rd_wed_of_qp,
-                                                                         '',
-                                                                         gvc_process,
-                                                                         pc_user_id,
-                                                                         sysdate,
-                                                                         pd_trade_date);
-                    sp_insert_error_log(vobj_error_log);
-                end;
+              
+                if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
+                   cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                
+                  vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                                      pd_trade_date);
+                  vc_prompt_month := to_char(vc_prompt_date, 'Mon');
+                  vc_prompt_month := to_char(vc_prompt_date, 'YYYY');
+                
+                  ---- get the dr_id             
+                  begin
+                    select drm.dr_id
+                      into vc_during_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.period_month = vc_prompt_month
+                       and drm.period_year = vc_prompt_month
+                       and rownum <= 1
+                       and drm.price_point_id is null
+                       and drm.is_deleted = 'N';
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR_ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vc_prompt_month || ' ' ||
+                                                                           vc_prompt_year,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                    
+                  end;
+                
+                end if;
+              
                 --Get the price for the dr-id
                 begin
                   select dqd.price,
@@ -3015,71 +3126,125 @@ create or replace package body pkg_phy_physical_process is
               
                 vc_price_fixation_status := 'Un-priced';
               
-                ---- get third wednesday of QP period
-                --  If 3rd Wednesday of QP End date is not a prompt date, get the next valid prompt date
-                vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date, 'Wed', 3);
-                while true
-                loop
-                  if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                      vd_3rd_wed_of_qp) then
-                    vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
-                  else
-                    exit;
-                  end if;
-                end loop;
-                --- get 3rd wednesday  before QP period 
-                -- Get the quotation date = Trade Date +2 working Days
-                if vd_3rd_wed_of_qp <= pd_trade_date then
-                  workings_days  := 0;
-                  vd_quotes_date := pd_trade_date + 1;
-                  while workings_days <> 2
+                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
+                  ---- get third wednesday of QP period
+                  --  If 3rd Wednesday of QP End date is not a prompt date, get the next valid prompt date
+                  vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date,
+                                                     'Wed',
+                                                     3);
+                  while true
                   loop
                     if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                        vd_quotes_date) then
-                      vd_quotes_date := vd_quotes_date + 1;
+                                        vd_3rd_wed_of_qp) then
+                      vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
                     else
-                      workings_days := workings_days + 1;
-                      if workings_days <> 2 then
-                        vd_quotes_date := vd_quotes_date + 1;
-                      end if;
+                      exit;
                     end if;
                   end loop;
-                  vd_3rd_wed_of_qp := vd_quotes_date;
+                  --- get 3rd wednesday  before QP period 
+                  -- Get the quotation date = Trade Date +2 working Days
+                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                    workings_days  := 0;
+                    vd_quotes_date := pd_trade_date + 1;
+                    while workings_days <> 2
+                    loop
+                      if f_is_day_holiday(cur_pcdi_rows.instrument_id,
+                                          vd_quotes_date) then
+                        vd_quotes_date := vd_quotes_date + 1;
+                      else
+                        workings_days := workings_days + 1;
+                        if workings_days <> 2 then
+                          vd_quotes_date := vd_quotes_date + 1;
+                        end if;
+                      end if;
+                    end loop;
+                    vd_3rd_wed_of_qp := vd_quotes_date;
+                  end if;
+                  --get the price dr_id   
+                  begin
+                    select drm.dr_id
+                      into vc_before_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.prompt_date = vd_3rd_wed_of_qp
+                       and drm.price_point_id is null
+                       and rownum <= 1
+                       and drm.is_deleted = 'N';
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR-ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vd_3rd_wed_of_qp,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                  end;
                 end if;
-                --get the price dr_id   
-                begin
-                  select drm.dr_id
-                    into vc_before_price_dr_id
-                    from drm_derivative_master drm
-                   where drm.instrument_id = cur_pcdi_rows.instrument_id
-                     and drm.prompt_date = vd_3rd_wed_of_qp
-                     and drm.price_point_id is null
-                     and rownum <= 1
-                     and drm.is_deleted = 'N';
-                exception
-                  when no_data_found then
-                    vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                         'procedure sp_calc_contract_price',
-                                                                         'PHY-002',
-                                                                         'DR-ID missing for ' ||
-                                                                         cur_pcdi_rows.instrument_name ||
-                                                                         ',Price Source:' ||
-                                                                         cur_pcdi_rows.price_source_name ||
-                                                                         ' Contract Ref No: ' ||
-                                                                         cur_pcdi_rows.contract_ref_no ||
-                                                                         ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                                                         cur_pcdi_rows.available_price_name ||
-                                                                         ' Price,Prompt Date:' ||
-                                                                         vd_3rd_wed_of_qp,
-                                                                         '',
-                                                                         gvc_process,
-                                                                         pc_user_id,
-                                                                         sysdate,
-                                                                         pd_trade_date);
-                    sp_insert_error_log(vobj_error_log);
-                end;
+              
+                if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
+                   cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                
+                  vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                                      pd_trade_date);
+                  vc_prompt_month := to_char(vc_prompt_date, 'Mon');
+                  vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
+                
+                  ---- get the dr_id             
+                  begin
+                  
+                    select drm.dr_id
+                      into vc_before_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.period_month = vc_prompt_month
+                       and drm.period_year = vc_prompt_year
+                       and drm.price_point_id is null
+                       and rownum <= 1
+                       and drm.is_deleted = 'N';
+                  
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR_ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vc_prompt_month || ' ' ||
+                                                                           vc_prompt_year,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                    
+                  end;
+                
+                end if;
               
                 --get the price
               
@@ -3139,70 +3304,122 @@ create or replace package body pkg_phy_physical_process is
               elsif vc_period = 'After QP' then
                 vc_price_fixation_status := 'Un-priced';
               
-                vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date, 'Wed', 3);
-                while true
-                loop
-                  if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                      vd_3rd_wed_of_qp) then
-                    vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
-                  else
-                    exit;
-                  end if;
-                end loop;
-                --- get 3rd wednesday  before QP period 
-                -- Get the quotation date = Trade Date +2 working Days
-                if vd_3rd_wed_of_qp <= pd_trade_date then
-                  workings_days  := 0;
-                  vd_quotes_date := pd_trade_date + 1;
-                  while workings_days <> 2
+                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
+                  vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date,
+                                                     'Wed',
+                                                     3);
+                  while true
                   loop
                     if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                        vd_quotes_date) then
-                      vd_quotes_date := vd_quotes_date + 1;
+                                        vd_3rd_wed_of_qp) then
+                      vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
                     else
-                      workings_days := workings_days + 1;
-                      if workings_days <> 2 then
-                        vd_quotes_date := vd_quotes_date + 1;
-                      end if;
+                      exit;
                     end if;
                   end loop;
-                  vd_3rd_wed_of_qp := vd_quotes_date;
+                  --- get 3rd wednesday  before QP period 
+                  -- Get the quotation date = Trade Date +2 working Days
+                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                    workings_days  := 0;
+                    vd_quotes_date := pd_trade_date + 1;
+                    while workings_days <> 2
+                    loop
+                      if f_is_day_holiday(cur_pcdi_rows.instrument_id,
+                                          vd_quotes_date) then
+                        vd_quotes_date := vd_quotes_date + 1;
+                      else
+                        workings_days := workings_days + 1;
+                        if workings_days <> 2 then
+                          vd_quotes_date := vd_quotes_date + 1;
+                        end if;
+                      end if;
+                    end loop;
+                    vd_3rd_wed_of_qp := vd_quotes_date;
+                  end if;
+                
+                  --get the price dr_id   
+                  begin
+                    select drm.dr_id
+                      into vc_after_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.prompt_date = vd_3rd_wed_of_qp
+                       and drm.price_point_id is null
+                       and rownum <= 1
+                       and drm.is_deleted = 'N';
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR-ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vd_3rd_wed_of_qp,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                  end;
                 end if;
               
-                --get the price dr_id   
-                begin
-                  select drm.dr_id
-                    into vc_after_price_dr_id
-                    from drm_derivative_master drm
-                   where drm.instrument_id = cur_pcdi_rows.instrument_id
-                     and drm.prompt_date = vd_3rd_wed_of_qp
-                     and drm.price_point_id is null
-                     and rownum <= 1
-                     and drm.is_deleted = 'N';
-                exception
-                  when no_data_found then
-                    vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                         'procedure sp_calc_contract_price',
-                                                                         'PHY-002',
-                                                                         'DR-ID missing for ' ||
-                                                                         cur_pcdi_rows.instrument_name ||
-                                                                         ',Price Source:' ||
-                                                                         cur_pcdi_rows.price_source_name ||
-                                                                         ' Contract Ref No: ' ||
-                                                                         cur_pcdi_rows.contract_ref_no ||
-                                                                         ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                                                         cur_pcdi_rows.available_price_name ||
-                                                                         ' Price,Prompt Date:' ||
-                                                                         vd_3rd_wed_of_qp,
-                                                                         '',
-                                                                         gvc_process,
-                                                                         pc_user_id,
-                                                                         sysdate,
-                                                                         pd_trade_date);
-                    sp_insert_error_log(vobj_error_log);
-                end;
+                if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
+                   cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                
+                  vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                                      pd_trade_date);
+                  vc_prompt_month := to_char(vc_prompt_date, 'Mon');
+                  vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
+                
+                  ---- get the dr_id             
+                  begin
+                    select drm.dr_id
+                      into vc_after_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.period_month = vc_prompt_month
+                       and drm.period_year = vc_prompt_year
+                       and drm.price_point_id is null
+                       and rownum <= 1
+                       and drm.is_deleted = 'N';
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR_ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vc_prompt_month || ' ' ||
+                                                                           vc_prompt_year,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                    
+                  end;
+                
+                end if;
               
                 --get the price
               
@@ -3261,70 +3478,122 @@ create or replace package body pkg_phy_physical_process is
               elsif vc_period = 'During QP' then
                 vc_price_fixation_status := 'Un-priced';
               
-                vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date, 'Wed', 3);
-                while true
-                loop
-                  if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                      vd_3rd_wed_of_qp) then
-                    vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
-                  else
-                    exit;
-                  end if;
-                end loop;
-                --- get 3rd wednesday  before QP period 
-                -- Get the quotation date = Trade Date +2 working Days
-                if vd_3rd_wed_of_qp <= pd_trade_date then
-                  workings_days  := 0;
-                  vd_quotes_date := pd_trade_date + 1;
-                  while workings_days <> 2
+                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
+                  vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date,
+                                                     'Wed',
+                                                     3);
+                  while true
                   loop
                     if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                        vd_quotes_date) then
-                      vd_quotes_date := vd_quotes_date + 1;
+                                        vd_3rd_wed_of_qp) then
+                      vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
                     else
-                      workings_days := workings_days + 1;
-                      if workings_days <> 2 then
-                        vd_quotes_date := vd_quotes_date + 1;
-                      end if;
+                      exit;
                     end if;
                   end loop;
-                  vd_3rd_wed_of_qp := vd_quotes_date;
+                  --- get 3rd wednesday  before QP period 
+                  -- Get the quotation date = Trade Date +2 working Days
+                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                    workings_days  := 0;
+                    vd_quotes_date := pd_trade_date + 1;
+                    while workings_days <> 2
+                    loop
+                      if f_is_day_holiday(cur_pcdi_rows.instrument_id,
+                                          vd_quotes_date) then
+                        vd_quotes_date := vd_quotes_date + 1;
+                      else
+                        workings_days := workings_days + 1;
+                        if workings_days <> 2 then
+                          vd_quotes_date := vd_quotes_date + 1;
+                        end if;
+                      end if;
+                    end loop;
+                    vd_3rd_wed_of_qp := vd_quotes_date;
+                  end if;
+                
+                  --get the price dr_id   
+                  begin
+                    select drm.dr_id
+                      into vc_during_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.prompt_date = vd_3rd_wed_of_qp
+                       and drm.price_point_id is null
+                       and rownum <= 1
+                       and drm.is_deleted = 'N';
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR-ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vd_3rd_wed_of_qp,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                  end;
                 end if;
               
-                --get the price dr_id   
-                begin
-                  select drm.dr_id
-                    into vc_during_price_dr_id
-                    from drm_derivative_master drm
-                   where drm.instrument_id = cur_pcdi_rows.instrument_id
-                     and drm.prompt_date = vd_3rd_wed_of_qp
-                     and drm.price_point_id is null
-                     and rownum <= 1
-                     and drm.is_deleted = 'N';
-                exception
-                  when no_data_found then
-                    vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                         'procedure sp_calc_contract_price',
-                                                                         'PHY-002',
-                                                                         'DR-ID missing for ' ||
-                                                                         cur_pcdi_rows.instrument_name ||
-                                                                         ',Price Source:' ||
-                                                                         cur_pcdi_rows.price_source_name ||
-                                                                         ' Contract Ref No: ' ||
-                                                                         cur_pcdi_rows.contract_ref_no ||
-                                                                         ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                                                         cur_pcdi_rows.available_price_name ||
-                                                                         ' Price,Prompt Date:' ||
-                                                                         vd_3rd_wed_of_qp,
-                                                                         '',
-                                                                         gvc_process,
-                                                                         pc_user_id,
-                                                                         sysdate,
-                                                                         pd_trade_date);
-                    sp_insert_error_log(vobj_error_log);
-                end;
+                if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
+                   cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                
+                  vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                                      pd_trade_date);
+                  vc_prompt_month := to_char(vc_prompt_date, 'Mon');
+                  vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
+                
+                  ---- get the dr_id             
+                  begin
+                    select drm.dr_id
+                      into vc_during_price_dr_id
+                      from drm_derivative_master drm
+                     where drm.instrument_id = cur_pcdi_rows.instrument_id
+                       and drm.period_month = vc_prompt_month
+                       and drm.period_year = vc_prompt_year
+                       and drm.price_point_id is null
+                       and rownum <= 1
+                       and drm.is_deleted = 'N';
+                  exception
+                    when no_data_found then
+                      vobj_error_log.extend;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_calc_contract_price',
+                                                                           'PHY-002',
+                                                                           'DR_ID missing for ' ||
+                                                                           cur_pcdi_rows.instrument_name ||
+                                                                           ',Price Source:' ||
+                                                                           cur_pcdi_rows.price_source_name ||
+                                                                           ' Contract Ref No: ' ||
+                                                                           cur_pcdi_rows.contract_ref_no ||
+                                                                           ',Price Unit:' ||
+                                                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                                                           cur_pcdi_rows.available_price_name ||
+                                                                           ' Price,Prompt Date:' ||
+                                                                           vc_prompt_month || ' ' ||
+                                                                           vc_prompt_year,
+                                                                           '',
+                                                                           gvc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                    
+                  end;
+                
+                end if;
               
                 --get the price
               
@@ -3394,7 +3663,7 @@ create or replace package body pkg_phy_physical_process is
       begin
         select cm.cur_id,
                cm.cur_code,
-               nvl(ppu.weight, 1),
+               ppu.weight,
                ppu.weight_unit_id,
                qum.qty_unit
           into vc_price_cur_id,
@@ -4294,7 +4563,7 @@ create or replace package body pkg_phy_physical_process is
            base_price_unit_id_in_pum,
            valuation_method)
         values
-          ('MD-' || vn_serial_no,
+          ('MDB-' || vn_serial_no,
            pc_process_id,
            cc.corporate_id,
            cc.product_id,
@@ -4917,7 +5186,7 @@ create or replace package body pkg_phy_physical_process is
            base_price_unit_id_in_pum,
            valuation_method)
         values
-          ('MD-' || vn_serial_no,
+          ('MDC-' || vn_serial_no,
            pc_process_id,
            cc.corporate_id,
            cc.conc_product_id,
@@ -5736,13 +6005,13 @@ create or replace package body pkg_phy_physical_process is
                 from md_m2m_daily md1
                where md1.rate_type = 'OPEN'
                  and md1.corporate_id = pc_corporate_id
-                 and md1.product_type='BASEMETAL'
+                 and md1.product_type = 'BASEMETAL'
                  and md1.process_id = pc_process_id) md,
              drm_derivative_master drm,
              (select tmp.*
                 from tmpc_temp_m2m_pre_check tmp
                where tmp.corporate_id = pc_corporate_id
-                 and tmp.product_type='BASEMETAL'
+                 and tmp.product_type = 'BASEMETAL'
                  and tmp.section_name = 'OPEN') tmpc,
              cm_currency_master cm,
              gcd_groupcorporatedetails gcd,
@@ -6597,8 +6866,8 @@ create or replace package body pkg_phy_physical_process is
              md.md_id,
              0 m2m_amt,
              md.treatment_charge m2m_treatment_charge,
-             md.refine_charge  m2m_refining_charge,
-             md.penalty_charge m2m_penalty_charge,             
+             md.refine_charge m2m_refining_charge,
+             md.penalty_charge m2m_penalty_charge,
              nvl((select sum(cisc.avg_cost)
                    from cisc_contract_item_sec_cost cisc
                   where cisc.internal_contract_item_ref_no =
@@ -6655,7 +6924,7 @@ create or replace package body pkg_phy_physical_process is
              (select tmp.*
                 from tmpc_temp_m2m_pre_check tmp
                where tmp.corporate_id = pc_corporate_id
-               and tmp.product_type = 'CONCENTRATES'
+                 and tmp.product_type = 'CONCENTRATES'
                  and tmp.section_name = 'OPEN') tmpc,
              drm_derivative_master drm,
              emt_exchangemaster emt
@@ -6910,7 +7179,8 @@ create or replace package body pkg_phy_physical_process is
       vn_ele_m2m_amount_in_base    := vn_ele_m2m_amt * vn_m2m_base_fx_rate;
       vn_ele_m2m_premium_amt       := (cur_unrealized_rows.m2m_treatment_charge +
                                       cur_unrealized_rows.m2m_refining_charge +
-                                      nvl(cur_unrealized_rows.m2m_penalty_charge,0));
+                                      nvl(cur_unrealized_rows.m2m_penalty_charge,
+                                           0));
       vn_ele_m2m_total_premium_amt := vn_ele_qty_in_base *
                                       nvl(vn_ele_m2m_premium_amt, 0);
       vn_ele_m2m_total_amount      := vn_ele_m2m_amount_in_base -
@@ -7069,8 +7339,8 @@ create or replace package body pkg_phy_physical_process is
          cur_unrealized_rows.assay_qty_unit_id,
          cur_unrealized_rows.payable_qty,
          cur_unrealized_rows.payable_qty_unit_id,
-         round(vn_base_con_refine_charge,3),
-         round(vn_base_con_treatment_charge,3),
+         round(vn_base_con_refine_charge, 3),
+         round(vn_base_con_treatment_charge, 3),
          vn_con_penality_per_elemet,
          cur_unrealized_rows.attribute_name ||
          cur_unrealized_rows.price_description, --pricing_details,
@@ -7082,32 +7352,32 @@ create or replace package body pkg_phy_physical_process is
          cur_unrealized_rows.price_unit_weight,
          cur_unrealized_rows.price_unit_weight_unit,
          cur_unrealized_rows.net_m2m_price,
-         vc_m2m_price_unit_id,
-         vc_m2m_price_unit_cur_id,
-         vc_m2m_price_unit_cur_code,
-         vn_m2m_price_unit_wgt_unit_wt,
-         vc_m2m_price_unit_wgt_unit_id,
-         vc_m2m_price_unit_wgt_unit,
-         round(vn_ele_cont_value_in_price_cur,3), --contract_value,
+         cur_unrealized_rows.m2m_price_unit_id,
+         cur_unrealized_rows.m2m_price_unit_cur_id,
+         cur_unrealized_rows.m2m_price_unit_cur_code,
+         cur_unrealized_rows.m2m_price_unit_weight,
+         cur_unrealized_rows.m2m_price_unit_weight_unit_id,
+         cur_unrealized_rows.m2m_price_unit_weight_unit,
+         round(vn_ele_cont_value_in_price_cur, 3), --contract_value,
          vc_price_cur_id, --contract_value_cur_id,
          vc_price_cur_code, --contract_value_cur_code,
-         round(vn_ele_cont_value_in_price_cur,3), --contract_value_in_base, 
-         round(vn_ele_cont_total_premium,3), --contract_premium_value_in_base , 
-         round(vn_ele_m2m_amount_in_base,3), --m2m_value,
+         round(vn_ele_cont_value_in_price_cur, 3), --contract_value_in_base, 
+         round(vn_ele_cont_total_premium, 3), --contract_premium_value_in_base , 
+         round(vn_ele_m2m_amount_in_base, 3), --m2m_value,
          vc_m2m_cur_id, --m2m_value_cur_id,
          vc_m2m_cur_code, --m2m_value_cur_code,
          cur_unrealized_rows.m2m_refining_charge,
          cur_unrealized_rows.m2m_treatment_charge,
          cur_unrealized_rows.m2m_penalty_charge,
          cur_unrealized_rows.m2m_loc_incoterm_deviation,
-         round(vn_ele_m2m_total_amount,3), --m2m_amt_in_base, 
-         round(vn_ele_sc_in_base_cur,3), --sc_in_base_cur,
+         round(vn_ele_m2m_total_amount, 3), --m2m_amt_in_base, 
+         round(vn_ele_sc_in_base_cur, 3), --sc_in_base_cur,
          cur_unrealized_rows.valuation_dr_id,
          cur_unrealized_rows.dr_id_name,
          cur_unrealized_rows.valuation_month,
          cur_unrealized_rows.valuation_date,
-         round(vn_ele_exp_cog_in_base_cur,3), --expected_cog_net_sale_value,
-         round(vn_ele_unreal_pnl_in_base_cur,3), --unrealized_pnl_in_base_cur,
+         round(vn_ele_exp_cog_in_base_cur, 3), --expected_cog_net_sale_value,
+         round(vn_ele_unreal_pnl_in_base_cur, 3), --unrealized_pnl_in_base_cur,
          cur_unrealized_rows.base_cur_id,
          cur_unrealized_rows.base_cur_code,
          vn_fx_price_to_base, --price_cur_to_base_cur_fx_rate,
@@ -7274,7 +7544,7 @@ create or replace package body pkg_phy_physical_process is
            null, -- net_contract_value_in_base_cur,
            null, -- net_contract_prem_in_base_cur,
            null, -- net_m2m_amt_in_base_cur, 
-           round(vn_sc_in_base_cur,3), -- net_sc_in_base_cur,
+           round(vn_sc_in_base_cur, 3), -- net_sc_in_base_cur,
            null, -- expected_cog_net_sale_value,
            null, -- unrealized_pnl_in_base_cur,
            null, -- unreal_pnl_in_base_per_unit,
@@ -7306,33 +7576,38 @@ create or replace package body pkg_phy_physical_process is
                                   sum(poude.expected_cog_net_sale_value) expected_cog_net_sale_value,
                                   sum(poude.unrealized_pnl_in_base_cur) unrealized_pnl_in_base_cur,
                                   stragg(poude.element_name || '-' ||
-                                         poude.contract_price ||' ' ||
-                                         poude.price_unit_cur_code || '/' ||poude.price_unit_weight ||
+                                         poude.contract_price || ' ' ||
+                                         poude.price_unit_cur_code || '/' ||
+                                         poude.price_unit_weight ||
                                          poude.price_unit_weight_unit) contract_price_string,
                                   stragg(poude.element_name || '-' ||
-                                         poude.m2m_price ||' ' ||
-                                         poude.m2m_price_cur_code || '/' ||poude.m2m_price_weight ||
+                                         poude.m2m_price || ' ' ||
+                                         poude.m2m_price_cur_code || '/' ||
+                                         poude.m2m_price_weight ||
                                          poude.m2m_price_weight_unit) m2m_price_string,
                                   stragg('TC:' || poude.element_name || '-' ||
-                                         poude.treatment_charge ||' ' ||
+                                         poude.treatment_charge || ' ' ||
                                          poude.base_cur_code || '  ' ||
                                          'RC:' || poude.element_name || '-' ||
-                                         poude.refining_charge ||' ' ||
+                                         poude.refining_charge || ' ' ||
                                          poude.base_cur_code || '  ' ||
                                          'PEN:' || poude.element_name || '-' ||
-                                         poude.penalty_charge ||' ' ||
+                                         poude.penalty_charge || ' ' ||
                                          poude.base_cur_code) contract_rc_tc_pen_string,
                                   stragg('TC:' || poude.element_name || '-' ||
-                                         poude.m2m_treatment_charge ||' ' ||
-                                         poude.m2m_price_cur_code || '/' ||poude.m2m_price_weight ||
+                                         poude.m2m_treatment_charge || ' ' ||
+                                         poude.m2m_price_cur_code || '/' ||
+                                         poude.m2m_price_weight ||
                                          poude.m2m_price_weight_unit || ' ' ||
                                          'RC:' || poude.element_name || '-' ||
-                                         poude.m2m_refining_charge ||' ' ||
-                                         poude.m2m_price_cur_code || '/'||poude.m2m_price_weight ||
+                                         poude.m2m_refining_charge || ' ' ||
+                                         poude.m2m_price_cur_code || '/' ||
+                                         poude.m2m_price_weight ||
                                          poude.m2m_price_weight_unit || ' ' ||
                                          'PEN:' || poude.element_name || '-' ||
-                                         poude.m2m_penalty_charge ||' ' ||
-                                         poude.m2m_price_cur_code ||'/' ||poude.m2m_price_weight ||
+                                         poude.m2m_penalty_charge || ' ' ||
+                                         poude.m2m_price_cur_code || '/' ||
+                                         poude.m2m_price_weight ||
                                          poude.m2m_price_weight_unit) m2m_rc_tc_pen_string
                            
                              from poued_element_details poude
@@ -7341,11 +7616,16 @@ create or replace package body pkg_phy_physical_process is
                             group by poude.internal_contract_item_ref_no)
     loop
       update poue_phy_open_unreal_element poue
-         set poue.net_contract_value_in_base_cur = round(cur_update_pnl.net_contract_value_in_base_cur,3),
-             poue.net_contract_prem_in_base_cur  = round(cur_update_pnl.net_contract_prem_in_base_cur,3),
-             poue.net_m2m_amt_in_base_cur        = round(cur_update_pnl.net_m2m_amt_in_base_cur,3),
-             poue.expected_cog_net_sale_value    = round(cur_update_pnl.expected_cog_net_sale_value,3),
-             poue.unrealized_pnl_in_base_cur     = round(cur_update_pnl.unrealized_pnl_in_base_cur,3),
+         set poue.net_contract_value_in_base_cur = round(cur_update_pnl.net_contract_value_in_base_cur,
+                                                         3),
+             poue.net_contract_prem_in_base_cur  = round(cur_update_pnl.net_contract_prem_in_base_cur,
+                                                         3),
+             poue.net_m2m_amt_in_base_cur        = round(cur_update_pnl.net_m2m_amt_in_base_cur,
+                                                         3),
+             poue.expected_cog_net_sale_value    = round(cur_update_pnl.expected_cog_net_sale_value,
+                                                         3),
+             poue.unrealized_pnl_in_base_cur     = round(cur_update_pnl.unrealized_pnl_in_base_cur,
+                                                         3),
              poue.contract_price_string          = cur_update_pnl.contract_price_string,
              poue.m2m_price_string               = cur_update_pnl.m2m_price_string,
              poue.contract_rc_tc_pen_string      = cur_update_pnl.contract_rc_tc_pen_string,
@@ -7357,10 +7637,11 @@ create or replace package body pkg_phy_physical_process is
     end loop;
     commit;
   
-  -- update pnl base per unit
+    -- update pnl base per unit
     update poue_phy_open_unreal_element poue
        set poue.unreal_pnl_in_base_per_unit = round(poue.unrealized_pnl_in_base_cur *
-                                              poue.qty_in_base_unit,3)
+                                                    poue.qty_in_base_unit,
+                                                    3)
      where poue.corporate_id = pc_corporate_id
        and poue.process_id = pc_process_id;
   
@@ -7376,7 +7657,8 @@ create or replace package body pkg_phy_physical_process is
       loop
         update poue_phy_open_unreal_element poue_today
            set poue_today.prev_day_unr_pnl_in_base_cur = round(cur_update.unreal_pnl_in_base_per_unit *
-                                                         poue_today.qty_in_base_unit,3),
+                                                               poue_today.qty_in_base_unit,
+                                                               3),
                poue_today.cont_unr_status              = 'EXISTING_TRADE'
          where poue_today.internal_contract_item_ref_no =
                cur_update.internal_contract_item_ref_no
@@ -7404,8 +7686,9 @@ create or replace package body pkg_phy_physical_process is
   
     update poue_phy_open_unreal_element poue
        set poue.trade_day_pnl_in_base_cur = round(nvl(poue.unrealized_pnl_in_base_cur,
-                                                0) - nvl(poue.prev_day_unr_pnl_in_base_cur,
-                                                         0),3)
+                                                      0) - nvl(poue.prev_day_unr_pnl_in_base_cur,
+                                                               0),
+                                                  3)
      where poue.process_id = pc_process_id
        and poue.corporate_id = pc_corporate_id
        and poue.unrealized_type = 'Unrealized';
@@ -8602,49 +8885,53 @@ create or replace package body pkg_phy_physical_process is
     --
   
     update psu_phy_stock_unrealized pss
-       set (gmr_ref_no, origination_city_id, origination_country_id, destination_city_id, destination_country_id, origination_city, origination_country, destination_city, destination_country, warehouse_id, warehouse_name, shed_id, shed_name, product_id, prod_base_unit) = (select gmr.gmr_ref_no,
-                                                                                                                                                                                                                                                                                        gmr.origin_city_id,
-                                                                                                                                                                                                                                                                                        gmr.origin_country_id,
-                                                                                                                                                                                                                                                                                        gmr.destination_city_id,
-                                                                                                                                                                                                                                                                                        gmr.destination_country_id,
-                                                                                                                                                                                                                                                                                        cim_orig.city_name as origin_city_name,
-                                                                                                                                                                                                                                                                                        cym_orig.country_name origin_country_name,
-                                                                                                                                                                                                                                                                                        cim_dest.city_name as destination_city_name,
-                                                                                                                                                                                                                                                                                        cym_dest.country_name destination_country_name,
-                                                                                                                                                                                                                                                                                        gmr.warehouse_profile_id,
-                                                                                                                                                                                                                                                                                        phd_gmr.companyname as warehouse_profile_name,
-                                                                                                                                                                                                                                                                                        gmr.shed_id,
-                                                                                                                                                                                                                                                                                        sld.storage_location_name,
-                                                                                                                                                                                                                                                                                        pss.product_id,
-                                                                                                                                                                                                                                                                                        pdm.base_quantity_unit
-                                                                                                                                                                                                                                                                                   from gmr_goods_movement_record   gmr,
-                                                                                                                                                                                                                                                                                        pdm_productmaster           pdm,
-                                                                                                                                                                                                                                                                                        phd_profileheaderdetails    phd_gmr,
-                                                                                                                                                                                                                                                                                        sld_storage_location_detail sld,
-                                                                                                                                                                                                                                                                                        cim_citymaster              cim_orig,
-                                                                                                                                                                                                                                                                                        cym_countrymaster           cym_orig,
-                                                                                                                                                                                                                                                                                        cim_citymaster              cim_dest,
-                                                                                                                                                                                                                                                                                        cym_countrymaster           cym_dest
-                                                                                                                                                                                                                                                                                  where gmr.internal_gmr_ref_no =
-                                                                                                                                                                                                                                                                                        pss.internal_gmr_ref_no
-                                                                                                                                                                                                                                                                                    and pss.product_id =
-                                                                                                                                                                                                                                                                                        pdm.product_id
-                                                                                                                                                                                                                                                                                    and gmr.warehouse_profile_id =
-                                                                                                                                                                                                                                                                                        phd_gmr.profileid(+)
-                                                                                                                                                                                                                                                                                    and gmr.shed_id =
-                                                                                                                                                                                                                                                                                        sld.storage_loc_id(+)
-                                                                                                                                                                                                                                                                                    and gmr.origin_city_id =
-                                                                                                                                                                                                                                                                                        cim_orig.city_id(+)
-                                                                                                                                                                                                                                                                                    and gmr.origin_country_id =
-                                                                                                                                                                                                                                                                                        cym_orig.country_id(+)
-                                                                                                                                                                                                                                                                                    and gmr.destination_city_id =
-                                                                                                                                                                                                                                                                                        cim_dest.city_id(+)
-                                                                                                                                                                                                                                                                                    and gmr.destination_country_id =
-                                                                                                                                                                                                                                                                                        cym_dest.country_id(+)
-                                                                                                                                                                                                                                                                                    and pss.process_id =
-                                                                                                                                                                                                                                                                                        gmr.process_id
-                                                                                                                                                                                                                                                                                    and pss.process_id =
-                                                                                                                                                                                                                                                                                        pc_process_id)
+       set (gmr_ref_no, origination_city_id, origination_country_id, destination_city_id, destination_country_id, origination_city, origination_country, destination_city, destination_country, warehouse_id, warehouse_name, shed_id, shed_name, product_id, prod_base_unit_id, prod_base_unit) = (select gmr.gmr_ref_no,
+                                                                                                                                                                                                                                                                                                           gmr.origin_city_id,
+                                                                                                                                                                                                                                                                                                           gmr.origin_country_id,
+                                                                                                                                                                                                                                                                                                           gmr.destination_city_id,
+                                                                                                                                                                                                                                                                                                           gmr.destination_country_id,
+                                                                                                                                                                                                                                                                                                           cim_orig.city_name as origin_city_name,
+                                                                                                                                                                                                                                                                                                           cym_orig.country_name origin_country_name,
+                                                                                                                                                                                                                                                                                                           cim_dest.city_name as destination_city_name,
+                                                                                                                                                                                                                                                                                                           cym_dest.country_name destination_country_name,
+                                                                                                                                                                                                                                                                                                           gmr.warehouse_profile_id,
+                                                                                                                                                                                                                                                                                                           phd_gmr.companyname as warehouse_profile_name,
+                                                                                                                                                                                                                                                                                                           gmr.shed_id,
+                                                                                                                                                                                                                                                                                                           sld.storage_location_name,
+                                                                                                                                                                                                                                                                                                           pss.product_id,
+                                                                                                                                                                                                                                                                                                           pdm.base_quantity_unit,
+                                                                                                                                                                                                                                                                                                           qum.qty_unit
+                                                                                                                                                                                                                                                                                                      from gmr_goods_movement_record   gmr,
+                                                                                                                                                                                                                                                                                                           pdm_productmaster           pdm,
+                                                                                                                                                                                                                                                                                                           phd_profileheaderdetails    phd_gmr,
+                                                                                                                                                                                                                                                                                                           sld_storage_location_detail sld,
+                                                                                                                                                                                                                                                                                                           cim_citymaster              cim_orig,
+                                                                                                                                                                                                                                                                                                           cym_countrymaster           cym_orig,
+                                                                                                                                                                                                                                                                                                           cim_citymaster              cim_dest,
+                                                                                                                                                                                                                                                                                                           cym_countrymaster           cym_dest,
+                                                                                                                                                                                                                                                                                                           qum_quantity_unit_master    qum
+                                                                                                                                                                                                                                                                                                     where gmr.internal_gmr_ref_no =
+                                                                                                                                                                                                                                                                                                           pss.internal_gmr_ref_no
+                                                                                                                                                                                                                                                                                                       and pss.product_id =
+                                                                                                                                                                                                                                                                                                           pdm.product_id
+                                                                                                                                                                                                                                                                                                       and pdm.base_quantity_unit =
+                                                                                                                                                                                                                                                                                                           qum.qty_unit_id
+                                                                                                                                                                                                                                                                                                       and gmr.warehouse_profile_id =
+                                                                                                                                                                                                                                                                                                           phd_gmr.profileid(+)
+                                                                                                                                                                                                                                                                                                       and gmr.shed_id =
+                                                                                                                                                                                                                                                                                                           sld.storage_loc_id(+)
+                                                                                                                                                                                                                                                                                                       and gmr.origin_city_id =
+                                                                                                                                                                                                                                                                                                           cim_orig.city_id(+)
+                                                                                                                                                                                                                                                                                                       and gmr.origin_country_id =
+                                                                                                                                                                                                                                                                                                           cym_orig.country_id(+)
+                                                                                                                                                                                                                                                                                                       and gmr.destination_city_id =
+                                                                                                                                                                                                                                                                                                           cim_dest.city_id(+)
+                                                                                                                                                                                                                                                                                                       and gmr.destination_country_id =
+                                                                                                                                                                                                                                                                                                           cym_dest.country_id(+)
+                                                                                                                                                                                                                                                                                                       and pss.process_id =
+                                                                                                                                                                                                                                                                                                           gmr.process_id
+                                                                                                                                                                                                                                                                                                       and pss.process_id =
+                                                                                                                                                                                                                                                                                                           pc_process_id)
      where pss.process_id = pc_process_id;
     --
     --
@@ -9238,5 +9525,5 @@ create or replace package body pkg_phy_physical_process is
     end if;
   end;
 
-end; 
+end;
 /

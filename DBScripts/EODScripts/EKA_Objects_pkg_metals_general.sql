@@ -22,12 +22,12 @@ create or replace package pkg_metals_general is
                                 pc_qty_unit_id     varchar2) return number;
 
   procedure sp_get_penalty_charge(pc_inter_cont_item_ref_no varchar2,
-                                 -- pc_element_id             varchar2,
-                                  pc_dbd_id                 varchar2,
-                                  pn_pc_qty                 number,
-                                  pc_pc_qty_unit_id         varchar2,
-                                  pn_total_pc_charge        out number,
-                                  pc_pc_cur_id              out varchar2);
+                                  -- pc_element_id             varchar2,
+                                  pc_dbd_id          varchar2,
+                                  pn_pc_qty          number,
+                                  pc_pc_qty_unit_id  varchar2,
+                                  pn_total_pc_charge out number,
+                                  pc_pc_cur_id       out varchar2);
 
   procedure sp_get_refine_charge(pc_inter_cont_item_ref_no varchar2,
                                  pc_element_id             varchar2,
@@ -48,7 +48,10 @@ create or replace package pkg_metals_general is
                                     pc_cp_unit_id             varchar2,
                                     pn_total_tc_charge        out number,
                                     pc_tc_cur_id              out varchar2);
-end; 
+  function fn_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
+                                         pd_trade_date       date)
+    return date;
+end;
 /
 create or replace package body pkg_metals_general is
   function fn_deduct_wet_to_dry_qty(pc_internal_cont_item_ref_no varchar2,
@@ -172,8 +175,8 @@ create or replace package body pkg_metals_general is
     loop
       if cur_element_rows.item_unit_of_measure = 'Wet' then
         vn_deduct_qty := fn_deduct_wet_to_dry_qty(cur_element_rows.internal_contract_item_ref_no,
-                                                 cur_element_rows.item_qty,
-                                                 pc_dbd_id);
+                                                  cur_element_rows.item_qty,
+                                                  pc_dbd_id);
         vn_item_qty   := cur_element_rows.item_qty - vn_deduct_qty;
       else
         vn_item_qty := cur_element_rows.item_qty;
@@ -318,7 +321,7 @@ create or replace package body pkg_metals_general is
     vn_penalty_charge  := 0;
     vn_total_pc_charge := 0;
     vn_tier_penalty    := 0;
-    pn_total_pc_charge :=0;
+    pn_total_pc_charge := 0;
     for cc in (select pci.item_qty,
                       pqca.element_id,
                       pqca.typical,
@@ -360,8 +363,8 @@ create or replace package body pkg_metals_general is
                   and pcdi.dbd_id = pc_dbd_id
                   and aml.attribute_id = pqca.element_id
                   and qum.qty_unit_id = pci.item_qty_unit_id
-               --   and pqca.element_id = pc_element_id
-                  and nvl(pqca.is_elem_for_pricing,'N')='N'
+                     --   and pqca.element_id = pc_element_id
+                  and nvl(pqca.is_elem_for_pricing, 'N') = 'N'
                   and rm.ratio_id = pqca.unit_of_measure
                   and pcm.is_active = 'Y'
                   and pcdi.is_active = 'Y'
@@ -420,8 +423,8 @@ create or replace package body pkg_metals_general is
                                and (pcap.range_min_value <= cc.typical or
                                    pcap.position = 'Range Begining'))
       loop
-        vc_price_unit_id := cur_pc_charge.price_unit_id;
-        vc_cur_id        := cur_pc_charge.cur_id;
+        vc_price_unit_id   := cur_pc_charge.price_unit_id;
+        vc_cur_id          := cur_pc_charge.cur_id;
         vn_total_pc_charge := 0;
         --check the penalty charge type
         if cur_pc_charge.penalty_charge_type = 'Fixed' then
@@ -463,7 +466,8 @@ create or replace package body pkg_metals_general is
                 --for half range
                 if vn_typical_val > 0 then
                   if cur_range.min_range < vn_typical_val and
-                     nvl(cur_range.max_range, vn_typical_val+1)  > vn_typical_val then
+                     nvl(cur_range.max_range, vn_typical_val + 1) >
+                     vn_typical_val then
                     vn_penalty_charge := cur_range.penalty_amount;
                     vn_range_gap      := vn_typical_val -
                                          cur_range.min_range;
@@ -534,8 +538,8 @@ create or replace package body pkg_metals_general is
       pn_total_pc_charge := pn_total_pc_charge + vn_total_pc_charge;
     end loop;
     /*return vn_total_pc_charge || '$' || vc_price_unit_id || '$' || vc_cur_id;*/
-   -- pn_total_pc_charge := vn_total_pc_charge;
-    pc_pc_cur_id       := vc_cur_id;
+    -- pn_total_pc_charge := vn_total_pc_charge;
+    pc_pc_cur_id := vc_cur_id;
   exception
     when others then
       pn_total_pc_charge := -1;
@@ -624,7 +628,7 @@ create or replace package body pkg_metals_general is
       --for refine charge , the charge will applyed on
       --payable qty only.So deduct the moisture and other deductable item 
       --from the item qty.
-      
+    
       vn_item_qty := pn_rc_qty;
       /*if cc.unit_of_measure = 'Wet' then
         vn_item_qty := cc.item_qty;
@@ -1160,8 +1164,8 @@ create or replace package body pkg_metals_general is
                              vn_treatment_charge);
         if vn_treatment_charge <> 0 then
           --Converting from wet to dry
-          vn_item_qty:=pn_qty;
-                    
+          vn_item_qty := pn_qty;
+        
           /*if vc_weight_type = 'Wet' then
             vn_item_qty := cc.item_qty;
           else
@@ -1195,5 +1199,90 @@ create or replace package body pkg_metals_general is
       pn_total_tc_charge := -1;
       pc_tc_cur_id       := null;
   end;
-end; 
+
+  function fn_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
+                                         pd_trade_date       date)
+    return date is
+    cursor cr_monthly_prompt_rule is
+      select mpc.*
+        from mpc_monthly_prompt_calendar mpc
+       where mpc.prompt_delivery_calendar_id = pc_promp_del_cal_id;
+  
+    cursor cr_applicable_months is
+      select mpcm.*
+        from mpcm_monthly_prompt_cal_month mpcm,
+             mnm_month_name_master         mnm
+       where mpcm.prompt_delivery_calendar_id = pc_promp_del_cal_id
+         and mpcm.applicable_month = mnm.month_name_id
+       order by mnm.display_order;
+  
+    pc_pdc_period_type_id      varchar2(15);
+    pc_month_prompt_start_date date;
+    pc_equ_period_type         number;
+    cr_monthly_prompt_rule_rec cr_monthly_prompt_rule%rowtype;
+    pc_period_to               number;
+    pc_start_date              date;
+    pc_end_date                date;
+    pc_month                   varchar2(15);
+    pc_year                    number;
+    pn_month_count             number(5);
+    vc_prompt_date             date;
+  begin
+    pc_month_prompt_start_date := pd_trade_date;
+    pn_month_count             := 0;
+    begin
+      select pm.period_type_id
+        into pc_pdc_period_type_id
+        from pm_period_master pm
+       where pm.period_type_name = 'Month';
+    end;
+  
+    open cr_monthly_prompt_rule;
+  
+    fetch cr_monthly_prompt_rule
+      into cr_monthly_prompt_rule_rec;
+  
+    pc_period_to := cr_monthly_prompt_rule_rec.period_for; --no of forward months required
+  
+    begin
+      select pm.equivalent_days
+        into pc_equ_period_type
+        from pm_period_master pm
+       where pm.period_type_id = cr_monthly_prompt_rule_rec.period_type_id;
+    end;
+    pc_start_date := pc_month_prompt_start_date;
+    pc_end_date   := pc_month_prompt_start_date +
+                     (pc_period_to * pc_equ_period_type);
+    for cr_applicable_months_rec in cr_applicable_months
+    loop
+      pc_month_prompt_start_date := to_date(('01-' ||
+                                            cr_applicable_months_rec.applicable_month || '-' ||
+                                            to_char(pc_start_date, 'YYYY')),
+                                            'dd/mm/yyyy');
+      --------------------
+      dbms_output.put_line('pc_month_prompt_start_date ' ||
+                           pc_month_prompt_start_date);
+      if (pc_month_prompt_start_date >
+         to_date(('01-' || to_char(pc_start_date, 'Mon-YYYY')),
+                  'dd/mm/yyyy') and
+         pc_month_prompt_start_date <= pc_end_date) then
+        pn_month_count := pn_month_count + 1;
+        if pn_month_count = 1 then
+          pc_month := to_char(pc_month_prompt_start_date, 'Mon');
+          pc_year  := to_char(pc_month_prompt_start_date, 'YYYY');
+        end if;
+      end if;
+      exit when pn_month_count > 1;
+      dbms_output.put_line('pc_month pc_year ' || pc_month || '-' ||
+                           pc_year);
+      ---------------
+    end loop;
+    close cr_monthly_prompt_rule;
+    if pc_month is not null and pc_year is not null then
+      vc_prompt_date := to_date('01-' || pc_month || '-' || pc_year,
+                                'dd-Mon-yyyy');
+    end if;
+    return vc_prompt_date;
+  end;
+end;
 /

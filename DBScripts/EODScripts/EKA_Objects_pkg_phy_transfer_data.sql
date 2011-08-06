@@ -527,9 +527,11 @@ create or replace package body pkg_phy_transfer_data is
       dbms_mview.refresh('RM_RATIO_MASTER', 'c');
       dbms_mview.refresh('AML_ATTRIBUTE_MASTER_LIST', 'c');
       dbms_mview.refresh('PPM_PRODUCT_PROPERTIES_MAPPING', 'c');
+      dbms_mview.refresh('QAV_QUALITY_ATTRIBUTE_VALUES', 'c');      
       dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'c');
       dbms_mview.refresh('MDCD_M2M_DED_CHARGE_DETAILS', 'c');
       dbms_mview.refresh('MDCBM_DED_CHARGES_BY_MONTH', 'c');
+      dbms_mview.refresh('MNM_MONTH_NAME_MASTER', 'c');
       
     
     end if;
