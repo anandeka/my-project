@@ -48,7 +48,7 @@ BEGIN
        --pnl_value :=100 ;
       SELECT SUM (inv.pnl_in_base), SUM (inv.qty_in_base_unit)
         INTO pnl_value, pnl_qty
-        FROM mv_dm_phy_stock_1 inv
+        FROM mv_dm_phy_stock inv
        WHERE inv.psu_id = grd_str;
 
       IF pnl_qty <> 0
