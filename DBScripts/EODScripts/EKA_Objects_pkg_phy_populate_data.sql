@@ -4123,17 +4123,17 @@ create or replace package body pkg_phy_populate_data is
   begin
     insert into pcbph_pc_base_price_header
       (pcbph_id,
-       optionality_desc,
+    --   optionality_desc,
        version,
        is_active,
        internal_contract_ref_no,
        price_description,
        dbd_id)
       select decode(pcbph_id, 'Empty_String', null, pcbph_id),
-             decode(optionality_desc,
+           /*  decode(optionality_desc,
                     'Empty_String',
                     null,
-                    optionality_desc),
+                    optionality_desc),*/
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(internal_contract_ref_no,
@@ -4152,13 +4152,12 @@ create or replace package body pkg_phy_populate_data is
                                    pcbphul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                     
-                     substr(max(case
+                   /*  substr(max(case
                                   when pcbphul.optionality_desc is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcbphul.optionality_desc
                                 end),
-                            24) optionality_desc,
+                            24) optionality_desc,*/
                      substr(max(case
                                   when pcbphul.version is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
