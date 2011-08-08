@@ -28,6 +28,12 @@ create or replace package pkg_phy_physical_process is
                                    pc_process_id   varchar2,
                                    pc_user_id      varchar2,
                                    pc_dbd_id       varchar2);
+                                   
+ procedure sp_calc_gmr_price(pc_corporate_id varchar2,
+                              pd_trade_date   date,
+                              pc_process_id   varchar2,
+                              pc_user_id      varchar2,
+                              pc_dbd_id       varchar2);                                   
 
   procedure sp_calc_contract_conc_price(pc_corporate_id varchar2,
                                         pd_trade_date   date,
@@ -299,6 +305,23 @@ create or replace package body pkg_phy_physical_process is
                            pc_process_id,
                            pc_user_id,
                            pc_dbd_id);
+                           
+ -----GMR Price calculation
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_calc_gmr_price');
+    sp_calc_gmr_price(pc_corporate_id,
+                      pd_trade_date,
+                      pc_process_id,
+                      pc_user_id,
+                      pc_dbd_id);                                                 
   
     vc_err_msg := 'sp_calc_contract_conc_price ';
   
@@ -558,7 +581,6 @@ create or replace package body pkg_phy_physical_process is
              pum.price_unit_name,
              vdip.ppu_price_unit_id,
              div.price_unit_id
-      
         from pcdi_pc_delivery_item        pcdi,
              pci_physical_contract_item   pci,
              pcm_physical_contract_main   pcm,
@@ -572,7 +594,6 @@ create or replace package body pkg_phy_physical_process is
              apm_available_price_master   apm,
              pum_price_unit_master        pum,
              v_der_instrument_price_unit  vdip
-      
        where pcdi.pcdi_id = pci.pcdi_id
          and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
@@ -656,24 +677,24 @@ create or replace package body pkg_phy_physical_process is
          and pcbpd.is_active = 'Y'
          and pcbph.is_active = 'Y';
   
-    vn_contract_price              number;
-    vc_price_unit_id               varchar2(15);
-    vn_fb_order_sq                 number;
-    vn_cur_row_cnt                 number;
-    vc_price_basis                 varchar2(15);
-    vc_price_cur_id                varchar2(15);
-    vc_price_cur_code              varchar2(15);
-    vc_price_weight_unit           number;
-    vc_price_weight_unit_id        varchar2(15);
-    vc_price_qty_unit              varchar2(15);
-    vn_contract_equity_premium     varchar2(15);
-    vn_market_equity_premium       varchar2(15);
-    vc_mar_equ_prem_price_unit_id  varchar2(15);
-    vc_con_equ_prem_price_unit_id  varchar2(15);
-    vc_price_fixation_status       varchar2(50);
-    vn_price_fixed_qty             number;
-    vn_total_qty                   number;
-    vc_price_fixation_details      varchar2(15);
+    vn_contract_price number;
+    vc_price_unit_id  varchar2(15);
+    --   vn_fb_order_sq                 number;
+    --vn_cur_row_cnt                 number;
+    vc_price_basis                varchar2(15);
+    vc_price_cur_id               varchar2(15);
+    vc_price_cur_code             varchar2(15);
+    vc_price_weight_unit          number;
+    vc_price_weight_unit_id       varchar2(15);
+    vc_price_qty_unit             varchar2(15);
+    vn_contract_equity_premium    varchar2(15);
+    vn_market_equity_premium      varchar2(15);
+    vc_mar_equ_prem_price_unit_id varchar2(15);
+    vc_con_equ_prem_price_unit_id varchar2(15);
+    vc_price_fixation_status      varchar2(50);
+    vn_price_fixed_qty            number;
+    vn_total_qty                  number;
+    --vc_price_fixation_details      varchar2(15);
     vn_total_quantity              number;
     vn_qty_to_be_priced            number;
     vn_total_contract_value        number;
@@ -687,46 +708,46 @@ create or replace package body pkg_phy_physical_process is
     vn_settlement_price            number;
     vd_qp_start_date               date;
     vd_qp_end_date                 date;
-    vc_qp_period_type              varchar2(15);
-    vc_period                      varchar2(15);
-    vd_eod_trade_date              date;
-    vd_shipment_date               date;
-    vd_arrival_date                date;
-    vd_evevnt_date                 date;
-    vd_qp_price_date               date;
-    vn_price_month                 varchar2(10);
-    vn_price_year                  varchar2(10);
-    vc_before_price_dr_id          varchar2(15);
-    vn_before_qp_price             number;
-    vc_before_qp_price_unit_id     varchar2(15);
-    vd_3rd_wed_of_qp               date;
-    vc_holiday                     char(1);
-    vn_after_qp_price              number;
-    vc_after_qp_price_unit_id      varchar2(10);
-    vn_total_qp_price              number;
-    vn_count_after_qp              number;
-    vn_total_after_qp_price        number;
-    vn_final_price                 number;
-    vn_final_price_unit_id         varchar2(10);
-    vd_payment_due_date            date;
-    vc_price_description           varchar2(500);
-    vn_contract_main_cur_factor    number;
-    vc_pci_price_basis             varchar2(10);
-    vd_dur_qp_start_date           date;
-    vd_dur_qp_end_date             date;
-    vn_during_set_price            number;
-    vc_during_set_price_unit_id    varchar2(15);
-    vn_during_val_price            number;
-    vc_during_val_price_unit_id    varchar2(15);
-    vn_during_total_set_price      number;
-    vn_during_total_val_price      number;
-    vn_count_set_qp                number;
-    vn_count_val_qp                number;
-    workings_days                  number;
-    vd_quotes_date                 date;
-    vc_after_dr_id                 varchar2(15);
-    vn_total_during_price          number;
-    vn_pofh_id                     varchar2(15);
+    --vc_qp_period_type              varchar2(15);
+    vc_period varchar2(15);
+    --vd_eod_trade_date              date;
+    vd_shipment_date date;
+    vd_arrival_date  date;
+    vd_evevnt_date   date;
+    vd_qp_price_date date;
+    --vn_price_month                 varchar2(10);
+    --vn_price_year                  varchar2(10);
+    vc_before_price_dr_id      varchar2(15);
+    vn_before_qp_price         number;
+    vc_before_qp_price_unit_id varchar2(15);
+    vd_3rd_wed_of_qp           date;
+    vc_holiday                 char(1);
+    vn_after_qp_price          number;
+    vc_after_qp_price_unit_id  varchar2(10);
+    --vn_total_qp_price              number;
+    --vn_count_after_qp              number;
+    --vn_total_after_qp_price        number;
+    --vn_final_price                 number;
+    --vn_final_price_unit_id         varchar2(10);
+    vd_payment_due_date         date;
+    vc_price_description        varchar2(500);
+    vn_contract_main_cur_factor number;
+    --vc_pci_price_basis             varchar2(10);
+    vd_dur_qp_start_date date;
+    vd_dur_qp_end_date   date;
+    --vn_during_set_price            number;
+    --vc_during_set_price_unit_id    varchar2(15);
+    vn_during_val_price         number;
+    vc_during_val_price_unit_id varchar2(15);
+    vn_during_total_set_price   number;
+    vn_during_total_val_price   number;
+    vn_count_set_qp             number;
+    vn_count_val_qp             number;
+    workings_days               number;
+    vd_quotes_date              date;
+    --vc_after_dr_id                 varchar2(15);
+    --vn_total_during_price          number;
+    --vn_pofh_id                     varchar2(15);
     vn_after_count                 number;
     vn_after_price                 number;
     vn_during_qp_price             number;
@@ -768,7 +789,9 @@ create or replace package body pkg_phy_physical_process is
           elsif cur_called_off_rows.price_basis in ('Index', 'Formula') then
           
             for cc1 in (select ppfh.ppfh_id,
-                               ppfh.price_unit_id,
+                               ppfh.price_unit_id ppu_price_unit_id,
+                               ppu.price_unit_id,
+                               ppu.price_unit_name,
                                pocd.qp_period_type,
                                pofh.qp_start_date,
                                pofh.qp_end_date,
@@ -783,7 +806,8 @@ create or replace package body pkg_phy_physical_process is
                                pcbpd_pc_base_price_detail     pcbpd,
                                ppfh_phy_price_formula_header  ppfh,
                                pfqpp_phy_formula_qp_pricing   pfqpp,
-                               pofh_price_opt_fixation_header pofh
+                               pofh_price_opt_fixation_header pofh,
+                               v_ppu_pum                      ppu
                          where poch.poch_id = pocd.poch_id
                            and pocd.pcbpd_id = pcbpd.pcbpd_id
                            and pcbpd.pcbpd_id = ppfh.pcbpd_id
@@ -791,6 +815,8 @@ create or replace package body pkg_phy_physical_process is
                            and pocd.pocd_id = pofh.pocd_id(+)
                            and pcbpd.pcbpd_id = cur_called_off_rows.pcbpd_id
                            and poch.poch_id = cur_called_off_rows.poch_id
+                           and ppfh.price_unit_id =
+                               ppu.product_price_unit_id
                            and poch.is_active = 'Y'
                            and pocd.is_active = 'Y'
                            and pcbpd.is_active = 'Y'
@@ -997,7 +1023,7 @@ create or replace package body pkg_phy_physical_process is
                      and dqd.available_price_id =
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
-                     and dqd.price_unit_id = cur_pcdi_rows.price_unit_id
+                     and dqd.price_unit_id = cc1.price_unit_id
                      and dq.trade_date = pd_trade_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N';
@@ -1014,7 +1040,7 @@ create or replace package body pkg_phy_physical_process is
                                                                          ' Contract Ref No: ' ||
                                                                          cur_pcdi_rows.contract_ref_no ||
                                                                          ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                                                         cc1.price_unit_name || ',' ||
                                                                          cur_pcdi_rows.available_price_name ||
                                                                          ' Price,Prompt Date:' ||
                                                                          vd_3rd_wed_of_qp,
@@ -1031,7 +1057,7 @@ create or replace package body pkg_phy_physical_process is
                                            vn_total_quantity *
                                            (vn_qty_to_be_priced / 100) *
                                            vn_before_qp_price;
-                vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
+                vc_price_unit_id        := cc1.ppu_price_unit_id;
               
               elsif vc_period = 'After QP' then
                 vn_after_price := 0;
@@ -1196,7 +1222,7 @@ create or replace package body pkg_phy_physical_process is
                                                                          ' Contract Ref No: ' ||
                                                                          cur_pcdi_rows.contract_ref_no ||
                                                                          ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                                                         cc1.price_unit_name || ',' ||
                                                                          cur_pcdi_rows.available_price_name ||
                                                                          ' Price,Prompt Date:' ||
                                                                          vd_3rd_wed_of_qp,
@@ -1223,6 +1249,7 @@ create or replace package body pkg_phy_physical_process is
                      and dqd.available_price_id =
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
+                     and dqd.price_unit_id = cc1.price_unit_id
                      and dq.trade_date = pd_trade_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N';
@@ -1239,7 +1266,7 @@ create or replace package body pkg_phy_physical_process is
                                                                          ' Contract Ref No: ' ||
                                                                          cur_pcdi_rows.contract_ref_no ||
                                                                          ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                                                         cc1.price_unit_name || ',' ||
                                                                          cur_pcdi_rows.available_price_name ||
                                                                          ' Price,Prompt Date:' ||
                                                                          vd_3rd_wed_of_qp,
@@ -1305,14 +1332,14 @@ create or replace package body pkg_phy_physical_process is
                                              vn_total_quantity *
                                              (vn_qty_to_be_priced / 100) *
                                              vn_during_qp_price;
-                  vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
+                  --                  vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
                 
                 else
                   vn_total_quantity       := cur_pcdi_rows.item_qty;
                   vn_total_contract_value := 0;
-                  vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
+                  --                  vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
                 end if;
-              
+                vc_price_unit_id := cc1.ppu_price_unit_id;
               end if;
             end loop;
           
@@ -1351,14 +1378,20 @@ create or replace package body pkg_phy_physical_process is
                                pfqpp.qp_year,
                                pfqpp.qp_date,
                                pfqpp.event_name,
-                               pfqpp.no_of_event_months
+                               pfqpp.no_of_event_months,
+                               ppfh.price_unit_id ppu_price_unit_id,
+                               ppu.price_unit_id, --pum price unit id, as quoted available in this unit only
+                               ppu.price_unit_name
                           from ppfh_phy_price_formula_header ppfh,
-                               pfqpp_phy_formula_qp_pricing  pfqpp
+                               pfqpp_phy_formula_qp_pricing  pfqpp,
+                               v_ppu_pum                     ppu
                          where ppfh.ppfh_id = pfqpp.ppfh_id
                            and ppfh.pcbpd_id =
                                cur_not_called_off_rows.pcbpd_id
                            and ppfh.is_active = 'Y'
                            and pfqpp.is_active = 'Y'
+                           and ppfh.price_unit_id =
+                               ppu.product_price_unit_id
                            and ppfh.process_id = pc_process_id
                            and pfqpp.process_id = pc_process_id)
             loop
@@ -1533,7 +1566,7 @@ create or replace package body pkg_phy_physical_process is
                                                                          ' Contract Ref No: ' ||
                                                                          cur_pcdi_rows.contract_ref_no ||
                                                                          ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                                                         cc1.price_unit_name || ',' ||
                                                                          cur_pcdi_rows.available_price_name ||
                                                                          ' Price,Prompt Date:' ||
                                                                          vd_3rd_wed_of_qp,
@@ -1562,6 +1595,7 @@ create or replace package body pkg_phy_physical_process is
                      and dqd.available_price_id =
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
+                     and dqd.price_unit_id = cc1.price_unit_id
                      and dq.trade_date = pd_trade_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N';
@@ -1578,7 +1612,7 @@ create or replace package body pkg_phy_physical_process is
                                                                          ' Contract Ref No: ' ||
                                                                          cur_pcdi_rows.contract_ref_no ||
                                                                          ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                                                         cc1.price_unit_name || ',' ||
                                                                          cur_pcdi_rows.available_price_name ||
                                                                          ' Price,Prompt Date:' ||
                                                                          vd_3rd_wed_of_qp,
@@ -1595,7 +1629,7 @@ create or replace package body pkg_phy_physical_process is
                                            vn_total_quantity *
                                            (vn_qty_to_be_priced / 100) *
                                            vn_before_qp_price;
-                vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
+                vc_price_unit_id        := cc1.ppu_price_unit_id;
               
               elsif vc_period = 'After QP' then
                 vc_price_fixation_status := 'Un-priced';
@@ -1655,7 +1689,7 @@ create or replace package body pkg_phy_physical_process is
                                                                          ' Contract Ref No: ' ||
                                                                          cur_pcdi_rows.contract_ref_no ||
                                                                          ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                                                         cc1.price_unit_name || ',' ||
                                                                          cur_pcdi_rows.available_price_name ||
                                                                          ' Price,Prompt Date:' ||
                                                                          vd_3rd_wed_of_qp,
@@ -1684,6 +1718,7 @@ create or replace package body pkg_phy_physical_process is
                      and dqd.available_price_id =
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
+                     and dqd.price_unit_id = cc1.price_unit_id
                      and dq.trade_date = pd_trade_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N';
@@ -1700,7 +1735,7 @@ create or replace package body pkg_phy_physical_process is
                                                                          ' Contract Ref No: ' ||
                                                                          cur_pcdi_rows.contract_ref_no ||
                                                                          ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                                                         cc1.price_unit_name || ',' ||
                                                                          cur_pcdi_rows.available_price_name ||
                                                                          ' Price,Prompt Date:' ||
                                                                          vd_3rd_wed_of_qp,
@@ -1717,7 +1752,7 @@ create or replace package body pkg_phy_physical_process is
                                            vn_total_quantity *
                                            (vn_qty_to_be_priced / 100) *
                                            vn_after_qp_price;
-                vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
+                vc_price_unit_id        := cc1.ppu_price_unit_id;
               elsif vc_period = 'During QP' then
                 vc_price_fixation_status := 'Un-priced';
                 vn_error_no              := 6;
@@ -1776,7 +1811,7 @@ create or replace package body pkg_phy_physical_process is
                                                                          ' Contract Ref No: ' ||
                                                                          cur_pcdi_rows.contract_ref_no ||
                                                                          ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                                                         cc1.price_unit_name || ',' ||
                                                                          cur_pcdi_rows.available_price_name ||
                                                                          ' Price,Prompt Date:' ||
                                                                          vd_3rd_wed_of_qp,
@@ -1805,6 +1840,7 @@ create or replace package body pkg_phy_physical_process is
                      and dqd.available_price_id =
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
+                     and dqd.price_unit_id = cc1.price_unit_id
                      and dq.trade_date = pd_trade_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N';
@@ -1821,7 +1857,7 @@ create or replace package body pkg_phy_physical_process is
                                                                          ' Contract Ref No: ' ||
                                                                          cur_pcdi_rows.contract_ref_no ||
                                                                          ',Price Unit:' ||
-                                                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                                                         cc1.price_unit_name || ',' ||
                                                                          cur_pcdi_rows.available_price_name ||
                                                                          ' Price,Prompt Date:' ||
                                                                          vd_3rd_wed_of_qp,
@@ -1838,7 +1874,7 @@ create or replace package body pkg_phy_physical_process is
                                            vn_total_quantity *
                                            (vn_qty_to_be_priced / 100) *
                                            vn_during_qp_price;
-                vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
+                vc_price_unit_id        := cc1.ppu_price_unit_id;
               
               end if;
             end loop;
@@ -1852,7 +1888,7 @@ create or replace package body pkg_phy_physical_process is
       begin
         select cm.cur_id,
                cm.cur_code,
-               ppu.weight,
+               nvl(ppu.weight, 1),
                ppu.weight_unit_id,
                qum.qty_unit
           into vc_price_cur_id,
@@ -1877,7 +1913,7 @@ create or replace package body pkg_phy_physical_process is
         when no_data_found then
           vc_price_cur_id         := null;
           vc_price_cur_code       := null;
-          vc_price_weight_unit    := 0;
+          vc_price_weight_unit    := 1;
           vc_price_weight_unit_id := null;
           vc_price_qty_unit       := null;
       end;
@@ -1920,15 +1956,16 @@ create or replace package body pkg_phy_physical_process is
         vd_payment_due_date := cur_pcdi_rows.payment_due_date;
       end if;
     
-      pkg_general.sp_forward_cur_exchange_rate(pc_corporate_id,
+      /*pkg_general.sp_forward_cur_exchange_rate(pc_corporate_id,
                                                pd_trade_date,
                                                vd_payment_due_date,
                                                vc_contract_main_cur_id,
                                                vc_base_main_cur_id,
                                                vn_settlement_price,
-                                               vn_forward_points);
+                                               vn_forward_points);*/
       vn_error_no := 9;
-      if vc_contract_main_cur_id <> vc_base_main_cur_id then
+      --not required, as handled in pnl calculation
+      /*if vc_contract_main_cur_id <> vc_base_main_cur_id then
         if vn_settlement_price is null or vn_settlement_price = 0 then
           vobj_error_log.extend;
           vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
@@ -1945,7 +1982,7 @@ create or replace package body pkg_phy_physical_process is
           sp_insert_error_log(vobj_error_log);
         
         end if;
-      end if;
+      end if;*/
       insert into cipd_contract_item_price_daily
         (corporate_id,
          pcdi_id,
@@ -2023,6 +2060,579 @@ create or replace package body pkg_phy_physical_process is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
+  end;
+  
+  procedure sp_calc_gmr_price(pc_corporate_id varchar2,
+                              pd_trade_date   date,
+                              pc_process_id   varchar2,
+                              pc_user_id      varchar2,
+                              pc_dbd_id       varchar2) is
+  
+    cursor cur_gmr is
+      select gmr.corporate_id,
+             gmr.internal_gmr_ref_no,
+             gmr.gmr_ref_no,
+             gmr.current_qty,
+             pofh.qp_start_date,
+             pofh.qp_end_date,
+             pofh.pofh_id,
+             pd_trade_date eod_trade_date,
+             qat.instrument_id,
+             dim.instrument_name,
+             ps.price_source_id,
+             ps.price_source_name,
+             apm.available_price_id,
+             apm.available_price_name,
+             pum.price_unit_name,
+             vdip.ppu_price_unit_id,
+             div.price_unit_id,
+             pocd.is_any_day_pricing,
+             pofh.qty_to_be_fixed,
+             round(pofh.priced_qty, 4) priced_qty,
+             pofh.no_of_prompt_days,
+             pocd.pcbpd_id
+        from gmr_goods_movement_record gmr,
+             (select grd.internal_gmr_ref_no,
+                     grd.quality_id
+                from grd_goods_record_detail grd
+               where grd.process_id = pc_process_id
+                 and grd.status = 'Active'
+                 and grd.is_deleted = 'N'
+                 and nvl(grd.inventory_status, 'NA') <> 'Out'
+               group by grd.internal_gmr_ref_no,
+                        grd.quality_id) grd,
+             pofh_price_opt_fixation_header pofh,
+             pocd_price_option_calloff_dtls pocd,
+             mv_qat_quality_valuation qat,
+             dim_der_instrument_master dim,
+             div_der_instrument_valuation div,
+             ps_price_source ps,
+             apm_available_price_master apm,
+             pum_price_unit_master pum,
+             v_der_instrument_price_unit vdip
+       where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+         and gmr.internal_gmr_ref_no = pofh.internal_gmr_ref_no
+         and pofh.pocd_id = pocd.pocd_id
+         and grd.quality_id = qat.quality_id
+         and gmr.process_id = pc_process_id
+         and qat.corporate_id=pc_corporate_id
+         and qat.instrument_id = dim.instrument_id
+         and dim.instrument_id = div.instrument_id
+         and div.is_deleted = 'N'
+         and div.price_source_id = ps.price_source_id
+         and div.available_price_id = apm.available_price_id
+         and div.price_unit_id = pum.price_unit_id
+         and dim.instrument_id = vdip.instrument_id
+            --  and gmr.internal_gmr_ref_no = 'GMR-68'
+         and gmr.is_deleted = 'N'
+         and pofh.is_active = 'Y';
+  
+    vobj_error_log             tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count         number := 1;
+    vd_qp_start_date           date;
+    vd_qp_end_date             date;
+    vc_period                  varchar2(50);
+    vd_3rd_wed_of_qp           date;
+    workings_days              number;
+    vd_quotes_date             date;
+    vc_before_price_dr_id      varchar2(15);
+    vn_before_qp_price         number;
+    vc_before_qp_price_unit_id varchar2(15);
+    --vn_total_quantity              number;
+    vn_total_contract_value number;
+    -- vc_price_unit_id               varchar2(15);
+    vn_after_price                 number;
+    vn_after_count                 number;
+    vn_after_qp_price              number;
+    vc_after_qp_price_unit_id      varchar2(15);
+    vd_dur_qp_start_date           date;
+    vd_dur_qp_end_date             date;
+    vn_during_total_set_price      number;
+    vn_count_set_qp                number;
+    vc_during_price_dr_id          varchar2(15);
+    vn_during_val_price            number;
+    vc_during_val_price_unit_id    varchar2(15);
+    vn_during_total_val_price      number;
+    vn_count_val_qp                number;
+    vc_holiday                     char(1);
+    vn_during_qp_price             number;
+    vc_price_cur_id                varchar2(15);
+    vc_price_cur_code              varchar2(15);
+    vc_price_weight_unit           number;
+    vc_price_weight_unit_id        varchar2(15);
+    vc_price_qty_unit              varchar2(15);
+    vc_price_fixation_status       varchar2(50);
+    vn_market_flag                 char(1);
+    vn_any_day_cont_price_fix_qty  number;
+    vn_any_day_cont_price_ufix_qty number;
+    vn_any_day_unfixed_qty         number;
+    vn_any_day_fixed_qty           number;
+    vc_price_unit_id               varchar2(15);
+    vc_ppu_price_unit_id           varchar2(15);
+    vc_price_name                  varchar2(100);
+    vc_pcbpd_id                    varchar2(15);
+  
+  begin
+    for cur_gmr_rows in cur_gmr
+    loop
+      vc_price_fixation_status       := null;
+      vn_total_contract_value        := 0;
+      vn_market_flag                 := null;
+      vn_any_day_cont_price_fix_qty  := 0;
+      vn_any_day_cont_price_ufix_qty := 0;
+      vn_any_day_unfixed_qty         := 0;
+      vn_any_day_fixed_qty           := 0;
+      vc_pcbpd_id                    := cur_gmr_rows.pcbpd_id;
+      vc_price_unit_id               := null;
+      vc_ppu_price_unit_id           := null;
+      vd_qp_start_date               := cur_gmr_rows.qp_start_date;
+      vd_qp_end_date                 := cur_gmr_rows.qp_end_date;
+    
+      if cur_gmr_rows.eod_trade_date >= vd_qp_start_date and
+         cur_gmr_rows.eod_trade_date <= vd_qp_end_date then
+        vc_period := 'During QP';
+      elsif cur_gmr_rows.eod_trade_date < vd_qp_start_date and
+            cur_gmr_rows.eod_trade_date < vd_qp_end_date then
+        vc_period := 'Before QP';
+      elsif cur_gmr_rows.eod_trade_date > vd_qp_start_date and
+            cur_gmr_rows.eod_trade_date > vd_qp_end_date then
+        vc_period := 'After QP';
+      end if;
+      begin
+        select ppu.product_price_unit_id,
+               ppu.price_unit_id,
+               ppu.price_unit_name
+          into vc_ppu_price_unit_id,vc_price_unit_id,vc_price_name
+          from ppfh_phy_price_formula_header ppfh,v_ppu_pum ppu
+         where ppfh.pcbpd_id = vc_pcbpd_id
+           and ppfh.process_id = pc_process_id
+           and ppfh.price_unit_id = ppu.product_price_unit_id
+           and rownum <= 1;
+      exception
+        when no_data_found then
+          vc_ppu_price_unit_id := cur_gmr_rows.ppu_price_unit_id;
+          vc_price_unit_id     := cur_gmr_rows.price_unit_id;
+          vc_price_name        := cur_gmr_rows.price_unit_name;
+        when others then
+          vc_ppu_price_unit_id := cur_gmr_rows.ppu_price_unit_id;
+          vc_price_unit_id     := cur_gmr_rows.price_unit_id;
+          vc_price_name        := cur_gmr_rows.price_unit_name;
+      end;
+      if vc_period = 'Before QP' then
+        vc_price_fixation_status := 'Un-priced';
+        vd_3rd_wed_of_qp         := f_get_next_day(vd_qp_end_date, 'Wed', 3);
+      
+        while true
+        loop
+          if f_is_day_holiday(cur_gmr_rows.instrument_id, vd_3rd_wed_of_qp) then
+            vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
+          else
+            exit;
+          end if;
+        end loop;
+      
+        --- get 3rd wednesday  before QP period 
+        -- Get the quotation date = Trade Date +2 working Days
+        if vd_3rd_wed_of_qp <= pd_trade_date then
+          workings_days  := 0;
+          vd_quotes_date := pd_trade_date + 1;
+          while workings_days <> 2
+          loop
+            if f_is_day_holiday(cur_gmr_rows.instrument_id, vd_quotes_date) then
+              vd_quotes_date := vd_quotes_date + 1;
+            else
+              workings_days := workings_days + 1;
+              if workings_days <> 2 then
+                vd_quotes_date := vd_quotes_date + 1;
+              end if;
+            end if;
+          end loop;
+          vd_3rd_wed_of_qp := vd_quotes_date;
+        end if;
+        ---- get the dr_id             
+        begin
+          select drm.dr_id
+            into vc_before_price_dr_id
+            from drm_derivative_master drm
+           where drm.instrument_id = cur_gmr_rows.instrument_id
+             and drm.prompt_date = vd_3rd_wed_of_qp
+             and rownum <= 1
+             and drm.price_point_id is null
+             and drm.is_deleted = 'N';
+        exception
+          when no_data_found then
+            vobj_error_log.extend;
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure sp_calc_gmr_price',
+                                                                 'PHY-002',
+                                                                 'DR_ID missing for ' ||
+                                                                 cur_gmr_rows.instrument_name ||
+                                                                 ',Price Source:' ||
+                                                                 cur_gmr_rows.price_source_name ||
+                                                                 ' GMR No: ' ||
+                                                                 cur_gmr_rows.gmr_ref_no ||
+                                                                 ',Price Unit:' ||
+                                                                 vc_price_name || ',' ||
+                                                                 cur_gmr_rows.available_price_name ||
+                                                                 ' Price,Prompt Date:' ||
+                                                                 vd_3rd_wed_of_qp,
+                                                                 '',
+                                                                 gvc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
+          
+        end;
+        --get the price              
+        begin
+          select dqd.price,
+                 dqd.price_unit_id
+            into vn_before_qp_price,
+                 vc_before_qp_price_unit_id
+            from dq_derivative_quotes        dq,
+                 dqd_derivative_quote_detail dqd
+           where dq.dq_id = dqd.dq_id
+             and dqd.dr_id = vc_before_price_dr_id
+             and dq.process_id = pc_process_id
+             and dq.instrument_id = cur_gmr_rows.instrument_id
+             and dq.process_id = dqd.process_id
+             and dqd.available_price_id = cur_gmr_rows.available_price_id
+             and dq.price_source_id = cur_gmr_rows.price_source_id
+             and dqd.price_unit_id = vc_price_unit_id
+             and dq.trade_date = pd_trade_date
+             and dq.is_deleted = 'N'
+             and dqd.is_deleted = 'N';
+        exception
+          when no_data_found then
+            vobj_error_log.extend;
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure sp_calc_gmr_price',
+                                                                 'PHY-002',
+                                                                 'Price missing for ' ||
+                                                                 cur_gmr_rows.instrument_name ||
+                                                                 ',Price Source:' ||
+                                                                 cur_gmr_rows.price_source_name ||
+                                                                 ' GMR No: ' ||
+                                                                 cur_gmr_rows.gmr_ref_no ||
+                                                                 ',Price Unit:' ||
+                                                                 vc_price_name || ',' ||
+                                                                 cur_gmr_rows.available_price_name ||
+                                                                 ' Price,Prompt Date:' ||
+                                                                 vd_3rd_wed_of_qp,
+                                                                 '',
+                                                                 gvc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
+        end;
+        vn_total_contract_value := vn_total_contract_value +
+                                   vn_before_qp_price;
+      --  vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
+      
+      elsif vc_period = 'After QP' then
+        vn_after_price := 0;
+        vn_after_count := 0;
+        for pfd_price in (select pfd.user_price,
+                                 pfd.price_unit_id,
+                                 pofh.final_price
+                            from poch_price_opt_call_off_header poch,
+                                 pocd_price_option_calloff_dtls pocd,
+                                 pofh_price_opt_fixation_header pofh,
+                                 pfd_price_fixation_details     pfd
+                           where poch.poch_id = pocd.poch_id
+                             and pocd.pocd_id = pofh.pocd_id
+                             and pfd.pofh_id = cur_gmr_rows.pofh_id
+                             and pofh.pofh_id = pfd.pofh_id
+                             and poch.is_active = 'Y'
+                             and pocd.is_active = 'Y'
+                             and pofh.is_active = 'Y'
+                             and pfd.is_active = 'Y')
+        loop
+          if pfd_price.final_price is not null then
+            vc_price_fixation_status := 'Finalized';
+          end if;
+        
+          vn_after_price := vn_after_price + pfd_price.user_price;
+          vn_after_count := vn_after_count + 1;
+        
+        end loop;
+        --   end if;
+        if vn_after_count = 0 then
+          vn_after_qp_price         := 0;
+          vn_total_contract_value   := 0;
+          vc_after_qp_price_unit_id := null;
+          vc_price_fixation_status  := 'Un-priced';
+        else
+          vn_after_qp_price       := vn_after_price / vn_after_count;
+          vn_total_contract_value := vn_total_contract_value +
+                                     vn_after_qp_price;
+         -- vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
+          if vc_price_fixation_status <> 'Finalized' then
+            vc_price_fixation_status := 'Partially Priced';
+          else
+            vc_price_fixation_status := 'Partially Priced';
+          end if;
+        end if;
+      elsif vc_period = 'During QP' then
+        vd_dur_qp_start_date      := vd_qp_start_date;
+        vd_dur_qp_end_date        := vd_qp_end_date;
+        vn_during_total_set_price := 0;
+        vn_count_set_qp           := 0;
+        for cc in (select pfd.user_price,
+                          pfd.as_of_date,
+                          pfd.qty_fixed,
+                          pofh.final_price,
+                          pocd.is_any_day_pricing
+                     from poch_price_opt_call_off_header poch,
+                          pocd_price_option_calloff_dtls pocd,
+                          pofh_price_opt_fixation_header pofh,
+                          pfd_price_fixation_details     pfd
+                    where poch.poch_id = pocd.poch_id
+                      and pocd.pocd_id = pofh.pocd_id
+                      and pofh.pofh_id = cur_gmr_rows.pofh_id
+                      and pofh.pofh_id = pfd.pofh_id
+                      and pfd.as_of_date >= vd_dur_qp_start_date
+                      and pfd.as_of_date <= pd_trade_date
+                      and poch.is_active = 'Y'
+                      and pocd.is_active = 'Y'
+                      and pofh.is_active = 'Y'
+                      and pfd.is_active = 'Y')
+        loop
+          vn_during_total_set_price := vn_during_total_set_price +
+                                       cc.user_price;
+          vn_count_set_qp           := vn_count_set_qp + 1;
+          if cc.final_price is not null then
+            vc_price_fixation_status := 'Finalized';
+          end if;
+          vn_any_day_fixed_qty := vn_any_day_fixed_qty + cc.qty_fixed;
+        end loop;
+        if vn_count_set_qp <> 0 then
+          if vc_price_fixation_status <> 'Finalized' then
+            vc_price_fixation_status := 'Partially Priced';
+          end if;
+        else
+          vc_price_fixation_status := 'Un-priced';
+        
+        end if;
+        if cur_gmr_rows.is_any_day_pricing = 'Y' then
+          vn_market_flag := 'N';
+        else
+          vn_market_flag := 'Y';
+        end if;
+      
+        -- get the third wednes day
+        vd_3rd_wed_of_qp := f_get_next_day(vd_dur_qp_end_date, 'Wed', 3);
+        while true
+        loop
+          if f_is_day_holiday(cur_gmr_rows.instrument_id, vd_3rd_wed_of_qp) then
+            vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
+          else
+            exit;
+          end if;
+        end loop;
+      
+        --- get 3rd wednesday  before QP period 
+        -- Get the quotation date = Trade Date +2 working Days
+        if vd_3rd_wed_of_qp <= pd_trade_date then
+          workings_days  := 0;
+          vd_quotes_date := pd_trade_date + 1;
+          while workings_days <> 2
+          loop
+            if f_is_day_holiday(cur_gmr_rows.instrument_id, vd_quotes_date) then
+              vd_quotes_date := vd_quotes_date + 1;
+            else
+              workings_days := workings_days + 1;
+              if workings_days <> 2 then
+                vd_quotes_date := vd_quotes_date + 1;
+              end if;
+            end if;
+          end loop;
+          vd_3rd_wed_of_qp := vd_quotes_date;
+        end if;
+        --Get the DR-id
+        begin
+          select drm.dr_id
+            into vc_during_price_dr_id
+            from drm_derivative_master drm
+           where drm.instrument_id = cur_gmr_rows.instrument_id
+             and drm.prompt_date = vd_3rd_wed_of_qp
+             and rownum <= 1
+             and drm.price_point_id is null
+             and drm.is_deleted = 'N';
+        exception
+          when no_data_found then
+            vobj_error_log.extend;
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure sp_calc_gmr_price',
+                                                                 'PHY-002',
+                                                                 'DR-ID missing for ' ||
+                                                                 cur_gmr_rows.instrument_name ||
+                                                                 ',Price Source:' ||
+                                                                 cur_gmr_rows.price_source_name ||
+                                                                 ' GMR NO: ' ||
+                                                                 cur_gmr_rows.gmr_ref_no ||
+                                                                 ',Price Unit:' ||
+                                                                 vc_price_name || ',' ||
+                                                                 cur_gmr_rows.available_price_name ||
+                                                                 ' Price,Prompt Date:' ||
+                                                                 vd_3rd_wed_of_qp,
+                                                                 '',
+                                                                 gvc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
+        end;
+        --Get the price for the dr-id
+        begin
+          select dqd.price,
+                 dqd.price_unit_id
+            into vn_during_val_price,
+                 vc_during_val_price_unit_id
+            from dq_derivative_quotes        dq,
+                 dqd_derivative_quote_detail dqd
+           where dq.dq_id = dqd.dq_id
+             and dqd.dr_id = vc_during_price_dr_id
+             and dq.instrument_id = cur_gmr_rows.instrument_id
+             and dq.dbd_id = dqd.dbd_id
+             and dq.dbd_id = pc_dbd_id
+             and dqd.available_price_id = cur_gmr_rows.available_price_id
+             and dq.price_source_id = cur_gmr_rows.price_source_id
+             and dq.trade_date = pd_trade_date
+             and dqd.price_unit_id = vc_price_unit_id
+             and dq.is_deleted = 'N'
+             and dqd.is_deleted = 'N';
+        exception
+          when no_data_found then
+            vobj_error_log.extend;
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure sp_gmr_price',
+                                                                 'PHY-002',
+                                                                 'Price missing for ' ||
+                                                                 cur_gmr_rows.instrument_name ||
+                                                                 ',Price Source:' ||
+                                                                 cur_gmr_rows.price_source_name ||
+                                                                 ' GMR No: ' ||
+                                                                 cur_gmr_rows.gmr_ref_no ||
+                                                                 ',Price Unit:' ||
+                                                                 vc_price_name || ',' ||
+                                                                 cur_gmr_rows.available_price_name ||
+                                                                 ' Price,Prompt Date:' ||
+                                                                 vd_3rd_wed_of_qp,
+                                                                 '',
+                                                                 gvc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
+        end;
+      
+        vn_during_total_val_price := 0;
+        vn_count_val_qp           := 0;
+        vd_dur_qp_start_date      := pd_trade_date + 1;
+        if vn_market_flag = 'N' then
+          vn_during_total_val_price := vn_during_total_val_price +
+                                       vn_during_val_price;
+        
+          vn_any_day_unfixed_qty         := cur_gmr_rows.qty_to_be_fixed -
+                                            vn_any_day_fixed_qty;
+          vn_count_val_qp                := vn_count_val_qp + 1;
+          vn_any_day_cont_price_ufix_qty := (vn_any_day_unfixed_qty *
+                                            vn_during_total_val_price);
+        
+        else
+          while vd_dur_qp_start_date <= vd_dur_qp_end_date
+          loop
+            ---- finding holidays       
+            if f_is_day_holiday(cur_gmr_rows.instrument_id,
+                                vd_dur_qp_start_date) then
+              vc_holiday := 'Y';
+            else
+              vc_holiday := 'N';
+            end if;
+          
+            if vc_holiday = 'N' then
+              vn_during_total_val_price := vn_during_total_val_price +
+                                           vn_during_val_price;
+              vn_count_val_qp           := vn_count_val_qp + 1;
+            end if;
+            vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
+          end loop;
+        end if;
+        if (vn_count_val_qp + vn_count_set_qp) <> 0 then
+        
+          if vn_market_flag = 'N' then
+            vn_during_qp_price := (vn_any_day_cont_price_fix_qty +
+                                  vn_any_day_cont_price_ufix_qty) /
+                                  cur_gmr_rows.qty_to_be_fixed;
+          else
+            vn_during_qp_price := (vn_during_total_set_price +
+                                  vn_during_total_val_price) /
+                                  (vn_count_set_qp + vn_count_val_qp);
+          end if;
+          vn_total_contract_value := vn_total_contract_value +
+                                     vn_during_qp_price;
+        else
+          vn_total_contract_value := 0;
+        end if;
+      
+      end if;
+    
+      begin
+        select cm.cur_id,
+               cm.cur_code,
+               nvl(ppu.weight, 1),
+               ppu.weight_unit_id,
+               qum.qty_unit
+          into vc_price_cur_id,
+               vc_price_cur_code,
+               vc_price_weight_unit,
+               vc_price_weight_unit_id,
+               vc_price_qty_unit
+          from v_ppu_pum                ppu,
+               cm_currency_master       cm,
+               qum_quantity_unit_master qum
+         where ppu.product_price_unit_id = vc_ppu_price_unit_id
+           and ppu.cur_id = cm.cur_id
+           and qum.qty_unit_id = ppu.weight_unit_id;
+      
+      exception
+        when no_data_found then
+          vc_price_cur_id         := null;
+          vc_price_cur_code       := null;
+          vc_price_weight_unit    := 1;
+          vc_price_weight_unit_id := null;
+          vc_price_qty_unit       := null;
+      end;
+      insert into gpd_gmr_price_daily
+        (corporate_id,
+         internal_gmr_ref_no,
+         contract_price,
+         price_unit_id,
+         price_unit_cur_id,
+         price_unit_cur_code,
+         price_unit_weight,
+         price_unit_weight_unit_id,
+         price_unit_weight_unit,
+         process_id,
+         price_fixation_status)
+      values
+        (cur_gmr_rows.corporate_id,
+         cur_gmr_rows.internal_gmr_ref_no,
+         vn_total_contract_value,
+         vc_ppu_price_unit_id,
+         vc_price_cur_id,
+         vc_price_cur_code,
+         vc_price_weight_unit,
+         vc_price_weight_unit_id,
+         vc_price_qty_unit,
+         pc_process_id,
+         vc_price_fixation_status);
+    
+    end loop;
+  
   end;
 
   procedure sp_calc_contract_conc_price(pc_corporate_id varchar2,
@@ -7829,9 +8439,18 @@ create or replace package body pkg_phy_physical_process is
              nvl(md.m2m_product_premium, 0) total_premium,
              qat.eval_basis,
              nvl(pcdb.premium, 0) delivery_premium,
-             pcdb.premium_unit_id delivery_premium_unit_id
+             pcdb.premium_unit_id delivery_premium_unit_id,
+             gpd.contract_price gmr_price,
+             gpd.price_unit_id gmr_price_unit_id,
+             gpd.price_unit_weight_unit_id gmr_price_wt_unit_id,
+             gpd.price_unit_weight gmr_price_wt,
+             gpd.price_unit_cur_id gmr_price_cur_id,
+             gpd.price_unit_cur_code gmr_price_cur_code,
+             gpd.price_unit_weight_unit gmr_price_wt_unit,
+             gpd.price_fixation_status gmr_price_fixation_status
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
+             gpd_gmr_price_daily gpd,
              pcm_physical_contract_main pcm,
              pcpd_pc_product_definition pcpd,
              pdm_productmaster pdm,
@@ -7842,10 +8461,12 @@ create or replace package body pkg_phy_physical_process is
                 from md_m2m_daily md1
                where md1.rate_type <> 'OPEN'
                  and md1.corporate_id = pc_corporate_id
+                 and md1.product_type='BASEMETAL'
                  and md1.process_id = pc_process_id) md,
              (select tmp.*
                 from tmpc_temp_m2m_pre_check tmp
                where tmp.corporate_id = pc_corporate_id
+                 and tmp.product_type='BASEMETAL'
                  and tmp.section_name <> 'OPEN') tmpc,
              cipd_contract_item_price_daily cipd,
              ak_corporate akc,
@@ -7860,6 +8481,8 @@ create or replace package body pkg_phy_physical_process is
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
          and grd.product_id = pdm.product_id
          and grd.origin_id = orm.origin_id(+)
+         and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
+         and gmr.process_id = gpd.process_id(+)
          and grd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
          and grd.internal_grd_ref_no = tmpc.internal_grd_ref_no(+)
          and grd.internal_contract_item_ref_no =
@@ -8009,8 +8632,17 @@ create or replace package body pkg_phy_physical_process is
              nvl(md.m2m_product_premium, 0) total_premium,
              qat.eval_basis,
              nvl(pcdb.premium, 0) delivery_premium,
-             pcdb.premium_unit_id delivery_premium_unit_id
+             pcdb.premium_unit_id delivery_premium_unit_id,
+             gpd.contract_price gmr_price,
+             gpd.price_unit_id gmr_price_unit_id,
+             gpd.price_unit_weight_unit_id gmr_price_wt_unit_id,
+             gpd.price_unit_weight gmr_price_wt,
+             gpd.price_unit_cur_id gmr_price_cur_id,
+             gpd.price_unit_cur_code gmr_price_cur_code,
+             gpd.price_unit_weight_unit gmr_price_wt_unit,
+             gpd.price_fixation_status gmr_price_fixation_status
         from gmr_goods_movement_record gmr,
+             gpd_gmr_price_daily gpd,
              dgrd_delivered_grd dgrd,
              agh_alloc_group_header agh,
              pcm_physical_contract_main pcm,
@@ -8023,10 +8655,12 @@ create or replace package body pkg_phy_physical_process is
                 from md_m2m_daily md1
                where md1.rate_type <> 'OPEN'
                  and md1.corporate_id = pc_corporate_id
+                 and md1.product_type='BASEMETAL'
                  and md1.process_id = pc_process_id) md,
              (select tmp.*
                 from tmpc_temp_m2m_pre_check tmp
                where tmp.corporate_id = pc_corporate_id
+                 and tmp.product_type='BASEMETAL'
                  and tmp.section_name <> 'OPEN') tmpc,
              cipd_contract_item_price_daily cipd,
              ak_corporate akc,
@@ -8039,6 +8673,8 @@ create or replace package body pkg_phy_physical_process is
        where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
+         and gmr.process_id = gpd.process_id(+)
          and dgrd.product_id = pdm.product_id
          and dgrd.origin_id = orm.origin_id(+)
          and dgrd.int_alloc_group_id = agh.int_alloc_group_id
@@ -8204,10 +8840,18 @@ create or replace package body pkg_phy_physical_process is
              nvl(md.m2m_product_premium, 0) total_premium,
              qat.eval_basis,
              null delivery_premium, -- nvl(pcdb.premium, 0) delivery_premium,
-             null delivery_premium_unit_id -- pcdb.premium_unit_id delivery_premium_unit_id
-      
+             null delivery_premium_unit_id, -- pcdb.premium_unit_id delivery_premium_unit_id      
+             gpd.contract_price gmr_price,
+             gpd.price_unit_id gmr_price_unit_id,
+             gpd.price_unit_weight_unit_id gmr_price_wt_unit_id,
+             gpd.price_unit_weight gmr_price_wt,
+             gpd.price_unit_cur_id gmr_price_cur_id,
+             gpd.price_unit_cur_code gmr_price_cur_code,
+             gpd.price_unit_weight_unit gmr_price_wt_unit,
+             gpd.price_fixation_status gmr_price_fixation_status
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
+             gpd_gmr_price_daily gpd,
              pdm_productmaster pdm,
              orm_origin_master orm,
              qum_quantity_unit_master qum,
@@ -8219,15 +8863,17 @@ create or replace package body pkg_phy_physical_process is
                 from md_m2m_daily md1
                where md1.rate_type <> 'OPEN'
                  and md1.corporate_id = pc_corporate_id
+                 and md1.product_type='BASEMETAL'
                  and md1.process_id = pc_process_id) md,
-             
              (select tmp.*
                 from tmpc_temp_m2m_pre_check tmp
                where tmp.corporate_id = pc_corporate_id
+                 and tmp.product_type='BASEMETAL'
                  and tmp.section_name <> 'OPEN') tmpc
-      
        where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and grd.product_id = pdm.product_id
+         and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
+         and gmr.process_id = gpd.process_id(+)
          and grd.origin_id = orm.origin_id(+)
          and grd.qty_unit_id = qum.qty_unit_id(+)
          and grd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
@@ -8259,20 +8905,20 @@ create or replace package body pkg_phy_physical_process is
     vn_cont_price_cur_id_factor    number;
     vn_contract_value_in_price_cur number;
     vn_cont_price_cur_decimals     number;
-    vn_spot_rate_price_to_val_cur  number;
-    vn_contract_value_in_val_cur   number;
-    vn_contract_value_in_base_cur  number;
-    vc_m2m_price_unit_str          varchar2(100);
-    vc_m2m_price_unit_id           varchar2(15);
-    vc_m2m_price_unit_cur_id       varchar2(15);
-    vc_m2m_price_unit_cur_code     varchar2(15);
-    vc_m2m_price_unit_qty_unit_id  varchar2(15);
-    vc_m2m_price_unit_qty_unit     varchar2(15);
-    vn_m2m_price_unit_qty_unit_wt  number;
-    vn_ratio                       number;
-    vn_corp_rate_val_to_base_cur   number;
-    vn_spot_rate_base_to_val_cur   number;
-    vn_cog_value_in_base_cur       number;
+    --vn_spot_rate_price_to_val_cur  number;
+    vn_contract_value_in_val_cur  number;
+    vn_contract_value_in_base_cur number;
+    vc_m2m_price_unit_str         varchar2(100);
+    vc_m2m_price_unit_id          varchar2(15);
+    vc_m2m_price_unit_cur_id      varchar2(15);
+    vc_m2m_price_unit_cur_code    varchar2(15);
+    vc_m2m_price_unit_qty_unit_id varchar2(15);
+    vc_m2m_price_unit_qty_unit    varchar2(15);
+    vn_m2m_price_unit_qty_unit_wt number;
+    vn_ratio                      number;
+    vn_corp_rate_val_to_base_cur  number;
+    vn_spot_rate_base_to_val_cur  number;
+    --vn_cog_value_in_base_cur       number;
     vn_expected_cog_net_sale_value number;
     vn_expected_cog_in_val_cur     number;
     vn_pnl_in_val_cur              number;
@@ -8295,7 +8941,16 @@ create or replace package body pkg_phy_physical_process is
     vn_cont_del_premium_amt        number;
     vc_base_price_unit             varchar2(20);
     vn_m2m_amt_per_unit            number;
-  
+    vn_cont_price                  number;
+    vc_cont_price_unit_id          varchar2(15);
+    vc_cont_price_unit_cur_id      varchar2(15);
+    vc_cont_price_unit_cur_code    varchar2(15);
+    vn_cont_price_wt               number;
+    vc_cont_price_wt_unit_id       varchar2(15);
+    vc_cont_price_wt_unit          varchar2(15);
+    vc_price_fixation_status       varchar2(50);
+    vc_error_msg                   varchar2(100);
+    vc_error                       varchar2(100);
   begin
     for cur_grd_rows in cur_grd
     loop
@@ -8304,18 +8959,49 @@ create or replace package body pkg_phy_physical_process is
       vn_contract_premium           := 0;
       vn_contract_value_in_base_cur := 0;
       vn_contract_premium_value     := 0;
+      vn_cont_price                 := 0;
+      vc_cont_price_unit_id         := null;
+      vc_cont_price_unit_cur_id     := null;
+      vc_cont_price_unit_cur_code   := null;
+      vn_cont_price_wt              := 1;
+      vc_cont_price_wt_unit_id      := null;
+      vc_cont_price_wt_unit         := null;
+      vc_price_fixation_status      := null;
+      if cur_grd_rows.gmr_price is  null then
+        vn_cont_price               := cur_grd_rows.contract_price;
+        vc_cont_price_unit_id       := cur_grd_rows.price_unit_id;
+        vc_cont_price_unit_cur_id   := cur_grd_rows.price_unit_cur_id;
+        vc_cont_price_unit_cur_code := cur_grd_rows.price_unit_cur_code;
+        vn_cont_price_wt            := cur_grd_rows.price_unit_weight;
+        vc_cont_price_wt_unit_id    := cur_grd_rows.price_unit_weight_unit_id;
+        vc_cont_price_wt_unit       := cur_grd_rows.price_unit_weight_unit;
+        vc_price_fixation_status    := cur_grd_rows.price_fixation_status;
+ 
+      else
+        vn_cont_price               := cur_grd_rows.gmr_price;
+        vc_cont_price_unit_id       := cur_grd_rows.gmr_price_unit_id;
+        vc_cont_price_unit_cur_id   := cur_grd_rows.gmr_price_cur_id;
+        vc_cont_price_unit_cur_code := cur_grd_rows.gmr_price_cur_code;
+        vn_cont_price_wt            := cur_grd_rows.gmr_price_wt;
+        vc_cont_price_wt_unit_id    := cur_grd_rows.gmr_price_wt_unit_id;
+        vc_cont_price_wt_unit       := cur_grd_rows.gmr_price_wt_unit;
+        vc_price_fixation_status    := cur_grd_rows.gmr_price_fixation_status;
+      end if;
+
+     vc_error_msg := vn_cont_price || vc_cont_price_unit_id;
       if cur_grd_rows.stock_qty <> 0 then
         vc_psu_id := cur_grd_rows.internal_gmr_ref_no || '-' ||
                      cur_grd_rows.internal_grd_dgrd_ref_no || '-' ||
                      cur_grd_rows.internal_contract_item_ref_no || '-' ||
                      cur_grd_rows.container_no;
         -- get the base price unit id
-      
+      vc_error_msg := '1';
         vn_qty_in_base := cur_grd_rows.stock_qty *
                           pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
                                                                cur_grd_rows.qty_unit_id,
                                                                cur_grd_rows.base_qty_unit_id,
                                                                1);
+      vc_error_msg := '2';                                                               
         if cur_grd_rows.eval_basis = 'FIXED' then
           vn_m2m_amt               := 0;
           vc_m2m_price_unit_cur_id := cur_grd_rows.base_cur_id;
@@ -8330,6 +9016,7 @@ create or replace package body pkg_phy_physical_process is
                                                                            cur_grd_rows.m2m_price_unit_weight_unit_id,
                                                                            cur_grd_rows.stock_qty);
         end if;
+      vc_error_msg := '3';        
         pkg_general.sp_get_main_cur_detail(nvl(vc_m2m_price_unit_cur_id,
                                                cur_grd_rows.base_cur_id),
                                            vc_m2m_cur_id,
@@ -8338,7 +9025,7 @@ create or replace package body pkg_phy_physical_process is
                                            vn_m2m_cur_decimals);
       
         vn_m2m_amt := round(vn_m2m_amt * vn_m2m_sub_cur_id_factor, 2);
-      
+      vc_error_msg := '4';      
         pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
                                                 pd_trade_date,
                                                 cur_grd_rows.payment_due_date,
@@ -8348,7 +9035,7 @@ create or replace package body pkg_phy_physical_process is
                                                 30,
                                                 vn_m2m_base_fx_rate,
                                                 vn_m2m_base_deviation);
-      
+      vc_error_msg := '5';      
         if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
           if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
             vobj_error_log.extend;
@@ -8373,25 +9060,30 @@ create or replace package body pkg_phy_physical_process is
                                     cur_grd_rows.total_premium;
         vn_m2m_total_amount      := vn_m2m_amount_in_base +
                                     vn_m2m_total_premium_amt;
-      
+      vc_error_msg := '6';      
         vn_m2m_amt_per_unit := round(vn_m2m_total_amount / vn_qty_in_base,
                                      8);
       
-        pkg_general.sp_get_main_cur_detail(cur_grd_rows.price_unit_cur_id,
+        pkg_general.sp_get_main_cur_detail(nvl(vc_cont_price_unit_cur_id,
+                                               cur_grd_rows.base_cur_id),
                                            vc_price_cur_id,
                                            vc_price_cur_code,
                                            vn_cont_price_cur_id_factor,
                                            vn_cont_price_cur_decimals);
-      
-        vn_contract_value_in_price_cur := (cur_grd_rows.contract_price /
-                                          nvl(cur_grd_rows.price_unit_weight,
-                                               1)) *
-                                          (pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
-                                                                                cur_grd_rows.qty_unit_id,
-                                                                                cur_grd_rows.price_unit_weight_unit_id,
-                                                                                cur_grd_rows.stock_qty)) *
-                                          vn_cont_price_cur_id_factor;
-      
+      vc_error_msg := '7';                                           
+        if nvl(vn_cont_price, 0) <> 0 and vc_cont_price_wt_unit_id is not null then
+      vc_error_msg := '8';      
+          vn_contract_value_in_price_cur := (vn_cont_price /
+                                            nvl(vn_cont_price_wt, 1)) *
+                                            (pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
+                                                                                  cur_grd_rows.qty_unit_id,
+                                                                                  vc_cont_price_wt_unit_id,
+                                                                                  cur_grd_rows.stock_qty)) *
+                                            vn_cont_price_cur_id_factor;
+        else
+          vn_contract_value_in_price_cur := 0;
+        end if;
+      vc_error_msg := '9';        
         pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
                                                 pd_trade_date,
                                                 cur_grd_rows.payment_due_date,
@@ -8408,7 +9100,7 @@ create or replace package body pkg_phy_physical_process is
                                               nvl(vn_fx_price_to_base, 1)),
                                               2);
       end if;
-    
+          vc_error_msg := '10';
       vc_m2m_price_unit_str := cur_grd_rows.m2m_price_unit_str;
       vc_m2m_price_unit_id  := cur_grd_rows.m2m_price_unit_id;
       -- vc_m2m_price_unit_cur_id      := cur_grd_rows.m2m_price_unit_cur_id1;
@@ -8436,6 +9128,7 @@ create or replace package body pkg_phy_physical_process is
                        'vc_base_price_unit' || vc_base_price_unit || ' For' ||
                        cur_grd_rows.internal_contract_item_ref_no);
       end;
+      vc_error_msg := '11';      
       vc_base_price_unit_id := vc_base_price_unit;
       -------
       ------------------******** Premium Calculations starts here ******-------------------
@@ -8447,6 +9140,7 @@ create or replace package body pkg_phy_physical_process is
                               pc_process_id,
                               vn_contract_premium);
       --calculate contract delivery premium from pcdb
+      vc_error_msg := '12';      
       if cur_grd_rows.delivery_premium <> 0 then
         if cur_grd_rows.delivery_premium_unit_id <> vc_base_price_unit then
           vn_cont_delivery_premium := cur_grd_rows.delivery_premium *
@@ -8465,6 +9159,7 @@ create or replace package body pkg_phy_physical_process is
         vn_cont_delivery_premium := 0;
         vn_cont_del_premium_amt  := 0;
       end if;
+      vc_error_msg := '13';      
       vn_contract_premium_value := round((vn_contract_premium *
                                          vn_qty_in_base) +
                                          vn_cont_del_premium_amt,
@@ -8477,7 +9172,7 @@ create or replace package body pkg_phy_physical_process is
       vn_contract_value_in_val_cur  := vn_contract_value_in_val_cur +
                                        vn_contract_premium_value;
       --------------------------------------------------------------------------
-    
+      vc_error_msg := '14';    
       vn_expected_cog_in_val_cur := round(vn_contract_value_in_val_cur, 2);
     
       if cur_grd_rows.purchase_sales = 'P' then
@@ -8502,6 +9197,7 @@ create or replace package body pkg_phy_physical_process is
       vn_pnl_per_base_unit := round(vn_pnl_in_base_cur /
                                     nvl(vn_qty_in_base, 1),
                                     5);*/
+      vc_error_msg := '15';                                    
       vn_pnl_in_val_cur    := 0;
       vn_pnl_in_base_cur   := 0;
       vn_pnl_per_base_unit := 0;
@@ -8717,15 +9413,15 @@ create or replace package body pkg_phy_physical_process is
          null, --cur_grd_rows.price_type_name,
          null, --cur_grd_rows.price_string
          null, --cur_grd_rows.item_delivery_period_string
-         cur_grd_rows.price_fixation_status, --cur_grd_rows.fixation_method
+         vc_price_fixation_status,
          cur_grd_rows.price_fixation_details,
-         cur_grd_rows.contract_price,
-         cur_grd_rows.price_unit_id,
-         cur_grd_rows.price_unit_cur_id,
-         cur_grd_rows.price_unit_cur_code,
-         cur_grd_rows.price_unit_weight_unit_id,
-         cur_grd_rows.price_unit_weight,
-         cur_grd_rows.price_unit_weight_unit,
+         vn_cont_price,
+         vc_cont_price_unit_id,
+         vc_cont_price_unit_cur_id,
+         vc_cont_price_unit_cur_code,
+         vc_cont_price_wt_unit_id,
+         vn_cont_price_wt,
+         vc_cont_price_wt_unit,
          null, --cur_grd_rows.voyage_ref_no,
          null, ---cur_grd_rows.cma_purchase_ref_no,
          null, --cur_grd_rows.cma_purchase_cp_no,
@@ -8746,13 +9442,14 @@ create or replace package body pkg_phy_physical_process is
          vn_m2m_amt_per_unit);
     end loop;
     -----------
+      vc_error_msg := '16';    
     commit;
     sp_gather_stats('psu_phy_stock_unrealized');
     sp_gather_stats('pcm_physical_contract_main');
     sp_gather_stats('pci_physical_contract_item');
     sp_gather_stats('cipd_contract_item_price_daily');
     dbms_output.put_line('finsihed loop');
-  
+      vc_error_msg := '17';  
     begin
       -- update previous eod data
       for cur_update in (select psu_prev_day.unreal_pnl_in_base_per_unit,
@@ -8773,6 +9470,7 @@ create or replace package body pkg_phy_physical_process is
                           where process_id = gvc_previous_process_id
                             and corporate_id = pc_corporate_id)
       loop
+      vc_error_msg := '18';      
         update psu_phy_stock_unrealized psu_today
            set psu_today.prev_day_pnl_in_val_cur     = cur_update.unreal_pnl_in_val_cur_per_unit *
                                                        psu_today.qty_in_base_unit,
@@ -8801,7 +9499,7 @@ create or replace package body pkg_phy_physical_process is
       when others then
         dbms_output.put_line('SQLERRM-1' || sqlerrm);
     end;
-  
+        vc_error_msg := '19';
     -- mark the trades came as new in this eod/eom
     begin
       update psu_phy_stock_unrealized psu
@@ -8828,7 +9526,7 @@ create or replace package body pkg_phy_physical_process is
       when others then
         dbms_output.put_line('SQLERRM-2' || sqlerrm);
     end;
-  
+      vc_error_msg := '20';  
     update psu_phy_stock_unrealized psu
        set psu.pnl_in_val_cur                 = (psu.m2m_amt -
                                                 psu.prev_market_value),
@@ -8866,10 +9564,11 @@ create or replace package body pkg_phy_physical_process is
     -- update trade day pnl values
     -- it is the difference of unrealized pnl on trade date and previous eod date
     --
+      vc_error_msg := '21';    
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Phy Stock Unrlzd',
-                 'after loop');
+                 'after loop' || vc_error_msg);
     update psu_phy_stock_unrealized psu
        set trade_day_pnl_in_val_cur  = nvl(psu.pnl_in_val_cur, 0) -
                                        nvl(psu.prev_day_pnl_in_val_cur, 0),
@@ -8879,11 +9578,11 @@ create or replace package body pkg_phy_physical_process is
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Phy Stock Unrlzd',
-                 'after update');
+                 'after update' || vc_error_msg);
     --
     -- insert into contract and price data for the contract items that are in pss
     --
-  
+        vc_error_msg := '22';
     update psu_phy_stock_unrealized pss
        set (gmr_ref_no, origination_city_id, origination_country_id, destination_city_id, destination_country_id, origination_city, origination_country, destination_city, destination_country, warehouse_id, warehouse_name, shed_id, shed_name, product_id, prod_base_unit_id, prod_base_unit) = (select gmr.gmr_ref_no,
                                                                                                                                                                                                                                                                                                            gmr.origin_city_id,
@@ -8935,6 +9634,7 @@ create or replace package body pkg_phy_physical_process is
      where pss.process_id = pc_process_id;
     --
     --
+      vc_error_msg := '23';   
     update md_m2m_daily md
        set md.m2m_price_unit_weight = null
      where md.m2m_price_unit_weight = 1
@@ -8943,6 +9643,7 @@ create or replace package body pkg_phy_physical_process is
       set psci.price_unit_weight = null
     where psci.price_unit_weight = 1
       and psci.process_id = pc_process_id;  */
+      vc_error_msg := '24';      
   exception
     when others then
       dbms_output.put_line('failed with ' || sqlerrm);
@@ -8953,7 +9654,7 @@ create or replace package body pkg_phy_physical_process is
                                                            'Code:' ||
                                                            sqlcode ||
                                                            'Message:' ||
-                                                           sqlerrm,
+                                                           sqlerrm ||  '- '|| vc_error_msg,
                                                            '',
                                                            gvc_process,
                                                            pc_user_id,
@@ -9088,8 +9789,8 @@ create or replace package body pkg_phy_physical_process is
     delete from psu_phy_stock_unrealized where process_id = pc_process_id;
     delete from md_m2m_daily where process_id = pc_process_id;
     delete from gsc_gmr_sec_cost where process_id = pc_process_id;
-    delete from cisc_contract_item_sec_cost
-     where process_id = pc_process_id;
+    delete cisc_contract_item_sec_cost where process_id = pc_process_id;
+    delete gpd_gmr_price_daily where process_id = pc_process_id;
     delete from pcpch_pc_payble_content_header where dbd_id = vc_dbd_id;
     delete from pqd_payable_quality_details where dbd_id = vc_dbd_id;
     delete from pcepc_pc_elem_payable_content where dbd_id = vc_dbd_id;
