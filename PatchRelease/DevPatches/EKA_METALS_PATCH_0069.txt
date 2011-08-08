@@ -1,0 +1,63 @@
+Patch No*          		:  EKA_METALS_Patch_0069
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  08-Aug-2011
+
+Bug / Enhancement* 		:  Concentrates open pnl
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  EOD
+ 
+Sub-Module  			:  Concentrates open pnl
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+Revision: 74772
+Author: sivachalabathi.s
+Date: 5:25:54 PM, Monday, August 08, 2011
+Message:
+Basemetal+Concentrate bug fixes final
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
+
+Revision: 74775
+Author: sivachalabathi.s
+Date: 5:27:54 PM, Monday, August 08, 2011
+Message:
+bug fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_cdc_derivatives_process.sql
+
+
+Revision: 74694
+Author: sivachalabathi.s
+Date: 11:55:02 AM, Sunday, August 07, 2011
+Message:
+OPTION DESC REMOVED
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
