@@ -1,0 +1,1 @@
+delete from AMC_APP_MENU_CONFIGURATION amc where AMC.MENU_ID='Finv';
