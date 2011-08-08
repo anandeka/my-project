@@ -167,7 +167,7 @@ create or replace package pkg_cdc_derivatives_process is
                                            pc_user_id      varchar2,
                                            pc_dbd_id       varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_cdc_derivatives_process is
 
@@ -203,7 +203,7 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'EOD/EOM process Started ....');
-  
+
     -- mark eod
     /*IF pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' THEN
@@ -221,7 +221,7 @@ create or replace package body pkg_cdc_derivatives_process is
                        pd_trade_date,
                        pc_process,
                        pc_dbd_id       );*/
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -232,9 +232,9 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_cdc_rebuild_stats');
-  
+
     sp_cdc_rebuild_stats;
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -245,7 +245,7 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_future_unrealized_pnl');
-  
+
     sp_calc_future_unrealized_pnl(pc_corporate_id,
                                   pd_trade_date,
                                   pc_process_id,
@@ -262,7 +262,7 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_mark_realized_derivatives');
-  
+
     sp_mark_realized_derivatives(pc_corporate_id,
                                  pd_trade_date,
                                  pc_process_id,
@@ -278,14 +278,14 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_future_realized_pnl');
-  
+
     sp_calc_future_realized_pnl(pc_corporate_id,
                                 pd_trade_date,
                                 pc_process_id,
                                 pc_user_id,
                                 pc_process,
                                 pc_dbd_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -296,14 +296,14 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_forward_unrealized_pnl');
-  
+
     sp_calc_forward_unrealized_pnl(pc_corporate_id,
                                    pd_trade_date,
                                    pc_process_id,
                                    pc_user_id,
                                    pc_process,
                                    pc_dbd_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -314,33 +314,33 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_forward_realized_pnl');
-  
+
     sp_calc_forward_realized_pnl(pc_corporate_id,
                                  pd_trade_date,
                                  pc_process_id,
                                  pc_user_id,
                                  pc_process,
                                  pc_dbd_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
     end if;
-  
+
     vn_logno := vn_logno + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           vn_logno,
                           'sp_calc_swap_unrealized_pnl');
-  
+
     sp_calc_swap_unrealized_pnl(pc_corporate_id,
                                 pd_trade_date,
                                 pc_process_id,
                                 pc_user_id,
                                 pc_process,
                                 pc_dbd_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -351,13 +351,13 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_option_unrealized_pnl');
-  
+
     sp_calc_option_unrealized_pnl(pc_corporate_id,
                                   pd_trade_date,
                                   pc_process_id,
                                   pc_user_id,
                                   pc_process);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -368,14 +368,14 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_option_realized_pnl');
-  
+
     sp_calc_option_realized_pnl(pc_corporate_id,
                                 pd_trade_date,
                                 pc_process_id,
                                 pc_user_id,
                                 pc_process,
                                 pc_dbd_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -386,13 +386,13 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_daily_initial_margin');
-  
+
     sp_calc_daily_initial_margin(pc_corporate_id,
                                  pd_trade_date,
                                  pc_process_id,
                                  pc_user_id,
                                  pc_process);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -403,13 +403,13 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_mark_new_derivative_trades');
-  
+
     sp_mark_new_derivative_trades(pc_corporate_id,
                                   pd_trade_date,
                                   pc_process_id,
                                   pc_user_id,
                                   pc_process);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -420,13 +420,13 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_undo_closeout');
-  
+
     sp_calc_undo_closeout(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           pc_user_id,
                           pc_process);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -437,13 +437,13 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_undo_settled');
-  
+
     sp_calc_undo_settled(pc_corporate_id,
                          pd_trade_date,
                          pc_process_id,
                          pc_user_id,
                          pc_process);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -454,13 +454,13 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_clearer_summary');
-  
+
     sp_calc_clearer_summary(pc_corporate_id,
                             pd_trade_date,
                             pc_process_id,
                             pc_user_id,
                             pc_process);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -471,13 +471,13 @@ create or replace package body pkg_cdc_derivatives_process is
                           pc_process_id,
                           vn_logno,
                           'recordfxpnl');
-  
+
     recordfxpnl(pc_corporate_id,
                 pd_trade_date,
                 pc_process_id,
                 pc_user_id,
                 pc_process);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -493,7 +493,7 @@ create or replace package body pkg_cdc_derivatives_process is
                            pc_process_id,
                            pc_process,
                            pc_user_id);
-  
+
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -510,7 +510,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                    pc_process,
                                    pc_user_id,
                                    pc_dbd_id);
-  
+
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while pnl calculation');
   exception
@@ -537,7 +537,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                pd_trade_date   date,
                                pc_process      varchar2,
                                pc_dbd_id       varchar2
-                               
+
                                --------------------------------------------------------------------------------------------------------------------------
                                --        procedure name                            : sp_mark_process_id
                                --        author                                    : siva
@@ -557,41 +557,41 @@ create or replace package body pkg_cdc_derivatives_process is
                                ) is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
   begin
-  
+
     --start marking
-  
+
     update dat_derivative_aggregate_trade agd
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = pc_dbd_id;
-  
+
     update crtd_cur_trade_details
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = pc_dbd_id;
-  
+
     update dam_derivative_action_amapping
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = pc_dbd_id;
-  
+
     update dt_derivative_trade
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = pc_dbd_id;
-  
+
     /*update dcoh_der_closeout_header
     set process_id=pc_process_id
      WHERE process_id IS NULL
        AND dbd_id = pc_dbd_id;
-    
+
     update dcod_der_closeout_detail
     set process_id=pc_process_id
      WHERE process_id IS NULL
        AND dbd_id = pc_dbd_id;*/
-  
+
     update dcoh_der_closeout_header
        set process_id = pc_process_id
      where process_id is null
@@ -614,22 +614,22 @@ create or replace package body pkg_cdc_derivatives_process is
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = pc_process
                and dbd.trade_date <= pd_trade_date);
-  
+
     update ct_currency_trade
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = pc_dbd_id;
-  
+
     update dt_fbi
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = pc_dbd_id;
-  
+
     update fsh_fin_settlement_header
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = pc_dbd_id;
-  
+
   exception
     when others then
       vobj_error_log.extend;
@@ -694,11 +694,11 @@ create or replace package body pkg_cdc_derivatives_process is
            dcoh.roll_back_date       = null,
            dcoh.undo_closeout_dbd_id = null
      where dcoh.undo_closeout_dbd_id = pc_dbd_id;
-  
+
     update dcoh_der_closeout_header
        set process_id = null
      where process_id = pc_process_id;
-  
+
     update dcod_der_closeout_detail
        set process_id = null
      where process_id = pc_process_id;
@@ -706,7 +706,7 @@ create or replace package body pkg_cdc_derivatives_process is
      where process_id = pc_process_id;
     delete from dpe_derivative_price_exposure
      where process_id = pc_process_id;
-  
+
   exception
     when others then
       vobj_error_log.extend;
@@ -754,7 +754,7 @@ create or replace package body pkg_cdc_derivatives_process is
     ******************************************************************************************************************************************/
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
     cursor cur_futures is
       select dt.internal_derivative_ref_no,
              dt.derivative_ref_no,
@@ -950,7 +950,7 @@ create or replace package body pkg_cdc_derivatives_process is
              null as underlying_future_quote_price,
              null as underlying_fut_price_unit_id,
              pc_process_id process_id
-      
+
         from dt_derivative_trade            dt,
              ak_corporate                   ak,
              ak_corporate_user              aku,
@@ -1006,7 +1006,7 @@ create or replace package body pkg_cdc_derivatives_process is
              cm_currency_master             cm_settle,
              qum_quantity_unit_master       qum_settle,
              cm_currency_master             cm_base
-      
+
        where dt.corporate_id = ak.corporate_id
          and dt.trader_id = aku.user_id
          and aku.gabid = gab.gabid
@@ -1076,7 +1076,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and dt.open_quantity > 0
          and dt.trade_date <= pd_trade_date
          and dt.process_id = pc_process_id;
-  
+
     vn_total_trade_value_base_cur  number;
     vn_pnl_value_in_trade_cur      number;
     vn_trade_to_base_exch_rate     number;
@@ -1093,21 +1093,21 @@ create or replace package body pkg_cdc_derivatives_process is
     vn_total_trade_value_trade_cur number;
     vn_trade_qty_exch_unit         number;
   begin
-  
+
     for cur_futures_rows in cur_futures
     loop
-    
+
       -- Trade Qty in Exchange Weight Unit
       vn_trade_qty_exch_unit := pkg_general.f_get_converted_quantity(null,
                                                                      cur_futures_rows.quantity_unit_id,
                                                                      cur_futures_rows.lot_size_unit_id,
                                                                      cur_futures_rows.open_quantity);
-    
+
       /*get the exchange rates
       1. from broker to base currency
       2. trade to base currency
       */
-    
+
       vn_trade_to_base_exch_rate     := f_currency_exchange_rate(pd_trade_date,
                                                                  pc_corporate_id,
                                                                  cur_futures_rows.prompt_date,
@@ -1123,7 +1123,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                  cur_futures_rows.prompt_date,
                                                                  cur_futures_rows.clearer_comm_cur_id,
                                                                  cur_futures_rows.base_cur_id);
-    
+
       /*
       calcualate trade pnl in trade currency
       1. convert trade qty from trade price unit weight unit to trade weight unit
@@ -1131,13 +1131,13 @@ create or replace package body pkg_cdc_derivatives_process is
       3. market value in trade currency = qty in trade weight unit(1) * market price in trade currency(2)
       4. trade value in trade currency = trade price in trade currency (from drt) * trade qty in trade unit(1)
       5. pnl in trade currency = market value in trade currency(2) - trade value in trade currency(4)*/
-    
+
       /* commented code since from and to is reveresed 18-jul-2009
       vn_qty_in_trade_wt_unit      := f_get_converted_quantity(null, --product id
                                                                            cur_futures_rows.weight_unit_id,
                                                                            cur_futures_rows.trade_qty_unit_id,
                                                                            cur_futures_rows.trade_qty); */
-    
+
       vn_qty_in_trade_wt_unit := f_get_converted_quantity(null, --product id
                                                           cur_futures_rows.quantity_unit_id,
                                                           cur_futures_rows.trade_weight_unit_id,
@@ -1145,7 +1145,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                           -- this we added for drt changes. bhairu
                                                           --cur_futures_rows.trade_qty-nvl(cur_futures_rows.quantity_closed,0)
                                                           );
-    
+
       --preeti fix for open lots
       --vn_market_price_in_trade_cur := cur_futures_rows.settlement_price;
       if cur_futures_rows.gravity is not null then
@@ -1165,7 +1165,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                    cur_futures_rows.gravity_type,
                                                                                    cur_futures_rows.density_mass_qty_unit_id,
                                                                                    cur_futures_rows.density_volume_qty_unit_id));
-      
+
       else
         vn_market_price_in_trade_cur := (cur_futures_rows.settlement_price /
                                         nvl(cur_futures_rows.settlement_price_weight,
@@ -1179,7 +1179,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                               cur_futures_rows.settlement_weight_unit_id,
                                                                               cur_futures_rows.trade_weight_unit_id,
                                                                               1));
-      
+
       end if;
       /* he units will be the same since its defaulted in the screen
       vn_market_price_in_trade_cur   := vn_market_price_in_trade_cur *
@@ -1192,12 +1192,12 @@ create or replace package body pkg_cdc_derivatives_process is
        */
       vn_total_market_val_trade_cur := vn_market_price_in_trade_cur *
                                        vn_qty_in_trade_wt_unit;
-    
+
       vn_trade_price_in_trade_cur := cur_futures_rows.trade_price;
-    
+
       vn_total_trade_value_trade_cur := vn_trade_price_in_trade_cur *
                                         vn_qty_in_trade_wt_unit;
-    
+
       /*
       for sales trades pnl = trade price - market price
       for buy trades pnl =  market price - trade price
@@ -1209,7 +1209,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_pnl_value_in_trade_cur := vn_total_trade_value_trade_cur -
                                      vn_total_market_val_trade_cur;
       end if;
-    
+
       /*
       calcualte net pnl in base currency
        1. calculate trade value in base currency
@@ -1222,7 +1222,7 @@ create or replace package body pkg_cdc_derivatives_process is
        */
       vn_total_trade_value_base_cur := vn_trade_to_base_exch_rate *
                                        vn_total_trade_value_trade_cur;
-    
+
       /* 18-jul-2009 . commented this and replaced this with above code
       vn_total_trade_value_base_cur := pkg_general.f_get_converted_quantity(null,
                                                                             cur_futures_rows.trade_qty_unit_id,
@@ -1230,7 +1230,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                             cur_futures_rows.trade_qty) *
                                        cur_futures_rows.trade_price *
                                        vn_trade_to_base_exch_rate; */
-    
+
       vn_broker_comm_in_base_cur := cur_futures_rows.broker_comm_amt *
                                     vn_brokr_cur_to_base_exch_rate;
       vn_clr_comm_in_base_cur    := cur_futures_rows.clearer_comm_amt *
@@ -1241,16 +1241,16 @@ create or replace package body pkg_cdc_derivatives_process is
       --vn_net_pnl_in_base_cur        := vn_pnl_value_in_base_cur -
       --                                 nvl(vn_broker_comm_in_base_cur,0) - nvl(vn_clr_comm_in_base_cur,0);
       vn_net_pnl_in_base_cur := vn_pnl_value_in_base_cur;
-    
+
       --  all this check should be removed later
       if vn_net_pnl_in_base_cur is null then
         vn_net_pnl_in_base_cur := 0;
       end if;
-    
+
       if vn_pnl_value_in_trade_cur is null then
         vn_pnl_value_in_trade_cur := 0;
       end if;
-    
+
       insert into dpd_derivative_pnl_daily
         (internal_derivative_ref_no,
          derivative_ref_no,
@@ -1429,7 +1429,7 @@ create or replace package body pkg_cdc_derivatives_process is
          underlying_fut_price_unit_id,
          process_id,
          trade_qty_in_exch_unit)
-      
+
       values
         (cur_futures_rows.internal_derivative_ref_no,
          cur_futures_rows.derivative_ref_no,
@@ -1510,8 +1510,8 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_futures_rows.clearer_comm_amt,
          cur_futures_rows.clearer_comm_cur_id,
          cur_futures_rows.clearer_cur_code,
-         cur_futures_rows.product_id,
          cur_futures_rows.product,
+         cur_futures_rows.productdesc,
          cur_futures_rows.quality_id,
          cur_futures_rows.quality_name,
          cur_futures_rows.quantity_unit_id,
@@ -1608,7 +1608,7 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_futures_rows.underlying_fut_price_unit_id,
          cur_futures_rows.process_id,
          vn_trade_qty_exch_unit);
-    
+
     end loop;
   exception
     when others then
@@ -1626,7 +1626,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_calc_future_realized_pnl(pc_corporate_id varchar2,
@@ -1966,7 +1966,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and dt.trade_date <= pd_trade_date
          and dt.process_id = pc_process_id
          and dcoh.is_rolled_back = 'N';
-  
+
     vn_total_trade_value_base_cur  number;
     vn_pnl_value_in_trade_cur      number;
     vn_trade_to_base_exch_rate     number;
@@ -2001,7 +2001,7 @@ create or replace package body pkg_cdc_derivatives_process is
                             pc_dbd_id,
                             vn_logno,
                             'sp_cdc_realized pnl');
-  
+
     --update drt
     /*
     update drt_derivative_trade drt
@@ -2021,7 +2021,7 @@ create or replace package body pkg_cdc_derivatives_process is
     */
     for cur_futures_rows in cur_futures
     loop
-    
+
       vn_trade_qty_exch_unit := pkg_general.f_get_converted_quantity(null,
                                                                      cur_futures_rows.trade_qty_unit_id,
                                                                      cur_futures_rows.lot_size_unit_id,
@@ -2034,7 +2034,7 @@ create or replace package body pkg_cdc_derivatives_process is
                               'sp_cdc_realized pnl vn_trade_qty_exch_unit ' ||
                               cur_futures_rows.derivative_ref_no || ' ' ||
                               vn_trade_qty_exch_unit);
-    
+
       /*
       get the exchange rates
       1. from broker to base currency
@@ -2049,7 +2049,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vn_trade_to_base_exch_rate := 1;
       end if;
-    
+
       if cur_futures_rows.broker_comm_cur_id <>
          cur_futures_rows.base_cur_id then
         vn_brokr_cur_to_base_exch_rate := f_currency_exchange_rate(cur_futures_rows.close_out_date,
@@ -2060,7 +2060,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vn_brokr_cur_to_base_exch_rate := 1;
       end if;
-    
+
       if cur_futures_rows.clearer_comm_cur_id <>
          cur_futures_rows.base_cur_id then
         vn_clr_cur_to_base_exch_rate := f_currency_exchange_rate(cur_futures_rows.close_out_date,
@@ -2071,7 +2071,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vn_clr_cur_to_base_exch_rate := 1;
       end if;
-    
+
       /*      IF cur_futures_rows.bank_fee_cur_id IS NOT NULL AND
          cur_futures_rows.bank_fee_cur_id <> cur_futures_rows.base_cur_id THEN
         vn_bank_fees_exch_rate := f_currency_exchange_rate(cur_futures_rows.close_date,
@@ -2082,7 +2082,7 @@ create or replace package body pkg_cdc_derivatives_process is
       ELSE
         vn_bank_fees_exch_rate := 1;
       END IF;*/
-    
+
       /*
       calcualate trade pnl in trade currency
       1. convert trade qty from trade price unit weight unit to trade weight unit
@@ -2091,7 +2091,7 @@ create or replace package body pkg_cdc_derivatives_process is
       4. trade value in trade currency = trade price in trade currency (from drt) * trade qty in trade unit(1)
       5. pnl in trade currency = market value in trade currency(2) - trade value in trade currency(4)
       */
-    
+
       --vn_qty_in_trade_wt_unit      := f_get_converted_quantity(null, --product id
       --                                                                     cur_futures_rows.weight_unit_id,
       --                                                                     cur_futures_rows.trade_qty_unit_id,
@@ -2101,7 +2101,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                           cur_futures_rows.trade_qty_unit_id,
                                                           cur_futures_rows.trade_weight_unit_id,
                                                           cur_futures_rows.quantity_closed);
-    
+
       ---    vn_market_price_in_trade_cur := cur_futures_rows.settlement_price;
       vn_logno := vn_logno + 1;
       sp_precheck_process_log(pc_corporate_id,
@@ -2115,7 +2115,7 @@ create or replace package body pkg_cdc_derivatives_process is
                               cur_futures_rows.dr_id || '-' ||
                               cur_futures_rows.instrument_id ||
                               ' trade on ' || cur_futures_rows.traded_on);
-    
+
       begin
         select dqd.price,
                dqd.price_unit_id,
@@ -2153,7 +2153,7 @@ create or replace package body pkg_cdc_derivatives_process is
            and dqd.price_unit_id = cur_futures_rows.price_unit_id
               --  and apm.available_price_name = 'Settlement'
            and dq.dbd_id = pc_dbd_id;
-      
+
         vn_logno := vn_logno + 1;
         sp_precheck_process_log(pc_corporate_id,
                                 pd_trade_date,
@@ -2163,7 +2163,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                 cur_futures_rows.derivative_ref_no || ' ' ||
                                 vn_market_price_in_trade_cur || '-' ||
                                 vc_settlement_price_unit_id);
-      
+
       exception
         when no_data_found then
           vn_market_price_in_trade_cur := 0;
@@ -2182,7 +2182,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                   cur_futures_rows.derivative_ref_no || ' ' ||
                                   vn_market_price_in_trade_cur || '-' ||
                                   vc_settlement_price_unit_id);
-        
+
         when others then
           vn_market_price_in_trade_cur := 0;
           vc_settlement_price_unit_id  := null;
@@ -2200,12 +2200,12 @@ create or replace package body pkg_cdc_derivatives_process is
                                   cur_futures_rows.derivative_ref_no || ' ' ||
                                   vn_market_price_in_trade_cur || '-' ||
                                   vc_settlement_price_unit_id);
-        
+
       end;
-    
+
       /*
       market price in trade currency (dq_) needs to be converted into price unit currency of drt_
-      
+
       vn_market_price_in_trade_cur   := vn_market_price_in_trade_cur *
                                         cur_futures_rows.weight /
                                         (cur_futures_rows.ppu_dq_weight *
@@ -2216,12 +2216,12 @@ create or replace package body pkg_cdc_derivatives_process is
       */
       vn_total_market_val_trade_cur := vn_market_price_in_trade_cur *
                                        vn_qty_in_trade_wt_unit;
-    
+
       vn_trade_price_in_trade_cur := cur_futures_rows.trade_price;
-    
+
       vn_total_trade_value_trade_cur := vn_trade_price_in_trade_cur *
                                         vn_qty_in_trade_wt_unit;
-    
+
       /*
       for sales trades pnl = trade price - market price
       for buy trades pnl =  market price - trade price
@@ -2233,7 +2233,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_pnl_value_in_trade_cur := vn_total_trade_value_trade_cur -
                                      vn_total_market_val_trade_cur;
       end if;
-    
+
       -- calcualate trade pnl in trade currency ends here
       /*
       calcualte net pnl in base currency
@@ -2267,15 +2267,15 @@ create or replace package body pkg_cdc_derivatives_process is
                                      nvl(vn_broker_comm_in_base_cur, 0) -
                                      nvl(vn_clearer_comm_in_base_cur, 0);
       /* -NVL(vn_bank_fees_in_base_cur, 0);*/
-    
+
       if vn_net_pnl_in_base_cur is null then
         vn_net_pnl_in_base_cur := 0;
       end if;
-    
+
       if vn_pnl_value_in_trade_cur is null then
         vn_pnl_value_in_trade_cur := 0;
       end if;
-    
+
       insert into dpd_derivative_pnl_daily
         (internal_derivative_ref_no,
          derivative_ref_no,
@@ -2454,7 +2454,7 @@ create or replace package body pkg_cdc_derivatives_process is
          underlying_fut_price_unit_id,
          process_id,
          trade_qty_in_exch_unit)
-      
+
       values
         (cur_futures_rows.internal_derivative_ref_no,
          cur_futures_rows.derivative_ref_no,
@@ -2535,8 +2535,8 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_futures_rows.clearer_comm_amt,
          cur_futures_rows.clearer_comm_cur_id,
          cur_futures_rows.clearer_cur_code,
-         cur_futures_rows.product_id,
          cur_futures_rows.product,
+         cur_futures_rows.productdesc,
          cur_futures_rows.quality_id,
          cur_futures_rows.quality_name,
          cur_futures_rows.trade_qty_unit_id,
@@ -2635,9 +2635,9 @@ create or replace package body pkg_cdc_derivatives_process is
          vn_trade_qty_exch_unit);
     end loop;
   exception
-  
+
     when others then
-    
+
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_calc_future_realized_pnl',
@@ -2676,7 +2676,7 @@ create or replace package body pkg_cdc_derivatives_process is
     ******************************************************************************************************************************************/
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
     cursor cur_futures is
       select dt.internal_derivative_ref_no,
              dt.derivative_ref_no,
@@ -2873,7 +2873,7 @@ create or replace package body pkg_cdc_derivatives_process is
              null as underlying_future_quote_price,
              null as underlying_fut_price_unit_id,
              pc_process_id process_id
-      
+
         from dt_derivative_trade            dt,
              ak_corporate                   ak,
              ak_corporate_user              aku,
@@ -2998,7 +2998,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and dt.open_quantity > 0
          and dt.trade_date <= pd_trade_date
          and dt.process_id = pc_process_id;
-  
+
     vn_total_trade_value_base_cur  number;
     vn_pnl_value_in_trade_cur      number;
     vn_trade_to_base_exch_rate     number;
@@ -3034,7 +3034,7 @@ create or replace package body pkg_cdc_derivatives_process is
     vn_trade_price_weight          number(7, 2);
     vc_trade_price_weight_unit_id  varchar2(15);
     vc_trade_price_weight_unit     varchar2(15);
-  
+
   begin
     for cur_futures_rows in cur_futures
     loop
@@ -3056,7 +3056,7 @@ create or replace package body pkg_cdc_derivatives_process is
       vn_trade_price_weight         := null;
       vc_trade_price_weight_unit_id := null;
       vc_trade_price_weight_unit    := null;
-    
+
       if cur_futures_rows.trade_price_type_id = 'Fixed' then
         vn_trade_price                := cur_futures_rows.trade_price;
         vc_trade_price_unit_id        := cur_futures_rows.trade_price_unit_id;
@@ -3069,7 +3069,7 @@ create or replace package body pkg_cdc_derivatives_process is
       elsif cur_futures_rows.trade_price_type_id = 'Formula' then
         vn_fb_order_sq := 1;
         vn_cur_row_cnt := 1;
-      
+
         for cc in (select fbs.formula_internal,
                           fbs.formula_display,
                           fbs.formula_name,
@@ -3078,7 +3078,7 @@ create or replace package body pkg_cdc_derivatives_process is
                      from fbs_formula_builder_setup fbs
                     where fbs.formula_id = cur_futures_rows.formula_id)
         loop
-        
+
           vt_tbl_frm_setup.extend;
           vt_tbl_frm_setup(1) := fb_typ_setup(cc.formula_id,
                                               pc_corporate_id,
@@ -3155,7 +3155,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                    vt_fb_tbl_frm_error_out,
                                                    pc_dbd_id,
                                                    cur_futures_rows.derivative_ref_no);
-      
+
         for i in vt_tbl_frm_setup_out.first .. vt_tbl_frm_setup_out.last
         loop
           vn_trade_price         := vt_tbl_frm_setup_out(i).fb_price;
@@ -3163,9 +3163,9 @@ create or replace package body pkg_cdc_derivatives_process is
           /*dbms_output.put_line('vn_trade_price ' || vn_trade_price);
           dbms_output.put_line('vc_trade_price_unit_id ' ||
                                vc_trade_price_unit_id);*/
-        
+
         end loop;
-      
+
       elsif cur_futures_rows.trade_price_type_id = 'Index' then
         vn_fb_order_sq := 1;
         vn_cur_row_cnt := 1;
@@ -3194,7 +3194,7 @@ create or replace package body pkg_cdc_derivatives_process is
                        and dtfbi.is_deleted = 'N'
                        and dtfbi.process_id = pc_process_id)
         loop
-        
+
           vt_tbl_ind_setup.extend;
           vt_tbl_ind_setup(1) := fb_typ_setup(cc1.instrument_id,
                                               pc_corporate_id,
@@ -3207,7 +3207,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                               null,
                                               null,
                                               null);
-        
+
           vt_tbl_ind_instrument.extend;
           vt_tbl_ind_instrument(vn_cur_row_cnt) := fb_typ_instrument_data(vn_fb_order_sq,
                                                                           cc1.instrument_id,
@@ -3238,7 +3238,7 @@ create or replace package body pkg_cdc_derivatives_process is
           vn_fb_order_sq := vn_fb_order_sq + 1;
           vn_cur_row_cnt := vn_cur_row_cnt + 1;
         end loop;
-      
+
         pkg_cdc_formula_builder.sp_calculate_price(vt_tbl_ind_setup,
                                                    vt_tbl_ind_instrument,
                                                    vt_tbl_ind_setup_out,
@@ -3246,7 +3246,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                    vt_fb_tbl_ind_error_out,
                                                    pc_dbd_id,
                                                    cur_futures_rows.derivative_ref_no);
-      
+
         for i in vt_tbl_ind_setup_out.first .. vt_tbl_ind_setup_out.last
         loop
           vn_trade_price         := vt_tbl_ind_setup_out(i).fb_price;
@@ -3260,7 +3260,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_trade_price         := 0;
         vc_trade_price_unit_id := null;
       end if;
-    
+
       if cur_futures_rows.trade_price_type_id <> 'Fixed' then
         begin
           select pum.price_unit_name,
@@ -3294,7 +3294,7 @@ create or replace package body pkg_cdc_derivatives_process is
       /*dbms_output.put_line('vc_trade_price_unit_name' ||
       vc_trade_price_unit_name || '- ' ||
       vc_trade_price_weight_unit_id);*/
-    
+
       -- Trade Qty in Exchange Weight Unit
       if cur_futures_rows.gravity is not null then
         if cur_futures_rows.quantity_unit_id <>
@@ -3312,14 +3312,14 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                          cur_futures_rows.quantity_unit_id,
                                                                          cur_futures_rows.lot_size_unit_id,
                                                                          cur_futures_rows.open_quantity);
-        
+
         end if;
       end if;
       /*get the exchange rates
       1. from broker to base currency
       2. trade to base currency
       */
-    
+
       vn_trade_to_base_exch_rate     := f_currency_exchange_rate(pd_trade_date,
                                                                  pc_corporate_id,
                                                                  cur_futures_rows.prompt_date,
@@ -3335,7 +3335,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                  cur_futures_rows.prompt_date,
                                                                  cur_futures_rows.clearer_comm_cur_id,
                                                                  cur_futures_rows.base_cur_id);
-    
+
       /*
       calcualate trade pnl in trade currency
       1. convert trade qty from trade price unit weight unit to trade weight unit
@@ -3343,7 +3343,7 @@ create or replace package body pkg_cdc_derivatives_process is
       3. market value in trade currency = qty in trade weight unit(1) * market price in trade currency(2)
       4. trade value in trade currency = trade price in trade currency (from drt) * trade qty in trade unit(1)
       5. pnl in trade currency = market value in trade currency(2) - trade value in trade currency(4)*/
-    
+
       /* commented code since from and to is reveresed 18-jul-2009
       vn_qty_in_trade_wt_unit      := f_get_converted_quantity(null, --product id
                                                                            cur_futures_rows.weight_unit_id,
@@ -3358,7 +3358,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                              cur_futures_rows.gravity_type,
                                                                              cur_futures_rows.density_mass_qty_unit_id,
                                                                              cur_futures_rows.density_volume_qty_unit_id);
-      
+
       else
         vn_qty_in_trade_wt_unit := f_get_converted_quantity(null, --product id
                                                             cur_futures_rows.quantity_unit_id,
@@ -3368,7 +3368,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                             --cur_futures_rows.trade_qty-nvl(cur_futures_rows.quantity_closed,0)
                                                             );
       end if;
-    
+
       --preeti fix for open lots
       -- vn_market_price_in_trade_cur := cur_futures_rows.settlement_price;
       if cur_futures_rows.gravity is not null then
@@ -3388,7 +3388,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                    cur_futures_rows.gravity_type,
                                                                                    cur_futures_rows.density_mass_qty_unit_id,
                                                                                    cur_futures_rows.density_volume_qty_unit_id));
-      
+
       else
         vn_market_price_in_trade_cur := (cur_futures_rows.settlement_price /
                                         nvl(cur_futures_rows.settlement_price_weight,
@@ -3402,9 +3402,9 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                               cur_futures_rows.settlement_weight_unit_id,
                                                                               vc_trade_price_weight_unit_id,
                                                                               1));
-      
+
       end if;
-    
+
       /* he units will be the same since its defaulted in the screen
       vn_market_price_in_trade_cur   := vn_market_price_in_trade_cur *
                                             cur_futures_row(i).weight /
@@ -3416,12 +3416,12 @@ create or replace package body pkg_cdc_derivatives_process is
        */
       vn_total_market_val_trade_cur := vn_market_price_in_trade_cur *
                                        vn_qty_in_trade_wt_unit;
-    
+
       vn_trade_price_in_trade_cur := vn_trade_price;
-    
+
       vn_total_trade_value_trade_cur := vn_trade_price_in_trade_cur *
                                         vn_qty_in_trade_wt_unit;
-    
+
       /*
       for sales trades pnl = trade price - market price
       for buy trades pnl =  market price - trade price
@@ -3433,7 +3433,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_pnl_value_in_trade_cur := vn_total_trade_value_trade_cur -
                                      vn_total_market_val_trade_cur;
       end if;
-    
+
       /*
       calcualte net pnl in base currency
        1. calculate trade value in base currency
@@ -3446,7 +3446,7 @@ create or replace package body pkg_cdc_derivatives_process is
        */
       vn_total_trade_value_base_cur := vn_trade_to_base_exch_rate *
                                        vn_total_trade_value_trade_cur;
-    
+
       /* 18-jul-2009 . commented this and replaced this with above code
       vn_total_trade_value_base_cur := pkg_general.f_get_converted_quantity(null,
                                                                             cur_futures_rows.trade_qty_unit_id,
@@ -3454,7 +3454,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                             cur_futures_rows.trade_qty) *
                                        cur_futures_rows.trade_price *
                                        vn_trade_to_base_exch_rate; */
-    
+
       vn_broker_comm_in_base_cur := cur_futures_rows.broker_comm_amt *
                                     vn_brokr_cur_to_base_exch_rate;
       vn_clr_comm_in_base_cur    := cur_futures_rows.clearer_comm_amt *
@@ -3465,16 +3465,16 @@ create or replace package body pkg_cdc_derivatives_process is
       --vn_net_pnl_in_base_cur        := vn_pnl_value_in_base_cur -
       --                                 nvl(vn_broker_comm_in_base_cur,0) - nvl(vn_clr_comm_in_base_cur,0);
       vn_net_pnl_in_base_cur := vn_pnl_value_in_base_cur;
-    
+
       --  all this check should be removed later
       if vn_net_pnl_in_base_cur is null then
         vn_net_pnl_in_base_cur := 0;
       end if;
-    
+
       if vn_pnl_value_in_trade_cur is null then
         vn_pnl_value_in_trade_cur := 0;
       end if;
-    
+
       insert into dpd_derivative_pnl_daily
         (internal_derivative_ref_no,
          derivative_ref_no,
@@ -3653,7 +3653,7 @@ create or replace package body pkg_cdc_derivatives_process is
          underlying_fut_price_unit_id,
          process_id,
          trade_qty_in_exch_unit)
-      
+
       values
         (cur_futures_rows.internal_derivative_ref_no,
          cur_futures_rows.derivative_ref_no,
@@ -3734,8 +3734,8 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_futures_rows.clearer_comm_amt,
          cur_futures_rows.clearer_comm_cur_id,
          cur_futures_rows.clearer_cur_code,
-         cur_futures_rows.product_id,
          cur_futures_rows.product,
+         cur_futures_rows.productdesc,
          cur_futures_rows.quality_id,
          cur_futures_rows.quality_name,
          cur_futures_rows.quantity_unit_id,
@@ -3832,7 +3832,7 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_futures_rows.underlying_fut_price_unit_id,
          cur_futures_rows.process_id,
          vn_trade_qty_exch_unit);
-    
+
     end loop;
   exception
     when others then
@@ -3850,7 +3850,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_calc_forward_realized_pnl(pc_corporate_id varchar2,
@@ -3859,10 +3859,10 @@ create or replace package body pkg_cdc_derivatives_process is
                                          pc_user_id      varchar2,
                                          pc_process      varchar2,
                                          pc_dbd_id       varchar2) is
-  
+
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
     cursor cur_forwards is
       select dt.internal_derivative_ref_no,
              dt.derivative_ref_no,
@@ -4055,7 +4055,7 @@ create or replace package body pkg_cdc_derivatives_process is
              null as underlying_future_quote_price,
              null as underlying_fut_price_unit_id,
              pc_process_id process_id
-      
+
         from dt_derivative_trade            dt,
              ak_corporate                   ak,
              ak_corporate_user              aku,
@@ -4162,7 +4162,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and dt.corporate_id = pc_corporate_id
          and dt.trade_date <= pd_trade_date
          and dt.process_id = pc_process_id;
-  
+
     vn_trade_qty_exch_unit         number;
     vn_trade_to_base_exch_rate     number;
     vn_brokr_cur_to_base_exch_rate number;
@@ -4189,11 +4189,11 @@ create or replace package body pkg_cdc_derivatives_process is
     vn_pnl_value_in_base_cur       number;
     vn_net_pnl_in_base_cur         number;
     vn_market_contract_price       number;
-  
+
   begin
     for cur_forwards_rows in cur_forwards
     loop
-    
+
       begin
         select pum.cur_id,
                cm.cur_code,
@@ -4220,10 +4220,10 @@ create or replace package body pkg_cdc_derivatives_process is
           vc_trade_price_weight_unit_id := null;
           vc_trade_price_qty_unit       := null;
       end;
-    
-      -- Trade Qty in Exchange Weight Unit      
+
+      -- Trade Qty in Exchange Weight Unit
       if cur_forwards_rows.gravity is not null then
-      
+
         vn_trade_qty_exch_unit := pkg_general.fn_mass_volume_qty_conversion(cur_forwards_rows.product_id,
                                                                             cur_forwards_rows.quantity_unit_id,
                                                                             cur_forwards_rows.lot_size_unit_id,
@@ -4237,14 +4237,14 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                        cur_forwards_rows.quantity_unit_id,
                                                                        cur_forwards_rows.lot_size_unit_id,
                                                                        cur_forwards_rows.open_quantity);
-      
+
       end if;
-    
+
       /*get the exchange rates
       1. from broker to base currency
       2. trade to base currency
       */
-    
+
       if cur_forwards_rows.trade_cur_id <> cur_forwards_rows.base_cur_id then
         vn_trade_to_base_exch_rate := f_currency_exchange_rate(pd_trade_date,
                                                                pc_corporate_id,
@@ -4254,7 +4254,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vn_trade_to_base_exch_rate := 1;
       end if;
-    
+
       if cur_forwards_rows.broker_comm_cur_id <>
          cur_forwards_rows.base_cur_id then
         vn_brokr_cur_to_base_exch_rate := f_currency_exchange_rate(pd_trade_date,
@@ -4265,7 +4265,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vn_brokr_cur_to_base_exch_rate := 1;
       end if;
-    
+
       if cur_forwards_rows.clearer_comm_cur_id <>
          cur_forwards_rows.base_cur_id then
         vn_clr_cur_to_base_exch_rate := f_currency_exchange_rate(pd_trade_date,
@@ -4276,7 +4276,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vn_clr_cur_to_base_exch_rate := 1;
       end if;
-    
+
       begin
         select pum.cur_id,
                cm.cur_code,
@@ -4303,7 +4303,7 @@ create or replace package body pkg_cdc_derivatives_process is
           vc_market_price_weight_unit_id := null;
           vc_market_price_qty_unit       := null;
       end;
-    
+
       if cur_forwards_rows.gravity is not null then
         vn_total_trade_value_trade_cur := (cur_forwards_rows.contract_price /
                                           nvl(vn_trade_price_weight, 1)) *
@@ -4333,7 +4333,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                 vc_trade_price_weight_unit_id,
                                                                                 cur_forwards_rows.open_quantity));
       end if;
-    
+
       if cur_forwards_rows.gravity is not null then
         vn_total_market_val_trade_cur := (cur_forwards_rows.market_price /
                                          nvl(vn_market_price_weight, 1)) *
@@ -4350,7 +4350,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                     cur_forwards_rows.gravity_type,
                                                                                     cur_forwards_rows.density_mass_qty_unit_id,
                                                                                     cur_forwards_rows.density_volume_qty_unit_id));
-      
+
       else
         vn_total_market_val_trade_cur := (cur_forwards_rows.market_price /
                                          nvl(vn_market_price_weight, 1)) *
@@ -4363,9 +4363,9 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                cur_forwards_rows.quantity_unit_id,
                                                                                vc_market_price_weight_unit_id,
                                                                                cur_forwards_rows.open_quantity));
-      
+
       end if;
-    
+
       if cur_forwards_rows.trade_type = 'Buy' then
         vn_pnl_value_in_trade_cur := vn_total_market_val_trade_cur -
                                      vn_total_trade_value_trade_cur;
@@ -4373,10 +4373,10 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_pnl_value_in_trade_cur := vn_total_trade_value_trade_cur -
                                      vn_total_market_val_trade_cur;
       end if;
-    
+
       vn_total_trade_value_base_cur := vn_total_trade_value_trade_cur *
                                        vn_trade_to_base_exch_rate;
-    
+
       vn_broker_comm_in_base_cur  := cur_forwards_rows.broker_comm_amt *
                                      vn_brokr_cur_to_base_exch_rate;
       vn_clearer_comm_in_base_cur := cur_forwards_rows.clearer_comm_amt *
@@ -4386,15 +4386,15 @@ create or replace package body pkg_cdc_derivatives_process is
       vn_net_pnl_in_base_cur      := vn_pnl_value_in_base_cur -
                                      nvl(vn_broker_comm_in_base_cur, 0) -
                                      nvl(vn_clearer_comm_in_base_cur, 0);
-    
+
       if vn_net_pnl_in_base_cur is null then
         vn_net_pnl_in_base_cur := 0;
       end if;
-    
+
       if vn_pnl_value_in_trade_cur is null then
         vn_pnl_value_in_trade_cur := 0;
       end if;
-    
+
       insert into dpd_derivative_pnl_daily
         (internal_derivative_ref_no,
          derivative_ref_no,
@@ -4574,7 +4574,7 @@ create or replace package body pkg_cdc_derivatives_process is
          process_id,
          trade_qty_in_exch_unit,
          settlement_ref_no)
-      
+
       values
         (cur_forwards_rows.internal_derivative_ref_no,
          cur_forwards_rows.derivative_ref_no,
@@ -4655,8 +4655,8 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_forwards_rows.clearer_comm_amt,
          cur_forwards_rows.clearer_comm_cur_id,
          cur_forwards_rows.clearer_cur_code,
-         cur_forwards_rows.product_id,
          cur_forwards_rows.product,
+         cur_forwards_rows.productdesc,
          cur_forwards_rows.quality_id,
          cur_forwards_rows.quality_name,
          cur_forwards_rows.quantity_unit_id,
@@ -4754,7 +4754,7 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_forwards_rows.process_id,
          vn_trade_qty_exch_unit,
          cur_forwards_rows.settlement_ref_no);
-    
+
     end loop;
   exception
     when others then
@@ -4772,7 +4772,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_calc_swap_unrealized_pnl(pc_corporate_id varchar2,
@@ -4797,7 +4797,7 @@ create or replace package body pkg_cdc_derivatives_process is
     ******************************************************************************************************************************************/
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
     cursor cur_swaps is
       select dt.internal_derivative_ref_no,
              dt.derivative_ref_no,
@@ -4994,7 +4994,7 @@ create or replace package body pkg_cdc_derivatives_process is
              dt.clearing_fee,
              dt.trading_clearing_fee,
              pc_process_id process_id
-      
+
         from dt_derivative_trade            dt,
              ak_corporate                   ak,
              ak_corporate_user              aku,
@@ -5046,7 +5046,7 @@ create or replace package body pkg_cdc_derivatives_process is
              cm_currency_master             cm_base,
              pum_price_unit_master          pum_swap,
              pum_price_unit_master          pum_swap1
-      
+
        where dt.corporate_id = ak.corporate_id
          and dt.trader_id = aku.user_id
          and aku.gabid = gab.gabid
@@ -5105,7 +5105,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and dt.open_quantity > 0
          and dt.trade_date <= pd_trade_date
          and dt.process_id = pc_process_id;
-  
+
     --vn_total_trade_value_base_cur  number;
     vn_pnl_value_in_sett_cur number;
     --vn_trade_to_base_exch_rate     number;
@@ -5124,7 +5124,7 @@ create or replace package body pkg_cdc_derivatives_process is
     vn_settle_to_base_exch_rate    number;
     vn_total_value_in_leg1_set_cur number;
     vn_total_value_in_leg2_set_cur number;
-  
+
     vt_tbl_frm1_setup             fb_tbl_setup;
     vt_tbl_frm1_instrument        fb_tbl_instrument_data;
     vt_tbl_frm1_instrument_out    fb_tbl_instrument_data;
@@ -5164,10 +5164,10 @@ create or replace package body pkg_cdc_derivatives_process is
     vc_test_str                   varchar2(100);
     vc_leg_2                      varchar2(1);
   begin
-  
+
     for cur_swaps_rows in cur_swaps
     loop
-    
+
       vt_tbl_frm1_setup          := fb_tbl_setup();
       vt_tbl_frm1_instrument     := fb_tbl_instrument_data();
       vt_tbl_frm1_instrument_out := fb_tbl_instrument_data();
@@ -5188,7 +5188,7 @@ create or replace package body pkg_cdc_derivatives_process is
       vt_tbl_ind2_instrument_out := fb_tbl_instrument_data();
       vt_tbl_ind2_setup_out      := fb_tbl_setup();
       vt_fb_tbl_ind2_error_out   := fb_tbl_error();
-    
+
       if cur_swaps_rows.swap_trade_price_type_1 = 'Fixed' then
         begin
           select ppu.product_price_unit_id
@@ -5219,7 +5219,7 @@ create or replace package body pkg_cdc_derivatives_process is
                       where fbs.formula_id =
                             cur_swaps_rows.swap_formula_id_1)
           loop
-          
+
             vt_tbl_frm1_setup.extend;
             vt_tbl_frm1_setup(1) := fb_typ_setup(cc.formula_id,
                                                  pc_corporate_id,
@@ -5235,7 +5235,7 @@ create or replace package body pkg_cdc_derivatives_process is
             vn_cur_row_cnt := vn_cur_row_cnt + 1;
           end loop;
           vn_cur_row_cnt := 1;
-        
+
           for cc1 in (select dtfbi.instrument_id,
                              dtfbi.price_source_id,
                              dtfbi.price_point_id,
@@ -5300,7 +5300,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                      vt_fb_tbl_frm1_error_out,
                                                      pc_dbd_id,
                                                      cur_swaps_rows.derivative_ref_no);
-        
+
           for i in vt_tbl_frm1_setup_out.first .. vt_tbl_frm1_setup_out.last
           loop
             vn_leg1_formula_price         := vt_tbl_frm1_setup_out(i)
@@ -5308,7 +5308,7 @@ create or replace package body pkg_cdc_derivatives_process is
             vc_leg1_formula_price_unit_id := vt_tbl_frm1_setup_out(i)
                                             .price_unit_id;
           end loop;
-        
+
         elsif cur_swaps_rows.swap_float_type_1 = 'Index' then
           vn_fb_order_sq := 1;
           vn_cur_row_cnt := 1;
@@ -5342,7 +5342,7 @@ create or replace package body pkg_cdc_derivatives_process is
                          and dtfbi.process_id = pc_process_id
                          and dtfbi.leg_no = '1')
           loop
-          
+
             vt_tbl_ind1_setup.extend;
             vt_tbl_ind1_setup(1) := fb_typ_setup(cc1.instrument_id,
                                                  pc_corporate_id,
@@ -5355,7 +5355,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                  null,
                                                  null,
                                                  null);
-          
+
             vt_tbl_ind1_instrument.extend;
             vt_tbl_ind1_instrument(vn_cur_row_cnt) := fb_typ_instrument_data(vn_fb_order_sq,
                                                                              cc1.instrument_id,
@@ -5386,7 +5386,7 @@ create or replace package body pkg_cdc_derivatives_process is
             vn_fb_order_sq := vn_fb_order_sq + 1;
             vn_cur_row_cnt := vn_cur_row_cnt + 1;
           end loop;
-        
+
           pkg_cdc_formula_builder.sp_calculate_price(vt_tbl_ind1_setup,
                                                      vt_tbl_ind1_instrument,
                                                      vt_tbl_ind1_setup_out,
@@ -5394,7 +5394,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                      vt_fb_tbl_ind1_error_out,
                                                      pc_dbd_id,
                                                      cur_swaps_rows.derivative_ref_no);
-        
+
           for i in vt_tbl_ind1_setup_out.first .. vt_tbl_ind1_setup_out.last
           loop
             vn_leg1_formula_price         := vt_tbl_ind1_setup_out(i)
@@ -5407,7 +5407,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_leg1_formula_price         := 0;
         vc_leg1_formula_price_unit_id := null;
       end if;
-    
+
       if cur_swaps_rows.swap_trade_price_type_2 = 'Fixed' then
         vc_test_str := cur_swaps_rows.internal_derivative_ref_no ||
                        ' leg 2 ' || cur_swaps_rows.swap_trade_price_type_2 ||
@@ -5424,7 +5424,7 @@ create or replace package body pkg_cdc_derivatives_process is
           when no_data_found then
             vc_leg1_formula_price_unit_id := cur_swaps_rows.swap_trade_price_unit_id_2; --TODO
         end;
-      
+
       elsif cur_swaps_rows.swap_trade_price_type_2 = 'Floating' then
         if cur_swaps_rows.swap_float_type_2 = 'Formula' then
           if cur_swaps_rows.swap_float_type_1 = 'Formula' then
@@ -5451,7 +5451,7 @@ create or replace package body pkg_cdc_derivatives_process is
                       where fbs.formula_id =
                             cur_swaps_rows.swap_formula_id_2)
           loop
-          
+
             vt_tbl_frm2_setup.extend;
             vt_tbl_frm2_setup(1) := fb_typ_setup(cc.formula_id,
                                                  pc_corporate_id,
@@ -5467,7 +5467,7 @@ create or replace package body pkg_cdc_derivatives_process is
             vn_cur_row_cnt := vn_cur_row_cnt + 1;
           end loop;
           vn_cur_row_cnt := 1;
-        
+
           for cc1 in (select dtfbi.instrument_id,
                              dtfbi.price_source_id,
                              dtfbi.price_point_id,
@@ -5532,7 +5532,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                      vt_fb_tbl_frm2_error_out,
                                                      pc_dbd_id,
                                                      cur_swaps_rows.derivative_ref_no);
-        
+
           for i in vt_tbl_frm2_setup_out.first .. vt_tbl_frm2_setup_out.last
           loop
             vn_leg2_formula_price         := vt_tbl_frm2_setup_out(i)
@@ -5540,7 +5540,7 @@ create or replace package body pkg_cdc_derivatives_process is
             vc_leg2_formula_price_unit_id := vt_tbl_frm2_setup_out(i)
                                             .price_unit_id;
           end loop;
-        
+
         elsif cur_swaps_rows.swap_float_type_2 = 'Index' then
           vn_fb_order_sq := 1;
           vn_cur_row_cnt := 1;
@@ -5554,7 +5554,7 @@ create or replace package body pkg_cdc_derivatives_process is
           else
             vc_leg_2 := 1;
           end if;
-        
+
           vc_test_str := cur_swaps_rows.internal_derivative_ref_no ||
                          ' leg 2 ' ||
                          cur_swaps_rows.swap_trade_price_type_2 || ' - ' ||
@@ -5585,7 +5585,7 @@ create or replace package body pkg_cdc_derivatives_process is
                          and dtfbi.process_id = pc_process_id
                          and dtfbi.leg_no = vc_leg_2)
           loop
-          
+
             vt_tbl_ind2_setup.extend;
             vt_tbl_ind2_setup(1) := fb_typ_setup(cc1.instrument_id,
                                                  pc_corporate_id,
@@ -5598,7 +5598,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                  null,
                                                  null,
                                                  null);
-          
+
             vt_tbl_ind2_instrument.extend;
             vt_tbl_ind2_instrument(vn_cur_row_cnt) := fb_typ_instrument_data(vn_fb_order_sq,
                                                                              cc1.instrument_id,
@@ -5629,7 +5629,7 @@ create or replace package body pkg_cdc_derivatives_process is
             vn_fb_order_sq := vn_fb_order_sq + 1;
             vn_cur_row_cnt := vn_cur_row_cnt + 1;
           end loop;
-        
+
           pkg_cdc_formula_builder.sp_calculate_price(vt_tbl_ind2_setup,
                                                      vt_tbl_ind2_instrument,
                                                      vt_tbl_ind2_setup_out,
@@ -5637,7 +5637,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                      vt_fb_tbl_ind2_error_out,
                                                      pc_dbd_id,
                                                      cur_swaps_rows.derivative_ref_no);
-        
+
           for i in vt_tbl_ind2_setup_out.first .. vt_tbl_ind2_setup_out.last
           loop
             vn_leg2_formula_price         := vt_tbl_ind2_setup_out(i)
@@ -5651,7 +5651,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vc_leg2_formula_price_unit_id := null;
       end if;
       vc_test_str := 's1';
-    
+
       -- Trade Qty in Exchange Weight Unit
       if cur_swaps_rows.gravity is not null then
         if cur_swaps_rows.quantity_unit_id <>
@@ -5671,7 +5671,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                          cur_swaps_rows.open_quantity);
         end if;
       end if;
-    
+
       /*get the exchange rates
       1. from broker to base currency
       2. trade to base currency
@@ -5714,7 +5714,7 @@ create or replace package body pkg_cdc_derivatives_process is
       3. market value in trade currency = qty in trade weight unit(1) * market price in trade currency(2)
       4. trade value in trade currency = trade price in trade currency (from drt) * trade qty in trade unit(1)
       5. pnl in trade currency = market value in trade currency(2) - trade value in trade currency(4)*/
-    
+
       vc_test_str := 's6';
       begin
         select pum.cur_id,
@@ -5745,7 +5745,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         if nvl(vc_leg1_cur_id, 'NA') <> 'NA' and
            nvl(cur_swaps_rows.settlement_cur_id, 'NA') <> 'NA' then
-        
+
           if cur_swaps_rows.gravity is not null then
             vn_total_value_in_leg1_set_cur := (vn_leg1_formula_price /
                                               nvl(vn_leg1_weight, 1)) *
@@ -5754,7 +5754,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                        cur_swaps_rows.settlement_cur_id,
                                                                                        pd_trade_date,
                                                                                        1) *
-                                             
+
                                               (pkg_general.fn_mass_volume_qty_conversion(cur_swaps_rows.product_id,
                                                                                          cur_swaps_rows.quantity_unit_id,
                                                                                          vc_leg1_qty_unit_id,
@@ -5775,14 +5775,14 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                     cur_swaps_rows.quantity_unit_id,
                                                                                     vc_leg1_qty_unit_id,
                                                                                     cur_swaps_rows.open_quantity));
-          
+
           end if;
-        
+
         else
           vn_total_value_in_leg1_set_cur := 0;
         end if;
       end if;
-    
+
       begin
         select pum.cur_id,
                pum.price_unit_name,
@@ -5828,7 +5828,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                          cur_swaps_rows.gravity_type,
                                                                                          cur_swaps_rows.density_mass_qty_unit_id,
                                                                                          cur_swaps_rows.density_volume_qty_unit_id));
-          
+
           else
             vn_total_value_in_leg2_set_cur := (vn_leg2_formula_price /
                                               nvl(vn_leg2_weight, 1)) *
@@ -5841,27 +5841,27 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                     cur_swaps_rows.quantity_unit_id,
                                                                                     vc_leg2_qty_unit_id,
                                                                                     cur_swaps_rows.open_quantity));
-          
+
           end if;
-        
+
         else
           vn_total_value_in_leg2_set_cur := 0;
         end if;
       end if;
       vc_test_str := 's9';
       if cur_swaps_rows.trade_type = 'Buy' then
-      
+
         vn_pnl_value_in_sett_cur := vn_total_value_in_leg1_set_cur -
                                     vn_total_value_in_leg2_set_cur;
       else
         vn_pnl_value_in_sett_cur := vn_total_value_in_leg2_set_cur -
                                     vn_total_value_in_leg1_set_cur;
       end if;
-    
+
       /*
       for sales trades pnl = trade price - market price
       for buy trades pnl =  market price - trade price
-      
+
       IF cur_swaps_rows.trade_type = 'Buy' THEN
         vn_pnl_value_in_trade_cur := vn_total_market_val_trade_cur -
                                      vn_total_trade_value_trade_cur;
@@ -5869,7 +5869,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_pnl_value_in_trade_cur := vn_total_trade_value_trade_cur -
                                      vn_total_market_val_trade_cur;
       END IF;
-      
+
       /*
       calcualte net pnl in base currency
        1. calculate trade value in base currency
@@ -5882,7 +5882,7 @@ create or replace package body pkg_cdc_derivatives_process is
        */
       /*vn_total_trade_value_base_cur := vn_trade_to_base_exch_rate *
       vn_total_trade_value_trade_cur;*/
-    
+
       /* 18-jul-2009 . commented this and replaced this with above code
       vn_total_trade_value_base_cur := pkg_general.f_get_converted_quantity(null,
                                                                             cur_futures_rows.trade_qty_unit_id,
@@ -5890,7 +5890,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                             cur_futures_rows.trade_qty) *
                                        cur_futures_rows.trade_price *
                                        vn_trade_to_base_exch_rate; */
-    
+
       vn_broker_comm_in_base_cur := cur_swaps_rows.broker_comm_amt *
                                     vn_brokr_cur_to_base_exch_rate;
       vn_clr_comm_in_base_cur    := cur_swaps_rows.clearer_comm_amt *
@@ -5901,16 +5901,16 @@ create or replace package body pkg_cdc_derivatives_process is
       --vn_net_pnl_in_base_cur        := vn_pnl_value_in_base_cur -
       --                                 nvl(vn_broker_comm_in_base_cur,0) - nvl(vn_clr_comm_in_base_cur,0);
       vn_net_pnl_in_base_cur := vn_pnl_value_in_base_cur;
-    
+
       --  all this check should be removed later
       if vn_net_pnl_in_base_cur is null then
         vn_net_pnl_in_base_cur := 0;
       end if;
-    
+
       if vn_pnl_value_in_sett_cur is null then
         vn_pnl_value_in_sett_cur := 0;
       end if;
-    
+
       insert into dpd_derivative_pnl_daily
         (internal_derivative_ref_no,
          derivative_ref_no,
@@ -6176,8 +6176,8 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_swaps_rows.clearer_comm_amt,
          cur_swaps_rows.clearer_comm_cur_id,
          cur_swaps_rows.clearer_cur_code,
-         cur_swaps_rows.product_id,
          cur_swaps_rows.product,
+         cur_swaps_rows.productdesc,
          cur_swaps_rows.quality_id,
          cur_swaps_rows.quality_name,
          cur_swaps_rows.quantity_unit_id,
@@ -6285,7 +6285,7 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_swaps_rows.clearing_fee,
          cur_swaps_rows.trading_clearing_fee,
          vn_pnl_value_in_sett_cur);
-    
+
     end loop;
   exception
     when others then
@@ -6306,7 +6306,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
 
   procedure sp_calc_option_unrealized_pnl(pc_corporate_id varchar2,
@@ -6523,7 +6523,7 @@ create or replace package body pkg_cdc_derivatives_process is
              null as underlying_future_quote_price,
              null as underlying_fut_price_unit_id,
              pc_process_id process_id
-      
+
         from dt_derivative_trade            dt,
              ak_corporate                   ak,
              ak_corporate_user              aku,
@@ -6651,7 +6651,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and dt.process_id = pc_process_id
          and dt.dr_id = du.dr_id
          and du.underlying_dr_id = drm_du.dr_id;
-  
+
     vn_total_trade_value_base_cur  number;
     vn_pnl_value_in_trade_cur      number;
     vn_trade_to_base_exch_rate     number;
@@ -6675,10 +6675,10 @@ create or replace package body pkg_cdc_derivatives_process is
     vn_underlying_quote_price      number;
     vc_underlying_price_unit_id    varchar2(20);
   begin
-  
+
     for cur_option_rows in cur_options
     loop
-    
+
       -- Trade Qty in Exchange Weight Unit
       if cur_option_rows.gravity is not null then
         if cur_option_rows.quantity_unit_id <>
@@ -6698,7 +6698,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                          cur_option_rows.open_quantity);
         end if;
       end if;
-    
+
       /*
       get the exchange rates
       1. from broker to base currency
@@ -6737,7 +6737,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                              cur_option_rows.density_mass_qty_unit_id,
                                                                              cur_option_rows.density_volume_qty_unit_id);
       else
-      
+
         vn_qty_in_trade_wt_unit := f_get_converted_quantity(null, --product id
                                                             cur_option_rows.quantity_unit_id,
                                                             cur_option_rows.pd_weight_unit_id,
@@ -6745,7 +6745,7 @@ create or replace package body pkg_cdc_derivatives_process is
       end if;
       --preeti fix for open qty
       --vn_market_price_in_trade_cur := cur_option_rows.settlement_price;
-    
+
       if cur_option_rows.gravity is not null then
         vn_market_price_in_trade_cur := (cur_option_rows.settlement_price /
                                         nvl(cur_option_rows.settlement_price_weight,
@@ -6763,7 +6763,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                    cur_option_rows.gravity_type,
                                                                                    cur_option_rows.density_mass_qty_unit_id,
                                                                                    cur_option_rows.density_volume_qty_unit_id));
-      
+
       else
         vn_market_price_in_trade_cur := (cur_option_rows.settlement_price /
                                         nvl(cur_option_rows.settlement_price_weight,
@@ -6777,11 +6777,11 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                               cur_option_rows.settlement_weight_unit_id,
                                                                               cur_option_rows.pd_weight_unit_id,
                                                                               1));
-      
+
       end if;
       /*
       market price in trade currency (dq_) needs to be converted into price unit currency of drt_
-      
+
       vn_market_price_in_trade_cur   := vn_market_price_in_trade_cur *
                                         cur_option_rows.weight /
                                         (cur_option_rows.ppu_dq_weight *
@@ -6792,11 +6792,11 @@ create or replace package body pkg_cdc_derivatives_process is
       */
       vn_total_market_val_trade_cur := vn_market_price_in_trade_cur *
                                        vn_qty_in_trade_wt_unit;
-    
+
       vn_trade_price_in_trade_cur    := cur_option_rows.premium_discount;
       vn_total_trade_value_trade_cur := vn_trade_price_in_trade_cur *
                                         vn_qty_in_trade_wt_unit;
-    
+
       /*
       for sales trades pnl = trade price - market price
       for buy trades pnl =  market price - trade price
@@ -6808,7 +6808,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_pnl_value_in_trade_cur := vn_total_trade_value_trade_cur -
                                      vn_total_market_val_trade_cur;
       end if;
-    
+
       -- calcualate trade pnl in trade currency ends here
       /*
       calcualte net pnl in base currency
@@ -6819,7 +6819,7 @@ create or replace package body pkg_cdc_derivatives_process is
        2. calcualate broker commission in base currency
        3. pnl value in base currency = pnl value in trade currency * exchange rate from trade to base
        4. net pnl in base currency = pnl value in base currency (3) - broker commission in base currency
-      
+
       vn_total_trade_value_base_cur := f_get_converted_quantity(null,
                                                                             cur_option_rows.trade_qty_unit_id,
                                                                             cur_option_rows.weight_unit_id,
@@ -6839,7 +6839,7 @@ create or replace package body pkg_cdc_derivatives_process is
       --vn_net_pnl_in_base_cur        := vn_pnl_value_in_base_cur -
       --                                 nvl(vn_broker_comm_in_base_cur,0) - nvl(vn_clr_comm_in_base_cur,0)  ;
       vn_net_pnl_in_base_cur := vn_pnl_value_in_base_cur;
-    
+
       if cur_option_rows.gravity is not null then
         vn_strike_settlement_price := (cur_option_rows.strike_price /
                                       nvl(cur_option_rows.strike_weight, 1)) *
@@ -6856,7 +6856,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                                  cur_option_rows.gravity_type,
                                                                                  cur_option_rows.density_mass_qty_unit_id,
                                                                                  cur_option_rows.density_volume_qty_unit_id));
-      
+
       else
         vn_strike_settlement_price := (cur_option_rows.strike_price /
                                       nvl(cur_option_rows.strike_weight, 1)) *
@@ -6869,19 +6869,19 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                             cur_option_rows.strike_weight_unit_id,
                                                                             cur_option_rows.settlement_weight_unit_id,
                                                                             1));
-      
+
       end if;
       if cur_option_rows.instrument_type = 'Option Put' then
         vn_in_out_at_money_value := (nvl(vn_strike_settlement_price, 0) -
                                     nvl(cur_option_rows.settlement_price,
                                          0));
       else
-      
+
         vn_in_out_at_money_value := (nvl(cur_option_rows.settlement_price,
                                          0) -
                                     nvl(vn_strike_settlement_price, 0));
       end if;
-    
+
       if (vn_in_out_at_money_value > 0) then
         vc_in_out_at_money_status := 'In the Money';
       elsif (vn_in_out_at_money_value < 0) then
@@ -6889,10 +6889,10 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vc_in_out_at_money_status := 'At the Money';
       end if;
-    
+
       /*
       calcualte the in/out/at money status and value
-      
+
       if cur_option_rows.buy_sell || ' ' ||
          cur_option_rows.instrument_type = 'Buy Put Option' or
          cur_option_rows.buy_sell || ' ' ||
@@ -6927,11 +6927,11 @@ create or replace package body pkg_cdc_derivatives_process is
       if vn_net_pnl_in_base_cur is null then
         vn_net_pnl_in_base_cur := 0;
       end if;
-    
+
       if vn_pnl_value_in_trade_cur is null then
         vn_pnl_value_in_trade_cur := 0;
       end if;
-    
+
       insert into dpd_derivative_pnl_daily
         (internal_derivative_ref_no,
          derivative_ref_no,
@@ -7110,7 +7110,7 @@ create or replace package body pkg_cdc_derivatives_process is
          underlying_fut_price_unit_id,
          process_id,
          trade_qty_in_exch_unit)
-      
+
       values
         (cur_option_rows.internal_derivative_ref_no,
          cur_option_rows.derivative_ref_no,
@@ -7191,7 +7191,7 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_option_rows.clearer_comm_amt,
          cur_option_rows.clearer_comm_cur_id,
          cur_option_rows.clearer_cur_code,
-         cur_option_rows.product_id,
+         cur_option_rows.product,
          cur_option_rows.productdesc,
          cur_option_rows.quality_id,
          cur_option_rows.quality_name,
@@ -7813,7 +7813,7 @@ create or replace package body pkg_cdc_derivatives_process is
              div.available_price_id,
              div.price_unit_id,
              div.price_source_id
-      
+
         from dt_derivative_trade            dt,
              ak_corporate                   ak,
              ak_corporate_user              aku,
@@ -7924,7 +7924,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and dt.corporate_id = pc_corporate_id
          and dt.trade_date <= pd_trade_date
          and dt.process_id = pc_process_id;
-  
+
     vn_total_trade_value_base_cur  number;
     vn_pnl_value_in_trade_cur      number;
     vn_trade_to_base_exch_rate     number;
@@ -7953,13 +7953,13 @@ create or replace package body pkg_cdc_derivatives_process is
   begin
     for cur_option_rows in cur_options
     loop
-    
+
       -- Trade Qty in Exchange Weight Unit
       vn_trade_qty_exch_unit := pkg_general.f_get_converted_quantity(null,
                                                                      cur_option_rows.trade_qty_unit_id,
                                                                      cur_option_rows.lot_size_unit_id,
                                                                      cur_option_rows.quantity_closed);
-    
+
       /*
       get the exchange rates
       1. from broker to base currency
@@ -7974,7 +7974,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vn_trade_to_base_exch_rate := 1;
       end if;
-    
+
       if cur_option_rows.broker_comm_cur_id <> cur_option_rows.base_cur_id then
         vn_brokr_cur_to_base_exch_rate := f_currency_exchange_rate(cur_option_rows.close_out_date,
                                                                    pc_corporate_id,
@@ -7984,7 +7984,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vn_brokr_cur_to_base_exch_rate := 1;
       end if;
-    
+
       if cur_option_rows.clearer_comm_cur_id <> cur_option_rows.base_cur_id then
         vn_clr_cur_to_base_exch_rate := f_currency_exchange_rate(cur_option_rows.close_out_date,
                                                                  pc_corporate_id,
@@ -7994,7 +7994,7 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         vn_clr_cur_to_base_exch_rate := 1;
       end if;
-    
+
       /* calcualate trade pnl in trade currency
           1. convert trade qty from trade price unit weight unit to trade weight unit
           2. get the market price in trade currency
@@ -8006,9 +8006,9 @@ create or replace package body pkg_cdc_derivatives_process is
                                                           cur_option_rows.trade_qty_unit_id,
                                                           cur_option_rows.trade_weight_unit_id,
                                                           cur_option_rows.quantity_closed);
-    
+
       --vn_market_price_in_trade_cur := cur_option_rows.settlement_price;
-    
+
       begin
         select dqd.price,
                dqd.price_unit_id,
@@ -8046,7 +8046,7 @@ create or replace package body pkg_cdc_derivatives_process is
            and dqd.price_unit_id = cur_option_rows.price_unit_id
               -- and apm.available_price_name = 'Settlement'
            and dq.dbd_id = pc_dbd_id;
-      
+
       exception
         when no_data_found then
           vn_market_price_in_trade_cur := 0;
@@ -8065,10 +8065,10 @@ create or replace package body pkg_cdc_derivatives_process is
           vc_settlement_weight_unit_id := null;
           vc_settlement_weight_unit    := null;
       end;
-    
+
       /*
       market price in trade currency (dq_) needs to be converted into price unit currency of drt_
-      
+
       vn_market_price_in_trade_cur   := vn_market_price_in_trade_cur *
                                         cur_option_rows.weight /
                                         (cur_option_rows.ppu_dq_weight *
@@ -8076,7 +8076,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                               cur_option_rows.ppu_dq_weight_unit_id,
                                                                               cur_option_rows.weight_unit_id,
                                                                               1));
-      
+
       */
       if cur_option_rows.status in ('Exercised', 'Expired') then
         vn_total_market_val_trade_cur := 0;
@@ -8084,11 +8084,11 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_total_market_val_trade_cur := vn_market_price_in_trade_cur *
                                          vn_qty_in_trade_wt_unit;
       end if;
-    
+
       vn_trade_price_in_trade_cur    := cur_option_rows.premium_discount;
       vn_total_trade_value_trade_cur := vn_trade_price_in_trade_cur *
                                         vn_qty_in_trade_wt_unit;
-    
+
       /*
       for sales trades pnl = trade price - market price
       for buy trades pnl =  market price - trade price
@@ -8100,7 +8100,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_pnl_value_in_trade_cur := vn_total_trade_value_trade_cur -
                                      vn_total_market_val_trade_cur;
       end if;
-    
+
       -- calcualate trade pnl in trade currency ends here
       /*
       calcualte net pnl in base currency
@@ -8111,14 +8111,14 @@ create or replace package body pkg_cdc_derivatives_process is
        2. calcualate broker commission in base currency
        3. pnl value in base currency = pnl value in trade currency * exchange rate from trade to base
        4. net pnl in base currency = pnl value in base currency (3) - broker commission in base currency
-      
+
       vn_total_trade_value_base_cur := f_get_converted_quantity(null,
                                                                             cur_option_rows.trade_qty_unit_id,
                                                                             cur_option_rows.weight_unit_id,
                                                                             cur_option_rows.trade_qty) *
                                        cur_option_rows.trade_price *
                                        vn_trade_to_base_exch_rate;
-      
+
       */
       vn_total_trade_value_base_cur := vn_total_trade_value_trade_cur *
                                        vn_trade_to_base_exch_rate;
@@ -8131,7 +8131,7 @@ create or replace package body pkg_cdc_derivatives_process is
       vn_net_pnl_in_base_cur        := vn_pnl_value_in_base_cur -
                                        nvl(vn_broker_comm_in_base_cur, 0) -
                                        nvl(vn_clearer_comm_in_base_cur, 0);
-    
+
       /*
       if cur_option_rows.buy_sell || ' ' ||
          cur_option_rows.instrument_type = 'Buy Put Option' or
@@ -8156,7 +8156,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                            0) - nvl(cur_option_rows.strike_price,
                                                      0));
       end if;
-      
+
       if (vn_in_out_at_money_value > 0) then
           vc_in_out_at_money_status := 'In the Money';
       elsif (vn_in_out_at_money_value < 0) then
@@ -8168,11 +8168,11 @@ create or replace package body pkg_cdc_derivatives_process is
       if vn_net_pnl_in_base_cur is null then
         vn_net_pnl_in_base_cur := 0;
       end if;
-    
+
       if vn_pnl_value_in_trade_cur is null then
         vn_pnl_value_in_trade_cur := 0;
       end if;
-    
+
       insert into dpd_derivative_pnl_daily
         (internal_derivative_ref_no,
          derivative_ref_no,
@@ -8351,7 +8351,7 @@ create or replace package body pkg_cdc_derivatives_process is
          underlying_fut_price_unit_id,
          process_id,
          trade_qty_in_exch_unit)
-      
+
       values
         (cur_option_rows.internal_derivative_ref_no,
          cur_option_rows.derivative_ref_no,
@@ -8432,8 +8432,8 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_option_rows.clearer_comm_amt,
          cur_option_rows.clearer_comm_cur_id,
          cur_option_rows.clearer_cur_code,
-         cur_option_rows.product_id,
          cur_option_rows.product,
+         cur_option_rows.productdesc,
          cur_option_rows.quality_id,
          cur_option_rows.quality_name,
          cur_option_rows.trade_qty_unit_id,
@@ -8783,12 +8783,12 @@ create or replace package body pkg_cdc_derivatives_process is
                                      pc_product_id         varchar2)
     return number is
     vn_result number;
-  
+
   begin
     if pc_from_price_unit_id = pc_to_price_unit_id then
       return pn_price;
     else
-    
+
       select nvl(round(nvl(pn_price, 0) *
                        f_get_converted_currency_amt(pc_corporate_id,
                                                     pum1.cur_id,
@@ -8819,14 +8819,14 @@ create or replace package body pkg_cdc_derivatives_process is
   function f_get_next_day(p_date     in date,
                           p_day      in varchar2,
                           p_position in number) return date is
-  
+
     v_position_date      date;
     v_next_position      number;
     v_start_day          varchar2(10);
     v_first_day_position date;
-  
+
   begin
-  
+
     begin
       v_next_position := (p_position - 1) * 7;
       v_start_day     := to_char(to_date('01-' ||
@@ -8843,7 +8843,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                  'dd-mon-yyyy'),
                                          trim(p_day));
       end if;
-    
+
       if v_next_position <= 1 then
         v_position_date := trunc(v_first_day_position);
       else
@@ -8951,7 +8951,7 @@ create or replace package body pkg_cdc_derivatives_process is
     vc_future_outright_cur_code varchar2(15);
     vc_option_short_cur_code    varchar2(15);
     vn_eel_error_count          number := 1;
-  
+
     cursor cur_future is
       select corporate_id,
              corporate_name,
@@ -9068,7 +9068,7 @@ create or replace package body pkg_cdc_derivatives_process is
                         t.exchange_name,
                         t.instrument_type,
                         t.instrument_type_id);
-  
+
     cursor cur_options is
       select corporate_id,
              corporate_name,
@@ -9097,7 +9097,7 @@ create or replace package body pkg_cdc_derivatives_process is
                      emt.exchange_name,
                      irm.instrument_type,
                      irm.instrument_type_id,
-                     
+
                      --drt.strike_price,
                      sum(dt.open_lots) no_of_lots,
                      dqd.delta,
@@ -9165,7 +9165,7 @@ create or replace package body pkg_cdc_derivatives_process is
                 no_of_lots;
   begin
     --DBMS_OUTPUT.put_line('inside dim');
-  
+
     select akc.base_currency_name,
            cm.cur_id
       into vc_base_cur_code,
@@ -9174,16 +9174,16 @@ create or replace package body pkg_cdc_derivatives_process is
            cm_currency_master cm
      where akc.corporate_id = pc_corporate_id
        and cm.cur_code = akc.base_currency_name;
-  
+
     -- DBMS_OUTPUT.put_line('Before loop');
-  
+
     for cur_future_rows in cur_future
     loop
-    
+
       /*To Record the Futures Margin */
-    
+
       -- DBMS_OUTPUT.put_line('inside loop');
-    
+
       begin
         select future_spread,
                future_outright,
@@ -9231,7 +9231,7 @@ create or replace package body pkg_cdc_derivatives_process is
            and ims.derivative_def_id = ims2.derivative_def_id
            and ims.product_id = ims2.product_id
            and ims.is_deleted = 'N';
-      
+
         --preeti add logic to pick up latest valid ones
         --DBMS_OUTPUT.put_line('got values without error');
       exception
@@ -9246,9 +9246,9 @@ create or replace package body pkg_cdc_derivatives_process is
           vc_future_outright_cur_code := null;
           vc_option_short_cur_code    := null;
       end;
-    
+
       --DBMS_OUTPUT.put_line('before insert');
-    
+
       insert into dim_daily_initial_margin
         (corporate_id,
          corporate_name,
@@ -9309,20 +9309,20 @@ create or replace package body pkg_cdc_derivatives_process is
                                       pd_trade_date,
                                       1),
          vn_option_short);
-    
+
       dbms_output.put_line('after insert' || sql%rowcount);
-    
-   
+
+
     end loop;
-  
+
     --DBMS_OUTPUT.put_line('after futures');
-  
+
     /*   To Record the Options   */
-  
+
     for cur_option_rows in cur_options
     loop
       -- DBMS_OUTPUT.put_line('in options');
-    
+
       begin
         select future_spread,
                future_outright,
@@ -9369,7 +9369,7 @@ create or replace package body pkg_cdc_derivatives_process is
            and ims.derivative_def_id = ims2.derivative_def_id
            and ims.product_id = ims2.product_id
            and ims.is_deleted = 'N';
-      
+
         --preeti add logic to pick up latest valid ones
         -- DBMS_OUTPUT.put_line('after select in otiosn');
       exception
@@ -9384,9 +9384,9 @@ create or replace package body pkg_cdc_derivatives_process is
           vc_future_outright_cur_code := null;
           vc_option_short_cur_code    := null;
       end;
-    
+
       -- DBMS_OUTPUT.put_line('before insert n options');
-    
+
       insert into dim_daily_initial_margin
         (corporate_id,
          corporate_name,
@@ -9448,12 +9448,12 @@ create or replace package body pkg_cdc_derivatives_process is
                                       1),
          vn_option_short);
     end loop;
-  
+
     --DBMS_OUTPUT.put_line('after options');
-  
+
     /* preeti . These are not required for AWB
     --To Record the Long Options, long Options are premium paid trades,
-    
+
     /*INSERT INTO dim_daily_initial_margin
         (corporate_id,
          corporate_name,
@@ -9783,9 +9783,9 @@ create or replace package body pkg_cdc_derivatives_process is
                                          pc_process_id   varchar2,
                                          pc_user_id      varchar2,
                                          pc_process      varchar2) is
-  
+
     vc_prev_proccess_id varchar2(15);
-  
+
   begin
     begin
       select tdc.process_id
@@ -9800,7 +9800,7 @@ create or replace package body pkg_cdc_derivatives_process is
                  and trade_date < pd_trade_date
                  and process = pc_process);
     end;
-  
+
     update dt_derivative_trade dt
        set dt.is_realized_today = 'Y'
      where dt.process_id = pc_process_id
@@ -9812,7 +9812,7 @@ create or replace package body pkg_cdc_derivatives_process is
                and dt_prev.status = 'Verified'
                and dt_prev.internal_derivative_ref_no =
                    dt.internal_derivative_ref_no);
-  
+
     update dt_derivative_trade dt
        set dt.is_realized_today = 'Y'
      where dt.process_id = pc_process_id
@@ -9862,7 +9862,7 @@ create or replace package body pkg_cdc_derivatives_process is
                  and t2.trade_date < pd_trade_date
                  and t2.process = pc_process);
     end;
-  
+
     insert into dpd_derivative_pnl_daily
       (internal_derivative_ref_no,
        derivative_ref_no,
@@ -10259,7 +10259,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                          cm_base.cur_id,
                                                                          dt.trade_date,
                                                                          1)
-             
+
                else
                 0
              end) clearer_comm_in_base,
@@ -10272,7 +10272,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                          cm_base.cur_id,
                                                                          dt.trade_date,
                                                                          1)
-             
+
                else
                 0
              end) broker_comm_in_base,
@@ -10479,7 +10479,7 @@ create or replace package body pkg_cdc_derivatives_process is
      where dpd.process_id = pc_process_id
        and nvl(dpd.is_new_trade, 'NA') <> 'Y'
        and dpd.pnl_type = 'Unrealized';
-  
+
     for cc in (select dpd.corporate_id,
                       dpd.process_id,
                       dpd.underlying_future_dr_id dr_id,
@@ -10510,9 +10510,9 @@ create or replace package body pkg_cdc_derivatives_process is
          and dpd.corporate_id = pc_corporate_id
          and dpd.process_id = pc_process_id
          and dpd.instrument_type in ('Option Call', 'Option Call');
-    
+
     end loop;
-  
+
   exception
     when others then
       vobj_error_log.extend;
@@ -10544,7 +10544,7 @@ create or replace package body pkg_cdc_derivatives_process is
      where dbd.corporate_id = pc_corporate_id
        and dbd.trade_date = pd_trade_date
        and dbd.process = pc_process;
-  
+
     insert into dpd_derivative_pnl_daily
       (internal_derivative_ref_no,
        derivative_ref_no,
@@ -10933,9 +10933,9 @@ create or replace package body pkg_cdc_derivatives_process is
                                  pc_process_id   varchar2,
                                  pc_user_id      varchar2,
                                  pc_process      varchar2) is
-  
+
   begin
-  
+
     insert into dpd_derivative_pnl_daily
       (internal_derivative_ref_no,
        derivative_ref_no,
@@ -11340,7 +11340,7 @@ create or replace package body pkg_cdc_derivatives_process is
                               where corporate_id = pc_corporate_id
                                 and trade_date < pd_trade_date
                                 and process = pc_process);
-  
+
     --
     -- Futures Section
     --
@@ -12314,7 +12314,7 @@ create or replace package body pkg_cdc_derivatives_process is
                 dim.instrument_name,
                 nvl(vcur.main_currency_id, cm_akc.cur_id),
                 nvl(vcur.main_cur_code, cm_akc.cur_code);
-  
+
     --Ends here
     --
     -- Options Section
@@ -13411,7 +13411,7 @@ create or replace package body pkg_cdc_derivatives_process is
                 nvl(strike_price_weight, 1),
                 strike_price_weight_unit_id,
                 strike_price_weight_unit;
-  
+
   exception
     when others then
       vobj_error_log.extend;
@@ -13493,7 +13493,7 @@ create or replace package body pkg_cdc_derivatives_process is
              cm_currency_master             cm_fx,
              oba_our_bank_accounts          oba,
              phd_profileheaderdetails       phd
-      
+
        where ct.corporate_id = ak.corporate_id
          and ak.corporate_id = p_corporateid
          and ct.profit_center_id = cpc.profit_center_id
@@ -13528,7 +13528,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and ct.process_id = p_process_id
          and crtd_base.process_id = p_process_id
          and crtd_fx.process_id = p_process_id;
-  
+
     l_market_exchange_rate       number;
     l_ex_rate_bank_to_home_cur   number;
     l_market_value_in_home_cur   number;
@@ -13541,7 +13541,7 @@ create or replace package body pkg_cdc_derivatives_process is
     vn_eel_error_count           number := 1;
   begin
     dbms_output.put_line('currency section starts');
-  
+
     for fx_rec_new in c_day_end_fx
     loop
       --since there is an outer join with cfq, a null in cfq_id indicates that there is no entry for forward quotes.
@@ -13573,10 +13573,10 @@ create or replace package body pkg_cdc_derivatives_process is
       else
         l_pnl_type := 'UNREALIZED';
       end if;
-    
+
       dbms_output.put_line('currency section l_market_exchange_rate');
       l_market_exchange_rate := fx_rec_new.market_exchange_rate;
-    
+
       --if fx_rec_new.bank_charges_type ='Absolute' then
       if l_pnl_type = 'REALIZED' then
         if (fx_rec_new.bank_cur_id != fx_rec_new.base_cur_id) then
@@ -13590,7 +13590,7 @@ create or replace package body pkg_cdc_derivatives_process is
         else
           l_ex_rate_bank_to_home_cur := 1;
         end if;
-      
+
         if upper(fx_rec_new.bank_charges_type) = 'ABSOLUTE' then
           l_bank_charges_in_home_cur := nvl(fx_rec_new.bank_charges, 0) *
                                         nvl(l_ex_rate_bank_to_home_cur, 0);
@@ -13603,15 +13603,15 @@ create or replace package body pkg_cdc_derivatives_process is
         l_bank_charges_in_home_cur := 0;
         l_ex_rate_bank_to_home_cur := 1;
       end if;
-    
+
       --    l_market_value_in_home_cur   := l_market_exchange_rate *  fx_rec_new.base_currency_amount;
       --      l_original_value_in_home_cur := fx_rec_new.original_exchange_rate *  fx_rec_new.base_currency_amount;
-    
+
       l_market_value_in_home_cur   := l_market_exchange_rate *
                                       fx_rec_new.fx_currency_amount;
       l_original_value_in_home_cur := fx_rec_new.original_exchange_rate *
                                       fx_rec_new.fx_currency_amount;
-    
+
       if fx_rec_new.base_cur_buy_sell = 'Sell' then
         l_pnl_value_in_home_cur := l_market_value_in_home_cur -
                                    l_original_value_in_home_cur;
@@ -13619,12 +13619,12 @@ create or replace package body pkg_cdc_derivatives_process is
         l_pnl_value_in_home_cur := -1 * (l_market_value_in_home_cur -
                                    l_original_value_in_home_cur);
       end if;
-    
+
       l_net_pnl_in_home_cur := l_pnl_value_in_home_cur -
                                l_bank_charges_in_home_cur;
-    
+
       dbms_output.put_line('insert into cpd_currency_pnl_daily');
-    
+
       insert into cpd_currency_pnl_daily
         (ct_internal_ref_no,
          corporate_id,
@@ -13736,10 +13736,10 @@ create or replace package body pkg_cdc_derivatives_process is
                                    pc_process_id   varchar2,
                                    pc_process      varchar2,
                                    pc_user_id      varchar2) is
-  
+
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+
     cursor cur_derivative is
       select dpd.corporate_id,
              dpd.process_id process_id,
@@ -13811,7 +13811,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and dpd.corporate_id = pc_corporate_id
          and dpd.instrument_type in ('Future', 'Forward')
          and dpd.process_id = pc_process_id;
-  
+
     vn_contract_value     number(25, 4);
     vn_m2m_amount         number(25, 4);
     vt_tbl_setup          pe_tbl_setup;
@@ -13822,16 +13822,16 @@ create or replace package body pkg_cdc_derivatives_process is
     vt_tbl_setup_out      pe_tbl_setup;
     vc_error_loc          varchar2(50);
     vc_error_number       number := 0;
-  
+
   begin
     for cur_derivative_row in cur_derivative
     loop
-    
+
       -- make one entry for valuation section as exposure type as 'Market' and price status as 'Floating'
       vn_contract_value := 0;
       vn_m2m_amount     := 0;
       vn_contract_value := 0;
-    
+
       vn_m2m_amount   := round((cur_derivative_row.settlement_price /
                                nvl(cur_derivative_row.sett_price_weight, 1)) *
                                pkg_general.f_get_converted_currency_amt(cur_derivative_row.corporate_id,
@@ -13894,18 +13894,18 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_derivative_row.quantity_unit_id,
          cur_derivative_row.quantity_unit,
          cur_derivative_row. settlement_price,
-         cur_derivative_row.sett_price_unit, --   v_final_price_unit,        
+         cur_derivative_row.sett_price_unit, --   v_final_price_unit,
          cur_derivative_row.sett_price_unit_id,
-         null, --final_price_staus,                          
-         null, --final_price_qp_status               
+         null, --final_price_staus,
+         null, --final_price_qp_status
          vn_m2m_amount * (-1),
-         cur_derivative_row.base_cur_id, -- v_value_cur_id,                                   
-         cur_derivative_row.base_cur_code, -- v_value_cur_code,                                 
+         cur_derivative_row.base_cur_id, -- v_value_cur_id,
+         cur_derivative_row.base_cur_code, -- v_value_cur_code,
          null);
       vc_error_number := 2;
       /*for fixed price type*/
       if cur_derivative_row.price_type_id = 'Fixed' then
-      
+
         --calculate the contract value
         vn_contract_value := round((cur_derivative_row.trade_price /
                                    nvl(cur_derivative_row.trade_price_weight,
@@ -13925,7 +13925,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                               cur_derivative_row.density_volume_qty_unit_id)),
                                    4);
         vc_error_number   := 3;
-        --insert the values to the dpe_derivative_price_exposore                                                   
+        --insert the values to the dpe_derivative_price_exposore
         insert into dpe_derivative_price_exposure
           (corporate_id,
            process_id,
@@ -13963,36 +13963,36 @@ create or replace package body pkg_cdc_derivatives_process is
            'Position',
            'Fixed',
            null, --cur_derivative_row.instrument_id,
-           'Fixed Price', -- cur_derivative_row.instrument_name, 
-           'NA', --cur_derivative_row.period_month, 
+           'Fixed Price', -- cur_derivative_row.instrument_name,
+           'NA', --cur_derivative_row.period_month,
            null, --v_instrument_month_date,--not e
            cur_derivative_row.total_quantity,
            cur_derivative_row.quantity_unit_id,
            cur_derivative_row.quantity_unit,
            cur_derivative_row.trade_price,
-           cur_derivative_row.trade_price_unit, --   v_final_price_unit,                               
-           cur_derivative_row.trade_price_unit_id, --  v_final_price_unit_id,                            
-           null, --v_final_price_staus,                          
-           null, --v_final_price_qp_status,                          
+           cur_derivative_row.trade_price_unit, --   v_final_price_unit,
+           cur_derivative_row.trade_price_unit_id, --  v_final_price_unit_id,
+           null, --v_final_price_staus,
+           null, --v_final_price_qp_status,
            vn_contract_value,
-           cur_derivative_row.base_cur_id, -- v_value_cur_id,                                   
-           cur_derivative_row.base_cur_code, -- v_value_cur_code,                                 
-           null); -- v_setup_remarks);    
+           cur_derivative_row.base_cur_id, -- v_value_cur_id,
+           cur_derivative_row.base_cur_code, -- v_value_cur_code,
+           null); -- v_setup_remarks);
         vc_error_number := 4;
-      
+
       end if;
-    
+
       if cur_derivative_row.price_type_id in ('Index', 'Formula') then
         vt_tbl_setup          := pe_tbl_setup();
         vt_tbl_setup_out      := pe_tbl_setup();
         vt_tbl_instrument     := pe_tbl_instrument();
         vt_tbl_instrument_out := pe_tbl_instrument();
         vc_error_loc          := '1';
-      
+
         if cur_derivative_row.price_type_id = 'Index' then
           vn_fb_order_sq := 1;
           vn_cur_row_cnt := 1;
-        
+
           for cc1 in (select dt.instrument_id,
                              dt.price_source_id,
                              dt.price_point_id,
@@ -14059,7 +14059,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                    cc1.basis_price_unit_id,
                                                                    cc1.fx_rate_type,
                                                                    cc1.fx_rate_,
-                                                                   null, -- avg_price                                                                                                                                                                                                                                
+                                                                   null, -- avg_price
                                                                    null, --avg_price_unit_id
                                                                    null, --avg_fx_rate
                                                                    null, --avg_conv_price
@@ -14077,13 +14077,13 @@ create or replace package body pkg_cdc_derivatives_process is
             vc_error_number := 6;
           end loop;
         end if;
-      
+
         /*for formula*/
         if cur_derivative_row.price_type_id = 'Formula' then
           vn_fb_order_sq := 1;
           vn_cur_row_cnt := 1;
           vc_error_loc   := '3';
-        
+
           for cc in (select fbs.formula_internal,
                             fbs.formula_display,
                             fbs.formula_name,
@@ -14120,7 +14120,7 @@ create or replace package body pkg_cdc_derivatives_process is
           vn_cur_row_cnt := 1;
           vn_fb_order_sq := 1;
           /*constructing the instrument type*/
-        
+
           for cc1 in (select dt.instrument_id,
                              dt.formula_id,
                              dt.price_source_id,
@@ -14168,7 +14168,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                    cc1.basis_price_unit_id,
                                                                    cc1.fx_rate_type,
                                                                    cc1.fx_rate_,
-                                                                   null, --avg_price                                                                                                                                                                                                                          
+                                                                   null, --avg_price
                                                                    null, --avg_price_unit_id
                                                                    null, --avg_fx_rate
                                                                    null, --avg_conv_price
@@ -14190,12 +14190,12 @@ create or replace package body pkg_cdc_derivatives_process is
         end if;
         vt_tbl_instrument_out.extend;
         vt_tbl_setup_out.extend;
-      
+
         dbms_output.put_line('The total no. of recordsin the instrument is  ' ||
                              vt_tbl_instrument.count);
         dbms_output.put_line('Tthe total np of records in the set up is ' ||
                              vt_tbl_setup.count);
-      
+
         pkg_cdc_price_exposure.sp_calculate_price(vt_tbl_setup,
                                                   vt_tbl_instrument,
                                                   vt_tbl_setup_out,
@@ -14206,12 +14206,12 @@ create or replace package body pkg_cdc_derivatives_process is
                                                   cur_derivative_row.density_mass_qty_unit_id,
                                                   cur_derivative_row.density_volume_qty_unit_id,
                                                   pc_process_id);
-      
+
         dbms_output.put_line('The total no. of recordsin the instrument is(After)  ' ||
                              vt_tbl_instrument.count);
         dbms_output.put_line('The total np of records in the set up is(After) ' ||
                              vt_tbl_setup.count);
-      
+
         if vt_tbl_instrument(1).price_details is null then
           dbms_output.put_line('no data in the nested record');
         else
@@ -14233,7 +14233,7 @@ create or replace package body pkg_cdc_derivatives_process is
             loop
               vc_error_loc := '8';
               --insert to the DPED_DRT_PRICE_EXP_DETAILS table
-            
+
               insert into dped_drt_price_exp_details
                 (process_id,
                  internal_derivative_ref_no,
@@ -14299,18 +14299,18 @@ create or replace package body pkg_cdc_derivatives_process is
                  cc.price_qp_status,
                  cc_qp.status_remarks);
               vc_error_number := 9;
-            
+
             end loop;
-          
+
           end if;
-        
+
         end loop;
-      
+
       end if;
     end loop;
     commit;
     /*insert into the dpe_derivative_price_exposure*/
-  
+
     insert into dpe_derivative_price_exposure
       (corporate_id,
        process_id,
@@ -14439,7 +14439,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                            pc_process      varchar2,
                                            pc_user_id      varchar2,
                                            pc_dbd_id       varchar2) as
-  
+
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
     cursor cur_avg is
@@ -14602,7 +14602,7 @@ create or replace package body pkg_cdc_derivatives_process is
              null as underlying_fut_price_unit_id,
              pc_process_id process_id,
              div.price_source_id val_price_source_id
-      
+
         from dt_derivative_trade            dt,
              ak_corporate                   ak,
              ak_corporate_user              aku,
@@ -14643,7 +14643,7 @@ create or replace package body pkg_cdc_derivatives_process is
              qum_quantity_unit_master       qum_pdm,
              cm_currency_master             cm_base,
              div_der_instrument_valuation   div
-      
+
        where dt.corporate_id = ak.corporate_id
          and dt.trader_id = aku.user_id
          and aku.gabid = gab.gabid
@@ -14689,7 +14689,7 @@ create or replace package body pkg_cdc_derivatives_process is
          and dt.corporate_id = pc_corporate_id
          and dt.trade_date <= pd_trade_date
          and dt.process_id = pc_process_id;
-  
+
     vn_mk_premium_trade_prm_cur  number;
     vn_trade_premium_trade_cur   number;
     vn_total_market_value_pd_cur number;
@@ -14735,7 +14735,7 @@ create or replace package body pkg_cdc_derivatives_process is
     vc_error_message             varchar2(200);
     workings_days                number;
     vd_quotes_date               date;
-  
+
   begin
     for cur_avg_rows in cur_avg
     loop
@@ -14746,7 +14746,7 @@ create or replace package body pkg_cdc_derivatives_process is
       vn_market_price             := null;
       vc_market_price_unit_id     := null;
       vc_cal_set_price_unit_id    := null;
-    
+
       if cur_avg_rows.eod_trade_date >= cur_avg_rows.average_from_date and
          cur_avg_rows.eod_trade_date <= cur_avg_rows.average_to_date then
         vc_period := 'During QP';
@@ -14757,25 +14757,25 @@ create or replace package body pkg_cdc_derivatives_process is
             cur_avg_rows.eod_trade_date > cur_avg_rows.average_to_date then
         vc_period := 'After QP';
       end if;
-    
+
       vn_qty_in_premium_wt_unit := f_get_converted_quantity(cur_avg_rows.product_id,
                                                             cur_avg_rows.quantity_unit_id,
                                                             cur_avg_rows.pd_weight_unit_id,
                                                             cur_avg_rows.total_quantity);
-    
+
       pkg_general.sp_get_base_cur_detail(cur_avg_rows.pd_cur_id,
                                          vc_premium_main_cur_id,
                                          vc_premium_main_cur_code,
                                          vc_cur_id_factor);
-    
+
       vn_premium_to_base_exch_rate := f_currency_exchange_rate(pd_trade_date,
                                                                pc_corporate_id,
                                                                cur_avg_rows.prompt_date,
                                                                vc_premium_main_cur_id,
                                                                cur_avg_rows.base_cur_id);
-    
-      ---- finding Market premium 
-    
+
+      ---- finding Market premium
+
       begin
         select price,
                price_unit_id
@@ -14810,16 +14810,16 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                pd_trade_date);
           sp_insert_error_log(vobj_error_log);
       end;
-    
+
       vn_mk_premium_trade_prm_cur := f_get_converted_price_pum(cur_avg_rows.corporate_id,
                                                                vn_market_premium,
                                                                vc_market_pre_price_unit_id,
                                                                cur_avg_rows.premium_discount_price_unit_id,
                                                                pd_trade_date,
                                                                cur_avg_rows.product_id);
-    
+
       --- finding market dr_id
-    
+
       begin
         select drm.dr_id
           into vc_caluclate_mar_dr_id
@@ -14850,10 +14850,10 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                pd_trade_date);
           sp_insert_error_log(vobj_error_log);
       end;
-    
+
       --- finding market price
       begin
-      
+
         select price,
                price_unit_id
           into vn_market_price,
@@ -14886,14 +14886,14 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                pd_trade_date);
           sp_insert_error_log(vobj_error_log);
       end;
-    
+
       vn_market_price_trade_cur := f_get_converted_price_pum(cur_avg_rows.corporate_id,
                                                              vn_market_price,
                                                              vc_market_price_unit_id,
                                                              cur_avg_rows.premium_discount_price_unit_id,
                                                              pd_trade_date,
                                                              cur_avg_rows.product_id);
-    
+
       if vc_period = 'Before QP' then
         vn_total_market_value_pd_cur := vn_mk_premium_trade_prm_cur *
                                         vn_qty_in_premium_wt_unit *
@@ -14902,7 +14902,7 @@ create or replace package body pkg_cdc_derivatives_process is
         vn_total_trade_pre_trdae_cur := vn_trade_premium_trade_cur *
                                         vn_qty_in_premium_wt_unit *
                                         vc_cur_id_factor;
-      
+
         if cur_avg_rows.trade_type = 'Buy' then
           vn_pnl_value_in_trade_cur := vn_total_market_value_pd_cur -
                                        vn_total_trade_pre_trdae_cur;
@@ -14910,30 +14910,30 @@ create or replace package body pkg_cdc_derivatives_process is
           vn_pnl_value_in_trade_cur := vn_total_trade_pre_trdae_cur -
                                        vn_total_market_value_pd_cur;
         end if;
-      
+
         vn_total_trade_pre_base_cur := vn_total_trade_pre_trdae_cur *
                                        vn_premium_to_base_exch_rate;
-      
+
         vn_pnl_value_in_base_cur := vn_pnl_value_in_trade_cur *
                                     vn_premium_to_base_exch_rate;
-      
+
         vn_net_pnl_in_base_cur := vn_pnl_value_in_base_cur;
-      
+
         if vn_net_pnl_in_base_cur is null then
           vn_net_pnl_in_base_cur := 0;
         end if;
-      
+
         if vn_pnl_value_in_trade_cur is null then
           vn_pnl_value_in_trade_cur := 0;
         end if;
-      
+
       elsif vc_period = 'During QP' then
         qp_startdate       := cur_avg_rows.average_from_date;
         qp_enddate         := cur_avg_rows.average_to_date;
         vn_count_set_qp    := 0;
         vn_total_set_price := 0;
-      
-        --- finding settlement DR_ID                                         
+
+        --- finding settlement DR_ID
         begin
           select drm.dr_id
             into vc_caluclate_set_dr_id
@@ -14963,17 +14963,17 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                  pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
-      
+
         while qp_startdate <= pd_trade_date
         loop
-          ---- finding holidays       
+          ---- finding holidays
           if f_is_day_holiday(cur_avg_rows.underlying_instrument_id,
                               qp_startdate) then
             vc_holiday := 'Y';
           else
             vc_holiday := 'N';
           end if;
-        
+
           --- Finding  settlement Price
           if vc_holiday = 'N' then
             begin
@@ -15030,10 +15030,10 @@ create or replace package body pkg_cdc_derivatives_process is
           end if;
           qp_startdate := qp_startdate + 1;
         end loop;
-      
+
         ---- get third wednesday of after QP period
         --  If 3rd Wednesday of QP End date is not a prompt date, get the next valid prompt date
-      
+
         vd_3rd_wed_of_qp := f_get_next_day(qp_enddate, 'Wed', 3);
         while true
         loop
@@ -15044,8 +15044,8 @@ create or replace package body pkg_cdc_derivatives_process is
             exit;
           end if;
         end loop;
-      
-        --- get 3rd wednesday  before QP period 
+
+        --- get 3rd wednesday  before QP period
         -- Get the quotation date = Trade Date +2 working Days
         if vd_3rd_wed_of_qp < pd_trade_date then
           workings_days  := 0;
@@ -15064,7 +15064,7 @@ create or replace package body pkg_cdc_derivatives_process is
           end loop;
           vd_3rd_wed_of_qp := vd_quotes_date;
         end if;
-      
+
         --- finding  valuation dr_id
         begin
           select drm.dr_id
@@ -15096,7 +15096,7 @@ create or replace package body pkg_cdc_derivatives_process is
             sp_insert_error_log(vobj_error_log);
         end;
         --- finding valuation price
-      
+
         begin
           select dqd.price,
                  dqd.price_unit_id
@@ -15135,20 +15135,20 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                  pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
-      
+
         vn_total_val_price := 0;
         vn_count_val_qp    := 0;
-      
+
         while qp_startdate <= qp_enddate
         loop
-          ---- finding holidays       
+          ---- finding holidays
           if f_is_day_holiday(cur_avg_rows.underlying_instrument_id,
                               qp_startdate) then
             vc_holiday := 'Y';
           else
             vc_holiday := 'N';
           end if;
-        
+
           if vc_holiday = 'N' then
             vn_total_val_price := vn_total_val_price +
                                   vn_caluclate_val_price;
@@ -15156,7 +15156,7 @@ create or replace package body pkg_cdc_derivatives_process is
           end if;
           qp_startdate := qp_startdate + 1;
         end loop;
-      
+
         vn_total_trade_price     := (vn_total_set_price +
                                     vn_total_val_price) /
                                     (vn_count_set_qp + vn_count_val_qp);
@@ -15166,15 +15166,15 @@ create or replace package body pkg_cdc_derivatives_process is
                                                               cur_avg_rows.premium_discount_price_unit_id,
                                                               pd_trade_date,
                                                               cur_avg_rows.product_id);
-      
+
         vn_paid_premium       := cur_avg_rows.premium_discount;
         vn_avg_contract_price := (vn_trade_price_trade_cur +
                                  vn_paid_premium) * vc_cur_id_factor;
-      
+
         vn_total_market_price := vn_market_price_trade_cur +
                                  vn_mk_premium_trade_prm_cur *
                                  vc_cur_id_factor;
-      
+
         if cur_avg_rows.trade_type = 'Buy' then
           vn_pnl_value_in_trade_cur := (vn_total_market_price -
                                        vn_avg_contract_price) *
@@ -15184,26 +15184,26 @@ create or replace package body pkg_cdc_derivatives_process is
                                        vn_total_market_price) *
                                        vn_qty_in_premium_wt_unit;
         end if;
-      
+
         vn_pnl_value_in_base_cur := vn_pnl_value_in_trade_cur *
                                     vn_premium_to_base_exch_rate;
-      
+
         vn_net_pnl_in_base_cur := vn_pnl_value_in_base_cur;
-      
+
         if vn_net_pnl_in_base_cur is null then
           vn_net_pnl_in_base_cur := 0;
         end if;
-      
+
         if vn_pnl_value_in_trade_cur is null then
           vn_pnl_value_in_trade_cur := 0;
         end if;
-      
+
       elsif vc_period = 'After QP' then
         qp_startdate       := cur_avg_rows.average_from_date;
         qp_enddate         := cur_avg_rows.average_to_date;
         vn_total_set_price := 0;
         vn_count_set_qp    := 0;
-        --- finding settlement DR_ID  
+        --- finding settlement DR_ID
         begin
           select drm.dr_id
             into vc_caluclate_set_dr_id
@@ -15233,17 +15233,17 @@ create or replace package body pkg_cdc_derivatives_process is
                                                                  pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
-      
+
         while qp_startdate <= qp_enddate
         loop
-          ---- finding holidays       
+          ---- finding holidays
           if f_is_day_holiday(cur_avg_rows.underlying_instrument_id,
                               qp_startdate) then
             vc_holiday := 'Y';
           else
             vc_holiday := 'N';
           end if;
-        
+
           --- Finding  settlement Price
           if vc_holiday = 'N' then
             begin
@@ -15300,7 +15300,7 @@ create or replace package body pkg_cdc_derivatives_process is
           end if;
           qp_startdate := qp_startdate + 1;
         end loop;
-      
+
         vn_total_trade_price     := vn_total_set_price / vn_count_set_qp;
         vn_trade_price_trade_cur := f_get_converted_price_pum(cur_avg_rows.corporate_id,
                                                               vn_total_trade_price,
@@ -15308,15 +15308,15 @@ create or replace package body pkg_cdc_derivatives_process is
                                                               cur_avg_rows.premium_discount_price_unit_id,
                                                               pd_trade_date,
                                                               cur_avg_rows.product_id);
-      
+
         vn_paid_premium       := cur_avg_rows.premium_discount;
         vn_avg_contract_price := (vn_trade_price_trade_cur +
                                  vn_paid_premium) * vc_cur_id_factor;
-      
+
         vn_total_market_price := (vn_market_price_trade_cur +
                                  vn_mk_premium_trade_prm_cur) *
                                  vc_cur_id_factor;
-      
+
         if cur_avg_rows.trade_type = 'Buy' then
           vn_pnl_value_in_trade_cur := (vn_total_market_price -
                                        vn_avg_contract_price) *
@@ -15326,22 +15326,22 @@ create or replace package body pkg_cdc_derivatives_process is
                                        vn_total_market_price) *
                                        vn_qty_in_premium_wt_unit;
         end if;
-      
+
         vn_pnl_value_in_base_cur := vn_pnl_value_in_trade_cur *
                                     vn_premium_to_base_exch_rate;
-      
+
         vn_net_pnl_in_base_cur := vn_pnl_value_in_base_cur;
-      
+
         if vn_net_pnl_in_base_cur is null then
           vn_net_pnl_in_base_cur := 0;
         end if;
-      
+
         if vn_pnl_value_in_trade_cur is null then
           vn_pnl_value_in_trade_cur := 0;
         end if;
-      
+
       end if;
-    
+
       insert into dpd_derivative_pnl_daily
         (internal_derivative_ref_no,
          derivative_ref_no,
@@ -15501,7 +15501,7 @@ create or replace package body pkg_cdc_derivatives_process is
          qp_period,
          avg_contract_price,
          avg_contract_price_unit_id)
-      
+
       values
         (cur_avg_rows.internal_derivative_ref_no,
          cur_avg_rows.derivative_ref_no,
@@ -15582,8 +15582,8 @@ create or replace package body pkg_cdc_derivatives_process is
          cur_avg_rows.clearer_comm_amt,
          cur_avg_rows.clearer_comm_cur_id,
          cur_avg_rows.clearer_cur_code,
-         cur_avg_rows.product_id,
          cur_avg_rows.product,
+         cur_avg_rows.productdesc,
          cur_avg_rows.quality_id,
          cur_avg_rows.quantity_unit_id,
          cur_avg_rows.total_lots,
@@ -15662,7 +15662,7 @@ create or replace package body pkg_cdc_derivatives_process is
          vn_avg_contract_price, ---contract price
          vc_cal_set_price_unit_id -- contract price unit id
          );
-    
+
     end loop;
   exception
     when others then
@@ -15680,7 +15680,7 @@ create or replace package body pkg_cdc_derivatives_process is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-    
+
   end;
-end; 
+end;
 /
