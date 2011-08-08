@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_Patch_0071
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena M
+ 
+Created on*        		:  04-Aug-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Physical Contract
+ 
+Sub-Module  	    :  Stock
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+Revision: 74813
+Author: sriveenam
+Date: 7:54:00 PM, Monday, August 08, 2011
+Message:
+LOCI and tolling_loci changes for origin and payable metal content
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_44.sql
