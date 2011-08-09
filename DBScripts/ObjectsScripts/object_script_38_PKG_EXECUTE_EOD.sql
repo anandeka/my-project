@@ -67,7 +67,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
                           'Before calling sp_mark_dumps_status',
                           2);
     sp_mark_dumps_status(pc_corporate_id, pd_trade_date);
-  
+
     begin
       select count(*)
         into vn_error_count
@@ -161,7 +161,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
       pkg_execute_process.sp_record_misc_cost@eka_eoddb(pc_corporate_id,
                                                         pd_trade_date,
                                                         'EOD');
-    
+
     end;
   end;
 
@@ -236,13 +236,13 @@ create or replace package body "PKG_EXECUTE_EOD" is
     Author                                    : Siva
     Created Date                              : 22th Mar 2010
     Purpose                                   : To updated DB dump status back to transaction schema
-    
+
     Parameters
     pc_corporate_id                           : Corporate ID
     pd_trade_date                             : EOD Date ID
     pc_user_id                                : User ID
     pc_process                                : Process
-    
+
     Modification History
     Modified Date                             :
     Modified By                               :
@@ -285,13 +285,13 @@ create or replace package body "PKG_EXECUTE_EOD" is
     Author                                    : Siva
     Created Date                              : 22th Mar 2010
     Purpose                                   : To updated DB dump status back to transaction schema
-    
+
     Parameters
     pc_corporate_id                           : Corporate ID
     pd_trade_date                             : EOD Date ID
     pc_user_id                                : User ID
     pc_process                                : Process
-    
+
     Modification History
     Modified Date                             :
     Modified By                               :
@@ -305,9 +305,9 @@ create or replace package body "PKG_EXECUTE_EOD" is
                           pc_corporate_id || '-pd_trade_date ' ||
                           pd_trade_date,
                           2);
-    --     pc_corporate_id, pd_trade_date  pc_process, pc_action ,pc_eod_status 
+    --     pc_corporate_id, pd_trade_date  pc_process, pc_action ,pc_eod_status
     if pc_action in ('PRECHECK', 'PRECHECK_RUN', 'RUN') then
-    
+
       if pc_process = 'EOD' then
         update eod_end_of_day_details
            set processing_status = pc_eod_status
@@ -340,7 +340,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
         commit;
       end if;
     end if;
-  
+
   exception
     when others then
       update eod_end_of_day_details
@@ -399,15 +399,15 @@ create or replace package body "PKG_EXECUTE_EOD" is
       rollback;
   end;
   procedure sp_refresh_mv is
-  
+
     /******************************************************************************************************************************************
     Procedure Name                            : sp_refresh_mv
     Author                                    : Siva
     Created Date                              : 29th Jul 2011
     Purpose                                   : To refresh mv available in app db schema
-    
+
     Parameters
-        
+
     Modification History
     Modified Date                             :
     Modified By                               :
@@ -417,12 +417,13 @@ create or replace package body "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('mv_dm_phy_open', 'C');
     dbms_mview.refresh('mv_dm_phy_stock', 'C');
     dbms_mview.refresh('mv_dm_phy_derivative', 'c');
+    dbms_mview.refresh('mv_fact_phy_inv_valuation', 'c');    
     commit;
   exception
     when others then
       null;
       commit;
-    
+
   end;
 end;
 /
