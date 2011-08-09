@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_Patch_0077
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  09-Aug-2011
+
+Bug / Enhancement* 		:  Enhancements
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	: Assay
+ 
+Sub-Module  			:  
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 74973
+Author: girishkv
+Date: 9:42:30 PM, Tuesday, August 09, 2011
+Message:
+Assay Out Put Doc.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/Corporate_Scripts_6.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_49.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_54.sql
