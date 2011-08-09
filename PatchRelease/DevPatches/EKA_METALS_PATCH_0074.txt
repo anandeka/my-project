@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_Patch_0074
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam
+ 
+Created on*        		:  09-Aug-2011
+
+Bug / Enhancement* 		:  New Feature
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Attach Collatoral
+ 
+Sub-Module  			:  
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 74947
+Author: uttam
+Date: 7:51:29 PM, Tuesday, August 09, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_48.sql
+
+
+Revision: 74951
+Author: uttam
+Date: 7:59:26 PM, Tuesday, August 09, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_46.sql
+
+
+
+
+
