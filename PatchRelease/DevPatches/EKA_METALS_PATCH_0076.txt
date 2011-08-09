@@ -1,0 +1,101 @@
+Patch No*          		:  EKA_METALS_Patch_0076
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  09-Aug-2011
+
+Bug / Enhancement* 		:  Enhancements
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  BI & Reports
+ 
+Sub-Module  			:  
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+=======================
+DB Files:
+=======================
+Revision: 74969
+Author: sivachalabathi.s
+Date: 9:27:07 PM, Tuesday, August 09, 2011
+Message:
+bi report/againg report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_50_Report_Menu_Script.txt
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_51_DDL_BI_MV_DETAILS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_52_DDL_MV_PHYSICAL_POSITION.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_53_ddl_time_month_table.sql
+
+
+Revision: 74966
+Author: sivachalabathi.s
+Date: 9:22:35 PM, Tuesday, August 09, 2011
+Message:
+app bug fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_Objects_PKG_FORMULA_BUILDER.sql
+
+
+
+Revision: 74956
+Author: sivachalabathi.s
+Date: 8:40:27 PM, Tuesday, August 09, 2011
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_38_PKG_EXECUTE_EOD.sql
+
+Revision: 74955
+Author: sivachalabathi.s
+Date: 8:39:53 PM, Tuesday, August 09, 2011
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
+
+=======================
+RPT Files
+=======================
+
+Revision: 74967
+Author: sivachalabathi.s
+Date: 9:23:22 PM, Tuesday, August 09, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/Reports/AgingReport.rpt
+
+
+
+Revision: 74960
+Author: sivachalabathi.s
+Date: 8:42:28 PM, Tuesday, August 09, 2011
+Message:
+bi report release
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_47_DML_dim_month_data.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_48_DML_dim_time_data.SQL
