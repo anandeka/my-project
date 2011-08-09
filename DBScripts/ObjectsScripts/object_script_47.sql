@@ -1,0 +1,1 @@
+alter table ASH_ASSAY_HEADER add is_final_assay_fully_finalized char(1) default 'N';
