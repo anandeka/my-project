@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_Patch_0073
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manoranjan
+ 
+Created on*        		:  08-Aug-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Stock Management
+ 
+Sub-Module  			:   Blend Analyzer
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 74934
+Author: manoranjan.kumar
+Date: 6:42:03 PM, Tuesday, August 09, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_45.sql
+
+Revision: 74935
+Author: manoranjan.kumar
+Date: 6:44:48 PM, Tuesday, August 09, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_47.sql
+
