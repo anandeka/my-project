@@ -1,0 +1,93 @@
+Patch No*          		:  EKA_METALS_Patch_0083
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  10-Aug-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Physical Contract
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+ 
+Description of Bug / Issue / Enhancement* : 
+-----------------------------------------
+Revision: 75069
+Author: sriveenam
+Date: 6:58:42 PM, Wednesday, August 10, 2011
+Message:
+modified to display quality print name
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
