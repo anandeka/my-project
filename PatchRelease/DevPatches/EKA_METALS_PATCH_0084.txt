@@ -58,7 +58,13 @@ Message:
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_56.sql
 
 
-
+Revision: 75099
+Author: girishkv
+Date: 2:09:35 AM, Thursday, August 11, 2011
+Message:
+DGM scripts.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_52.SQL
 
 
 
