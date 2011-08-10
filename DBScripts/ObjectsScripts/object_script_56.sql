@@ -3,3 +3,4 @@ alter table WNS_ASSAY_CHILD_D modify(NET_WET_WEIGHT NUMBER (25,10));
 alter table WNS_ASSAY_CHILD_D modify(NET_DRY_WEIGHT NUMBER (25,10));
 alter table ASM_ASSAY_SUBLOT_MAPPING modify (dry_weight NUMBER (25,5))
 alter table ASM_ASSAY_SUBLOT_MAPPING modify (NET_WEIGHT NUMBER (25,5))
+alter table AS_ASSAY_CHILD_D modify(NET_WEIGHT NUMBER (25,5));
