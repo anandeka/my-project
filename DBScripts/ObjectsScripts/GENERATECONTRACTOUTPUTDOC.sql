@@ -30,6 +30,8 @@ CREATE OR REPLACE procedure generateContractOutputDoc (
       insuranceTerms VARCHAR2(4000) :='';
       otherTerms VARCHAR2(4000) :='';
       PRODUCT_GROUP_TYPE VARCHAR2(50):='';
+      qualityPrintNameReq VARCHAR2(15):='';
+      qualityPrintName VARCHAR2(1000):='';
 
 
 cursor cr_delivery
@@ -207,12 +209,7 @@ Insert into COD_CONTRACT_OUTPUT_DETAIL
     NULL, 'N', 'N', 'N', 'FULL',  'N');
 
     begin
-    select (CASE
-              WHEN PCPD.IS_QUALITY_PRINT_NAME_REQ ='N'
-                 THEN PDM.PRODUCT_DESC
-              ELSE PCPD.QUALITY_PRINT_NAME
-              END
-          ) || chr(10)||
+    select PDM.PRODUCT_DESC || chr(10)||
            (CASE
               WHEN PCPD.QTY_TYPE ='Fixed'
                  THEN PCPD.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC
@@ -242,16 +239,39 @@ Insert into COD_CONTRACT_OUTPUT_DETAIL
     NULL, 'N', 'N', 'N', 'FULL',  'N');
     display_order:=display_order+1;
 
+  begin
+  select PCPD.IS_QUALITY_PRINT_NAME_REQ,pcpd.QUALITY_PRINT_NAME  into qualityPrintNameReq,qualityPrintName
+    from PCPD_PC_PRODUCT_DEFINITION pcpd,
+         PCM_PHYSICAL_CONTRACT_MAIN pcm
+    where PCPD.INTERNAL_CONTRACT_REF_NO = PCM.INTERNAL_CONTRACT_REF_NO
+     AND PCPD.INTERNAL_CONTRACT_REF_NO =p_contractNo;
+  end;   
+  if (qualityPrintNameReq = 'Y') then  
 
-  Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, 'Quality/Qualities', 'Quality/Qualities',
-    'Y', NULL, NULL, getContractQualityDetails(p_contractNo), NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+      Insert into COD_CONTRACT_OUTPUT_DETAIL
+       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
+        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
+        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
+        IS_CHANGED)
+     Values
+       (docId, display_order, NULL, 'Quality/Qualities', 'Quality/Qualities',
+        'Y', NULL, NULL, qualityPrintName, NULL,
+        NULL, 'N', 'N', 'N', 'FULL',  'N');
+  else
+    
+      Insert into COD_CONTRACT_OUTPUT_DETAIL
+       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
+        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
+        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
+        IS_CHANGED)
+     Values
+       (docId, display_order, NULL, 'Quality/Qualities', 'Quality/Qualities',
+        'Y', NULL, NULL, getContractQualityDetails(p_contractNo), NULL,
+        NULL, 'N', 'N', 'N', 'FULL',  'N');  
+   
+  end if;     
+        
+   
     for delivery_rec in cr_delivery
     loop
         display_order := display_order+1;
