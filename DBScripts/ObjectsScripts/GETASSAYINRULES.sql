@@ -1,0 +1,122 @@
+CREATE OR REPLACE FUNCTION getAssayinRules (pContractNo number)
+   RETURN VARCHAR2
+IS
+    
+    cursor cr_assay_quality          
+    IS
+    
+    SELECT distinct qat.quality_name           
+    FROM pcar_pc_assaying_rules pcar,
+         arqd_assay_quality_details arqd,
+         pcm_physical_contract_main pcm,
+         pcpq_pc_product_quality pcpq,
+         qat_quality_attributes qat      
+    WHERE pcar.internal_contract_ref_no = pcm.internal_contract_ref_no
+     AND arqd.pcar_id = pcar.pcar_id
+     AND pcpq.pcpq_id = arqd.pcpq_id
+     AND pcpq.quality_template_id = qat.quality_id
+     AND arqd.is_active = 'Y'
+     AND pcm.internal_contract_ref_no = pContractNo;
+     
+    
+    cursor cr_ar          
+    IS
+
+    SELECT qat.quality_name ,
+         (aml.attribute_name ||' : '||
+         'Will be finalized based on ' || PCAR.FINAL_ASSAY_BASIS_ID ||
+         (case
+            when PCAR.FINAL_ASSAY_BASIS_ID = 'Assay Exchange' 
+                then ',Method : ' || PCAR.COMPARISION || ' ' ||     
+                    case 
+                        when PCAR.COMPARISION = 'Apply Spliting Limit' and  PCAR.SPLIT_LIMIT_BASIS = 'Fixed'
+                            then PCAR.SPLIT_LIMIT || RM.RATIO_NAME
+                        when PCAR.COMPARISION = 'Apply Spliting Limit' and PCAR.SPLIT_LIMIT_BASIS = 'Assay Content Based'
+                            then PCAESL.APPLICABLE_VALUE  || RM.RATIO_NAME || ' ,if range falls in   '|| PCAESL.ASSAY_MIN_OP || ' ' || PCAESL.ASSAY_MIN_VALUE || ' to ' || PCAESL.ASSAY_MAX_OP || ' ' || PCAESL.ASSAY_MAX_VALUE || RM.RATIO_NAME                     
+                    end
+         end) ) as final_assay         
+    FROM pcar_pc_assaying_rules pcar,
+         pcaesl_assay_elem_split_limits pcaesl,
+         arqd_assay_quality_details arqd,
+         pcm_physical_contract_main pcm,
+         aml_attribute_master_list aml,
+         pcpq_pc_product_quality pcpq,
+         qat_quality_attributes qat,
+         rm_ratio_master rm,
+         URM_UMPIRE_RULE_MASTER urm  
+   WHERE pcar.pcar_id = pcaesl.pcar_id(+)
+     and  pcar.internal_contract_ref_no = pcm.internal_contract_ref_no
+     and PCM.UMPIRE_RULE_ID = URM.URM_ID(+)
+     AND arqd.pcar_id = pcar.pcar_id
+     AND pcpq.pcpq_id = arqd.pcpq_id
+     AND pcpq.quality_template_id = qat.quality_id
+     AND pcar.element_id = aml.attribute_id
+     AND rm.ratio_id = pcar.split_limit_unit_id
+     AND pcar.is_active = 'Y'
+     AND pcaesl.is_active(+) = 'Y'
+     AND arqd.is_active = 'Y'
+     AND pcm.internal_contract_ref_no = pContractNo;
+   
+    cursor cr_umpire
+    is
+    SELECT URM.RULE_NAME as umpire_rule,
+            PCM.COST_BASIS_ID  as umpire_cost    
+     FROM   pcm_physical_contract_main pcm,URM_UMPIRE_RULE_MASTER urm  
+     where  PCM.UMPIRE_RULE_ID = URM.URM_ID
+     AND pcm.internal_contract_ref_no = pContractNo;
+     
+    cursor cr_umpires_list
+    is
+    select PHD.COMPANYNAME as umpire_name from PCM_PHYSICAL_CONTRACT_MAIN pcm,PCU_PC_UMPIRES pcu, PHD_PROFILEHEADERDETAILS phd
+    where PCM.INTERNAL_CONTRACT_REF_NO = PCU.INTERNAL_CONTRACT_REF_NO
+    and PCU.UMPIRE_ID = PHD.PROFILEID
+    and PCU.IS_ACTIVE = 'Y'
+    AND pcm.internal_contract_ref_no = pContractNo;
+   
+   ASSAY_RULES   VARCHAR2(4000) :=''; 
+   umpires_list  VARCHAR2 (500) := ''; 
+   begin
+            for assay_quality_rec in cr_assay_quality
+            loop
+                
+                 ASSAY_RULES:= ASSAY_RULES ||''|| assay_quality_rec.quality_name ||chr(10);    
+            
+                 for ar_rec in cr_ar
+                 loop
+                    
+                    if (assay_quality_rec.quality_name = ar_rec.quality_name) then 
+                        ASSAY_RULES:= ASSAY_RULES || ar_rec.final_assay || chr(10);
+                       
+                    end if;
+                    
+                 end loop;
+            
+            end loop;
+           
+            
+            for umpire in cr_umpire
+            loop
+                if (umpire.umpire_rule is not null) then
+                     ASSAY_RULES:= ASSAY_RULES || chr(10) || 'Umpire Rule :'|| umpire.umpire_rule;
+                end if;
+                if (umpire.umpire_cost is not null) then
+                     ASSAY_RULES:= ASSAY_RULES || chr(10) || 'Umpiring Cost :'|| umpire.umpire_cost;
+                end if;
+                            
+            end loop;
+            
+            for umpires in cr_umpires_list
+            loop
+                if (umpires.umpire_name is not null) then
+                     umpires_list:= umpires_list || chr(10) ||  umpires.umpire_name;
+                end if;
+            end loop;
+            
+            if (umpires_list is not null) then
+                     ASSAY_RULES:= ASSAY_RULES || chr(10) || 'Umpires :'|| umpires_list;
+            end if;        
+   
+            return  ASSAY_RULES;
+    end; 
+/
+

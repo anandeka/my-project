@@ -1,0 +1,53 @@
+CREATE OR REPLACE FUNCTION GETCONTRACTQUALITYDETAILS (
+p_contractNo VARCHAR2 
+)
+return VARCHAR2 is
+    cursor cr_quality 
+    IS
+          Select QAT.QUALITY_NAME ||':'|| (CASE
+              WHEN PCPQ.QTY_TYPE ='Fixed'
+                 THEN PCPQ.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC 
+              ELSE PCPQ.QTY_MIN_OP ||' '||  PCPQ.QTY_MIN_VAL ||' '||  PCPQ.QTY_MAX_OP ||' '||  PCPQ.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC 
+              END
+              ) quality_details,ORM.ORIGIN_NAME as origin_name,
+         (CASE
+              WHEN PCPQ.ASSAY_HEADER_ID IS NOT NULL
+                 THEN getChemicalAttributes(PCPQ.ASSAY_HEADER_ID)
+          END) CHEM_ATTR,
+          (CASE
+              WHEN PCPQ.PHY_ATTRIBUTE_GROUP_NO IS NOT NULL
+                 THEN getPhysicalAttributes(PCPQ.PHY_ATTRIBUTE_GROUP_NO)
+          END) PHY_ATTR             
+          
+    from PCPQ_PC_PRODUCT_QUALITY PCPQ, PCPD_PC_PRODUCT_DEFINITION PCPD, QAT_QUALITY_ATTRIBUTES QAT,
+    QUM_QUANTITY_UNIT_MASTER QUM,POM_PRODUCT_ORIGIN_MASTER pom,ORM_ORIGIN_MASTER orm
+    Where PCPQ.QTY_UNIT_ID = QUM.QTY_UNIT_ID 
+     AND PCPQ.QUALITY_TEMPLATE_ID = QAT.QUALITY_ID 
+     AND PCPD.PCPD_ID = PCPQ.PCPD_ID
+     AND QAT.PRODUCT_ORIGIN_ID = POM.PRODUCT_ORIGIN_ID(+)
+     AND POM.ORIGIN_ID = ORM.ORIGIN_ID(+)
+     AND PCPD.INTERNAL_CONTRACT_REF_NO =p_contractNo;   
+    
+    qualityDescription VARCHAR2(4000) :='';  
+    begin
+            for quality_rec in cr_quality
+            loop
+            qualityDescription:=qualityDescription ||chr(10)||quality_rec.quality_details ||chr(10);
+            
+            if (quality_rec.origin_name is not null) then
+                qualityDescription:=qualityDescription ||'Origin :' || quality_rec.origin_name || chr(10);
+            end if;
+            
+            if (quality_rec.CHEM_ATTR is not null) then
+                qualityDescription:=qualityDescription ||'Chemical Composition :' || chr(10)|| quality_rec.CHEM_ATTR ;
+            end if;
+            
+            if (quality_rec.PHY_ATTR is not null) then
+                qualityDescription:=qualityDescription ||'Physical Specifications :'|| chr(10)|| quality_rec.PHY_ATTR;
+            end if;
+           
+            end loop;
+            return  qualityDescription;
+    end; 
+/
+
