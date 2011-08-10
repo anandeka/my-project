@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_Patch_0079
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  10-Aug-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Logistics
+ 
+Sub-Module  			:  Stock
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 75022
+Author: babulal.meena
+Date: 2:29:25 PM, Wednesday, August 10, 2011
+Message:
+Db Script for updateExpectedSalesCCY for Stock's
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_50.SQL
