@@ -40,6 +40,15 @@ Schema type (Transaction / EOD)* :  Transaction
  
 Description of Bug / Issue / Enhancement* : 
 -----------------------------------------
+Revision: 75090
+Author: girishkv
+Date: 10:24:46 PM, Wednesday, August 10, 2011
+Message:
+CDC tables entries for Assay output Doc.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/Corporate_Scripts_7.SQL
+
+
 Revision: 75080
 Author: girishkv
 Date: 8:24:19 PM, Wednesday, August 10, 2011
