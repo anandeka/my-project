@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_Patch_0078
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  09-Aug-2011
+
+Bug / Enhancement* 		:  Bug fixes
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*             :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	: EOD
+ 
+Sub-Module  			:  
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 75020
+Author: sivachalabathi.s
+Date: 2:26:36 PM, Wednesday, August 10, 2011
+Message:
+bug fixes in concentrates
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/005_EOD_DDL_Script.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+
+Revision: 75015
+Author: sivachalabathi.s
+Date: 1:42:30 PM, Wednesday, August 10, 2011
+Message:
+report format updated with latest changes done in the pnl calculation at item level.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyOpenUnrealizedPhysicalConc.rpt
+
