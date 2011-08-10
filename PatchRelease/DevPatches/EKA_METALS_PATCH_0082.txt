@@ -1,4 +1,4 @@
-Patch No*          		:  EKA_METALS_Patch_0082
+Patch No*          		:  EKA_METALS_PATCH_0082
 
 Project / Product* 		:  METALS
 ==================================================================
