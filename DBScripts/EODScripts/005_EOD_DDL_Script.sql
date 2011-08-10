@@ -1,0 +1,10 @@
+alter table poue_phy_open_unreal_element add del_distribution_item_no number(10,5);
+alter table poue_phy_open_unreal_element add penalty_charge number(35,5);
+alter table poue_phy_open_unreal_element add m2m_penalty_charge number (35,5);
+alter table poue_phy_open_unreal_element add net_contract_treatment_charge number(35,5);
+alter table poue_phy_open_unreal_element add net_contract_refining_charge number(35,5);
+alter table poue_phy_open_unreal_element add net_m2m_treatment_charge number(35,5);
+alter table poue_phy_open_unreal_element add net_m2m_refining_charge number(35,5);
+alter table poued_element_details add element_qty_in_base_unit number(35,5);
+alter table poued_element_details add base_price_unit_id_ppu varchar2(15);
+alter table poued_element_details add base_price_unit_name varchar2(100);

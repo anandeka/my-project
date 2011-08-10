@@ -3500,7 +3500,7 @@ create or replace package body pkg_phy_pre_check_process is
                  and mdcd.charge_type = pc_charge_type) t
        where t.td_rank = 1;
     elsif pc_charge_type = 'Penalties' then
-      pn_charge_amt := 10;
+      -- pn_charge_amt := 10;
       select t.charge_value,
              t.charge_unit_id
         into pn_charge_amt,
@@ -3907,22 +3907,26 @@ create or replace package body pkg_phy_pre_check_process is
                            p_trade_date          in date,
                            p_trade_type          in varchar2,
                            p_process             in varchar2) return varchar2 is
-    v_date             date;
-    v_trade_date       date;
-    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count number := 1;
-    v_dr_id            varchar2(10);
-    workings_days      number(2);
-    msg_display        varchar2(500);
-    is_daily_app       varchar2(10);
-    is_month_app       varchar2(10);
+    v_date                  date;
+    v_trade_date            date;
+    vobj_error_log          tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count      number := 1;
+    v_dr_id                 varchar2(10);
+    workings_days           number(2);
+    msg_display             varchar2(500);
+    is_daily_app            varchar2(10);
+    is_month_app            varchar2(10);
+    vd_value_date           date;
+    vc_delivery_calendar_id varchar2(50);
   begin
     v_trade_date := p_trade_date;
     begin
       select pdc.is_daily_cal_applicable,
-             pdc.is_monthly_cal_applicable
+             pdc.is_monthly_cal_applicable,
+             pdc.prompt_delivery_calendar_id
         into is_daily_app,
-             is_month_app
+             is_month_app,
+             vc_delivery_calendar_id
         from dim_der_instrument_master    dim,
              pdc_prompt_delivery_calendar pdc
        where dim.instrument_id = p_instrument_id
@@ -4053,35 +4057,29 @@ create or replace package body pkg_phy_pre_check_process is
     end if;
     if is_daily_app = 'N' and is_month_app = 'Y' then
       begin
-      if to_date('01-'||p_from_month ||'-'||p_from_year,'dd-Mon-yyyy')<=p_trade_date then
-      
-      
-        select drm.dr_id
-          into v_dr_id
-          from drm_derivative_master drm
-         where /*drm.prompt_date = v_trade_date
-                 and*/
-         drm.instrument_id = p_instrument_id
-         and drm.price_point_id is null
-         and drm.is_deleted = 'N'
-         and drm.is_expired = 'N'
-         and drm.period_month = to_char(add_months(p_trade_date,1),'Mon')
-         and drm.period_year = to_char(add_months(p_trade_date,1),'yyyy')
-         and rownum <= 1;
+        if to_date('01-' || p_from_month || '-' || p_from_year,
+                   'dd-Mon-yyyy') <= p_trade_date then
+          -- vd_value_date := to_date('01-'||to_char(add_months(p_trade_date,1),'Mon-yyyy'),'dd-Mon-yyyy');
+          --  vd_value_date := p_trade_date;
+          vd_value_date := pkg_metals_general.fn_get_next_month_prompt_date(vc_delivery_calendar_id,
+                                                                            p_trade_date);
+        
         else
+          vd_value_date := to_date('01-' || p_from_month || '-' ||
+                                   p_from_year,
+                                   'dd-Mon-yyyy');
+        end if;
+      
         select drm.dr_id
           into v_dr_id
           from drm_derivative_master drm
-         where /*drm.prompt_date = v_trade_date
-                 and*/
-         drm.instrument_id = p_instrument_id
-         and drm.price_point_id is null
-         and drm.is_deleted = 'N'
-         and drm.is_expired = 'N'
-         and drm.period_month = p_from_month
-         and drm.period_year = p_from_year
-         and rownum <= 1;
-       end if;
+         where drm.instrument_id = p_instrument_id
+           and drm.price_point_id is null
+           and drm.is_deleted = 'N'
+           and drm.is_expired = 'N'
+           and drm.period_month = to_char(vd_value_date, 'Mon')
+           and drm.period_year = to_char(vd_value_date, 'yyyy')
+           and rownum <= 1;
       exception
         when no_data_found then
           v_dr_id := null;
@@ -4097,8 +4095,12 @@ create or replace package body pkg_phy_pre_check_process is
         select dim.instrument_name || ',Price Source:' ||
                ps.price_source_name || ',Price Unit:' ||
                pum.price_unit_name || ',' || apm.available_price_name ||
-               ' Price,Prompt Date:' ||
-               to_char(v_trade_date, 'dd-Mon-yyyy')
+               ' Price,Prompt Date:' || (case
+                 when is_daily_app = 'N' and is_month_app = 'Y' then
+                  to_char(vd_value_date, 'Mon-yyyy')
+                 else
+                  to_char(v_trade_date, 'dd-Mon-yyyy')
+               end)
           into msg_display
           from dim_der_instrument_master    dim,
                div_der_instrument_valuation div,
@@ -4164,7 +4166,7 @@ create or replace package body pkg_phy_pre_check_process is
              pum_price_unit_master      pum1,
              pum_price_unit_master      pum2
        where /*ppu1.product_id = ppu2.product_id
-                                                                                 and */
+                                                                                             and */
        ppu1.internal_price_unit_id = p_from_price_unit_id
        and ppu2.internal_price_unit_id = p_to_price_unit_id
        and pum1.price_unit_id(+) = ppu1.price_unit_id
@@ -4224,8 +4226,8 @@ create or replace package body pkg_phy_pre_check_process is
          and pcdi.is_active = 'Y'
          and cipq.is_active = 'Y'
          and pcpq.is_active = 'Y'
-            --and ash.is_active = 'Y'
-            --and asm.is_active = 'Y'
+         and ash.is_active = 'Y'
+         and asm.is_active = 'Y'
          and pqca.is_active = 'Y'
          and rm.is_active = 'Y';
     vn_string            varchar2(100);

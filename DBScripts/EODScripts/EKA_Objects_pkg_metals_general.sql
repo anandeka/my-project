@@ -1,5 +1,6 @@
 create or replace package pkg_metals_general is
-  function fn_deduct_wet_to_dry_qty(pc_internal_cont_item_ref_no varchar2,
+  function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
+                                    pc_internal_cont_item_ref_no varchar2,
                                     pn_item_qty                  number,
                                     pc_dbd_id                    varchar)
     return number;
@@ -42,7 +43,8 @@ create or replace package pkg_metals_general is
   procedure sp_get_treatment_charge(pc_inter_cont_item_ref_no varchar2,
                                     pc_element_id             varchar2,
                                     pc_dbd_id                 varchar2,
-                                    pn_qty                    number,
+                                    pn_dry_qty                number,
+                                    pn_wet_qty                number,
                                     pc_qty_unit_id            varchar2,
                                     pn_cp_price               number,
                                     pc_cp_unit_id             varchar2,
@@ -51,10 +53,11 @@ create or replace package pkg_metals_general is
   function fn_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                          pd_trade_date       date)
     return date;
-end;
+end; 
 /
 create or replace package body pkg_metals_general is
-  function fn_deduct_wet_to_dry_qty(pc_internal_cont_item_ref_no varchar2,
+  function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
+                                    pc_internal_cont_item_ref_no varchar2,
                                     pn_item_qty                  number,
                                     pc_dbd_id                    varchar)
     return number is
@@ -93,6 +96,7 @@ create or replace package body pkg_metals_general is
                               and pci.pcpq_id = pcpq.pcpq_id
                               and pci.internal_contract_item_ref_no =
                                   pc_internal_cont_item_ref_no
+                              and ppm.product_id=pc_product_id    
                               and ppm.deduct_for_wet_to_dry = 'Y'
                               and pci.dbd_id = pc_dbd_id
                               and pcdi.dbd_id = pc_dbd_id
@@ -128,6 +132,7 @@ create or replace package body pkg_metals_general is
              pci.item_qty,
              pci.item_qty_unit_id,
              pcpq.unit_of_measure item_unit_of_measure,
+             pcpd.product_id,
              pqca.element_id,
              pcpq.assay_header_id,
              pqca.is_elem_for_pricing,
@@ -144,6 +149,7 @@ create or replace package body pkg_metals_general is
       
         from pci_physical_contract_item  pci,
              pcpq_pc_product_quality     pcpq,
+             pcpd_pc_product_definition  pcpd,
              ash_assay_header            ash,
              asm_assay_sublot_mapping    asm,
              aml_attribute_master_list   aml,
@@ -152,6 +158,7 @@ create or replace package body pkg_metals_general is
       
        where pci.pcpq_id = pcpq.pcpq_id
          and pcpq.assay_header_id = ash.ash_id
+         and pcpq.pcpd_id=pcpd.pcpd_id
          and ash.ash_id = asm.ash_id
          and asm.asm_id = pqca.asm_id
          and pqca.unit_of_measure = rm.ratio_id
@@ -174,7 +181,8 @@ create or replace package body pkg_metals_general is
     for cur_element_rows in cur_element
     loop
       if cur_element_rows.item_unit_of_measure = 'Wet' then
-        vn_deduct_qty := fn_deduct_wet_to_dry_qty(cur_element_rows.internal_contract_item_ref_no,
+        vn_deduct_qty := fn_deduct_wet_to_dry_qty(cur_element_rows.product_id,
+                                                  cur_element_rows.internal_contract_item_ref_no,
                                                   cur_element_rows.item_qty,
                                                   pc_dbd_id);
         vn_item_qty   := cur_element_rows.item_qty - vn_deduct_qty;
@@ -888,7 +896,8 @@ create or replace package body pkg_metals_general is
   procedure sp_get_treatment_charge(pc_inter_cont_item_ref_no varchar2,
                                     pc_element_id             varchar2,
                                     pc_dbd_id                 varchar2,
-                                    pn_qty                    number,
+                                    pn_dry_qty                number,
+                                    pn_wet_qty                number,
                                     pc_qty_unit_id            varchar2,
                                     pn_cp_price               number,
                                     pc_cp_unit_id             varchar2,
@@ -1164,17 +1173,13 @@ create or replace package body pkg_metals_general is
                              vn_treatment_charge);
         if vn_treatment_charge <> 0 then
           --Converting from wet to dry
-          vn_item_qty := pn_qty;
+         -- vn_item_qty := pn_qty;
         
-          /*if vc_weight_type = 'Wet' then
-            vn_item_qty := cc.item_qty;
+          if vc_weight_type = 'Wet' then
+            vn_item_qty := pn_wet_qty;
           else
-            vn_item_qty         := cc.item_qty;
-            vn_total_deduct_qty := fn_deduct_wet_to_dry_qty(pc_inter_cont_item_ref_no,
-                                                           vn_item_qty,
-                                                           pc_dbd_id);
-            vn_item_qty         := vn_item_qty - vn_total_deduct_qty;
-          end if;*/
+            vn_item_qty :=pn_dry_qty;
+          end if;
         end if;
         --For TC , it is calculated on item Qty not on the element Qty
         vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
@@ -1284,5 +1289,5 @@ create or replace package body pkg_metals_general is
     end if;
     return vc_prompt_date;
   end;
-end;
+end; 
 /
