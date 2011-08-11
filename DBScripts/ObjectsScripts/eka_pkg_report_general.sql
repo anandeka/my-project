@@ -33,7 +33,7 @@ create or replace package pkg_report_general is
                                 pc_assay_header_id varchar2,
                                 pn_qty             number,
                                 pc_qty_unit_id     varchar2) return number;
-end; 
+end;
 /
 create or replace package body pkg_report_general is
   function fn_get_item_dry_qty(pc_internal_cont_item_ref_no varchar2,
@@ -47,7 +47,8 @@ create or replace package body pkg_report_general is
     vn_item_qty         := pn_item_qty;
     vn_deduct_qty       := 0;
     vn_deduct_total_qty := 0;
-    for cur_deduct_qty in (select rm.ratio_name,
+    for cur_deduct_qty in (select aml.attribute_id,
+                                  rm.ratio_name,
                                   rm.qty_unit_id_numerator,
                                   rm.qty_unit_id_denominator,
                                   pqca.typical,
@@ -61,7 +62,8 @@ create or replace package body pkg_report_general is
                                   ash_assay_header               ash,
                                   pcdi_pc_delivery_item          pcdi,
                                   pci_physical_contract_item     pci,
-                                  pcpq_pc_product_quality        pcpq
+                                  pcpq_pc_product_quality        pcpq,
+                                  pcpd_pc_product_definition     pcpd
                             where ppm.attribute_id = aml.attribute_id
                               and aml.attribute_id = pqca.element_id
                               and pqca.asm_id = asm.asm_id
@@ -71,10 +73,13 @@ create or replace package body pkg_report_general is
                                   pcdi.internal_contract_ref_no
                               and pcdi.pcdi_id = pci.pcdi_id
                               and pci.pcpq_id = pcpq.pcpq_id
+                              and pcpq.pcpd_id = pcpd.pcpd_id
+                              and ppm.product_id = pcpd.product_id
                               and pci.internal_contract_item_ref_no =
                                   pc_internal_cont_item_ref_no
                               and ppm.deduct_for_wet_to_dry = 'Y')
     loop
+    
       if cur_deduct_qty.ratio_name = '%' then
         vn_deduct_qty := vn_item_qty * (cur_deduct_qty.typical / 100);
       else
@@ -655,5 +660,5 @@ create or replace package body pkg_report_general is
     end loop;
     return(vn_item_qty - vn_deduct_total_qty);
   end;
-end; 
+end;
 /
