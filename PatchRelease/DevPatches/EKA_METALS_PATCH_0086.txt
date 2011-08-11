@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_Patch_0086
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  11-Aug-2011
+
+Bug / Enhancement* 		:  Bug fixes
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Reports/BI
+ 
+Sub-Module  	                :  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.   	:  N/A
+ 
+FS Enhancement details     	:  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+ 
+Revision: 75143
+Author: sivachalabathi.s
+Date: 2:14:48 PM, Thursday, August 11, 2011
+Message:
+bug fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyOpenUnrealizedPhysicalConc.rpt
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/PositionDeliveryPricing.rpt
+
+SQL Files
+-------------
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_report_general.sql	(Revision: 75119)
+-------
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_DIM_PGM_PRODUCT_GROUP.sql		
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_PHYSICAL_POSITION.sql		
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_52_DDL_MV_PHYSICAL_POSITION.sql
