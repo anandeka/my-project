@@ -129,7 +129,7 @@ create or replace package pkg_phy_physical_process is
                                pn_price         out number,
                                pc_price_unit_id out varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_physical_process is
 
@@ -7640,7 +7640,7 @@ create or replace package body pkg_phy_physical_process is
                                               cur_unrealized_rows.element_id,
                                               pc_dbd_id,
                                               cur_unrealized_rows.payable_qty,
-                                              cur_unrealized_rows.qty_unit_id,
+                                              cur_unrealized_rows.payable_qty_unit_id,
                                               cur_unrealized_rows.contract_price,
                                               cur_unrealized_rows.price_unit_id,
                                               vn_con_refine_charge,
@@ -10173,5 +10173,5 @@ create or replace package body pkg_phy_physical_process is
     end if;
   end;
 
-end;
+end; 
 /
