@@ -50,6 +50,19 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_53
 
 
 
+Revision: 75185
+Author: uttam
+Date: 5:06:53 PM, Thursday, August 11, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_57.sql
+
+
+
+
+
+
 
 
 
