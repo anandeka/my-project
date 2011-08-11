@@ -31,11 +31,11 @@ IS
         END) ||'  '||        
          (CASE 
           WHEN pcap.penalty_charge_type = 'Fixed' 
-              THEN pcap.penalty_amount || ' ' ||  pum.price_unit_name ||  ' of ' || pcap.penalty_weight_type || ' weight'
+              THEN  f_format_to_char(pcap.penalty_amount,4) || ' ' ||  pum.price_unit_name ||  ' of ' || pcap.penalty_weight_type || ' weight'
           WHEN pcap.penalty_charge_type = 'Variable'
            THEN CASE 
               WHEN pcap.penalty_basis = 'Quantity'
-                THEN pcap.penalty_amount || ' ' ||  pum.price_unit_name ||  ' of ' || pcap.penalty_weight_type || ' weight per ' || PCAP.PER_INCREASE_VALUE || ' ' ||  RM.RATIO_NAME  || ' increase'
+                THEN  f_format_to_char(pcap.penalty_amount,4) || ' ' ||  pum.price_unit_name ||  ' of ' || pcap.penalty_weight_type || ' weight per ' || PCAP.PER_INCREASE_VALUE || ' ' ||  RM.RATIO_NAME  || ' increase'
               WHEN pcap.penalty_basis = 'Payable Content'
                 THEN 'deduct ' || PCAP.DEDUCTED_PAYABLE_VALUE || DEDUCTED_UNIT.RATIO_NAME || 'of' ||  DEDUCTED_ELEMENT.ATTRIBUTE_NAME || ' per ' || PCAP.PER_INCREASE_VALUE || ' ' ||  RM.RATIO_NAME || ' increase'  
              ELSE
@@ -90,6 +90,5 @@ IS
             end loop;
            
             return  PENALTY_DETAILS;
-    end; 
+    end;
 /
-

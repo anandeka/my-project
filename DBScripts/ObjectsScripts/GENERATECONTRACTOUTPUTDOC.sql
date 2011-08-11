@@ -212,8 +212,8 @@ Insert into COD_CONTRACT_OUTPUT_DETAIL
     select PDM.PRODUCT_DESC || chr(10)||
            (CASE
               WHEN PCPD.QTY_TYPE ='Fixed'
-                 THEN PCPD.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC
-              ELSE PCPD.QTY_MIN_OPERATOR ||' '||  PCPD.QTY_MIN_VAL ||' '||  PCPD.QTY_MAX_OPERATOR ||' '||  PCPD.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC
+                 THEN  f_format_to_char(PCPD.QTY_MAX_VAL,4) || ' '|| QUM.QTY_UNIT_DESC
+              ELSE PCPD.QTY_MIN_OPERATOR ||' '||   f_format_to_char(PCPD.QTY_MIN_VAL,4) ||' '||  PCPD.QTY_MAX_OPERATOR ||' '||   f_format_to_char(PCPD.QTY_MAX_VAL,4) || ' '|| QUM.QTY_UNIT_DESC
               END
           )
            into ProductDef
@@ -475,6 +475,5 @@ Insert into COD_CONTRACT_OUTPUT_DETAIL
     NULL, 'N', 'N', 'N', 'FULL',  'N');
 
 
-END; 
+END;
 /
-

@@ -87,7 +87,7 @@ ORDER BY PCDIPE.PCBPH_ID;
     
     begin
     
-    Select 'Quantity :'||'Min '|| PCDI.QTY_MIN_OPERATOR|| ' '||PCDI.QTY_MIN_VAL ||' Max '|| PCDI.QTY_MAX_OPERATOR ||' '|| PCDI.QTY_MAX_VAL ||' '||QUM.QTY_UNIT_DESC into quantityDetails
+    Select 'Quantity :'||'Min '|| PCDI.QTY_MIN_OPERATOR|| ' '||  f_format_to_char(PCDI.QTY_MIN_VAL,4) ||' Max '|| PCDI.QTY_MAX_OPERATOR ||' '||  f_format_to_char(PCDI.QTY_MAX_VAL,4) ||' '||QUM.QTY_UNIT_DESC into quantityDetails
     From PCDI_PC_DELIVERY_ITEM PCDI ,QUM_QUANTITY_UNIT_MASTER QUM Where PCDI.QTY_UNIT_ID = QUM.QTY_UNIT_ID AND PCDI.PCDI_ID = p_delivery_id;
   
     exception
@@ -135,6 +135,5 @@ ORDER BY PCDIPE.PCBPH_ID;
              
     return deliveryDescription;
             
-    end; 
+    end;
 /
-

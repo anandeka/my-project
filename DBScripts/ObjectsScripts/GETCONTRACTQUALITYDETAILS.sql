@@ -2,12 +2,13 @@ CREATE OR REPLACE FUNCTION GETCONTRACTQUALITYDETAILS (
 p_contractNo VARCHAR2 
 )
 return VARCHAR2 is
+
     cursor cr_quality 
     IS
           Select QAT.QUALITY_NAME ||':'|| (CASE
               WHEN PCPQ.QTY_TYPE ='Fixed'
-                 THEN PCPQ.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC 
-              ELSE PCPQ.QTY_MIN_OP ||' '||  PCPQ.QTY_MIN_VAL ||' '||  PCPQ.QTY_MAX_OP ||' '||  PCPQ.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC 
+                 THEN f_format_to_char(PCPQ.QTY_MAX_VAL,4) || ' '|| QUM.QTY_UNIT_DESC 
+              ELSE PCPQ.QTY_MIN_OP ||' '||  f_format_to_char(PCPQ.QTY_MIN_VAL,4) ||' '||  PCPQ.QTY_MAX_OP ||' '||  f_format_to_char(PCPQ.QTY_MAX_VAL,4) || ' '|| QUM.QTY_UNIT_DESC 
               END
               ) quality_details,ORM.ORIGIN_NAME as origin_name,
          (CASE
@@ -48,6 +49,5 @@ return VARCHAR2 is
            
             end loop;
             return  qualityDescription;
-    end; 
+    end;
 /
-

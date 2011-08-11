@@ -31,14 +31,14 @@ IS
         END) ||'  '||    
         (CASE 
           WHEN pcetc.charge_type = 'Fixed' 
-              THEN pcetc.treatment_charge || ' ' ||  pum.price_unit_name || ' of ' || pcetc.weight_type || ' weight'
+              THEN  f_format_to_char(pcetc.treatment_charge,4) || ' ' ||  pum.price_unit_name || ' of ' || pcetc.weight_type || ' weight'
           WHEN pcetc.charge_type = 'Variable'
            THEN CASE 
               WHEN PCETC.POSITION = 'Base'
-                THEN 'Base : ' || pcetc.treatment_charge || ' ' ||  pum.price_unit_name || ' of ' || pcetc.weight_type || ' weight' 
-              ELSE 'Increase ' || PCETC.ESC_DESC_VALUE || ' ' || CM.CUR_CODE || ' per ' || pcetc.treatment_charge || ' ' ||  pum.price_unit_name
+                THEN 'Base : ' ||  f_format_to_char(pcetc.treatment_charge,4) || ' ' ||  pum.price_unit_name || ' of ' || pcetc.weight_type || ' weight' 
+              ELSE 'Increase ' ||  f_format_to_char(PCETC.ESC_DESC_VALUE,2) || ' ' || CM.CUR_CODE || ' per ' ||  f_format_to_char(pcetc.treatment_charge,4) || ' ' ||  pum.price_unit_name
             END 
-          ELSE pcetc.treatment_charge || ' ' ||  pum.price_unit_name || ' of ' || pcetc.weight_type || ' weight'
+          ELSE  f_format_to_char(pcetc.treatment_charge,4) || ' ' ||  pum.price_unit_name || ' of ' || pcetc.weight_type || ' weight'
         END))  as TC 
   FROM pcth_pc_treatment_header pcth,
        ted_treatment_element_details ted,
@@ -91,6 +91,5 @@ IS
             end loop;
            
             return  TC_DETAILS;
-    end; 
+    end;
 /
-

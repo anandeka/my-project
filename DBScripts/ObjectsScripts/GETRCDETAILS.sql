@@ -30,14 +30,14 @@ IS
         END) ||' '||      
         (CASE 
           WHEN pcerc.charge_type = 'Fixed' 
-              THEN pcerc.REFINING_CHARGE || ' ' ||  pum.price_unit_name || ' of payable content'
+              THEN  f_format_to_char(pcerc.REFINING_CHARGE,4) || ' ' ||  pum.price_unit_name || ' of payable content'
           WHEN pcerc.charge_type = 'Variable'
            THEN CASE 
               WHEN pcerc.POSITION = 'Base'
-                THEN 'Base : ' || pcerc.REFINING_CHARGE || ' ' ||  pum.price_unit_name || ' of payable content' 
-              ELSE 'Increase ' || pcerc.ESC_DESC_VALUE || ' ' || CM.CUR_CODE || ' per ' || pcerc.REFINING_CHARGE || ' ' ||  pum.price_unit_name
+                THEN 'Base : ' ||  f_format_to_char(pcerc.REFINING_CHARGE,4) || ' ' ||  pum.price_unit_name || ' of payable content' 
+              ELSE 'Increase ' ||  f_format_to_char(pcerc.ESC_DESC_VALUE,2) || ' ' || CM.CUR_CODE || ' per ' ||  f_format_to_char(pcerc.REFINING_CHARGE,4) || ' ' ||  pum.price_unit_name
             END 
-          ELSE PCERC.REFINING_CHARGE || ' ' ||  pum.price_unit_name || ' of payable content'
+          ELSE  f_format_to_char(PCERC.REFINING_CHARGE,4) || ' ' ||  pum.price_unit_name || ' of payable content'
         END)) RC
   FROM PCRH_PC_REFINING_HEADER pcrh,
        RED_REFINING_ELEMENT_DETAILS red,
@@ -90,6 +90,5 @@ IS
             end loop;
            
             return  RC_DETAILS;
-    end; 
+    end;
 /
-
