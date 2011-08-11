@@ -25,7 +25,7 @@ create or replace package pkg_metals_general is
   procedure sp_get_penalty_charge(pc_inter_cont_item_ref_no varchar2,
                                   -- pc_element_id             varchar2,
                                   pc_dbd_id          varchar2,
-                                  pn_pc_qty          number,
+                                  pn_penalty_qty     number,
                                   pc_pc_qty_unit_id  varchar2,
                                   pn_total_pc_charge out number,
                                   pc_pc_cur_id       out varchar2);
@@ -53,7 +53,7 @@ create or replace package pkg_metals_general is
   function fn_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                          pd_trade_date       date)
     return date;
-end; 
+end;
 /
 create or replace package body pkg_metals_general is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -96,7 +96,7 @@ create or replace package body pkg_metals_general is
                               and pci.pcpq_id = pcpq.pcpq_id
                               and pci.internal_contract_item_ref_no =
                                   pc_internal_cont_item_ref_no
-                              and ppm.product_id=pc_product_id    
+                              and ppm.product_id = pc_product_id
                               and ppm.deduct_for_wet_to_dry = 'Y'
                               and pci.dbd_id = pc_dbd_id
                               and pcdi.dbd_id = pc_dbd_id
@@ -158,7 +158,7 @@ create or replace package body pkg_metals_general is
       
        where pci.pcpq_id = pcpq.pcpq_id
          and pcpq.assay_header_id = ash.ash_id
-         and pcpq.pcpd_id=pcpd.pcpd_id
+         and pcpq.pcpd_id = pcpd.pcpd_id
          and ash.ash_id = asm.ash_id
          and asm.asm_id = pqca.asm_id
          and pqca.unit_of_measure = rm.ratio_id
@@ -309,7 +309,7 @@ create or replace package body pkg_metals_general is
 
   procedure sp_get_penalty_charge(pc_inter_cont_item_ref_no varchar2,
                                   pc_dbd_id                 varchar2,
-                                  pn_pc_qty                 number,
+                                  pn_penalty_qty            number,
                                   pc_pc_qty_unit_id         varchar2,
                                   pn_total_pc_charge        out number,
                                   pc_pc_cur_id              out varchar2) is
@@ -318,18 +318,18 @@ create or replace package body pkg_metals_general is
     vn_max_range           number;
     vn_min_range           number;
     vn_typical_val         number := 0;
-    vn_penalty_qty         number;
     vn_converted_qty       number;
-    vn_total_pc_charge     number;
+    vn_element_pc_charge   number;
     vn_range_gap           number;
     vn_tier_penalty        number;
     vc_price_unit_id       varchar2(15);
     vc_cur_id              varchar2(15);
   begin
-    vn_penalty_charge  := 0;
-    vn_total_pc_charge := 0;
-    vn_tier_penalty    := 0;
-    pn_total_pc_charge := 0;
+    vn_penalty_charge    := 0;
+    vn_element_pc_charge := 0;
+    vn_tier_penalty      := 0;
+    pn_total_pc_charge   := 0;
+    --Take all the Elements associated with the conttract.
     for cc in (select pci.item_qty,
                       pqca.element_id,
                       pqca.typical,
@@ -381,6 +381,9 @@ create or replace package body pkg_metals_general is
                   and pqca.is_active = 'Y'
                   and pcdi.is_active = 'Y')
     loop
+      vn_element_pc_charge := 0;
+      --Passing each element which is getting  from the outer loop.
+      --and checking ,is it non payable or not.
       for cur_pc_charge in (select pcap.penalty_charge_type,
                                    pcap.penalty_basis,
                                    pcap.penalty_amount,
@@ -431,9 +434,9 @@ create or replace package body pkg_metals_general is
                                and (pcap.range_min_value <= cc.typical or
                                    pcap.position = 'Range Begining'))
       loop
-        vc_price_unit_id   := cur_pc_charge.price_unit_id;
-        vc_cur_id          := cur_pc_charge.cur_id;
-        vn_total_pc_charge := 0;
+        vc_price_unit_id     := cur_pc_charge.price_unit_id;
+        vc_cur_id            := cur_pc_charge.cur_id;
+        vn_element_pc_charge := 0;
         --check the penalty charge type
         if cur_pc_charge.penalty_charge_type = 'Fixed' then
           vc_penalty_weight_type := cur_pc_charge.penalty_weight_type;
@@ -443,11 +446,18 @@ create or replace package body pkg_metals_general is
              cur_pc_charge.position = 'Range Begining') and
              (cur_pc_charge.range_max_value > cc.typical or
              cur_pc_charge.position = 'Range End') then
-            vn_penalty_charge  := cur_pc_charge.penalty_amount;
-            vn_max_range       := cur_pc_charge.range_max_value;
-            vn_min_range       := cur_pc_charge.range_min_value;
-            vn_typical_val     := cc.typical;
-            vn_total_pc_charge := vn_penalty_charge * cc.item_qty;
+          
+            vn_penalty_charge := cur_pc_charge.penalty_amount;
+            vn_max_range      := cur_pc_charge.range_max_value;
+            vn_min_range      := cur_pc_charge.range_min_value;
+            vn_typical_val    := cc.typical;
+          
+            vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
+                                                                     pc_pc_qty_unit_id,
+                                                                     cur_pc_charge.weight_unit_id,
+                                                                     pn_penalty_qty);
+          
+            vn_element_pc_charge := vn_penalty_charge * vn_converted_qty;
           end if;
         elsif cur_pc_charge.penalty_charge_type = 'Variable' then
           if cur_pc_charge.penalty_basis = 'Quantity' and
@@ -515,7 +525,7 @@ create or replace package body pkg_metals_general is
                                    vn_penalty_charge * vn_range_gap;
                 /* dbms_output.put_line(' Variable  Penalty charge for this ' ||
                                      vn_penalty_charge);
-                dbms_output.put_line(' ---------------------------');*/
+                dbms_output.put_line('---------------------------');*/
               --calculate total Penalty charge
               end loop;
             end if;
@@ -524,7 +534,7 @@ create or replace package body pkg_metals_general is
             --find the penalty But for the time being this feature is not applied
             null;
           end if;
-          vn_penalty_qty := pn_pc_qty;
+          --vn_penalty_qty :=  pn_penalty_qty;
           /*if cur_pc_charge.penalty_weight_type = 'Wet' then
             vn_penalty_qty := cc.item_qty;
           elsif cur_pc_charge.penalty_weight_type = 'Dry' then
@@ -537,16 +547,16 @@ create or replace package body pkg_metals_general is
           vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
                                                                    pc_pc_qty_unit_id,
                                                                    cur_pc_charge.weight_unit_id,
-                                                                   vn_penalty_qty);
-          --Here no need of the typical velue as penalty is on item level  
-          vn_total_pc_charge := vn_tier_penalty * vn_converted_qty;
-          dbms_output.put_line('vn_total_pc_charge' || vn_total_pc_charge);
+                                                                   pn_penalty_qty);
+          --Here no need of the typical value as penalty is on item level  
+          vn_element_pc_charge := vn_tier_penalty * vn_converted_qty;
+        /*  dbms_output.put_line('vn_element_pc_charge' ||
+                               vn_element_pc_charge);*/
         end if;
       end loop;
-      pn_total_pc_charge := pn_total_pc_charge + vn_total_pc_charge;
+      pn_total_pc_charge := pn_total_pc_charge + vn_element_pc_charge;
     end loop;
-    /*return vn_total_pc_charge || '$' || vc_price_unit_id || '$' || vc_cur_id;*/
-    -- pn_total_pc_charge := vn_total_pc_charge;
+  
     pc_pc_cur_id := vc_cur_id;
   exception
     when others then
@@ -563,24 +573,21 @@ create or replace package body pkg_metals_general is
                                  pc_cp_unit_id             varchar2,
                                  pn_total_rc_charge        out number,
                                  pc_rc_cur_id              out varchar2) is
-    vn_refine_charge         number;
-    vn_item_qty              number;
-    total_deduct_qty         number;
-    vn_element_qty           number;
-    vc_price_unit_id         varchar2(100);
-    vn_tot_refine_charge     number;
-    vn_converted_qty         number;
-    vn_max_range             number;
-    vn_typical_val           number;
-    vn_contract_price        number;
-    vn_min_range             number;
-    vn_base_refine_charge    number;
-    vn_range_gap             number;
-    vn_each_tier_rc_charge   number;
-    vc_cur_id                varchar2(10);
-    vc_weight_unit_id        varchar2(15);
-    vn_pricable_qty          number;
-    vc_qty_unit_id_numerator varchar2(15);
+    vn_refine_charge       number;
+    vn_item_qty            number;
+    vn_element_qty         number;
+    vc_price_unit_id       varchar2(100);
+    vn_tot_refine_charge   number;
+    vn_max_range           number;
+    vn_typical_val         number;
+    vn_contract_price      number;
+    vn_min_range           number;
+    vn_base_refine_charge  number;
+    vn_range_gap           number;
+    vn_each_tier_rc_charge number;
+    vc_cur_id              varchar2(10);
+    vc_rc_weight_unit_id   varchar2(15);
+    vn_pricable_qty        number;
   begin
     vn_refine_charge  := 0;
     vn_contract_price := 20;
@@ -700,9 +707,9 @@ create or replace package body pkg_metals_general is
                                   and pci.is_active = 'Y'
                                 order by range_min_value)
         loop
-          vc_weight_unit_id := cur_ref_charge.weight_unit_id;
-          vc_cur_id         := cur_ref_charge.cur_id;
-          vc_price_unit_id  := cur_ref_charge.price_unit_id;
+          vc_rc_weight_unit_id := cur_ref_charge.weight_unit_id;
+          vc_cur_id            := cur_ref_charge.cur_id;
+          vc_price_unit_id     := cur_ref_charge.price_unit_id;
           if cur_ref_charge.range_type = 'Price Range' then
             --if the CHARGE_TYPE is fixed then it will
             --behave as the slab as same as the assay range
@@ -795,7 +802,7 @@ create or replace package body pkg_metals_general is
                                               and nvl(pcerc.range_min_value,
                                                       0) < vn_contract_price
                                               and nvl(pcerc.range_min_value,
-                                                      0) < = vn_min_range
+                                                      0) <= vn_min_range
                                               and nvl(pcerc.position, 'a') <>
                                                   'Base'
                                               and pcerc.dbd_id = pc_dbd_id)
@@ -863,7 +870,8 @@ create or replace package body pkg_metals_general is
       --Find ing element quantity  form the concentrate.
       --After that the RC will multiply on that amount.
       --Refine charge is applyed on element wise
-      if cc.ratio_name = '%' then
+    
+      /*if cc.ratio_name = '%' then
         vn_element_qty           := round(vn_item_qty * (cc.typical / 100),
                                           4);
         vc_qty_unit_id_numerator := pc_rc_qty_unit_id;
@@ -874,17 +882,17 @@ create or replace package body pkg_metals_general is
                                                                          vn_item_qty);
         vn_element_qty           := vn_converted_qty * cc.typical;
         vc_qty_unit_id_numerator := cc.qty_unit_id_numerator;
-      end if;
+      end if;*/
+    
       vn_pricable_qty      := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
-                                                                   vc_qty_unit_id_numerator,
-                                                                   vc_weight_unit_id,
-                                                                   vn_element_qty);
+                                                                   pc_rc_qty_unit_id,
+                                                                   vc_rc_weight_unit_id,
+                                                                   vn_item_qty);
       vn_tot_refine_charge := vn_pricable_qty * vn_refine_charge;
       dbms_output.put_line('The refine  quantity is ' || vn_element_qty);
     end loop;
     pn_total_rc_charge := vn_tot_refine_charge;
     pc_rc_cur_id       := vc_cur_id;
-    /*return vn_tot_refine_charge || '$' || vc_price_unit_id || '$' || vc_cur_id;*/
   
   exception
     when others then
@@ -906,7 +914,6 @@ create or replace package body pkg_metals_general is
     vn_treatment_charge    number;
     vn_total_treat_charge  number;
     vn_item_qty            number;
-    vn_total_deduct_qty    number;
     vn_max_range           number;
     vn_min_range           number;
     vn_typical_val         number;
@@ -918,7 +925,7 @@ create or replace package body pkg_metals_general is
     vc_price_unit_id       varchar2(10);
     vc_cur_id              varchar2(10);
     vn_converted_qty       number;
-    vc_weight_unit_id      varchar2(15);
+    vc_rc_weight_unit_id   varchar2(15);
   begin
     vn_contract_price   := pn_cp_price;
     vn_treatment_charge := 0;
@@ -1012,9 +1019,9 @@ create or replace package body pkg_metals_general is
                                    and pcdi.is_active = 'Y'
                                    and pci.is_active = 'Y')
         loop
-          vc_cur_id         := cur_tret_charge.cur_id;
-          vc_price_unit_id  := cur_tret_charge.price_unit_id;
-          vc_weight_unit_id := cur_tret_charge.weight_unit_id;
+          vc_cur_id            := cur_tret_charge.cur_id;
+          vc_price_unit_id     := cur_tret_charge.price_unit_id;
+          vc_rc_weight_unit_id := cur_tret_charge.weight_unit_id;
           if cur_tret_charge.range_type = 'Price Range' then
             --if the CHARGE_TYPE is fixed then it will
             --behave as the slab as same as the assay range
@@ -1108,7 +1115,7 @@ create or replace package body pkg_metals_general is
                                               and nvl(pcetc.range_min_value,
                                                       0) < vn_contract_price
                                               and nvl(pcetc.range_min_value,
-                                                      0) < = vn_min_range
+                                                      0) <= vn_min_range
                                               and nvl(pcetc.position, 'a') <>
                                                   'Base'
                                               and pcetc.dbd_id = pc_dbd_id)
@@ -1173,18 +1180,18 @@ create or replace package body pkg_metals_general is
                              vn_treatment_charge);
         if vn_treatment_charge <> 0 then
           --Converting from wet to dry
-         -- vn_item_qty := pn_qty;
+          -- vn_item_qty := pn_qty;
         
           if vc_weight_type = 'Wet' then
             vn_item_qty := pn_wet_qty;
           else
-            vn_item_qty :=pn_dry_qty;
+            vn_item_qty := pn_dry_qty;
           end if;
         end if;
         --For TC , it is calculated on item Qty not on the element Qty
         vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
                                                                  pc_qty_unit_id,
-                                                                 vc_weight_unit_id,
+                                                                 vc_rc_weight_unit_id,
                                                                  vn_item_qty);
         --Here no need of the typicla value as penalty is on item level   not on the element level                                           
         dbms_output.put_line('The Item  Quantity is   :-- ' ||
@@ -1289,5 +1296,5 @@ create or replace package body pkg_metals_general is
     end if;
     return vc_prompt_date;
   end;
-end; 
+end;
 /
