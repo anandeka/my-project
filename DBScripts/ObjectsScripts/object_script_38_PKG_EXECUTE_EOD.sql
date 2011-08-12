@@ -417,7 +417,11 @@ create or replace package body "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('mv_dm_phy_open', 'C');
     dbms_mview.refresh('mv_dm_phy_stock', 'C');
     dbms_mview.refresh('mv_dm_phy_derivative', 'c');
-    dbms_mview.refresh('mv_fact_phy_inv_valuation', 'c');    
+    dbms_mview.refresh('mv_fact_phy_inv_valuation', 'c');
+    dbms_mview.refresh('mv_fact_bm_phy_open_pnl', 'c');
+    dbms_mview.refresh('mv_fact_bm_phy_stock_pnl', 'c');
+    dbms_mview.refresh('mv_fact_derivative_realized', 'c');
+    dbms_mview.refresh('mv_fact_derivative_unrealized', 'c');    
     commit;
   exception
     when others then
