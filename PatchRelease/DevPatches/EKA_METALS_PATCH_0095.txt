@@ -37,13 +37,15 @@ Dependent patches:		:  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :  Transaction
 ==================================================================
-Revision: 75283
+Revision: 75292
 Author: girishkv
-Date: 5:51:00 PM, Friday, August 12, 2011
+Date: 7:11:57 PM, Friday, August 12, 2011
 Message:
-DGM changes.
+
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_56.sql
+
+
 
 
 
