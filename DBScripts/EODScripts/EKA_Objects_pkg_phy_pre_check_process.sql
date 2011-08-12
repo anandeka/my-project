@@ -1,4 +1,4 @@
-create or replace package pkg_phy_pre_check_process is
+CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
 
   -- Author  : Janna
   -- Created : 1/11/2009 11:50:17 AM
@@ -98,9 +98,10 @@ create or replace package pkg_phy_pre_check_process is
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
-end;
+end; 
+ 
 /
-create or replace package body pkg_phy_pre_check_process is
+CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
 
   procedure sp_pre_check
   --------------------------------------------------------------------------------------------------------------------------
@@ -2937,7 +2938,8 @@ create or replace package body pkg_phy_pre_check_process is
                       akc.base_cur_id,
                       pdm.base_quantity_unit,
                       ppu.internal_price_unit_id,
-                      pum.price_unit_id
+                      pum.price_unit_id,
+                      tmpc.element_id
                  from tmpc_temp_m2m_pre_check tmpc,
                       ak_corporate            akc,
                       pdm_productmaster       pdm,
@@ -2958,12 +2960,15 @@ create or replace package body pkg_phy_pre_check_process is
                          akc.base_cur_id,
                          pdm.base_quantity_unit,
                          ppu.internal_price_unit_id,
-                         pum.price_unit_id)
+                         pum.price_unit_id,tmpc.element_id)
     loop
       update tmpc_temp_m2m_pre_check tmpc
          set tmpc.base_price_unit_id_in_ppu = cc.internal_price_unit_id,
              tmpc.base_price_unit_id_in_pum = cc.price_unit_id
-       where tmpc.product_type = 'CONCENTRATES';
+       where tmpc.product_type = 'CONCENTRATES'
+       and tmpc.corporate_id = cc.corporate_id
+       and tmpc.element_id = cc.element_id
+       and tmpc.product_id = cc.product_id  ;
       commit;
     end loop;
   
@@ -4276,5 +4281,5 @@ create or replace package body pkg_phy_pre_check_process is
          pc_dbd_id);
     end loop;
   end;
-end;
+end; 
 /
