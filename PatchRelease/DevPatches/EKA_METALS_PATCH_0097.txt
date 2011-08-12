@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_Patch_0097
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh
+ 
+Created on*        		:  12-Aug-2011
+
+Bug / Enhancement* 		:  Bug Fixes
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  EOD
+ 
+Sub-Module  			    :  EOD
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+Revision: 75319
+Author: suresh.gottipati
+Date: 12:18:06 AM, Saturday, August 13, 2011
+Message:
+EOD Concentrate open pnl bug fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/006_EOD_DDL_Script.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+
+
+
+
+
+
