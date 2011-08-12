@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_Patch_0098
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  12-Aug-2011
+
+Bug / Enhancement* 		:  Enhancements
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  BI
+ 
+Sub-Module  			    :  BI
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 75325
+Author: sivachalabathi.s
+Date: 1:14:29 AM, Saturday, August 13, 2011
+Message:
+To refresh the BI Materialized views once the eod completed
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_38_PKG_EXECUTE_EOD.sql
