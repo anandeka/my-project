@@ -1,24 +1,25 @@
-drop materialized view MV_CASH_FLOW_REPORT
-/
+drop materialized view MV_CASH_FLOW_REPORT;
 create materialized view MV_CASH_FLOW_REPORT
 refresh force on demand
-start with to_date('11-08-2011 14:48:54', 'dd-mm-yyyy hh24:mi:ss') next SYSDATE+1/1440 
+start with to_date('12-08-2011 21:05:29', 'dd-mm-yyyy hh24:mi:ss') next SYSDATE+1/1440  
 as
 select iss.corporate_id,
        akc.groupid,
-       cpc.profit_center_id,
-       cpc.profit_center_name,
-       cpc.business_line_id,
-       pci.strategy_id strategy_id,
-       pci.strategy_name,
+       nvl(cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
+       nvl(cpc.profit_center_name, cpc1.profit_center_name) profit_center_name,
+       nvl(cpc.business_line_id, cpc1.business_line_id) business_line_id,
+       css.strategy_id,
+       css.strategy_name,
        nvl(pcm.partnership_type, 'Normal') execution_type,
-       pci.product_id,
-       pci.product_name,
+       pdm.product_id,
+       pdm.product_desc product_name,
        pdm.product_type_id,
+       pdm.product_group_id,
+       pgm.product_group_name,
        (case
-         when nvl(pci.contract_type, 'NA') = 'P' then
+         when nvl(pcm.purchase_sales, 'NA') = 'P' then
           'Purchase'
-         when nvl(pci.contract_type, 'NA') = 'S' then
+         when nvl(pcm.purchase_sales, 'NA') = 'S' then
           'Sales'
          else
           'NA'
@@ -65,7 +66,7 @@ select iss.corporate_id,
           ''
        end) invoice_issue_date,
        iss.cp_ref_no,
-       iss.credit_term,
+       pym.payment_term credit_term,
        round(iss.total_amount_to_pay, 4) *
        (case
           when nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
@@ -107,8 +108,14 @@ select iss.corporate_id,
          when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' then
           'Inflow'
          else
+          (case
+         when nvl(pcm.purchase_sales, 'NA') = 'P' then
+          'Outflow'
+         when nvl(pcm.purchase_sales, 'NA') = 'S' then
+          'Inflow'
+         else
           ''
-       end) end) payable_receivable,
+       end) end) end) payable_receivable,
        cm_p.cur_code pay_in_cur_code
   from is_invoice_summary            iss,
        cm_currency_master            cm_p,
@@ -117,30 +124,39 @@ select iss.corporate_id,
        phd_profileheaderdetails      phd,
        ak_corporate                  akc,
        cpc_corporate_profit_center   cpc,
-       v_pci                         pci,
+       cpc_corporate_profit_center   cpc1,
+       pcpd_pc_product_definition    pcpd,
+       css_corporate_strategy_setup  css,
        pdm_productmaster             pdm,
+       pgm_product_group_master      pgm,
        pad_profile_addresses         pad,
        bpat_bp_address_type          bpat,
        cim_citymaster                cim,
-       cym_countrymaster             cym
+       cym_countrymaster             cym,
+       PYM_PAYMENT_TERMS_MASTER      pym
  where iss.is_active = 'Y'
    and iss.corporate_id is not null
    and iss.cp_id = phd.profileid
    and iss.internal_invoice_ref_no = incm.internal_invoice_ref_no(+)
    and incm.internal_contract_ref_no = pcm.internal_contract_ref_no(+)
    and iss.corporate_id = akc.corporate_id
+   and iss.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and iss.profit_center_id = cpc.profit_center_id(+)
-   and iss.internal_contract_ref_no = pci.internal_contract_item_ref_no(+)
-   and pci.product_id = pdm.product_id(+)
+   and pcpd.profit_center_id = cpc1.profit_center_id(+)
+      --   and iss.internal_contract_ref_no = pci.internal_contract_item_ref_no(+)
+   and pcpd.product_id = pdm.product_id(+)
    and iss.cp_id = pad.profile_id
    and pad.address_type = bpat.bp_address_type_id
+   and pdm.product_group_id = pgm.product_group_id
+   and pcpd.strategy_id = css.strategy_id(+)
+   and iss.credit_term = pym.payment_term_id(+)
    and bpat.bp_address_type = 'Main Address'
    and pad.city_id = cim.city_id(+)
    and pad.country_id = cym.country_id(+)
    and iss.invoice_cur_id = cm_p.cur_id(+)
-   and 'TRUE' =
-       (case when iss.invoice_type_name = 'AdvancePayment' then 'TRUE'
+   and nvl(pcm.partnership_type, 'Normal') = 'Normal'
+   and 'TRUE' = (case when iss.invoice_type_name = 'AdvancePayment' then
+        'TRUE' when iss.invoice_type_name = 'Profoma' then 'FALSE'
         else(case when nvl(iss.invoice_type, 'NA') = 'Commercial' then
-             'TRUE' when nvl(iss.invoice_type, 'NA') = 'Service' then 'TRUE' else
-             'FALSE' end) end)
-/
+                      'TRUE' when nvl(iss.invoice_type, 'NA') = 'Service' then
+                      'TRUE' else 'FALSE' end) end)
