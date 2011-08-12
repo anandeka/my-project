@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_Patch_0091
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Baiju K
+ 
+Created on*        		:  12-Aug-2011
+
+Bug / Enhancement* 		:  CRC Setup 
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  CRC
+ 
+Sub-Module  			:  Setup
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 75231
+Author: baijukaimala
+Date: 12:10:39 PM, Friday, August 12, 2011
+Message:
+Fix for Dervative Quote issue for LBMA setup
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_55.sql
+
+
+
