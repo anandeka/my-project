@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_Patch_0092
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  12-Aug-2011
+
+Bug / Enhancement* 		:  EOD
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  EOD
+ 
+Sub-Module  			:  EOD
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+Revision: 75233
+Author: sivachalabathi.s
+Date: 12:16:46 PM, Friday, August 12, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_view_v_drm_multiple_prompt.sql
