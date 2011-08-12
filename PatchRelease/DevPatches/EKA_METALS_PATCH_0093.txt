@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_Patch_0093
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  12-Aug-2011
+
+Bug / Enhancement* 		:  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Logistics
+ 
+Sub-Module  			:  Document
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 75235
+Author: babulal.meena
+Date: 1:01:07 PM, Friday, August 12, 2011
+Message:
+Db patch to increase the column size for Document tables
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_58.sql
