@@ -123,7 +123,7 @@ ORDER BY PCDIPE.PCBPH_ID;
             
     end;
        
-    deliveryDescription:= deliveryItem||chr(10)||quotaPeriod||chr(10)|| qualityDetails || chr(10)||quantityDetails||incotermDetails||Optionality||chr(10)||pricingDetails;
+    deliveryDescription:= deliveryItem||chr(10)||quotaPeriod||chr(10)|| qualityDetails || chr(10)||quantityDetails||incotermDetails||' '||Optionality||chr(10)||pricingDetails;
     
     if (QPDeclarationDate is not null) then
          deliveryDescription :=deliveryDescription||chr(10)||'QP declaration Date:'||QPDeclarationDate;

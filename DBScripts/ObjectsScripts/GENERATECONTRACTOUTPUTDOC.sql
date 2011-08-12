@@ -25,7 +25,7 @@ CREATE OR REPLACE procedure generateContractOutputDoc (
       pcdi_count number(10) :=1;
       deliveryScheduleComments VARCHAR2(4000) :='';
       paymentDetails VARCHAR2(4000) :='';
-
+      paymentText VARCHAR2(4000) :='';
       taxes VARCHAR2(4000) :='';
       insuranceTerms VARCHAR2(4000) :='';
       otherTerms VARCHAR2(4000) :='';
@@ -397,6 +397,26 @@ Insert into COD_CONTRACT_OUTPUT_DETAIL
         NULL, 'N', 'N', 'N', 'FULL',  'N');
 
     end if;
+
+    begin
+        select PCM.PAYMENT_TEXT into paymentText from PCM_PHYSICAL_CONTRACT_MAIN PCM
+        Where PCM.INTERNAL_CONTRACT_REF_NO = p_contractNo;
+    exception
+        when no_data_found then
+        paymentText := '';
+    end;
+
+   display_order:=display_order+1;
+
+  Insert into COD_CONTRACT_OUTPUT_DETAIL
+   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
+    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
+    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
+    IS_CHANGED)
+ Values
+   (docId, display_order, NULL, 'Payment Text', 'Payment Text',
+    'Y', NULL, NULL, paymentText, NULL,
+    NULL, 'N', 'N', 'N', 'FULL',  'N');
 
 
    begin
