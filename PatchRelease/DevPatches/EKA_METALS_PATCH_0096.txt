@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_Patch_0096
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  12-Aug-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Report
+ 
+Sub-Module  			    :  Report
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 75288
+Author: sivachalabathi.s
+Date: 6:52:50 PM, Friday, August 12, 2011
+Message:
+price exposure base metals
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/DDL_HOLIDAY_LIST_VIEWS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/DDL_phy_price_exposure_gmr_views.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/DML_Report_MenuScript.sql
+
+
+RPT Files:
+---------------------
+Revision: 75290
+Author: sivachalabathi.s
+Date: 6:54:28 PM, Friday, August 12, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/Reports/PriceExposureReport.rpt
+
+
+
+
+
+
