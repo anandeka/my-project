@@ -66,4 +66,146 @@ Insert into GM_GRID_MASTER
 
     ]', NULL, '/private/jsp/risk/fea/TradeSet/ListofTradeSets.jsp', '/energyCRC/private/js/risk/fea/TradeSet/listofTradeSets.js');
 
+SET DEFINE OFF;
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('LOTS-OP', 'LOTS', 'Operations', 1, 1, 
+    NULL, 'function(){}', NULL, NULL, NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('LOTS-DL', 'LOTS', 'Delete Trade Set', 3, 2, 
+    NULL, 'function(){deleteTradeSet();}', NULL, 'LOTS-OP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('LOTS-VT', 'LOTS', 'View Trades', 1, 2, 
+    NULL, 'function(){callViewTrades();}', NULL, 'LOTS-OP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('LOTS-UP', 'LOTS', 'Refresh Trade Set', 2, 2, 
+    NULL, 'function(){updateTradeSet();}', NULL, 'LOTS-OP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+    (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+Values
+    ('CPLOP', 'LOCPL', 'Operations', 1, 1, 
+    NULL, 'function(){}', NULL, NULL, NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('CPL-MOD', 'LOCPL', 'Modify CP Risk Limit', 2, 2, 
+    NULL, 'function(){modifyLimit();}', NULL, 'CPLOP', NULL);
+
+ 
+ Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('CPLvsAct', 'LOCPL', 'Monitor Set Limit Vs Actual Limit', 4, 2, 
+    NULL, 'function(){compareLimit();}', NULL, 'CPLOP', NULL);
+
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('CPL-CRE', 'LOCPL', 'Create CP Risk Limit', 1, 2, 
+    NULL, 'function(){CreateLimit();}', NULL, 'CPLOP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('CPL-DEL', 'LOCPL', 'Delete CP Risk Limit', 3, 2, 
+    NULL, 'function(){deleteLimit();}', NULL, 'CPLOP', NULL);
+    
+   Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('TRDLOP', 'LOTRDL', 'Operations', 1, 1, 
+    NULL, 'function(){}', NULL, NULL, NULL);
+
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('TRDLvsAct', 'LOTRDL', 'Monitor Set Limit Vs Actual Limit', 4, 2, 
+    NULL, 'function(){compareLimit();}', NULL, 'TRDLOP', NULL);
+    
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('CYLOP', 'LOCYL', 'Operations', 1, 1, 
+    NULL, 'function(){}', NULL, NULL, NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('CYL-CRE', 'LOCYL', 'Create Country Risk Limit', 1, 2, 
+    NULL, 'function(){CreateLimit();}', NULL, 'CYLOP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('CYL-DEL', 'LOCYL', 'Delete Country Risk Limit', 3, 2, 
+    NULL, 'function(){deleteLimit();}', NULL, 'CYLOP', NULL);
+
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('TRDL-CRE', 'LOTRDL', 'Create Trader Risk Limit', 1, 2, 
+    NULL, 'function(){CreateLimit();}', NULL, 'TRDLOP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('TRDL-DEL', 'LOTRDL', 'Delete Trader Risk Limit', 3, 2, 
+    NULL, 'function(){deleteLimit();}', NULL, 'TRDLOP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('CYL-MOD', 'LOCYL', 'Modify Country Risk Limit', 2, 2, 
+    NULL, 'function(){modifyLimit();}', NULL, 'CYLOP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('TRDL-MOD', 'LOTRDL', 'Modify Trader Risk Limit', 2, 2, 
+    NULL, 'function(){modifyLimit();}', NULL, 'TRDLOP', NULL);
+SET DEFINE OFF;
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('BRKLOP', 'LOBRKL', 'Operations', 1, 1, 
+    NULL, 'function(){}', NULL, NULL, NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('BRKL-CRE', 'LOBRKL', 'Create Broker Risk Limit', 1, 2, 
+    NULL, 'function(){CreateLimit();}', NULL, 'BRKLOP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('BRKL-DEL', 'LOBRKL', 'Delete Broker Risk Limit', 3, 2, 
+    NULL, 'function(){deleteLimit();}', NULL, 'BRKLOP', NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('BRKL-MOD', 'LOBRKL', 'Modify Broker Risk Limit', 2, 2, 
+    NULL, 'function(){modifyLimit();}', NULL, 'BRKLOP', NULL);
+
 commit;
