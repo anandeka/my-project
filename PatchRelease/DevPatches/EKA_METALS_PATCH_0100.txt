@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_Patch_0099
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Baiju
+ 
+Created on*        		:  13-Aug-2011
+
+Bug / Enhancement* 		:  Enhancements
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Risk
+ 
+Sub-Module  			    :  Risk
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 75334
+Author: baijukaimala
+Date: 9:18:23 PM, Saturday, August 13, 2011
+Message:
+Patch For CRC
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_57.sql
+
+
