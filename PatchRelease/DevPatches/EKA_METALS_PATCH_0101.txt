@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_Patch_0101
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  13-Aug-2011
+
+Bug / Enhancement* 		:  Bug fixes
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  DOC/Reports
+ 
+Sub-Module  			    :  DOC/Reports
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  RPT Files
+==================================================================
+Revision: 75341
+Author: sivachalabathi.s
+Date: 2:54:15 PM, Sunday, August 14, 2011
+Message:
+updated as per the comments from amith/jinen
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/PriceExposureReport.rpt
