@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_Patch_0102
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  15-Aug-2011
+
+Bug / Enhancement* 		:  Bug fixes
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  EOD/Reports
+ 
+Sub-Module  			    :  EOD/Reports
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD/RPT Files
+==================================================================
+Revision: 75343
+Author: sivachalabathi.s
+Date: 7:02:42 AM, Monday, August 15, 2011
+Message:
+LOC DIFF AMT Calculated using item wet qty, instead of dry qty
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
+--------
+
+Revision: 75345
+Author: sivachalabathi.s
+Date: 7:05:48 AM, Monday, August 15, 2011
+Message:
+LOC DIFF AMT Calculated using item wet qty, instead of dry qty,
+Item contract/m2m value columns updated
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyOpenUnrealizedPhysicalConc.rpt
