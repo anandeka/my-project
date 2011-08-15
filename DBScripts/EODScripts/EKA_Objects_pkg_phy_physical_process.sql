@@ -7391,6 +7391,8 @@ create or replace package body pkg_phy_physical_process is
              qum_gcd.qty_unit qty_unit_gcd,
              qum_pdm.qty_unit_id as base_qty_unit_id,
              qum_pdm.qty_unit as base_qty_unit,
+             qum_pdm_conc.qty_unit_id as conc_base_qty_unit_id,
+             qum_pdm_conc.qty_unit as conc_base_qty_unit,
              pcpd.strategy_id,
              css.strategy_name,
              cipde.element_id,
@@ -7451,7 +7453,8 @@ create or replace package body pkg_phy_physical_process is
              dense_rank() over(partition by pci.internal_contract_item_ref_no order by cipde.element_id) ele_rank,
              md.base_price_unit_id_in_ppu,
              md.base_price_unit_id_in_pum,
-             pum_base_price_id.price_unit_name base_price_unit_name
+             pum_base_price_id.price_unit_name base_price_unit_name,
+             pum_loc_base.weight_unit_id loc_qty_unit_id
         from pcm_physical_contract_main pcm,
              ak_corporate akc,
              pcdi_pc_delivery_item pcdi,
@@ -7482,8 +7485,11 @@ create or replace package body pkg_phy_physical_process is
              cm_currency_master cm_gcd,
              qum_quantity_unit_master qum_gcd,
              qum_quantity_unit_master qum_pdm,
+             pdm_productmaster pdm_conc,
+             qum_quantity_unit_master qum_pdm_conc,
              css_corporate_strategy_setup css,
              pum_price_unit_master pum_base_price_id,
+             pum_price_unit_master pum_loc_base,
              cipde_cipd_element_price cipde,
              (select md1.*
                 from md_m2m_daily md1
@@ -7529,6 +7535,8 @@ create or replace package body pkg_phy_physical_process is
          and gcd.group_cur_id = cm_gcd.cur_id(+)
          and gcd.group_qty_unit_id = qum_gcd.qty_unit_id(+)
          and qum_pdm.qty_unit_id = pdm.base_quantity_unit
+         and pcpd.product_id = pdm_conc.product_id
+         and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
          and pcpd.strategy_id = css.strategy_id
          and pci.internal_contract_item_ref_no =
              cipde.internal_contract_item_ref_no
@@ -7561,6 +7569,7 @@ create or replace package body pkg_phy_physical_process is
          and qat_und.is_active = 'Y'
          and qat_und.is_deleted = 'N'
          and md.base_price_unit_id_in_pum = pum_base_price_id.price_unit_id
+         and md.base_price_unit_id_in_pum = pum_loc_base.price_unit_id
          and pcm.process_id = pc_process_id
          and pcdi.process_id = pc_process_id
          and pci.process_id = pc_process_id
@@ -7626,6 +7635,8 @@ create or replace package body pkg_phy_physical_process is
     vn_dry_qty_in_base             number;
     vn_ele_m2m_treatment_charge    number;
     vn_ele_m2m_refine_charge       number;
+    vn_loc_amount                  number;
+    vn_loc_total_amount            number;
   
   begin
     for cur_unrealized_rows in cur_unrealized
@@ -7643,7 +7654,7 @@ create or replace package body pkg_phy_physical_process is
     
       vn_wet_qty := cur_unrealized_rows.item_qty;
     
-      -- convert into dry qty to base qty
+      -- convert into dry qty to base qty element level
     
       vn_dry_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_unrealized_rows.conc_product_id,
                                                                        cur_unrealized_rows.qty_unit_id,
@@ -7706,7 +7717,7 @@ create or replace package body pkg_phy_physical_process is
     
       vn_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_unrealized_rows.conc_product_id,
                                                                    cur_unrealized_rows.qty_unit_id,
-                                                                   cur_unrealized_rows.base_qty_unit_id,
+                                                                   cur_unrealized_rows.conc_base_qty_unit_id,
                                                                    1) *
                               vn_wet_qty,
                               8);
@@ -7764,6 +7775,15 @@ create or replace package body pkg_phy_physical_process is
                                      vn_dry_qty_in_base;
       vn_ele_m2m_refine_charge    := cur_unrealized_rows.m2m_refining_charge *
                                      vn_ele_qty_in_base;
+    
+      vn_loc_amount := round(pkg_general.f_get_converted_quantity(cur_unrealized_rows.conc_product_id,
+                                                                  cur_unrealized_rows.loc_qty_unit_id,
+                                                                  cur_unrealized_rows.conc_base_qty_unit_id,
+                                                                  1) *
+                             cur_unrealized_rows.m2m_loc_incoterm_deviation,
+                             8);
+    
+      vn_loc_total_amount := vn_loc_amount * vn_qty_in_base;
     
       /* vn_ele_m2m_premium_amt       := (cur_unrealized_rows.m2m_treatment_charge*vn_dry_qty_in_base) +
                                       (cur_unrealized_rows.m2m_refining_charge*vn_ele_qty_in_base);
@@ -8157,7 +8177,7 @@ create or replace package body pkg_phy_physical_process is
            cur_unrealized_rows.del_distribution_item_no,
            vn_base_con_penality_charge,
            cur_unrealized_rows.m2m_penalty_charge,
-           cur_unrealized_rows.m2m_loc_incoterm_deviation);
+           vn_loc_total_amount);
       end if;
     
     end loop;
@@ -8212,7 +8232,7 @@ create or replace package body pkg_phy_physical_process is
              poue.net_m2m_refining_charge        = cur_update_pnl.net_m2m_refining_charge,
              -- poue.expected_cog_net_sale_value    = round(cur_update_pnl.expected_cog_net_sale_value, 3),
              /*poue.unrealized_pnl_in_base_cur     = round(cur_update_pnl.unrealized_pnl_in_base_cur,
-                                                                                                                                                                              3),*/
+                                                                                                                                                                                                                     3),*/
              poue.contract_price_string     = cur_update_pnl.contract_price_string,
              poue.m2m_price_string          = cur_update_pnl.m2m_price_string,
              poue.contract_rc_tc_pen_string = cur_update_pnl.contract_rc_tc_pen_string,
