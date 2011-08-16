@@ -1,0 +1,2 @@
+update GMC_GRID_MENU_CONFIGURATION gmc set GMC.MENU_DISPLAY_NAME='Attach Collateral'
+where GMC.GRID_ID='LODI' and GMC.MENU_ID='LODI_1_4';
