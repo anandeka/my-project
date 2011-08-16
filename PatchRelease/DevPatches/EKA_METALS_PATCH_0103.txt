@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_Patch_0103
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam
+ 
+Created on*        		:  16-Aug-2011
+
+Bug / Enhancement* 		:  New feature
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Attach Collateral
+ 
+Sub-Module  			    :  Attach Collateral
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction ) : 
+==================================================================
+Revision: 75352
+Author: uttam
+Date: 12:05:27 PM, Tuesday, August 16, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_59.sql
+
+
