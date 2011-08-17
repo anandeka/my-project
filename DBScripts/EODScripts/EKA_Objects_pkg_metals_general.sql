@@ -1,4 +1,4 @@
-create or replace package pkg_metals_general is
+CREATE OR REPLACE PACKAGE "PKG_METALS_GENERAL" is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
                                     pc_internal_cont_item_ref_no varchar2,
                                     pn_item_qty                  number,
@@ -53,9 +53,10 @@ create or replace package pkg_metals_general is
   function fn_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                          pd_trade_date       date)
     return date;
-end;
+end; 
+ 
 /
-create or replace package body pkg_metals_general is
+CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
                                     pc_internal_cont_item_ref_no varchar2,
                                     pn_item_qty                  number,
@@ -382,6 +383,7 @@ create or replace package body pkg_metals_general is
                   and pcdi.is_active = 'Y')
     loop
       vn_element_pc_charge := 0;
+      vn_tier_penalty      := 0;
       --Passing each element which is getting  from the outer loop.
       --and checking ,is it non payable or not.
       for cur_pc_charge in (select pcap.penalty_charge_type,
@@ -522,7 +524,8 @@ create or replace package body pkg_metals_general is
                                        vn_penalty_charge;
                 end if;
                 vn_tier_penalty := vn_tier_penalty +
-                                   vn_penalty_charge * vn_range_gap;
+                                   vn_penalty_charge ;
+                                   /** vn_range_gap;*/
                 /* dbms_output.put_line(' Variable  Penalty charge for this ' ||
                                      vn_penalty_charge);
                 dbms_output.put_line('---------------------------');*/
@@ -1296,5 +1299,5 @@ create or replace package body pkg_metals_general is
     end if;
     return vc_prompt_date;
   end;
-end;
+end; 
 /
