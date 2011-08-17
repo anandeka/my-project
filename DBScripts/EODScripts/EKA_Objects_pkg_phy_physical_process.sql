@@ -6000,7 +6000,7 @@ create or replace package body pkg_phy_physical_process is
         end if;
       end loop;
       -- updating penalty  charge  to the md table 
-      for cc_penalty in (select tmpc.corporate_id,
+      /*for cc_penalty in (select tmpc.corporate_id,
                                 tmpc.conc_product_id,
                                 tmpc.conc_quality_id,
                                 pdm.product_desc,
@@ -6087,7 +6087,7 @@ create or replace package body pkg_phy_physical_process is
              and md.process_id = pc_process_id;
         end if;
       
-      end loop;
+      end loop;*/
       /** End of updatin the Treatment Charge,Refine Charge and  Penalty Charge of the MD table ***/
       vc_err_msg := 'line 2819';
       --Updating exg_id,settlement_price,settlement price avl date of the md table
@@ -7454,7 +7454,10 @@ create or replace package body pkg_phy_physical_process is
              md.base_price_unit_id_in_ppu,
              md.base_price_unit_id_in_pum,
              pum_base_price_id.price_unit_name base_price_unit_name,
-             pum_loc_base.weight_unit_id loc_qty_unit_id
+             pum_loc_base.weight_unit_id loc_qty_unit_id,
+             tmpc.mvp_id,
+             tmpc.shipment_month,
+             tmpc.shipment_year
         from pcm_physical_contract_main pcm,
              ak_corporate akc,
              pcdi_pc_delivery_item pcdi,
@@ -7637,6 +7640,9 @@ create or replace package body pkg_phy_physical_process is
     vn_ele_m2m_refine_charge       number;
     vn_loc_amount                  number;
     vn_loc_total_amount            number;
+    vn_penality                    number;
+    vc_penality_price_unit_id      varchar2(20);
+    vn_total_penality              number;
   
   begin
     for cur_unrealized_rows in cur_unrealized
@@ -7784,6 +7790,53 @@ create or replace package body pkg_phy_physical_process is
                              8);
     
       vn_loc_total_amount := vn_loc_amount * vn_qty_in_base;
+     vn_total_penality := 0;
+      if cur_unrealized_rows.ele_rank = 1 then
+        vn_total_penality := 0;
+        for cc in (select pci.internal_contract_item_ref_no,
+                          pqca.element_id,
+                          pcpq.quality_template_id
+                     from pci_physical_contract_item  pci,
+                          pcpq_pc_product_quality     pcpq,
+                          ash_assay_header            ash,
+                          asm_assay_sublot_mapping    asm,
+                          pqca_pq_chemical_attributes pqca
+                    where pci.pcpq_id = pcpq.pcpq_id
+                      and pcpq.assay_header_id = ash.ash_id
+                      and ash.ash_id = asm.ash_id
+                      and asm.asm_id = pqca.asm_id
+                      and pci.process_id = pc_process_id
+                      and pcpq.process_id = pc_process_id
+                      and pci.is_active = 'Y'
+                      and pcpq.is_active = 'Y'
+                      and ash.is_active = 'Y'
+                      and asm.is_active = 'Y'
+                      and pqca.is_active = 'Y'
+                      and pqca.is_elem_for_pricing = 'N'
+                      and pqca.is_deductible = 'N'
+                      and pci.internal_contract_item_ref_no =
+                          cur_unrealized_rows.internal_contract_item_ref_no)
+        loop
+        
+          pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cur_unrealized_rows.corporate_id,
+                                                                pd_trade_date,
+                                                                cur_unrealized_rows.conc_product_id,
+                                                                cur_unrealized_rows.conc_quality_id,
+                                                                cur_unrealized_rows.mvp_id,
+                                                                'Penalties',
+                                                                cc.element_id,
+                                                                cur_unrealized_rows.shipment_month,
+                                                                cur_unrealized_rows.shipment_year,
+                                                                vn_penality,
+                                                                vc_penality_price_unit_id);
+          if nvl(vn_penality,0) <> 0 then
+            vn_total_penality := vn_total_penality +
+                                 (vn_penality * vn_dry_qty_in_base);
+          end if;
+        
+        end loop;
+      
+      end if;
     
       /* vn_ele_m2m_premium_amt       := (cur_unrealized_rows.m2m_treatment_charge*vn_dry_qty_in_base) +
                                       (cur_unrealized_rows.m2m_refining_charge*vn_ele_qty_in_base);
@@ -8176,7 +8229,7 @@ create or replace package body pkg_phy_physical_process is
            cur_unrealized_rows.strategy_name,
            cur_unrealized_rows.del_distribution_item_no,
            vn_base_con_penality_charge,
-           cur_unrealized_rows.m2m_penalty_charge,
+           vn_total_penality,
            vn_loc_total_amount);
       end if;
     
@@ -8210,10 +8263,10 @@ create or replace package body pkg_phy_physical_process is
                                          poude.base_cur_code) contract_rc_tc_pen_string,
                                   stragg('TC:' || poude.element_name || '-' ||
                                          poude.m2m_treatment_charge || ' ' ||
-                                         poude.base_price_unit_name || ' ' ||
-                                         'RC:' || poude.element_name || '-' ||
+                                         poude.base_cur_code || ' ' || 'RC:' ||
+                                         poude.element_name || '-' ||
                                          poude.m2m_refining_charge || ' ' ||
-                                         poude.base_price_unit_name) m2m_rc_tc_pen_string
+                                         poude.base_cur_code) m2m_rc_tc_pen_string
                              from poued_element_details poude
                             where poude.corporate_id = pc_corporate_id
                               and poude.process_id = pc_process_id
@@ -8232,7 +8285,7 @@ create or replace package body pkg_phy_physical_process is
              poue.net_m2m_refining_charge        = cur_update_pnl.net_m2m_refining_charge,
              -- poue.expected_cog_net_sale_value    = round(cur_update_pnl.expected_cog_net_sale_value, 3),
              /*poue.unrealized_pnl_in_base_cur     = round(cur_update_pnl.unrealized_pnl_in_base_cur,
-                                                                                                                                                                                                                     3),*/
+                                                                                                                                                                                                                                               3),*/
              poue.contract_price_string     = cur_update_pnl.contract_price_string,
              poue.m2m_price_string          = cur_update_pnl.m2m_price_string,
              poue.contract_rc_tc_pen_string = cur_update_pnl.contract_rc_tc_pen_string,

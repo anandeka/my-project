@@ -3482,6 +3482,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                         pc_calendar_year        varchar2,
                                         pn_charge_amt           out number,
                                         pc_charge_price_unit_id out varchar2) is
+   vc_price_unit_id varchar2(15); 
+   vn_penality_charge number;                                    
   begin
     if pc_charge_type in ('Treatment Charges', 'Refining Charges') then
       select t.charge_value,
@@ -3506,6 +3508,26 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
        where t.td_rank = 1;
     elsif pc_charge_type = 'Penalties' then
       -- pn_charge_amt := 10;
+      
+ begin
+ 
+   select ppu.product_price_unit_id
+     into vc_price_unit_id
+     from v_ppu_pum         ppu,
+          pdm_productmaster pdm,
+          ak_corporate      akc
+    where ppu.product_id = pc_conc_product_id
+      and ppu.product_id = pdm.product_id
+      and pdm.base_quantity_unit = ppu.weight_unit_id
+      and ppu.cur_id = akc.base_cur_id
+      and akc.corporate_id = pc_corporate_id;
+ 
+ exception
+   when no_data_found then
+     vc_price_unit_id := null;
+ end;
+      
+       
       select t.charge_value,
              t.charge_unit_id
         into pn_charge_amt,
@@ -3526,6 +3548,18 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                  and mdcbm.calendar_year = pc_calendar_year
                  and mdcd.charge_type = pc_charge_type) t
        where t.td_rank = 1;
+    
+    if pn_charge_amt<>0 and pc_charge_price_unit_id is not null and vc_price_unit_id is not null then   
+    vn_penality_charge:= pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+                                                     pn_charge_amt,
+                                                     pc_charge_price_unit_id,
+                                                     vc_price_unit_id,
+                                                     pd_trade_date);
+    else
+     vn_penality_charge:=0;                                                                                                   
+    end if;
+    pn_charge_amt:=vn_penality_charge;
+    pc_charge_price_unit_id:= vc_price_unit_id;
     end if;
   exception
     when no_data_found then
@@ -3533,8 +3567,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
       pc_charge_price_unit_id := null;
     when others then
       dbms_output.put_line(sqlerrm);
-      pn_charge_amt           := -2;
-      pc_charge_price_unit_id := '3';
+      pn_charge_amt           := 0;
+      pc_charge_price_unit_id := null;
   end;
 
   procedure sp_calc_m2m_product_premimum(pc_corporate_id          varchar2,
