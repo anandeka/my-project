@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_Patch_0105
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  17-Aug-2011
+
+Bug / Enhancement* 		:  EOD
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  EOD
+ 
+Sub-Module  			    :  EOD
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction ) : EOD
+==================================================================
+Revision: 75382
+Author: sivachalabathi.s
+Date: 11:11:17 AM, Wednesday, August 17, 2011
+Message:
+contract penality calculation
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+
