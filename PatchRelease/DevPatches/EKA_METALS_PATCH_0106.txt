@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_Patch_0105
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  17-Aug-2011
+
+Bug / Enhancement* 		:  REPORT
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  REPORT
+ 
+Sub-Module  			    :  REPORT
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction ) : REPORT
+==================================================================
+Revision: 75422
+Author: suresh.gottipati
+Date: 6:00:41 PM, Wednesday, August 17, 2011
+Message:
+Contract value is wrong 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyOpenUnrealizedPhysicalConc.rpt
+
+
