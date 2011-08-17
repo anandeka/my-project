@@ -46,3 +46,11 @@ Contract value is wrong
 Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyOpenUnrealizedPhysicalConc.rpt
 
 
+Revision: 75426
+Author: sivachalabathi.s
+Date: 6:34:19 PM, Wednesday, August 17, 2011
+Message:
+Current date filter modified
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/PositionDeliveryPricing.rpt
+
