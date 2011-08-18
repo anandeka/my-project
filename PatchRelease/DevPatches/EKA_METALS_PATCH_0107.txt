@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_Patch_0107
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  18-Aug-2011
+
+Bug / Enhancement* 		:  BI
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  BI
+ 
+Sub-Module  			    :  BI
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction ) : Transaction
+==================================================================
+Revision: 75479
+Author: sivachalabathi.s
+Date: 8:48:36 PM, Thursday, August 18, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_BM_PHY_OPEN_PNL.sql
+
