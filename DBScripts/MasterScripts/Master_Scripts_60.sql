@@ -1,0 +1,1 @@
+update AMC_APP_MENU_CONFIGURATION set LINK_CALLED='' where MENU_ID='F2';
