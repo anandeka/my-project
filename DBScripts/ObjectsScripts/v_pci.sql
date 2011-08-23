@@ -1,8 +1,104 @@
-DROP VIEW V_PCI
-/
+DROP VIEW V_PCI;
 
-/* Formatted on 2011/08/09 19:39 (Formatter Plus v4.8.8) */
-CREATE OR REPLACE VIEW v_pci 
+/* Formatted on 2011/08/23 15:46 (Formatter Plus v4.8.8) */
+CREATE OR REPLACE FORCE VIEW v_pci (internal_contract_item_ref_no,
+                                    internal_contract_ref_no,
+                                    contract_ref_no,
+                                    item_no,
+                                    contract_item_ref_no,
+                                    contract_type,
+                                    partnership_type,
+                                    corporate_id,
+                                    corporate_name,
+                                    cp_id,
+                                    cp_name,
+                                    cp_person_in_charge_id,
+                                    cp_contract_ref_no,
+                                    our_person_in_charge_id,
+                                    issue_date,
+                                    trade_type,
+                                    item_status,
+                                    is_active,
+                                    invoice_currency_id,
+                                    invoice_currency,
+                                    product_id,
+                                    product_name,
+                                    product_specs,
+                                    quality_id,
+                                    quality_name,
+                                    origin_name,
+                                    phy_attribute_group_no,
+                                    assay_header_id,
+                                    customs_id,
+                                    duty_status_id,
+                                    tax_status_id,
+                                    delivery_period_type,
+                                    delivery_from_date,
+                                    delivery_to_date,
+                                    delivery_from_month,
+                                    delivery_from_year,
+                                    delivery_to_month,
+                                    delivery_to_year,
+                                    pcpq_id,
+                                    pcdi_id,
+                                    pcdb_id,
+                                    inco_term_id,
+                                    incoterm,
+                                    warehouse_id,
+                                    warehouse_shed_id,
+                                    valuation_country_id,
+                                    valuation_state_id,
+                                    valuation_city_id,
+                                    valuation_country,
+                                    valuation_state,
+                                    valuation_city,
+                                    payment_term_id,
+                                    payment_term,
+                                    terms,
+                                    origination_city_id,
+                                    origination_state_id,
+                                    origination_country_id,
+                                    destination_city_id,
+                                    destination_state_id,
+                                    destination_country_id,
+                                    pricing,
+                                    item_qty,
+                                    item_qty_unit_id,
+                                    item_qty_unit,
+                                    qty_basis,
+                                    open_qty,
+                                    gmr_qty,
+                                    shipped_qty,
+                                    warehouse_qty,
+                                    title_transferred_qty,
+                                    alloc_qty,
+                                    unallocated_qty,
+                                    fulfilled_qty,
+                                    prov_invoiced_qty,
+                                    final_invoiced_qty,
+                                    fulfillment_status,
+                                    allocation_status,
+                                    delivery_item_ref_no,
+                                    quota_month,
+                                    LOCATION,
+                                    incoterm_location,
+                                    qp_period,
+                                    profit_center_id,
+                                    profit_center_name,
+                                    tolerance_type,
+                                    tolerance_min,
+                                    tolerance_max,
+                                    tolerance_unit_id,
+                                    min_tolerance_item_qty,
+                                    max_tolerance_item_qty,
+                                    strategy_name,
+                                    trader,
+                                    basis_type,
+                                    is_tolling_contract,
+                                    middle_no,
+                                    del_distribution_item_no,
+                                    del_item_price_call_off_status
+                                   )
 AS
    SELECT pci.internal_contract_item_ref_no AS internal_contract_item_ref_no,
           pcm.internal_contract_ref_no AS internal_contract_ref_no,
@@ -14,7 +110,6 @@ AS
            || ' '
            || pci.del_distribution_item_no
           ) contract_item_ref_no,
-	  pcpd.strategy_id,
           CAST (pcm.purchase_sales AS VARCHAR2 (1)) AS contract_type,
           pcm.partnership_type partnership_type,
           pcm.corporate_id AS corporate_id,
@@ -31,7 +126,7 @@ AS
           cm.cur_code invoice_currency, pcpd.product_id AS product_id,
           pdm.product_desc AS product_name, qat.long_desc product_specs,
           pcpq.quality_template_id AS quality_id,
-          qat.quality_name AS quality_name,orm.origin_name AS origin_name,
+          qat.quality_name AS quality_name, orm.origin_name AS origin_name,
           pcpq.phy_attribute_group_no AS phy_attribute_group_no,
           pcpq.assay_header_id AS assay_header_id, pcdb.customs customs_id,
           pcdb.duty_status duty_status_id, pcdb.tax_status tax_status_id,
@@ -115,7 +210,8 @@ AS
           ) max_tolerance_item_qty,
           css.strategy_name, (gab.firstname || ' ' || gab.lastname
                              ) AS trader, pcdi.basis_type,
-          pcm.is_tolling_contract
+          pcm.is_tolling_contract, pcm.middle_no,
+          pci.del_distribution_item_no, pcdi.price_option_call_off_status
      FROM pci_physical_contract_item pci,
           pcm_physical_contract_main pcm,
           pcdb_pc_delivery_basis pcdb,
@@ -160,8 +256,8 @@ AS
       AND pcpq.pcpq_id = pci.pcpq_id
       AND pcpd.pcpd_id = pcpq.pcpd_id
       AND qat.quality_id = pcpq.quality_template_id
-     AND  qat.product_origin_id = pom.product_origin_id(+)
-     AND  pom.origin_id = orm.origin_id(+) 
+      AND qat.product_origin_id = pom.product_origin_id(+)
+      AND pom.origin_id = orm.origin_id(+)
       AND pdm.product_id = pcpd.product_id
       AND qum.qty_unit_id = pci.item_qty_unit_id
       AND cpc.profit_center_id = pcpd.profit_center_id
@@ -170,6 +266,6 @@ AS
       AND pcm.trader_id = aku.user_id
       AND aku.gabid = gab.gabid
       AND pci.is_active = 'Y'
-      AND (pci.is_called_off = 'Y' OR pcdi.is_phy_optionality_present = 'N')
-/
+      AND pcm.contract_status = 'In Position'
+      AND (pci.is_called_off = 'Y' OR pcdi.is_phy_optionality_present = 'N');
 
