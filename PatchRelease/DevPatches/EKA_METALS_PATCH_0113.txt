@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_Patch_0113
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  22-Aug-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*       :  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Physical Contract
+ 
+Sub-Module  	        :  Quality 
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 75707
+Author: sriveenam
+Date: 11:13:40 AM, Wednesday, August 24, 2011
+Message:
+stategy id added
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
+
+
+
+
+
+
+
+
+
+
+
