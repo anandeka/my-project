@@ -1,0 +1,8 @@
+Insert into CDC_CORPORATE_DOC_CONFIG
+   (DOC_TEMPLATE_ID, CORPORATE_ID, DOC_ID, DOC_TEMPLATE_NAME, DOC_TEMPLATE_NAME_DE, 
+    DOC_TEMPLATE_NAME_ES, DOC_PRINT_NAME, DOC_PRINT_NAME_DE, DOC_PRINT_NAME_ES, DOC_RPT_FILE_NAME, 
+    IS_ACTIVE, DOC_AUTO_GENERATE)
+ Values
+   ('56', '&corpId', 'weightNote', 'Purchase Weight Note Document', NULL, 
+    NULL, 'DOC', NULL, NULL, 'WeighNote_Purchase.rpt', 
+    'Y', 'Y');
