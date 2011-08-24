@@ -760,7 +760,7 @@ SELECT '''',
        pci.incoterm incoterm,
        pci.internal_contract_item_ref_no internalcontractitemrefno,
        
-       ?,
+      ?,
        gmr.internal_gmr_ref_no internalgmrrefno,
        '''',
        TO_CHAR(sad.bl_date, 'dd-Mon-yyyy') issue_date,
@@ -792,7 +792,7 @@ SELECT '''',
        vd.voyage_number voyagenumber,
        vd.shippers_ref_no shipperrefno,
        cim_trans.city_name transport,
-       vd.eta etadestinationport,
+       TO_CHAR(vd.eta, 'dd-Mon-yyyy') etadestinationport,
        vd.shippers_instructions shippersinstructions,
        vd.carriers_agents_endorsements carrieragentsendorsements,
        vd.voyage_ref_no,
@@ -924,4 +924,4 @@ SELECT '''',
    AND gmr.corporate_id = akc.corporate_id
    AND agmr.is_deleted = 'N'
   and agmr.gmr_latest_action_action_id in ('airAdvice','shipmentAdvise','truckAdvice','railAdvice')
-  AND gmr.internal_gmr_ref_no = ?
+ AND gmr.internal_gmr_ref_no = ?
