@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_Patch_0115
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  24-Aug-2011
+
+Bug / Enhancement* 		:  Enhancement/bug fixes
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD/Reports
+ 
+Sub-Module  			 :  EOD 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+
+Revision: 75726
+Author: sivachalabathi.s
+Date: 2:48:50 PM, Wednesday, August 24, 2011
+Message:
+concentrates inventory pnl report & bug fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/007_EOD_DDL_Script.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/008_MV_EOD_DDL_Script.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
