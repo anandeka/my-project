@@ -1,11 +1,12 @@
 DROP VIEW V_PCI;
 
-/* Formatted on 2011/08/23 15:46 (Formatter Plus v4.8.8) */
+/* Formatted on 2011/08/24 11:12 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE FORCE VIEW v_pci (internal_contract_item_ref_no,
                                     internal_contract_ref_no,
                                     contract_ref_no,
                                     item_no,
                                     contract_item_ref_no,
+                                    strategy_id,
                                     contract_type,
                                     partnership_type,
                                     corporate_id,
@@ -110,6 +111,7 @@ AS
            || ' '
            || pci.del_distribution_item_no
           ) contract_item_ref_no,
+           pcpd.strategy_id,
           CAST (pcm.purchase_sales AS VARCHAR2 (1)) AS contract_type,
           pcm.partnership_type partnership_type,
           pcm.corporate_id AS corporate_id,
