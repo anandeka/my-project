@@ -532,8 +532,7 @@ create or replace package body pkg_phy_transfer_data is
       dbms_mview.refresh('MDCD_M2M_DED_CHARGE_DETAILS', 'c');
       dbms_mview.refresh('MDCBM_DED_CHARGES_BY_MONTH', 'c');
       dbms_mview.refresh('MNM_MONTH_NAME_MASTER', 'c');
-      
-    
+       dbms_mview.refresh('spq_stock_payable_qty', 'c');
     end if;
   exception
     when others then

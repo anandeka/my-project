@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
+create or replace package pkg_phy_pre_check_process is
 
   -- Author  : Janna
   -- Created : 1/11/2009 11:50:17 AM
@@ -100,7 +100,7 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_user_id      varchar2);
 end; 
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
+create or replace package body pkg_phy_pre_check_process is
 
   procedure sp_pre_check
   --------------------------------------------------------------------------------------------------------------------------
@@ -1425,13 +1425,18 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                              null m2m_inco_term
                         from grd_goods_record_detail     grd,
                              gmr_goods_movement_record   gmr,
-                             sld_storage_location_detail shm
+                             sld_storage_location_detail shm,
+                             pdm_productmaster           pdm,
+                             pdtm_product_type_master    pdtm
                        where grd.internal_gmr_ref_no =
                              gmr.internal_gmr_ref_no
                          and gmr.is_internal_movement = 'Y'
                          and grd.dbd_id = pc_dbd_id
                          and gmr.dbd_id = pc_dbd_id
                          and gmr.corporate_id = pc_corporate_id
+                         and grd.product_id=pdm.product_id
+                         and pdm.product_type_id=pdtm.product_type_id
+                         and pdtm.product_type_name='Standard'
                          and gmr.shed_id = shm.storage_loc_id(+)
                          and grd.status = 'Active'
                          and grd.is_deleted = 'N'
@@ -2380,308 +2385,354 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
           and pcpq.dbd_id = pc_dbd_id
           and pcm.contract_status <> 'Cancelled');
     vc_error_loc := 4;
-    /*insert into tmpc_temp_m2m_pre_check
-    (corporate_id,
-     product_id,
-     quality_id,
-     mvp_id,
-     mvpl_id,
-     valuation_region,
-     valuation_point,
-     valuation_incoterm_id,
-     valuation_city_id,
-     valuation_basis,
-     reference_incoterm,
-     refernce_location,
-     pcdi_id,
-     internal_contract_item_ref_no,
-     contract_ref_no,
-     internal_gmr_ref_no,
-     internal_grd_ref_no,
-     section_name,
-     value_type,
-     derivative_def_id,
-     instrument_id,
-     m2m_price_unit_id,
-     shipment_month,
-     shipment_year,
-     shipment_date,
-     internal_m2m_id)
-    select m2m.corporate_id,
-           m2m.product_id,
-           m2m.quality_id,
-           m2m.mvp_id,
-           m2m.mvpl_id,
-           m2m.valuation_region,
-           m2m.valuation_point,
-           m2m.valuation_incoterm_id,
-           m2m.valuation_city_id,
-           m2m.valuation_basis,
-           m2m.reference_incoterm,
-           m2m.refernce_location,
-           m2m.pcdi_id,
-           m2m.internal_contract_item_ref_no,
-           m2m. contract_ref_no,
-           m2m.internal_gmr_ref_no,
-           m2m.internal_grd_ref_no,
-           m2m.section_name,
-           m2m.value_type,
-           m2m.derivative_def_id,
-           m2m.instrument_id,
-           m2m.valuation_price_unit_id,
-           m2m.shipment_month,
-           m2m.shipment_year,
-           m2m.shipment_date,
-           null internal_m2m_id
-      from (select temp.corporate_id,
-                   temp.product_id,
-                   temp.quality_id,
-                   mv_qat.eval_basis value_type,
-                   mvp.mvp_id,
-                   mvpl.mvpl_id,
-                   mvp.valuation_region,
-                   mvp.valuation_point,
-                   case
-                     when temp.section_name in ('Stock NTT', 'Stock TT') then
-                      nvl(mvp.in_store_incoterm_id, temp.m2m_inco_term)
-                     else
-                      nvl(mvp.in_transit_incoterm_id, temp.m2m_inco_term)
-                   end valuation_incoterm_id,
-                   --temp.m2m_inco_term valuation_incoterm_id,
-                   temp.city_id valuation_city_id,
-                   mvp.valuation_basis,
-                   mvp.valuation_incoterm_id reference_incoterm,
-                   mvp.benchmark_city_id refernce_location,
-                   temp.pcdi_id,
-                   mv_qat.instrument_id,
-                   mv_qat.derivative_def_id,
-                   temp.internal_contract_item_ref_no,
-                   temp.contract_ref_no,
-                   temp.internal_gmr_ref_no,
-                   temp.internal_grd_ref_no,
-                   temp.section_name,
-                   vdip.price_unit_id valuation_price_unit_id, -- from view
-                   to_char(pd_trade_date, 'Mon') shipment_month,
-                   to_char(pd_trade_date, 'yyyy') shipment_year,
-                   pd_trade_date shipment_date
-              from (select case
-                             when nvl(grd.is_afloat, 'N') = 'Y' and
-                                  nvl(grd.inventory_status, 'NA') in
-                                  ('In', 'None', 'NA') then
-                              'Shipped NTT'
-                             when nvl(grd.is_afloat, 'N') = 'Y' and
-                                  nvl(grd.inventory_status, 'NA') = 'Out' then
-                              'Shipped TT'
-                             when nvl(grd.is_afloat, 'N') = 'N' and
-                                  nvl(grd.inventory_status, 'NA') in
-                                  ('In', 'None', 'NA') then
-                              'Stock NTT'
-                             when nvl(grd.is_afloat, 'N') = 'N' and
-                                  nvl(grd.inventory_status, 'NA') = 'Out' then
-                              'Stock TT'
-                             else
-                              'Others'
-                           end section_name,
-                           pcm.corporate_id,
-                           pci.internal_contract_item_ref_no,
-                           pcm.internal_contract_ref_no,
-                           gmr.internal_gmr_ref_no,
-                           grd.internal_grd_ref_no,
-                           pcm.contract_type,
-                           pcm.contract_ref_no,
-                           pcdi.pcdi_id,
-                           case
-                             when grd.is_afloat = 'Y' then
-                              nvl(gmr.destination_city_id,
-                                  gmr.discharge_city_id)
-                             else
-                              shm.city_id
-                           end city_id,
-                           grd.product_id,
-                           grd.quality_id quality_id,
-                           pci.m2m_inco_term
-                      from grd_goods_record_detail     grd,
-                           gmr_goods_movement_record   gmr,
-                           pci_physical_contract_item  pci,
-                           pcm_physical_contract_main  pcm,
-                           pcdi_pc_delivery_item       pcdi,
-                           sld_storage_location_detail shm
-                     where grd.internal_gmr_ref_no =
-                           gmr.internal_gmr_ref_no
-                       and grd.internal_contract_item_ref_no =
-                           pci.internal_contract_item_ref_no
-                       and pci.pcdi_id = pcdi.pcdi_id
-                       and pcdi.internal_contract_ref_no =
-                           pcm.internal_contract_ref_no
-                       and grd.shed_id = shm.storage_loc_id(+)
-                       and grd.dbd_id = pc_dbd_id
-                       and gmr.dbd_id = pc_dbd_id
-                       and pci.dbd_id = pc_dbd_id
-                       and pci.dbd_id = pc_dbd_id
-                       and pcm.dbd_id = pc_dbd_id
-                       and pcdi.dbd_id = pc_dbd_id
-                       and gmr.corporate_id = pc_corporate_id
-                       and grd.status = 'Active'
-                       and grd.is_deleted = 'N'
-                       and gmr.is_deleted = 'N'
-                       and pci.is_active = 'Y'
-                       and pcm.is_active = 'Y'
-                       and pcdi.is_active = 'Y'
-                          --      and shm.is_deleted = 'N'
-                          --   and shm.is_active = 'Y'
-                       and nvl(grd.inventory_status, 'NA') <> 'Out'
-                       and pcm.purchase_sales = 'P'
-                    union all
-                    select case
-                             when nvl(gmr.inventory_status, 'NA') =
-                                  'Under CMA' then
-                              'UnderCMA NTT'
-                             when nvl(dgrd.is_afloat, 'N') = 'Y' and
-                                  nvl(dgrd.inventory_status, 'NA') in
-                                  ('In', 'None', 'NA') then
-                              'Shipped NTT'
-                             when nvl(dgrd.is_afloat, 'N') = 'Y' and
-                                  nvl(dgrd.inventory_status, 'NA') = 'Out' then
-                              'Shipped TT'
-                             when nvl(dgrd.is_afloat, 'N') = 'N' and
-                                  nvl(dgrd.inventory_status, 'NA') in
-                                  ('In', 'None', 'NA') then
-                              'Stock NTT'
-                             when nvl(dgrd.is_afloat, 'N') = 'N' and
-                                  nvl(dgrd.inventory_status, 'NA') = 'Out' then
-                              'Stock TT'
-                             else
-                              'Others'
-                           end section_name,
-                           pcm.corporate_id,
-                           pci.internal_contract_item_ref_no,
-                           pcm.internal_contract_ref_no,
-                           gmr.internal_gmr_ref_no,
-                           dgrd.internal_dgrd_ref_no internal_grd_ref_no,
-                           pcm.contract_type,
-                           pcm.contract_ref_no,
-                           pcdi.pcdi_id,
-                           case
-                             when nvl(dgrd.stock_status, 'N') =
-                                  'For Invoicing' then
-                              nvl(gmr.destination_city_id,
-                                  gmr.discharge_city_id)
-                             else
-                              case
-                             when nvl(dgrd.is_afloat, 'N') = 'N' then
-                              shm.city_id
-                           end end city_id,
-                           dgrd.product_id,
-                           dgrd.quality_id,
-                           pci.m2m_inco_term
-                      from gmr_goods_movement_record   gmr,
-                           pci_physical_contract_item  pci,
-                           pcm_physical_contract_main  pcm,
-                           pcdi_pc_delivery_item       pcdi,
-                           gsm_gmr_stauts_master       gsm,
-                           agh_alloc_group_header      agh,
-                           sld_storage_location_detail shm,
-                           dgrd_delivered_grd          dgrd
-                     where gmr.internal_contract_ref_no =
-                           pcm.internal_contract_ref_no(+)
-                       and pcm.internal_contract_ref_no =
-                           pcdi.internal_contract_ref_no
-                       and agh.int_sales_contract_item_ref_no =
-                           pci.internal_contract_item_ref_no
-                       and agh.int_alloc_group_id = dgrd.int_alloc_group_id
-                       and dgrd.shed_id = shm.storage_loc_id(+)
-                       and pcm.purchase_sales = 'S'
-                       and gsm.is_required_for_m2m = 'Y'
-                       and gmr.dbd_id = pc_dbd_id
-                       and pci.dbd_id = pc_dbd_id
-                       and pci.dbd_id = pc_dbd_id
-                       and pcm.dbd_id = pc_dbd_id
-                       and dgrd.dbd_id = pc_dbd_id
-                       and pcdi.dbd_id = pc_dbd_id
-                       and gmr.corporate_id = pc_corporate_id
-                       and gmr.status_id = gsm.status_id
-                       and agh.is_deleted = 'N'
-                       and gmr.is_deleted = 'N'
-                       and pci.is_active = 'Y'
-                       and pcm.is_active = 'Y'
-                       and pcdi.is_active = 'Y'
-                          --  and shm.is_active = 'Y'
-                          --  and shm.is_deleted = 'N'
-                       and upper(agh.realized_status) in
-                           ('UNREALIZED', 'UNDERCMA', 'REVERSEREALIZED',
-                            'REVERSEUNDERCMA')
-                       and dgrd.status = 'Active'
-                       and dgrd.net_weight > 0
-                    union all -- Internal movement
-                    select case
-                             when nvl(grd.is_afloat, 'N') = 'Y' and
-                                  nvl(grd.inventory_status, 'NA') in
-                                  ('In', 'None', 'NA') then
-                              'Shipped NTT'
-                             when nvl(grd.is_afloat, 'N') = 'Y' and
-                                  nvl(grd.inventory_status, 'NA') = 'Out' then
-                              'Shipped TT'
-                             when nvl(grd.is_afloat, 'N') = 'N' and
-                                  nvl(grd.inventory_status, 'NA') in
-                                  ('In', 'None', 'NA') then
-                              'Stock NTT'
-                             when nvl(grd.is_afloat, 'N') = 'N' and
-                                  nvl(grd.inventory_status, 'NA') = 'Out' then
-                              'Stock TT'
-                             else
-                              'Others'
-                           end section_name,
-                           gmr.corporate_id,
-                           null internal_contract_item_ref_no,
-                           null internal_contract_ref_no,
-                           gmr.internal_gmr_ref_no,
-                           grd.internal_grd_ref_no,
-                           null contract_type,
-                           null contract_ref_no,
-                           null pcdi_id,
-                           case
-                             when grd.is_afloat = 'Y' then
-                              nvl(gmr.destination_city_id,
-                                  gmr.discharge_city_id)
-                             else
-                              shm.city_id
-                           end city_id,
-                           grd.product_id,
-                           grd.quality_id quality_id,
-                           null m2m_inco_term
-                    
-                      from grd_goods_record_detail     grd,
-                           gmr_goods_movement_record   gmr,
-                           sld_storage_location_detail shm
-                    
-                     where grd.internal_gmr_ref_no =
-                           gmr.internal_gmr_ref_no
-                       and grd.internal_contract_item_ref_no is null
-                       and grd.dbd_id = pc_dbd_id
-                       and gmr.dbd_id = pc_dbd_id
-                       and gmr.corporate_id = pc_corporate_id
-                       and gmr.shed_id = shm.storage_loc_id(+)
-                       and grd.status = 'Active'
-                       and grd.is_deleted = 'N'
-                       and gmr.is_deleted = 'N'
-                       and nvl(grd.inventory_status, 'NA') <> 'Out') temp,
-                   mv_qat_quality_valuation mv_qat,
-                   mvp_m2m_valuation_point mvp,
-                   mvpl_m2m_valuation_point_loc mvpl,
-                   v_der_instrument_price_unit vdip
-             where temp.corporate_id = mv_qat.corporate_id
-               and temp.quality_id = mv_qat.quality_id
-               and mv_qat.instrument_id = vdip.instrument_id
-               and temp.corporate_id = mvp.corporate_id
-               and temp.product_id = mvp.product_id
-               and mvp.mvp_id = mvpl.mvp_id
-               and mvpl.loc_city_id = temp.city_id) m2m;*/
-    --End of insert into tmpc for Stock Concentrate
+    --Insert into tmpc for inventory Concentrate
+    insert into tmpc_temp_m2m_pre_check
+      (corporate_id,
+       product_type,
+       conc_product_id,
+       conc_quality_id,
+       product_id,
+       quality_id,
+       element_id,
+       element_name,
+       assay_header_id,
+       mvp_id,
+       mvpl_id,
+       valuation_region,
+       valuation_point,
+       valuation_incoterm_id,
+       valuation_city_id,
+       valuation_basis,
+       reference_incoterm,
+       refernce_location,
+       pcdi_id,
+       internal_contract_item_ref_no,
+       contract_ref_no,
+       internal_gmr_ref_no,
+       internal_grd_ref_no,
+       section_name,
+       value_type,
+       derivative_def_id,
+       instrument_id,
+       m2m_price_unit_id,
+       shipment_month,
+       shipment_year,
+       shipment_date,
+       internal_m2m_id)
+      select m2m.corporate_id,
+             m2m.product_group_type,
+             m2m.product_id conc_product_id,
+             m2m.quality_id conc_quality_id,
+             m2m.element_product_id,
+             m2m.element_quality_id,
+             m2m.attribute_id,
+             m2m.attribute_name,
+             m2m.assay_header_id,
+             m2m.mvp_id,
+             m2m.mvpl_id,
+             m2m.valuation_region,
+             m2m.valuation_point,
+             m2m.valuation_incoterm_id,
+             m2m.valuation_city_id,
+             m2m.valuation_basis,
+             m2m.reference_incoterm,
+             m2m.refernce_location,
+             m2m.pcdi_id,
+             m2m.internal_contract_item_ref_no,
+             m2m. contract_ref_no,
+             m2m.internal_gmr_ref_no,
+             m2m.internal_grd_ref_no,
+             m2m.section_name,
+             m2m.value_type,
+             m2m.derivative_def_id,
+             m2m.instrument_id,
+             m2m.valuation_price_unit_id,
+             m2m.shipment_month,
+             m2m.shipment_year,
+             m2m.shipment_date,
+             null internal_m2m_id
+        from (select temp.corporate_id,
+                     temp.product_group_type,
+                     mv_qat.product_id element_product_id,
+                     mv_qat.quality_id element_quality_id,
+                     temp.product_id,
+                     temp.quality_id,
+                     aml.attribute_id,
+                     aml.attribute_name,
+                     temp.assay_header_id,
+                     mv_qat.eval_basis value_type,
+                     mvp.mvp_id,
+                     mvpl.mvpl_id,
+                     mvp.valuation_region,
+                     mvp.valuation_point,
+                     case
+                       when temp.section_name in ('Stock NTT', 'Stock TT') then
+                        nvl(mvp.in_store_incoterm_id, temp.m2m_inco_term)
+                       else
+                        nvl(mvp.in_transit_incoterm_id, temp.m2m_inco_term)
+                     end valuation_incoterm_id,
+                     temp.city_id valuation_city_id,
+                     mvp.valuation_basis,
+                     mvp.valuation_incoterm_id reference_incoterm,
+                     mvp.benchmark_city_id refernce_location,
+                     temp.pcdi_id,
+                     mv_qat.instrument_id,
+                     mv_qat.derivative_def_id,
+                     temp.internal_contract_item_ref_no,
+                     temp.contract_ref_no,
+                     temp.internal_gmr_ref_no,
+                     temp.internal_grd_ref_no,
+                     temp.section_name,
+                     vdip.price_unit_id valuation_price_unit_id, -- from view
+                     to_char(sysdate, 'Mon') shipment_month,
+                     to_char(sysdate, 'yyyy') shipment_year,
+                     pd_trade_date shipment_date
+                from (select case
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Shipped NTT'
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Shipped TT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Stock NTT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Stock TT'
+                               else
+                                'Others'
+                             end section_name,
+                             pcm.product_group_type,
+                             pcm.issue_date,
+                             pcm.corporate_id,
+                             pci.internal_contract_item_ref_no,
+                             pcm.internal_contract_ref_no,
+                             gmr.internal_gmr_ref_no,
+                             grd.internal_grd_ref_no,
+                             pcm.contract_type,
+                             pcm.contract_ref_no,
+                             pcdi.pcdi_id,
+                             case
+                               when grd.is_afloat = 'Y' then
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                               else
+                                shm.city_id
+                             end city_id,
+                             grd.product_id,
+                             pcpq.assay_header_id,
+                             grd.quality_id quality_id,
+                             pci.m2m_inco_term
+                        from grd_goods_record_detail     grd,
+                             gmr_goods_movement_record   gmr,
+                             pci_physical_contract_item  pci,
+                             pcm_physical_contract_main  pcm,
+                             pcdi_pc_delivery_item       pcdi,
+                             sld_storage_location_detail shm,
+                             pcpq_pc_product_quality     pcpq
+                       where grd.internal_gmr_ref_no =
+                             gmr.internal_gmr_ref_no
+                         and grd.internal_contract_item_ref_no =
+                             pci.internal_contract_item_ref_no
+                         and pci.pcdi_id = pcdi.pcdi_id
+                         and pcpq.pcpq_id = pci.pcpq_id
+                         and pcdi.internal_contract_ref_no =
+                             pcm.internal_contract_ref_no
+                         and grd.shed_id = shm.storage_loc_id(+)
+                         and grd.dbd_id = pc_dbd_id
+                         and gmr.dbd_id = pc_dbd_id
+                         and pci.dbd_id = pc_dbd_id
+                         and pci.dbd_id = pc_dbd_id
+                         and pcm.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
+                         and pcpq.dbd_id = pc_dbd_id
+                         and gmr.corporate_id = pc_corporate_id
+                         and grd.status = 'Active'
+                         and grd.is_deleted = 'N'
+                         and gmr.is_deleted = 'N'
+                         and pci.is_active = 'Y'
+                         and pcm.is_active = 'Y'
+                         and pcdi.is_active = 'Y'
+                         and pcpq.is_active = 'Y'
+                         and nvl(grd.inventory_status, 'NA') <> 'Out'
+                         and pcm.purchase_sales = 'P'
+                         and pcm.contract_type = 'CONCENTRATES'
+                         and gmr.is_internal_movement = 'N'
+                      union all
+                      select case
+                               when nvl(gmr.inventory_status, 'NA') =
+                                    'Under CMA' then
+                                'UnderCMA NTT'
+                               when nvl(dgrd.is_afloat, 'N') = 'Y' and
+                                    nvl(dgrd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Shipped NTT'
+                               when nvl(dgrd.is_afloat, 'N') = 'Y' and
+                                    nvl(dgrd.inventory_status, 'NA') = 'Out' then
+                                'Shipped TT'
+                               when nvl(dgrd.is_afloat, 'N') = 'N' and
+                                    nvl(dgrd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Stock NTT'
+                               when nvl(dgrd.is_afloat, 'N') = 'N' and
+                                    nvl(dgrd.inventory_status, 'NA') = 'Out' then
+                                'Stock TT'
+                               else
+                                'Others'
+                             end section_name,
+                             pcm.product_group_type,
+                             pcm.issue_date,
+                             pcm.corporate_id,
+                             pci.internal_contract_item_ref_no,
+                             pcm.internal_contract_ref_no,
+                             gmr.internal_gmr_ref_no,
+                             dgrd.internal_dgrd_ref_no internal_grd_ref_no,
+                             pcm.contract_type,
+                             pcm.contract_ref_no,
+                             pcdi.pcdi_id,
+                             case
+                               when nvl(dgrd.stock_status, 'N') =
+                                    'For Invoicing' then
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                               else
+                                case
+                               when nvl(dgrd.is_afloat, 'N') = 'N' then
+                                shm.city_id
+                             end end city_id,
+                             dgrd.product_id,
+                             pcpq.assay_header_id,
+                             dgrd.quality_id,
+                             pci.m2m_inco_term
+                        from gmr_goods_movement_record   gmr,
+                             pci_physical_contract_item  pci,
+                             pcm_physical_contract_main  pcm,
+                             pcdi_pc_delivery_item       pcdi,
+                             gsm_gmr_stauts_master       gsm,
+                             agh_alloc_group_header      agh,
+                             sld_storage_location_detail shm,
+                             dgrd_delivered_grd          dgrd,
+                             pcpq_pc_product_quality     pcpq
+                       where gmr.internal_contract_ref_no =
+                             pcm.internal_contract_ref_no(+)
+                         and pcm.internal_contract_ref_no =
+                             pcdi.internal_contract_ref_no
+                         and pcdi.pcdi_id = pci.pcdi_id
+                         and agh.int_sales_contract_item_ref_no =
+                             pci.internal_contract_item_ref_no
+                         and pcpq.pcpq_id = pci.pcpq_id
+                         and agh.int_alloc_group_id = dgrd.int_alloc_group_id
+                         and dgrd.shed_id = shm.storage_loc_id(+)
+                         and pcm.purchase_sales = 'S'
+                         and pcm.contract_type = 'CONCENTRATES'
+                         and gsm.is_required_for_m2m = 'Y'
+                         and gmr.dbd_id = pc_dbd_id
+                         and pci.dbd_id = pc_dbd_id
+                         and pci.dbd_id = pc_dbd_id
+                         and pcm.dbd_id = pc_dbd_id
+                         and dgrd.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
+                         and pcpq.dbd_id = pc_dbd_id
+                         and agh.dbd_id = pc_dbd_id
+                         and gmr.corporate_id = pc_corporate_id
+                         and gmr.status_id = gsm.status_id
+                         and agh.is_deleted = 'N'
+                         and gmr.is_deleted = 'N'
+                         and pci.is_active = 'Y'
+                         and pcm.is_active = 'Y'
+                         and pcdi.is_active = 'Y'
+                         and upper(agh.realized_status) in
+                             ('UNREALIZED', 'UNDERCMA', 'REVERSEREALIZED',
+                              'REVERSEUNDERCMA')
+                         and dgrd.status = 'Active'
+                         and dgrd.net_weight > 0
+                         and gmr.is_internal_movement = 'N'
+                      union all -- Internal movement
+                      select case
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Shipped NTT'
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Shipped TT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Stock NTT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Stock TT'
+                               else
+                                'Others'
+                             end section_name,
+                             null product_group_type,
+                             null issue_date,
+                             gmr.corporate_id,
+                             null internal_contract_item_ref_no,
+                             null internal_contract_ref_no,
+                             gmr.internal_gmr_ref_no,
+                             grd.internal_grd_ref_no,
+                             null contract_type,
+                             null contract_ref_no,
+                             null pcdi_id,
+                             case
+                               when grd.is_afloat = 'Y' then
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                               else
+                                shm.city_id
+                             end city_id,
+                             grd.product_id,
+                             null assay_header_id,
+                             grd.quality_id quality_id,
+                             null m2m_inco_term
+                        from grd_goods_record_detail     grd,
+                             gmr_goods_movement_record   gmr,
+                             sld_storage_location_detail shm,
+                             pdm_productmaster           pdm,
+                             pdtm_product_type_master    pdtm
+                       where grd.internal_gmr_ref_no =
+                             gmr.internal_gmr_ref_no
+                         and gmr.is_internal_movement = 'Y'
+                         and grd.dbd_id = pc_dbd_id
+                         and gmr.dbd_id = pc_dbd_id
+                         and gmr.corporate_id = pc_corporate_id
+                         and gmr.shed_id = shm.storage_loc_id(+)
+                         and grd.product_id=pdm.product_id
+                         and pdm.product_type_id=pdtm.product_type_id
+                         and pdtm.product_type_name='Composite'
+                         and grd.status = 'Active'
+                         and grd.is_deleted = 'N'
+                         and gmr.is_deleted = 'N'
+                         and nvl(grd.inventory_status, 'NA') <> 'Out') temp,
+                     mv_conc_qat_quality_valuation mv_qat,
+                     mvp_m2m_valuation_point mvp,
+                     mvpl_m2m_valuation_point_loc mvpl,
+                     v_der_instrument_price_unit vdip,
+                     aml_attribute_master_list aml
+               where temp.corporate_id = mv_qat.corporate_id
+                 and temp.quality_id = mv_qat.conc_quality_id
+                 and mv_qat.instrument_id = vdip.instrument_id
+                 and temp.corporate_id = mvp.corporate_id
+                 and temp.product_id = mvp.product_id
+                 and temp. issue_date <= pd_trade_date
+                 and mvp.mvp_id = mvpl.mvp_id
+                 and mvpl.loc_city_id = temp.city_id
+                 and aml.attribute_id = mv_qat.attribute_id
+                 and aml.is_active = 'Y') m2m;
+  
+    --End of insert into tmpc for Inventory  Concentrate
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
                  'finished inserting tmpc' || sql%rowcount);
+  
     vc_error_loc := 5;
+  
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -2932,6 +2983,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
     --Updating tmpc table and setting the 
     --base_price_unit_id_in_ppu.
     vc_error_loc := 9;
+  
     for cc in (select tmpc.corporate_id,
                       tmpc.product_id,
                       akc.base_cur_id,
@@ -2959,15 +3011,16 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          akc.base_cur_id,
                          pdm.base_quantity_unit,
                          ppu.internal_price_unit_id,
-                         pum.price_unit_id,tmpc.element_id)
+                         pum.price_unit_id,
+                         tmpc.element_id)
     loop
       update tmpc_temp_m2m_pre_check tmpc
          set tmpc.base_price_unit_id_in_ppu = cc.internal_price_unit_id,
              tmpc.base_price_unit_id_in_pum = cc.price_unit_id
        where tmpc.product_type = 'CONCENTRATES'
-       and tmpc.corporate_id = cc.corporate_id
-       and tmpc.element_id = cc.element_id
-       and tmpc.product_id = cc.product_id  ;
+         and tmpc.corporate_id = cc.corporate_id
+         and tmpc.element_id = cc.element_id
+         and tmpc.product_id = cc.product_id;
       commit;
     end loop;
   
@@ -3481,8 +3534,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                         pc_calendar_year        varchar2,
                                         pn_charge_amt           out number,
                                         pc_charge_price_unit_id out varchar2) is
-   vc_price_unit_id varchar2(15); 
-   vn_penality_charge number;                                    
+    vc_price_unit_id   varchar2(15);
+    vn_penality_charge number;
   begin
     if pc_charge_type in ('Treatment Charges', 'Refining Charges') then
       select t.charge_value,
@@ -3506,27 +3559,24 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                  and mdcd.charge_type = pc_charge_type) t
        where t.td_rank = 1;
     elsif pc_charge_type = 'Penalties' then
-      -- pn_charge_amt := 10;
+      -- pn_charge_amt := 10;      
+      begin
+        select ppu.product_price_unit_id
+          into vc_price_unit_id
+          from v_ppu_pum         ppu,
+               pdm_productmaster pdm,
+               ak_corporate      akc
+         where ppu.product_id = pc_conc_product_id
+           and ppu.product_id = pdm.product_id
+           and pdm.base_quantity_unit = ppu.weight_unit_id
+           and ppu.cur_id = akc.base_cur_id
+           and akc.corporate_id = pc_corporate_id;
       
- begin
- 
-   select ppu.product_price_unit_id
-     into vc_price_unit_id
-     from v_ppu_pum         ppu,
-          pdm_productmaster pdm,
-          ak_corporate      akc
-    where ppu.product_id = pc_conc_product_id
-      and ppu.product_id = pdm.product_id
-      and pdm.base_quantity_unit = ppu.weight_unit_id
-      and ppu.cur_id = akc.base_cur_id
-      and akc.corporate_id = pc_corporate_id;
- 
- exception
-   when no_data_found then
-     vc_price_unit_id := null;
- end;
-      
-       
+      exception
+        when no_data_found then
+          vc_price_unit_id := null;
+      end;
+    
       select t.charge_value,
              t.charge_unit_id
         into pn_charge_amt,
@@ -3548,17 +3598,18 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                  and mdcd.charge_type = pc_charge_type) t
        where t.td_rank = 1;
     
-    if pn_charge_amt<>0 and pc_charge_price_unit_id is not null and vc_price_unit_id is not null then   
-    vn_penality_charge:= pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
-                                                     pn_charge_amt,
-                                                     pc_charge_price_unit_id,
-                                                     vc_price_unit_id,
-                                                     pd_trade_date);
-    else
-     vn_penality_charge:=0;                                                                                                   
-    end if;
-    pn_charge_amt:=vn_penality_charge;
-    pc_charge_price_unit_id:= vc_price_unit_id;
+      if pn_charge_amt <> 0 and pc_charge_price_unit_id is not null and
+         vc_price_unit_id is not null then
+        vn_penality_charge := pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+                                                                              pn_charge_amt,
+                                                                              pc_charge_price_unit_id,
+                                                                              vc_price_unit_id,
+                                                                              pd_trade_date);
+      else
+        vn_penality_charge := 0;
+      end if;
+      pn_charge_amt           := vn_penality_charge;
+      pc_charge_price_unit_id := vc_price_unit_id;
     end if;
   exception
     when no_data_found then
@@ -4204,7 +4255,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
              pum_price_unit_master      pum1,
              pum_price_unit_master      pum2
        where /*ppu1.product_id = ppu2.product_id
-                                                                                             and */
+                                                                                                               and */
        ppu1.internal_price_unit_id = p_from_price_unit_id
        and ppu2.internal_price_unit_id = p_to_price_unit_id
        and pum1.price_unit_id(+) = ppu1.price_unit_id

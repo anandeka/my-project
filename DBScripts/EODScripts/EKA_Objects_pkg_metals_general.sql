@@ -54,7 +54,6 @@ CREATE OR REPLACE PACKAGE "PKG_METALS_GENERAL" is
                                          pd_trade_date       date)
     return date;
 end; 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -130,8 +129,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                     pc_ele_qty_string           out varchar2) is
     cursor cur_element is
       select pci.internal_contract_item_ref_no,
-             pci.item_qty,
-             pci.item_qty_unit_id,
+             ciqs.open_qty item_qty,
+             ciqs.item_qty_unit_id,
              pcpq.unit_of_measure item_unit_of_measure,
              pcpd.product_id,
              pqca.element_id,
@@ -149,6 +148,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
              asm.asm_id
       
         from pci_physical_contract_item  pci,
+             ciqs_contract_item_qty_status ciqs,
              pcpq_pc_product_quality     pcpq,
              pcpd_pc_product_definition  pcpd,
              ash_assay_header            ash,
@@ -158,6 +158,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
              rm_ratio_master             rm
       
        where pci.pcpq_id = pcpq.pcpq_id
+        and pci.internal_contract_item_ref_no=ciqs.internal_contract_item_ref_no
          and pcpq.assay_header_id = ash.ash_id
          and pcpq.pcpd_id = pcpd.pcpd_id
          and ash.ash_id = asm.ash_id
@@ -166,6 +167,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
          and pqca.element_id = aml.attribute_id
          and pci.dbd_id = pc_dbd_id
          and pcpq.dbd_id = pc_dbd_id
+         and ciqs.dbd_id=pc_dbd_id
          and pci.internal_contract_item_ref_no =
              pc_internal_con_item_ref_no
          and pcpq.assay_header_id = pc_assay_header_id
