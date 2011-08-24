@@ -18,19 +18,23 @@ select pcdi.pcdi_id,
        pcm.cp_id,
        pcm.product_group_type,
        pcm.payment_term_id,
-       pcdi.payment_due_date
+       pcdi.payment_due_date,
+       itm.incoterm_id,
+       itm.incoterm
   from pci_physical_contract_item pci,
        pcdi_pc_delivery_item      pcdi,
        pcdb_pc_delivery_basis     pcdb,
        pcm_physical_contract_main pcm,
        pcpd_pc_product_definition pcpd,
-       pcpq_pc_product_quality    pcpq
+       pcpq_pc_product_quality    pcpq,
+       itm_incoterm_master        itm
  where pci.pcdi_id = pcdi.pcdi_id
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcdi.internal_contract_ref_no = pcdb.internal_contract_ref_no
    and pci.pcdb_id = pcdb.pcdb_id
    and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pci.pcpq_id = pcpq.pcpq_id
+   and pcdb.inco_term_id = itm.incoterm_id(+)
    and pci.is_active = 'Y'
    and pcdi.is_active = 'Y'
    and nvl(pcm.is_tolling_contract,'N') = 'N'
