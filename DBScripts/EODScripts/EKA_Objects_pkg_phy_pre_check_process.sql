@@ -99,7 +99,6 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
 end; 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -3321,7 +3320,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                    'is it here ????');
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_pre_check_m2m_values',
+                                                           'procedure sp_pre_check_m2m_conc_values',
                                                            'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
@@ -3458,7 +3457,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_pre_check_m2m_values',
+                                                           'procedure sp_calc_m2m_quality_premium',
                                                            'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
@@ -3687,7 +3686,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_pre_check_m2m_values',
+                                                           'procedure sp_calc_m2m_product',
                                                            'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
