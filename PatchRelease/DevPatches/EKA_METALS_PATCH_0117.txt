@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_Patch_0116
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sachin
+ 
+Created on*        		:  24-Aug-2011
+
+Bug / Enhancement* 		:  bug fixes
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+ 
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+Revision: 75765
+Author: sachin
+Date: 7:32:51 PM, Wednesday, August 24, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_65.sql
+
