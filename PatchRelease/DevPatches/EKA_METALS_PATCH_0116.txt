@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_Patch_0116
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  24-Aug-2011
+
+Bug / Enhancement* 		:  bug fixes
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+NOTE:- Master_Scripts_62 file script's need to apply manually.
+
+Revision: 75746
+Author: babulal.meena
+Date: 3:57:13 PM, Wednesday, August 24, 2011
+Message:
+Db Script to fix Logistics Document related Issue's
+
+1. DGM Query for below Activity  
+  (a) ShipmentDetails,AirDetails,RailDetails and TruckDetails
+  
+  (b) WeightNote
+
+2. CDC_CORPORATE_DOC_CONFIG insert query for WeightNote rpt file
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/Corporate_Scripts_8.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_62.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_64.sql
