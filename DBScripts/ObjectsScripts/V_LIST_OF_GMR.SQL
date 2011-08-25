@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_LIST_OF_GMR AS 
+CREATE OR REPLACE VIEW V_LIST_OF_GMR AS
 SELECT gmr.corporate_id,
        (SELECT f_string_aggregate(pci.contract_ref_no)
         FROM   gcim_gmr_contract_item_mapping gcim,
@@ -30,23 +30,12 @@ SELECT gmr.corporate_id,
        gmr.warehouse_profile_id warehouse_profile_id,
        phd_warehouse.companyname warehouse,
        sld.storage_location_name shed_name,
-       (CASE
-           WHEN gmr.is_internal_movement = 'Y' THEN
-            (SELECT f_string_aggregate(pci.product_specs)
-             FROM   grd_goods_record_detail grd_sub,
-                    v_pci                   pci
-             WHERE  grd_sub.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-             AND    grd_sub.internal_contract_item_ref_no =
-                    pci.internal_contract_item_ref_no
-             AND    grd_sub.is_deleted = 'N')
-           ELSE
-            (SELECT f_string_aggregate(pci.product_specs)
-             FROM   gcim_gmr_contract_item_mapping gcim,
-                    v_pci                          pci
-             WHERE  gcim.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-             AND    gcim.internal_contract_item_ref_no =
-                    pci.internal_contract_item_ref_no)
-       END) productspec,
+       (SELECT f_string_aggregate(qat_sub.long_desc)
+        FROM   grd_goods_record_detail grd_sub,
+               qat_quality_attributes  qat_sub
+        WHERE  grd_sub.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+        AND    qat_sub.quality_id = grd_sub.quality_id
+        AND    grd_sub.is_deleted = 'N') productspec,
        nvl(nvl(gmr.current_qty,
                0) - nvl(moved_out_qty,
                         0) - nvl(gmr.write_off_qty,
