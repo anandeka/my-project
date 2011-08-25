@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0119
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  25-Aug-2011
+
+Bug / Enhancement* 		:  bug fixes
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  NA
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 75815
+Author: babulal.meena
+Date: 3:57:22 PM, Thursday, August 25, 2011
+Message:
+Some more filter options are added into list of GMR screen
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_63.sql
+
+Revision: 75814
+Author: babulal.meena
+Date: 3:52:42 PM, Thursday, August 25, 2011
+Message:
+Fix for productspec was not coming in internal movement case.
+This only will not work in stock rearrange case if Source Stock are belonged  to multiple contract items in internal movement activity. 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR.SQL
