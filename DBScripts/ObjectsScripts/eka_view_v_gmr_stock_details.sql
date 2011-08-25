@@ -49,8 +49,8 @@ select (case
                                             1) baseqty_conv_rate,
        null price_fixation_status,
        sum(nvl(grd.qty, 0)) total_qty,
-       sum(nvl(grd.current_qty, 0)) item_open_qty,
-       sum(nvl(grd.current_qty, 0)) open_qty,
+       sum(nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0)) item_open_qty,
+       sum(nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0)) open_qty,
        0 price_fixed_qty,
        0 unfixed_qty,
        grd.qty_unit_id item_qty_unit_id,
@@ -141,8 +141,8 @@ select (case
    and pci.strategy_id = css.strategy_id(+)
    and pci.profit_center_id = cpc.profit_center_id(+)
    and cpc.business_line_id = blm.business_line_id(+)
-   and gmr.is_internal_movement = 'N'
-   and nvl(grd.current_qty, 0) > 0
+   and gmr.is_internal_movement = 'N'   
+   and (nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0)) > 0
    and gmr.created_by = gab.gabid(+)
  group by pci.internal_contract_ref_no,
           (case
@@ -268,8 +268,8 @@ select (case
                                             1) baseqty_conv_rate,
        null price_fixation_status,
        sum(nvl(grd.qty, 0)) total_qty,
-       sum(nvl(grd.current_qty, 0)) item_open_qty,
-       sum(nvl(grd.current_qty, 0)) open_qty,
+       sum((nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0))) item_open_qty,
+       sum((nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0))) open_qty,
        0 price_fixed_qty,
        0 unfixed_qty,
        grd.qty_unit_id item_qty_unit_id,
@@ -361,7 +361,7 @@ select (case
    and pci.profit_center_id = cpc.profit_center_id(+)
    and cpc.business_line_id = blm.business_line_id(+)
    and gmr.is_internal_movement = 'Y'
-   and nvl(grd.current_qty, 0) > 0
+   and (nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0)) > 0
    and gmr.created_by = gab.gabid(+)
  group by pci.internal_contract_ref_no,
           (case
@@ -583,6 +583,7 @@ select (case
    and cpc.business_line_id = blm.business_line_id(+)
    and gmr.is_internal_movement = 'N'
    and nvl(dgrd.current_qty, 0) > 0
+   and nvl(dgrd.inventory_status,'NA')<>'Out'
    and gmr.created_by = gab.gabid(+)
  group by pci.internal_contract_ref_no,
           (case
