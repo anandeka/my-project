@@ -9,7 +9,7 @@ Insert into AMC_APP_MENU_CONFIGURATION
    (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
     ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
  Values
-   ('RPT-D225', 'Daily Inventory Unrealized Physical P&L(Concentrate)', 15, 4, '/mdm/CommonFilter.do?method=populateJRCReport&docType=EOD&ReportID=216&ReportName=DailyInventoryUnrealizedPhysicalPnLConc.rpt&ExportFormat=HTML', 
+   ('RPT-D225', 'Daily Inventory Unrealized Physical P&L(Conc)', 15, 4, '/mdm/CommonFilter.do?method=populateJRCReport&docType=EOD&ReportID=216&ReportName=DailyInventoryUnrealizedPhysicalPnLConc.rpt&ExportFormat=HTML', 
     NULL, 'RPT-D22', NULL, 'Reports', NULL);
 Insert into RPD_REPORT_PARAMETER_DATA
    (CORPORATE_ID, REPORT_ID, REPORT_PARAMETER_NAME, REPORT_PARAM_ID)
