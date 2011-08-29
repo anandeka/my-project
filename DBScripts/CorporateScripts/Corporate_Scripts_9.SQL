@@ -1,11 +1,11 @@
 Insert into DRFM_DOC_REF_NO_MAPPING
    (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
  Values
-   ('DRFM-WN-1', '&corpId', 'weightNote', 'WN_KEY_1', 'N');
+   ('DRFM-WN-&corpId', '&corpId', 'weightNote', 'WN_KEY_1', 'N');
 
 Insert into DRF_DOC_REF_NUMBER_FORMAT
    (DOC_REF_NUMBER_FORMAT_ID, DOC_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
     MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
  Values
-   ('DRF-WN-1', 'WN_KEY_1', '&corpId', 'WN-', 0, 
+   ('DRF-WN-&corpId', 'WN_KEY_1', '&corpId', 'WN-', 0, 
     10, '-&corpId', NULL, 'N'); 
