@@ -140,10 +140,19 @@ SELECT gmr.corporate_id,
        vd.booking_ref_no,
        gmr.internal_contract_ref_no,
        bl_details.bl_no bl_no,
-       bl_details.bl_date bl_date
+       bl_details.bl_date bl_date,
+       axs.created_date,
+       (SELECT aku_sub.login_name
+        FROM   ak_corporate_user aku_sub
+        WHERE  aku_sub.user_id = axs.created_by) created_by,
+       axs_last.updated_date,
+       (SELECT aku_sub.login_name
+        FROM   ak_corporate_user aku_sub
+        WHERE  aku_sub.user_id = axs_last.created_by) updated_by
 FROM   gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
+       axs_action_summary axs_last,
        cim_citymaster cim_origin,
        cym_countrymaster cym_origin,
        cim_citymaster cim_des,
@@ -204,4 +213,5 @@ AND    nvl(gmr.is_settlement_gmr,
 AND    nvl(gmr.tolling_gmr_type,
            'None Tolling') NOT IN ('Input Process', 'Output Process')
 AND    gam.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
-AND    vd.status(+) = 'Active';
+AND    vd.status(+) = 'Active'
+AND    axs_last.internal_action_ref_no = gmr.internal_action_ref_no
