@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0126
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  30-Aug-2011
+
+Bug / Enhancement* 		:  bug fixes
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  List of Gmr
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 76025
+Author: anupkumar.agarwal
+Date: 1:29:54 PM, Tuesday, August 30, 2011
+Message:
+Added New Column In View GMR And Update Script For Default View Of GMR.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_70.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR.SQL
