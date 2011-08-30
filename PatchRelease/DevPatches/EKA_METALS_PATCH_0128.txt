@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0128
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  30-Aug-2011
+
+Bug / Enhancement* 		:  bug fixes
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+ 
+Sub-Module  			 :  output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  output Doc
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 76058
+Author: girishkv
+Date: 5:30:03 PM, Tuesday, August 30, 2011
+Message:
+DGM_DOCUMENT_GENERATION_MASTER TABLE CHANGE FOR weighing and sampling.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_71.sql
