@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0128
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  05-Sep-2011
+
+Bug / Enhancement* 		:  bug fixes
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics 
+ 
+Sub-Module  	               :  Documents
+ 
+Section                                :  N/A
+ 
+Screen		           	 :  Documents
+ 
+FS Number and Clause No.    :  N/A
+ 
+FS Enhancement details        :  N/A
+ 
+FS Amendment details           :  N/A
+
+Dependent patches                :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 76254
+Author: anupkumar.agarwal
+Date: 6:32:17 PM, Monday, September 05, 2011
+Message:
+ShipmentDetails,AirDetails,RailDetails and TruckDetails Document's Query for DGM table for few Columns Missing
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_72.sql
