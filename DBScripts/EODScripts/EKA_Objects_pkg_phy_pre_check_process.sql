@@ -1,4 +1,4 @@
-create or replace package pkg_phy_pre_check_process is
+CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
 
   -- Author  : Janna
   -- Created : 1/11/2009 11:50:17 AM
@@ -99,8 +99,9 @@ create or replace package pkg_phy_pre_check_process is
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
 end; 
+ 
 /
-create or replace package body pkg_phy_pre_check_process is
+CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
 
   procedure sp_pre_check
   --------------------------------------------------------------------------------------------------------------------------
@@ -2484,8 +2485,8 @@ create or replace package body pkg_phy_pre_check_process is
                      temp.internal_grd_ref_no,
                      temp.section_name,
                      vdip.price_unit_id valuation_price_unit_id, -- from view
-                     to_char(sysdate, 'Mon') shipment_month,
-                     to_char(sysdate, 'yyyy') shipment_year,
+                     to_char(pd_trade_date,'Mon') shipment_month,
+                     to_char(pd_trade_date,'yyyy') shipment_year,
                      pd_trade_date shipment_date
                 from (select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
