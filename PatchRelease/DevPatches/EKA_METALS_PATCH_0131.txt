@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0131
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+Created on*        		:  06-Sep-2011
+
+Bug / Enhancement* 		:  EOD
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	DEV
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoicing
+ 
+Sub-Module  	               :  Invoicing
+ 
+Section                                :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.    :  N/A
+ 
+FS Enhancement details        :  N/A
+ 
+FS Amendment details           :  N/A
+
+Dependent patches                :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 76390
+Author: anandp
+Date: 6:47:40 PM, Thursday, September 08, 2011
+Message:
+For ARFM and ARF data correction.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_2.sql
+
+
