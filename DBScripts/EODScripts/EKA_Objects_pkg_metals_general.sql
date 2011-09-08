@@ -54,6 +54,7 @@ CREATE OR REPLACE PACKAGE "PKG_METALS_GENERAL" is
                                          pd_trade_date       date)
     return date;
 end; 
+ 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -1279,7 +1280,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
       --------------------
       dbms_output.put_line('pc_month_prompt_start_date ' ||
                            pc_month_prompt_start_date);
-      if (pc_month_prompt_start_date >
+      if (pc_month_prompt_start_date >=
          to_date(('01-' || to_char(pc_start_date, 'Mon-YYYY')),
                   'dd/mm/yyyy') and
          pc_month_prompt_start_date <= pc_end_date) then

@@ -99,7 +99,6 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
 end; 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -2751,6 +2750,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                        t.contract_ref_no,
                        t.expected_delivery_month,
                        t.expected_delivery_year,
+                       t.element_id,
                        t.date_type,
                        t.ship_arrival_date,
                        t.ship_arrival_days,
@@ -2777,6 +2777,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                pcm.contract_ref_no,
                                pci.expected_delivery_month,
                                pci.expected_delivery_year,
+                               pqca.element_id,
                                qat.date_type,
                                qat.ship_arrival_date,
                                nvl(qat.ship_arrival_days, 0) ship_arrival_days,
@@ -2806,21 +2807,35 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                           from pcdi_pc_delivery_item      pcdi,
                                pci_physical_contract_item pci,
                                pcm_physical_contract_main pcm,
+                               pcpd_pc_product_definition pcpd,
                                pcpq_pc_product_quality    pcpq,
-                               qat_quality_attributes     qat
+                               ash_assay_header           ash,
+                               asm_assay_sublot_mapping   asm,
+                               pqca_pq_chemical_attributes pqca,
+                               mv_conc_qat_quality_valuation qat
+                               --qat_quality_attributes     qat
                          where pcdi.pcdi_id = pci.pcdi_id
                            and pcdi.internal_contract_ref_no =
                                pcm.internal_contract_ref_no
+                           and pcm.internal_contract_ref_no=pcpd.internal_contract_ref_no
+                           and pcpd.product_id=qat.conc_product_id  
                            and pcm.contract_status = 'In Position'
                            and pcm.contract_type = 'CONCENTRATES'
                            and pcm.corporate_id = pc_corporate_id
                            and pci.item_qty > 0
                            and pci.pcpq_id = pcpq.pcpq_id
-                           and pcpq.quality_template_id = qat.quality_id
+                           --and pcpq.quality_template_id = qat.quality_id
+                           and pcpq.assay_header_id=ash.ash_id
+                           and ash.ash_id=asm.ash_id
+                           and asm.asm_id=pqca.asm_id                          
+                           and pcpq.quality_template_id = qat.conc_quality_id
+                           and pqca.element_id=qat.attribute_id
+                           and qat.corporate_id=pc_corporate_id
                            and pci.dbd_id = pc_dbd_id
                            and pcdi.dbd_id = pc_dbd_id
                            and pcm.dbd_id = pc_dbd_id
                            and pcpq.dbd_id = pc_dbd_id
+                           and pcpd.dbd_id=pc_dbd_id
                            and pcdi.is_active = 'Y'
                            and pci.is_active = 'Y'
                            and pcm.is_active = 'Y') t,
@@ -2830,6 +2845,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                    and tmpc.product_type = 'CONCENTRATES'
                    and tmpc.internal_contract_item_ref_no =
                        t.internal_contract_item_ref_no
+                   and tmpc.element_id=t.element_id    
                    and tmpc.pcdi_id = t.pcdi_id)
     loop
       update tmpc_temp_m2m_pre_check tmpc
@@ -2839,6 +2855,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
        where tmpc.pcdi_id = cc2.pcdi_id
          and tmpc.internal_contract_item_ref_no =
              cc2.internal_contract_item_ref_no
+         and tmpc.element_id=cc2.element_id    
          and tmpc.section_name = 'OPEN'
          and tmpc.product_type = 'CONCENTRATES'
          and tmpc.corporate_id = pc_corporate_id;

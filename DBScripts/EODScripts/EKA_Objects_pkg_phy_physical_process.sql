@@ -3530,6 +3530,7 @@ create or replace package body pkg_phy_physical_process is
          and pcm.contract_status = 'In Position'
          and pcm.contract_type = 'CONCENTRATES'
          and pcpd.product_id = qat.conc_product_id
+         and pcpq.quality_template_id=qat.conc_quality_id
          and ceqs.element_id = aml.attribute_id
          and ceqs.element_id = qat.attribute_id
          and qat.corporate_id = pc_corporate_id
@@ -9577,7 +9578,7 @@ create or replace package body pkg_phy_physical_process is
          and dgrd.origin_id = orm.origin_id(+)
          and dgrd.int_alloc_group_id = agh.int_alloc_group_id
          and dgrd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
-         and dgrd.internal_grd_ref_no = tmpc.internal_grd_ref_no(+)
+         and dgrd.internal_dgrd_ref_no = tmpc.internal_grd_ref_no(+)
          and dgrd.internal_contract_item_ref_no =
              tmpc.internal_contract_item_ref_no(+)
          and tmpc.quality_id = qat.quality_id(+)
@@ -12378,5 +12379,5 @@ create or replace package body pkg_phy_physical_process is
     end if;
   end;
 
-end;
+end; 
 /
