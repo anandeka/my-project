@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0133
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manoranjan Kumar
+ 
+Created on*        		:  09-Sep-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Cost
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 76443
+Author: manoranjan.kumar
+Date: 8:13:41 PM, Friday, September 09, 2011
+Message:
+modify column fxtobase
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_67.sql
