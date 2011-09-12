@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0134
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  12-Sep-2011
+
+Bug / Enhancement* 		:  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+Revision: 76462
+Author: suresh.gottipati
+Date: 12:38:20 PM, Monday, September 12, 2011
+Message:
+BugID:57736
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_Mview_spq_stock_payable_qty.sql
+
+
+
+
+
