@@ -37,13 +37,14 @@ Dependent patches:		:  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :  EOD
 ==================================================================
-Revision: 76462
+Revision: 76467
 Author: suresh.gottipati
-Date: 12:38:20 PM, Monday, September 12, 2011
+Date: 12:55:58 PM, Monday, September 12, 2011
 Message:
 BugID:57736
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_Mview_spq_stock_payable_qty.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_VIEW_v_gmr_stockpayable_qty.sql
+
 
 
 
