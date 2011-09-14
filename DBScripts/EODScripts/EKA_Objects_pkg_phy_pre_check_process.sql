@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
+create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
 
   -- Author  : Janna
   -- Created : 1/11/2009 11:50:17 AM
@@ -100,7 +100,7 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_user_id      varchar2);
 end; 
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
+create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
   procedure sp_pre_check
   --------------------------------------------------------------------------------------------------------------------------
@@ -1434,9 +1434,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and grd.dbd_id = pc_dbd_id
                          and gmr.dbd_id = pc_dbd_id
                          and gmr.corporate_id = pc_corporate_id
-                         and grd.product_id=pdm.product_id
-                         and pdm.product_type_id=pdtm.product_type_id
-                         and pdtm.product_type_name='Standard'
+                         and grd.product_id = pdm.product_id
+                         and pdm.product_type_id = pdtm.product_type_id
+                         and pdtm.product_type_name = 'Standard'
                          and gmr.shed_id = shm.storage_loc_id(+)
                          and grd.status = 'Active'
                          and grd.is_deleted = 'N'
@@ -2484,8 +2484,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                      temp.internal_grd_ref_no,
                      temp.section_name,
                      vdip.price_unit_id valuation_price_unit_id, -- from view
-                     to_char(pd_trade_date,'Mon') shipment_month,
-                     to_char(pd_trade_date,'yyyy') shipment_year,
+                     to_char(pd_trade_date, 'Mon') shipment_month,
+                     to_char(pd_trade_date, 'yyyy') shipment_year,
                      pd_trade_date shipment_date
                 from (select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
@@ -2700,11 +2700,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and gmr.is_internal_movement = 'Y'
                          and grd.dbd_id = pc_dbd_id
                          and gmr.dbd_id = pc_dbd_id
-                         and gmr.corporate_id = pc_corporate_id                         
+                         and gmr.corporate_id = pc_corporate_id
                          and gmr.shed_id = shm.storage_loc_id(+)
-                         and grd.product_id=pdm.product_id
-                         and pdm.product_type_id=pdtm.product_type_id
-                         and pdtm.product_type_name='Composite'
+                         and grd.product_id = pdm.product_id
+                         and pdm.product_type_id = pdtm.product_type_id
+                         and pdtm.product_type_name = 'Composite'
                          and grd.status = 'Active'
                          and grd.is_deleted = 'N'
                          and gmr.is_deleted = 'N'
@@ -2804,38 +2804,39 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                            pci.expected_delivery_month || '-' ||
                                            pci.expected_delivery_year)
                                end) end) expected_ship_arrival_date
-                          from pcdi_pc_delivery_item      pcdi,
-                               pci_physical_contract_item pci,
-                               pcm_physical_contract_main pcm,
-                               pcpd_pc_product_definition pcpd,
-                               pcpq_pc_product_quality    pcpq,
-                               ash_assay_header           ash,
-                               asm_assay_sublot_mapping   asm,
-                               pqca_pq_chemical_attributes pqca,
+                          from pcdi_pc_delivery_item         pcdi,
+                               pci_physical_contract_item    pci,
+                               pcm_physical_contract_main    pcm,
+                               pcpd_pc_product_definition    pcpd,
+                               pcpq_pc_product_quality       pcpq,
+                               ash_assay_header              ash,
+                               asm_assay_sublot_mapping      asm,
+                               pqca_pq_chemical_attributes   pqca,
                                mv_conc_qat_quality_valuation qat
-                               --qat_quality_attributes     qat
+                        --qat_quality_attributes     qat
                          where pcdi.pcdi_id = pci.pcdi_id
                            and pcdi.internal_contract_ref_no =
                                pcm.internal_contract_ref_no
-                           and pcm.internal_contract_ref_no=pcpd.internal_contract_ref_no
-                           and pcpd.product_id=qat.conc_product_id  
+                           and pcm.internal_contract_ref_no =
+                               pcpd.internal_contract_ref_no
+                           and pcpd.product_id = qat.conc_product_id
                            and pcm.contract_status = 'In Position'
                            and pcm.contract_type = 'CONCENTRATES'
                            and pcm.corporate_id = pc_corporate_id
                            and pci.item_qty > 0
                            and pci.pcpq_id = pcpq.pcpq_id
-                           --and pcpq.quality_template_id = qat.quality_id
-                           and pcpq.assay_header_id=ash.ash_id
-                           and ash.ash_id=asm.ash_id
-                           and asm.asm_id=pqca.asm_id                          
+                              --and pcpq.quality_template_id = qat.quality_id
+                           and pcpq.assay_header_id = ash.ash_id
+                           and ash.ash_id = asm.ash_id
+                           and asm.asm_id = pqca.asm_id
                            and pcpq.quality_template_id = qat.conc_quality_id
-                           and pqca.element_id=qat.attribute_id
-                           and qat.corporate_id=pc_corporate_id
+                           and pqca.element_id = qat.attribute_id
+                           and qat.corporate_id = pc_corporate_id
                            and pci.dbd_id = pc_dbd_id
                            and pcdi.dbd_id = pc_dbd_id
                            and pcm.dbd_id = pc_dbd_id
                            and pcpq.dbd_id = pc_dbd_id
-                           and pcpd.dbd_id=pc_dbd_id
+                           and pcpd.dbd_id = pc_dbd_id
                            and pcdi.is_active = 'Y'
                            and pci.is_active = 'Y'
                            and pcm.is_active = 'Y') t,
@@ -2845,7 +2846,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                    and tmpc.product_type = 'CONCENTRATES'
                    and tmpc.internal_contract_item_ref_no =
                        t.internal_contract_item_ref_no
-                   and tmpc.element_id=t.element_id    
+                   and tmpc.element_id = t.element_id
                    and tmpc.pcdi_id = t.pcdi_id)
     loop
       update tmpc_temp_m2m_pre_check tmpc
@@ -2855,7 +2856,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
        where tmpc.pcdi_id = cc2.pcdi_id
          and tmpc.internal_contract_item_ref_no =
              cc2.internal_contract_item_ref_no
-         and tmpc.element_id=cc2.element_id    
+         and tmpc.element_id = cc2.element_id
          and tmpc.section_name = 'OPEN'
          and tmpc.product_type = 'CONCENTRATES'
          and tmpc.corporate_id = pc_corporate_id;
@@ -2909,6 +2910,37 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
     --By setting the valuatin_dr_id
     --It is checking for not Fixed contract
     --For this We are calling the  fn_get_val_drid
+    begin
+      for cc in (select tmpc.conc_product_id,
+                        tmpc.conc_quality_id,
+                        tmpc.element_id,
+                        qat.instrument_id,
+                        qat.product_derivative_id,
+                        qat.eval_basis,
+                        qat.exch_valuation_month                        
+                   from tmpc_temp_m2m_pre_check      tmpc,
+                        v_conc_qat_quality_valuation qat
+                  where tmpc.conc_product_id = qat.conc_product_id
+                    and tmpc.conc_quality_id=qat.conc_quality_id
+                    and tmpc.corporate_id = qat.corporate_id
+                    and tmpc.element_id=qat.attribute_id
+                    and tmpc.corporate_id = pc_corporate_id
+                    and tmpc.product_type = 'CONCENTRATES')
+      loop
+        update tmpc_temp_m2m_pre_check tmpc
+           set tmpc.instrument_id     = cc.instrument_id,
+               tmpc.value_type        = cc.eval_basis,
+               tmpc.derivative_def_id = cc.product_derivative_id
+           where tmpc.product_type = 'CONCENTRATES'
+           and tmpc.conc_product_id=cc.conc_product_id
+           and tmpc.conc_quality_id=cc.conc_quality_id
+           and tmpc.element_id=cc.element_id
+           and tmpc.corporate_id = pc_corporate_id;
+      end loop;
+      commit;
+    
+    end;
+  
     vc_error_loc := 8;
     for cc in (select tmpc.corporate_id,
                       tmpc.shipment_month,
@@ -3673,7 +3705,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                        and mdcd.quality_id = pc_conc_quality_id
                        and mdcd.valuation_region_id = pc_valuation_point_id
                        and mdcd.internal_element_id = pc_element_id
-                        and to_date('01-' || mdcbm.beyond_month || '-' ||
+                       and to_date('01-' || mdcbm.beyond_month || '-' ||
                                    mdcbm.beyond_year,
                                    'dd-Mon-yyyy') <
                            to_date('01-' || pc_calendar_month || '-' ||
@@ -4363,6 +4395,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
     when others then
       return - 1;
   end f_get_converted_price;
+  
   procedure sp_phy_insert_ceqs_data(pc_corporate_id varchar2,
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,

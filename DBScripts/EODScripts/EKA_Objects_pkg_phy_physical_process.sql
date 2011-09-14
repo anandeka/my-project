@@ -1,4 +1,4 @@
-create or replace package pkg_phy_physical_process is
+CREATE OR REPLACE PACKAGE "PKG_PHY_PHYSICAL_PROCESS" IS
 
   gvc_previous_process_id varchar2(15);
 
@@ -140,9 +140,9 @@ create or replace package pkg_phy_physical_process is
                                pn_price         out number,
                                pc_price_unit_id out varchar2);
 
-end; 
+end;
 /
-create or replace package body pkg_phy_physical_process is
+CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
 
   procedure sp_process_run(pc_corporate_id varchar2,
                            pd_trade_date   date,
@@ -3068,25 +3068,7 @@ create or replace package body pkg_phy_physical_process is
         exception
           when no_data_found then
             vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure sp_calc_gmr_price',
-                                                                 'PHY-002',
-                                                                 'Price missing for ' ||
-                                                                 cur_gmr_rows.instrument_name ||
-                                                                 ',Price Source:' ||
-                                                                 cur_gmr_rows.price_source_name ||
-                                                                 ' GMR No: ' ||
-                                                                 cur_gmr_rows.gmr_ref_no ||
-                                                                 ',Price Unit:' ||
-                                                                 vc_price_name || ',' ||
-                                                                 cur_gmr_rows.available_price_name ||
-                                                                 ' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
-                                                                  to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end),
-                                                                 '',
-                                                                 gvc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
         vn_total_contract_value := vn_total_contract_value +
@@ -3319,25 +3301,7 @@ create or replace package body pkg_phy_physical_process is
         exception
           when no_data_found then
             vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure sp_gmr_price',
-                                                                 'PHY-002',
-                                                                 'Price missing for ' ||
-                                                                 cur_gmr_rows.instrument_name ||
-                                                                 ',Price Source:' ||
-                                                                 cur_gmr_rows.price_source_name ||
-                                                                 ' GMR No: ' ||
-                                                                 cur_gmr_rows.gmr_ref_no ||
-                                                                 ',Price Unit:' ||
-                                                                 vc_price_name || ',' ||
-                                                                 cur_gmr_rows.available_price_name ||
-                                                                 ' Price,Prompt Date:' ||(case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
-                                                                  to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end),
-                                                                 '',
-                                                                 gvc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
       
@@ -3530,7 +3494,7 @@ create or replace package body pkg_phy_physical_process is
          and pcm.contract_status = 'In Position'
          and pcm.contract_type = 'CONCENTRATES'
          and pcpd.product_id = qat.conc_product_id
-         and pcpq.quality_template_id=qat.conc_quality_id
+         and pcpq.quality_template_id = qat.conc_quality_id
          and ceqs.element_id = aml.attribute_id
          and ceqs.element_id = qat.attribute_id
          and qat.corporate_id = pc_corporate_id
@@ -6731,7 +6695,8 @@ create or replace package body pkg_phy_physical_process is
                          and tmpc.corporate_id = pc_corporate_id
                          and tmpc.conc_product_id = pdm.product_id
                          and tmpc.conc_quality_id = qat.quality_id
-                         and tmpc.base_price_unit_id_in_ppu=ppu.internal_price_unit_id
+                         and tmpc.base_price_unit_id_in_ppu =
+                             ppu.internal_price_unit_id
                        group by tmpc.corporate_id,
                                 tmpc.conc_product_id,
                                 tmpc.conc_quality_id,
@@ -6763,7 +6728,7 @@ create or replace package body pkg_phy_physical_process is
                                                                                  pc_charge_price_unit_id,
                                                                                  cc_tmpc.base_price_unit_id_in_ppu,
                                                                                  pd_trade_date),
-                                cc_tmpc.decimals);
+                                 cc_tmpc.decimals);
           update md_m2m_daily md
              set md.treatment_charge = pn_charge_amt
            where md.corporate_id = pc_corporate_id
@@ -6949,54 +6914,55 @@ create or replace package body pkg_phy_physical_process is
       --update the m2m location -incoterm deviation for the within region of growth    
       update md_m2m_daily md
          set md.m2m_loc_incoterm_deviation = round(nvl((select sum(ldc.cost_value /
-                                                            nvl(vpp.weight,
-                                                                1) *
-                                                            pkg_general.f_get_converted_currency_amt(md.corporate_id,
-                                                                                                     vpp.cur_id,
-                                                                                                     md_base.cur_id,
-                                                                                                     pd_trade_date,
-                                                                                                     1) *
-                                                            (pkg_general.f_get_converted_quantity(md.product_id,
-                                                                                                  vpp.weight_unit_id,
-                                                                                                  md_base.weight_unit_id,
-                                                                                                  1)))
-                                                 
-                                                   from lds_location_diff_setup ldh,
-                                                        ldc_location_diff_cost  ldc,
-                                                        v_ppu_pum               vpp,
-                                                        pum_price_unit_master   md_base
-                                                  where ldh.loc_diff_id =
-                                                        ldc.loc_diff_id
-                                                    and ldh.valuation_city_id =
-                                                        md.valuation_city_id
-                                                    and md.mvp_id =
-                                                        ldh.valuation_point_id
-                                                    and md.conc_product_id = --updated
-                                                        ldh.product_id
-                                                    and md_base.price_unit_id =
-                                                        md.base_price_unit_id_in_pum
-                                                    and md.product_type =
-                                                        'CONCENTRATES'
-                                                    and ldh.inco_term_id =
-                                                        md.valuation_incoterm_id
-                                                    and ldh.corporate_id =
-                                                        pc_corporate_id
-                                                    and ldc.cost_price_unit_id =
-                                                        vpp.product_price_unit_id
-                                                    and ldh.as_on_date =
-                                                        (select max(ldh1.as_on_date)
-                                                           from lds_location_diff_setup ldh1
-                                                          where ldh1.as_on_date <=
-                                                                pd_trade_date
-                                                            and ldh1.valuation_point_id =
-                                                                ldh.valuation_point_id
-                                                            and ldh1.inco_term_id =
-                                                                ldh.inco_term_id
-                                                            and ldh1.valuation_city_id =
-                                                                ldh.valuation_city_id
-                                                            and ldh1.product_id =
-                                                                ldh.product_id)),
-                                                 0),4)
+                                                                  nvl(vpp.weight,
+                                                                      1) *
+                                                                  pkg_general.f_get_converted_currency_amt(md.corporate_id,
+                                                                                                           vpp.cur_id,
+                                                                                                           md_base.cur_id,
+                                                                                                           pd_trade_date,
+                                                                                                           1) *
+                                                                  (pkg_general.f_get_converted_quantity(md.product_id,
+                                                                                                        vpp.weight_unit_id,
+                                                                                                        md_base.weight_unit_id,
+                                                                                                        1)))
+                                                       
+                                                         from lds_location_diff_setup ldh,
+                                                              ldc_location_diff_cost  ldc,
+                                                              v_ppu_pum               vpp,
+                                                              pum_price_unit_master   md_base
+                                                        where ldh.loc_diff_id =
+                                                              ldc.loc_diff_id
+                                                          and ldh.valuation_city_id =
+                                                              md.valuation_city_id
+                                                          and md.mvp_id =
+                                                              ldh.valuation_point_id
+                                                          and md.conc_product_id = --updated
+                                                              ldh.product_id
+                                                          and md_base.price_unit_id =
+                                                              md.base_price_unit_id_in_pum
+                                                          and md.product_type =
+                                                              'CONCENTRATES'
+                                                          and ldh.inco_term_id =
+                                                              md.valuation_incoterm_id
+                                                          and ldh.corporate_id =
+                                                              pc_corporate_id
+                                                          and ldc.cost_price_unit_id =
+                                                              vpp.product_price_unit_id
+                                                          and ldh.as_on_date =
+                                                              (select max(ldh1.as_on_date)
+                                                                 from lds_location_diff_setup ldh1
+                                                                where ldh1.as_on_date <=
+                                                                      pd_trade_date
+                                                                  and ldh1.valuation_point_id =
+                                                                      ldh.valuation_point_id
+                                                                  and ldh1.inco_term_id =
+                                                                      ldh.inco_term_id
+                                                                  and ldh1.valuation_city_id =
+                                                                      ldh.valuation_city_id
+                                                                  and ldh1.product_id =
+                                                                      ldh.product_id)),
+                                                       0),
+                                                   4)
        where md.corporate_id = pc_corporate_id
          and md.product_type = 'CONCENTRATES'
          and md.process_id = pc_process_id;
@@ -7438,7 +7404,7 @@ create or replace package body pkg_phy_physical_process is
          and pci.is_active = 'Y'
          and pcdi.is_active = 'Y'
          and pcdb.is_active = 'Y'
-         and ciqs.is_active='Y'
+         and ciqs.is_active = 'Y'
          and pcm.contract_type = 'BASEMETAL'
          and pcm.process_id = pc_process_id
          and pci.process_id = pc_process_id
@@ -8278,7 +8244,8 @@ create or replace package body pkg_phy_physical_process is
              pum_loc_base.weight_unit_id loc_qty_unit_id,
              tmpc.mvp_id,
              tmpc.shipment_month,
-             tmpc.shipment_year
+             tmpc.shipment_year,
+             nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying
         from pcm_physical_contract_main pcm,
              ak_corporate akc,
              pcdi_pc_delivery_item pcdi,
@@ -8559,49 +8526,98 @@ create or replace package body pkg_phy_physical_process is
                                                                        1) *
                                   cur_unrealized_rows.payable_qty,
                                   cur_unrealized_rows.base_qty_decimal);
-    
-      vn_ele_m2m_amt := nvl(cur_unrealized_rows.net_m2m_price, 0) /
-                        nvl(cur_unrealized_rows.m2m_price_unit_weight, 1) *
-                        pkg_general.f_get_converted_quantity(cur_unrealized_rows.product_id,
-                                                             cur_unrealized_rows.payable_qty_unit_id,
-                                                             cur_unrealized_rows.m2m_price_unit_weight_unit_id,
-                                                             cur_unrealized_rows.payable_qty);
-    
-      pkg_general.sp_get_main_cur_detail(nvl(cur_unrealized_rows.m2m_price_unit_cur_id,
-                                             cur_unrealized_rows.base_cur_id),
-                                         vc_m2m_cur_id,
-                                         vc_m2m_cur_code,
-                                         vn_m2m_sub_cur_id_factor,
-                                         vn_m2m_cur_decimals);
-      vn_ele_m2m_amt := round(vn_ele_m2m_amt * vn_m2m_sub_cur_id_factor,
-                              vn_m2m_cur_decimals);
-    
-      pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
-                                              pd_trade_date,
-                                              cur_unrealized_rows.payment_due_date,
-                                              vc_m2m_cur_id,
-                                              cur_unrealized_rows.base_cur_id,
-                                              30,
-                                              vn_m2m_base_fx_rate,
-                                              vn_m2m_base_deviation);
-      if vc_m2m_cur_id <> cur_unrealized_rows.base_cur_id then
-        if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
-          vobj_error_log.extend;
-          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                               'PHY-005',
-                                                               cur_unrealized_rows.base_cur_code ||
-                                                               ' to ' ||
-                                                               vc_m2m_cur_code,
-                                                               '',
-                                                               gvc_process,
-                                                               pc_user_id,
-                                                               sysdate,
-                                                               pd_trade_date);
-          sp_insert_error_log(vobj_error_log);
+      if cur_unrealized_rows.valuation_against_underlying = 'Y' then
+        vn_ele_m2m_amt := nvl(cur_unrealized_rows.net_m2m_price, 0) /
+                          nvl(cur_unrealized_rows.m2m_price_unit_weight, 1) *
+                          pkg_general.f_get_converted_quantity(cur_unrealized_rows.product_id,
+                                                               cur_unrealized_rows.payable_qty_unit_id,
+                                                               cur_unrealized_rows.m2m_price_unit_weight_unit_id,
+                                                               cur_unrealized_rows.payable_qty);
+      
+        pkg_general.sp_get_main_cur_detail(nvl(cur_unrealized_rows.m2m_price_unit_cur_id,
+                                               cur_unrealized_rows.base_cur_id),
+                                           vc_m2m_cur_id,
+                                           vc_m2m_cur_code,
+                                           vn_m2m_sub_cur_id_factor,
+                                           vn_m2m_cur_decimals);
+        vn_ele_m2m_amt := round(vn_ele_m2m_amt * vn_m2m_sub_cur_id_factor,
+                                vn_m2m_cur_decimals);
+      
+        pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
+                                                pd_trade_date,
+                                                cur_unrealized_rows.payment_due_date,
+                                                vc_m2m_cur_id,
+                                                cur_unrealized_rows.base_cur_id,
+                                                30,
+                                                vn_m2m_base_fx_rate,
+                                                vn_m2m_base_deviation);
+        if vc_m2m_cur_id <> cur_unrealized_rows.base_cur_id then
+          if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
+            vobj_error_log.extend;
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
+                                                                 'PHY-005',
+                                                                 cur_unrealized_rows.base_cur_code ||
+                                                                 ' to ' ||
+                                                                 vc_m2m_cur_code,
+                                                                 '',
+                                                                 gvc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
+          end if;
+        end if;
+        vn_ele_m2m_amount_in_base := vn_ele_m2m_amt * vn_m2m_base_fx_rate;
+      else
+        vn_ele_m2m_amt := nvl(cur_unrealized_rows.net_m2m_price, 0) /
+                          nvl(cur_unrealized_rows.m2m_price_unit_weight, 1) *
+                          pkg_general.f_get_converted_quantity(cur_unrealized_rows.conc_product_id,
+                                                               cur_unrealized_rows.conc_base_qty_unit_id,
+                                                               cur_unrealized_rows.m2m_price_unit_weight_unit_id,
+                                                               vn_dry_qty_in_base);
+      
+        pkg_general.sp_get_main_cur_detail(nvl(cur_unrealized_rows.m2m_price_unit_cur_id,
+                                               cur_unrealized_rows.base_cur_id),
+                                           vc_m2m_cur_id,
+                                           vc_m2m_cur_code,
+                                           vn_m2m_sub_cur_id_factor,
+                                           vn_m2m_cur_decimals);
+        vn_ele_m2m_amt := round(vn_ele_m2m_amt * vn_m2m_sub_cur_id_factor,
+                                vn_m2m_cur_decimals);
+      
+        pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
+                                                pd_trade_date,
+                                                cur_unrealized_rows.payment_due_date,
+                                                vc_m2m_cur_id,
+                                                cur_unrealized_rows.base_cur_id,
+                                                30,
+                                                vn_m2m_base_fx_rate,
+                                                vn_m2m_base_deviation);
+        if vc_m2m_cur_id <> cur_unrealized_rows.base_cur_id then
+          if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
+            vobj_error_log.extend;
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
+                                                                 'PHY-005',
+                                                                 cur_unrealized_rows.base_cur_code ||
+                                                                 ' to ' ||
+                                                                 vc_m2m_cur_code,
+                                                                 '',
+                                                                 gvc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
+          end if;
+        end if;
+        if cur_unrealized_rows.ele_rank = 1 then
+          vn_ele_m2m_amount_in_base := vn_ele_m2m_amt * vn_m2m_base_fx_rate;
+        else
+          vn_ele_m2m_amount_in_base := 0;
+          vn_ele_m2m_amt            := 0;
         end if;
       end if;
-      vn_ele_m2m_amount_in_base := vn_ele_m2m_amt * vn_m2m_base_fx_rate;
     
       vn_ele_m2m_treatment_charge := round(cur_unrealized_rows.m2m_treatment_charge *
                                            vn_dry_qty_in_base,
@@ -8807,7 +8823,8 @@ create or replace package body pkg_phy_physical_process is
          valuation_exchange,
          element_qty_in_base_unit,
          base_price_unit_id_ppu,
-         base_price_unit_name)
+         base_price_unit_name,
+         valuation_against_underlying)
       values
         (cur_unrealized_rows.corporate_id,
          cur_unrealized_rows.corporate_name,
@@ -8855,7 +8872,7 @@ create or replace package body pkg_phy_physical_process is
          vn_ele_m2m_treatment_charge,
          -- cur_unrealized_rows.m2m_penalty_charge,
          cur_unrealized_rows.m2m_loc_incoterm_deviation,
-         vn_ele_m2m_total_amount, --m2m_amt_in_base, 
+         vn_ele_m2m_amount_in_base, -- updated by siva on 14sep2011 vn_ele_m2m_total_amount, --m2m_amt_in_base, ---used to sum at main table
          -- round(vn_ele_sc_in_base_cur, 3), --sc_in_base_cur,
          cur_unrealized_rows.valuation_dr_id,
          cur_unrealized_rows.dr_id_name,
@@ -8872,7 +8889,8 @@ create or replace package body pkg_phy_physical_process is
          cur_unrealized_rows.exchange_name,
          vn_ele_qty_in_base,
          cur_unrealized_rows.base_price_unit_id_in_ppu,
-         cur_unrealized_rows.base_price_unit_name);
+         cur_unrealized_rows.base_price_unit_name,
+         cur_unrealized_rows.valuation_against_underlying);
     
       if cur_unrealized_rows.ele_rank = 1 then
         insert into poue_phy_open_unreal_element
@@ -8967,7 +8985,8 @@ create or replace package body pkg_phy_physical_process is
            del_distribution_item_no,
            penalty_charge,
            m2m_penalty_charge,
-           m2m_loc_diff_premium)
+           m2m_loc_diff_premium,
+           valuation_against_underlying)
         values
           (cur_unrealized_rows.corporate_id,
            cur_unrealized_rows.corporate_name,
@@ -9060,7 +9079,8 @@ create or replace package body pkg_phy_physical_process is
            cur_unrealized_rows.del_distribution_item_no,
            vn_base_con_penality_charge,
            vn_total_penality,
-           vn_loc_total_amount);
+           vn_loc_total_amount,
+           cur_unrealized_rows.valuation_against_underlying);
       end if;
     
     end loop;
@@ -9080,11 +9100,19 @@ create or replace package body pkg_phy_physical_process is
                                          poude.price_unit_cur_code || '/' ||
                                          poude.price_unit_weight ||
                                          poude.price_unit_weight_unit) contract_price_string,
-                                  stragg(poude.element_name || '-' ||
-                                         poude.m2m_price || ' ' ||
+                                  (case
+                                    when poude.valuation_against_underlying = 'N' then
+                                     max(poude.m2m_price || ' ' ||
                                          poude.m2m_price_cur_code || '/' ||
                                          poude.m2m_price_weight ||
-                                         poude.m2m_price_weight_unit) m2m_price_string,
+                                         poude.m2m_price_weight_unit)
+                                    else
+                                     stragg((poude.element_name || '-' ||
+                                            poude.m2m_price || ' ' ||
+                                            poude.m2m_price_cur_code || '/' ||
+                                            poude.m2m_price_weight ||
+                                            poude.m2m_price_weight_unit))
+                                  end) m2m_price_string, -- TODO if underly valuation = n, show the concentrate price
                                   stragg('TC:' || poude.element_name || '-' ||
                                          poude.treatment_charge || ' ' ||
                                          poude.base_cur_code || '  ' ||
@@ -9100,7 +9128,8 @@ create or replace package body pkg_phy_physical_process is
                              from poued_element_details poude
                             where poude.corporate_id = pc_corporate_id
                               and poude.process_id = pc_process_id
-                            group by poude.internal_contract_item_ref_no)
+                            group by poude.internal_contract_item_ref_no,
+                                     poude.valuation_against_underlying)
     loop
       update poue_phy_open_unreal_element poue
          set poue.net_contract_value_in_base_cur = round(cur_update_pnl.net_contract_value_in_base_cur,
@@ -9115,7 +9144,7 @@ create or replace package body pkg_phy_physical_process is
              poue.net_m2m_refining_charge        = cur_update_pnl.net_m2m_refining_charge,
              -- poue.expected_cog_net_sale_value    = round(cur_update_pnl.expected_cog_net_sale_value, 3),
              /*poue.unrealized_pnl_in_base_cur     = round(cur_update_pnl.unrealized_pnl_in_base_cur,
-                                                                                                                                                                                                                                                                         3),*/
+                                                                                                                                                                                                                                                                                      3),*/
              poue.contract_price_string     = cur_update_pnl.contract_price_string,
              poue.m2m_price_string          = cur_update_pnl.m2m_price_string,
              poue.contract_rc_tc_pen_string = cur_update_pnl.contract_rc_tc_pen_string,
@@ -9140,6 +9169,8 @@ create or replace package body pkg_phy_physical_process is
        set poue.unrealized_pnl_in_base_cur = (poue.expected_cog_net_sale_value -
                                              nvl(poue.penalty_charge, 0)) -
                                              (poue.net_m2m_amt_in_base_cur -
+                                             poue.net_m2m_treatment_charge -
+                                             poue.net_contract_refining_charge -
                                              nvl(poue.m2m_penalty_charge, 0) +
                                              poue.m2m_loc_diff_premium)
      where poue.corporate_id = pc_corporate_id
@@ -9588,7 +9619,8 @@ create or replace package body pkg_phy_physical_process is
              cipd.internal_contract_item_ref_no
          and dgrd.process_id = cipd.process_id
          and cipd.internal_contract_ref_no = pcm.internal_contract_ref_no
-         and cipd.internal_contract_item_ref_no=pci.internal_contract_item_ref_no
+         and cipd.internal_contract_item_ref_no =
+             pci.internal_contract_item_ref_no
          and pci.internal_contract_item_ref_no =
              ciqs.internal_contract_item_ref_no
          and gmr.corporate_id = akc.corporate_id
@@ -10715,7 +10747,8 @@ create or replace package body pkg_phy_physical_process is
              tmpc.mvp_id,
              tmpc.shipment_month,
              tmpc.shipment_year,
-             pum_base_price_id.price_unit_name base_price_unit_name
+             pum_base_price_id.price_unit_name base_price_unit_name,
+             nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
              gpd_gmr_conc_price_daily gpd,
@@ -10983,7 +11016,8 @@ create or replace package body pkg_phy_physical_process is
              tmpc.mvp_id,
              tmpc.shipment_month,
              tmpc.shipment_year,
-             pum_base_price_id.price_unit_name base_price_unit_name
+             pum_base_price_id.price_unit_name base_price_unit_name,
+             nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying
         from gmr_goods_movement_record gmr,
              gpd_gmr_conc_price_daily gpd,
              dgrd_delivered_grd dgrd,
@@ -11223,81 +11257,146 @@ create or replace package body pkg_phy_physical_process is
                                                                          1) *
                                     vn_dry_qty,
                                     cur_grd_rows.base_qty_decimal);
-                                    
       
-        vn_qty_in_base     := round(cur_grd_rows.stock_qty *
-                                    pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
-                                                                         cur_grd_rows.qty_unit_id,
-                                                                         cur_grd_rows.conc_base_qty_unit_id,
-                                                                         1),
-                                    cur_grd_rows.base_qty_decimal);
-                                    
+        vn_qty_in_base := round(cur_grd_rows.stock_qty *
+                                pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
+                                                                     cur_grd_rows.qty_unit_id,
+                                                                     cur_grd_rows.conc_base_qty_unit_id,
+                                                                     1),
+                                cur_grd_rows.base_qty_decimal);
+      
         vn_ele_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
                                                                          cur_grd_rows.payable_qty_unit_id,
                                                                          cur_grd_rows.base_qty_unit_id,
                                                                          1) *
                                     cur_grd_rows.payable_qty,
                                     cur_grd_rows.base_qty_decimal);
-      
-        if cur_grd_rows.eval_basis = 'FIXED' then
-          vn_m2m_amt               := 0;
-          vc_m2m_price_unit_cur_id := cur_grd_rows.base_cur_id;
-        else
-          vc_m2m_price_unit_cur_id := nvl(cur_grd_rows.m2m_price_unit_cur_id,
-                                          cur_grd_rows.base_cur_id);
-          vn_m2m_amt               := nvl(cur_grd_rows.net_m2m_price, 0) /
-                                      nvl(cur_grd_rows.m2m_price_unit_weight,
-                                          1) *
-                                      pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
-                                                                           cur_grd_rows.qty_unit_id,
-                                                                           cur_grd_rows.m2m_price_unit_weight_unit_id,
-                                                                           cur_grd_rows.stock_qty);
-        end if;
-      
-        pkg_general.sp_get_main_cur_detail(nvl(vc_m2m_price_unit_cur_id,
-                                               cur_grd_rows.base_cur_id),
-                                           vc_m2m_cur_id,
-                                           vc_m2m_cur_code,
-                                           vn_m2m_sub_cur_id_factor,
-                                           vn_m2m_cur_decimals);
-      
-        vn_m2m_amt := round(vn_m2m_amt * vn_m2m_sub_cur_id_factor, cur_grd_rows.base_cur_decimal);
-      
-        pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
-                                                pd_trade_date,
-                                                cur_grd_rows.payment_due_date,
-                                                nvl(vc_m2m_cur_id,
-                                                    cur_grd_rows.base_cur_id),
-                                                cur_grd_rows.base_cur_id,
-                                                30,
-                                                vn_m2m_base_fx_rate,
-                                                vn_m2m_base_deviation);
-      
-        if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
-          if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 cur_grd_rows.base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_m2m_cur_code,
-                                                                 '',
-                                                                 gvc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
-          
+        if cur_grd_rows.valuation_against_underlying = 'Y' then
+          if cur_grd_rows.eval_basis = 'FIXED' then
+            vn_m2m_amt               := 0;
+            vc_m2m_price_unit_cur_id := cur_grd_rows.base_cur_id;
+          else
+            vc_m2m_price_unit_cur_id := nvl(cur_grd_rows.m2m_price_unit_cur_id,
+                                            cur_grd_rows.base_cur_id);
+            vn_m2m_amt               := nvl(cur_grd_rows.net_m2m_price, 0) /
+                                        nvl(cur_grd_rows.m2m_price_unit_weight,
+                                            1) *
+                                        pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
+                                                                             cur_grd_rows.payable_qty_unit_id,
+                                                                             cur_grd_rows.m2m_price_unit_weight_unit_id,
+                                                                             cur_grd_rows.payable_qty);
           end if;
+        
+          pkg_general.sp_get_main_cur_detail(nvl(vc_m2m_price_unit_cur_id,
+                                                 cur_grd_rows.base_cur_id),
+                                             vc_m2m_cur_id,
+                                             vc_m2m_cur_code,
+                                             vn_m2m_sub_cur_id_factor,
+                                             vn_m2m_cur_decimals);
+        
+          vn_m2m_amt := round(vn_m2m_amt * vn_m2m_sub_cur_id_factor,
+                              cur_grd_rows.base_cur_decimal);
+        
+          pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
+                                                  pd_trade_date,
+                                                  cur_grd_rows.payment_due_date,
+                                                  nvl(vc_m2m_cur_id,
+                                                      cur_grd_rows.base_cur_id),
+                                                  cur_grd_rows.base_cur_id,
+                                                  30,
+                                                  vn_m2m_base_fx_rate,
+                                                  vn_m2m_base_deviation);
+        
+          if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
+            if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
+              vobj_error_log.extend;
+              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                   'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
+                                                                   'PHY-005',
+                                                                   cur_grd_rows.base_cur_code ||
+                                                                   ' to ' ||
+                                                                   vc_m2m_cur_code,
+                                                                   '',
+                                                                   gvc_process,
+                                                                   pc_user_id,
+                                                                   sysdate,
+                                                                   pd_trade_date);
+              sp_insert_error_log(vobj_error_log);
+            
+            end if;
+          end if;
+        
+          vn_ele_m2m_amount_in_base := vn_m2m_amt * vn_m2m_base_fx_rate;
+        else
+          --if valuation against underly is no, then use total concentrate qty and market price to calculate the
+          --market value for the gmr level.
+          if cur_grd_rows.eval_basis = 'FIXED' then
+            vn_m2m_amt               := 0;
+            vc_m2m_price_unit_cur_id := cur_grd_rows.base_cur_id;
+          else
+            vc_m2m_price_unit_cur_id := nvl(cur_grd_rows.m2m_price_unit_cur_id,
+                                            cur_grd_rows.base_cur_id);
+            vn_m2m_amt               := nvl(cur_grd_rows.net_m2m_price, 0) /
+                                        nvl(cur_grd_rows.m2m_price_unit_weight,
+                                            1) *
+                                        pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
+                                                                             cur_grd_rows.conc_base_qty_unit_id,
+                                                                             cur_grd_rows.m2m_price_unit_weight_unit_id,
+                                                                             vn_dry_qty_in_base);
+          end if;
+        
+          pkg_general.sp_get_main_cur_detail(nvl(vc_m2m_price_unit_cur_id,
+                                                 cur_grd_rows.base_cur_id),
+                                             vc_m2m_cur_id,
+                                             vc_m2m_cur_code,
+                                             vn_m2m_sub_cur_id_factor,
+                                             vn_m2m_cur_decimals);
+        
+          vn_m2m_amt := round(vn_m2m_amt * vn_m2m_sub_cur_id_factor,
+                              cur_grd_rows.base_cur_decimal);
+        
+          pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
+                                                  pd_trade_date,
+                                                  cur_grd_rows.payment_due_date,
+                                                  nvl(vc_m2m_cur_id,
+                                                      cur_grd_rows.base_cur_id),
+                                                  cur_grd_rows.base_cur_id,
+                                                  30,
+                                                  vn_m2m_base_fx_rate,
+                                                  vn_m2m_base_deviation);
+        
+          if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
+            if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
+              vobj_error_log.extend;
+              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                   'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
+                                                                   'PHY-005',
+                                                                   cur_grd_rows.base_cur_code ||
+                                                                   ' to ' ||
+                                                                   vc_m2m_cur_code,
+                                                                   '',
+                                                                   gvc_process,
+                                                                   pc_user_id,
+                                                                   sysdate,
+                                                                   pd_trade_date);
+              sp_insert_error_log(vobj_error_log);
+            
+            end if;
+          end if;
+          if cur_grd_rows.ele_rank = 1 then
+            vn_ele_m2m_amount_in_base := vn_m2m_amt * vn_m2m_base_fx_rate;
+          else
+            vn_ele_m2m_amount_in_base := 0;
+            vn_m2m_amt                := 0;
+          end if;
+        
         end if;
-      
-        vn_ele_m2m_amount_in_base := vn_m2m_amt * vn_m2m_base_fx_rate;
-      
         vn_ele_m2m_treatment_charge := round(cur_grd_rows.m2m_treatment_charge *
-                                       vn_dry_qty_in_base,cur_grd_rows.base_cur_decimal);
+                                             vn_dry_qty_in_base,
+                                             cur_grd_rows.base_cur_decimal);
         vn_ele_m2m_refine_charge    := round(cur_grd_rows.m2m_refine_charge *
-                                       vn_ele_qty_in_base,cur_grd_rows.base_cur_decimal);
+                                             vn_ele_qty_in_base,
+                                             cur_grd_rows.base_cur_decimal);
         if cur_grd_rows.ele_rank = 1 then
           vn_loc_amount := round(pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
                                                                       cur_grd_rows.loc_qty_unit_id,
@@ -11306,7 +11405,8 @@ create or replace package body pkg_phy_physical_process is
                                  cur_grd_rows.m2m_loc_incoterm_deviation,
                                  cur_grd_rows.base_cur_decimal);
         
-          vn_loc_total_amount :=round(vn_loc_amount * vn_qty_in_base,cur_grd_rows.base_cur_decimal);
+          vn_loc_total_amount := round(vn_loc_amount * vn_qty_in_base,
+                                       cur_grd_rows.base_cur_decimal);
         end if;
         vn_total_penality := 0;
         if cur_grd_rows.ele_rank = 1 then
@@ -11349,7 +11449,8 @@ create or replace package body pkg_phy_physical_process is
                                                                   vc_penality_price_unit_id);
             if nvl(vn_penality, 0) <> 0 then
               vn_total_penality := round(vn_total_penality +
-                                   (vn_penality * vn_dry_qty_in_base),cur_grd_rows.base_cur_decimal);
+                                         (vn_penality * vn_dry_qty_in_base),
+                                         cur_grd_rows.base_cur_decimal);
             end if;
           
           end loop;
@@ -11449,7 +11550,8 @@ create or replace package body pkg_phy_physical_process is
          price_cur_to_base_cur_fx_rate,
          m2m_cur_to_base_cur_fx_rate,
          base_price_unit_id_in_ppu,
-         base_price_unit_id_in_pum)
+         base_price_unit_id_in_pum,
+         valuation_against_underlying)
       values
         (cur_grd_rows.corporate_id,
          pc_process_id,
@@ -11478,8 +11580,8 @@ create or replace package body pkg_phy_physical_process is
          cur_grd_rows.m2m_price_unit_weight_unit_id,
          cur_grd_rows.m2m_price_unit_weight_unit,
          cur_grd_rows.m2m_price_unit_weight,
-         vn_ele_m2m_treatment_charge,
          vn_ele_m2m_refine_charge,
+         vn_ele_m2m_treatment_charge,
          cur_grd_rows.price_description,
          cur_grd_rows.m2m_price_unit_id,
          cur_grd_rows.m2m_price_unit_str,
@@ -11496,8 +11598,8 @@ create or replace package body pkg_phy_physical_process is
          vn_fx_price_to_base, --price_cur_to_base_cur_fx_rate,   
          vn_m2m_base_fx_rate, --m2m_cur_to_base_cur_fx_rate,
          cur_grd_rows.base_price_unit_id_in_ppu, --base_price_unit_id_in_ppu,
-         cur_grd_rows.base_price_unit_id_in_pum --base_price_unit_id_in_pum)*/
-         );
+         cur_grd_rows.base_price_unit_id_in_pum, --base_price_unit_id_in_pum)*/
+         cur_grd_rows.valuation_against_underlying);
     
       if cur_grd_rows.ele_rank = 1 then
         insert into psue_phy_stock_unrealized_ele
@@ -11580,7 +11682,8 @@ create or replace package body pkg_phy_physical_process is
            base_price_unit_id,
            base_price_unit_name,
            base_cur_id,
-           base_cur_code)
+           base_cur_code,
+           valuation_against_underlying)
         values
           (pc_process_id,
            vc_psu_id,
@@ -11661,7 +11764,8 @@ create or replace package body pkg_phy_physical_process is
            cur_grd_rows.base_price_unit_id_in_ppu,
            cur_grd_rows.base_price_unit_name,
            cur_grd_rows.base_cur_id,
-           cur_grd_rows.base_cur_code);
+           cur_grd_rows.base_cur_code,
+           cur_grd_rows.valuation_against_underlying);
       end if;
     end loop;
   
@@ -11678,11 +11782,19 @@ create or replace package body pkg_phy_physical_process is
                                          psue.price_unit_cur_code || '/' ||
                                          psue.price_unit_weight ||
                                          psue.price_unit_weight_unit) contract_price_string,
-                                  stragg(psue.element_name || '-' ||
-                                         psue.m2m_price || ' ' ||
+                                  (case
+                                    when psue.valuation_against_underlying = 'N' then
+                                     max(psue.m2m_price || ' ' ||
                                          psue.m2m_price_cur_code || '/' ||
                                          psue.m2m_price_weight_unit_weight ||
-                                         psue.m2m_price_weight_unit) m2m_price_string,
+                                         psue.m2m_price_weight_unit)
+                                    else
+                                     stragg(psue.element_name || '-' ||
+                                            psue.m2m_price || ' ' ||
+                                            psue.m2m_price_cur_code || '/' ||
+                                            psue.m2m_price_weight_unit_weight ||
+                                            psue.m2m_price_weight_unit)
+                                  end) m2m_price_string, -- TODO if underly valuation = n, show the concentrate price
                                   stragg('TC:' || psue.element_name || '-' ||
                                          psue.m2m_treatment_charge || ' ' ||
                                          psue.price_unit_cur_code || ' ' ||
@@ -11692,13 +11804,14 @@ create or replace package body pkg_phy_physical_process is
                              from psue_element_details psue
                             where psue.corporate_id = pc_corporate_id
                               and psue.process_id = pc_process_id
-                            group by psue.psu_id)
+                            group by psue.psu_id,
+                                     psue.valuation_against_underlying)
     loop
     
       update psue_phy_stock_unrealized_ele psuee
          set psuee.net_contract_value_in_base_cur = cur_update_pnl.
                                                     net_contract_value_in_base_cur,
-             psuee.net_m2m_amount_in_base_cur     = cur_update_pnl.net_m2m_amt,
+             psuee.net_m2m_amount                 = cur_update_pnl.net_m2m_amt,
              psuee.m2m_treatment_charge           = cur_update_pnl.net_m2m_treatment_charge,
              psuee.m2m_refining_charge            = cur_update_pnl.net_m2m_refining_charge,
              psuee.contract_price_string          = cur_update_pnl.contract_price_string,
@@ -11709,9 +11822,19 @@ create or replace package body pkg_phy_physical_process is
          and psuee.process_id = pc_process_id
          and psuee.corporate_id = pc_corporate_id;
     end loop;
+    
+    update psue_phy_stock_unrealized_ele psuee
+       set psuee.net_m2m_amount_in_base_cur = (psuee.net_m2m_amount -
+                                              psuee.m2m_treatment_charge -
+                                              psuee.m2m_refining_charge -
+                                              psuee.m2m_penalty_charge +
+                                              psuee.m2m_loc_diff_premium)
+     where psuee.corporate_id = pc_corporate_id
+       and psuee.process_id   =pc_process_id;
   
     --- previous EOD Data
     for cur_update in (select psue_prev_day.net_m2m_amount_in_base_cur,
+                              psue_prev_day.net_m2m_amount,
                               psue_prev_day.pnl_in_per_base_unit,
                               psue_prev_day.m2m_price_string,
                               psue_prev_day.m2m_rc_tc_string,
@@ -11729,6 +11852,7 @@ create or replace package body pkg_phy_physical_process is
          set psue_today.prev_net_m2m_amt_in_base_cur = cur_update.net_m2m_amount_in_base_cur,
              psue_today.prev_day_pnl_in_base_cur     = cur_update.pnl_in_per_base_unit *
                                                        psue_today.qty_in_base_unit,
+             psue_today.prev_net_m2m_amount          = cur_update.net_m2m_amount,                                         
              psue_today.prev_day_pnl_per_base_unit   = cur_update.pnl_in_per_base_unit,
              psue_today.prev_m2m_price_string        = cur_update.m2m_price_string,
              psue_today.prev_m2m_rc_tc_string        = cur_update.m2m_rc_tc_string,
@@ -11747,6 +11871,7 @@ create or replace package body pkg_phy_physical_process is
          set psue.prev_net_m2m_amt_in_base_cur = psue.net_m2m_amount_in_base_cur,
              psue.prev_day_pnl_in_base_cur     = 0,
              psue.prev_day_pnl_per_base_unit   = 0,
+             psue.prev_net_m2m_amount          =psue.net_m2m_amount,
              psue.prev_m2m_price_string        = psue.m2m_price_string,
              psue.prev_m2m_rc_tc_string        = psue.m2m_rc_tc_string,
              psue.prev_m2m_penalty_charge      = psue.m2m_penalty_charge,
@@ -11775,7 +11900,8 @@ create or replace package body pkg_phy_physical_process is
            trade_day_pnl_per_base_unit = nvl(psue.pnl_in_base_cur, 0) -
                                          nvl(psue.prev_day_pnl_in_base_cur,
                                              0) / psue.qty_in_base_unit
-     where psue.process_id = pc_process_id;
+     where psue.process_id = pc_process_id
+       and psue.corporate_id=pc_corporate_id;
   
     update psue_phy_stock_unrealized_ele psue
        set (gmr_ref_no, warehouse_id, warehouse_name, shed_id, shed_name, prod_base_qty_unit_id, prod_base_qty_unit) = (select gmr.gmr_ref_no,
@@ -12379,5 +12505,5 @@ create or replace package body pkg_phy_physical_process is
     end if;
   end;
 
-end; 
+end;
 /
