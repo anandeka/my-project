@@ -1,0 +1,63 @@
+Patch No*          		:  EKA_METALS_PATCH_0141
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  SUresh Gottipati
+ 
+Created on*        		:  14-Sep-2011
+
+Bug / Enhancement* 		:  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : EOD
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 76637
+Author: suresh.gottipati
+Date: 9:38:40 PM, Wednesday, September 14, 2011
+Message:
+bug fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/009_EOD_DDL_Script.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_conc_qat_quality_valuation.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_qat_quality_valuation.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_conc_qat_quality_valuation.sql
+
+
+
+
+
+
+
+
+
+
+
+
