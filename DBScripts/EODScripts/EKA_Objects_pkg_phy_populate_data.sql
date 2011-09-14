@@ -1,4 +1,4 @@
-create or replace package pkg_phy_populate_data is
+CREATE OR REPLACE PACKAGE "PKG_PHY_POPULATE_DATA" is
 
   -- Author  : SURESHGOTTIPATI
   -- Created : 5/2/2011 5:33:53 PM
@@ -172,8 +172,10 @@ create or replace package pkg_phy_populate_data is
                                      pc_user_id      varchar2);
                                      
 end pkg_phy_populate_data; 
+ 
+ 
 /
-create or replace package body pkg_phy_populate_data is
+CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
 
   procedure sp_phy_populate_table_data
   /*******************************************************************************************************************************************
@@ -216,7 +218,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_agd_data');
     sp_phy_create_agd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -230,7 +232,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_agh_data');
     sp_phy_create_agh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -244,7 +246,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_cigc_data');
     sp_phy_create_cigc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -258,7 +260,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_cs_data');
     sp_phy_create_cs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -272,7 +274,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_dgrd_data');
     sp_phy_create_dgrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -286,7 +288,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_gmr_data');
     sp_phy_create_gmr_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -300,7 +302,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_mogrd_data');
     sp_phy_create_mogrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -314,7 +316,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcad_data');
     sp_phy_create_pcad_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -328,7 +330,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcbpd_data');
     sp_phy_create_pcbpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -342,7 +344,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcbph_data');
     sp_phy_create_pcbph_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -356,7 +358,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdb_data');
     sp_phy_create_pcdb_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -370,7 +372,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdd_data');
     sp_phy_create_pcdd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -384,7 +386,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdiob_data');
     sp_phy_create_pcdiob_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -398,7 +400,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdipe_data');
     sp_phy_create_pcdipe_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -412,6 +414,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdiqd_data');
     sp_phy_create_pcdiqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+    commit;    
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -425,7 +428,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcdi_data');
     sp_phy_create_pcdi_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -439,7 +442,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcipf_data');
     sp_phy_create_pcipf_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -453,7 +456,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pci_data');
     sp_phy_create_pci_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -467,7 +470,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcjv_data');
     sp_phy_create_pcjv_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -481,7 +484,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcm_data');
     sp_phy_create_pcm_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -495,7 +498,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpdqd_data');
     sp_phy_create_pcpdqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -508,7 +511,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpd_data');
     sp_phy_create_pcpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -521,7 +524,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpq_data');
     sp_phy_create_pcpq_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -534,7 +537,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcqpd_data');
     sp_phy_create_pcqpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -547,7 +550,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pffxd_data');
     sp_phy_create_pffxd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -560,7 +563,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pfqpp_data');
     sp_phy_create_pfqpp_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -573,7 +576,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ppfd_data');
     sp_phy_create_ppfd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -586,7 +589,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ppfh_data');
     sp_phy_create_ppfh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -599,7 +602,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ciqs_data');
     sp_phy_create_ciqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -612,7 +615,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_diqs_data');
     sp_phy_create_diqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -625,7 +628,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_cqs_data');
     sp_phy_create_cqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -638,7 +641,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_grd_data');
     sp_phy_create_grd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -651,7 +654,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_vd_data');
     sp_phy_create_vd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -664,7 +667,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcpch_data');
     sp_phy_create_pcpch_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -677,7 +680,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pqd_data');
     sp_phy_create_pqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -690,7 +693,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcepc_data');
     sp_phy_create_pcepc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -703,7 +706,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcth_data');
     sp_phy_create_pcth_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -716,7 +719,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_ted_data');
     sp_phy_create_ted_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -729,7 +732,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_tqd_data');
     sp_phy_create_tqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -742,7 +745,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcetc_data');
     sp_phy_create_pcetc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -755,7 +758,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcar_data');
     sp_phy_create_pcar_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -768,7 +771,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcaesl_data');
     sp_phy_create_pcaesl_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -781,7 +784,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_arqd_data');
     sp_phy_create_arqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -794,7 +797,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcaph_data');
     sp_phy_create_pcaph_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -807,7 +810,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcap_data');
     sp_phy_create_pcap_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -820,7 +823,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pqdp_data');
     sp_phy_create_pqdp_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -833,7 +836,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pad_data');
     sp_phy_create_pad_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -846,7 +849,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcrh_data');
     sp_phy_create_pcrh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -859,7 +862,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_rqd_data');
     sp_phy_create_rqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -872,7 +875,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_red_data');
     sp_phy_create_red_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
+    commit;  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -885,7 +888,7 @@ create or replace package body pkg_phy_populate_data is
                             vn_logno,
                             'sp_phy_create_pcerc_data');
     sp_phy_create_pcerc_data(pc_corporate_id, pd_trade_date, pc_user_id);    
-    
+    commit;    
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -8614,7 +8617,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into vd_voyage_detail
+    insert into vd_voyage_detail
       (internal_gmr_ref_no,
        action_no,
        shipping_line_profile_id,
@@ -9207,7 +9210,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into pcpch_pc_payble_content_header
+    insert into pcpch_pc_payble_content_header
       (pcpch_id,
        internal_contract_ref_no,
        range_type,
@@ -9325,7 +9328,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into pqd_payable_quality_details
+    insert into pqd_payable_quality_details
       (pqd_id, pcpch_id, pcpq_id, version, is_active, dbd_id)
       select decode(pqd_id, 'Empty_String', null, pqd_id),
              decode(pcpch_id, 'Empty_String', null, pcpch_id),
@@ -9410,7 +9413,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into pcepc_pc_elem_payable_content
+    insert into pcepc_pc_elem_payable_content
       (pcepc_id,
        range_min_op,
        range_min_value,
@@ -9619,7 +9622,7 @@ create or replace package body pkg_phy_populate_data is
   
   begin
   
-    insert all into pcth_pc_treatment_header
+    insert into pcth_pc_treatment_header
       (pcth_id,
        internal_contract_ref_no,
        range_type,
@@ -9825,7 +9828,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into tqd_treatment_quality_details
+    insert into tqd_treatment_quality_details
       (tqd_id, pcth_id, pcpq_id, version, is_active, dbd_id)
       select decode(tqd_id, 'Empty_String', null, tqd_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
@@ -9913,7 +9916,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into pcetc_pc_elem_treatment_charge
+    insert into pcetc_pc_elem_treatment_charge
       (pcetc_id,
        pcth_id,
        range_min_op,
@@ -10105,7 +10108,7 @@ create or replace package body pkg_phy_populate_data is
   
   begin
   
-    insert all into pcar_pc_assaying_rules
+    insert into pcar_pc_assaying_rules
       (pcar_id,
        internal_contract_ref_no,
        element_id,
@@ -10251,7 +10254,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into pcaesl_assay_elem_split_limits
+    insert into pcaesl_assay_elem_split_limits
       (pcaesl_id,
        pcar_id,
        assay_min_op,
@@ -10379,7 +10382,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into arqd_assay_quality_details
+    insert into arqd_assay_quality_details
       (arqd_id, pcar_id, pcpq_id, version, is_active, dbd_id)
       select decode(arqd_id, 'Empty_String', null, arqd_id),
              decode(pcar_id, 'Empty_String', null, pcar_id),
@@ -10464,7 +10467,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into pcaph_pc_attr_penalty_header
+    insert into pcaph_pc_attr_penalty_header
       (pcaph_id,
        internal_contract_ref_no,
        attribute_type,
@@ -10575,7 +10578,7 @@ create or replace package body pkg_phy_populate_data is
   
   begin
   
-    insert all into pcap_pc_attribute_penalty
+    insert into pcap_pc_attribute_penalty
       (pcap_id,
        range_min_op,
        range_min_value,
@@ -10808,7 +10811,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into pqd_penalty_quality_details
+    insert into pqd_penalty_quality_details
       (pqd_id, pcaph_id, pcpq_id, version, is_active, dbd_id)
       select decode(pqd_id, 'Empty_String', null, pqd_id),
              decode(pcaph_id, 'Empty_String', null, pcaph_id),
@@ -10897,7 +10900,7 @@ create or replace package body pkg_phy_populate_data is
   
   begin
   
-    insert all into pad_penalty_attribute_details
+    insert into pad_penalty_attribute_details
       (pad_id, pcaph_id, element_id, pqpa_id, version, is_active, dbd_id)
       select decode(pad_id, 'Empty_String', null, pad_id),
              decode(pcaph_id, 'Empty_String', null, pcaph_id),
@@ -10992,7 +10995,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into pcrh_pc_refining_header
+    insert into pcrh_pc_refining_header
       (pcrh_id,
        internal_contract_ref_no,
        range_type,
@@ -11111,7 +11114,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into rqd_refining_quality_details
+    insert into rqd_refining_quality_details
       (rqd_id, pcrh_id, pcpq_id, version, is_active, dbd_id)
       select decode(rqd_id, 'Empty_String', null, rqd_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
@@ -11199,7 +11202,7 @@ create or replace package body pkg_phy_populate_data is
     vn_eel_error_count number := 1;
   
   begin
-    insert all into red_refining_element_details
+    insert into red_refining_element_details
       (red_id, pcrh_id, element_id, version, is_active, dbd_id)
       select decode(red_id, 'Empty_String', null, red_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
@@ -11288,7 +11291,7 @@ create or replace package body pkg_phy_populate_data is
   
   begin
   
-    insert all into pcerc_pc_elem_refining_charge
+    insert into pcerc_pc_elem_refining_charge
       (pcerc_id,
        pcrh_id,
        range_min_op,

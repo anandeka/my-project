@@ -1,4 +1,4 @@
-create or replace package pkg_phy_transfer_data is
+CREATE OR REPLACE PACKAGE "PKG_PHY_TRANSFER_DATA" is
 
   -- Author  : SURESHGOTTIPATI
   -- Created : 5/2/2011 3:09:18 PM
@@ -43,8 +43,9 @@ create or replace package pkg_phy_transfer_data is
                                    pc_dbd_id       varchar2);
 
 end pkg_phy_transfer_data; 
+ 
 /
-create or replace package body pkg_phy_transfer_data is
+CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
 
   procedure sp_phy_transfer_data(pc_corporate_id       in varchar2,
                                  pt_previous_pull_date timestamp,
@@ -227,15 +228,17 @@ create or replace package body pkg_phy_transfer_data is
              where corporate_id = pc_corporate_id);
     delete from lds_location_diff_setup
      where corporate_id = pc_corporate_id;
-  
+    commit;  
     --Moved 
     delete from mvpl_m2m_valuation_point_loc
      where mvp_id in (select mvp_id
                         from mvp_m2m_valuation_point
                        where corporate_id = pc_corporate_id);
+    commit;                       
     delete from mvp_m2m_valuation_point
      where corporate_id = pc_corporate_id;
     --ends here
+    commit;    
   exception
     when others then
       vobj_error_log.extend;
@@ -315,7 +318,7 @@ create or replace package body pkg_phy_transfer_data is
        where corporate_id = pc_corporate_id
          and is_deleted = 'N'
          and is_active = 'Y';
-  
+    commit;  
     insert into mvpl_m2m_valuation_point_loc
       (mvpl_id, mvp_id, loc_city_id)
       select mvpl_id,
@@ -326,7 +329,7 @@ create or replace package body pkg_phy_transfer_data is
                           from mvp_m2m_valuation_point
                          where corporate_id = pc_corporate_id)
          and is_deleted = 'N';
-  
+    commit;  
     /*INSERT INTO mmv_m2m_market_values
     (mmv_id,
      as_on_date,
@@ -408,7 +411,7 @@ create or replace package body pkg_phy_transfer_data is
              valuation_city_id
         from lds_location_diff_setup@eka_appdb ldh
        where corporate_id = pc_corporate_id;
-  
+    commit;  
     insert into ldc_location_diff_cost
       (loc_diff_id, cost_component_id, cost_value, cost_price_unit_id)
       select loc_diff_id,
@@ -420,7 +423,7 @@ create or replace package body pkg_phy_transfer_data is
              (select loc_diff_id
                 from lds_location_diff_setup
                where corporate_id = pc_corporate_id);
-  
+      commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -581,7 +584,7 @@ create or replace package body pkg_phy_transfer_data is
   
   begin
   
-    insert all into agdul_alloc_group_detail_ul
+    insert into agdul_alloc_group_detail_ul
       (internal_action_ref_no,
        int_alloc_group_detail_id,
        entry_type,
@@ -632,8 +635,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into aghul_alloc_group_header_ul
+    commit;         
+    insert into aghul_alloc_group_header_ul
       (internal_action_ref_no,
        int_alloc_group_id,
        entry_type,
@@ -686,8 +689,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into cigcul_contrct_itm_gmr_cost_ul
+    commit;  
+    insert into cigcul_contrct_itm_gmr_cost_ul
       (cogul_ref_no,
        internal_action_ref_no,
        entry_type,
@@ -724,8 +727,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into csul_cost_store_ul
+    commit;  
+    insert into csul_cost_store_ul
       (internal_cost_ul_id,
        internal_cost_id,
        entry_type,
@@ -796,8 +799,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into dgrdul_delivered_grd_ul
+    commit;  
+    insert into dgrdul_delivered_grd_ul
       (internal_action_ref_no,
        internal_dgrd_ref_no,
        entry_type,
@@ -962,8 +965,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into gmrul_gmr_ul
+    commit;  
+    insert into gmrul_gmr_ul
       (internal_action_ref_no,
        internal_gmr_ref_no,
        entry_type,
@@ -1140,8 +1143,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into mogrdul_moved_out_grd_ul
+    commit;  
+    insert into mogrdul_moved_out_grd_ul
       (internal_action_ref_no,
        entry_type,
        internal_grd_ref_no,
@@ -1175,7 +1178,7 @@ create or replace package body pkg_phy_transfer_data is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
   
-    insert all into pcadul_pc_agency_detail_ul
+    insert into pcadul_pc_agency_detail_ul
       (pcadul_id,
        internal_action_ref_no,
        pcad_id,
@@ -1222,8 +1225,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcbpdul_pc_base_price_dtl_ul
+    commit;  
+    insert into pcbpdul_pc_base_price_dtl_ul
       (pcbpdul_id,
        internal_action_ref_no,
        pcbpd_id,
@@ -1265,7 +1268,7 @@ create or replace package body pkg_phy_transfer_data is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
   
-    insert all into pcbphul_pc_base_prc_header_ul
+    insert into pcbphul_pc_base_prc_header_ul
       (pcbphul_id,
        internal_action_ref_no,
        entry_type,
@@ -1292,8 +1295,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcdbul_pc_delivery_basis_ul
+    commit;  
+    insert into pcdbul_pc_delivery_basis_ul
       (pcdbul_id,
        internal_action_ref_no,
        pcdb_id,
@@ -1341,7 +1344,7 @@ create or replace package body pkg_phy_transfer_data is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
   
-    insert all into pcddul_document_details_ul
+    insert into pcddul_document_details_ul
       (pcddul_id,
        internal_action_ref_no,
        entry_type,
@@ -1368,8 +1371,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcdiobul_di_optional_basis_ul
+    commit;  
+    insert into pcdiobul_di_optional_basis_ul
       (pcdiobul_id,
        internal_action_ref_no,
        entry_type,
@@ -1395,7 +1398,7 @@ create or replace package body pkg_phy_transfer_data is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
   
-    insert all into pcdipeul_di_pricing_elemnt_ul
+    insert into pcdipeul_di_pricing_elemnt_ul
       (pcdipeul_id,
        internal_action_ref_no,
        entry_type,
@@ -1420,8 +1423,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcdiqdul_di_quality_detail_ul
+      commit;
+    insert into pcdiqdul_di_quality_detail_ul
       (pcdiqdul_id,
        internal_action_ref_no,
        entry_type,
@@ -1447,7 +1450,7 @@ create or replace package body pkg_phy_transfer_data is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
   
-    insert all into pcdiul_pc_delivery_item_ul
+    insert into pcdiul_pc_delivery_item_ul
       (pcdiul_id,
        internal_action_ref_no,
        pcdi_id,
@@ -1534,8 +1537,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcipful_pci_pricing_formula_ul
+    commit;  
+    insert into pcipful_pci_pricing_formula_ul
       (pcipful_id,
        internal_action_ref_no,
        entry_type,
@@ -1560,8 +1563,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pciul_phy_contract_item_ul
+    commit;  
+    insert into pciul_phy_contract_item_ul
       (pciul_id,
        internal_action_ref_no,
        entry_type,
@@ -1624,8 +1627,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcjvul_pc_jv_detail_ul
+    commit;  
+    insert into pcjvul_pc_jv_detail_ul
       (pcjvul_id,
        internal_action_ref_no,
        pcjv_id,
@@ -1656,8 +1659,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcmul_phy_contract_main_ul
+    commit;  
+    insert into pcmul_phy_contract_main_ul
       (pcmul_id,
        internal_action_ref_no,
        internal_contract_ref_no,
@@ -1762,8 +1765,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcpdqdul_pd_quality_dtl_ul
+    commit;  
+    insert into pcpdqdul_pd_quality_dtl_ul
       (pcpdqdul_id,
        internal_action_ref_no,
        pcpdqd_id,
@@ -1789,7 +1792,7 @@ create or replace package body pkg_phy_transfer_data is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
   
-    insert all into pcpdul_pc_product_defintn_ul
+    insert into pcpdul_pc_product_defintn_ul
       (pcpdul_id,
        internal_action_ref_no,
        pcpd_id,
@@ -1850,8 +1853,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcpqul_pc_product_quality_ul
+    commit;  
+    insert into pcpqul_pc_product_quality_ul
       (pcpqul_id,
        internal_action_ref_no,
        pcpq_id,
@@ -1900,8 +1903,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcqpdul_pc_qual_prm_discnt_ul
+    commit;  
+    insert into pcqpdul_pc_qual_prm_discnt_ul
       (pcqpdul_id,
        internal_action_ref_no,
        pcqpd_id,
@@ -1934,8 +1937,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pffxdul_phy_formula_fx_dtl_ul
+    commit;  
+    insert into pffxdul_phy_formula_fx_dtl_ul
       (pffxdul_id,
        internal_action_ref_no,
        entry_type,
@@ -1996,8 +1999,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pfqppul_phy_formula_qp_prc_ul
+    commit;  
+    insert into pfqppul_phy_formula_qp_prc_ul
       (pfqppul_id,
        internal_action_ref_no,
        entry_type,
@@ -2058,8 +2061,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into ppfdul_phy_price_frmula_dtl_ul
+    commit;  
+    insert into ppfdul_phy_price_frmula_dtl_ul
       (ppfdul_id,
        internal_action_ref_no,
        entry_type,
@@ -2104,8 +2107,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into ppfhul_phy_price_frmla_hdr_ul
+    commit;  
+    insert into ppfhul_phy_price_frmla_hdr_ul
       (ppfhul_id,
        internal_action_ref_no,
        entry_type,
@@ -2138,8 +2141,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into ciqsl_contract_itm_qty_sts_log
+    commit;  
+    insert into ciqsl_contract_itm_qty_sts_log
       (ciqs_id,
        internal_action_ref_no,
        entry_type,
@@ -2188,8 +2191,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into ciqsl_contract_itm_qty_sts_log
+    commit;  
+    insert into ciqsl_contract_itm_qty_sts_log
       (ciqs_id,
        internal_action_ref_no,
        entry_type,
@@ -2248,8 +2251,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into diqsl_delivery_itm_qty_sts_log
+    commit;  
+    insert into diqsl_delivery_itm_qty_sts_log
       (diqs_id,
        internal_action_ref_no,
        entry_type,
@@ -2300,8 +2303,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into cqsl_contract_qty_status_log
+    commit;  
+    insert into cqsl_contract_qty_status_log
       (cqs_id,
        internal_action_ref_no,
        entry_type,
@@ -2352,8 +2355,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into grdl_goods_record_detail_log
+    commit;  
+    insert into grdl_goods_record_detail_log
       (internal_grd_ref_no,
        internal_action_ref_no,
        entry_type,
@@ -2550,8 +2553,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into vdul_voyage_detail_ul
+    commit;  
+    insert into vdul_voyage_detail_ul
       (internal_gmr_ref_no,
        internal_action_ref_no,
        action_no,
@@ -2674,8 +2677,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcpchul_payble_contnt_headr_ul
+    commit;  
+    insert into pcpchul_payble_contnt_headr_ul
       (pcpchul_id,
        internal_action_ref_no,
        entry_type,
@@ -2706,8 +2709,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pqdul_payable_quality_dtl_ul
+    commit;  
+    insert into pqdul_payable_quality_dtl_ul
       (pqdul_id,
        internal_action_ref_no,
        entry_type,
@@ -2732,8 +2735,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcepcul_elem_payble_content_ul
+    commit;  
+    insert into pcepcul_elem_payble_content_ul
       (pcepcul_id,
        internal_action_ref_no,
        entry_type,
@@ -2783,7 +2786,7 @@ create or replace package body pkg_phy_transfer_data is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
   
-    insert all into pcthul_treatment_header_ul
+    insert into pcthul_treatment_header_ul
       (pcthul_id,
        internal_action_ref_no,
        entry_type,
@@ -2814,8 +2817,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into tedul_treatment_element_dtl_ul
+    commit;  
+    insert into tedul_treatment_element_dtl_ul
       (tedul_id,
        internal_action_ref_no,
        entry_type,
@@ -2840,8 +2843,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into tqdul_treatment_quality_dtl_ul
+    commit;  
+    insert into tqdul_treatment_quality_dtl_ul
       (tqdul_id,
        internal_action_ref_no,
        entry_type,
@@ -2867,7 +2870,7 @@ create or replace package body pkg_phy_transfer_data is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
   
-    insert all into pcetcul_elem_treatmnt_chrg_ul
+    insert into pcetcul_elem_treatmnt_chrg_ul
       (pcetcul_id,
        internal_action_ref_no,
        entry_type,
@@ -2914,8 +2917,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcarul_assaying_rules_ul
+    commit;  
+    insert into pcarul_assaying_rules_ul
       (pcarul_id,
        internal_action_ref_no,
        entry_type,
@@ -2950,8 +2953,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcaeslul_assay_elm_splt_lmt_ul
+    commit;  
+    insert into pcaeslul_assay_elm_splt_lmt_ul
       (pcaeslul_id,
        internal_action_ref_no,
        entry_type,
@@ -2984,8 +2987,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into arqdul_assay_quality_dtl_ul
+    commit;  
+    insert into arqdul_assay_quality_dtl_ul
       (arqdul_id,
        internal_action_ref_no,
        entry_type,
@@ -3010,8 +3013,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcaphul_attr_penalty_header_ul
+    commit;  
+    insert into pcaphul_attr_penalty_header_ul
       (pcaphul_id,
        internal_action_ref_no,
        entry_type,
@@ -3040,8 +3043,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcapul_attribute_penalty_ul
+    commit;  
+    insert into pcapul_attribute_penalty_ul
       (pcapul_id,
        internal_action_ref_no,
        entry_type,
@@ -3096,8 +3099,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pqdul_penalty_quality_dtl_ul
+    commit;  
+    insert into pqdul_penalty_quality_dtl_ul
       (pqdul_id,
        internal_action_ref_no,
        entry_type,
@@ -3122,8 +3125,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into padul_penalty_attribute_dtl_ul
+    commit;  
+    insert into padul_penalty_attribute_dtl_ul
       (padul_id,
        internal_action_ref_no,
        entry_type,
@@ -3150,8 +3153,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcrhul_refining_header_ul
+    commit;  
+    insert into pcrhul_refining_header_ul
       (pcrhul_id,
        internal_action_ref_no,
        entry_type,
@@ -3182,8 +3185,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into rqdul_refining_quality_dtl_ul
+    commit;  
+    insert into rqdul_refining_quality_dtl_ul
       (rqdul_id,
        internal_action_ref_no,
        entry_type,
@@ -3208,8 +3211,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into redul_refining_element_dtl_ul
+    commit;  
+    insert into redul_refining_element_dtl_ul
       (redul_id,
        internal_action_ref_no,
        entry_type,
@@ -3234,8 +3237,8 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
-    insert all into pcercul_elem_refing_charge_ul
+    commit;  
+    insert into pcercul_elem_refing_charge_ul
       (pcercul_id,
        internal_action_ref_no,
        entry_type,
@@ -3282,7 +3285,7 @@ create or replace package body pkg_phy_transfer_data is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
+    commit;  
   exception
     when others then
       vobj_error_log.extend;
@@ -3333,7 +3336,7 @@ create or replace package body pkg_phy_transfer_data is
   
   begin
   
-    insert all into invd_inventory_detail
+    insert into invd_inventory_detail
       (inv_detail_id,
        inv_id,
        internal_action_ref_no,
@@ -3377,8 +3380,8 @@ create or replace package body pkg_phy_transfer_data is
              version,
              pc_dbd_id
         from invd_inventory_detail@eka_appdb;
-  
-    insert all into invm_inventory_master
+    commit;  
+    insert into invm_inventory_master
       (internal_inv_id,
        inv_ref_no,
        internal_gmr_ref_no,
@@ -3445,7 +3448,7 @@ create or replace package body pkg_phy_transfer_data is
                group by invd.inv_id) t,
              invm_inventory_master@eka_appdb invm
        where t.inv_id = invm.internal_inv_id;
-  
+    commit;  
   exception
     when others then
       vobj_error_log.extend;
