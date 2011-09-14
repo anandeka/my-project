@@ -51,6 +51,15 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_qat_quality_v
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_conc_qat_quality_valuation.sql
 
 
+Revision: 76638
+Author: sivachalabathi.s
+Date: 9:41:13 PM, Wednesday, September 14, 2011
+Message:
+bug fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyOpenUnrealizedPhysicalConc.rpt
+
+
 
 
 
