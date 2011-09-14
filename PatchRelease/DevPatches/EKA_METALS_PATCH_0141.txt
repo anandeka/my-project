@@ -47,10 +47,19 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/009_EOD_DDL_Script.s
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_qat_quality_valuation.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_conc_qat_quality_valuation.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_conc_qat_quality_valuation.sql
+
+Revision: 76632
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+
+Revision: 76637
+----------------
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
 
-
+RPT Files
+---------------
 Revision: 76638
 Author: sivachalabathi.s
 Date: 9:41:13 PM, Wednesday, September 14, 2011
