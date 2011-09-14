@@ -44,11 +44,11 @@ Message:
 bug fixes
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/009_EOD_DDL_Script.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_conc_qat_quality_valuation.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_qat_quality_valuation.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_conc_qat_quality_valuation.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_conc_qat_quality_valuation.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
 
 
 Revision: 76638
