@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0141
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  15-Sep-2011
+
+Bug / Enhancement* 		:   Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+ 
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 76678
+Author: anupkumar.agarwal
+Date: 4:33:25 PM, Thursday, September 15, 2011
+Message:
+1:ShipmentDetails,AirDetails,RailDetails and TruckDetails Document's Query for DGM table for Changes Done For Notify Party In application side.
+2:ShipmentAdvise,AirAdvise,RailAdvise and TruckAdvise Document's Query for DGM table for Changes Done For Notify Party In application side.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_77.sql
