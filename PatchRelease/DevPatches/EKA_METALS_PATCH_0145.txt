@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_PATCH_0145
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Suresh Gottipati
+ 
+Created on*        		:  18-Sep-2011
+
+Bug / Enhancement* 		:   Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : EOD
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 76827
+Author: suresh.gottipati
+Date: 4:14:13 PM, Sunday, September 18, 2011
+Message:
+EOD Bug Fixed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/010_EOD_DDL_Script.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+
+
+
+Revision: 76826
+Author: sivachalabathi.s
+Date: 4:09:44 PM, Sunday, September 18, 2011
+Message:
+eod tc/rc bugfixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyInventoryUnrealizedPhysicalPnLConc.rpt
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyOpenUnrealizedPhysicalConc.rpt
+
+
+
+
