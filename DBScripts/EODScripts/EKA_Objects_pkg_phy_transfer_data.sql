@@ -43,7 +43,6 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_TRANSFER_DATA" is
                                    pc_dbd_id       varchar2);
 
 end pkg_phy_transfer_data; 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
 
@@ -1278,6 +1277,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        is_active,
        internal_contract_ref_no,
        price_description,
+       element_id,
        dbd_id)
       select ul.pcbphul_id,
              ul.internal_action_ref_no,
@@ -1288,6 +1288,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              ul.internal_contract_ref_no,
              ul.price_description,
+             ul.element_id,
              pc_dbd_id
         from pcbphul_pc_base_prc_header_ul@eka_appdb ul,
              axs_action_summary@eka_appdb            axs

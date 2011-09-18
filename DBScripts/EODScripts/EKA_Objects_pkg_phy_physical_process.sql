@@ -6722,28 +6722,29 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                               pn_charge_amt,
                                                               pc_charge_price_unit_id);
       
-        if nvl(pn_charge_amt, 0) <> 0 then
-          pn_charge_amt := round(pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
-                                                                                 pn_charge_amt,
-                                                                                 pc_charge_price_unit_id,
-                                                                                 cc_tmpc.base_price_unit_id_in_ppu,
-                                                                                 pd_trade_date),
-                                 cc_tmpc.decimals);
-          update md_m2m_daily md
-             set md.treatment_charge = pn_charge_amt
-           where md.corporate_id = pc_corporate_id
-             and md.product_type = 'CONCENTRATES'
-             and md.conc_product_id = cc_tmpc.conc_product_id
-             and md.conc_quality_id = cc_tmpc.conc_quality_id
-             and md.product_id = cc_tmpc.product_id
-             and md.quality_id = cc_tmpc.quality_id
-             and md.shipment_month_year =
-                 cc_tmpc.shipment_month || '-' || cc_tmpc.shipment_year
-             and md.mvp_id = cc_tmpc.valuation_point_id
-             and md.process_id = pc_process_id
-             and md.element_id = cc_tmpc.element_id
-             and md.process_id = pc_process_id;
-        end if;
+        /* if nvl(pn_charge_amt, 0) <> 0 then
+        pn_charge_amt := round(pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+                                                                               pn_charge_amt,
+                                                                               pc_charge_price_unit_id,
+                                                                               cc_tmpc.base_price_unit_id_in_ppu,
+                                                                               pd_trade_date),
+                               cc_tmpc.decimals);*/
+        update md_m2m_daily md
+           set md.treatment_charge = pn_charge_amt,
+               md.tc_price_unit_id = pc_charge_price_unit_id
+         where md.corporate_id = pc_corporate_id
+           and md.product_type = 'CONCENTRATES'
+           and md.conc_product_id = cc_tmpc.conc_product_id
+           and md.conc_quality_id = cc_tmpc.conc_quality_id
+           and md.product_id = cc_tmpc.product_id
+           and md.quality_id = cc_tmpc.quality_id
+           and md.shipment_month_year =
+               cc_tmpc.shipment_month || '-' || cc_tmpc.shipment_year
+           and md.mvp_id = cc_tmpc.valuation_point_id
+           and md.process_id = pc_process_id
+           and md.element_id = cc_tmpc.element_id
+           and md.process_id = pc_process_id;
+        -- end if;
         -- updating refine  charge  to the md table
         pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
                                                               pd_trade_date,
@@ -6757,28 +6758,29 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                               pn_charge_amt,
                                                               pc_charge_price_unit_id);
       
-        if nvl(pn_charge_amt, 0) <> 0 then
-          pn_charge_amt := round(pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
-                                                                                 pn_charge_amt,
-                                                                                 pc_charge_price_unit_id,
-                                                                                 cc_tmpc.base_price_unit_id_in_ppu,
-                                                                                 pd_trade_date),
-                                 cc_tmpc.decimals);
-          update md_m2m_daily md
-             set md.refine_charge = pn_charge_amt
-           where md.corporate_id = pc_corporate_id
-             and md.product_type = 'CONCENTRATES'
-             and md.conc_product_id = cc_tmpc.conc_product_id
-             and md.conc_quality_id = cc_tmpc.conc_quality_id
-             and md.product_id = cc_tmpc.product_id
-             and md.quality_id = cc_tmpc.quality_id
-             and md.shipment_month_year =
-                 cc_tmpc.shipment_month || '-' || cc_tmpc.shipment_year
-             and md.mvp_id = cc_tmpc.valuation_point_id
-             and md.process_id = pc_process_id
-             and md.element_id = cc_tmpc.element_id
-             and md.process_id = pc_process_id;
-        end if;
+        /*if nvl(pn_charge_amt, 0) <> 0 then
+        pn_charge_amt := round(pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+                                                                               pn_charge_amt,
+                                                                               pc_charge_price_unit_id,
+                                                                               cc_tmpc.base_price_unit_id_in_ppu,
+                                                                               pd_trade_date),
+                               cc_tmpc.decimals);*/
+        update md_m2m_daily md
+           set md.refine_charge    = pn_charge_amt,
+               md.rc_price_unit_id = pc_charge_price_unit_id
+         where md.corporate_id = pc_corporate_id
+           and md.product_type = 'CONCENTRATES'
+           and md.conc_product_id = cc_tmpc.conc_product_id
+           and md.conc_quality_id = cc_tmpc.conc_quality_id
+           and md.product_id = cc_tmpc.product_id
+           and md.quality_id = cc_tmpc.quality_id
+           and md.shipment_month_year =
+               cc_tmpc.shipment_month || '-' || cc_tmpc.shipment_year
+           and md.mvp_id = cc_tmpc.valuation_point_id
+           and md.process_id = pc_process_id
+           and md.element_id = cc_tmpc.element_id
+           and md.process_id = pc_process_id;
+        -- end if;
       end loop;
       -- updating penalty  charge  to the md table 
       /*for cc_penalty in (select tmpc.corporate_id,
@@ -7160,7 +7162,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              and tmpc.valuation_basis = c1.valuation_basis
              and tmpc.reference_incoterm = c1.reference_incoterm
              and tmpc.refernce_location = c1.refernce_location
-             and tmpc.instrument_id = c1.instrument_id
+                --and tmpc.instrument_id = c1.instrument_id
              and tmpc.shipment_date = c1.shipment_date
              and tmpc.shipment_month || '-' || tmpc.shipment_year =
                  c1.shipment_month_year
@@ -8223,6 +8225,16 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              nvl(md.treatment_charge, 0) m2m_treatment_charge, -- will be in base price unit id
              nvl(md.refine_charge, 0) m2m_refining_charge, -- will be in base price unit id
              nvl(md.penalty_charge, 0) m2m_penalty_charge, -- will be in base price unit id
+             tc_ppu_pum.price_unit_id m2m_tc_price_unit_id,
+             tc_ppu_pum.price_unit_name m2m_tc_price_unit_name,
+             tc_ppu_pum.cur_id m2m_tc_cur_id,
+             tc_ppu_pum.weight m2m_tc_weight,
+             tc_ppu_pum.weight_unit_id m2m_tc_weight_unit_id,
+             rc_ppu_pum.price_unit_id m2m_rc_price_unit_id,
+             rc_ppu_pum.price_unit_name m2m_rc_price_unit_name,
+             rc_ppu_pum.cur_id m2m_rc_cur_id,
+             rc_ppu_pum.weight m2m_rc_weight,
+             rc_ppu_pum.weight_unit_id m2m_rc_weight_unit_id,
              nvl((select sum(cisc.avg_cost)
                    from cisc_contract_item_sec_cost cisc
                   where cisc.internal_contract_item_ref_no =
@@ -8294,7 +8306,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                  and tmp.product_type = 'CONCENTRATES'
                  and tmp.section_name = 'OPEN') tmpc,
              drm_derivative_master drm,
-             emt_exchangemaster emt
+             emt_exchangemaster emt,
+             v_ppu_pum tc_ppu_pum,
+             v_ppu_pum rc_ppu_pum
        where pcm.corporate_id = akc.corporate_id
          and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcdi.pcdi_id = pci.pcdi_id
@@ -8361,6 +8375,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and qat_und.is_deleted = 'N'
          and md.base_price_unit_id_in_pum = pum_base_price_id.price_unit_id
          and md.base_price_unit_id_in_pum = pum_loc_base.price_unit_id
+         and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
+         and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
          and pcm.process_id = pc_process_id
          and pcdi.process_id = pc_process_id
          and pci.process_id = pc_process_id
@@ -8619,12 +8635,37 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
         end if;
       end if;
     
-      vn_ele_m2m_treatment_charge := round(cur_unrealized_rows.m2m_treatment_charge *
+      /*vn_ele_m2m_treatment_charge := round(cur_unrealized_rows.m2m_treatment_charge *
                                            vn_dry_qty_in_base,
                                            cur_unrealized_rows.base_cur_decimal);
       vn_ele_m2m_refine_charge    := round(cur_unrealized_rows.m2m_refining_charge *
                                            vn_ele_qty_in_base,
-                                           cur_unrealized_rows.base_cur_decimal);
+                                           cur_unrealized_rows.base_cur_decimal);*/
+    
+      vn_ele_m2m_treatment_charge :=round((cur_unrealized_rows.m2m_treatment_charge /
+                                     nvl(cur_unrealized_rows.m2m_tc_weight,
+                                          1)) *
+                                     pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                              cur_unrealized_rows.m2m_tc_cur_id,
+                                                                              cur_unrealized_rows.base_cur_id,
+                                                                              pd_trade_date,
+                                                                              1) *
+                                     (pkg_general.f_get_converted_quantity(cur_unrealized_rows.conc_product_id,
+                                                                           cur_unrealized_rows.qty_unit_id,
+                                                                           cur_unrealized_rows.m2m_tc_weight_unit_id,
+                                                                           vn_dry_qty)),cur_unrealized_rows.base_cur_decimal);
+    
+      vn_ele_m2m_refine_charge :=round((cur_unrealized_rows.m2m_refining_charge /
+                                  nvl(cur_unrealized_rows.m2m_rc_weight, 1)) *
+                                  pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                           cur_unrealized_rows.m2m_rc_cur_id,
+                                                                           cur_unrealized_rows.base_cur_id,
+                                                                           pd_trade_date,
+                                                                           1) *
+                                  (pkg_general.f_get_converted_quantity(cur_unrealized_rows.product_id,                                                                        
+                                                                        cur_unrealized_rows.payable_qty_unit_id,
+                                                                        cur_unrealized_rows.m2m_rc_weight_unit_id,
+                                                                        cur_unrealized_rows.payable_qty)),cur_unrealized_rows.base_cur_decimal);
     
       vn_loc_amount := round(pkg_general.f_get_converted_quantity(cur_unrealized_rows.conc_product_id,
                                                                   cur_unrealized_rows.loc_qty_unit_id,
@@ -9101,18 +9142,26 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                          poude.price_unit_weight ||
                                          poude.price_unit_weight_unit) contract_price_string,
                                   (case
-                                    when poude.valuation_against_underlying = 'N' then
-                                     max(poude.m2m_price || ' ' ||
-                                         poude.m2m_price_cur_code || '/' ||
-                                         poude.m2m_price_weight ||
-                                         poude.m2m_price_weight_unit)
+                                     when poude.valuation_against_underlying = 'N' then
+                                      max((case
+                                     when nvl(poude.m2m_price, 0) <> 0 then
+                                      (poude.m2m_price || ' ' ||
+                                      poude.m2m_price_cur_code || '/' ||
+                                      poude.m2m_price_weight ||
+                                      poude.m2m_price_weight_unit)
+                                     else
+                                      null
+                                   end)) else stragg((case
+                                    when nvl(poude.m2m_price,
+                                             0) <> 0 then
+                                     (poude.element_name || '-' ||
+                                     poude.m2m_price || ' ' ||
+                                     poude.m2m_price_cur_code || '/' ||
+                                     poude.m2m_price_weight ||
+                                     poude.m2m_price_weight_unit)
                                     else
-                                     stragg((poude.element_name || '-' ||
-                                            poude.m2m_price || ' ' ||
-                                            poude.m2m_price_cur_code || '/' ||
-                                            poude.m2m_price_weight ||
-                                            poude.m2m_price_weight_unit))
-                                  end) m2m_price_string, -- TODO if underly valuation = n, show the concentrate price
+                                     null
+                                  end)) end) m2m_price_string, -- TODO if underly valuation = n, show the concentrate price
                                   stragg('TC:' || poude.element_name || '-' ||
                                          poude.treatment_charge || ' ' ||
                                          poude.base_cur_code || '  ' ||
@@ -9144,7 +9193,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              poue.net_m2m_refining_charge        = cur_update_pnl.net_m2m_refining_charge,
              -- poue.expected_cog_net_sale_value    = round(cur_update_pnl.expected_cog_net_sale_value, 3),
              /*poue.unrealized_pnl_in_base_cur     = round(cur_update_pnl.unrealized_pnl_in_base_cur,
-                                                                                                                                                                                                                                                                                      3),*/
+                                                                                                                                                                                                                                                                                                   3),*/
              poue.contract_price_string     = cur_update_pnl.contract_price_string,
              poue.m2m_price_string          = cur_update_pnl.m2m_price_string,
              poue.contract_rc_tc_pen_string = cur_update_pnl.contract_rc_tc_pen_string,
@@ -10730,6 +10779,16 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              md.m2m_loc_incoterm_deviation,
              md.treatment_charge m2m_treatment_charge,
              md.refine_charge m2m_refine_charge,
+             tc_ppu_pum.price_unit_id m2m_tc_price_unit_id,
+             tc_ppu_pum.price_unit_name m2m_tc_price_unit_name,
+             tc_ppu_pum.cur_id m2m_tc_cur_id,
+             tc_ppu_pum.weight m2m_tc_weight,
+             tc_ppu_pum.weight_unit_id m2m_tc_weight_unit_id,
+             rc_ppu_pum.price_unit_id m2m_rc_price_unit_id,
+             rc_ppu_pum.price_unit_name m2m_rc_price_unit_name,
+             rc_ppu_pum.cur_id m2m_rc_cur_id,
+             rc_ppu_pum.weight m2m_rc_weight,
+             rc_ppu_pum.weight_unit_id m2m_rc_weight_unit_id,
              md.base_price_unit_id_in_ppu,
              md.base_price_unit_id_in_pum,
              gpd.contract_price gmr_price,
@@ -10789,7 +10848,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              pum_price_unit_master pum_loc_base,
              pum_price_unit_master pum_base_price_id,
              v_gmr_stockpayable_qty gmr_qty,
-             qum_quantity_unit_master gmr_qum
+             qum_quantity_unit_master gmr_qum,
+             v_ppu_pum tc_ppu_pum,
+             v_ppu_pum rc_ppu_pum
        where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
@@ -10834,6 +10895,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
          and md.base_price_unit_id_in_pum = pum_loc_base.price_unit_id
          and md.base_price_unit_id_in_pum = pum_base_price_id.price_unit_id
+         and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
+         and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
          and gmr.internal_gmr_ref_no = gmr_qty.internal_gmr_ref_no
          and grd.internal_grd_ref_no = gmr_qty.internal_grd_ref_no
          and cipde.element_id = gmr_qty.element_id
@@ -10999,6 +11062,16 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              md.m2m_loc_incoterm_deviation,
              md.treatment_charge m2m_treatment_charge,
              md.refine_charge m2m_refine_charge,
+             tc_ppu_pum.price_unit_id m2m_tc_price_unit_id,
+             tc_ppu_pum.price_unit_name m2m_tc_price_unit_name,
+             tc_ppu_pum.cur_id m2m_tc_cur_id,
+             tc_ppu_pum.weight m2m_tc_weight,
+             tc_ppu_pum.weight_unit_id m2m_tc_weight_unit_id,
+             rc_ppu_pum.price_unit_id m2m_rc_price_unit_id,
+             rc_ppu_pum.price_unit_name m2m_rc_price_unit_name,
+             rc_ppu_pum.cur_id m2m_rc_cur_id,
+             rc_ppu_pum.weight m2m_rc_weight,
+             rc_ppu_pum.weight_unit_id m2m_rc_weight_unit_id,
              md.base_price_unit_id_in_ppu,
              md.base_price_unit_id_in_pum,
              gpd.contract_price gmr_price,
@@ -11059,7 +11132,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              pum_price_unit_master pum_loc_base,
              pum_price_unit_master pum_base_price_id,
              v_gmr_stockpayable_qty gmr_qty,
-             qum_quantity_unit_master gmr_qum
+             qum_quantity_unit_master gmr_qum,
+             v_ppu_pum tc_ppu_pum,
+             v_ppu_pum rc_ppu_pum
        where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
             -- and gmr.internal_gmr_ref_no = 'GMR-129'
          and dgrd.int_alloc_group_id = agh.int_alloc_group_id
@@ -11109,6 +11184,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
          and md.base_price_unit_id_in_pum = pum_loc_base.price_unit_id
          and md.base_price_unit_id_in_pum = pum_base_price_id.price_unit_id
+         and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
+         and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
          and gmr.internal_gmr_ref_no = gmr_qty.internal_gmr_ref_no
          and dgrd.internal_dgrd_ref_no = gmr_qty.internal_dgrd_ref_no
          and cipde.element_id = gmr_qty.element_id
@@ -11391,12 +11468,39 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
           end if;
         
         end if;
-        vn_ele_m2m_treatment_charge := round(cur_grd_rows.m2m_treatment_charge *
+      /*  vn_ele_m2m_treatment_charge := round(cur_grd_rows.m2m_treatment_charge *
                                              vn_dry_qty_in_base,
                                              cur_grd_rows.base_cur_decimal);
         vn_ele_m2m_refine_charge    := round(cur_grd_rows.m2m_refine_charge *
                                              vn_ele_qty_in_base,
-                                             cur_grd_rows.base_cur_decimal);
+                                             cur_grd_rows.base_cur_decimal);*/
+                                             
+        vn_ele_m2m_treatment_charge :=round((cur_grd_rows.m2m_treatment_charge /
+                                     nvl(cur_grd_rows.m2m_tc_weight,
+                                          1)) *
+                                     pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                              cur_grd_rows.m2m_tc_cur_id,
+                                                                              cur_grd_rows.base_cur_id,
+                                                                              pd_trade_date,
+                                                                              1) *
+                                     (pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
+                                                                           cur_grd_rows.qty_unit_id,
+                                                                           cur_grd_rows.m2m_tc_weight_unit_id,
+                                                                           vn_dry_qty)),cur_grd_rows.base_cur_decimal);
+    
+      vn_ele_m2m_refine_charge :=round((cur_grd_rows.m2m_refine_charge /
+                                  nvl(cur_grd_rows.m2m_rc_weight, 1)) *
+                                  pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                           cur_grd_rows.m2m_rc_cur_id,
+                                                                           cur_grd_rows.base_cur_id,
+                                                                           pd_trade_date,
+                                                                           1) *
+                                  (pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,                                                                        
+                                                                        cur_grd_rows.payable_qty_unit_id,
+                                                                        cur_grd_rows.m2m_rc_weight_unit_id,
+                                                                        cur_grd_rows.payable_qty)),cur_grd_rows.base_cur_decimal);                                     
+                                             
+                                             
         if cur_grd_rows.ele_rank = 1 then
           vn_loc_amount := round(pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
                                                                       cur_grd_rows.loc_qty_unit_id,
@@ -11579,7 +11683,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          cur_grd_rows.m2m_price_unit_cur_code,
          cur_grd_rows.m2m_price_unit_weight_unit_id,
          cur_grd_rows.m2m_price_unit_weight_unit,
-         cur_grd_rows.m2m_price_unit_weight,
+         decode(cur_grd_rows.m2m_price_unit_weight,
+                1,
+                null,
+                cur_grd_rows.m2m_price_unit_weight),
          vn_ele_m2m_refine_charge,
          vn_ele_m2m_treatment_charge,
          cur_grd_rows.price_description,
@@ -11783,18 +11890,26 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                          psue.price_unit_weight ||
                                          psue.price_unit_weight_unit) contract_price_string,
                                   (case
-                                    when psue.valuation_against_underlying = 'N' then
-                                     max(psue.m2m_price || ' ' ||
-                                         psue.m2m_price_cur_code || '/' ||
-                                         psue.m2m_price_weight_unit_weight ||
-                                         psue.m2m_price_weight_unit)
+                                     when psue.valuation_against_underlying = 'N' then
+                                      max((case
+                                     when nvl(psue.m2m_price, 0) <> 0 then
+                                      (psue.m2m_price || ' ' ||
+                                      psue.m2m_price_cur_code || '/' ||
+                                      psue.m2m_price_weight_unit_weight ||
+                                      psue.m2m_price_weight_unit)
+                                     else
+                                      null
+                                   end)) else stragg((case
+                                    when nvl(psue.m2m_price,
+                                             0) <> 0 then
+                                     (psue.element_name || '-' ||
+                                     psue.m2m_price || ' ' ||
+                                     psue.m2m_price_cur_code || '/' ||
+                                     psue.m2m_price_weight_unit_weight ||
+                                     psue.m2m_price_weight_unit)
                                     else
-                                     stragg(psue.element_name || '-' ||
-                                            psue.m2m_price || ' ' ||
-                                            psue.m2m_price_cur_code || '/' ||
-                                            psue.m2m_price_weight_unit_weight ||
-                                            psue.m2m_price_weight_unit)
-                                  end) m2m_price_string, -- TODO if underly valuation = n, show the concentrate price
+                                     null
+                                  end)) end) m2m_price_string, -- TODO if underly valuation = n, show the concentrate price
                                   stragg('TC:' || psue.element_name || '-' ||
                                          psue.m2m_treatment_charge || ' ' ||
                                          psue.price_unit_cur_code || ' ' ||
@@ -11822,7 +11937,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and psuee.process_id = pc_process_id
          and psuee.corporate_id = pc_corporate_id;
     end loop;
-    
+  
     update psue_phy_stock_unrealized_ele psuee
        set psuee.net_m2m_amount_in_base_cur = (psuee.net_m2m_amount -
                                               psuee.m2m_treatment_charge -
@@ -11830,7 +11945,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                               psuee.m2m_penalty_charge +
                                               psuee.m2m_loc_diff_premium)
      where psuee.corporate_id = pc_corporate_id
-       and psuee.process_id   =pc_process_id;
+       and psuee.process_id = pc_process_id;
   
     --- previous EOD Data
     for cur_update in (select psue_prev_day.net_m2m_amount_in_base_cur,
@@ -11852,7 +11967,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          set psue_today.prev_net_m2m_amt_in_base_cur = cur_update.net_m2m_amount_in_base_cur,
              psue_today.prev_day_pnl_in_base_cur     = cur_update.pnl_in_per_base_unit *
                                                        psue_today.qty_in_base_unit,
-             psue_today.prev_net_m2m_amount          = cur_update.net_m2m_amount,                                         
+             psue_today.prev_net_m2m_amount          = cur_update.net_m2m_amount,
              psue_today.prev_day_pnl_per_base_unit   = cur_update.pnl_in_per_base_unit,
              psue_today.prev_m2m_price_string        = cur_update.m2m_price_string,
              psue_today.prev_m2m_rc_tc_string        = cur_update.m2m_rc_tc_string,
@@ -11871,7 +11986,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          set psue.prev_net_m2m_amt_in_base_cur = psue.net_m2m_amount_in_base_cur,
              psue.prev_day_pnl_in_base_cur     = 0,
              psue.prev_day_pnl_per_base_unit   = 0,
-             psue.prev_net_m2m_amount          =psue.net_m2m_amount,
+             psue.prev_net_m2m_amount          = psue.net_m2m_amount,
              psue.prev_m2m_price_string        = psue.m2m_price_string,
              psue.prev_m2m_rc_tc_string        = psue.m2m_rc_tc_string,
              psue.prev_m2m_penalty_charge      = psue.m2m_penalty_charge,
@@ -11901,7 +12016,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                          nvl(psue.prev_day_pnl_in_base_cur,
                                              0) / psue.qty_in_base_unit
      where psue.process_id = pc_process_id
-       and psue.corporate_id=pc_corporate_id;
+       and psue.corporate_id = pc_corporate_id;
   
     update psue_phy_stock_unrealized_ele psue
        set (gmr_ref_no, warehouse_id, warehouse_name, shed_id, shed_name, prod_base_qty_unit_id, prod_base_qty_unit) = (select gmr.gmr_ref_no,

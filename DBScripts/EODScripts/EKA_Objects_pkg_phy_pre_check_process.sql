@@ -98,7 +98,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
-end; 
+end;
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -1448,7 +1448,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      v_der_instrument_price_unit vdip
                where temp.corporate_id = mv_qat.corporate_id
                  and temp.quality_id = mv_qat.quality_id
-                 and mv_qat.instrument_id = vdip.instrument_id
+                 and mv_qat.instrument_id = vdip.instrument_id(+)
                  and temp.corporate_id = mvp.corporate_id
                  and temp.product_id = mvp.product_id
                  and mvp.mvp_id = mvpl.mvp_id
@@ -2716,7 +2716,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      aml_attribute_master_list aml
                where temp.corporate_id = mv_qat.corporate_id
                  and temp.quality_id = mv_qat.conc_quality_id
-                 and mv_qat.instrument_id = vdip.instrument_id
+                 and mv_qat.instrument_id = vdip.instrument_id(+)
                  and temp.corporate_id = mvp.corporate_id
                  and temp.product_id = mvp.product_id
                  and temp. issue_date <= pd_trade_date
@@ -2741,6 +2741,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     --Shipment month and shipment year
     --to the basis month calculation for open contracts as per the quality setup and product rule 
     --do the update )
+    ----------------------------- 
     vc_error_loc := 6;
     for cc2 in (select t.pcdi_id,
                        t.internal_contract_ref_no,
@@ -2812,7 +2813,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                ash_assay_header              ash,
                                asm_assay_sublot_mapping      asm,
                                pqca_pq_chemical_attributes   pqca,
-                               mv_conc_qat_quality_valuation qat
+                               mv_conc_qat_quality_valuation qat,
+                               pdm_productmaster             pdm
                         --qat_quality_attributes     qat
                          where pcdi.pcdi_id = pci.pcdi_id
                            and pcdi.internal_contract_ref_no =
@@ -2831,6 +2833,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                            and asm.asm_id = pqca.asm_id
                            and pcpq.quality_template_id = qat.conc_quality_id
                            and pqca.element_id = qat.attribute_id
+                           and qat.conc_product_id = pdm.product_id
+                           and nvl(pdm.valuation_against_underlying, 'Y') = 'Y'
                            and qat.corporate_id = pc_corporate_id
                            and pci.dbd_id = pc_dbd_id
                            and pcdi.dbd_id = pc_dbd_id
@@ -2861,6 +2865,131 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.product_type = 'CONCENTRATES'
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
+    -------------------- 
+  
+    for cc2 in (select t.pcdi_id,
+                       t.internal_contract_ref_no,
+                       t.internal_contract_item_ref_no,
+                       t.basis_type,
+                       t.transit_days,
+                       t.contract_ref_no,
+                       t.expected_delivery_month,
+                       t.expected_delivery_year,
+                       t.element_id,
+                       t.date_type,
+                       t.ship_arrival_date,
+                       t.ship_arrival_days,
+                       t.expected_ship_arrival_date,
+                       (case
+                         when t.ship_arrival_date = 'Start Date' then
+                          to_date('01-' || to_char(t.expected_ship_arrival_date,
+                                                   'Mon-yyyy'))
+                         when t.ship_arrival_date = 'End Date' then
+                          last_day(t.expected_ship_arrival_date)
+                         else
+                          (to_date('01-' || to_char(t.expected_ship_arrival_date,
+                                                    'Mon-yyyy')) +
+                          trunc((last_day(t.expected_ship_arrival_date) -
+                                 to_date('01-' ||
+                                          to_char(t.expected_ship_arrival_date,
+                                                  'Mon-yyyy'))) / 2))
+                       end) + t.ship_arrival_days basis_month_year
+                  from (select pcdi.pcdi_id,
+                               pcdi.internal_contract_ref_no,
+                               pci.internal_contract_item_ref_no,
+                               pcdi.basis_type,
+                               nvl(pcdi.transit_days, 0) transit_days,
+                               pcm.contract_ref_no,
+                               pci.expected_delivery_month,
+                               pci.expected_delivery_year,
+                               pqca.element_id,
+                               qat.date_type,
+                               qat.ship_arrival_date,
+                               nvl(qat.ship_arrival_days, 0) ship_arrival_days,
+                               (case
+                                  when qat.date_type = 'Shipment Date' then
+                                   (case
+                                  when pcdi.basis_type = 'Shipment' then
+                                   last_day('01-' ||
+                                            pci.expected_delivery_month || '-' ||
+                                            pci.expected_delivery_year)
+                                  else
+                                   last_day('01-' ||
+                                            pci.expected_delivery_month || '-' ||
+                                            pci.expected_delivery_year) -
+                                   nvl(pcdi.transit_days, 0)
+                                end) else(case
+                                 when pcdi.basis_type = 'Shipment' then
+                                  last_day('01-' ||
+                                           pci.expected_delivery_month || '-' ||
+                                           pci.expected_delivery_year) +
+                                  nvl(pcdi.transit_days, 0)
+                                 else
+                                  last_day('01-' ||
+                                           pci.expected_delivery_month || '-' ||
+                                           pci.expected_delivery_year)
+                               end) end) expected_ship_arrival_date
+                          from pcdi_pc_delivery_item        pcdi,
+                               pci_physical_contract_item   pci,
+                               pcm_physical_contract_main   pcm,
+                               pcpd_pc_product_definition   pcpd,
+                               pcpq_pc_product_quality      pcpq,
+                               ash_assay_header             ash,
+                               asm_assay_sublot_mapping     asm,
+                               pqca_pq_chemical_attributes  pqca,
+                               v_conc_qat_quality_valuation qat,
+                               pdm_productmaster            pdm
+                        --qat_quality_attributes     qat
+                         where pcdi.pcdi_id = pci.pcdi_id
+                           and pcdi.internal_contract_ref_no =
+                               pcm.internal_contract_ref_no
+                           and pcm.internal_contract_ref_no =
+                               pcpd.internal_contract_ref_no
+                           and pcpd.product_id = qat.conc_product_id
+                           and pcm.contract_status = 'In Position'
+                           and pcm.contract_type = 'CONCENTRATES'
+                           and pcm.corporate_id = pc_corporate_id
+                           and pci.item_qty > 0
+                           and pci.pcpq_id = pcpq.pcpq_id
+                              --and pcpq.quality_template_id = qat.quality_id
+                           and pcpq.assay_header_id = ash.ash_id
+                           and ash.ash_id = asm.ash_id
+                           and asm.asm_id = pqca.asm_id
+                           and pcpq.quality_template_id = qat.conc_quality_id
+                           and pqca.element_id = qat.attribute_id
+                           and qat.conc_product_id = pdm.product_id
+                           and nvl(pdm.valuation_against_underlying, 'Y') = 'N'
+                           and qat.corporate_id = pc_corporate_id
+                           and pci.dbd_id = pc_dbd_id
+                           and pcdi.dbd_id = pc_dbd_id
+                           and pcm.dbd_id = pc_dbd_id
+                           and pcpq.dbd_id = pc_dbd_id
+                           and pcpd.dbd_id = pc_dbd_id
+                           and pcdi.is_active = 'Y'
+                           and pci.is_active = 'Y'
+                           and pcm.is_active = 'Y') t,
+                       tmpc_temp_m2m_pre_check tmpc
+                 where tmpc.section_name = 'OPEN'
+                   and tmpc.corporate_id = pc_corporate_id
+                   and tmpc.product_type = 'CONCENTRATES'
+                   and tmpc.internal_contract_item_ref_no =
+                       t.internal_contract_item_ref_no
+                   and tmpc.element_id = t.element_id
+                   and tmpc.pcdi_id = t.pcdi_id)
+    loop
+      update tmpc_temp_m2m_pre_check tmpc
+         set tmpc.shipment_month = to_char(cc2.basis_month_year, 'Mon'),
+             tmpc.shipment_year  = to_char(cc2.basis_month_year, 'YYYY'),
+             tmpc.shipment_date  = cc2.basis_month_year
+       where tmpc.pcdi_id = cc2.pcdi_id
+         and tmpc.internal_contract_item_ref_no =
+             cc2.internal_contract_item_ref_no
+         and tmpc.element_id = cc2.element_id
+         and tmpc.section_name = 'OPEN'
+         and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.corporate_id = pc_corporate_id;
+    end loop;
+    -------
   
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
@@ -2917,30 +3046,34 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                         qat.instrument_id,
                         qat.product_derivative_id,
                         qat.eval_basis,
-                        qat.exch_valuation_month                        
+                        qat.exch_valuation_month,
+                        vdip.price_unit_id
                    from tmpc_temp_m2m_pre_check      tmpc,
-                        v_conc_qat_quality_valuation qat
+                        v_conc_qat_quality_valuation qat,
+                        v_der_instrument_price_unit  vdip
                   where tmpc.conc_product_id = qat.conc_product_id
-                    and tmpc.conc_quality_id=qat.conc_quality_id
+                    and tmpc.conc_quality_id = qat.conc_quality_id
                     and tmpc.corporate_id = qat.corporate_id
-                    and tmpc.element_id=qat.attribute_id
+                    and qat.instrument_id = vdip.instrument_id(+)
+                    and tmpc.element_id = qat.attribute_id
                     and tmpc.corporate_id = pc_corporate_id
                     and tmpc.product_type = 'CONCENTRATES')
       loop
         update tmpc_temp_m2m_pre_check tmpc
            set tmpc.instrument_id     = cc.instrument_id,
                tmpc.value_type        = cc.eval_basis,
-               tmpc.derivative_def_id = cc.product_derivative_id
-           where tmpc.product_type = 'CONCENTRATES'
-           and tmpc.conc_product_id=cc.conc_product_id
-           and tmpc.conc_quality_id=cc.conc_quality_id
-           and tmpc.element_id=cc.element_id
+               tmpc.derivative_def_id = cc.product_derivative_id,
+               tmpc.m2m_price_unit_id = cc.price_unit_id
+         where tmpc.product_type = 'CONCENTRATES'
+           and tmpc.conc_product_id = cc.conc_product_id
+           and tmpc.conc_quality_id = cc.conc_quality_id
+           and tmpc.element_id = cc.element_id
            and tmpc.corporate_id = pc_corporate_id;
       end loop;
       commit;
     
     end;
-  
+    -----------------------
     vc_error_loc := 8;
     for cc in (select tmpc.corporate_id,
                       tmpc.shipment_month,
@@ -2951,8 +3084,62 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                       qat.eval_basis,
                       qat.exch_valuation_month
                  from tmpc_temp_m2m_pre_check       tmpc,
-                      mv_conc_qat_quality_valuation qat
+                      mv_conc_qat_quality_valuation qat,
+                      pdm_productmaster             pdm
                 where tmpc.quality_id = qat.quality_id
+                  and tmpc.corporate_id = qat.corporate_id
+                  and tmpc.conc_product_id = pdm.product_id
+                  and nvl(pdm.valuation_against_underlying, 'Y') = 'Y'
+                  and tmpc.corporate_id = pc_corporate_id
+                  and tmpc.value_type <> 'FIXED'
+                  and tmpc.product_type = 'CONCENTRATES'
+                group by tmpc.corporate_id,
+                         tmpc.shipment_month,
+                         tmpc.shipment_year,
+                         tmpc.instrument_id,
+                         decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK'),
+                         tmpc.quality_id,
+                         qat.eval_basis,
+                         qat.exch_valuation_month)
+    loop
+      if cc.eval_basis <> 'FIXED' then
+        vc_drid := fn_get_val_drid(pc_corporate_id,
+                                   cc.instrument_id,
+                                   cc.shipment_month,
+                                   cc.shipment_year,
+                                   cc.exch_valuation_month,
+                                   pd_trade_date,
+                                   cc.trade_type,
+                                   pc_process);
+        update tmpc_temp_m2m_pre_check tmpc
+           set tmpc.valuation_dr_id = vc_drid
+         where tmpc.instrument_id = cc.instrument_id
+           and tmpc.shipment_month = cc.shipment_month
+           and tmpc.shipment_year = cc.shipment_year
+           and tmpc.quality_id = cc.quality_id
+           and decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK') =
+               cc.trade_type
+           and tmpc.product_type = 'CONCENTRATES'
+           and tmpc.corporate_id = cc.corporate_id;
+      end if;
+    end loop;
+    commit;
+    --------
+  
+    for cc in (select tmpc.corporate_id,
+                      tmpc.shipment_month,
+                      tmpc.shipment_year,
+                      tmpc.instrument_id,
+                      decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK') trade_type,
+                      tmpc.quality_id,
+                      qat.eval_basis,
+                      qat.exch_valuation_month
+                 from tmpc_temp_m2m_pre_check      tmpc,
+                      v_conc_qat_quality_valuation qat,
+                      pdm_productmaster            pdm
+                where tmpc.conc_quality_id = qat.quality_id
+                  and tmpc.conc_product_id = pdm.product_id
+                   and nvl(pdm.valuation_against_underlying, 'Y') = 'N'
                   and tmpc.corporate_id = qat.corporate_id
                   and tmpc.corporate_id = pc_corporate_id
                   and tmpc.value_type <> 'FIXED'
@@ -2988,6 +3175,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       end if;
     end loop;
     commit;
+  
     --update the valuation month,year,prompt date
     for ccv in (select tmpc.corporate_id,
                        tmpc.valuation_dr_id,
@@ -3035,6 +3223,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     vc_error_loc := 9;
   
     for cc in (select tmpc.corporate_id,
+                      tmpc.conc_product_id,
                       tmpc.product_id,
                       akc.base_cur_id,
                       pdm.base_quantity_unit,
@@ -3044,22 +3233,63 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  from tmpc_temp_m2m_pre_check tmpc,
                       ak_corporate            akc,
                       pdm_productmaster       pdm,
+                      pdm_productmaster       pdm_conc,
                       ppu_product_price_units ppu,
                       pum_price_unit_master   pum
                 where tmpc.corporate_id = pc_corporate_id
                   and tmpc.corporate_id = akc.corporate_id
                   and tmpc.product_id = pdm.product_id
                   and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.conc_product_id = pdm_conc.product_id
+                  and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'Y'
                   and ppu.product_id = pdm.product_id
                   and ppu.is_active = 'Y'
                   and ppu.is_deleted = 'N'
                   and ppu.price_unit_id = pum.price_unit_id
                   and pum.cur_id = akc.base_cur_id
+                  and nvl(pum.weight, 1) = 1
                   and pum.weight_unit_id = pdm.base_quantity_unit
                 group by tmpc.corporate_id,
+                         tmpc.conc_product_id,
                          tmpc.product_id,
                          akc.base_cur_id,
                          pdm.base_quantity_unit,
+                         ppu.internal_price_unit_id,
+                         pum.price_unit_id,
+                         tmpc.element_id
+               union all
+               select tmpc.corporate_id,
+                      tmpc.conc_product_id,
+                      tmpc.product_id,
+                      akc.base_cur_id,
+                      pdm_conc.base_quantity_unit,
+                      ppu.internal_price_unit_id,
+                      pum.price_unit_id,
+                      tmpc.element_id
+                 from tmpc_temp_m2m_pre_check tmpc,
+                      ak_corporate            akc,
+                      pdm_productmaster       pdm,
+                      pdm_productmaster       pdm_conc,
+                      ppu_product_price_units ppu,
+                      pum_price_unit_master   pum
+                where tmpc.corporate_id = pc_corporate_id
+                  and tmpc.corporate_id = akc.corporate_id
+                  and tmpc.product_id = pdm.product_id
+                  and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.conc_product_id = pdm_conc.product_id
+                  and ppu.product_id = pdm_conc.product_id
+                  and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'N'
+                  and ppu.is_active = 'Y'
+                  and ppu.is_deleted = 'N'
+                  and ppu.price_unit_id = pum.price_unit_id
+                  and pum.cur_id = akc.base_cur_id
+                  and nvl(pum.weight, 1) = 1
+                  and pum.weight_unit_id = pdm_conc.base_quantity_unit
+                group by tmpc.corporate_id,
+                         tmpc.product_id,
+                         tmpc.conc_product_id,
+                         akc.base_cur_id,
+                         pdm_conc.base_quantity_unit,
                          ppu.internal_price_unit_id,
                          pum.price_unit_id,
                          tmpc.element_id)
@@ -3070,15 +3300,101 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        where tmpc.product_type = 'CONCENTRATES'
          and tmpc.corporate_id = cc.corporate_id
          and tmpc.element_id = cc.element_id
+         and tmpc.conc_product_id = cc.conc_product_id
          and tmpc.product_id = cc.product_id;
       commit;
+    
     end loop;
-  
+    commit;
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
                  gvc_process || ' - M2M-012 @' || systimestamp);
     vc_error_loc := 12;
+  
+    insert into eel_eod_eom_exception_log
+      (corporate_id,
+       submodule_name,
+       exception_code,
+       data_missing_for,
+       trade_ref_no,
+       process,
+       process_run_date,
+       process_run_by,
+       trade_date)
+      select t.corporate_id,
+             'Physicals M2M Pre-Check',
+             'M2M-030',
+             t.product_name || '(' || t.price_unit_name || ')',
+             null,
+             pc_process,
+             systimestamp,
+             pc_user_id,
+             pd_trade_date
+        from (select tmpc.corporate_id,
+                     tmpc.product_id,
+                     pdm.product_desc product_name,
+                     akc.base_cur_id,
+                     pdm.base_quantity_unit,
+                     pum.price_unit_id,
+                     pum.price_unit_name
+                from tmpc_temp_m2m_pre_check tmpc,
+                     ak_corporate            akc,
+                     pdm_productmaster       pdm,
+                     pdm_productmaster       pdm_conc,
+                     pum_price_unit_master   pum
+               where tmpc.corporate_id = pc_corporate_id
+                 and tmpc.corporate_id = akc.corporate_id
+                 and tmpc.product_id = pdm.product_id
+                 and tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.conc_product_id = pdm_conc.product_id
+                 and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'Y'
+                 and pum.cur_id = akc.base_cur_id
+                 and nvl(pum.weight, 1) = 1
+                 and pum.weight_unit_id = pdm.base_quantity_unit
+               group by tmpc.corporate_id,
+                        tmpc.product_id,
+                        akc.base_cur_id,
+                        pdm.base_quantity_unit,
+                        pum.price_unit_name,
+                        pdm.product_desc,
+                        pum.price_unit_id
+              union all
+              select tmpc.corporate_id,
+                     tmpc.conc_product_id product_id,
+                     pdm_conc.product_desc product_name,
+                     akc.base_cur_id,
+                     pdm_conc.base_quantity_unit,
+                     pum.price_unit_id,
+                     pum.price_unit_name
+                from tmpc_temp_m2m_pre_check tmpc,
+                     ak_corporate            akc,
+                     pdm_productmaster       pdm,
+                     pdm_productmaster       pdm_conc,
+                     pum_price_unit_master   pum
+               where tmpc.corporate_id = pc_corporate_id
+                 and tmpc.corporate_id = akc.corporate_id
+                 and tmpc.product_id = pdm.product_id
+                 and tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.conc_product_id = pdm_conc.product_id
+                 and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'N'
+                 and pum.cur_id = akc.base_cur_id
+                 and nvl(pum.weight, 1) = 1
+                 and pum.weight_unit_id = pdm_conc.base_quantity_unit
+               group by tmpc.corporate_id,
+                        pum.price_unit_name,
+                        tmpc.conc_product_id,
+                        akc.base_cur_id,
+                        pdm_conc.product_desc,
+                        pdm_conc.base_quantity_unit,
+                        pum.price_unit_id) t
+       where not exists (select 1
+                from ppu_product_price_units ppu
+               where ppu.product_id = t.product_id
+                 and ppu.price_unit_id = t.price_unit_id
+                 and ppu.is_active = 'Y'
+                 and ppu.is_deleted = 'N');
+  
     insert into eel_eod_eom_exception_log
       (corporate_id,
        submodule_name,
@@ -4395,7 +4711,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     when others then
       return - 1;
   end f_get_converted_price;
-  
+
   procedure sp_phy_insert_ceqs_data(pc_corporate_id varchar2,
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
@@ -4486,5 +4802,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end; 
+end;
 /

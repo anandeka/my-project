@@ -172,8 +172,6 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_POPULATE_DATA" is
                                      pc_user_id      varchar2);
                                      
 end pkg_phy_populate_data; 
- 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
 
@@ -4131,6 +4129,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        is_active,
        internal_contract_ref_no,
        price_description,
+       element_id,
        dbd_id)
       select decode(pcbph_id, 'Empty_String', null, pcbph_id),
            /*  decode(optionality_desc,
@@ -4147,6 +4146,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     'Empty_String',
                     null,
                     price_description),
+             decode(element_id,
+                    'Empty_String',
+                    null,
+                    element_id),       
              gvc_dbd_id
         from (select pcbphul.pcbph_id,
                      substr(max(case
@@ -4179,6 +4182,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcbphul.price_description
                                 end),
                             24) price_description,
+                      substr(max(case
+                                  when pcbphul.element_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcbphul.element_id
+                                end),
+                            24) element_id,
                      gvc_dbd_id
                 from pcbphul_pc_base_prc_header_ul pcbphul,
                      axs_action_summary            axs,
