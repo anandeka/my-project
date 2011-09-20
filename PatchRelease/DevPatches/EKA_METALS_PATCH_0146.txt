@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0146
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+ 
+Created on*        		:  20-Sep-2011
+
+Bug / Enhancement* 		:   Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	   : Logistics
+ 
+Sub-Module  	                : Documnets
+ 
+Section   		  :  N/A
+ 
+Screen		           	  :  N/A
+ 
+FS Number and Clause No.    :  N/A
+ 
+FS Enhancement details        :  N/A
+ 
+FS Amendment details          :  N/A
+
+Dependent patches:	 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 76985
+Author: anupkumar.agarwal
+Date: 7:00:34 PM, Tuesday, September 20, 2011
+Message:
+Corporate And Master Scripts For Sales Weight Note Document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/Corporate_Scripts_10.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_79.sql
