@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0153
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Elaiyaraja
+ 
+Created on*        		: 23-Sep-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Reports
+ 
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 77380
+Author: elaiyaraja.nallathambi
+Date: 8:15:32 PM, Friday, September 23, 2011
+Message:
+Daily Detail Price Exposure and Daily FX Exposure Report Release.
+----
+Added : /7.3/Engg/Metals/Code/Reports/DailyDetailPriceExposure.rpt
+Added : /7.3/Engg/Metals/Code/Reports/DailyFXExposureReport.rpt
+
+Revision: 77382
+Author: elaiyaraja.nallathambi
+Date: 8:28:34 PM, Friday, September 23, 2011
+Message:
+Daily FX Exposure and Daily Detail Exposure Report (RML, AMC and RPD Scripts)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_60.txt
+
