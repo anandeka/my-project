@@ -39,3 +39,4 @@ select t.internal_contract_item_ref_no,
  group by t.internal_contract_item_ref_no,
           t.element_id,
           t.qty_unit_id
+/

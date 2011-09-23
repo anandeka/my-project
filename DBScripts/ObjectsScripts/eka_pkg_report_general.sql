@@ -1,4 +1,4 @@
-create or replace package pkg_report_general is
+create or replace package "PKG_REPORT_GENERAL" is
   -- All general packages and procedures
   function fn_get_item_dry_qty(pc_internal_cont_item_ref_no varchar2,
                                pn_item_qty                  number)
@@ -26,8 +26,8 @@ create or replace package pkg_report_general is
                                       pc_assay_header_id          varchar2,
                                       pc_element_id               varchar2)
     return varchar2;
-  function fn_get_element_pricing_month(pc_int_contract_item_ref_no in varchar2,
-                                        pc_element_id               varchar2)
+  function fn_get_element_pricing_month(pc_pcbpd_id   in varchar2,
+                                        pc_element_id varchar2)
     return varchar2;
   function fn_get_assay_dry_qty(pc_product_id      varchar2,
                                 pc_assay_header_id varchar2,
@@ -35,7 +35,7 @@ create or replace package pkg_report_general is
                                 pc_qty_unit_id     varchar2) return number;
 end;
 /
-create or replace package body pkg_report_general is
+create or replace package body "PKG_REPORT_GENERAL" is
   function fn_get_item_dry_qty(pc_internal_cont_item_ref_no varchar2,
                                pn_item_qty                  number)
     return number is
@@ -436,8 +436,8 @@ create or replace package body pkg_report_general is
     end loop;
     return(vc_element_qty_unit_id);
   end;
-  function fn_get_element_pricing_month(pc_int_contract_item_ref_no in varchar2,
-                                        pc_element_id               varchar2)
+  function fn_get_element_pricing_month(pc_pcbpd_id   in varchar2,
+                                        pc_element_id varchar2)
     return varchar2 is
     cursor cur_qp_end_date is
       select pcm.contract_ref_no,
@@ -493,8 +493,8 @@ create or replace package body pkg_report_general is
          and pofh.is_active(+) = 'Y'
          and pcbpd.is_active = 'Y'
          and poch.element_id = pc_element_id
-         and pci.internal_contract_item_ref_no =
-             pc_int_contract_item_ref_no;
+            --and pci.internal_contract_item_ref_no = pc_Int_contract_Item_Ref_No Commented
+         and pocd.pcbpd_id = pc_pcbpd_id; -- Newly Added
     --and pfqpp.is_active = 'Y'
     --and pofh.is_active(+) = 'Y';
   

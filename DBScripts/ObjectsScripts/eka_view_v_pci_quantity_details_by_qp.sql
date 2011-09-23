@@ -14,7 +14,7 @@ select pcdi.pcdi_id,
        itm.incoterm,
        cym.country_name,
        cim.city_name,
-       f_get_pricing_month(pci.internal_contract_item_ref_no) delivery_date,
+       f_get_pricing_month(pocd.pcbpd_id) delivery_date,
        pcm.purchase_sales,
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             pci.item_qty_unit_id,
@@ -23,6 +23,7 @@ select pcdi.pcdi_id,
        pfs.price_fixation_status,
        ciqs.total_qty,
        ciqs.open_qty,
+       pocd.percntg_of_qty_to_be_fixed, -- Newly Added
        round((case
                when pfs.price_fixation_status = 'Fixed' then
                 ciqs.total_qty
@@ -71,47 +72,53 @@ select pcdi.pcdi_id,
        null element_qty_unit_id,
        null underlying_product_id,
        pcm.contract_type position_type,
-       pdm.product_desc  comp_product_name,
+       pdm.product_desc comp_product_name,
        qat.quality_name comp_quality,
        ciqs.open_qty item_open_qty,
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             pci.item_qty_unit_id,
                                             pdm.base_quantity_unit,
-                                            1)compqty_base_conv_rate,
+                                            1) compqty_base_conv_rate,
        qum.qty_unit comp_base_qty_unit,
        qum.qty_unit_id comp_base_qty_unit_id,
-       1 contract_row       
-  from pcm_physical_contract_main    pcm,
-       ciqs_contract_item_qty_status ciqs,
-       ak_corporate                  akc,
-       ak_corporate_user             akcu,
-       gab_globaladdressbook         gab,
-       gcd_groupcorporatedetails     gcd,
-       pcdi_pc_delivery_item         pcdi,
-       pci_physical_contract_item    pci,
-       pcdb_pc_delivery_basis        pcdb,
-       pdm_productmaster             pdm,
-       pdtm_product_type_master      pdtm,
-       v_qat_quality_valuation       qat,
-       pdd_product_derivative_def    pdd,
-       dim_der_instrument_master     dim,
-       pcpq_pc_product_quality       pcpq,
-       itm_incoterm_master           itm,
-       css_corporate_strategy_setup  css,
-       pcpd_pc_product_definition    pcpd,
-       cpc_corporate_profit_center   cpc,
-       blm_business_line_master      blm,
-       qum_quantity_unit_master      qum,
-       diqs_delivery_item_qty_status diqs,
-       cym_countrymaster             cym,
-       cim_citymaster                cim,
-       v_pcdi_price_fixation_status  pfs
+       1 contract_row
+  from pcm_physical_contract_main     pcm,
+       ciqs_contract_item_qty_status  ciqs,
+       ak_corporate                   akc,
+       ak_corporate_user              akcu,
+       gab_globaladdressbook          gab,
+       gcd_groupcorporatedetails      gcd,
+       pcdi_pc_delivery_item          pcdi,
+       pci_physical_contract_item     pci,
+       poch_price_opt_call_off_header poch, -- Newly Added
+       pocd_price_option_calloff_dtls pocd, -- Newly Added
+       pcdb_pc_delivery_basis         pcdb,
+       pdm_productmaster              pdm,
+       pdtm_product_type_master       pdtm,
+       v_qat_quality_valuation        qat,
+       pdd_product_derivative_def     pdd,
+       dim_der_instrument_master      dim,
+       pcpq_pc_product_quality        pcpq,
+       itm_incoterm_master            itm,
+       css_corporate_strategy_setup   css,
+       pcpd_pc_product_definition     pcpd,
+       cpc_corporate_profit_center    cpc,
+       blm_business_line_master       blm,
+       qum_quantity_unit_master       qum,
+       diqs_delivery_item_qty_status  diqs,
+       cym_countrymaster              cym,
+       cim_citymaster                 cim,
+       v_pcdi_price_fixation_status   pfs
  where pcm.corporate_id = akc.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.pcdi_id = pci.pcdi_id
    and pci.internal_contract_item_ref_no =
        ciqs.internal_contract_item_ref_no
    and pci.pcpq_id = pcpq.pcpq_id(+)
+   and pcdi.pcdi_id = poch.pcdi_id -- Newly Added
+   and poch.poch_id = pocd.poch_id -- Newly Added
+   and poch.is_active = 'Y' -- Newly Added
+   and pocd.is_active = 'Y' -- Newly Added
    and pci.pcdb_id = pcdb.pcdb_id
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
    and pcdb.inco_term_id = itm.incoterm_id
@@ -135,11 +142,11 @@ select pcdi.pcdi_id,
    and pcdb.city_id = cim.city_id
    and pci.pcdi_id = pfs.pcdi_id
    and pcm.contract_type = 'BASEMETAL'
-  and nvl(pcm.is_tolling_contract,'N') = 'N'
+   and nvl(pcm.is_tolling_contract, 'N') = 'N'
    and pci.internal_contract_item_ref_no =
        pfs.internal_contract_item_ref_no
    and pfs.price_fixation_status <> 'Fixed'
-union all 
+union all
 select tt.pcdi_id,
        tt.internal_contract_item_ref_no,
        tt.corporate_group,
@@ -155,8 +162,8 @@ select tt.pcdi_id,
        tt.incoterm,
        tt.country_name,
        tt.city_name,
-       pkg_report_general.fn_get_element_pricing_month(tt.internal_contract_item_ref_no,
-                                                               tt.attribute_id) delivery_date,
+       pkg_report_general.fn_get_element_pricing_month(tt.pcbpd_id,
+                                                       tt.attribute_id) delivery_date,
        tt.purchase_sales,
        tt.baseqty_conv_rate,
        tt.price_fixation_status,
@@ -180,6 +187,7 @@ select tt.pcdi_id,
          else
           0
        end) open_qty,
+       tt.percntg_of_qty_to_be_fixed, -- Newly Added
        (case
          when tt.price_fixed_qty > 0 then
           pkg_report_general.fn_get_element_qty(tt.internal_contract_item_ref_no,
@@ -245,6 +253,7 @@ select tt.pcdi_id,
        tt.qty_unit_id comp_base_qty_unit_id,
        tt.contract_row
   from (select pcdi.pcdi_id,
+                pocd.pcbpd_id,
                 pci.internal_contract_item_ref_no,
                 gcd.groupname corporate_group,
                 ---------
@@ -290,6 +299,7 @@ select tt.pcdi_id,
                 pfs.price_fixation_status,
                 ciqs.total_qty total_qty,
                 ciqs.open_qty open_qty,
+                pocd.percntg_of_qty_to_be_fixed, -- Newly Added
                 ciqs.open_qty item_open_qty,
                 ------
                 round((case
@@ -312,7 +322,7 @@ select tt.pcdi_id,
                         else
                          0
                       end) end), 4) unfixed_qty,
-                -------                                                          
+                -------
                 pci.item_qty_unit_id,
                 nvl(qum_under.qty_unit, qum.qty_unit) qty_unit,
                 nvl(qum_under.qty_unit_id, qum.qty_unit_id) qty_unit_id,
@@ -366,6 +376,8 @@ select tt.pcdi_id,
                pcdi_pc_delivery_item          pcdi,
                pci_physical_contract_item     pci,
                pcdb_pc_delivery_basis         pcdb,
+               poch_price_opt_call_off_header poch, -- Newly Added
+               pocd_price_option_calloff_dtls pocd, -- Newly Added
                pdm_productmaster              pdm,
                pdtm_product_type_master       pdtm,
                ppm_product_properties_mapping ppm,
@@ -399,6 +411,11 @@ select tt.pcdi_id,
                ciqs.internal_contract_item_ref_no
            and pci.pcpq_id = pcpq.pcpq_id(+)
            and pci.pcdb_id = pcdb.pcdb_id
+           and pcdi.pcdi_id = poch.pcdi_id -- Newly Added
+           and poch.element_id = aml.attribute_id -- Newly Added
+           and poch.poch_id = pocd.poch_id -- Newly Added
+           and poch.is_active = 'Y' -- Newly Added
+           and pocd.is_active = 'Y' -- Newly Added
            and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
            and pcdb.inco_term_id = itm.incoterm_id
            and pcpq.assay_header_id = ash.ash_id
@@ -440,4 +457,4 @@ select tt.pcdi_id,
            and pcdb.country_id = cym.country_id
            and pfs.price_fixation_status <> 'Fixed'
            and pcdb.city_id = cim.city_id) tt
-where tt.open_qty >0 
+ where tt.open_qty > 0
