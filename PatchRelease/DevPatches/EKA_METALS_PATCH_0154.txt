@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0154
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Manoranjan Kumar
+ 
+Created on*        		: 23-Sep-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physical
+ 
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 77384
+Author: manoranjan.kumar
+Date: 8:41:38 PM, Friday, September 23, 2011
+Message:
+Umpiring rules 1 4 5 11 13 modified..
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_81.sql
+
+
+
