@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0155
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anand P Hulbatte
+ 
+Created on*        		: 24-Sep-2011
+
+Bug / Enhancement* 		: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Invoice
+ 
+Sub-Module  			 :  Vat Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 77391
+Author: anandp
+Date: 1:13:14 PM, Saturday, September 24, 2011
+Message:
+Modified
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/Corporate_Scripts_11.SQL
+
+
+Revision: 77390
+Author: anandp
+Date: 12:42:30 PM, Saturday, September 24, 2011
+Message:
+For VAT invoice.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_82.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_75.sql
+
+
+
+
+
