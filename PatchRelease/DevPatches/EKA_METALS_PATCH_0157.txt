@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0157
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Rajkiran Dewara
+ 
+Created on*        		: 27-Sep-2011
+
+Bug / Enhancement* 		: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Pool Management
+ 
+Sub-Module  			 :  Pool Setup
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 77557
+Author: rajkiran.dewara
+Date: 12:05:13 PM, Tuesday, September 27, 2011
+Message:
+pool setup
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_77.sql
+
+
+
+
+
+
+
+
+
