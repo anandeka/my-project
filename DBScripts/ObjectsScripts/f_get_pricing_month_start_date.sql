@@ -1,5 +1,5 @@
-create or replace function f_get_pricing_month(pc_pcbpd_id in varchar2)
-  return varchar2 is
+create or replace function f_get_pricing_month_start_date(pc_pcbpd_id in varchar2)
+  return date is
   cursor cur_qp_end_date is
     select pcm.contract_ref_no,
            pcdi.pcdi_id,
@@ -157,6 +157,6 @@ begin
     end if;
   end loop;
 
-  return to_char(last_day(vd_qp_end_date), 'dd-Mon-yyyy');
-end f_get_pricing_month;
+  return vd_qp_start_date;
+end f_get_pricing_month_start_date;
 /
