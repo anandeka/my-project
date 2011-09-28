@@ -1,0 +1,79 @@
+Patch No*          		:  EKA_METALS_PATCH_0158
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Elaiyaraja
+ 
+Created on*        		: 28-Sep-2011
+
+Bug / Enhancement* 		: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Pool Management
+ 
+Sub-Module  			 :  Pool Setup
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 77691
+Author: elaiyaraja.nallathambi
+Date: 3:56:24 PM, Wednesday, September 28, 2011
+Message:
+Assumptions Implemented
+----
+Modified : /7.3/Engg/Metals/Code/Reports/DailyDetailPriceExposure.rpt
+
+Revision: 77692
+Author: elaiyaraja.nallathambi
+Date: 3:57:06 PM, Wednesday, September 28, 2011
+Message:
+Projected Price Exposure Report released
+----
+Added : /7.3/Engg/Metals/Code/Reports/ProjectedPriceExposure.rpt
+
+Revision: 77705
+Author: elaiyaraja.nallathambi
+Date: 4:20:35 PM, Wednesday, September 28, 2011
+Message:
+Objects Released for Projected Price Exposure Report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_78.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_multiple_premium.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_pricing_month_latest.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_pricing_month_start_date.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_pricing_days.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
