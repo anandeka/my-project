@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0159
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Girish
+ 
+Created on*        		: 28-Sep-2011
+
+Bug / Enhancement* 		: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Assay
+ 
+Sub-Module  			 :  Assay out put Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 77731
+Author: girishkv
+Date: 6:28:24 PM, Wednesday, September 28, 2011
+Message:
+checking condition if provisional assay then take net weight else dry weight.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_83.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
