@@ -1,0 +1,72 @@
+Patch No*          		:  EKA_METALS_PATCH_0160
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Suresh Gottipati
+ 
+Created on*        		: 28-Sep-2011
+
+Bug / Enhancement* 		: Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : EOD
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 77762
+Author: suresh.gottipati
+Date: 7:56:46 PM, Wednesday, September 28, 2011
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_conc_qat_quality_valuation.sql
+
+Revision: 77761
+Author: suresh.gottipati
+Date: 7:55:20 PM, Wednesday, September 28, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyInventoryUnrealizedPhysicalPnLConc.rpt
+Modified : /7.3/Engg/Metals/Release/Patch/Reports/DailyOpenUnrealizedPhysicalConc.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
