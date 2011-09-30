@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_0161
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Mohit Kumar
+ 
+Created on*        		: 30-Sep-2011
+
+Bug / Enhancement* 		: Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Document Generation
+ 
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 77866
+Author: baijukaimala
+Date: 11:23:49 AM, Friday, September 30, 2011
+Message:
+doc generation script for Custom Duty
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_12.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
