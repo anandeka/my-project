@@ -1,0 +1,80 @@
+Patch No*          		:  EKA_METALS_PATCH_0164
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anand P Hulbatte
+ 
+Created on*        		: 30-Sep-2011
+
+Bug / Enhancement* 		: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Invoicing
+ 
+Sub-Module  			 :  Output Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 77915
+Author: anandp
+Date: 4:28:11 PM, Friday, September 30, 2011
+Message:
+For vat invoice output document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_15.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_88.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_84.sql
+
+
+Revision: 77914
+Author: anandp
+Date: 4:22:49 PM, Friday, September 30, 2011
+Message:
+For profoma invoice output document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_14.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_87.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_83.sql
+
+
+Revision: 77913
+Author: anandp
+Date: 3:59:29 PM, Friday, September 30, 2011
+Message:
+For advance payment invoice document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_13.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_86.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_82.sql
+
+
+
+
+
+
+
+
+
+
