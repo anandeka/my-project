@@ -1,0 +1,64 @@
+Patch No*          		:  EKA_METALS_PATCH_0166
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Girish
+ 
+Created on*        		: 30-Sep-2011
+
+Bug / Enhancement* 		: Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Assay
+ 
+Sub-Module  			 :   Assay ouput Doc.
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 77900
+Author: girishkv
+Date: 3:22:06 PM, Friday, September 30, 2011
+Message:
+new column ordering added in ASM.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_81.sql
+
+
+Revision: 77902
+Author: girishkv
+Date: 3:26:22 PM, Friday, September 30, 2011
+Message:
+updated DGM for ordering.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_85.sql
+
+
+
+
+
+
+
+
