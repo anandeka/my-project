@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_PATCH_0165
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Uttam Singh
+ 
+Created on*        		: 30-Sep-2011
+
+Bug / Enhancement* 		: Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Deal Management
+ 
+Sub-Module  			 :   Deal Management
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 74779
+Author: uttam
+Date: 5:54:50 PM, Monday, August 08, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_MV_DM_PHY_OPEN.sql
+
+
+Revision: 77917
+Author: uttam
+Date: 4:41:48 PM, Friday, September 30, 2011
+Message:
+inventory deal pnl for concentrate
+----
+Modified : /7.3/Engg/Metals/Code/METALS_MV/001-METALS_MVLOGS_APPDB.sql
+
+
+
+
+
+
+
+
+
+
