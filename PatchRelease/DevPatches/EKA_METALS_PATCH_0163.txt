@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_PATCH_0163
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Rajkiran Dewara
+ 
+Created on*        		: 30-Sep-2011
+
+Bug / Enhancement* 		: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 77891
+Author: rajkiran.dewara
+Date: 2:51:31 PM, Friday, September 30, 2011
+Message:
+added column for profit center id and strategy id
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_80.sql
+
+
+
+
+
+
+
+
+
+
+
+
