@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0167
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Babu Lal
+ 
+Created on*        		: 30-Sep-2011
+
+Bug / Enhancement* 		: NA
+ 
+Bug ID*            		: NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+ 
+Sub-Module  			 :   N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 77981
+Author: babulal.meena
+Date: 7:55:33 PM, Friday, September 30, 2011
+Message:
+CMA Feature Related DML Delete script
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_89.sql
