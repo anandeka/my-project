@@ -1,0 +1,1 @@
+alter table PFD_PRICE_FIXATION_DETAILS add is_price_request char(1) default 'N';
