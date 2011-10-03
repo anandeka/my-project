@@ -102,7 +102,7 @@ ORDER BY PCDIPE.PCBPH_ID;
             quantityDetails := '';
     end;
     
-    if (minQtyValue = minQtyValue) then
+    if (minQtyValue = maxQtyValue) then
         quantityDetails := 'Quantity :'|| minQtyValue ||' '|| itemQtyUnit;
     else
         quantityDetails := 'Quantity :'||'Min '|| minQtyOp || ' '|| minQtyValue ||' Max '|| maxQtyOp ||' '|| maxQtyValue ||' '|| itemQtyUnit;
