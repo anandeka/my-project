@@ -1,4 +1,4 @@
-create or replace package "PKG_GENERAL" is
+CREATE OR REPLACE PACKAGE "PKG_GENERAL" is
   -- All general packages and procedures
   function f_get_converted_currency_amt(pc_corporate_id        in varchar2,
                                         pc_from_cur_id         in varchar2,
@@ -80,9 +80,14 @@ create or replace package "PKG_GENERAL" is
   function f_get_warehouse_profile_id(pc_input_shed_id varchar2)
     return varchar2;
   --Ends here by BabuLal
-end; 
+  function f_get_instrument_trading_days(pc_instrumentid varchar2,
+                                                         pd_from_date    date,
+                                                         pd_to_date      date)
+  return number;
+end;
 /
-create or replace package body "PKG_GENERAL" is
+
+CREATE OR REPLACE PACKAGE BODY "PKG_GENERAL" is
   function f_get_converted_currency_amt
   /**************************************************************************************************
     Function Name                       : f_get_converted_currency_amt
@@ -787,5 +792,33 @@ create or replace package body "PKG_GENERAL" is
   end;
 
 --Ends here by BabuLal
-end; 
+function f_get_instrument_trading_days(pc_instrumentid varchar2,
+                                                         pd_from_date    date,
+                                                         pd_to_date      date)
+  return number is
+  vn_trading_days number;
+  vd_from_date    date;
+  vd_to_date      date;
+begin
+  vn_trading_days := 0;
+  vd_from_date    := pd_from_date;
+  vd_to_date      := pd_to_date;
+  if vd_from_date is not null and vd_to_date is not null then
+    while vd_from_date <= vd_to_date
+    loop
+      if not pkg_cdc_formula_builder.f_is_day_holiday(pc_instrumentid,
+                                                      vd_from_date) then
+        vn_trading_days := vn_trading_days + 1;
+      end if;
+      vd_from_date := vd_from_date + 1;
+    end loop;
+  end if;
+  return vn_trading_days;
+exception
+  when others then
+    vn_trading_days := -1;
+    return vn_trading_days;
+end;
+
+end;
 /
