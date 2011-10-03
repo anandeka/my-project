@@ -13,6 +13,12 @@ pricingDetails  VARCHAR2(4000) :='Pricing Details :';
 QPDeclarationDate VARCHAR2(50);
 PaymentDueDate VARCHAR2(50);
 Optionality VARCHAR2(50);
+minQtyOp VARCHAR2(15);
+maxQtyOp VARCHAR2(15);
+minQtyValue NUMBER(25,10);
+maxQtyValue NUMBER(25,10);
+itemQtyUnit VARCHAR2(50);
+
 cursor cr_incoterm 
     IS
     Select ITM.INCOTERM ||' - '|| CIM.CITY_NAME ||
@@ -87,13 +93,20 @@ ORDER BY PCDIPE.PCBPH_ID;
     
     begin
     
-    Select 'Quantity :'||'Min '|| PCDI.QTY_MIN_OPERATOR|| ' '||  f_format_to_char(PCDI.QTY_MIN_VAL,4) ||' Max '|| PCDI.QTY_MAX_OPERATOR ||' '||  f_format_to_char(PCDI.QTY_MAX_VAL,4) ||' '||QUM.QTY_UNIT_DESC into quantityDetails
+    Select  PCDI.QTY_MIN_OPERATOR, f_format_to_char(PCDI.QTY_MIN_VAL,4) ,PCDI.QTY_MAX_OPERATOR , f_format_to_char(PCDI.QTY_MAX_VAL,4),QUM.QTY_UNIT_DESC 
+    into minQtyOp,minQtyValue,maxQtyOp,maxQtyValue,itemQtyUnit  
     From PCDI_PC_DELIVERY_ITEM PCDI ,QUM_QUANTITY_UNIT_MASTER QUM Where PCDI.QTY_UNIT_ID = QUM.QTY_UNIT_ID AND PCDI.PCDI_ID = p_delivery_id;
   
     exception
           when no_data_found then
-            qualityDetails := '';
+            quantityDetails := '';
     end;
+    
+    if (minQtyValue = minQtyValue) then
+        quantityDetails := 'Quantity :'|| minQtyValue ||' '|| itemQtyUnit;
+    else
+        quantityDetails := 'Quantity :'||'Min '|| minQtyOp || ' '|| minQtyValue ||' Max '|| maxQtyOp ||' '|| maxQtyValue ||' '|| itemQtyUnit;
+    end if; 
     
     for incoterm_rec in cr_incoterm
     loop

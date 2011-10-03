@@ -1,4 +1,5 @@
-CREATE OR REPLACE PROCEDURE prepareAmendContractOutputDoc (
+/* Formatted on 2011/10/03 15:55 (Formatter Plus v4.8.8) */
+CREATE OR REPLACE PROCEDURE pe_metals_traxys_app_dev.prepareAmendContractOutputDoc (
    p_contractno    VARCHAR2,
    p_docrefno      VARCHAR2,
    p_activity_id   VARCHAR2
@@ -7,6 +8,7 @@ IS
    docid                      VARCHAR2 (15);
    contractsection            VARCHAR2 (50)   := 'Contract Buyer Section';
    issuedate                  VARCHAR2 (50);
+   amendmentdate              VARCHAR2 (50);
    contractrefno              VARCHAR2 (50);
    cpcontractrefno            VARCHAR2 (50);
    corporateid                VARCHAR2 (20);
@@ -52,16 +54,20 @@ BEGIN
       SELECT TO_CHAR (pcm.issue_date, 'dd-Mon-YYYY'), pcm.contract_ref_no,
              NVL (pcm.cp_contract_ref_no, 'NA'), ak.corporate_name,
              ak.corporate_id, pcm.purchase_sales, phd.companyname,
-             pcm.cp_id, pcm.product_group_type
+             pcm.cp_id, pcm.product_group_type,
+             TO_CHAR (par.amendment_date, 'dd-Mon-YYYY')
         INTO issuedate, contractrefno,
              cpcontractrefno, corporatename,
              corporateid, contracttype, counterparty,
-             cpid, product_group_type
+             cpid, product_group_type,
+             amendmentdate
         FROM pcm_physical_contract_main pcm,
              ak_corporate ak,
-             phd_profileheaderdetails phd
+             phd_profileheaderdetails phd,
+             par_physical_amend_reason par
        WHERE pcm.corporate_id = ak.corporate_id
          AND phd.profileid = pcm.cp_id
+         AND par.internal_contract_ref_no(+) = pcm.internal_contract_ref_no
          AND pcm.internal_contract_ref_no = p_contractno;
    EXCEPTION
       WHEN NO_DATA_FOUND
@@ -75,6 +81,7 @@ BEGIN
          counterparty := '';
          cpid := '';
          product_group_type := '';
+         amendmentdate := '';
    END;
 
    IF (contracttype = 'P')
@@ -224,6 +231,38 @@ BEGIN
                 is_amend_section, print_type, is_changed
                )
         VALUES (docid, display_order, NULL, contractsection,
+                'Contract Issue Date', 'Y', NULL,
+                NULL, issuedate, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+
+   display_order := display_order + 1;
+
+   INSERT INTO acd_amend_contract_details
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Amendment Date', 'Y', NULL,
+                NULL, issuedate, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+
+   display_order := display_order + 1;
+
+   INSERT INTO acd_amend_contract_details
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
                 'Buyer', 'Y', NULL,
                 NULL, buyer, NULL,
                 NULL, 'N', 'N',
@@ -242,22 +281,6 @@ BEGIN
         VALUES (docid, display_order, NULL, contractsection,
                 'Seller', 'Y', NULL,
                 NULL, seller, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
-
-   display_order := display_order + 1;
-
-   INSERT INTO acd_amend_contract_details
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, 'Counter Party',
-                'CP Name', 'Y', NULL,
-                NULL, counterparty, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
@@ -694,9 +717,9 @@ BEGIN
 
    IF (p_activity_id = 'CONTRACT_APPROVED')
    THEN
-      generateContractOutputDoc (p_contractno, p_docrefno, p_activity_id);
+      generatecontractoutputdoc (p_contractno, p_docrefno, p_activity_id);
    ELSE
-      generateAmendContractOutputDoc (old_doc_id, docid, p_contractno);
+      generateamendcontractoutputdoc (old_doc_id, docid, p_contractno);
    END IF;
 END;
 /

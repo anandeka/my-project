@@ -152,6 +152,18 @@ Insert into COD_CONTRACT_OUTPUT_DETAIL
     'Y', NULL, NULL, cpContactPersoson, NULL,
     NULL, 'N', 'N', 'N', 'FULL',  'N');
 
+   display_order := display_order + 1;
+
+   Insert into COD_CONTRACT_OUTPUT_DETAIL
+   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
+    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
+    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
+    IS_CHANGED)
+ Values
+   (docId, display_order, NULL, contractsection, 'Contract Issue Date',
+    'Y', NULL, NULL, issueDate, NULL,
+    NULL, 'N', 'N', 'N', 'FULL',  'N');
+
    display_order:=display_order+1;
  Insert into COD_CONTRACT_OUTPUT_DETAIL
    (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
@@ -172,18 +184,7 @@ Insert into COD_CONTRACT_OUTPUT_DETAIL
    (docId, display_order, NULL, contractSection, 'Seller',
     'Y', NULL, NULL, seller, NULL,
     NULL, 'N', 'N', 'N', 'FULL',  'N');
-     display_order:=display_order+1;
-
-   Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, 'Counter Party', 'CP Name',
-    'Y', NULL, NULL, counterparty, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
-
+ 
     begin
     select PAD.address || ','||  CIM.CITY_NAME|| ','||SM.STATE_NAME|| ','|| CYM.COUNTRY_NAME into CpAddress
     from PAD_PROFILE_ADDRESSES PAD ,CYM_COUNTRYMASTER CYM, CIM_CITYMASTER CIM, SM_STATE_MASTER SM
