@@ -1,0 +1,83 @@
+Patch No*          		:  EKA_METALS_PATCH_0168
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  03-Oct-2011
+
+Bug / Enhancement* 		:   Enhancement*
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physical
+ 
+Sub-Module  			 :  output docuement
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 78042
+Author: sriveenam
+Date: 11:35:16 AM, Monday, October 03, 2011
+Message:
+amendmentdoc changed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEAMENDCONTRACTOUTPUTDOC.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PREPAREAMENDCONTRACTOUTPUTDOC.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_85.sql
+
+
+Revision: 78091
+Author: sriveenam
+Date: 4:12:53 PM, Monday, October 03, 2011
+Message:
+amendmentdoc changed
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETDELIVERYPERIODDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PREPAREAMENDCONTRACTOUTPUTDOC.sql
+
+Revision: 78043
+Author: sriveenam
+Date: 11:36:27 AM, Monday, October 03, 2011
+Message:
+amendmentdoc changed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_90.sql
+
+
+Revision: 78044
+Author: sriveenam
+Date: 11:36:49 AM, Monday, October 03, 2011
+Message:
+amendmentdoc changed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_16.sql
+
+
+
+
+
+
+
