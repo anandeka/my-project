@@ -1,5 +1,5 @@
 /* Formatted on 2011/10/03 15:55 (Formatter Plus v4.8.8) */
-CREATE OR REPLACE PROCEDURE pe_metals_traxys_app_dev.prepareAmendContractOutputDoc (
+CREATE OR REPLACE PROCEDURE prepareAmendContractOutputDoc (
    p_contractno    VARCHAR2,
    p_docrefno      VARCHAR2,
    p_activity_id   VARCHAR2
@@ -719,7 +719,7 @@ BEGIN
    THEN
       generatecontractoutputdoc (p_contractno, p_docrefno, p_activity_id);
    ELSE
-      generateamendcontractoutputdoc (old_doc_id, docid, p_contractno);
+      generateamendcontractoutputdoc(old_doc_id, docid, p_contractno);
    END IF;
 END;
 /
