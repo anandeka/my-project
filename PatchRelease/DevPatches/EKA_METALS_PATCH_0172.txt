@@ -1,0 +1,77 @@
+Patch No*          		:  EKA_METALS_PATCH_0172
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  04-Oct-2011
+
+Bug / Enhancement* 		:   Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physical
+ 
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 78218
+Author: sivachalabathi.s
+Date: 6:36:29 PM, Tuesday, October 04, 2011
+Message:
+Reports filters screen changes
+----
+1) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_88_reports_filter_tables.sql
+2) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_17_CDC-Reports_Filters.sql
+3) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_18_PHY_CURRENCY_Filters.sql
+
+
+RPT Files:
+---------
+Revision: 78214
+Author: sivachalabathi.s
+Date: 6:20:36 PM, Tuesday, October 04, 2011
+Message:
+Filter screen changes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CurrencyRealizedPnLReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyClearerSummaryReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativeReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativesRealizedPnLReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativesUnRealizedPnLReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyInventoryUnrealizedPhysicalPnL.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyInventoryUnrealizedPhysicalPnLConc.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalConc.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnL.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FXPositionandPnLReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FutureOptionSummaryPositionReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MarginReport.rpt
+
+
+
+
+
+
+
