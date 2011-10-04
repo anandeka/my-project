@@ -16,6 +16,7 @@ IS
      AND pcpq.pcpq_id = tqd.pcpq_id
      AND pcpq.quality_template_id = qat.quality_id
      AND tqd.is_active = 'Y'
+     AND pcth.is_active = 'Y'
      AND pcm.internal_contract_ref_no = pContractNo;
      
      

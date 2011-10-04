@@ -40,6 +40,7 @@ Select PCDI.PCDI_ID PCDI_ID,(pcm.contract_ref_no || '-' || pcdi.delivery_item_no
 From PCDI_PC_DELIVERY_ITEM PCDI, PCM_PHYSICAL_CONTRACT_MAIN PCM
 Where PCDI.INTERNAL_CONTRACT_REF_NO = PCM.INTERNAL_CONTRACT_REF_NO AND
 PCM.INTERNAL_CONTRACT_REF_NO =p_contractNo
+and PCDI.IS_ACTIVE = 'Y'
 order by pcdi.delivery_item_no;
 
 BEGIN

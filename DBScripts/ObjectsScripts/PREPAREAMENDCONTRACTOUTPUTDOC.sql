@@ -1,4 +1,3 @@
-/* Formatted on 2011/10/03 15:55 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE PROCEDURE prepareAmendContractOutputDoc (
    p_contractno    VARCHAR2,
    p_docrefno      VARCHAR2,
@@ -44,6 +43,7 @@ IS
           FROM pcdi_pc_delivery_item pcdi, pcm_physical_contract_main pcm
          WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
            AND pcm.internal_contract_ref_no = p_contractno
+           AND PCDI.IS_ACTIVE = 'Y'
       ORDER BY pcdi.delivery_item_no;
 BEGIN
    SELECT seq_amend_doc.NEXTVAL

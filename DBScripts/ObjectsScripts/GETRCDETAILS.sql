@@ -16,6 +16,7 @@ IS
      AND pcpq.pcpq_id = rqd.pcpq_id
      AND pcpq.quality_template_id = qat.quality_id
      AND rqd.is_active = 'Y'
+     and PCRH.IS_ACTIVE = 'Y'
      AND pcm.internal_contract_ref_no = pContractNo;
 
     cursor cr_rc          

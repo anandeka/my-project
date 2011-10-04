@@ -16,6 +16,7 @@ IS
      AND pcpq.pcpq_id = pqd.pcpq_id
      AND pcpq.quality_template_id = qat.quality_id
      AND pqd.is_active = 'Y'
+     AND PCAPH.IS_ACTIVE ='Y'
      AND pcm.internal_contract_ref_no = pContractNo;
      
     cursor cr_penalties          
@@ -68,6 +69,10 @@ IS
    and RM.RATIO_ID(+) = pcaph.RANGE_UNIT_ID
    and DEDUCTED_ELEMENT.ATTRIBUTE_ID(+) = PCAP.DEDUCTED_PAYABLE_ELEMENT
    and DEDUCTED_UNIT.RATIO_ID(+) = PCAP.DEDUCTED_PAYABLE_UNIT_ID
+   AND PCAPH.IS_ACTIVE ='Y'
+   AND pqd.IS_ACTIVE ='Y'
+   AND pad.IS_ACTIVE ='Y'
+   AND pcap.IS_ACTIVE ='Y'
    AND PCM.INTERNAL_CONTRACT_REF_NO =pContractNo;
 
  

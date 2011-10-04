@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION getAssayinRules (pContractNo number)
+CREATE OR REPLACE FUNCTION GETASSAYINRULES (pContractNo number)
    RETURN VARCHAR2
 IS
     
@@ -16,6 +16,7 @@ IS
      AND pcpq.pcpq_id = arqd.pcpq_id
      AND pcpq.quality_template_id = qat.quality_id
      AND arqd.is_active = 'Y'
+     AND pcar.is_active = 'Y'
      AND pcm.internal_contract_ref_no = pContractNo;
      
     
@@ -117,6 +118,5 @@ IS
             end if;        
    
             return  ASSAY_RULES;
-    end; 
+    end;
 /
-

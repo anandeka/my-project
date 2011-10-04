@@ -27,6 +27,7 @@ return VARCHAR2 is
      AND PCPD.PCPD_ID = PCPQ.PCPD_ID
      AND QAT.PRODUCT_ORIGIN_ID = POM.PRODUCT_ORIGIN_ID(+)
      AND POM.ORIGIN_ID = ORM.ORIGIN_ID(+)
+     AND PCPQ.IS_ACTIVE = 'Y'
      AND PCPD.INTERNAL_CONTRACT_REF_NO =p_contractNo;   
     
     qualityDescription VARCHAR2(4000) :='';  

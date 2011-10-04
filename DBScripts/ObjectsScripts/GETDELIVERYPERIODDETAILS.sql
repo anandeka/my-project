@@ -40,7 +40,10 @@ cursor cr_incoterm
 From PCDB_PC_DELIVERY_BASIS PCDB, ITM_INCOTERM_MASTER ITM,CIM_CITYMASTER CIM,PCDIOB_DI_OPTIONAL_BASIS PCDIOB
 Where PCDB.INCO_TERM_ID = ITM.INCOTERM_ID AND
 PCDB.CITY_ID = CIM.CITY_ID AND
-PCDIOB.PCDB_ID = PCDB.PCDB_ID AND PCDIOB.PCDI_ID = p_delivery_id;
+PCDIOB.PCDB_ID = PCDB.PCDB_ID 
+AND PCDB.IS_ACTIVE = 'Y'
+AND PCDIOB.IS_ACTIVE = 'Y'
+AND PCDIOB.PCDI_ID = p_delivery_id;
 
 
 cursor cr_pricing 
@@ -59,7 +62,7 @@ ORDER BY PCDIPE.PCBPH_ID;
     
     begin
     select 'Delivery Item No :'||PCM.CONTRACT_REF_NO||'-'||PCDI.DELIVERY_ITEM_NO into deliveryItem from PCDI_PC_DELIVERY_ITEM PCDI ,PCM_PHYSICAL_CONTRACT_MAIN PCM 
-    Where PCM.INTERNAL_CONTRACT_REF_NO = PCDI.INTERNAL_CONTRACT_REF_NO and PCDI.PCDI_ID =p_delivery_id;
+    Where PCM.INTERNAL_CONTRACT_REF_NO = PCDI.INTERNAL_CONTRACT_REF_NO  and PCDI.PCDI_ID =p_delivery_id;
     
     exception
           when no_data_found then
@@ -127,7 +130,7 @@ ORDER BY PCDIPE.PCBPH_ID;
     begin
     Select nvl(to_char(PCDI.QP_DECLARATION_DATE,'DD-Mon-YYYY'),'') , nvl(PCDI.QUALITY_OPTION_TYPE,'') ,
     nvl(to_char(PCDI.PAYMENT_DUE_DATE,'DD-Mon-YYYY'),'') into  QPDeclarationDate,Optionality,PaymentDueDate
-    From PCDI_PC_DELIVERY_ITEM PCDI Where PCDI.PCDI_ID = p_delivery_id;
+    From PCDI_PC_DELIVERY_ITEM PCDI Where PCDI.PCDI_ID = p_delivery_id ;
     exception
           when no_data_found then
             QPDeclarationDate := '';

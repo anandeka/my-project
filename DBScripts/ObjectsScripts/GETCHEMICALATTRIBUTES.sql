@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION getchemicalattributes (p_ashid VARCHAR2)
+CREATE OR REPLACE FUNCTION GETCHEMICALATTRIBUTES (p_ashid VARCHAR2)
    RETURN VARCHAR2
 IS
    CURSOR cr_chemattr
@@ -24,6 +24,7 @@ IS
        WHERE asm.asm_id = pqca.asm_id
          AND pqca.element_id = aml.attribute_id
          AND pqca.unit_of_measure = rm.ratio_id
+         AND PQCA.IS_ACTIVE = 'Y'
          AND asm.ash_id = p_ashid;
 
    qualitydescription   VARCHAR2 (4000) := '';
@@ -35,6 +36,5 @@ BEGIN
    END LOOP;
 
    RETURN qualitydescription;
-END; 
+END;
 /
-
