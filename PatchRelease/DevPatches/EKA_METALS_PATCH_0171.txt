@@ -37,13 +37,16 @@ Dependent patches:		:  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 78187
+Revision: 78189
 Author: sriveenam
-Date: 1:08:24 PM, Tuesday, October 04, 2011
+Date: 2:59:40 PM, Tuesday, October 04, 2011
 Message:
 amended doc changes
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEAMENDCONTRACTOUTPUTDOC.sql
+
+
+
 
 
 
