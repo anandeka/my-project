@@ -1,3 +1,4 @@
+/* Formatted on 2011/10/04 14:59 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE PROCEDURE generateAmendContractOutputDoc (
    old_doc_id                    VARCHAR2,
    new_doc_id                    VARCHAR2,
@@ -112,23 +113,28 @@ BEGIN
       ELSE
          /*  dbms_output.put_line(amended_rec.contract_content || ' ' ||
          'Records are not equal');*/
-         INSERT INTO cod_contract_output_detail
-                     (doc_id, display_order, field_layout_id,
-                      section_name, field_name, is_print_reqd,
-                      pre_content_text_id, post_content_text_id,
-                      contract_content, pre_content_text,
-                      post_content_text, is_custom_section,
-                      is_footer_section, is_amend_section, print_type,
-                      is_changed, document_type
-                     )
-              VALUES (cos_doc_id, amended_rec.display_order + 0.1, NULL,
-                      amended_rec.section_name, amended_rec.field_name, 'Y',
-                      NULL, NULL,
-                      original_content, acd_pre_content_text,
-                      acd_post_content_text, 'N',
-                      'N', 'N', 'FULL',
-                      'N', 'ORIGINAL'
-                     );
+         IF (original_content != 'NA')
+         THEN
+            INSERT INTO cod_contract_output_detail
+                        (doc_id, display_order, field_layout_id,
+                         section_name, field_name,
+                         is_print_reqd, pre_content_text_id,
+                         post_content_text_id, contract_content,
+                         pre_content_text, post_content_text,
+                         is_custom_section, is_footer_section,
+                         is_amend_section, print_type, is_changed,
+                         document_type
+                        )
+                 VALUES (cos_doc_id, amended_rec.display_order + 0.1, NULL,
+                         amended_rec.section_name, amended_rec.field_name,
+                         'Y', NULL,
+                         NULL, original_content,
+                         acd_pre_content_text, acd_post_content_text,
+                         'N', 'N',
+                         'N', 'FULL', 'N',
+                         'ORIGINAL'
+                        );
+         END IF;
 
          INSERT INTO cod_contract_output_detail
                      (doc_id, display_order,
