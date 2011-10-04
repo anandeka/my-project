@@ -121,7 +121,7 @@ BEGIN
                       is_footer_section, is_amend_section, print_type,
                       is_changed, document_type
                      )
-              VALUES (cos_doc_id, acd_display_order + 0.1, NULL,
+              VALUES (cos_doc_id, amended_rec.display_order + 0.1, NULL,
                       amended_rec.section_name, amended_rec.field_name, 'Y',
                       NULL, NULL,
                       original_content, acd_pre_content_text,
