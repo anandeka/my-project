@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0174
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Rajkiran Dewara
+ 
+Created on*        		: 10-Oct-2011
+
+Bug / Enhancement* 		: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 78261
+Author: rajkiran.dewara
+Date: 1:15:43 PM, Monday, October 10, 2011
+Message:
+sales side strategy id or profit center id
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_89.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
