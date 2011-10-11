@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_0175
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Uttam
+ 
+Created on*        		: 11-Oct-2011
+
+Bug / Enhancement* 		: New Feature
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+ 
+Sub-Module  			 :  Internal Movement
+ 
+Section   		   	 :  Pile management
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 78337
+Author: uttam
+Date: 12:19:01 PM, Tuesday, October 11, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_90.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
