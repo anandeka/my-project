@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0176
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Elaiyaraja Nallathambi
+ 
+Created on*        		: 13-Oct-2011
+
+Bug / Enhancement* 		: Bug 
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Reports
+ 
+Sub-Module  			 : N/A
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 78547
+Author: elaiyaraja.nallathambi
+Date: 11:35:07 AM, Thursday, October 13, 2011
+Message:
+Bug Fixes and CR
+----
+Modified : /7.3/Engg/Metals/Code/Reports/DailyDetailPriceExposure.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
