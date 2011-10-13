@@ -98,7 +98,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
-end;
+end; 
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -838,7 +838,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     vn_pp_amt           number(10);
     vc_error_loc        varchar2(100);
   begin
-    dbms_mview.refresh('MV_QAT_QUALITY_VALUATION', 'C');
+    --dbms_mview.refresh('MV_QAT_QUALITY_VALUATION', 'C');
     --added newly to maintain consistency in both physical process and precheck. 28th
     delete from tmpc_temp_m2m_pre_check tmpc
      where corporate_id = pc_corporate_id
@@ -2080,7 +2080,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     vc_charge_type          varchar2(15);
     vc_m2m_id               varchar2(15);
   begin
-    dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'C');
+    --dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'C');
     --added newly to maintain consistency in both physical process and precheck. 28th
     delete from tmpc_temp_m2m_pre_check tmpc
      where corporate_id = pc_corporate_id
@@ -4802,5 +4802,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end;
+end; 
 /

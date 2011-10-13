@@ -487,12 +487,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
         vc_other_process_status := 1;
     end;
     if vc_other_process_status = 0 then
-      dbms_mview.refresh('poch_price_opt_call_off_header', 'C');
-      dbms_mview.refresh('pocd_price_option_calloff_dtls', 'C');
-      dbms_mview.refresh('pofh_price_opt_fixation_header', 'c');
-      dbms_mview.refresh('itm_incoterm_master', 'c');
-      dbms_mview.refresh('gsm_gmr_stauts_master', 'c');
-      dbms_mview.refresh('orm_origin_master', 'c');
+      --dbms_mview.refresh('poch_price_opt_call_off_header', 'C');
+      --dbms_mview.refresh('pocd_price_option_calloff_dtls', 'C');
+      --dbms_mview.refresh('pofh_price_opt_fixation_header', 'c');
+      --dbms_mview.refresh('itm_incoterm_master', 'c');
+      --dbms_mview.refresh('gsm_gmr_stauts_master', 'c');
+      --dbms_mview.refresh('orm_origin_master', 'c');
       dbms_mview.refresh('BGM_BP_GROUP_MASTER', 'c');
       dbms_mview.refresh('BPC_BP_CORPORATES', 'c');
       dbms_mview.refresh('BPSLD_BP_STORAGE_LOC_DET', 'c');
@@ -511,7 +511,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('POCH_PRICE_OPT_CALL_OFF_HEADER', 'c');
       dbms_mview.refresh('POCD_PRICE_OPTION_CALLOFF_DTLS', 'c');
       dbms_mview.refresh('pofh_price_opt_fixation_header', 'c');
-      dbms_mview.refresh('mv_qat_quality_valuation', 'c');
       dbms_mview.refresh('PPS_PRODUCT_PREMIUM_SETUP', 'c');
       dbms_mview.refresh('VCS_VALUATION_CURVE_SETUP', 'c');
       dbms_mview.refresh('VCA_VALUATION_CURVE_ATTRIBUTE', 'c');
@@ -530,11 +529,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('AML_ATTRIBUTE_MASTER_LIST', 'c');
       dbms_mview.refresh('PPM_PRODUCT_PROPERTIES_MAPPING', 'c');
       dbms_mview.refresh('QAV_QUALITY_ATTRIBUTE_VALUES', 'c');      
-      dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'c');
       dbms_mview.refresh('MDCD_M2M_DED_CHARGE_DETAILS', 'c');
       dbms_mview.refresh('MDCBM_DED_CHARGES_BY_MONTH', 'c');
       dbms_mview.refresh('MNM_MONTH_NAME_MASTER', 'c');
-       dbms_mview.refresh('spq_stock_payable_qty', 'c');
+      dbms_mview.refresh('spq_stock_payable_qty', 'c');
+      dbms_mview.refresh('mv_qat_quality_valuation', 'c');
+      dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'c');
     end if;
   exception
     when others then
