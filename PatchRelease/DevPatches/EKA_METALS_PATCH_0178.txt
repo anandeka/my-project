@@ -1,0 +1,66 @@
+Patch No*          		:  EKA_METALS_PATCH_0178
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sishir Kumar Pagada
+ 
+Created on*        		: 14-Oct-2011
+
+Bug / Enhancement* 		: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physicals
+ 
+Sub-Module  			 : N/A
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Trasaction
+==================================================================
+Revision: 78704
+Author: sishir.pagada
+Date: 7:15:29 PM, Friday, October 14, 2011
+Message:
+added table for DITHUL,DIRHUL,DIPHUL,CIPQL,DIPQL,SPQL
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_91.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
