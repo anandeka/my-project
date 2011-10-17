@@ -1,0 +1,63 @@
+Patch No*          		:  EKA_METALS_PATCH_0180
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Manoranjan Kumar
+ 
+Created on*        		: 17-Oct-2011
+
+Bug / Enhancement* 		: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physical
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 78729
+Author: manoranjan.kumar
+Date: 11:18:24 AM, Monday, October 17, 2011
+Message:
+added DIPQD table and alter scripts for POFH table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_93.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
