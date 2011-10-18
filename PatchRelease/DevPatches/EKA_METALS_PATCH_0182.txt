@@ -1,0 +1,64 @@
+Patch No*          		:  EKA_METALS_PATCH_0180
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sachin Talwar
+ 
+Created on*        		: 17-Oct-2011
+
+Bug / Enhancement* 	: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physical 
+ 
+Sub-Module  		 :  N/A
+ 
+Section   		 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.    :  N/A
+ 
+FS Enhancement details        :  N/A
+ 
+FS Amendment details          :  N/A
+
+Dependent patches:	 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+Revision: 78814
+Author: sachin
+Date: 3:03:42 PM, Tuesday, October 18, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_95.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
