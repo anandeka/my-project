@@ -389,3 +389,13 @@ END;
 alter table SAM_STOCK_ASSAY_MAPPING add is_internal_weighted_avg_assay char(1) default 'N';
 alter table SAM_STOCK_ASSAY_MAPPING add is_latest_position_assay char(1) default 'N';
 
+
+
+CREATE SEQUENCE SEQ_DI
+  START WITH 200
+  MAXVALUE 1000000000000000000000000000
+  MINVALUE 1
+  NOCYCLE
+  NOCACHE
+  NOORDER;
+
