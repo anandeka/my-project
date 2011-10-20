@@ -140,7 +140,7 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_PHYSICAL_PROCESS" IS
                                pn_price         out number,
                                pc_price_unit_id out varchar2);
 
-end;
+end; 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
 
@@ -607,7 +607,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              pcdi.price_option_call_off_status,
              pci.internal_contract_item_ref_no,
              pcm.contract_ref_no,
-             nvl(pcdi.payment_due_date, pd_trade_date) payment_due_date,
+             (case when nvl(pcdi.payment_due_date, pd_trade_date)<pd_trade_date then
+                 pd_trade_date
+                 else
+                 nvl(pcdi.payment_due_date, pd_trade_date)
+                 end) payment_due_date,
+             --nvl(pcdi.payment_due_date, pd_trade_date) payment_due_date,
              pci.item_qty,
              pci.item_qty_unit_id,
              pcm.invoice_currency_id,
@@ -3960,7 +3965,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              pcdi.is_phy_optionality_present,
              pci.internal_contract_item_ref_no,
              pcm.contract_ref_no,
-             nvl(pcdi.payment_due_date, pd_trade_date) payment_due_date,
+             (case when nvl(pcdi.payment_due_date, pd_trade_date)<pd_trade_date then
+                 pd_trade_date
+                 else
+                 nvl(pcdi.payment_due_date, pd_trade_date)
+                 end) payment_due_date,
+             --nvl(pcdi.payment_due_date, pd_trade_date) payment_due_date,
              pci.item_qty,
              pci.item_qty_unit_id,
              pcm.invoice_currency_id,
@@ -5580,7 +5590,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                'PHY-005',
                                                                vc_base_main_cur_code ||
                                                                ' to ' ||
-                                                               vc_contract_main_cur_code,
+                                                               vc_contract_main_cur_code||
+                                                               ' ('||to_char(vd_payment_due_date,'dd-Mon-yyyy')||') ',
                                                                '',
                                                                gvc_process,
                                                                pc_user_id,
@@ -8054,7 +8065,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                'PHY-005',
                                                                cur_unrealized_rows.base_cur_code ||
                                                                ' to ' ||
-                                                               vc_m2m_cur_code,
+                                                               vc_m2m_cur_code||
+                                                               ' ('||to_char(cur_unrealized_rows.payment_due_date,'dd-Mon-yyyy')||') ',
                                                                '',
                                                                gvc_process,
                                                                pc_user_id,
@@ -9116,7 +9128,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                  'PHY-005',
                                                                  cur_unrealized_rows.base_cur_code ||
                                                                  ' to ' ||
-                                                                 vc_m2m_cur_code,
+                                                                 vc_m2m_cur_code||
+                                                                 ' ('||to_char(cur_unrealized_rows.payment_due_date,'dd-Mon-yyyy')||') ',
                                                                  '',
                                                                  gvc_process,
                                                                  pc_user_id,
@@ -9159,7 +9172,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                  'PHY-005',
                                                                  cur_unrealized_rows.base_cur_code ||
                                                                  ' to ' ||
-                                                                 vc_m2m_cur_code,
+                                                                 vc_m2m_cur_code||
+                                                                 ' ('||to_char(cur_unrealized_rows.payment_due_date,'dd-Mon-yyyy')||') ',
                                                                  '',
                                                                  gvc_process,
                                                                  pc_user_id,
@@ -10566,7 +10580,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                  'PHY-005',
                                                                  cur_grd_rows.base_cur_code ||
                                                                  ' to ' ||
-                                                                 vc_m2m_cur_code,
+                                                                 vc_m2m_cur_code||
+                                                                 ' ('||to_char(cur_grd_rows.payment_due_date,'dd-Mon-yyyy')||') ',
                                                                  '',
                                                                  gvc_process,
                                                                  pc_user_id,
@@ -11933,7 +11948,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                    'PHY-005',
                                                                    cur_grd_rows.base_cur_code ||
                                                                    ' to ' ||
-                                                                   vc_m2m_cur_code,
+                                                                   vc_m2m_cur_code||
+                                                                   ' ('||to_char(cur_grd_rows.payment_due_date,'dd-Mon-yyyy')||') ',
                                                                    '',
                                                                    gvc_process,
                                                                    pc_user_id,
@@ -11991,7 +12007,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                    'PHY-005',
                                                                    cur_grd_rows.base_cur_code ||
                                                                    ' to ' ||
-                                                                   vc_m2m_cur_code,
+                                                                   vc_m2m_cur_code||
+                                                                   ' ('||to_char(cur_grd_rows.payment_due_date,'dd-Mon-yyyy')||') ',
                                                                    '',
                                                                    gvc_process,
                                                                    pc_user_id,
@@ -13161,5 +13178,5 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
     end if;
   end;
 
-end;
+end; 
 /
