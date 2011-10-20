@@ -1,0 +1,66 @@
+Patch No*          		:  EKA_METALS_PATCH_0184
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Manoranjan Kumar
+ 
+Created on*        		: 20-Oct-2011
+
+Bug / Enhancement* 	: Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physical 
+ 
+Sub-Module  		 :  N/A
+ 
+Section   		 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.    :  N/A
+ 
+FS Enhancement details        :  N/A
+ 
+FS Amendment details          :  N/A
+
+Dependent patches:	 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+Revision: 78975
+Author: manoranjan.kumar
+Date: 7:52:13 PM, Thursday, October 20, 2011
+Message:
+CIPQL DIPQL SPQL and alter scripts for SAM_STOCK_ASSAY_MAPPING table..
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_97.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
