@@ -1,0 +1,27 @@
+SET DEFINE OFF;
+update AMC_APP_MENU_CONFIGURATION amc
+set AMC.LINK_CALLED = '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=211&ReportName=PhysicalPosition.rpt&ExportFormat=HTML'
+where AMC.MENU_ID = 'RPT-D212';
+update AMC_APP_MENU_CONFIGURATION amc
+set AMC.LINK_CALLED = '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=212&ReportName=PositionDeliveryPricing.rpt&ExportFormat=HTML'
+where AMC.MENU_ID = 'RPT-D216';
+update AMC_APP_MENU_CONFIGURATION amc
+set AMC.LINK_CALLED = '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=214&ReportName=AgingReport.rpt&ExportFormat=HTML'
+where AMC.MENU_ID = 'RPT-D217';
+update AMC_APP_MENU_CONFIGURATION amc
+set AMC.LINK_CALLED = '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=215&ReportName=PriceExposureReport.rpt&ExportFormat=HTML'
+where AMC.MENU_ID = 'RPT-D218';
+update AMC_APP_MENU_CONFIGURATION amc
+set AMC.LINK_CALLED = '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=217&ReportName=DailyFXExposureReport.rpt&ExportFormat=HTML'
+where AMC.MENU_ID = 'RPT-D219';
+update AMC_APP_MENU_CONFIGURATION amc
+set AMC.LINK_CALLED = '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=218&ReportName=DailyDetailPriceExposure.rpt&ExportFormat=HTML'
+where AMC.MENU_ID = 'RPT-D220';
+
+Insert into RML_REPORT_MASTER_LIST(REPORT_ID, SECTION_ID, REPORT_FILE_NAME, REPORT_DISPLAY_NAME, FEATURE_ID,REPORT_DISPLAY_NAME_DE, REPORT_DISPLAY_NAME_ES, ACTION_METHOD, REPORT_TYPE, IS_ACTIVE)
+Values('220', '11', 'MonthlyFXExposureReport.rpt', 'Monthly FX Exposure', NULL, NULL, NULL, 'populateFilter', 'ONLINE', 'Y');
+
+Insert into AMC_APP_MENU_CONFIGURATION(MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED,ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+Values('RPT-D213', 'Monthly FX Exposure', 22, 4, '/mdm/CommonFilter.do?method=populateJRCReport&docType=ONLINE&ReportID=220&ReportName=MonthlyFXExposureReport.rpt&ExportFormat=HTML', NULL, 'RPT-D21', NULL, 'Reports', NULL);
+commit;
+
