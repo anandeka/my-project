@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_0191
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Gottipati Suresh
+ 
+Created on*        		:  21-Oct-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : EOD
+ 
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 79108
+Author: suresh.gottipati
+Date: 7:35:45 PM, Friday, October 21, 2011
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/011_EOD_DDL_Script.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
+
+
+
+
+
