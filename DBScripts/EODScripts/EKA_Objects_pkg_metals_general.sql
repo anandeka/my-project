@@ -54,7 +54,6 @@ CREATE OR REPLACE PACKAGE "PKG_METALS_GENERAL" is
                                          pd_trade_date       date)
     return date;
 end; 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -340,13 +339,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                       rm.qty_unit_id_denominator,
                       rm.qty_unit_id_numerator,
                       rm.ratio_name,
-                      pcm.internal_contract_ref_no,
                       pci.item_qty_unit_id,
                       aml.underlying_product_id,
                       pcpd.unit_of_measure,
-                      asm.asm_id
-                 from pcm_physical_contract_main  pcm,
-                      pcpd_pc_product_definition  pcpd,
+                      asm.asm_id,
+                      pci.pcpq_id,
+                      pci.pcdi_id
+                 from pcpd_pc_product_definition  pcpd,
                       pcpq_pc_product_quality     pcpq,
                       pqca_pq_chemical_attributes pqca,
                       ash_assay_header            ash,
@@ -356,19 +355,15 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                       aml_attribute_master_list   aml,
                       qum_quantity_unit_master    qum,
                       rm_ratio_master             rm
-                where pcm.internal_contract_ref_no =
-                      pcpd.internal_contract_ref_no
-                  and pcpd.pcpd_id = pcpq.pcpd_id
+                where pci.pcdi_id= pcdi.pcdi_id
+                  and pci.pcpq_id=pcpq.pcpq_id
+                  and pcpq.pcpd_id=pcpd.pcpd_id
                   and pcpq.assay_header_id = ash.ash_id
                   and pqca.asm_id = asm.asm_id
                   and asm.ash_id = ash.ash_id
                   and ash.assay_type = 'Contractual Assay'
                   and pci.internal_contract_item_ref_no =
                       pc_inter_cont_item_ref_no
-                  and pcm.internal_contract_ref_no =
-                      pcdi.internal_contract_ref_no
-                  and pcdi.pcdi_id = pci.pcdi_id
-                  and pcm.dbd_id = pc_dbd_id
                   and pcpd.dbd_id = pc_dbd_id
                   and pcpq.dbd_id = pc_dbd_id
                   and pci.dbd_id = pc_dbd_id
@@ -378,7 +373,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                      --   and pqca.element_id = pc_element_id
                   and nvl(pqca.is_elem_for_pricing, 'N') = 'N'
                   and rm.ratio_id = pqca.unit_of_measure
-                  and pcm.is_active = 'Y'
                   and pcdi.is_active = 'Y'
                   and pci.is_active = 'Y'
                   and aml.is_active = 'Y'
@@ -408,28 +402,25 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                    pcap_pc_attribute_penalty     pcap,
                                    pqd_penalty_quality_details   pqd,
                                    pad_penalty_attribute_details pad,
-                                   pcm_physical_contract_main    pcm,
-                                   pcdi_pc_delivery_item         pcdi,
-                                   pci_physical_contract_item    pci,
+                                   diph_di_penalty_header        diph,
                                    ppu_product_price_units       ppu,
                                    pum_price_unit_master         pum
                              where pcaph.pcaph_id = pcap.pcaph_id
                                and pcaph.pcaph_id = pqd.pcaph_id
                                and pcaph.pcaph_id = pad.pcaph_id
-                               and pcaph.internal_contract_ref_no =
-                                   pcm.internal_contract_ref_no
-                               and pcm.internal_contract_ref_no =
-                                   pcdi.internal_contract_ref_no
+                               and pcaph.pcaph_id=diph.pcaph_id
+                               and pqd.pcpq_id=cc.pcpq_id
+                               and diph.pcdi_id=cc.pcdi_id
                                and pcaph.dbd_id = pc_dbd_id
                                and pcap.dbd_id = pc_dbd_id
                                and pqd.dbd_id = pc_dbd_id
                                and pad.dbd_id = pc_dbd_id
-                               and pcm.dbd_id = pc_dbd_id
-                               and pci.dbd_id = pc_dbd_id
-                               and pcdi.dbd_id = pc_dbd_id
-                               and pcdi.pcdi_id = pci.pcdi_id
-                               and pci.internal_contract_item_ref_no =
-                                   pc_inter_cont_item_ref_no
+                               and diph.dbd_id=pc_dbd_id
+                               and pcaph.is_active='Y'
+                               and pcap.is_active='Y'
+                               and pqd.is_active='Y'
+                               and pad.is_active='Y'
+                               and diph.is_active='Y'
                                and pad.element_id = cc.element_id
                                and pcap.penalty_unit_id =
                                    ppu.internal_price_unit_id
@@ -603,13 +594,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                       rm.qty_unit_id_denominator,
                       rm.qty_unit_id_numerator,
                       rm.ratio_name,
-                      pcm.internal_contract_ref_no,
                       pci.item_qty_unit_id,
                       aml.underlying_product_id,
                       pcpd.unit_of_measure,
-                      asm.asm_id
-                 from pcm_physical_contract_main  pcm,
-                      pcpd_pc_product_definition  pcpd,
+                      asm.asm_id,
+                      pci.pcpq_id,
+                      pci.pcdi_id
+                 from pcpd_pc_product_definition  pcpd,
                       pcpq_pc_product_quality     pcpq,
                       pqca_pq_chemical_attributes pqca,
                       ash_assay_header            ash,
@@ -619,13 +610,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                       aml_attribute_master_list   aml,
                       qum_quantity_unit_master    qum,
                       rm_ratio_master             rm
-                where pcm.internal_contract_ref_no =
-                      pcpd.internal_contract_ref_no
-                  and pcpd.pcpd_id = pcpq.pcpd_id
+                where pci.pcdi_id =pcdi.pcdi_id
+                  and pci.pcpq_id=pcpq.pcpq_id 
+                  and pcpq.pcpd_id=pcpd.pcpd_id 
                   and pcpq.assay_header_id = ash.ash_id
                   and pqca.asm_id = asm.asm_id
                   and asm.ash_id = ash.ash_id
-                  and pcm.dbd_id = pc_dbd_id
                   and pcpd.dbd_id = pc_dbd_id
                   and pcpq.dbd_id = pc_dbd_id
                   and pci.dbd_id = pc_dbd_id
@@ -633,14 +623,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                   and ash.assay_type = 'Contractual Assay'
                   and pci.internal_contract_item_ref_no =
                       pc_inter_cont_item_ref_no
-                  and pcm.internal_contract_ref_no =
-                      pcdi.internal_contract_ref_no
-                  and pcdi.pcdi_id = pci.pcdi_id
                   and aml.attribute_id = pqca.element_id
                   and qum.qty_unit_id = pci.item_qty_unit_id
                   and pqca.element_id = pc_element_id
                   and rm.ratio_id = pqca.unit_of_measure
-                  and pcm.is_active = 'Y'
                   and pcdi.is_active = 'Y'
                   and pci.is_active = 'Y'
                   and pqca.is_active = 'Y'
@@ -684,24 +670,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                  from pcrh_pc_refining_header       pcrh,
                                       red_refining_element_details  red,
                                       pcerc_pc_elem_refining_charge pcerc,
-                                      pci_physical_contract_item    pci,
-                                      pcdi_pc_delivery_item         pcdi,
+                                      rqd_refining_quality_details  rqd,
+                                      dirh_di_refining_header       dirh,
                                       ppu_product_price_units       ppu,
                                       pum_price_unit_master         pum
                                 where pcrh.pcrh_id = red.pcrh_id
                                   and pcrh.pcrh_id = pcerc.pcrh_id
+                                  and pcrh.pcrh_id=rqd.pcrh_id
+                                  and pcrh.pcrh_id=dirh.pcrh_id
+                                  and rqd.pcpq_id=cc.pcpq_id
+                                  and dirh.pcdi_id=cc.pcdi_id
                                   and pcrh.dbd_id = pc_dbd_id
                                   and red.dbd_id = pc_dbd_id
                                   and pcerc.dbd_id = pc_dbd_id
-                                  and pci.dbd_id = pc_dbd_id
-                                  and pcdi.dbd_id = pc_dbd_id
-                                  and pcrh.internal_contract_ref_no =
-                                      cc.internal_contract_ref_no
-                                  and pcrh.internal_contract_ref_no =
-                                      pcdi.internal_contract_ref_no
-                                  and pcdi.pcdi_id = pci.pcdi_id
-                                  and pci.internal_contract_item_ref_no =
-                                      pc_inter_cont_item_ref_no
+                                  and rqd.dbd_id=pc_dbd_id   
+                                  and dirh.dbd_id=pc_dbd_id                              
                                   and red.element_id = cc.element_id
                                   and ppu.internal_price_unit_id =
                                       pcerc.refining_charge_unit_id
@@ -709,8 +692,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                   and pcerc.is_active = 'Y'
                                   and pcrh.is_active = 'Y'
                                   and red.is_active = 'Y'
-                                  and pcdi.is_active = 'Y'
-                                  and pci.is_active = 'Y'
+                                  and rqd.is_active='Y'
+                                  and dirh.is_active='Y'
                                 order by range_min_value)
         loop
           vc_rc_weight_unit_id := cur_ref_charge.weight_unit_id;
@@ -943,10 +926,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                       rm.qty_unit_id_denominator,
                       rm.ratio_name,
                       aml.underlying_product_id,
-                      pcm.internal_contract_ref_no,
-                      pcpd.unit_of_measure
-                 from pcm_physical_contract_main  pcm,
-                      pci_physical_contract_item  pci,
+                      pcpd.unit_of_measure,
+                      pci.pcpq_id,
+                      pci.pcdi_id
+                 from pci_physical_contract_item  pci,
                       pcdi_pc_delivery_item       pcdi,
                       pcpd_pc_product_definition  pcpd,
                       pcpq_pc_product_quality     pcpq,
@@ -956,10 +939,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                       aml_attribute_master_list   aml,
                       qum_quantity_unit_master    qum,
                       rm_ratio_master             rm
-                where pcm.internal_contract_ref_no =
-                      pcpd.internal_contract_ref_no
-                  and pcpd.pcpd_id = pcpq.pcpd_id
-                  and pcm.dbd_id = pc_dbd_id
+                where pci.pcdi_id =pcdi.pcdi_id
+                  and pci.pcpq_id=pcpq.pcpq_id
+                  and pcpq.pcpd_id=pcpd.pcpd_id
                   and pci.dbd_id = pc_dbd_id
                   and pcdi.dbd_id = pc_dbd_id
                   and pcpd.dbd_id = pc_dbd_id
@@ -970,9 +952,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                   and ash.assay_type = 'Contractual Assay'
                   and pci.internal_contract_item_ref_no =
                       pc_inter_cont_item_ref_no
-                  and pcm.internal_contract_ref_no =
-                      pcdi.internal_contract_ref_no
-                  and pcdi.pcdi_id = pci.pcdi_id
                   and aml.attribute_id = pqca.element_id
                   and qum.qty_unit_id = pci.item_qty_unit_id
                   and pqca.element_id = pc_element_id
@@ -997,24 +976,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                   from pcth_pc_treatment_header       pcth,
                                        ted_treatment_element_details  red,
                                        pcetc_pc_elem_treatment_charge pcetc,
-                                       pci_physical_contract_item     pci,
-                                       pcdi_pc_delivery_item          pcdi,
+                                       tqd_treatment_quality_details  tqd,
+                                       dith_di_treatment_header       dith,
                                        ppu_product_price_units        ppu,
                                        pum_price_unit_master          pum
                                  where pcth.pcth_id = red.pcth_id
-                                   and pcth.pcth_id = pcetc.pcth_id
-                                   and pcth.internal_contract_ref_no =
-                                       cc.internal_contract_ref_no
-                                   and pcth.internal_contract_ref_no =
-                                       pcdi.internal_contract_ref_no
-                                   and pcdi.pcdi_id = pci.pcdi_id
-                                   and pci.internal_contract_item_ref_no =
-                                       pc_inter_cont_item_ref_no
+                                   and pcth.pcth_id = pcetc.pcth_id 
+                                   and pcth.pcth_id=tqd.pcth_id
+                                   and pcth.pcth_id=dith.pcth_id
+                                   and tqd.pcpq_id=cc.pcpq_id
+                                   and dith.pcdi_id=cc.pcdi_id
                                    and pcth.dbd_id = pc_dbd_id
-                                   and red.dbd_id = pc_dbd_id
-                                   and pcdi.dbd_id = pc_dbd_id
-                                   and pci.dbd_id = pc_dbd_id
+                                   and red.dbd_id = pc_dbd_id                                  
                                    and pcetc.dbd_id = pc_dbd_id
+                                   and tqd.dbd_id=pc_dbd_id
+                                   and dith.dbd_id=pc_dbd_id
                                    and red.element_id = cc.element_id
                                    and pcetc.treatment_charge_unit_id =
                                        ppu.internal_price_unit_id
@@ -1022,8 +998,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                    and pcetc.is_active = 'Y'
                                    and pcth.is_active = 'Y'
                                    and red.is_active = 'Y'
-                                   and pcdi.is_active = 'Y'
-                                   and pci.is_active = 'Y')
+                                   and tqd.is_active='Y'
+                                   and dith.is_active='Y')
         loop
           vc_cur_id            := cur_tret_charge.cur_id;
           vc_price_unit_id     := cur_tret_charge.price_unit_id;

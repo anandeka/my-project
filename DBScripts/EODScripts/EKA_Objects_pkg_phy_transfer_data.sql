@@ -3286,7 +3286,87 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit; 
+     insert into dithul_di_treatment_header_ul(
+  dithul_id,
+  internal_action_ref_no,
+  entry_type,
+  dith_id,
+  pcdi_id,
+  pcth_id,
+  version,
+  is_active,
+  dbd_id) 
+  select ul.dithul_id,
+         ul.internal_action_ref_no,
+         ul.entry_type,
+         ul.dith_id,
+         ul.pcdi_id,
+         ul.pcth_id,
+         ul.version,
+         ul.is_active,
+         pc_dbd_id
+         from dithul_di_treatment_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb            axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;    
+    
+ insert into dirhul_di_refining_header_ul(
+  dirhul_id,
+  internal_action_ref_no,
+  entry_type,
+  dirh_id,
+  pcdi_id,
+  pcrh_id,
+  version,
+  is_active,
+  dbd_id) 
+  select ul.dirhul_id,
+         ul.internal_action_ref_no,
+         ul.entry_type,
+         ul.dirh_id,
+         ul.pcdi_id,
+         ul.pcrh_id,
+         ul.version,
+         ul.is_active,
+         pc_dbd_id
+         from dirhul_di_refining_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb            axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
+         
+insert into diphul_di_penalty_header_ul
+  (diphul_id,
+   internal_action_ref_no,
+   entry_type,
+   diph_id,
+   pcdi_id,
+   pcaph_id,
+   version,
+   is_active,
+   dbd_id)
+  select ul.diphul_id,
+         ul.internal_action_ref_no,
+         ul.entry_type,
+         ul.diph_id,
+         ul.pcdi_id,
+         ul.pcaph_id,
+         ul.version,
+         ul.is_active,
+         pc_dbd_id
+    from diphul_di_penalty_header_ul@eka_appdb ul,
+         axs_action_summary@eka_appdb          axs
+   where ul.internal_action_ref_no = axs.internal_action_ref_no
+     and axs.corporate_id = pc_corporate_id
+     and axs.created_date > pt_previous_pull_date
+     and axs.created_date <= pt_current_pull_date;
+    commit;   
   exception
     when others then
       vobj_error_log.extend;

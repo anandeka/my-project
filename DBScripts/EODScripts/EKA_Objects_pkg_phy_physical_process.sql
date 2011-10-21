@@ -6130,6 +6130,23 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = vc_dbd_id;
+       
+     update dith_di_treatment_header
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;
+     
+     update dirh_di_refining_header
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;
+     
+     update diph_di_penalty_header
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;  
+      
+    
   
   exception
     when others then
@@ -6694,9 +6711,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    pd_trade_date,
                    'sp_calc_m2m',
                    'before 5');
-      vc_err_msg := 'line 3068';
-      --update valuation_location, reference_location and valuation_incoterm
-      update md_m2m_daily md
+      vc_err_msg := 'line 3068';    
+      
+      /*update md_m2m_daily md
          set (valuation_location, reference_location, valuation_incoterm, valuation_location_country, reference_location_country) = (select cim_val_loc.city_name,
                                                                                                                                             cim_ref_loc.city_name,
                                                                                                                                             itm.incoterm,
@@ -6721,7 +6738,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                                                                                             itm.incoterm_id)
        where md.corporate_id = pc_corporate_id
          and md.product_type = 'BASEMETAL'
-         and md.process_id = pc_process_id;
+         and md.process_id = pc_process_id; */
       vc_err_msg := 'line 3090';
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
@@ -6870,7 +6887,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              and tmpc.valuation_basis = c1.valuation_basis
              and tmpc.reference_incoterm = c1.reference_incoterm
              and tmpc.refernce_location = c1.refernce_location
-             and tmpc.instrument_id = c1.instrument_id
+             --and tmpc.instrument_id = c1.instrument_id
              and tmpc.shipment_date = c1.shipment_date
              and tmpc.shipment_month || '-' || tmpc.shipment_year =
                  c1.shipment_month_year
@@ -6879,6 +6896,49 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              and tmpc.product_type = 'BASEMETAL';
         end if;
       end loop;
+      
+      --update valuation_location, reference_location and valuation_incoterm
+      
+      for cc in (select tmpc.internal_m2m_id,
+                        tmpc.product_id,
+                        cim_val_loc.city_name valuation_location,
+                        cim_ref_loc.city_name reference_location,
+                        itm.incoterm valuation_incoterm,
+                        cim_val_loc_v.country_name valuation_location_country,
+                        cim_ref_loc_r.country_name reference_location_country
+                    from tmpc_temp_m2m_pre_check  tmpc,
+                         cim_citymaster           cim_val_loc,
+                         cim_citymaster           cim_ref_loc,
+                         cym_countrymaster        cim_val_loc_v,
+                         cym_countrymaster        cim_ref_loc_r,
+                         itm_incoterm_master      itm                         
+                   where tmpc.valuation_city_id=cim_val_loc.city_id
+                     and tmpc.refernce_location=cim_ref_loc.city_id
+                     and cim_val_loc_v.country_id =cim_val_loc.country_id
+                     and cim_ref_loc_r.country_id =cim_ref_loc.country_id 
+                     and tmpc.valuation_incoterm_id=itm.incoterm_id
+                     and tmpc.corporate_id = pc_corporate_id
+                     and tmpc.product_type = 'BASEMETAL'
+                     group by 
+                     cim_val_loc.city_name,
+                     cim_ref_loc.city_name,
+                     itm.incoterm,
+                     cim_val_loc_v.country_name,
+                     cim_ref_loc_r.country_name,
+                     tmpc.product_id,
+                     tmpc.internal_m2m_id)
+      loop      
+      update md_m2m_daily md
+         set  md.valuation_location=cc.valuation_location,
+              md.reference_location=cc.reference_location,
+              md.valuation_incoterm=cc.valuation_incoterm,
+              md.valuation_location_country=cc.valuation_location_country,
+              md.reference_location_country=cc.reference_location_country
+         where md.md_id=cc.internal_m2m_id
+           and md.product_id=cc.product_id
+           and md.process_id=pc_process_id;      
+      end loop;
+      
     end;
     --  dbms_output.put_line('after allll');
     sp_write_log(pc_corporate_id, pd_trade_date, 'sp_calc_m2m', 'Done');
@@ -7532,8 +7592,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    'sp_calc_m2m',
                    'before 5');
       vc_err_msg := 'line 3068';
-      --update valuation_location, reference_location and valuation_incoterm
-      update md_m2m_daily md
+     
+      /*update md_m2m_daily md
          set (valuation_location, reference_location, valuation_incoterm, valuation_location_country, reference_location_country) = (select cim_val_loc.city_name,
                                                                                                                                             cim_ref_loc.city_name,
                                                                                                                                             itm.incoterm,
@@ -7557,7 +7617,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                                                                                         and md.valuation_incoterm_id =
                                                                                                                                             itm.incoterm_id)
        where md.corporate_id = pc_corporate_id
-         and md.process_id = pc_process_id;
+         and md.process_id = pc_process_id;*/
       vc_err_msg := 'line 3090';
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
@@ -7723,6 +7783,52 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              and tmpc.product_type = 'CONCENTRATES';
         end if;
       end loop;
+    
+     --update valuation_location, reference_location and valuation_incoterm
+      
+      for cc in (select tmpc.internal_m2m_id,
+                        tmpc.product_id,
+                        cim_val_loc.city_name valuation_location,
+                        cim_ref_loc.city_name reference_location,
+                        itm.incoterm valuation_incoterm,
+                        cim_val_loc_v.country_name valuation_location_country,
+                        cim_ref_loc_r.country_name reference_location_country
+                    from tmpc_temp_m2m_pre_check  tmpc,
+                         cim_citymaster           cim_val_loc,
+                         cim_citymaster           cim_ref_loc,
+                         cym_countrymaster        cim_val_loc_v,
+                         cym_countrymaster        cim_ref_loc_r,
+                         itm_incoterm_master      itm                         
+                   where tmpc.valuation_city_id=cim_val_loc.city_id
+                     and tmpc.refernce_location=cim_ref_loc.city_id
+                     and cim_val_loc_v.country_id =cim_val_loc.country_id
+                     and cim_ref_loc_r.country_id =cim_ref_loc.country_id 
+                     and tmpc.valuation_incoterm_id=itm.incoterm_id
+                     and tmpc.corporate_id = pc_corporate_id
+                     and tmpc.product_type = 'CONCENTRATES'
+                     group by 
+                     cim_val_loc.city_name,
+                     cim_ref_loc.city_name,
+                     itm.incoterm,
+                     cim_val_loc_v.country_name,
+                     cim_ref_loc_r.country_name,
+                     tmpc.product_id,
+                     tmpc.internal_m2m_id)
+      loop
+      
+      update md_m2m_daily md
+         set valuation_location=cc.valuation_location,
+              reference_location=cc.reference_location,
+              valuation_incoterm=cc.valuation_incoterm,
+              valuation_location_country=cc.valuation_location_country,
+              reference_location_country=cc.reference_location_country
+         where md.md_id=cc.internal_m2m_id
+           and md.product_id=cc.product_id
+           and md.process_id=pc_process_id;
+       commit;
+      end loop;  
+     
+    
     end;
     --  dbms_output.put_line('after allll');
     sp_write_log(pc_corporate_id, pd_trade_date, 'sp_calc_m2m', 'Done');
@@ -9769,14 +9875,25 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
        and poue.process_id = pc_process_id;
     commit;
     --- update unrealized pnl
+    
     update poue_phy_open_unreal_element poue
-       set poue.unrealized_pnl_in_base_cur = (poue.expected_cog_net_sale_value -
+       set poue.unrealized_pnl_in_base_cur = (case when poue.contract_type='P' then
+                                              (poue.net_m2m_amt_in_base_cur -
+                                             poue.net_m2m_treatment_charge -
+                                             poue.net_m2m_refining_charge -
+                                             nvl(poue.m2m_penalty_charge, 0) +
+                                             poue.m2m_loc_diff_premium)-
+                                             (poue.expected_cog_net_sale_value -
+                                             nvl(poue.penalty_charge, 0))                                           
+                                           else
+                                           (poue.expected_cog_net_sale_value -
                                              nvl(poue.penalty_charge, 0)) -
                                              (poue.net_m2m_amt_in_base_cur -
                                              poue.net_m2m_treatment_charge -
-                                             poue.net_contract_refining_charge -
+                                             poue.net_m2m_refining_charge -
                                              nvl(poue.m2m_penalty_charge, 0) +
                                              poue.m2m_loc_diff_premium)
+                                           end)
      where poue.corporate_id = pc_corporate_id
        and poue.process_id = pc_process_id;
     commit;
@@ -12694,6 +12811,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
     delete from rqdul_refining_quality_dtl_ul where dbd_id = vc_dbd_id;
     delete from redul_refining_element_dtl_ul where dbd_id = vc_dbd_id;
     delete from pcercul_elem_refing_charge_ul where dbd_id = vc_dbd_id;
+    delete from dithul_di_treatment_header_ul where dbd_id = vc_dbd_id;
+    delete from dirhul_di_refining_header_ul where dbd_id = vc_dbd_id;
+    delete from diphul_di_penalty_header_ul where dbd_id = vc_dbd_id;
   
     delete from agd_alloc_group_detail where dbd_id = vc_dbd_id;
     delete from agh_alloc_group_header where dbd_id = vc_dbd_id;
@@ -12766,6 +12886,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
     delete from psue_element_details where process_id = pc_process_id;
     delete from psue_phy_stock_unrealized_ele
      where process_id = pc_process_id;
+    delete from dith_di_treatment_header where dbd_id = vc_dbd_id;   
+    delete from dirh_di_refining_header where dbd_id = vc_dbd_id;
+    delete from diph_di_penalty_header where dbd_id = vc_dbd_id; 
   
   exception
     when others then

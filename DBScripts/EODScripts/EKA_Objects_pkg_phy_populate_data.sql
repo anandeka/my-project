@@ -170,6 +170,15 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_POPULATE_DATA" is
   procedure sp_phy_create_pcerc_data(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_user_id      varchar2);
+  procedure sp_phy_create_dith_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2); 
+  procedure sp_phy_create_dirh_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);
+  procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);                                      
                                      
 end pkg_phy_populate_data; 
 /
@@ -886,7 +895,51 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcerc_data');
     sp_phy_create_pcerc_data(pc_corporate_id, pd_trade_date, pc_user_id);    
+    commit; 
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_dith_data');
+    sp_phy_create_dith_data(pc_corporate_id, pd_trade_date, pc_user_id);    
     commit;    
+ 
+    
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_dirh_data');
+    sp_phy_create_dirh_data(pc_corporate_id, pd_trade_date, pc_user_id);    
+    commit;    
+    
+    
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_diph_data');
+    sp_phy_create_diph_data(pc_corporate_id, pd_trade_date, pc_user_id);    
+    commit;    
+       
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -11466,6 +11519,277 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
     
+  end;
+procedure sp_phy_create_dith_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2)
+/******************************************************************************************************************************************
+    procedure name                                           : sp_create_dith_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+  insert into dith_di_treatment_header
+  (dith_id,
+  pcdi_id,
+  pcth_id,
+  version,
+  is_active,
+  dbd_id) 
+  select decode(dith_id, 'Empty_String', null, dith_id),
+             decode(pcdi_id, 'Empty_String', null, pcdi_id),
+             decode(pcth_id, 'Empty_String', null, pcth_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+             from (select dithul.dith_id,
+                     substr(max(case
+                                  when dithul.pcdi_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dithul.pcdi_id
+                                end),
+                            24) pcdi_id,
+                     substr(max(case
+                                  when dithul.pcth_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dithul.pcth_id
+                                end),
+                            24) pcth_id,
+                     substr(max(case
+                                  when dithul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dithul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when dithul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dithul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id              
+                from dithul_di_treatment_header_ul dithul,
+                     axs_action_summary            axs,
+                     dbd_database_dump             dbd,
+                     dbd_database_dump             dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and dithul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and dithul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by dithul.dith_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_dith_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+
+  end;
+procedure sp_phy_create_dirh_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2)
+/******************************************************************************************************************************************
+    procedure name                                           : sp_create_dirh_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+  insert into dirh_di_refining_header
+  (dirh_id,
+  pcdi_id,
+  pcrh_id,
+  version,
+  is_active,
+  dbd_id) 
+  select decode(dirh_id, 'Empty_String', null, dirh_id),
+             decode(pcdi_id, 'Empty_String', null, pcdi_id),
+             decode(pcrh_id, 'Empty_String', null, pcrh_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+             from (select dirhul.dirh_id,
+                     substr(max(case
+                                  when dirhul.pcdi_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dirhul.pcdi_id
+                                end),
+                            24) pcdi_id,
+                     substr(max(case
+                                  when dirhul.pcrh_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dirhul.pcrh_id
+                                end),
+                            24) pcrh_id,
+                     substr(max(case
+                                  when dirhul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dirhul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when dirhul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dirhul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id              
+                from dirhul_di_refining_header_ul dirhul,
+                     axs_action_summary            axs,
+                     dbd_database_dump             dbd,
+                     dbd_database_dump             dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and dirhul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and dirhul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by dirhul.dirh_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_dirh_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+
+  end;
+  
+procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2)
+/******************************************************************************************************************************************
+    procedure name                                           : sp_create_diph_data
+    author                                                   : 
+    created date                                             : 12TH JAN 2011
+    purpose                                                  : populate pcm table data for day end processing
+    parameters
+                                                             : pc_corporate_id - corporate id
+                                                             : pd_trade_date    - day end date
+    modified date  :
+    modify description :
+******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+  insert into diph_di_penalty_header
+  (diph_id,
+  pcdi_id,
+  pcaph_id,
+  version,
+  is_active,
+  dbd_id) 
+  select decode(diph_id, 'Empty_String', null, diph_id),
+             decode(pcdi_id, 'Empty_String', null, pcdi_id),
+             decode(pcaph_id, 'Empty_String', null, pcaph_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+             from (select diphul.diph_id,
+                     substr(max(case
+                                  when diphul.pcdi_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   diphul.pcdi_id
+                                end),
+                            24) pcdi_id,
+                     substr(max(case
+                                  when diphul.pcaph_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   diphul.pcaph_id
+                                end),
+                            24) pcaph_id,
+                     substr(max(case
+                                  when diphul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   diphul.version
+                                end),
+                            24) version,
+                     substr(max(case
+                                  when diphul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   diphul.is_active
+                                end),
+                            24) is_active,
+                     gvc_dbd_id              
+                from diphul_di_penalty_header_ul diphul,
+                     axs_action_summary            axs,
+                     dbd_database_dump             dbd,
+                     dbd_database_dump             dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and diphul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and diphul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by diphul.diph_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_diph_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+
   end;
 end pkg_phy_populate_data; 
 /
