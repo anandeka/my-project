@@ -1,6 +1,6 @@
 DROP VIEW V_PCI;
 
-/* Formatted on 2011/08/24 11:12 (Formatter Plus v4.8.8) */
+/* Formatted on 2011/10/21 14:48 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE FORCE VIEW v_pci (internal_contract_item_ref_no,
                                     internal_contract_ref_no,
                                     contract_ref_no,
@@ -98,7 +98,7 @@ CREATE OR REPLACE FORCE VIEW v_pci (internal_contract_item_ref_no,
                                     is_tolling_contract,
                                     middle_no,
                                     del_distribution_item_no,
-                                    del_item_price_call_off_status
+                                    price_option_call_off_status
                                    )
 AS
    SELECT pci.internal_contract_item_ref_no AS internal_contract_item_ref_no,
@@ -111,7 +111,7 @@ AS
            || ' '
            || pci.del_distribution_item_no
           ) contract_item_ref_no,
-           pcpd.strategy_id,
+          pcpd.strategy_id,
           CAST (pcm.purchase_sales AS VARCHAR2 (1)) AS contract_type,
           pcm.partnership_type partnership_type,
           pcm.corporate_id AS corporate_id,
@@ -185,8 +185,34 @@ AS
           ) AS allocation_status,
           (pcm.contract_ref_no || '-' || pcdi.delivery_item_no
           ) AS delivery_item_ref_no,
-          (pci.delivery_from_month || '-' || pci.delivery_from_year
-          ) AS quota_month,
+        (CASE
+           WHEN pci.delivery_period_type = 'Month'
+              THEN CASE
+                     WHEN pci.delivery_from_month = pci.delivery_to_month
+                     AND pci.delivery_from_year = pci.delivery_to_year
+                        THEN    pci.delivery_from_month
+                             || ' '
+                             || pci.delivery_from_year
+                     ELSE    pci.delivery_from_month
+                          || ' '
+                          || pci.delivery_from_year
+                          || ' To '
+                          || pci.delivery_to_month
+                          || ' '
+                          || pci.delivery_to_year
+                  END
+           WHEN pci.delivery_period_type = 'Date'
+              THEN CASE
+                     WHEN TO_CHAR (pci.delivery_from_date, 'dd-Mon-YYYY') =
+                                 TO_CHAR (pci.delivery_to_date, 'dd-Mon-YYYY')
+                        THEN TO_CHAR (pci.delivery_from_date, 'dd-Mon-YYYY')
+                     ELSE    TO_CHAR (pci.delivery_from_date, 'dd-Mon-YYYY')
+                          || ' To '
+                          || TO_CHAR (pci.delivery_to_date, 'dd-Mon-YYYY')
+                  END
+           ELSE '-'
+        END
+       ) quota_month,
           (NVL (cim.city_name, '') || cym.country_name) AS LOCATION,
           (itm.incoterm || ', ' || cim.city_name || ', ' || cym.country_name
           ) AS incoterm_location,
