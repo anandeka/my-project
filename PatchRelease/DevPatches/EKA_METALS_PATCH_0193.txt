@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0193
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sivachalabathi
+ 
+Created on*        		:  21-Oct-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Reports
+ 
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction (EKA_REports WAR)
+==================================================================
+
+Revision: 79122
+Author: sivachalabathi.s
+Date: 9:19:11 PM, Friday, October 21, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Code/Reports/MonthlyFXExposureReport.rpt

@@ -1,0 +1,94 @@
+Patch No*          		:  EKA_METALS_PATCH_0192
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sivachalabathi
+ 
+Created on*        		:  21-Oct-2011
+
+Bug / Enhancement* 		:  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Reports
+ 
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+===========
+Revision: 79120
+Author: sivachalabathi.s
+Date: 9:16:10 PM, Friday, October 21, 2011
+Message:
+Reports filter changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_92_DML_REF_AMC_RML_Scripts.txt
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_93_DML_REF_GFF_AMC_EXCELFORMAT_RPTS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_19_DML_CORP_CDC_REPORTS_RFC_RPC.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_20_DML_RFP_RPC_RFC_Scripts.txt
+
+====================
+
+Revision: 79121
+Author: sivachalabathi.s
+Date: 9:18:05 PM, Friday, October 21, 2011
+Message:
+Reports Filter changes,excel formats
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AgingReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AgingReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CurrencyRealizedPnLReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyClearerStatementReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyClearerSummaryReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativeReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativesRealizedPnLReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativesUnRealizedPnLReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyInventoryUnrealizedPhysicalPnLConc_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyInventoryUnrealizedPhysicalPnL_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalConc_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnL_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FXPositionandPnLReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FutureOptionSummaryPositionReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MarginReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFXExposureReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceExposureReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProjectedPriceExposure_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UpcomingOptionExpiryReport_Excel.rpt
+
+
+
+
+
+
+
