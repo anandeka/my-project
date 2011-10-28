@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0197
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Elaiyaraja Nallathambi
+ 
+Created on*        		:  28-Oct-2011
+
+Bug / Enhancement* 		:   Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Reports and Documents
+ 
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 79366
+Author: elaiyaraja.nallathambi
+Date: 7:23:57 PM, Friday, October 28, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AirWayAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ProjectedPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighNote_Purchase.rpt
+
+
+
+
+
+
+
+
