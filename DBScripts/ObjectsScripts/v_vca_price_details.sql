@@ -1,4 +1,6 @@
-CREATE OR REPLACE FORCE VIEW v_vca_price_details (vcs_id,price_details)
+DROP VIEW v_vca_price_details;
+
+CREATE OR REPLACE FORCE VIEW v_vca_price_details (vcs_id, price_details)
 AS
    SELECT   vca.vcs_id,
             stragg
@@ -18,4 +20,5 @@ AS
         AND ppu.price_unit_id = pum.price_unit_id
         AND ppu.is_active = 'Y'
         AND ppu.is_deleted = 'N'
+        AND vca.is_active = 'Y'
    GROUP BY vca.vcs_id;

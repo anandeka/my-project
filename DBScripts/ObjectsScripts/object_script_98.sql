@@ -1,0 +1,1 @@
+ALTER TABLE vca_valuation_curve_attribute ADD  is_active CHAR(1);
