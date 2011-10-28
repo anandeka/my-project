@@ -1,0 +1,66 @@
+Patch No*          		:  EKA_METALS_PATCH_0195
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Mohit Kumar gupta
+ 
+Created on*        		: 28-Oct-2011
+
+Bug / Enhancement* 		: Bug
+ 
+Bug ID*            		:  57925
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : O/P Document
+ 
+Sub-Module  			 : N/A
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Trasaction
+==================================================================
+Revision: 79327
+Author: mohitkumar.gupta
+Date: 3:36:07 PM, Friday, October 28, 2011
+Message:
+For bug 57925
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_95.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
