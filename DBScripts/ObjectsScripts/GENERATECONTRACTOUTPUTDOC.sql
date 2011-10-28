@@ -41,7 +41,7 @@ From PCDI_PC_DELIVERY_ITEM PCDI, PCM_PHYSICAL_CONTRACT_MAIN PCM
 Where PCDI.INTERNAL_CONTRACT_REF_NO = PCM.INTERNAL_CONTRACT_REF_NO AND
 PCM.INTERNAL_CONTRACT_REF_NO =p_contractNo
 and PCDI.IS_ACTIVE = 'Y'
-order by pcdi.delivery_item_no;
+order by to_number(pcdi.delivery_item_no);
 
 BEGIN
 

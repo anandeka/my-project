@@ -44,7 +44,7 @@ IS
          WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
            AND pcm.internal_contract_ref_no = p_contractno
            AND PCDI.IS_ACTIVE = 'Y'
-      ORDER BY pcdi.delivery_item_no;
+      ORDER BY to_number(pcdi.delivery_item_no);
 BEGIN
    SELECT seq_amend_doc.NEXTVAL
      INTO docid
