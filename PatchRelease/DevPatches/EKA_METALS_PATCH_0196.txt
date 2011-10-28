@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0196
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sriveena
+ 
+Created on*        		:  28-Oct-2011
+
+Bug / Enhancement* 		:   Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physical
+ 
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 79344
+Author: sriveenam
+Date: 5:07:37 PM, Friday, October 28, 2011
+Message:
+valuation curve modification
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_98.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_vca_price_details.sql
+
+
+
+
+
