@@ -46,6 +46,16 @@ valuation curve modification
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_98.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_vca_price_details.sql
 
+Revision: 79355
+Author: sriveenam
+Date: 6:32:24 PM, Friday, October 28, 2011
+Message:
+bug fix 58880 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PREPAREAMENDCONTRACTOUTPUTDOC.sql
+
+
 
 
 
