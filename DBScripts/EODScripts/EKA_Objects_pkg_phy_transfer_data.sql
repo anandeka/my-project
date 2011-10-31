@@ -523,8 +523,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('ASM_ASSAY_SUBLOT_MAPPING', 'c');
       dbms_mview.refresh('PQCA_PQ_CHEMICAL_ATTRIBUTES', 'c');
       dbms_mview.refresh('PQPA_PQ_PHYSICAL_ATTRIBUTES', 'c');
-      dbms_mview.refresh('DIPQ_DELIVERY_ITEM_PAYABLE_QTY', 'c');
-      dbms_mview.refresh('CIPQ_CONTRACT_ITEM_PAYABLE_QTY', 'c');
+      --dbms_mview.refresh('DIPQ_DELIVERY_ITEM_PAYABLE_QTY', 'c');
+      --dbms_mview.refresh('CIPQ_CONTRACT_ITEM_PAYABLE_QTY', 'c');
       dbms_mview.refresh('RM_RATIO_MASTER', 'c');
       dbms_mview.refresh('AML_ATTRIBUTE_MASTER_LIST', 'c');
       dbms_mview.refresh('PPM_PRODUCT_PROPERTIES_MAPPING', 'c');
@@ -532,7 +532,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('MDCD_M2M_DED_CHARGE_DETAILS', 'c');
       dbms_mview.refresh('MDCBM_DED_CHARGES_BY_MONTH', 'c');
       dbms_mview.refresh('MNM_MONTH_NAME_MASTER', 'c');
-      dbms_mview.refresh('spq_stock_payable_qty', 'c');
+      --dbms_mview.refresh('spq_stock_payable_qty', 'c');
       dbms_mview.refresh('mv_qat_quality_valuation', 'c');
       dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'c');
     end if;
@@ -3366,7 +3366,108 @@ insert into diphul_di_penalty_header_ul
      and axs.corporate_id = pc_corporate_id
      and axs.created_date > pt_previous_pull_date
      and axs.created_date <= pt_current_pull_date;
-    commit;   
+    commit; 
+   
+   insert into cipql_ctrt_itm_payable_qty_log
+  (cipq_id,
+  internal_action_ref_no,
+  entry_type,
+  internal_contract_item_ref_no,
+  element_id,
+  payable_qty_delta,
+  qty_unit_id,
+  version,
+  is_active,
+  dbd_id)
+  select ul.cipq_id,
+         ul.internal_action_ref_no,
+         ul.entry_type,
+         ul.internal_contract_item_ref_no,
+         ul.element_id,
+         ul.payable_qty_delta,
+         ul.qty_unit_id,
+         ul.version,
+         ul.is_active,
+         pc_dbd_id
+        from cipql_ctrt_itm_payable_qty_log@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
+    
+
+insert into dipql_del_itm_payble_qty_log
+  (dipq_id,
+  internal_action_ref_no,
+  entry_type,
+  pcdi_id,
+  element_id,
+  payable_qty_delta,
+  qty_unit_id,
+  price_option_call_off_status,
+  version,
+  is_active,
+  is_price_optionality_present,
+  dbd_id)
+  select ul.dipq_id,
+         ul.internal_action_ref_no,
+         ul.entry_type,
+         ul.pcdi_id,
+         ul.element_id,
+         ul.payable_qty_delta,
+         ul.qty_unit_id,
+         ul.price_option_call_off_status,
+         ul.version,
+         ul.is_active,
+         ul.is_price_optionality_present,
+         pc_dbd_id
+        from dipql_del_itm_payble_qty_log@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
+    
+insert into spql_stock_payable_qty_log
+  (spq_id,
+  internal_action_ref_no,
+  entry_type,
+  internal_gmr_ref_no,
+  action_no,
+  stock_type,
+  internal_grd_ref_no,
+  internal_dgrd_ref_no,
+  element_id,
+  payable_qty_delta,
+  qty_unit_id,
+  version,
+  is_active,
+  dbd_id)
+  select ul.spq_id,
+         ul.internal_action_ref_no,
+         ul.entry_type,
+         ul.internal_gmr_ref_no,
+         ul.action_no,
+         ul.stock_type,
+         ul.internal_grd_ref_no,
+         ul.internal_dgrd_ref_no,
+         ul.element_id,
+         ul.payable_qty_delta,
+         ul.qty_unit_id,
+         ul.version,
+         ul.is_active,
+         pc_dbd_id
+        from spql_stock_payable_qty_log@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;              
+     
   exception
     when others then
       vobj_error_log.extend;

@@ -1,4 +1,4 @@
-create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
+CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
 
   -- Author  : Janna
   -- Created : 1/11/2009 11:50:17 AM
@@ -99,8 +99,9 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
 end; 
+ 
 /
-create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
+CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
 
   procedure sp_pre_check
   --------------------------------------------------------------------------------------------------------------------------
@@ -4748,6 +4749,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and pci.dbd_id = pc_dbd_id
          and pcpq.dbd_id = pc_dbd_id
          and pcdi.dbd_id = pc_dbd_id
+         and cipq.dbd_id=pc_dbd_id
          and pci.is_active = 'Y'
          and pcdi.is_active = 'Y'
          and cipq.is_active = 'Y'

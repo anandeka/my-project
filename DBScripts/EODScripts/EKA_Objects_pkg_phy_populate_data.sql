@@ -178,7 +178,16 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_POPULATE_DATA" is
                                      pc_user_id      varchar2);
   procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
                                      pd_trade_date   date,
-                                     pc_user_id      varchar2);                                      
+                                     pc_user_id      varchar2);
+ procedure sp_phy_create_cipq_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);  
+procedure sp_phy_create_dipq_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);  
+procedure sp_phy_create_spq_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2);                                                                            
                                      
 end pkg_phy_populate_data; 
 /
@@ -938,7 +947,52 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_diph_data');
     sp_phy_create_diph_data(pc_corporate_id, pd_trade_date, pc_user_id);    
+    commit; 
+    
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_cipq_data');
+    sp_phy_create_cipq_data(pc_corporate_id, pd_trade_date, pc_user_id);    
     commit;    
+   
+    
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_dipq_data');
+    sp_phy_create_dipq_data(pc_corporate_id, pd_trade_date, pc_user_id);    
+    commit;    
+   
+    
+    if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_spq_data');
+    sp_phy_create_spq_data(pc_corporate_id, pd_trade_date, pc_user_id);    
+    commit;    
+       
        
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
@@ -11790,6 +11844,329 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
 
+  end; 
+ procedure sp_phy_create_cipq_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+        procedure name                                           : sp_create_cipq_data
+        author                                                   : 
+        created date                                             : 12TH OCT 2011
+        purpose                                                  : populate CIPQ table data for day end processing
+        parameters
+                                                                 : pc_corporate_id - corporate id
+                                                                 : pd_trade_date    - day end date
+        modified date  :
+        modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert into cipq_contract_item_payable_qty
+      (cipq_id,
+       internal_contract_item_ref_no,
+       element_id,
+       payable_qty,
+       qty_unit_id,
+       version,
+       is_active,
+       dbd_id)
+      select cipqul.cipq_id,
+             substr(max(case
+                          when cipqul.internal_contract_item_ref_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           cipqul.internal_contract_item_ref_no
+                        end),
+                    24) internal_contract_item_ref_no,
+             substr(max(case
+                          when cipqul.element_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           cipqul.element_id
+                        end),
+                    24) element_id,
+             round(sum(nvl(cipqul.payable_qty_delta, 0)), 10),
+             substr(max(case
+                          when cipqul.qty_unit_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           cipqul.qty_unit_id
+                        end),
+                    24) qty_unit_id,
+             substr(max(case
+                          when cipqul.version is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           cipqul.version
+                        end),
+                    24) version,
+             substr(max(case
+                          when cipqul.is_active is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           cipqul.is_active
+                        end),
+                    24) is_active,
+             gvc_dbd_id
+        from cipql_ctrt_itm_payable_qty_log cipqul,
+             axs_action_summary             axs,
+             dbd_database_dump              dbd,
+             dbd_database_dump              dbd_ul
+       where dbd.dbd_id = axs.dbd_id
+         and dbd.process = gvc_process
+         and cipqul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.eff_date <= pd_trade_date
+         and axs.corporate_id = pc_corporate_id
+         and cipqul.dbd_id = dbd_ul.dbd_id
+         and dbd_ul.corporate_id = pc_corporate_id
+         and dbd_ul.process = gvc_process
+       group by cipqul.cipq_id;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_cipq_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
   end;
+
+  procedure sp_phy_create_dipq_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+        procedure name                                           : sp_create_dipq_data
+        author                                                   : 
+        created date                                             : 12TH JAN 2011
+        purpose                                                  : populate DIPQ table data for day end processing
+        parameters
+                                                                 : pc_corporate_id - corporate id
+                                                                 : pd_trade_date    - day end date
+        modified date  :
+        modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert into dipq_delivery_item_payable_qty
+      (dipq_id,
+       pcdi_id,
+       element_id,
+       payable_qty,
+       qty_unit_id,
+       price_option_call_off_status,
+       version,
+       is_active,
+       is_price_optionality_present,
+       dbd_id)
+      select dipqul.dipq_id,
+             substr(max(case
+                          when dipqul.pcdi_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           dipqul.pcdi_id
+                        end),
+                    24) pcdi_id,
+             substr(max(case
+                          when dipqul.element_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           dipqul.element_id
+                        end),
+                    24) element_id,
+             round(sum(nvl(dipqul.payable_qty_delta, 0)), 10),
+             substr(max(case
+                          when dipqul.qty_unit_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           dipqul.qty_unit_id
+                        end),
+                    24) qty_unit_id,
+             substr(max(case
+                          when dipqul.price_option_call_off_status is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           dipqul.price_option_call_off_status
+                        end),
+                    24) price_option_call_off_status,
+             substr(max(case
+                          when dipqul.version is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           dipqul.version
+                        end),
+                    24) version,
+             substr(max(case
+                          when dipqul.is_active is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           dipqul.is_active
+                        end),
+                    24) is_active,
+             substr(max(case
+                          when dipqul.is_price_optionality_present is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           dipqul.is_price_optionality_present
+                        end),
+                    24) is_price_optionality_present,
+             gvc_dbd_id
+        from dipql_del_itm_payble_qty_log dipqul,
+             axs_action_summary           axs,
+             dbd_database_dump            dbd,
+             dbd_database_dump            dbd_ul
+       where dbd.dbd_id = axs.dbd_id
+         and dbd.process = gvc_process
+         and dipqul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.eff_date <= pd_trade_date
+         and axs.corporate_id = pc_corporate_id
+         and dipqul.dbd_id = dbd_ul.dbd_id
+         and dbd_ul.corporate_id = pc_corporate_id
+         and dbd_ul.process = gvc_process
+       group by dipqul.dipq_id;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_dipq_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
+
+  procedure sp_phy_create_spq_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+        procedure name                                           : sp_create_spq_data
+        author                                                   : 
+        created date                                             : 28TH OCT 2011
+        purpose                                                  : populate SPQ table data for day end processing
+        parameters
+                                                                 : pc_corporate_id - corporate id
+                                                                 : pd_trade_date    - day end date
+        modified date  :
+        modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+  
+  begin
+    insert into spq_stock_payable_qty
+      (spq_id,
+       internal_gmr_ref_no,
+       action_no,
+       stock_type,
+       internal_grd_ref_no,
+       internal_dgrd_ref_no,
+       element_id,
+       payable_qty,
+       qty_unit_id,
+       version,
+       is_active,
+       dbd_id)
+      select spqul.spq_id,
+             substr(max(case
+                          when spqul.internal_gmr_ref_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.internal_gmr_ref_no
+                        end),
+                    24) internal_gmr_ref_no,
+             substr(max(case
+                          when spqul.action_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.action_no
+                        end),
+                    24) action_no,
+             substr(max(case
+                          when spqul.stock_type is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.stock_type
+                        end),
+                    24) stock_type,
+             substr(max(case
+                          when spqul.internal_grd_ref_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.internal_grd_ref_no
+                        end),
+                    24) internal_grd_ref_no,
+             substr(max(case
+                          when spqul.internal_dgrd_ref_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.internal_dgrd_ref_no
+                        end),
+                    24) internal_dgrd_ref_no,
+             substr(max(case
+                          when spqul.element_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.element_id
+                        end),
+                    24) element_id,
+             round(sum(nvl(spqul.payable_qty_delta, 0)), 10),
+             substr(max(case
+                          when spqul.qty_unit_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.qty_unit_id
+                        end),
+                    24) qty_unit_id,
+             substr(max(case
+                          when spqul.version is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.version
+                        end),
+                    24) version,
+             substr(max(case
+                          when spqul.is_active is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.is_active
+                        end),
+                    24) is_active,
+             gvc_dbd_id
+        from spql_stock_payable_qty_log spqul,
+             axs_action_summary         axs,
+             dbd_database_dump          dbd,
+             dbd_database_dump          dbd_ul
+       where dbd.dbd_id = axs.dbd_id
+         and dbd.process = gvc_process
+         and spqul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.eff_date <= pd_trade_date
+         and axs.corporate_id = pc_corporate_id
+         and spqul.dbd_id = dbd_ul.dbd_id
+         and dbd_ul.corporate_id = pc_corporate_id
+         and dbd_ul.process = gvc_process
+       group by spqul.spq_id;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_spq_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
+  
+  
+
+
+  
+  
 end pkg_phy_populate_data; 
 /

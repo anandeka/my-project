@@ -4200,7 +4200,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
           from dipq_delivery_item_payable_qty dipq
          where dipq.pcdi_id = vc_pcdi_id
            and dipq.element_id = vc_element_id
-           and dipq.is_active = 'Y';
+           and dipq.is_active = 'Y'
+           and dipq.dbd_id=pc_dbd_id;
       exception
         when no_data_found then
           vc_price_option_call_off_sts := null;
@@ -6144,10 +6145,22 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
      update diph_di_penalty_header
        set process_id = pc_process_id
      where process_id is null
-       and dbd_id = vc_dbd_id;  
+       and dbd_id = vc_dbd_id; 
       
-    
-  
+     update cipq_contract_item_payable_qty
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;
+     
+     update dipq_delivery_item_payable_qty
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;
+     
+     update spq_stock_payable_qty
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;     
   exception
     when others then
       vobj_error_log.extend;
@@ -11585,6 +11598,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and ciqs.process_id = pc_process_id
          and cipde.process_id = pc_process_id
          and pcdb.process_id = pc_process_id
+         and gmr_qty.process_id= pc_process_id
          and pcm.purchase_sales = 'P'
          and pcm.contract_status = 'In Position'
          and pcm.contract_type = 'CONCENTRATES'
@@ -11895,6 +11909,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and pcpq.process_id = pc_process_id
          and ciqs.process_id = pc_process_id
          and pcdb.process_id = pc_process_id
+         and gmr_qty.process_id= pc_process_id
          and upper(dgrd.realized_status) in
              ('UNREALIZED', 'UNDERCMA', 'REVERSEREALIZED', 'REVERSEUNDERCMA')
          and dgrd.status = 'Active'
@@ -12814,7 +12829,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
     delete from dithul_di_treatment_header_ul where dbd_id = vc_dbd_id;
     delete from dirhul_di_refining_header_ul where dbd_id = vc_dbd_id;
     delete from diphul_di_penalty_header_ul where dbd_id = vc_dbd_id;
-  
+    delete from cipql_ctrt_itm_payable_qty_log where dbd_id = vc_dbd_id;
+    delete from dipql_del_itm_payble_qty_log where dbd_id = vc_dbd_id;
+    delete from spql_stock_payable_qty_log where dbd_id = vc_dbd_id;
+      
     delete from agd_alloc_group_detail where dbd_id = vc_dbd_id;
     delete from agh_alloc_group_header where dbd_id = vc_dbd_id;
     delete from cigc_contract_item_gmr_cost where dbd_id = vc_dbd_id;
@@ -12889,6 +12907,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
     delete from dith_di_treatment_header where dbd_id = vc_dbd_id;   
     delete from dirh_di_refining_header where dbd_id = vc_dbd_id;
     delete from diph_di_penalty_header where dbd_id = vc_dbd_id; 
+    delete from cipq_contract_item_payable_qty where dbd_id = vc_dbd_id;   
+    delete from dipq_delivery_item_payable_qty where dbd_id = vc_dbd_id;
+    delete from spq_stock_payable_qty where dbd_id = vc_dbd_id; 
   
   exception
     when others then
