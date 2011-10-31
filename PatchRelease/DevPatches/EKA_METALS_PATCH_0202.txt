@@ -1,0 +1,66 @@
+Patch No*          		:  EKA_METALS_PATCH_0202
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Elaiyaraja Nallathambi
+ 
+Created on*        		: 31-Oct-2011
+
+Bug / Enhancement* 		:   Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Reports
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 79449
+Author: elaiyaraja.nallathambi
+Date: 6:46:54 PM, Monday, October 31, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyClearerStatementReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+
+Revision: 79450
+Author: elaiyaraja.nallathambi
+Date: 6:47:34 PM, Monday, October 31, 2011
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_21_DML_RFP_RPC_RFC_Scripts.sql
+
+
+
+
+
+
+
+
+
+
