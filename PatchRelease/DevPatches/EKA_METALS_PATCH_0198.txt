@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0198
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Girish
+ 
+Created on*        		:  31-Oct-2011
+
+Bug / Enhancement* 		:   Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Assay
+ 
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 79405
+Author: girishkv
+Date: 3:00:52 PM, Monday, October 31, 2011
+Message:
+Bug 57894 updated DGM_DOCUMENT_GENERATION_MASTER for DGM_ID=DGM-WNSC 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_96.sql
+
+
+
+
+
+
