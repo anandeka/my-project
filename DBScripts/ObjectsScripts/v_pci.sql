@@ -1,6 +1,6 @@
 DROP VIEW V_PCI;
 
-/* Formatted on 2011/10/21 14:48 (Formatter Plus v4.8.8) */
+/* Formatted on 2011/10/31 17:32 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE FORCE VIEW v_pci (internal_contract_item_ref_no,
                                     internal_contract_ref_no,
                                     contract_ref_no,
@@ -98,7 +98,8 @@ CREATE OR REPLACE FORCE VIEW v_pci (internal_contract_item_ref_no,
                                     is_tolling_contract,
                                     middle_no,
                                     del_distribution_item_no,
-                                    price_option_call_off_status
+                                    price_option_call_off_status,
+                                    delivery_item_no
                                    )
 AS
    SELECT pci.internal_contract_item_ref_no AS internal_contract_item_ref_no,
@@ -185,34 +186,36 @@ AS
           ) AS allocation_status,
           (pcm.contract_ref_no || '-' || pcdi.delivery_item_no
           ) AS delivery_item_ref_no,
-        (CASE
-           WHEN pci.delivery_period_type = 'Month'
-              THEN CASE
-                     WHEN pci.delivery_from_month = pci.delivery_to_month
-                     AND pci.delivery_from_year = pci.delivery_to_year
-                        THEN    pci.delivery_from_month
+          (CASE
+              WHEN pci.delivery_period_type = 'Month'
+                 THEN CASE
+                        WHEN pci.delivery_from_month = pci.delivery_to_month
+                        AND pci.delivery_from_year = pci.delivery_to_year
+                           THEN    pci.delivery_from_month
+                                || ' '
+                                || pci.delivery_from_year
+                        ELSE    pci.delivery_from_month
                              || ' '
                              || pci.delivery_from_year
-                     ELSE    pci.delivery_from_month
-                          || ' '
-                          || pci.delivery_from_year
-                          || ' To '
-                          || pci.delivery_to_month
-                          || ' '
-                          || pci.delivery_to_year
-                  END
-           WHEN pci.delivery_period_type = 'Date'
-              THEN CASE
-                     WHEN TO_CHAR (pci.delivery_from_date, 'dd-Mon-YYYY') =
+                             || ' To '
+                             || pci.delivery_to_month
+                             || ' '
+                             || pci.delivery_to_year
+                     END
+              WHEN pci.delivery_period_type = 'Date'
+                 THEN CASE
+                        WHEN TO_CHAR (pci.delivery_from_date, 'dd-Mon-YYYY') =
                                  TO_CHAR (pci.delivery_to_date, 'dd-Mon-YYYY')
-                        THEN TO_CHAR (pci.delivery_from_date, 'dd-Mon-YYYY')
-                     ELSE    TO_CHAR (pci.delivery_from_date, 'dd-Mon-YYYY')
-                          || ' To '
-                          || TO_CHAR (pci.delivery_to_date, 'dd-Mon-YYYY')
-                  END
-           ELSE '-'
-        END
-       ) quota_month,
+                           THEN TO_CHAR (pci.delivery_from_date,
+                                         'dd-Mon-YYYY')
+                        ELSE    TO_CHAR (pci.delivery_from_date,
+                                         'dd-Mon-YYYY')
+                             || ' To '
+                             || TO_CHAR (pci.delivery_to_date, 'dd-Mon-YYYY')
+                     END
+              ELSE '-'
+           END
+          ) quota_month,
           (NVL (cim.city_name, '') || cym.country_name) AS LOCATION,
           (itm.incoterm || ', ' || cim.city_name || ', ' || cym.country_name
           ) AS incoterm_location,
@@ -239,7 +242,8 @@ AS
           css.strategy_name, (gab.firstname || ' ' || gab.lastname
                              ) AS trader, pcdi.basis_type,
           pcm.is_tolling_contract, pcm.middle_no,
-          pci.del_distribution_item_no, pcdi.price_option_call_off_status
+          pci.del_distribution_item_no, pcdi.price_option_call_off_status,
+          pcdi.delivery_item_no
      FROM pci_physical_contract_item pci,
           pcm_physical_contract_main pcm,
           pcdb_pc_delivery_basis pcdb,
