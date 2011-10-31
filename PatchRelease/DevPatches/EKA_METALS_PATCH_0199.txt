@@ -17,9 +17,9 @@ Branch (DEV / REL)*		:  	Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 : Transaction
+Module  		   	 : Physical
  
-Sub-Module  			 :  Transaction
+Sub-Module  			 :  N/A
  
 Section   		   	 :  N/A
  
