@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0203
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Manoranjan Kumar
+ 
+Created on*        		: 31-Oct-2011
+
+Bug / Enhancement* 		:   Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physical
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 79683
+Author: manoranjan.kumar
+Date: 7:37:52 PM, Friday, November 04, 2011
+Message:
+precision and scale of called_off_qty has been changed..
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_100.sql
+
+
+
+
+
+
+
+
+
+
+
+
