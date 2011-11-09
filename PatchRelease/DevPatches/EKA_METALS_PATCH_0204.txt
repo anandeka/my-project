@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0204
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+ 
+Created on*        		:09-Nov-2011
+
+Bug / Enhancement*           :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+
+Sub-Module  		 :  N/A
+ 
+Section   		 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.   :  N/A
+ 
+FS Enhancement details       :  N/A
+ 
+FS Amendment details          :  N/A
+
+Dependent patches:	:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 79921
+Author: anupkumar.agarwal
+Date: 6:22:29 PM, Wednesday, November 09, 2011
+Message:
+Added Is_Warrant And Warrant_No 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_101.sql
+
+
+
+
+
+
+
