@@ -149,7 +149,8 @@ SELECT gmr.corporate_id,
        (SELECT aku_sub.login_name
         FROM   ak_corporate_user aku_sub
         WHERE  aku_sub.user_id = axs_last.created_by) updated_by,
-        gmr.is_final_weight is_final_weight
+        gmr.is_final_weight is_final_weight,
+        gmr.is_warrant is_warrant
 FROM   gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
