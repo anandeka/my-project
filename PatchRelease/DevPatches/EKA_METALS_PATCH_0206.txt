@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0206
+
+Project / Product* 		:  Boliden
+==================================================================
+Created by*        		:  Pradeep Kumar Behera
+ 
+Created on*        		:  11-Nov-2011
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	        :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		        : logistics
+
+Sub-Module  		        :  N/A
+ 
+Section   		        :  N/A
+ 
+Screen		                :  N/A
+ 
+FS Number and Clause No.        :  N/A
+ 
+FS Enhancement details          :  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:	        :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 80126
+Author: pradeep.kumar
+Date: 12:15:10 PM, Friday, November 11, 2011
+Message:
+--Added is_warrant flag...
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR.SQL
+
+
+
+
+
+
+
