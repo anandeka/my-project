@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0209
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit
+ 
+Created on*        		:  15-Nov-2011
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	        :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		        : Physical
+
+Sub-Module  		        :  N/A
+ 
+Section   		        :  N/A
+ 
+Screen		                :  N/A
+ 
+FS Number and Clause No.        :  N/A
+ 
+FS Enhancement details          :  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:	        :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 80306
+Author: mohitkumar.gupta
+Date: 11:47:07 AM, Tuesday, November 15, 2011
+Message:
+For Draft.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_105.sql
