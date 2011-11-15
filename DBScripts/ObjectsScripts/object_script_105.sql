@@ -1,73 +1,31 @@
+ 
+
 CREATE TABLE PCDT_PHY_CON_DRAFT_TEMPLATE
 (
-  ID                      VARCHAR2(15 BYTE)     NOT NULL,
-  DRAFT_TEMPLATE_TYPE     VARCHAR2(15 BYTE),
-  DRAFT_TEMPLATE_NAME     VARCHAR2(15 BYTE),
-  CP_NAME                 VARCHAR2(20 BYTE),
-  TYPE                    VARCHAR2(15 BYTE),
+  ID                      VARCHAR2(15  )     NOT NULL,
+  DRAFT_TEMPLATE_TYPE     VARCHAR2(15  ),
+  DRAFT_TEMPLATE_NAME     VARCHAR2(15  ),
+  CP_NAME                 VARCHAR2(20  ),
+  TYPE                    VARCHAR2(15  ),
   JAVA_OBJECT             BLOB,
-  INTERNAL_ACTION_REF_NO  VARCHAR2(15 BYTE)     NOT NULL,
-  PROFIT_CENTER           VARCHAR2(20 BYTE),
-  DRAFT_NO                VARCHAR2(15 BYTE)     NOT NULL,
-  IS_ACTIVE               CHAR(1 BYTE)          DEFAULT 'Y'                   NOT NULL,
-  CORPORATE_ID            VARCHAR2(15 BYTE),
-  TRADER                  VARCHAR2(15 BYTE),
-  EXECUTION_TYPE          VARCHAR2(15 BYTE),
-  STRATEGY                VARCHAR2(15 BYTE),
+  INTERNAL_ACTION_REF_NO  VARCHAR2(15  )     NOT NULL,
+  PROFIT_CENTER           VARCHAR2(20  ),
+  DRAFT_NO                VARCHAR2(15  )     NOT NULL,
+  IS_ACTIVE               CHAR(1  )          DEFAULT 'Y'                   NOT NULL,
+  CORPORATE_ID            VARCHAR2(15  ),
+  TRADER                  VARCHAR2(15  ),
+  EXECUTION_TYPE          VARCHAR2(15  ),
+  STRATEGY                VARCHAR2(15  ),
   CONTRACT_ISSUE_DATE     DATE,
-  PRODUCT                 VARCHAR2(15 BYTE)
-)
-TABLESPACE USERS
-PCTUSED    0
-PCTFREE    10
-INITRANS   1
-MAXTRANS   255
-STORAGE    (
-            INITIAL          64K
-            MINEXTENTS       1
-            MAXEXTENTS       UNLIMITED
-            PCTINCREASE      0
-            BUFFER_POOL      DEFAULT
-           )
-LOGGING 
-NOCOMPRESS 
-NOCACHE
-NOPARALLEL
-MONITORING;
+  PRODUCT                 VARCHAR2(15  )
+);
 
-
-CREATE UNIQUE INDEX PK_PCDT_ID ON PCDT_PHY_CON_DRAFT_TEMPLATE
-(ID)
-LOGGING
-TABLESPACE USERS
-PCTFREE    10
-INITRANS   2
-MAXTRANS   255
-STORAGE    (
-            INITIAL          64K
-            MINEXTENTS       1
-            MAXEXTENTS       UNLIMITED
-            PCTINCREASE      0
-            BUFFER_POOL      DEFAULT
-           )
-NOPARALLEL;
 
 
 ALTER TABLE PCDT_PHY_CON_DRAFT_TEMPLATE ADD (
   CONSTRAINT PK_PCDT_ID
  PRIMARY KEY
- (ID)
-    USING INDEX 
-    TABLESPACE USERS
-    PCTFREE    10
-    INITRANS   2
-    MAXTRANS   255
-    STORAGE    (
-                INITIAL          64K
-                MINEXTENTS       1
-                MAXEXTENTS       UNLIMITED
-                PCTINCREASE      0
-               ));
+ (ID));
 
 
 CREATE SEQUENCE SEQ_PCDT
