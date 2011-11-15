@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0212
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  15-Nov-2011
+
+Bug / Enhancement*              :  Enhancement 
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	        :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		        : Weighing And Sampling 
+
+Sub-Module  		        :  N/A
+ 
+Section   		        :  N/A
+ 
+Screen		                :  N/A
+ 
+FS Number and Clause No.        :  N/A
+ 
+FS Enhancement details          :  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:	        :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 80344
+Author: anupkumar.agarwal
+Date: 3:50:37 PM, Tuesday, November 15, 2011
+Message:
+Added new Column In ASH Table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_106.sql
+
+
+
+
+
+
+
+
+
