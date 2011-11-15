@@ -67,11 +67,11 @@ Insert into SLS_STATIC_LIST_SETUP
    (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
  Values
    ('DraftFilterPartnershipType', 'Joint Venture', 'N', 3);
-Insert into METAL_DEV_APP.SLS_STATIC_LIST_SETUP
+Insert into SLS_STATIC_LIST_SETUP
    (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
  Values
    ('DraftFilterPartnershipType', 'Agency', 'N', 2);
-Insert into METAL_DEV_APP.SLS_STATIC_LIST_SETUP
+Insert into SLS_STATIC_LIST_SETUP
    (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
  Values
    ('DraftFilterPartnershipType', 'Normal', 'N', 1);
@@ -105,26 +105,8 @@ Insert into AKM_ACTION_REF_KEY_MASTER
    ('DraftRefNo', 'Draft Ref No', 'SELECT COUNT(*) FROM   AXS_ACTION_SUMMARY axs WHERE  axs.action_ref_no = :pc_action_ref_no AND    axs.corporate_id = :pc_corporate_id');
 
 
-Insert into ARF_ACTION_REF_NUMBER_FORMAT
-   (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('ARF-DR-&corpId', 'DraftRefNo', '&corpId', 'DR-', 1, 
-    0,  '-&corpId', 1, 'N');
 
-Insert into ARFM_ACTION_REF_NO_MAPPING
-   (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
- Values
-   ('ARFM-DR-&corpId', '&corpId', 'CREATE_DR', 'DraftRefNo', 'N');
-
-Insert into ERC_EXTERNAL_REF_NO_CONFIG
-   (CORPORATE_ID, EXTERNAL_REF_NO_KEY, PREFIX, MIDDLE_NO_LAST_USED_VALUE, SUFFIX)
- Values
-   ('&corpId', 'CREATE_DR', 'DR-', 0, '-&corpId');
-   
-
-
-Insert into IRC_INTERNAL_REF_NO_CONFIG
+ Insert into IRC_INTERNAL_REF_NO_CONFIG
    (INTERNAL_REF_NO_KEY, PREFIX, SEQ_NAME)
  Values
    ('PK_PCDT', 'DR', 'SEQ_PCDT');
