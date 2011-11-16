@@ -970,7 +970,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                               to_char(vd_arrival_date,
                                                       'Mon-yyyy'),
                                               'dd-mon-yyyy');
-                elsif cc1.event_name = 'First Half Of Shipment Month' then
+                elsif cc1.event_name = 'Second Half Of Shipment Month' then
                   vd_qp_start_date := to_date('16-' ||
                                               to_char(vd_shipment_date,
                                                       'Mon-yyyy'),
@@ -982,7 +982,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                       'Mon-yyyy'),
                                               'dd-mon-yyyy');
                   vd_qp_end_date   := last_day(vd_qp_start_date);
+                else
+                vd_qp_start_date := cc1.qp_start_date;
+                vd_qp_end_date   := cc1.qp_end_date;
                 end if;
+              else
+              vd_qp_start_date := cc1.qp_start_date;
+              vd_qp_end_date   := cc1.qp_end_date;
               end if;
             
               if cur_pcdi_rows.eod_trade_date >= vd_qp_start_date and
@@ -1071,7 +1077,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                                                                
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -1348,7 +1354,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                                                                        
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -1750,7 +1756,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                                                                                    
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -1927,7 +1933,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                                                                                      
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -2100,7 +2106,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                                                                
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -2709,7 +2715,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                                                           
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -2960,7 +2966,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                  
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -3498,7 +3504,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
             when no_data_found then
               vobj_error_log.extend;
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure sp_calc_gmr_price',
+                                                                   'procedure sp_calc_conc_gmr_price',
                                                                    'PHY-002',
                                                                    'DR_ID missing for ' ||
                                                                    cur_gmr_rows.instrument_name ||
@@ -3524,7 +3530,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
               cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
         
           vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
-                                                                              pd_trade_date);
+                                                                              vd_qp_end_date);                 
           vc_prompt_month := to_char(vc_prompt_date, 'Mon');
           vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
         
@@ -3543,7 +3549,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
             when no_data_found then
               vobj_error_log.extend;
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure sp_calc_contract_price',
+                                                                   'procedure sp_calc_conc_gmr_price',
                                                                    'PHY-002',
                                                                    'DR_ID missing for ' ||
                                                                    cur_gmr_rows.instrument_name ||
@@ -3589,7 +3595,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
         exception
           when no_data_found then
             vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_conc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
         vn_total_contract_value := vn_total_contract_value +
@@ -3733,7 +3739,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
             when no_data_found then
               vobj_error_log.extend;
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure sp_calc_gmr_price',
+                                                                   'procedure sp_calc_conc_gmr_price',
                                                                    'PHY-002',
                                                                    'DR-ID missing for ' ||
                                                                    cur_gmr_rows.instrument_name ||
@@ -3757,7 +3763,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
               cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
         
           vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
-                                                                              pd_trade_date);
+                                                                              vd_qp_end_date);                  
           vc_prompt_month := to_char(vc_prompt_date, 'Mon');
           vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
         
@@ -3776,7 +3782,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
             when no_data_found then
               vobj_error_log.extend;
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure sp_calc_contract_price',
+                                                                   'procedure sp_calc_conc_gmr_price',
                                                                    'PHY-002',
                                                                    'DR_ID missing for ' ||
                                                                    cur_gmr_rows.instrument_name ||
@@ -3822,7 +3828,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
         exception
           when no_data_found then
             vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_conc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
       
@@ -3947,8 +3953,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              ceqs.element_id,
              ceqs.payable_qty,
              ceqs.payable_qty_unit_id,
-             ceqs.assay_qty,
-             ceqs.assay_qty_unit_id,
+             null assay_qty,
+             null assay_qty_unit_id,
              pcdi.delivery_item_no,
              pcdi.delivery_period_type,
              pcdi.delivery_from_month,
@@ -3994,7 +4000,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              tt.is_monthly_cal_applicable
       
         from pcdi_pc_delivery_item pcdi,
-             ceqs_contract_ele_qty_status ceqs,
+             --ceqs_contract_ele_qty_status ceqs,
+             v_contract_payable_qty     ceqs,
              pci_physical_contract_item pci,
              pcm_physical_contract_main pcm,
              ak_corporate akc,
@@ -4357,7 +4364,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                               to_char(vd_arrival_date,
                                                       'Mon-yyyy'),
                                               'dd-mon-yyyy');
-                elsif cc1.event_name = 'First Half Of Shipment Month' then
+                elsif cc1.event_name = 'Second Half Of Shipment Month' then
                   vd_qp_start_date := to_date('16-' ||
                                               to_char(vd_shipment_date,
                                                       'Mon-yyyy'),
@@ -4369,7 +4376,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                       'Mon-yyyy'),
                                               'dd-mon-yyyy');
                   vd_qp_end_date   := last_day(vd_qp_start_date);
+                  else
+                  vd_qp_start_date := cc1.qp_start_date;
+                  vd_qp_end_date   := cc1.qp_end_date;
                 end if;
+              else
+              vd_qp_start_date := cc1.qp_start_date;
+              vd_qp_end_date   := cc1.qp_end_date;
               end if;
             
               if cur_pcdi_rows.eod_trade_date >= vd_qp_start_date and
@@ -4432,7 +4445,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR_ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -4459,7 +4472,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                                                                    
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -4478,7 +4491,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR_ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -4526,7 +4539,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 exception
                   when no_data_found then
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                     --vc_prompt_month || '-' || vc_prompt_year
                      to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
@@ -4702,7 +4715,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR-ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -4728,7 +4741,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                   
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -4747,7 +4760,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR_ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -4795,7 +4808,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 exception
                   when no_data_found then
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                     -- vc_prompt_month || '-' || vc_prompt_year
                      to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
@@ -5093,7 +5106,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR-ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -5119,7 +5132,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                          
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -5140,7 +5153,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR_ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -5189,7 +5202,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 exception
                   when no_data_found then
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                     -- vc_prompt_month || '-' || vc_prompt_year
                      to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
@@ -5255,7 +5268,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR-ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -5281,7 +5294,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                    
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -5300,7 +5313,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR_ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -5349,7 +5362,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 exception
                   when no_data_found then
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                     -- vc_prompt_month || '-' || vc_prompt_year
                      to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
@@ -5414,7 +5427,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR-ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -5440,7 +5453,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 
                   vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                                      pd_trade_date);
+                                                                                      vd_qp_end_date);                  
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                 
@@ -5459,7 +5472,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                     when no_data_found then
                       vobj_error_log.extend;
                       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                           'procedure sp_calc_contract_price',
+                                                                           'procedure sp_calc_contract_conc_price',
                                                                            'PHY-002',
                                                                            'DR_ID missing for ' ||
                                                                            cur_pcdi_rows.instrument_name ||
@@ -5508,7 +5521,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 exception
                   when no_data_found then
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                     --- vc_prompt_month || '-' || vc_prompt_year
                      to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
@@ -8814,6 +8827,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 ''
              end) trader_user_name,
              pcpd.product_id conc_product_id,
+             pdm_conc.product_desc conc_product_name,
              aml.underlying_product_id product_id,
              pdm.product_desc product_name,
              ciqs.open_qty item_qty,
@@ -8821,6 +8835,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              qum.qty_unit,
              qum.decimals item_qty_decimal,
              pcpq.quality_template_id conc_quality_id,
+             qat.quality_name conc_quality_name,
              qav.comp_quality_id quality_id,
              qat_und.quality_name,
              pcdb.inco_term_id,
@@ -8860,10 +8875,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              aml.attribute_name,
              pcpq.assay_header_id,
              pcpq.unit_of_measure,
-             cipde.assay_qty,
-             cipde.assay_qty_unit_id,
-             cipde.payable_qty,
-             cipde.payable_qty_unit_id,
+             ceqs.assay_qty,
+             ceqs.assay_qty_unit_id,
+             cipq.payable_qty,
+             cipq.qty_unit_id payable_qty_unit_id,             
              cipde.contract_price,
              cipde.price_unit_id,
              cipde.price_unit_cur_id,
@@ -8980,7 +8995,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              drm_derivative_master drm,
              emt_exchangemaster emt,
              v_ppu_pum tc_ppu_pum,
-             v_ppu_pum rc_ppu_pum
+             v_ppu_pum rc_ppu_pum,
+             cipq_contract_item_payable_qty  cipq,
+             ceqs_contract_ele_qty_status    ceqs
        where pcm.corporate_id = akc.corporate_id
          and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcdi.pcdi_id = pci.pcdi_id
@@ -9049,6 +9066,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and md.base_price_unit_id_in_pum = pum_loc_base.price_unit_id
          and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
          and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
+         and pci.internal_contract_item_ref_no=cipq.internal_contract_item_ref_no
+         and aml.attribute_id=cipq.element_id
+         and pci.internal_contract_item_ref_no=ceqs.internal_contract_item_ref_no
+         and aml.attribute_id=ceqs.element_id
          and pcm.process_id = pc_process_id
          and pcdi.process_id = pc_process_id
          and pci.process_id = pc_process_id
@@ -9056,7 +9077,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and ciqs.process_id = pc_process_id
          and pcpq.process_id = pc_process_id
          and pcdb.process_id = pc_process_id
-         and cipde.process_id = pc_process_id;
+         and cipde.process_id = pc_process_id
+         and cipq.process_id=pc_process_id
+         and ceqs.process_id=pc_process_id;
     vn_ele_qty_in_base             number;
     vn_ele_m2m_amt                 number;
     vc_m2m_cur_id                  varchar2(15);
@@ -9734,14 +9757,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
            cur_unrealized_rows.cp_name,
            cur_unrealized_rows.trader_id,
            cur_unrealized_rows.trader_user_name,
-           cur_unrealized_rows.product_id,
-           cur_unrealized_rows.product_name,
+           cur_unrealized_rows.conc_product_id,
+           cur_unrealized_rows.conc_product_name,
            vn_dry_qty,
            vn_wet_qty,
            cur_unrealized_rows.qty_unit_id,
            cur_unrealized_rows.qty_unit,
            cur_unrealized_rows.conc_quality_id,
-           cur_unrealized_rows.quality_name,
+           cur_unrealized_rows.conc_quality_name,
            cur_unrealized_rows.fixation_method,
            cur_unrealized_rows.price_description,
            cur_unrealized_rows.price_fixation_status,
@@ -11352,12 +11375,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              pcdi.delivery_item_no,
              pcm.contract_ref_no,
              pcm.purchase_sales,
-             grd.product_id conc_product_id,
+             pcpd.product_id conc_product_id,
+             pdm_conc.product_desc conc_product_name,
              aml.underlying_product_id product_id,
              pdm.product_desc product_name,
              grd.origin_id,
              orm.origin_name,
              pcpq.quality_template_id conc_quality_id,
+             qat.quality_name  conc_quality_name,
              qav.comp_quality_id quality_id,
              qat_und.quality_name,
              grd.container_no,
@@ -11390,8 +11415,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              cipde.element_id,
              aml.attribute_name,
              pcpq.assay_header_id,
-             cipde.assay_qty,
-             cipde.assay_qty_unit_id,
+             ceqs.assay_qty,
+             ceqs.assay_qty_unit_id,
              --cipde.payable_qty,
              -- cipde.payable_qty_unit_id,
              gmr_qty.payable_qty,
@@ -11536,7 +11561,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              v_gmr_stockpayable_qty gmr_qty,
              qum_quantity_unit_master gmr_qum,
              v_ppu_pum tc_ppu_pum,
-             v_ppu_pum rc_ppu_pum
+             v_ppu_pum rc_ppu_pum,
+             ceqs_contract_ele_qty_status ceqs
        where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
@@ -11587,6 +11613,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and grd.internal_grd_ref_no = gmr_qty.internal_grd_ref_no
          and cipde.element_id = gmr_qty.element_id
          and gmr_qty.qty_unit_id = gmr_qum.qty_unit_id
+         and pci.internal_contract_item_ref_no=ceqs.internal_contract_item_ref_no
+         and aml.attribute_id=ceqs.element_id
          and grd.process_id = pc_process_id
          and gmr.process_id = pc_process_id
          and pci.process_id = pc_process_id
@@ -11599,6 +11627,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and cipde.process_id = pc_process_id
          and pcdb.process_id = pc_process_id
          and gmr_qty.process_id= pc_process_id
+         and ceqs.process_id=pc_process_id
          and pcm.purchase_sales = 'P'
          and pcm.contract_status = 'In Position'
          and pcm.contract_type = 'CONCENTRATES'
@@ -11640,12 +11669,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              pcdi.delivery_item_no,
              pcm.contract_ref_no,
              pcm.purchase_sales,
-             dgrd.product_id conc_product_id,
+             pcpd.product_id conc_product_id,
+             pdm_conc.product_desc conc_product_name,
              aml.underlying_product_id product_id,
              pdm.product_desc product_name,
              dgrd.origin_id,
              orm.origin_name,
              pcpq.quality_template_id conc_quality_id,
+             qat.quality_name conc_quality_name,
              qav.comp_quality_id quality_id,
              qat_und.quality_name,
              '' container_no,
@@ -11678,8 +11709,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              cipde.element_id,
              aml.attribute_name,
              pcpq.assay_header_id,
-             cipde.assay_qty,
-             cipde.assay_qty_unit_id,
+             ceqs.assay_qty,
+             ceqs.assay_qty_unit_id,
              --  cipde.payable_qty,
              -- cipde.payable_qty_unit_id,
              gmr_qty.payable_qty,
@@ -11821,7 +11852,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              v_gmr_stockpayable_qty gmr_qty,
              qum_quantity_unit_master gmr_qum,
              v_ppu_pum tc_ppu_pum,
-             v_ppu_pum rc_ppu_pum
+             v_ppu_pum rc_ppu_pum,
+             ceqs_contract_ele_qty_status ceqs
        where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
             -- and gmr.internal_gmr_ref_no = 'GMR-129'
          and dgrd.int_alloc_group_id = agh.int_alloc_group_id
@@ -11877,6 +11909,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and dgrd.internal_dgrd_ref_no = gmr_qty.internal_dgrd_ref_no
          and cipde.element_id = gmr_qty.element_id
          and gmr_qty.qty_unit_id = gmr_qum.qty_unit_id
+         and pci.internal_contract_item_ref_no=ceqs.internal_contract_item_ref_no
+         and aml.attribute_id=ceqs.element_id
          and pcm.purchase_sales = 'S'
          and gsm.is_required_for_m2m = 'Y'
          and pcm.contract_status = 'In Position'
@@ -11910,6 +11944,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and ciqs.process_id = pc_process_id
          and pcdb.process_id = pc_process_id
          and gmr_qty.process_id= pc_process_id
+         and ceqs.process_id=pc_process_id
          and upper(dgrd.realized_status) in
              ('UNREALIZED', 'UNDERCMA', 'REVERSEREALIZED', 'REVERSEUNDERCMA')
          and dgrd.status = 'Active'
@@ -12492,11 +12527,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
            cur_grd_rows.delivery_item_no,
            cur_grd_rows.del_distribution_item_no,
            cur_grd_rows.conc_product_id,
-           cur_grd_rows.product_name,
+           cur_grd_rows.conc_product_name,
            cur_grd_rows.origin_id,
            cur_grd_rows.origin_name,
            cur_grd_rows.conc_quality_id,
-           cur_grd_rows.quality_name,
+           cur_grd_rows.conc_quality_name,
            cur_grd_rows.container_no,
            vn_wet_qty,
            vn_dry_qty,
