@@ -704,7 +704,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and pcbpd.is_active = 'Y'
          and pcbph.is_active = 'Y';
   
-    cursor cur_not_called_off(pc_pcdi_id varchar2) is
+    cursor cur_not_called_off(pc_pcdi_id varchar2,pc_int_cont_item_ref_no varchar2) is
       select pcbpd.pcbpd_id,
              pcbph.internal_contract_ref_no,
              pcbpd.price_basis,
@@ -723,6 +723,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and pcipf.pcbph_id = pcbph.pcbph_id
          and pcbph.pcbph_id = pcbpd.pcbph_id
          and pci.pcdi_id = pc_pcdi_id
+         and pci.internal_contract_item_ref_no=pc_int_cont_item_ref_no
          and pci.process_id = pc_process_id
          and pcipf.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
@@ -1525,7 +1526,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
       elsif cur_pcdi_rows.price_option_call_off_status = 'Not Called Off' then
         vn_error_no              := vn_error_no + 1;
         vc_price_fixation_status := null;
-        for cur_not_called_off_rows in cur_not_called_off(cur_pcdi_rows.pcdi_id)
+        for cur_not_called_off_rows in cur_not_called_off(cur_pcdi_rows.pcdi_id,
+                                                          cur_pcdi_rows.internal_contract_item_ref_no)
         loop
           vc_price_basis          := cur_not_called_off_rows.price_basis;
           vc_price_description    := cur_not_called_off_rows.price_description;
@@ -1652,7 +1654,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                               to_char(vd_arrival_date,
                                                       'Mon-yyyy'),
                                               'dd-mon-yyyy');
-                elsif cc1.event_name = 'First Half Of Shipment Month' then
+                elsif cc1.event_name = 'Second Half Of Shipment Month' then
                   vd_qp_start_date := to_date('16-' ||
                                               to_char(vd_shipment_date,
                                                       'Mon-yyyy'),
@@ -1664,8 +1666,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                       'Mon-yyyy'),
                                               'dd-mon-yyyy');
                   vd_qp_end_date   := last_day(vd_qp_start_date);
+                else
+                vd_qp_start_date := cc1.qp_period_from_date;
+                vd_qp_end_date   := cc1.qp_period_to_date;
                 end if;
                 vd_qp_price_date := vd_evevnt_date;
+              else
+               vd_qp_start_date := cc1.qp_period_from_date;
+               vd_qp_end_date   := cc1.qp_period_to_date;
               end if;
             
               if cur_pcdi_rows.eod_trade_date >= vd_qp_start_date and
@@ -4101,7 +4109,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and pcbpd.is_active = 'Y'
          and pcbph.is_active = 'Y';
   
-    cursor cur_not_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
+    cursor cur_not_called_off(pc_pcdi_id varchar2, pc_element_id varchar2,pc_int_cont_item_ref_no varchar2) is
       select pcbpd.pcbpd_id,
              pcbph.internal_contract_ref_no,
              pcbpd.price_basis,
@@ -4121,6 +4129,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and pcbph.pcbph_id = pcbpd.pcbph_id
          and pci.pcdi_id = pc_pcdi_id
          and pcbpd.element_id = pc_element_id
+         and pci.internal_contract_item_ref_no=pc_int_cont_item_ref_no
          and pci.process_id = pc_process_id
          and pcipf.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
@@ -4898,7 +4907,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
       
         vc_price_fixation_status := null;
         for cur_not_called_off_rows in cur_not_called_off(cur_pcdi_rows.pcdi_id,
-                                                          cur_pcdi_rows.element_id)
+                                                          cur_pcdi_rows.element_id,
+                                                          cur_pcdi_rows.internal_contract_item_ref_no)
         loop
           vc_price_basis          := cur_not_called_off_rows.price_basis;
           vc_price_description    := cur_not_called_off_rows.price_description;
@@ -5027,7 +5037,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                               to_char(vd_arrival_date,
                                                       'Mon-yyyy'),
                                               'dd-mon-yyyy');
-                elsif cc1.event_name = 'First Half Of Shipment Month' then
+                elsif cc1.event_name = 'Second Half Of Shipment Month' then
                   vd_qp_start_date := to_date('16-' ||
                                               to_char(vd_shipment_date,
                                                       'Mon-yyyy'),
@@ -5039,8 +5049,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                       'Mon-yyyy'),
                                               'dd-mon-yyyy');
                   vd_qp_end_date   := last_day(vd_qp_start_date);
+                else
+                vd_qp_start_date := cc1.qp_period_from_date;
+                vd_qp_end_date   := cc1.qp_period_to_date;  
                 end if;
-                vd_qp_price_date := vd_evevnt_date;
+                vd_qp_price_date := vd_evevnt_date;               
+              else
+                vd_qp_start_date := cc1.qp_period_from_date;
+                vd_qp_end_date   := cc1.qp_period_to_date;
               end if;
             
               if cur_pcdi_rows.eod_trade_date >= vd_qp_start_date and
