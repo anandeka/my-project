@@ -1,4 +1,4 @@
-Patch No*          		:  EKA_METALS_PATCH_0219
+Patch No*          		:  EKA_METALS_PATCH_0220
 
 Project / Product* 		:  METALS
 ==================================================================
@@ -37,13 +37,13 @@ Dependent patches:	        :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 80553
+Revision: 80554
 Author: elaiyaraja.nallathambi
-Date: 7:39:36 PM, Thursday, November 17, 2011
+Date: 7:40:27 PM, Thursday, November 17, 2011
 Message:
 Bug Fixes
 ----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/DailyFXExposureReport.rpt
 
 
 
