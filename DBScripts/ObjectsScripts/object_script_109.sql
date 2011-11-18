@@ -142,7 +142,7 @@ CREATE TABLE PQCAPD_PRD_QLTY_CATTR_PAY_DTLS
      PAYABLE_RULE_ID VARCHAR2 (15 CHAR)  NOT NULL , 
      PAYABLE_PERCENTAGE number(25,10),
      IS_ACTIVE char (1 char)   default 'N' NOT NULL, 
-     is_returnable char (1 char) default 'N'
+     is_returnable char (1 char) default 'N',
      VERSION NUMBER (10)  NOT NULL 
     ) 
 ;
