@@ -1,0 +1,69 @@
+Patch No*          		:  EKA_METALS_PATCH_0223
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  18-Nov-2011
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	        :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		        :  Tolling Logistics
+
+Sub-Module  		        : Process Activity
+ 
+Section   		        :  N/A
+ 
+Screen		                :  N/A
+ 
+FS Number and Clause No.        :  N/A
+ 
+FS Enhancement details          :  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:	        :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+
+
+Revision: 80606
+Author: girishkv
+Date: 4:12:22 PM, Friday, November 18, 2011
+Message:
+process activity.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_99.sql
+
+
+Revision: 80608
+Author: girishkv
+Date: 4:16:51 PM, Friday, November 18, 2011
+Message:
+process activity.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_18.sql
+
+Revision: 80607
+Author: girishkv
+Date: 4:15:10 PM, Friday, November 18, 2011
+Message:
+process activity
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_110.sql
+
+
+
