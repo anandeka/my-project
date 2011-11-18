@@ -97,6 +97,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                               and pci.internal_contract_item_ref_no =
                                   pc_internal_cont_item_ref_no
                               and ppm.product_id = pc_product_id
+                              and pcpq.assay_header_id=ash.ash_id
                               and ppm.deduct_for_wet_to_dry = 'Y'
                               and pci.dbd_id = pc_dbd_id
                               and pcdi.dbd_id = pc_dbd_id
@@ -168,6 +169,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
          and pci.dbd_id = pc_dbd_id
          and pcpq.dbd_id = pc_dbd_id
          and ciqs.dbd_id=pc_dbd_id
+         and pcpq.dbd_id=pc_dbd_id
          and pci.internal_contract_item_ref_no =
              pc_internal_con_item_ref_no
          and pcpq.assay_header_id = pc_assay_header_id
@@ -509,9 +511,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                      vn_range_gap || '/' ||
                                      cur_range.per_increase_value || ')');*/
                 if cur_pc_charge.charge_basis = 'absolute' then
-                  vn_penalty_charge := trunc((vn_range_gap /
+                  vn_penalty_charge := round(vn_range_gap /
                                              cur_range.per_increase_value) *
-                                             vn_penalty_charge);
+                                             vn_penalty_charge;
                 elsif cur_pc_charge.charge_basis = 'fractions Pro-Rata' then
                   vn_penalty_charge := (vn_range_gap /
                                        cur_range.per_increase_value) *
@@ -587,7 +589,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
     vn_pricable_qty        number;
   begin
     vn_refine_charge  := 0;
-    vn_contract_price := 20;
+    vn_contract_price :=pn_cp_price;
     for cc in (select pci.item_qty,
                       pqca.element_id,
                       pqca.typical,
@@ -766,12 +768,27 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                     vn_range_gap := vn_contract_price -
                                     cur_forward_price.range_min_value;
                   end if;
-                  vn_each_tier_rc_charge := (vn_range_gap /
+                  /* vn_each_tier_rc_charge := (vn_range_gap /
                                             nvl(cur_forward_price.esc_desc_value,
                                                  1)) *
                                             cur_forward_price.refining_charge;
                   vn_refine_charge       := vn_refine_charge +
+                                            vn_each_tier_rc_charge;*/
+                 --
+                 if cur_ref_charge.charge_basis = 'absolute' then
+                    vn_each_tier_rc_charge := round(vn_range_gap /
+                                                    nvl(cur_forward_price.esc_desc_value,
+                                                         1)) *
+                                                    cur_forward_price.refining_charge;
+                  elsif cur_ref_charge.charge_basis = 'fractions Pro-Rata' then
+                    vn_each_tier_rc_charge := (vn_range_gap /
+                                              nvl(cur_forward_price.esc_desc_value,
+                                                   1)) *
+                                              cur_forward_price.refining_charge;                                     
+                  end if;
+                    vn_refine_charge       := vn_refine_charge +
                                             vn_each_tier_rc_charge;
+                  --
                 end loop;
               elsif vn_contract_price < vn_min_range then
                 --go back ward for the price range
@@ -808,10 +825,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                     cur_backward_price.range_min_value;
                   end if;
                   if cur_ref_charge.charge_basis = 'absolute' then
-                    vn_each_tier_rc_charge := trunc((vn_range_gap /
+                    vn_each_tier_rc_charge := round(vn_range_gap /
                                                     nvl(cur_backward_price.esc_desc_value,
                                                          1)) *
-                                                    cur_backward_price.refining_charge);
+                                                    cur_backward_price.refining_charge;
                   elsif cur_ref_charge.charge_basis = 'fractions Pro-Rata' then
                     vn_each_tier_rc_charge := (vn_range_gap /
                                               nvl(cur_backward_price.esc_desc_value,
@@ -1004,6 +1021,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
           vc_cur_id            := cur_tret_charge.cur_id;
           vc_price_unit_id     := cur_tret_charge.price_unit_id;
           vc_rc_weight_unit_id := cur_tret_charge.weight_unit_id;
+          vc_weight_type       := cur_tret_charge.weight_type;
           if cur_tret_charge.range_type = 'Price Range' then
             --if the CHARGE_TYPE is fixed then it will
             --behave as the slab as same as the assay range
@@ -1114,10 +1132,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                     cur_backward_price.range_min_value;
                   end if;
                   if cur_tret_charge.charge_basis = 'absolute' then
-                    vn_each_tier_tc_charge := trunc((vn_range_gap /
+                    vn_each_tier_tc_charge := round(vn_range_gap /
                                                     nvl(cur_backward_price.esc_desc_value,
                                                          1)) *
-                                                    cur_backward_price.treatment_charge);
+                                                    cur_backward_price.treatment_charge;
                   elsif cur_tret_charge.charge_basis = 'fractions Pro-Rata' then
                     vn_each_tier_tc_charge := (vn_range_gap /
                                               nvl(cur_backward_price.esc_desc_value,
@@ -1169,6 +1187,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
           else
             vn_item_qty := pn_dry_qty;
           end if;
+         else 
+         vn_item_qty := 0;
         end if;
         --For TC , it is calculated on item Qty not on the element Qty
         vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
