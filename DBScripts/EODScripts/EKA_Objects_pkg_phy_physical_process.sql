@@ -3169,6 +3169,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
   
   end;
 
+  
   procedure sp_calc_conc_gmr_price(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_process_id   varchar2,
@@ -3180,10 +3181,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
              gmr.current_qty,
-             poch.element_id,
-             pofh.qp_start_date,
-             pofh.qp_end_date,
-             pofh.pofh_id,
+             gmr.qty_unit_id,
+             grd.product_id,             
              pd_trade_date eod_trade_date,
              tt.instrument_id,
              tt.instrument_name,
@@ -3193,15 +3192,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              tt.available_price_name,
              tt.price_unit_name,
              tt.ppu_price_unit_id,
-             tt.price_unit_id,
-             pocd.is_any_day_pricing,
-             pofh.qty_to_be_fixed,
-             round(pofh.priced_qty, 4) priced_qty,
-             pofh.no_of_prompt_days,
-             pocd.pcbpd_id,
+             tt.price_unit_id,             
              tt.delivery_calender_id,
              tt.is_daily_cal_applicable,
-             tt.is_monthly_cal_applicable
+             tt.is_monthly_cal_applicable,
+             spq.element_id,
+             spq.payable_qty,
+             spq.qty_unit_id payable_qty_unit_id
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
                      grd.quality_id,
@@ -3215,10 +3212,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                         grd.quality_id,
                         grd.product_id) grd,
              pdm_productmaster              pdm,
-             pdtm_product_type_master       pdtm,           
-             poch_price_opt_call_off_header poch,
-             pocd_price_option_calloff_dtls pocd,
-             pofh_price_opt_fixation_header pofh,
+             pdtm_product_type_master       pdtm,
+             v_gmr_stockpayable_qty         spq,
              (select qat.process_id,
                      qat.internal_gmr_ref_no,
                      qat.instrument_id,
@@ -3254,31 +3249,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
        where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
          and grd.product_id=pdm.product_id
          and pdm.product_type_id=pdtm.product_type_id
-         and pdtm.product_type_name='Composite'
-         and gmr.internal_gmr_ref_no = pofh.internal_gmr_ref_no
-         and poch.poch_id = pocd.pocd_id
-         and pocd.pocd_id = pofh.pocd_id
-            --and grd.quality_id = qat.conc_quality_id
-            --and grd.product_id = qat.conc_product_id
-            --and poch.element_id = qat.attribute_id
-         and gmr.process_id = pc_process_id
-            --and qat.corporate_id = pc_corporate_id
-         and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
-         and poch.element_id=tt.element_id
+         and pdtm.product_type_name='Composite'         
+         and spq.process_id=pc_process_id
+         and tt.element_id=spq.element_id
+         and tt.internal_gmr_ref_no=spq.internal_gmr_ref_no          
+         and gmr.process_id = pc_process_id        
+         and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)        
          and gmr.process_id = tt.process_id(+)
-         and gmr.is_deleted = 'N'
-         and poch.is_active = 'Y'
-         and pocd.is_active = 'Y'
-         and pofh.is_active = 'Y'
+         and gmr.is_deleted = 'N'  
       union all
       select gmr.corporate_id,
              gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
              gmr.current_qty,
-             poch.element_id,
-             pofh.qp_start_date,
-             pofh.qp_end_date,
-             pofh.pofh_id,
+             gmr.qty_unit_id,
+             grd.product_id,            
              pd_trade_date eod_trade_date,
              tt.instrument_id,
              tt.instrument_name,
@@ -3288,15 +3273,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
              tt.available_price_name,
              tt.price_unit_name,
              tt.ppu_price_unit_id,
-             tt.price_unit_id,
-             pocd.is_any_day_pricing,
-             pofh.qty_to_be_fixed,
-             round(pofh.priced_qty, 4) priced_qty,
-             pofh.no_of_prompt_days,
-             pocd.pcbpd_id,
+             tt.price_unit_id,            
              tt.delivery_calender_id,
              tt.is_daily_cal_applicable,
-             tt.is_monthly_cal_applicable
+             tt.is_monthly_cal_applicable,
+             spq.element_id,
+             spq.payable_qty,
+             spq.qty_unit_id payable_qty_unit_id
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
                      grd.quality_id,
@@ -3309,10 +3292,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                         grd.quality_id,
                         grd.product_id) grd,
              pdm_productmaster              pdm,
-             pdtm_product_type_master       pdtm,           
-             poch_price_opt_call_off_header poch,
-             pocd_price_option_calloff_dtls pocd,
-             pofh_price_opt_fixation_header pofh,
+             pdtm_product_type_master       pdtm,
+             v_gmr_stockpayable_qty         spq,
              (select qat.process_id,
                      qat.internal_gmr_ref_no,
                      qat.instrument_id,
@@ -3348,23 +3329,35 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
        where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
          and grd.product_id=pdm.product_id
          and pdm.product_type_id=pdtm.product_type_id
-         and pdm.product_type_id='Composite'
-         and gmr.internal_gmr_ref_no = pofh.internal_gmr_ref_no
-         and poch.poch_id = pocd.pocd_id
-         and pocd.pocd_id = pofh.pocd_id
-            -- and grd.quality_id = qat.conc_quality_id
-            --and grd.product_id = qat.conc_product_id
-            --and poch.element_id = qat.attribute_id
+         and pdm.product_type_id='Composite'         
+         and spq.process_id=pc_process_id
+         and tt.element_id=spq.element_id
+         and tt.internal_gmr_ref_no=spq.internal_gmr_ref_no          
          and gmr.process_id = pc_process_id
-            --and qat.corporate_id = pc_corporate_id
-         and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
-         and poch.element_id=tt.element_id
+         and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)         
          and gmr.process_id = tt.process_id(+)
-         and gmr.is_deleted = 'N'
-         and poch.is_active = 'Y'
-         and pocd.is_active = 'Y'
-         and pofh.is_active = 'Y';
-  
+         and gmr.is_deleted = 'N';
+         
+     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2,pc_element_id varchar2) is
+      select pofh.internal_gmr_ref_no,
+             pofh.pofh_id,
+             pofh.qp_start_date,
+             pofh.qp_end_date,
+             pofh.qty_to_be_fixed,
+             pcbpd.element_id,
+             pcbpd.pcbpd_id,
+             pcbpd.qty_to_be_priced,
+             pocd.is_any_day_pricing
+             from pofh_price_opt_fixation_header pofh,
+              pocd_price_option_calloff_dtls pocd,
+              pcbpd_pc_base_price_detail pcbpd  
+            where pofh.internal_gmr_ref_no=pc_internal_gmr_ref_no
+               and pofh.pocd_id=pocd.pocd_id
+               and pocd.pcbpd_id=pcbpd.pcbpd_id
+               and pcbpd.element_id=pc_element_id
+               and pcbpd.process_id=pc_process_id;
+       
+         
     vobj_error_log                 tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count             number := 1;
     vd_qp_start_date               date;
@@ -3410,22 +3403,27 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
     vc_prompt_month                varchar2(15);
     vc_prompt_year                 number;
     vc_prompt_date                 date;
+    vn_qty_to_be_priced            number;
+    vn_total_quantity              number;
+    vn_avarage_price               number;
   
   begin
     for cur_gmr_rows in cur_gmr
-    loop
+    loop    
+     vn_total_contract_value        := 0;
+     for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,cur_gmr_rows.element_id)
+     loop    
       vc_price_fixation_status       := null;
-      vn_total_contract_value        := 0;
       vn_market_flag                 := null;
       vn_any_day_cont_price_fix_qty  := 0;
       vn_any_day_cont_price_ufix_qty := 0;
       vn_any_day_unfixed_qty         := 0;
       vn_any_day_fixed_qty           := 0;
-      vc_pcbpd_id                    := cur_gmr_rows.pcbpd_id;
+      vc_pcbpd_id                    := cur_gmr_ele_rows.pcbpd_id;
       vc_price_unit_id               := null;
       vc_ppu_price_unit_id           := null;
-      vd_qp_start_date               := cur_gmr_rows.qp_start_date;
-      vd_qp_end_date                 := cur_gmr_rows.qp_end_date;
+      vd_qp_start_date               := cur_gmr_ele_rows.qp_start_date;
+      vd_qp_end_date                 := cur_gmr_ele_rows.qp_end_date;
     
       if cur_gmr_rows.eod_trade_date >= vd_qp_start_date and
          cur_gmr_rows.eod_trade_date <= vd_qp_end_date then
@@ -3460,7 +3458,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
           vc_ppu_price_unit_id := cur_gmr_rows.ppu_price_unit_id;
           vc_price_unit_id     := cur_gmr_rows.price_unit_id;
           vc_price_name        := cur_gmr_rows.price_unit_name;
-      end;
+      end;  
     
       if vc_period = 'Before QP' then
         vc_price_fixation_status := 'Un-priced';
@@ -3606,8 +3604,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_conc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', gvc_process, pc_user_id, sysdate, pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
+        vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
+                                                                        cur_gmr_rows.payable_qty_unit_id,
+                                                                        cur_gmr_rows.qty_unit_id,
+                                                                        cur_gmr_rows.payable_qty);
+        vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
         vn_total_contract_value := vn_total_contract_value +
-                                   vn_before_qp_price;
+                                           vn_total_quantity *
+                                           (vn_qty_to_be_priced / 100) *
+                                           vn_before_qp_price;
+        
+       --- vn_total_contract_value := vn_total_contract_value +vn_before_qp_price;                                   
         --  vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
       
       elsif vc_period = 'After QP' then
@@ -3622,7 +3629,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                  pfd_price_fixation_details     pfd
                            where poch.poch_id = pocd.poch_id
                              and pocd.pocd_id = pofh.pocd_id
-                             and pfd.pofh_id = cur_gmr_rows.pofh_id
+                             and pfd.pofh_id = cur_gmr_ele_rows.pofh_id
                              and pofh.pofh_id = pfd.pofh_id
                              and poch.is_active = 'Y'
                              and pocd.is_active = 'Y'
@@ -3645,8 +3652,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
           vc_price_fixation_status  := 'Un-priced';
         else
           vn_after_qp_price       := vn_after_price / vn_after_count;
-          vn_total_contract_value := vn_total_contract_value +
-                                     vn_after_qp_price;
+        vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
+                                                                        cur_gmr_rows.payable_qty_unit_id,
+                                                                        cur_gmr_rows.qty_unit_id,
+                                                                        cur_gmr_rows.payable_qty);
+        vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
+        vn_total_contract_value := vn_total_contract_value +
+                                           vn_total_quantity *
+                                           (vn_qty_to_be_priced / 100) *
+                                           vn_after_price;
+          
+        ---  vn_total_contract_value := vn_total_contract_value +vn_after_qp_price;
           -- vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
           if vc_price_fixation_status <> 'Finalized' then
             vc_price_fixation_status := 'Partially Priced';
@@ -3670,7 +3686,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                           pfd_price_fixation_details     pfd
                     where poch.poch_id = pocd.poch_id
                       and pocd.pocd_id = pofh.pocd_id
-                      and pofh.pofh_id = cur_gmr_rows.pofh_id
+                      and pofh.pofh_id = cur_gmr_ele_rows.pofh_id
                       and pofh.pofh_id = pfd.pofh_id
                       and pfd.as_of_date >= vd_dur_qp_start_date
                       and pfd.as_of_date <= pd_trade_date
@@ -3695,7 +3711,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
           vc_price_fixation_status := 'Un-priced';
         
         end if;
-        if cur_gmr_rows.is_any_day_pricing = 'Y' then
+        if cur_gmr_ele_rows.is_any_day_pricing = 'Y' then
           vn_market_flag := 'N';
         else
           vn_market_flag := 'Y';
@@ -3847,7 +3863,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
           vn_during_total_val_price := vn_during_total_val_price +
                                        vn_during_val_price;
         
-          vn_any_day_unfixed_qty         := cur_gmr_rows.qty_to_be_fixed -
+          vn_any_day_unfixed_qty         := cur_gmr_ele_rows.qty_to_be_fixed -
                                             vn_any_day_fixed_qty;
           vn_count_val_qp                := vn_count_val_qp + 1;
           vn_any_day_cont_price_ufix_qty := (vn_any_day_unfixed_qty *
@@ -3877,19 +3893,34 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
           if vn_market_flag = 'N' then
             vn_during_qp_price := (vn_any_day_cont_price_fix_qty +
                                   vn_any_day_cont_price_ufix_qty) /
-                                  cur_gmr_rows.qty_to_be_fixed;
+                                  cur_gmr_ele_rows.qty_to_be_fixed;
           else
             vn_during_qp_price := (vn_during_total_set_price +
                                   vn_during_total_val_price) /
                                   (vn_count_set_qp + vn_count_val_qp);
           end if;
-          vn_total_contract_value := vn_total_contract_value +
-                                     vn_during_qp_price;
+        vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
+                                                                        cur_gmr_rows.payable_qty_unit_id,
+                                                                        cur_gmr_rows.qty_unit_id,
+                                                                        cur_gmr_rows.payable_qty);
+        vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
+        vn_total_contract_value := vn_total_contract_value +
+                                           vn_total_quantity *
+                                           (vn_qty_to_be_priced / 100) *
+                                           vn_during_qp_price;
+          
+         -- vn_total_contract_value := vn_total_contract_value +vn_during_qp_price;
         else
           vn_total_contract_value := 0;
         end if;
       
       end if;
+      end loop;
+      vn_avarage_price := round(vn_total_contract_value /
+                                  vn_total_quantity,
+                                  3);
+      
+    
       begin
         select cm.cur_id,
                cm.cur_code,
@@ -3934,7 +3965,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
         (cur_gmr_rows.corporate_id,
          cur_gmr_rows.internal_gmr_ref_no,
          cur_gmr_rows.element_id,
-         vn_total_contract_value,
+         vn_avarage_price,
          vc_ppu_price_unit_id,
          vc_price_cur_id,
          vc_price_cur_code,
@@ -11587,6 +11618,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and grd.origin_id = orm.origin_id(+)
          and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
          and gmr.process_id = gpd.process_id(+)
+         and gpd.internal_gmr_ref_no=tmpc.internal_gmr_ref_no
+         and gpd.element_id=tmpc.element_id 
          and grd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
          and grd.internal_grd_ref_no = tmpc.internal_grd_ref_no(+)
          and grd.internal_contract_item_ref_no =
@@ -11875,6 +11908,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and dgrd.int_alloc_group_id = agh.int_alloc_group_id
          and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
          and gmr.process_id = gpd.process_id(+)
+         and gpd.internal_gmr_ref_no=tmpc.internal_gmr_ref_no
+         and gpd.element_id=tmpc.element_id 
          and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
          and pcpd.profit_center_id = cpc.profit_center_id
