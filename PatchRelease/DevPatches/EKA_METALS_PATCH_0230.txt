@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0230
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sureh Gottipati
+ 
+Created on*        		:  22-Nov-2011
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	        :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		        :  EOD
+
+Sub-Module  		        :  N/A
+ 
+Section   		        :  N/A
+ 
+Screen		                :  N/A
+ 
+FS Number and Clause No.        :  N/A
+ 
+FS Enhancement details          :  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:	        :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+RRevision: 80790
+Author: suresh.gottipati
+Date: 11:34:39 AM, Tuesday, November 22, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_gmr_exchange_detail.SQL
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
+Revision: 80793
+Author: elaiyaraja.nallathambi
+Date: 11:43:32 AM, Tuesday, November 22, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalConc.rpt
+
+
+
+
