@@ -39,4 +39,4 @@ SELECT     pcbpd.process_id,
             pdd.derivative_def_name,
             emt.exchange_id,
             emt.exchange_name,
-            pcbpd.element_id
+            pcbpd.element_id;
