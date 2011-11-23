@@ -1531,7 +1531,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
         loop
           vc_price_basis          := cur_not_called_off_rows.price_basis;
           vc_price_description    := cur_not_called_off_rows.price_description;
-          vn_total_contract_value := 0;
+         -- vn_total_contract_value := 0;
           if cur_not_called_off_rows.price_basis = 'Fixed' then
             vn_contract_price        := cur_not_called_off_rows.price_value;
             vn_total_quantity        := cur_pcdi_rows.item_qty;
@@ -4107,7 +4107,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
          and pcpq.process_id = pc_process_id
          and ceqs.process_id = pc_process_id
          and pcpd.is_active = 'Y'
-         and pcpq.is_active = 'Y'
+         and pcpq.is_active = 'Y'               
          and pcdi.is_active = 'Y'
          and pci.is_active = 'Y'
          and pcm.is_active = 'Y';
@@ -4943,7 +4943,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
         loop
           vc_price_basis          := cur_not_called_off_rows.price_basis;
           vc_price_description    := cur_not_called_off_rows.price_description;
-          vn_total_contract_value := 0;
+          --vn_total_contract_value := 0;
           if cur_not_called_off_rows.price_basis = 'Fixed' then
             vn_contract_price        := cur_not_called_off_rows.price_value;
             vn_total_quantity        := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,

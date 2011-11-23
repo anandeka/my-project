@@ -587,6 +587,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
     vc_cur_id              varchar2(10);
     vc_rc_weight_unit_id   varchar2(15);
     vn_pricable_qty        number;
+    vc_include_ref_charge  char(1);
   begin
     vn_refine_charge  := 0;
     vn_contract_price :=pn_cp_price;
@@ -601,7 +602,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                       pcpd.unit_of_measure,
                       asm.asm_id,
                       pci.pcpq_id,
-                      pci.pcdi_id
+                      pci.pcdi_id,
+                      pcdi.internal_contract_ref_no,
+                      pci.internal_contract_item_ref_no
                  from pcpd_pc_product_definition  pcpd,
                       pcpq_pc_product_quality     pcpq,
                       pqca_pq_chemical_attributes pqca,
@@ -639,6 +642,95 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
       --from the item qty.
     
       vn_item_qty := pn_rc_qty;
+      
+      begin
+        select pcepc.include_ref_charges
+          into vc_include_ref_charge
+          from pcm_physical_contract_main     pcm,
+               pcpch_pc_payble_content_header pcpch,
+               pcepc_pc_elem_payable_content  pcepc
+         where pcm.internal_contract_ref_no =
+               pcpch.internal_contract_ref_no
+           and pcpch.pcpch_id = pcepc.pcpch_id
+           and pcm.dbd_id = pc_dbd_id
+           and pcpch.dbd_id = pc_dbd_id
+           and pcepc.dbd_id = pc_dbd_id
+           and pcpch.element_id = cc.element_id
+           and pcm.internal_contract_ref_no = cc.internal_contract_ref_no
+           and (pcepc.range_min_value <= cc.typical or pcepc.position = 'Range Begining')
+           and (pcepc.range_max_value >cc.typical or pcepc.position = 'Range End')
+           and pcm.is_active = 'Y'
+           and pcpch.is_active = 'Y'
+           and pcepc.is_active = 'Y';
+      exception
+        when no_data_found then
+          vc_include_ref_charge := 'N';
+      end;
+              
+             
+      if vc_include_ref_charge='Y' then      
+      begin
+      for cur_ref_charge in (select pcpch.pcpch_id,
+                                    pcepc.range_max_op,
+                                    pcepc.range_max_value,
+                                    pcepc.range_min_op,
+                                    pcepc.range_min_value,
+                                    pcepc.position,
+                                    pcepc.refining_charge_value,
+                                    pcepc.refining_charge_unit_id,
+                                    pum.cur_id,
+                                    pum.price_unit_id,
+                                    pum.weight_unit_id
+                               from pcm_physical_contract_main     pcm,
+                                    pcdi_pc_delivery_item          pcdi,
+                                    pci_physical_contract_item     pci,
+                                    pcpch_pc_payble_content_header pcpch,
+                                    pcepc_pc_elem_payable_content  pcepc,
+                                    ppu_product_price_units        ppu,
+                                    pum_price_unit_master          pum
+                              where pcm.internal_contract_ref_no =
+                                    pcdi.internal_contract_ref_no
+                                and pcdi.pcdi_id = pci.pcdi_id
+                                and pcm.internal_contract_ref_no =
+                                    pcpch.internal_contract_ref_no
+                                and pcpch.element_id = cc.element_id
+                                and pcpch.pcpch_id = pcepc.pcpch_id
+                                and pcepc.include_ref_charges = 'Y'
+                                and ppu.internal_price_unit_id =
+                                    pcepc.refining_charge_unit_id
+                                and ppu.price_unit_id = pum.price_unit_id
+                                and pci.internal_contract_item_ref_no =
+                                    cc.internal_contract_item_ref_no
+                                and pci.dbd_id = pc_dbd_id
+                                and pcdi.dbd_id = pc_dbd_id
+                                and pcm.dbd_id = pc_dbd_id
+                                and pcpch.dbd_id = pc_dbd_id
+                                and pcepc.dbd_id = pc_dbd_id
+                                and pci.is_active = 'Y'
+                                and pcm.is_active = 'Y'
+                                and pcdi.is_active = 'Y'
+                                and pcpch.is_active = 'Y'
+                                and pcepc.is_active = 'Y')
+      loop
+        vc_rc_weight_unit_id := cur_ref_charge.weight_unit_id;
+        vc_cur_id            := cur_ref_charge.cur_id;
+        vc_price_unit_id     := cur_ref_charge.price_unit_id;
+      
+        if (cur_ref_charge.range_min_value <= cc.typical or
+           cur_ref_charge.position = 'Range Begining') and
+           (cur_ref_charge.range_max_value > cc.typical or
+           cur_ref_charge.position = 'Range End') then
+          vn_refine_charge := cur_ref_charge.refining_charge_value;
+        end if;
+        end loop;
+     exception
+     when others then
+          vn_refine_charge := 0;
+          vc_price_unit_id := null;
+    end; 
+    
+    else     
+      
       /*if cc.unit_of_measure = 'Wet' then
         vn_item_qty := cc.item_qty;
       else
@@ -746,7 +838,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                                  pcerc.esc_desc_value,
                                                  pcerc.esc_desc_unit_id,
                                                  pcerc.refining_charge,
-                                                 pcerc.refining_charge_unit_id
+                                                 pcerc.refining_charge_unit_id,
+                                                 pcerc.charge_basis
                                             from pcerc_pc_elem_refining_charge pcerc
                                            where pcerc.pcrh_id =
                                                  cur_ref_charge.pcrh_id
@@ -775,12 +868,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                   vn_refine_charge       := vn_refine_charge +
                                             vn_each_tier_rc_charge;*/
                  --
-                 if cur_ref_charge.charge_basis = 'absolute' then
+                 if cur_forward_price.charge_basis = 'absolute' then
                     vn_each_tier_rc_charge := round(vn_range_gap /
                                                     nvl(cur_forward_price.esc_desc_value,
                                                          1)) *
                                                     cur_forward_price.refining_charge;
-                  elsif cur_ref_charge.charge_basis = 'fractions Pro-Rata' then
+                  elsif cur_forward_price.charge_basis = 'fractions Pro-Rata' then
                     vn_each_tier_rc_charge := (vn_range_gap /
                                               nvl(cur_forward_price.esc_desc_value,
                                                    1)) *
@@ -801,7 +894,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                                   pcerc.esc_desc_value,
                                                   pcerc.esc_desc_unit_id,
                                                   pcerc.refining_charge,
-                                                  pcerc.refining_charge_unit_id
+                                                  pcerc.refining_charge_unit_id,
+                                                  pcerc.charge_basis
                                              from pcerc_pc_elem_refining_charge pcerc
                                             where pcerc.pcrh_id =
                                                   cur_ref_charge.pcrh_id
@@ -824,12 +918,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                     vn_range_gap := vn_contract_price -
                                     cur_backward_price.range_min_value;
                   end if;
-                  if cur_ref_charge.charge_basis = 'absolute' then
+                  if cur_backward_price.charge_basis = 'absolute' then
                     vn_each_tier_rc_charge := round(vn_range_gap /
                                                     nvl(cur_backward_price.esc_desc_value,
                                                          1)) *
                                                     cur_backward_price.refining_charge;
-                  elsif cur_ref_charge.charge_basis = 'fractions Pro-Rata' then
+                  elsif cur_backward_price.charge_basis = 'fractions Pro-Rata' then
                     vn_each_tier_rc_charge := (vn_range_gap /
                                               nvl(cur_backward_price.esc_desc_value,
                                                    1)) *
@@ -889,6 +983,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
         vn_element_qty           := vn_converted_qty * cc.typical;
         vc_qty_unit_id_numerator := cc.qty_unit_id_numerator;
       end if;*/
+      end if;
     
       vn_pricable_qty      := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
                                                                    pc_rc_qty_unit_id,
@@ -1068,7 +1163,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                                  pcetc.esc_desc_value,
                                                  pcetc.esc_desc_unit_id,
                                                  pcetc.treatment_charge,
-                                                 pcetc.treatment_charge_unit_id
+                                                 pcetc.treatment_charge_unit_id,
+                                                 pcetc.charge_basis
                                             from pcetc_pc_elem_treatment_charge pcetc
                                            where pcetc.pcth_id =
                                                  cur_tret_charge.pcth_id
@@ -1089,11 +1185,19 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                     --For the Half  Range 
                     vn_range_gap := vn_contract_price -
                                     cur_forward_price.range_min_value;
-                  end if;
-                  vn_each_tier_tc_charge := (vn_range_gap /
+                  end if;                  
+                  if cur_forward_price.charge_basis = 'absolute' then
+                  vn_each_tier_tc_charge :=round(vn_range_gap /
                                             nvl(cur_forward_price.esc_desc_value,
                                                  1)) *
                                             cur_forward_price.treatment_charge;
+                   elsif cur_forward_price.charge_basis = 'fractions Pro-Rata' then                          
+                   vn_each_tier_tc_charge :=(vn_range_gap /
+                                            nvl(cur_forward_price.esc_desc_value,
+                                                 1)) *
+                                            cur_forward_price.treatment_charge;
+                   end if;                         
+                                            
                   vn_treatment_charge    := vn_treatment_charge +
                                             vn_each_tier_tc_charge;
                 end loop;
@@ -1108,7 +1212,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                                   pcetc.esc_desc_value,
                                                   pcetc.esc_desc_unit_id,
                                                   pcetc.treatment_charge,
-                                                  pcetc.treatment_charge_unit_id
+                                                  pcetc.treatment_charge_unit_id,
+                                                  pcetc.charge_basis
                                              from pcetc_pc_elem_treatment_charge pcetc
                                             where pcetc.pcth_id =
                                                   cur_tret_charge.pcth_id
@@ -1131,12 +1236,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                     vn_range_gap := vn_contract_price -
                                     cur_backward_price.range_min_value;
                   end if;
-                  if cur_tret_charge.charge_basis = 'absolute' then
+                  if cur_backward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := round(vn_range_gap /
                                                     nvl(cur_backward_price.esc_desc_value,
                                                          1)) *
                                                     cur_backward_price.treatment_charge;
-                  elsif cur_tret_charge.charge_basis = 'fractions Pro-Rata' then
+                  elsif cur_backward_price.charge_basis = 'fractions Pro-Rata' then
                     vn_each_tier_tc_charge := (vn_range_gap /
                                               nvl(cur_backward_price.esc_desc_value,
                                                    1)) *
