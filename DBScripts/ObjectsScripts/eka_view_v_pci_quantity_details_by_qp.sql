@@ -268,7 +268,7 @@ select tt.pcdi_id,
                   else
                    pdm.product_desc
                 end) product_name,
-                nvl(qav_qat.quality_name, qat.quality_name) quality,
+                nvl(qat.quality_name,qav_qat.quality_name) quality,
                 gab.firstname || ' ' || gab.lastname trader,
                 null instrument_name,
                 itm.incoterm,
@@ -341,7 +341,7 @@ select tt.pcdi_id,
                  else
                   pdm.product_id
                end) product_id,
-               nvl(qav_qat.quality_id, qat.quality_id) quality_id,
+               nvl(qat.quality_id,qav_qat.quality_id) quality_id,
                gab.gabid trader_id,
                null derivative_def_id,
                null instrument_id,
@@ -458,3 +458,4 @@ select tt.pcdi_id,
            and pfs.price_fixation_status <> 'Fixed'
            and pcdb.city_id = cim.city_id) tt
  where tt.open_qty > 0
+
