@@ -1,0 +1,67 @@
+Patch No*          		:  EKA_METALS_PATCH_0235
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  24-Nov-2011
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	        :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		        :  Reports
+
+Sub-Module  		        :  N/A 
+ 
+Section   		        :  N/A
+ 
+Screen		                :  N/A
+ 
+FS Number and Clause No.        :  N/A
+ 
+FS Enhancement details          :  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:	        :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 81010
+Author: elaiyaraja.nallathambi
+Date: 11:55:24 AM, Thursday, November 24, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalConc.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MarginReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing.rpt
+
+Revision: 81011
+Author: elaiyaraja.nallathambi
+Date: 12:02:43 PM, Thursday, November 24, 2011
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_22_DML_RFP_RPC_RFC_Scripts.sql
+
+Revision: 81013
+Author: elaiyaraja.nallathambi
+Date: 12:04:42 PM, Thursday, November 24, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details_by_qp.sql
+
+
+
