@@ -18,19 +18,17 @@ Insert into AKM_ACTION_REF_KEY_MASTER
  Values
    ('ProActRefNo', 'ProAct Ref No', 'SELECT COUNT(*) FROM   AXS_ACTION_SUMMARY axs WHERE  axs.action_ref_no = :pc_action_ref_no AND    axs.corporate_id = :pc_corporate_id');
 
-
 Insert into ARF_ACTION_REF_NUMBER_FORMAT
    (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
     MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
  Values
-   ('ARF-ProAct', 'ProActRefNo', '&corpId', 'PA-', 1, 
+   ('ARF-ProAct-&corpId', 'ProActRefNo', '&corpId', 'PA-', 1, 
     0, '-&corpId', 1, 'N');
 
 Insert into ARFM_ACTION_REF_NO_MAPPING
    (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
  Values
-   ('ARFM-ProAct', '&corpId', 'processActivity', 'ProActRefNo', 'N');
-
+   ('ARFM-ProAct-&corpId', '&corpId', 'processActivity', 'ProActRefNo', 'N');
 
 Insert into ERC_EXTERNAL_REF_NO_CONFIG
    (CORPORATE_ID, EXTERNAL_REF_NO_KEY, PREFIX, MIDDLE_NO_LAST_USED_VALUE, SUFFIX)
