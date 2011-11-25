@@ -1,0 +1,64 @@
+Patch No*          		:  EKA_METALS_PATCH_0239
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sachin Talwar
+ 
+Created on*        		:  25-Nov-2011
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	        :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		        :  Physical
+
+Sub-Module  		        :  Mining
+ 
+Section   		        :  N/A
+ 
+Screen		                :  N/A
+ 
+FS Number and Clause No.        :  N/A
+ 
+FS Enhancement details          :  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:	        :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 81131
+Author: sachin
+Date: 6:00:06 PM, Friday, November 25, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_119.sql
+
+Revision: 81130
+Author: sachin
+Date: 5:59:15 PM, Friday, November 25, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_23.sql
+
+Revision: 81129
+Author: sachin
+Date: 5:56:33 PM, Friday, November 25, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_105.sql
+
