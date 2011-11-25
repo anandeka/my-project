@@ -48,3 +48,16 @@ Mining list of Tolling contract Item
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_103.sql
 
 
+
+Revision: 81152
+Author: uttam
+Date: 6:39:54 PM, Friday, November 25, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_120.sql
+
+
+
+
+
