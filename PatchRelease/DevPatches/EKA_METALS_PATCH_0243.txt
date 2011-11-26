@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0242
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek vijay
+ 
+Created on*        		:  26-Nov-2011
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	        :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		        :  Mining
+
+Sub-Module  		        :  Mining
+ 
+Section   		        :  N/A
+ 
+Screen		                :  N/A
+ 
+FS Number and Clause No.        :  N/A
+ 
+FS Enhancement details          :  N/A
+ 
+FS Amendment details            :  N/A
+
+Dependent patches:	        :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 81180
+Author: abhishek.vijay
+Date: 10:47:20 AM, Saturday, November 26, 2011
+Message:
+mining links...
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_108.sql
+
