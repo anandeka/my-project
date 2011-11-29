@@ -1,501 +1,768 @@
-CREATE OR REPLACE procedure generateContractOutputDoc (
-      p_contractNo        VARCHAR2,
-      p_docrefno          VARCHAR2,
-      p_activity_id       VARCHAR2
-   )
+CREATE OR REPLACE PROCEDURE  "GENERATECONTRACTOUTPUTDOC" (
+   p_contractno    VARCHAR2,
+   p_docrefno      VARCHAR2,
+   p_activity_id   VARCHAR2
+)
+IS
+   docid                      VARCHAR2 (15);
+   contractsection            VARCHAR2 (50)   := 'Contract Buyer Section';
+   issuedate                  VARCHAR2 (50);
+   contractrefno              VARCHAR2 (50);
+   cpcontractrefno            VARCHAR2 (50);
+   corporateid                VARCHAR2 (20);
+   corporatename              VARCHAR2 (20);
+   contracttype               VARCHAR2 (20);
+   cpid                       VARCHAR2 (20);
+   counterparty               VARCHAR2 (200);
+   traxystrader               VARCHAR2 (200);
+   cpcontactpersoson          VARCHAR2 (200);
+   buyer                      VARCHAR2 (200);
+   seller                     VARCHAR2 (200);
+   cpaddress                  VARCHAR2 (4000);
+   executiontype              VARCHAR2 (20);
+   agencydetails              VARCHAR2 (4000);
+   jvdetails                  VARCHAR2 (4000);
+   productdef                 VARCHAR2 (4000);
+   display_order              NUMBER (10)     := 1;
+   pcdi_count                 NUMBER (10)     := 1;
+   deliveryschedulecomments   VARCHAR2 (4000) := '';
+   paymentdetails             VARCHAR2 (4000) := '';
+   paymenttext                VARCHAR2 (4000) := '';
+   taxes                      VARCHAR2 (4000) := '';
+   insuranceterms             VARCHAR2 (4000) := '';
+   otherterms                 VARCHAR2 (4000) := '';
+   product_group_type         VARCHAR2 (50)   := '';
+   qualityprintnamereq        VARCHAR2 (15)   := '';
+   qualityprintname           VARCHAR2 (1000) := '';
 
+   CURSOR cr_delivery
    IS
-      docId  VARCHAR2(15);
-      contractSection  VARCHAR2(50) :='Contract Buyer Section';
-      issueDate         VARCHAR2 (50);
-      ContractRefNo     VARCHAR2 (50);
-      CPContractRefNo   VARCHAR2 (50);
-      CorporateId       VARCHAR2(20);
-      CorporateName     VARCHAR2(20);
-      ContractType      VARCHAR2(20);
-      CpId              VARCHAR2(20);
-      counterparty      VARCHAR2(200);
-      traxysTrader    varchar2(200);
-      cpContactPersoson    varchar2(200);
-      buyer     varchar2(200);
-      seller     varchar2(200);
-      CpAddress  varchar2(4000);
-      ProductDef  varchar2(4000);
-      display_order number(10) :=1;
-      pcdi_count number(10) :=1;
-      deliveryScheduleComments VARCHAR2(4000) :='';
-      paymentDetails VARCHAR2(4000) :='';
-      paymentText VARCHAR2(4000) :='';
-      taxes VARCHAR2(4000) :='';
-      insuranceTerms VARCHAR2(4000) :='';
-      otherTerms VARCHAR2(4000) :='';
-      PRODUCT_GROUP_TYPE VARCHAR2(50):='';
-      qualityPrintNameReq VARCHAR2(15):='';
-      qualityPrintName VARCHAR2(1000):='';
-
-
-cursor cr_delivery
-    IS
-Select PCDI.PCDI_ID PCDI_ID,(pcm.contract_ref_no || '-' || pcdi.delivery_item_no ) AS delivery_item_ref_no
-From PCDI_PC_DELIVERY_ITEM PCDI, PCM_PHYSICAL_CONTRACT_MAIN PCM
-Where PCDI.INTERNAL_CONTRACT_REF_NO = PCM.INTERNAL_CONTRACT_REF_NO AND
-PCM.INTERNAL_CONTRACT_REF_NO =p_contractNo
-and PCDI.IS_ACTIVE = 'Y'
-order by to_number(pcdi.delivery_item_no);
-
+      SELECT   pcdi.pcdi_id pcdi_id,
+               (pcm.contract_ref_no || '-' || pcdi.delivery_item_no
+               ) AS delivery_item_ref_no
+          FROM pcdi_pc_delivery_item pcdi, pcm_physical_contract_main pcm
+         WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+           AND pcm.internal_contract_ref_no = p_contractno
+           AND pcdi.is_active = 'Y'
+      ORDER BY TO_NUMBER (pcdi.delivery_item_no);
 BEGIN
+   SELECT seq_cont_op.NEXTVAL
+     INTO docid
+     FROM DUAL;
 
-    select SEQ_CONT_OP.nextval into docId from dual;
-    begin
-    Select to_char(PCM.ISSUE_DATE ,'dd-Mon-YYYY'),PCM.CONTRACT_REF_NO,nvl(PCM.CP_CONTRACT_REF_NO,'NA') ,AK.CORPORATE_NAME,AK.CORPORATE_ID,PCM.PURCHASE_SALES,
-        PHD.COMPANYNAME,PCM.CP_ID,PCM.PRODUCT_GROUP_TYPE
-        INTO issueDate,ContractRefNo,CPContractRefNo,CorporateName,CorporateId,ContractType,counterparty,CpId,PRODUCT_GROUP_TYPE
-        From PCM_PHYSICAL_CONTRACT_MAIN PCM, AK_CORPORATE AK,PHD_PROFILEHEADERDETAILS PHD
-        Where PCM.CORPORATE_ID = AK.CORPORATE_ID AND PHD.PROFILEID = PCM.CP_ID AND    PCM.INTERNAL_CONTRACT_REF_NO  =p_contractNo;
+   BEGIN
+      SELECT TO_CHAR (pcm.issue_date, 'dd-Mon-YYYY'), pcm.contract_ref_no,
+             NVL (pcm.cp_contract_ref_no, 'NA'), ak.corporate_name,
+             ak.corporate_id, pcm.purchase_sales, phd.companyname,
+             pcm.cp_id, pcm.product_group_type, pcm.partnership_type
+        INTO issuedate, contractrefno,
+             cpcontractrefno, corporatename,
+             corporateid, contracttype, counterparty,
+             cpid, product_group_type, executiontype
+        FROM pcm_physical_contract_main pcm,
+             ak_corporate ak,
+             phd_profileheaderdetails phd
+       WHERE pcm.corporate_id = ak.corporate_id
+         AND phd.profileid = pcm.cp_id
+         AND pcm.internal_contract_ref_no = p_contractno;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         issuedate := '';
+         contractrefno := '';
+         cpcontractrefno := '';
+         corporatename := '';
+         corporateid := '';
+         contracttype := '';
+         counterparty := '';
+         cpid := '';
+         product_group_type := '';
+   END;
 
-    exception
-              when no_data_found then
-                issueDate := '';
-                ContractRefNo:= '';
-                CPContractRefNo:='';
-                CorporateName:='';
-                CorporateId:='';
-                ContractType:='';
-                counterparty:='';
-                CpId:='';
-                PRODUCT_GROUP_TYPE:='';
+   IF (contracttype = 'P')
+   THEN
+      buyer := corporatename;
+      seller := counterparty;
+      contractsection := 'Contract Buyer Section';
+   ELSE
+      buyer := counterparty;
+      seller := corporatename;
+      contractsection := 'Contract Seller Section';
+   END IF;
 
+   INSERT INTO cos_contract_output_summary
+               (doc_id, doc_type, template_type, template_name,
+                internal_doc_ref_no, ver_no, issue_date, is_amendment,
+                status, created_by, created_date, updated_by, updated_date,
+                cancelled_by, cancelled_date, send_date, received_date,
+                internal_contract_ref_no, contract_ref_no, contract_type,
+                corporate_id, contract_signing_date, approval_type,
+                amendment_no, watermark, amendment_date, document_print_type
+               )
+        VALUES (docid, 'ORIGINAL', NULL, NULL,
+                p_docrefno, 1, issuedate, 'N',
+                'Active', NULL, NULL, NULL, NULL,
+                NULL, NULL, NULL, NULL,
+                p_contractno, contractrefno, contracttype,
+                corporateid, NULL, NULL,
+                NULL, NULL, NULL, 'Full Contract'
+               );
 
-    end;
-    if (ContractType = 'P') then
-        buyer:=CorporateName;
-        seller :=counterparty;
-        contractSection  :='Contract Buyer Section';
-    else
-        buyer:=counterparty;
-        seller:=CorporateName;
-        contractSection  :='Contract Seller Section';
-    end if;
-
-Insert into COS_CONTRACT_OUTPUT_SUMMARY
-   (DOC_ID, DOC_TYPE, TEMPLATE_TYPE, TEMPLATE_NAME, INTERNAL_DOC_REF_NO,
-    VER_NO, ISSUE_DATE, IS_AMENDMENT, STATUS, CREATED_BY,
-    CREATED_DATE, UPDATED_BY, UPDATED_DATE, CANCELLED_BY, CANCELLED_DATE,
-    SEND_DATE, RECEIVED_DATE, INTERNAL_CONTRACT_REF_NO, CONTRACT_REF_NO, CONTRACT_TYPE,
-    CORPORATE_ID, CONTRACT_SIGNING_DATE, APPROVAL_TYPE, AMENDMENT_NO, WATERMARK,
-    AMENDMENT_DATE, DOCUMENT_PRINT_TYPE)
- Values
-   (docId, 'ORIGINAL', NULL, NULL, p_docrefno,
-    1, issueDate, 'N', 'Active', NULL,
-    NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, p_contractNo, ContractRefNo, ContractType,
-    CorporateId, NULL, NULL, NULL, NULL,
-    NULL, 'Full Contract');
-    
-    Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, contractSection, 'Contract Ref No',
-    'Y', NULL, NULL, ContractRefNo, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
-    
-   display_order:=display_order+1;
-    
-    Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, contractSection, 'Counterparty Contract Ref No',
-    'Y', NULL, NULL, CPContractRefNo, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
-
-    begin
-       Select nvl((GAB.FIRSTNAME ||' ' ||  GAB.LASTNAME ), 'NA')   into traxysTrader from AK_CORPORATE_USER AKU, GAB_GLOBALADDRESSBOOK GAB Where GAB.GABID = AKU.GABID
-       AND AKU.USER_ID IN ( Select PCM.TRADER_ID  From PCM_PHYSICAL_CONTRACT_MAIN PCM Where PCM.INTERNAL_CONTRACT_REF_NO = p_contractNo);
-
-    exception
-        when no_data_found then
-          traxysTrader := null;
-    end;
-
-    begin
-        Select GAB.FIRSTNAME ||' ' ||  GAB.LASTNAME   into cpContactPersoson from GAB_GLOBALADDRESSBOOK GAB Where GAB.GABID =
-        ( Select PCM.CP_PERSON_IN_CHARGE_ID  From PCM_PHYSICAL_CONTRACT_MAIN PCM Where PCM.INTERNAL_CONTRACT_REF_NO = p_contractNo);
-    exception
-    when no_data_found then
-      cpContactPersoson := null;
-    end;
-
-
-  display_order:=display_order+1;
-Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, contractSection, 'Traxys Trader',
-    'Y', NULL, NULL, traxysTrader, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
-   display_order:=display_order+1;
- Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, contractSection, ' CP Trader name',
-    'Y', NULL, NULL, cpContactPersoson, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Contract Ref No', 'Y', NULL,
+                NULL, contractrefno, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
    display_order := display_order + 1;
 
-   Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, contractsection, 'Contract Issue Date',
-    'Y', NULL, NULL, issueDate, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Counterparty Contract Ref No', 'Y', NULL,
+                NULL, cpcontractrefno, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
-   display_order:=display_order+1;
- Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, contractSection, 'Buyer',
-    'Y', NULL, NULL, buyer, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
-     display_order:=display_order+1;
-  Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, contractSection, 'Seller',
-    'Y', NULL, NULL, seller, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
- 
-    begin
-    select PAD.address || ','||  CIM.CITY_NAME|| ','||SM.STATE_NAME|| ','|| CYM.COUNTRY_NAME into CpAddress
-    from PAD_PROFILE_ADDRESSES PAD ,CYM_COUNTRYMASTER CYM, CIM_CITYMASTER CIM, SM_STATE_MASTER SM
-    Where PAD.ADDRESS_TYPE='Main' AND
-    PAD.COUNTRY_ID = CYM.COUNTRY_ID AND
-    PAD .CITY_ID(+) = CIM.CITY_ID AND
-    CIM.STATE_ID(+) = SM.STATE_ID AND
-    PAD.PROFILE_ID=CpId  and PAD.IS_DELETED='N';
-    exception
-        when no_data_found then
-          CpAddress := null;
-    end;
+   BEGIN
+      SELECT NVL ((gab.firstname || ' ' || gab.lastname), 'NA')
+        INTO traxystrader
+        FROM ak_corporate_user aku, gab_globaladdressbook gab
+       WHERE gab.gabid = aku.gabid
+         AND aku.user_id IN (
+                             SELECT pcm.trader_id
+                               FROM pcm_physical_contract_main pcm
+                              WHERE pcm.internal_contract_ref_no =
+                                                                  p_contractno);
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         traxystrader := NULL;
+   END;
 
-    display_order:=display_order+1;
-  Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, 'Counter Party', 'CP Address',
-    'Y', NULL, NULL, CpAddress, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+   BEGIN
+      SELECT gab.firstname || ' ' || gab.lastname
+        INTO cpcontactpersoson
+        FROM gab_globaladdressbook gab
+       WHERE gab.gabid = (SELECT pcm.cp_person_in_charge_id
+                            FROM pcm_physical_contract_main pcm
+                           WHERE pcm.internal_contract_ref_no = p_contractno);
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         cpcontactpersoson := NULL;
+   END;
 
-    begin
-    select PDM.PRODUCT_DESC || chr(10)||
-           (CASE
-              WHEN PCPD.QTY_TYPE ='Fixed'
-                 THEN  f_format_to_char(PCPD.QTY_MAX_VAL,4) || ' '|| QUM.QTY_UNIT_DESC
-              ELSE PCPD.QTY_MIN_OPERATOR ||' '||   f_format_to_char(PCPD.QTY_MIN_VAL,4) ||' '||  PCPD.QTY_MAX_OPERATOR ||' '||   f_format_to_char(PCPD.QTY_MAX_VAL,4) || ' '|| QUM.QTY_UNIT_DESC
-              END
-          )
-           into ProductDef
-    from PCPD_PC_PRODUCT_DEFINITION  PCPD, PDM_PRODUCTMASTER PDM,QUM_QUANTITY_UNIT_MASTER QUM
-    Where PCPD.PRODUCT_ID = PDM.PRODUCT_ID AND PCPD.QTY_UNIT_ID = QUM.QTY_UNIT_ID
-    AND PCPD.INTERNAL_CONTRACT_REF_NO = p_contractNo;
+   display_order := display_order + 1;
 
-    exception
-            when no_data_found then
-              ProductDef := '';
-    end;
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Traxys Trader', 'Y', NULL,
+                NULL, traxystrader, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
-    display_order:=display_order+1;
+   display_order := display_order + 1;
 
-  Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, 'Product and Quantity', 'Product and Quantity',
-    'Y', NULL, NULL, ProductDef, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
-    display_order:=display_order+1;
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                ' CP Trader name', 'Y', NULL,
+                NULL, cpcontactpersoson, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
-  begin
-  select PCPD.IS_QUALITY_PRINT_NAME_REQ,pcpd.QUALITY_PRINT_NAME  into qualityPrintNameReq,qualityPrintName
-    from PCPD_PC_PRODUCT_DEFINITION pcpd,
-         PCM_PHYSICAL_CONTRACT_MAIN pcm
-    where PCPD.INTERNAL_CONTRACT_REF_NO = PCM.INTERNAL_CONTRACT_REF_NO
-     AND PCPD.INTERNAL_CONTRACT_REF_NO =p_contractNo;
-  end;   
-  if (qualityPrintNameReq = 'Y') then  
+   display_order := display_order + 1;
 
-      Insert into COD_CONTRACT_OUTPUT_DETAIL
-       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-        IS_CHANGED)
-     Values
-       (docId, display_order, NULL, 'Quality/Qualities', 'Quality/Qualities',
-        'Y', NULL, NULL, qualityPrintName, NULL,
-        NULL, 'N', 'N', 'N', 'FULL',  'N');
-  else
-    
-      Insert into COD_CONTRACT_OUTPUT_DETAIL
-       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-        IS_CHANGED)
-     Values
-       (docId, display_order, NULL, 'Quality/Qualities', 'Quality/Qualities',
-        'Y', NULL, NULL, getContractQualityDetails(p_contractNo), NULL,
-        NULL, 'N', 'N', 'N', 'FULL',  'N');  
-   
-  end if;     
-        
-   
-    for delivery_rec in cr_delivery
-    loop
-        display_order := display_order+1;
-        Insert into COD_CONTRACT_OUTPUT_DETAIL
-       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-        IS_CHANGED)
-     Values
-       (docId, display_order, NULL, 'Time of Shipment', 'Delivery Item:'|| delivery_rec.delivery_item_ref_no,
-        'Y', NULL, NULL, getDeliveryPeriodDetails(p_contractNo,delivery_rec.PCDI_ID), NULL,
-        NULL, 'N', 'N', 'N', 'FULL',  'N');
-    end loop;
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Contract Issue Date', 'Y', NULL,
+                NULL, issuedate, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
-    begin
-        select PCM.DEL_SCHEDULE_COMMENTS into deliveryScheduleComments from PCM_PHYSICAL_CONTRACT_MAIN PCM
-        Where PCM.INTERNAL_CONTRACT_REF_NO = p_contractNo;
-    exception
-        when no_data_found then
-          deliveryScheduleComments := '';
-    end;
+   display_order := display_order + 1;
 
-   display_order:=display_order+1;
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Buyer', 'Y', NULL,
+                NULL, buyer, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
-  Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, 'Time of Shipment', 'Other Terms',
-    'Y', NULL, NULL, deliveryScheduleComments, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+   display_order := display_order + 1;
 
-    begin
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Seller', 'Y', NULL,
+                NULL, seller, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
-    Select  CM.CUR_CODE || ' ,'|| PYM.PAYTERM_LONG_NAME || (CASE
-              WHEN PCM.PROVISIONAL_PYMT_PCTG IS NULL
-                 THEN ''
-              ELSE ', '||PCM.PROVISIONAL_PYMT_PCTG|| ' % of Provisional Invoice Amount'
-              END
-          )   into paymentDetails
-    From PCM_PHYSICAL_CONTRACT_MAIN PCM , PYM_PAYMENT_TERMS_MASTER PYM, CM_CURRENCY_MASTER CM
-    Where PCM.PAYMENT_TERM_ID = PYM.PAYMENT_TERM_ID AND
-    CM.CUR_ID = PCM.INVOICE_CURRENCY_ID AND PCM.INTERNAL_CONTRACT_REF_NO = p_contractNo;
+   BEGIN
+      SELECT    pad.address
+             || ','
+             || cim.city_name
+             || ','
+             || sm.state_name
+             || ','
+             || cym.country_name
+        INTO cpaddress
+        FROM pad_profile_addresses pad,
+             cym_countrymaster cym,
+             cim_citymaster cim,
+             sm_state_master sm
+       WHERE pad.address_type = 'Main'
+         AND pad.country_id = cym.country_id
+         AND pad.city_id(+) = cim.city_id
+         AND cim.state_id(+) = sm.state_id
+         AND pad.profile_id = cpid
+         AND pad.is_deleted = 'N';
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         cpaddress := NULL;
+   END;
 
-    exception
-        when no_data_found then
-          paymentDetails := '';
-    end;
+   display_order := display_order + 1;
 
-  display_order:=display_order+1;
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Counter Party',
+                'CP Address', 'Y', NULL,
+                NULL, cpaddress, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
-  Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, 'Payment Terms', 'Payment Terms',
-    'Y', NULL, NULL, paymentDetails, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+   IF (executiontype = 'Joint Venture')
+   THEN
+      IF (contracttype = 'P')
+      THEN
+         jvdetails := getjvdetails (p_contractno);
+      ELSE
+         jvdetails := 'JV Contract';
+      END IF;
 
-   if (PRODUCT_GROUP_TYPE = 'CONCENTRATES') then
-       display_order:=display_order+1;
+      display_order := display_order + 1;
 
-        Insert into COD_CONTRACT_OUTPUT_DETAIL
-       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-        IS_CHANGED)
-     Values
-       (docId, display_order, NULL, 'Payable Content', 'Payable Content',
-        'Y', NULL, NULL, getPayableContentDetails(p_contractNo), NULL,
-        NULL, 'N', 'N', 'N', 'FULL',  'N');
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'JV',
+                   'JV Details', 'Y', NULL,
+                   NULL, jvdetails, NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
+   ELSIF (executiontype = 'Agency')
+   THEN
+      IF (contracttype = 'P')
+      THEN
+         BEGIN
+            SELECT (   'Agency Counter Party :'
+                    || phd.company_long_name1
+                    || CHR (10)
+                    || 'Commission Details :'
+                    || (CASE
+                           WHEN pcad.commission_type = 'Fixed'
+                              THEN    pcad.commission_value
+                                   || ' '
+                                   || pum.price_unit_name
+                           WHEN pcad.commission_type = 'Formula'
+                              THEN pacf.external_formula
+                        END
+                       )
+                    || CHR (10)
+                    || 'Basis :'
+                    || (itm.incoterm || '-' || cim.city_name)
+                   )
+              INTO agencydetails
+              FROM pcad_pc_agency_detail pcad,
+                   phd_profileheaderdetails phd,
+                   ppu_product_price_units ppu,
+                   pum_price_unit_master pum,
+                   pacf_phy_agency_comm_formula pacf,
+                   itm_incoterm_master itm,
+                   cim_citymaster cim
+             WHERE pcad.agency_cp_id = phd.profileid
+               AND pcad.commission_unit_id = ppu.internal_price_unit_id(+)
+               AND ppu.price_unit_id = pum.price_unit_id(+)
+               AND pcad.commission_formula_id = pacf.pacf_id(+)
+               AND pcad.basis_incoterm_id = itm.incoterm_id
+               AND pcad.basis_city_id = cim.city_id
+               AND pcad.internal_contract_ref_no = p_contractno;
+         EXCEPTION
+            WHEN NO_DATA_FOUND
+            THEN
+               agencydetails := '';
+         END;
+      ELSE
+         agencydetails := 'Agency Contract';
+      END IF;
 
-        display_order:=display_order+1;
+      display_order := display_order + 1;
 
-       Insert into COD_CONTRACT_OUTPUT_DETAIL
-       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-        IS_CHANGED)
-     Values
-       (docId, display_order, NULL, 'Treatment Charges', 'Treatment Charges',
-        'Y', NULL, NULL, getTCDetails(p_contractNo), NULL,
-        NULL, 'N', 'N', 'N', 'FULL',  'N');
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Agency',
+                   'Agency', 'Y', NULL,
+                   NULL, agencydetails, NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
+   END IF;
 
-        display_order:=display_order+1;
+   BEGIN
+      SELECT    pdm.product_desc
+             || CHR (10)
+             || (CASE
+                    WHEN pcpd.qty_type = 'Fixed'
+                       THEN    f_format_to_char (pcpd.qty_max_val, 4)
+                            || ' '
+                            || qum.qty_unit_desc
+                    ELSE    pcpd.qty_min_operator
+                         || ' '
+                         || f_format_to_char (pcpd.qty_min_val, 4)
+                         || ' '
+                         || pcpd.qty_max_operator
+                         || ' '
+                         || f_format_to_char (pcpd.qty_max_val, 4)
+                         || ' '
+                         || qum.qty_unit_desc
+                 END
+                )
+        INTO productdef
+        FROM pcpd_pc_product_definition pcpd,
+             pdm_productmaster pdm,
+             qum_quantity_unit_master qum
+       WHERE pcpd.product_id = pdm.product_id
+         AND pcpd.qty_unit_id = qum.qty_unit_id
+         AND pcpd.internal_contract_ref_no = p_contractno;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         productdef := '';
+   END;
 
-       Insert into COD_CONTRACT_OUTPUT_DETAIL
-       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-        IS_CHANGED)
-     Values
-       (docId, display_order, NULL, 'Refining Charges', 'Refining Charges',
-        'Y', NULL, NULL, getRCDetails(p_contractNo), NULL,
-        NULL, 'N', 'N', 'N', 'FULL',  'N');
+   display_order := display_order + 1;
 
-        display_order:=display_order+1;
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Product and Quantity',
+                'Product and Quantity', 'Y', NULL,
+                NULL, productdef, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
-       Insert into COD_CONTRACT_OUTPUT_DETAIL
-       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-        IS_CHANGED)
-     Values
-       (docId, display_order, NULL, 'Penalties', 'Penalties',
-        'Y', NULL, NULL, getPenaltyDetails(p_contractNo), NULL,
-        NULL, 'N', 'N', 'N', 'FULL',  'N');
+   display_order := display_order + 1;
 
-      display_order:=display_order+1;
+   BEGIN
+      SELECT pcpd.is_quality_print_name_req, pcpd.quality_print_name
+        INTO qualityprintnamereq, qualityprintname
+        FROM pcpd_pc_product_definition pcpd, pcm_physical_contract_main pcm
+       WHERE pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
+         AND pcpd.internal_contract_ref_no = p_contractno;
+   END;
 
-       Insert into COD_CONTRACT_OUTPUT_DETAIL
-       (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-        IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-        POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-        IS_CHANGED)
-     Values
-       (docId, display_order, NULL, 'Assaying Rules', 'Assaying Rules',
-        'Y', NULL, NULL, getAssayinRules(p_contractNo), NULL,
-        NULL, 'N', 'N', 'N', 'FULL',  'N');
+   IF (qualityprintnamereq = 'Y')
+   THEN
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Quality/Qualities',
+                   'Quality/Qualities', 'Y', NULL,
+                   NULL, qualityprintname, NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
+   ELSE
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Quality/Qualities',
+                   'Quality/Qualities', 'Y', NULL,
+                   NULL, getcontractqualitydetails (p_contractno), NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
+   END IF;
 
-    end if;
+   FOR delivery_rec IN cr_delivery
+   LOOP
+      display_order := display_order + 1;
 
-    begin
-        select PCM.PAYMENT_TEXT into paymentText from PCM_PHYSICAL_CONTRACT_MAIN PCM
-        Where PCM.INTERNAL_CONTRACT_REF_NO = p_contractNo;
-    exception
-        when no_data_found then
-        paymentText := '';
-    end;
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name,
+                   is_print_reqd, pre_content_text_id, post_content_text_id,
+                   contract_content,
+                   pre_content_text, post_content_text, is_custom_section,
+                   is_footer_section, is_amend_section, print_type,
+                   is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Time of Shipment',
+                   'Delivery Item:' || delivery_rec.delivery_item_ref_no,
+                   'Y', NULL, NULL,
+                   getdeliveryperioddetails (p_contractno,
+                                             delivery_rec.pcdi_id
+                                            ),
+                   NULL, NULL, 'N',
+                   'N', 'N', 'FULL',
+                   'N'
+                  );
+   END LOOP;
 
-   display_order:=display_order+1;
+   BEGIN
+      SELECT pcm.del_schedule_comments
+        INTO deliveryschedulecomments
+        FROM pcm_physical_contract_main pcm
+       WHERE pcm.internal_contract_ref_no = p_contractno;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         deliveryschedulecomments := '';
+   END;
 
-  Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, 'Payment Text', 'Payment Text',
-    'Y', NULL, NULL, paymentText, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+   display_order := display_order + 1;
 
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Time of Shipment',
+                'Other Terms', 'Y', NULL,
+                NULL, deliveryschedulecomments, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
-   begin
-        select PCM.TAXES into taxes from PCM_PHYSICAL_CONTRACT_MAIN PCM
-        Where PCM.INTERNAL_CONTRACT_REF_NO = p_contractNo;
-    exception
-        when no_data_found then
-        taxes := '';
-    end;
+   BEGIN
+      SELECT    cm.cur_code
+             || ' ,'
+             || pym.payterm_long_name
+             || (CASE
+                    WHEN pcm.provisional_pymt_pctg IS NULL
+                       THEN ''
+                    ELSE    ', '
+                         || pcm.provisional_pymt_pctg
+                         || ' % of Provisional Invoice Amount'
+                 END
+                )
+        INTO paymentdetails
+        FROM pcm_physical_contract_main pcm,
+             pym_payment_terms_master pym,
+             cm_currency_master cm
+       WHERE pcm.payment_term_id = pym.payment_term_id
+         AND cm.cur_id = pcm.invoice_currency_id
+         AND pcm.internal_contract_ref_no = p_contractno;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         paymentdetails := '';
+   END;
 
-   display_order:=display_order+1;
+   display_order := display_order + 1;
 
-  Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
- Values
-   (docId, display_order, NULL, 'Taxes, Tarrifs and Duties', 'Terms ',
-    'Y', NULL, NULL, taxes, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Payment Terms',
+                'Payment Terms', 'Y', NULL,
+                NULL, paymentdetails, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
 
+   IF (product_group_type = 'CONCENTRATES')
+   THEN
+      display_order := display_order + 1;
 
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Payable Content',
+                   'Payable Content', 'Y', NULL,
+                   NULL, getpayablecontentdetails (p_contractno), NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
 
-    begin
-        select PCM.INSURANCE into insuranceTerms from PCM_PHYSICAL_CONTRACT_MAIN PCM
-        Where PCM.INTERNAL_CONTRACT_REF_NO = p_contractNo;
-    exception
-        when no_data_found then
-        insuranceTerms := '';
-    end;
+      display_order := display_order + 1;
 
-   display_order:=display_order+1;
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Treatment Charges',
+                   'Treatment Charges', 'Y', NULL,
+                   NULL, gettcdetails (p_contractno), NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
 
-  Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
-  Values
-   (docId, display_order, NULL, 'Insurance', 'Insurance Terms ',
-    'Y', NULL, NULL, insuranceTerms, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+      display_order := display_order + 1;
 
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Refining Charges',
+                   'Refining Charges', 'Y', NULL,
+                   NULL, getrcdetails (p_contractno), NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
 
-     begin
-        select PCM.OTHER_TERMS into otherTerms from PCM_PHYSICAL_CONTRACT_MAIN PCM
-        Where PCM.INTERNAL_CONTRACT_REF_NO = p_contractNo;
-    exception
-        when no_data_found then
-        otherTerms := '';
-    end;
+      display_order := display_order + 1;
 
-   display_order:=display_order+1;
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Penalties',
+                   'Penalties', 'Y', NULL,
+                   NULL, getpenaltydetails (p_contractno), NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
 
-   Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
-  Values
-   (docId, display_order, NULL, 'Other Terms', 'Other Terms ',
-    'Y', NULL, NULL, otherTerms, NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
-    
-   display_order:=display_order+1;
+      display_order := display_order + 1;
 
-   Insert into COD_CONTRACT_OUTPUT_DETAIL
-   (DOC_ID, DISPLAY_ORDER, FIELD_LAYOUT_ID, SECTION_NAME, FIELD_NAME,
-    IS_PRINT_REQD, PRE_CONTENT_TEXT_ID, POST_CONTENT_TEXT_ID, CONTRACT_CONTENT, PRE_CONTENT_TEXT,
-    POST_CONTENT_TEXT, IS_CUSTOM_SECTION, IS_FOOTER_SECTION, IS_AMEND_SECTION, PRINT_TYPE,
-    IS_CHANGED)
-  Values
-   (docId, display_order, NULL, 'List of Documents', 'List of Documents',
-    'Y', NULL, NULL, getContractDocuments(p_contractNo), NULL,
-    NULL, 'N', 'N', 'N', 'FULL',  'N');
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Assaying Rules',
+                   'Assaying Rules', 'Y', NULL,
+                   NULL, getassayinrules (p_contractno), NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
+   END IF;
 
+   BEGIN
+      SELECT pcm.payment_text
+        INTO paymenttext
+        FROM pcm_physical_contract_main pcm
+       WHERE pcm.internal_contract_ref_no = p_contractno;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         paymenttext := '';
+   END;
 
-END;
+   display_order := display_order + 1;
+
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Payment Text',
+                'Payment Text', 'Y', NULL,
+                NULL, paymenttext, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+
+   BEGIN
+      SELECT pcm.taxes
+        INTO taxes
+        FROM pcm_physical_contract_main pcm
+       WHERE pcm.internal_contract_ref_no = p_contractno;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         taxes := '';
+   END;
+
+   display_order := display_order + 1;
+
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Taxes, Tarrifs and Duties',
+                'Terms ', 'Y', NULL,
+                NULL, taxes, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+
+   BEGIN
+      SELECT pcm.insurance
+        INTO insuranceterms
+        FROM pcm_physical_contract_main pcm
+       WHERE pcm.internal_contract_ref_no = p_contractno;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         insuranceterms := '';
+   END;
+
+   display_order := display_order + 1;
+
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Insurance',
+                'Insurance Terms ', 'Y', NULL,
+                NULL, insuranceterms, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+
+   BEGIN
+      SELECT pcm.other_terms
+        INTO otherterms
+        FROM pcm_physical_contract_main pcm
+       WHERE pcm.internal_contract_ref_no = p_contractno;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         otherterms := '';
+   END;
+
+   display_order := display_order + 1;
+
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Other Terms',
+                'Other Terms ', 'Y', NULL,
+                NULL, otherterms, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+
+   display_order := display_order + 1;
+
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'List of Documents',
+                'List of Documents', 'Y', NULL,
+                NULL, getcontractdocuments (p_contractno), NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+END; 
 /
+

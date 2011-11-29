@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE prepareAmendContractOutputDoc (
+CREATE OR REPLACE PROCEDURE  "PREPAREAMENDCONTRACTOUTPUTDOC" (
    p_contractno    VARCHAR2,
    p_docrefno      VARCHAR2,
    p_activity_id   VARCHAR2
@@ -20,6 +20,9 @@ IS
    buyer                      VARCHAR2 (200);
    seller                     VARCHAR2 (200);
    cpaddress                  VARCHAR2 (4000);
+   executiontype              VARCHAR2 (20);
+   agencydetails              VARCHAR2 (4000);
+   jvdetails                  VARCHAR2 (4000);
    productdef                 VARCHAR2 (4000);
    display_order              NUMBER (10)     := 1;
    pcdi_count                 NUMBER (10)     := 1;
@@ -43,8 +46,8 @@ IS
           FROM pcdi_pc_delivery_item pcdi, pcm_physical_contract_main pcm
          WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
            AND pcm.internal_contract_ref_no = p_contractno
-           AND PCDI.IS_ACTIVE = 'Y'
-      ORDER BY to_number(pcdi.delivery_item_no);
+           AND pcdi.is_active = 'Y'
+      ORDER BY TO_NUMBER (pcdi.delivery_item_no);
 BEGIN
    SELECT seq_amend_doc.NEXTVAL
      INTO docid
@@ -55,12 +58,14 @@ BEGIN
              NVL (pcm.cp_contract_ref_no, 'NA'), ak.corporate_name,
              ak.corporate_id, pcm.purchase_sales, phd.companyname,
              pcm.cp_id, pcm.product_group_type,
-             TO_CHAR (par.amendment_date, 'dd-Mon-YYYY')
+             TO_CHAR (par.amendment_date, 'dd-Mon-YYYY'),
+             pcm.partnership_type
         INTO issuedate, contractrefno,
              cpcontractrefno, corporatename,
              corporateid, contracttype, counterparty,
              cpid, product_group_type,
-             amendmentdate
+             amendmentdate,
+             executiontype
         FROM pcm_physical_contract_main pcm,
              ak_corporate ak,
              phd_profileheaderdetails phd,
@@ -82,6 +87,7 @@ BEGIN
          cpid := '';
          product_group_type := '';
          amendmentdate := '';
+         executiontype := '';
    END;
 
    IF (contracttype = 'P')
@@ -325,6 +331,93 @@ BEGIN
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
+
+   IF (executiontype = 'Joint Venture')
+   THEN
+      IF (contracttype = 'P')
+      THEN
+         jvdetails := getjvdetails (p_contractno);
+      ELSE
+         jvdetails := 'JV Contract';
+      END IF;
+
+      display_order := display_order + 1;
+
+      INSERT INTO acd_amend_contract_details
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'JV',
+                   'JV Details', 'Y', NULL,
+                   NULL, jvdetails, NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
+   ELSIF (executiontype = 'Agency')
+   THEN
+      IF (contracttype = 'P')
+      THEN
+         BEGIN
+            SELECT (   'Agency Counter Party :'
+                    || phd.company_long_name1
+                    || CHR (10)
+                    || 'Commission Details :'
+                    || (CASE
+                           WHEN pcad.commission_type = 'Fixed'
+                              THEN    pcad.commission_value
+                                   || ' '
+                                   || pum.price_unit_name
+                           WHEN pcad.commission_type = 'Formula'
+                              THEN pacf.external_formula
+                        END
+                       )
+                    || CHR (10)
+                    || 'Basis :'
+                    || (itm.incoterm || '-' || cim.city_name)
+                   )
+              INTO agencydetails
+              FROM pcad_pc_agency_detail pcad,
+                   phd_profileheaderdetails phd,
+                   ppu_product_price_units ppu,
+                   pum_price_unit_master pum,
+                   pacf_phy_agency_comm_formula pacf,
+                   itm_incoterm_master itm,
+                   cim_citymaster cim
+             WHERE pcad.agency_cp_id = phd.profileid
+               AND pcad.commission_unit_id = ppu.internal_price_unit_id(+)
+               AND ppu.price_unit_id = pum.price_unit_id(+)
+               AND pcad.commission_formula_id = pacf.pacf_id(+)
+               AND pcad.basis_incoterm_id = itm.incoterm_id
+               AND pcad.basis_city_id = cim.city_id
+               AND pcad.internal_contract_ref_no = p_contractno;
+         EXCEPTION
+            WHEN NO_DATA_FOUND
+            THEN
+               agencydetails := '';
+         END;
+      ELSE
+         agencydetails := 'Agency Contract';
+      END IF;
+
+      display_order := display_order + 1;
+
+      INSERT INTO acd_amend_contract_details
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Agency',
+                   'Agency', 'Y', NULL,
+                   NULL, agencydetails, NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
+   END IF;
 
    BEGIN
       SELECT    pdm.product_desc
@@ -719,7 +812,8 @@ BEGIN
    THEN
       generatecontractoutputdoc (p_contractno, p_docrefno, p_activity_id);
    ELSE
-      generateamendcontractoutputdoc(old_doc_id, docid, p_contractno);
+      generateamendcontractoutputdoc (old_doc_id, docid, p_contractno);
    END IF;
-END;
+END; 
 /
+
