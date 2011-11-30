@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0248
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  MOHIT KuMAR GUPTA
+ 
+Created on*        		:  30-Nov-2011
+
+Bug / Enhancement* 		:  ENHANCEMENT
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : PHYSICAL
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details  	 :  N/A
+ 
+FS Amendment details    	 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 81354
+Author: mohitkumar.gupta
+Date: 11:38:36 AM, Wednesday, November 30, 2011
+Message:
+Add IS_SPOT column in PFQPP table.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_121.sql
+
+
+
+
+
+
+
+

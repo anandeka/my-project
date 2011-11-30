@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0247
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  MOHIT kUMAR gUPTA
+ 
+Created on*        		:  30-Nov-2011
+
+Bug / Enhancement* 		:  ENHANCEMENT
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : PHYSICAL
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details  	 :  N/A
+ 
+FS Amendment details    	 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 81352
+Author: mohitkumar.gupta
+Date: 11:33:07 AM, Wednesday, November 30, 2011
+Message:
+For List Of Contract Approval.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_119.sql
+
+
+
+
+
+
+
+
