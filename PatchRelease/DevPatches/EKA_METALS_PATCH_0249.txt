@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0249
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy
+ 
+Created on*        		:  30-Nov-2011
+
+Bug / Enhancement* 		:  ENHANCEMENT
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : PHYSICAL
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details  	 :  N/A
+ 
+FS Amendment details    	 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 81405
+Author: rajeshwar.reddy
+Date: 16:33:16, 30 November 2011
+Message:
+static listing service keys.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_120.sql
+
+
+
+
+
+
+
+
+
