@@ -286,7 +286,7 @@ AS
       AND pci.m2m_city_id = cim_valuation.city_id(+)
       AND pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
       AND pci.pcpq_id = pcpq.pcpq_id
-      AND pym.payment_term_id = pcm.payment_term_id
+      AND pym.payment_term_id(+) = pcm.payment_term_id
       AND pcm.corporate_id = akc.corporate_id
       AND pcpq.pcpq_id = pci.pcpq_id
       AND pcpd.pcpd_id = pcpq.pcpd_id
