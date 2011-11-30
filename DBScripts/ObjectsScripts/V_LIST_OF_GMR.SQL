@@ -213,7 +213,7 @@ AND    gmr.internal_gmr_ref_no = bl_details.internal_gmr_ref_no(+)
 AND    nvl(gmr.is_settlement_gmr,
            'N') = 'N'
 AND    nvl(gmr.tolling_gmr_type,
-           'None Tolling') NOT IN ('Input Process', 'Output Process')
+           'None Tolling') NOT IN ('Input Process', 'Output Process','Mark For Tolling','Received Materials')
 AND    gam.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
 AND    vd.status(+) = 'Active'
 AND    axs_last.internal_action_ref_no = gmr.internal_action_ref_no
