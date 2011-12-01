@@ -59,6 +59,19 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_12
 
 
 
+Revision: 81618
+Author: uttam
+Date: 8:33:03 PM, Thursday, December 01, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_125.sql
+
+
+
+
+
+
 
 
 
