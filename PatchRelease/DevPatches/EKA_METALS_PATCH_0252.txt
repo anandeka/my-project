@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0252
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  01-Dec-2011
+
+Bug / Enhancement* 		:  ENHANCEMENT
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Tolling
+ 
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details  	 :  N/A
+ 
+FS Amendment details    	 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 81592
+Author: sishir.pagada
+Date: 7:20:49 PM, Thursday, December 01, 2011
+Message:
+script for PQDT
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_123.sql
+
+
+
+
+
+
+
+
+
