@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0254
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Pradeep
+ 
+Created on*        		:  01-Dec-2011
+
+Bug / Enhancement*            :   Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Tolling
+ 
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 81614
+Author: pradeep.kumar
+Date: 8:09:04 PM, Thursday, December 01, 2011
+Message:
+-- AMC & GM Scripts For List Of Metal Accounts
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_124.sql
+
+
+
+
+
+
+
+
+
