@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0258
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Girish
+ 
+Created on*        		:  02-Dec-2011
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+ 
+Sub-Module  			 :  Import
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 81687
+Author: girishkv
+Date: 2:49:59 PM, Friday, December 02, 2011
+Message:
+Assay Import.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_127.sql
+
