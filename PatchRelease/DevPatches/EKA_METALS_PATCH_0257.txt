@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0257
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Uttam Singh
+ 
+Created on*        		:  02-Dec-2011
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistic
+ 
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 : Smeter List 
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 81679
+Author: uttam
+Date: 12:39:18 PM, Friday, December 02, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_126.sql
+
+
