@@ -511,7 +511,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                      vn_range_gap || '/' ||
                                      cur_range.per_increase_value || ')');*/
                 if cur_pc_charge.charge_basis = 'absolute' then
-                  vn_penalty_charge := round(vn_range_gap /
+                  vn_penalty_charge := ceil(vn_range_gap /
                                              cur_range.per_increase_value) *
                                              vn_penalty_charge;
                 elsif cur_pc_charge.charge_basis = 'fractions Pro-Rata' then
@@ -869,7 +869,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                             vn_each_tier_rc_charge;*/
                  --
                  if cur_forward_price.charge_basis = 'absolute' then
-                    vn_each_tier_rc_charge := round(vn_range_gap /
+                    vn_each_tier_rc_charge := ceil(vn_range_gap /
                                                     nvl(cur_forward_price.esc_desc_value,
                                                          1)) *
                                                     cur_forward_price.refining_charge;
@@ -919,7 +919,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                     cur_backward_price.range_min_value;
                   end if;
                   if cur_backward_price.charge_basis = 'absolute' then
-                    vn_each_tier_rc_charge := round(vn_range_gap /
+                    vn_each_tier_rc_charge := ceil(vn_range_gap /
                                                     nvl(cur_backward_price.esc_desc_value,
                                                          1)) *
                                                     cur_backward_price.refining_charge;
@@ -1187,7 +1187,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                     cur_forward_price.range_min_value;
                   end if;                  
                   if cur_forward_price.charge_basis = 'absolute' then
-                  vn_each_tier_tc_charge :=round(vn_range_gap /
+                  vn_each_tier_tc_charge :=ceil(vn_range_gap /
                                             nvl(cur_forward_price.esc_desc_value,
                                                  1)) *
                                             cur_forward_price.treatment_charge;
@@ -1237,7 +1237,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_METALS_GENERAL" is
                                     cur_backward_price.range_min_value;
                   end if;
                   if cur_backward_price.charge_basis = 'absolute' then
-                    vn_each_tier_tc_charge := round(vn_range_gap /
+                    vn_each_tier_tc_charge := ceil(vn_range_gap /
                                                     nvl(cur_backward_price.esc_desc_value,
                                                          1)) *
                                                     cur_backward_price.treatment_charge;
