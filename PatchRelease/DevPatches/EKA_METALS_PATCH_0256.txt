@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0256
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Babu Lal Meena
+ 
+Created on*        		:  02-Dec-2011
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+ 
+Sub-Module  			 :  NA
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 81675
+Author: babulal.meena
+Date: 12:06:02 PM, Friday, December 02, 2011
+Message:
+made is_tolling_contract AS VARCHAR2 (1)
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
