@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0264
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Suresh Gottipati
+ 
+Created on*        		:  06-Dec-2011
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : EOD
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.         :  N/A
+ 
+FS Enhancement details           :  N/A
+ 
+FS Amendment details		 :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 81944
+Author: suresh.gottipati
+Date: 5:22:38 PM, Tuesday, December 06, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/018_EODDB_TABLE_INDEX_SCRIPTS.sql
+
