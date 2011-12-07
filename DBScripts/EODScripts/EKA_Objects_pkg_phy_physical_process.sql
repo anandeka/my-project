@@ -881,7 +881,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                            and pcbpd.is_active = 'Y'
                            and ppfh.is_active = 'Y'
                            and pfqpp.is_active = 'Y'
-                           and pofh.is_active(+) = 'Y'
+                          -- and pofh.is_active(+) = 'Y'
                            and pcbpd.process_id = pc_process_id
                            and pfqpp.process_id = pc_process_id
                            and ppfh.process_id = pc_process_id)
@@ -921,7 +921,29 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 vd_qp_start_date := cc1.qp_start_date;
                 vd_qp_end_date   := cc1.qp_end_date;
               elsif cc1.qp_period_type = 'Event' then
-                if cc1.event_name = 'Month After Month Of Shipment' then
+                 begin
+                  select dieqp.expected_qp_start_date,
+                         dieqp.expected_qp_end_date
+                    into vd_qp_start_date,
+                         vd_qp_end_date
+                    from di_del_item_exp_qp_details dieqp
+                   where dieqp.pcdi_id = cur_pcdi_rows.pcdi_id
+                     and dieqp.pcbpd_id = cur_called_off_rows.pcbpd_id
+                     and dieqp.is_active = 'Y';
+                exception
+                  when no_data_found then
+                    vd_qp_start_date := cc1.qp_start_date;
+                    vd_qp_end_date   := cc1.qp_end_date;
+                  when others then
+                    vd_qp_start_date := cc1.qp_start_date;
+                    vd_qp_end_date   := cc1.qp_end_date;
+                end;
+              else
+                vd_qp_start_date := cc1.qp_start_date;
+                vd_qp_end_date   := cc1.qp_end_date;
+              end if;
+              
+               /* if cc1.event_name = 'Month After Month Of Shipment' then
                   vd_evevnt_date   := add_months(vd_shipment_date,
                                                  cc1.no_of_event_months);
                   vd_qp_start_date := to_date('01-' ||
@@ -990,7 +1012,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
               else
               vd_qp_start_date := cc1.qp_start_date;
               vd_qp_end_date   := cc1.qp_end_date;
-              end if;
+              end if;*/
             
               if cur_pcdi_rows.eod_trade_date >= vd_qp_start_date and
                  cur_pcdi_rows.eod_trade_date <= vd_qp_end_date then
@@ -1605,7 +1627,28 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 vd_qp_start_date := cc1.qp_date;
                 vd_qp_end_date   := cc1.qp_date;
               elsif cc1.qp_pricing_period_type = 'Event' then
-                if cc1.event_name = 'Month After Month Of Shipment' then
+                 begin
+                  select dieqp.expected_qp_start_date,
+                         dieqp.expected_qp_end_date
+                    into vd_qp_start_date,
+                         vd_qp_end_date
+                    from di_del_item_exp_qp_details dieqp
+                   where dieqp.pcdi_id = cur_pcdi_rows.pcdi_id
+                     and dieqp.pcbpd_id = cur_not_called_off_rows.pcbpd_id
+                     and dieqp.is_active = 'Y';
+                exception
+                  when no_data_found then
+                    vd_qp_start_date := cc1.qp_period_from_date;
+                    vd_qp_end_date   := cc1.qp_period_to_date;
+                  when others then
+                    vd_qp_start_date := cc1.qp_period_from_date;
+                    vd_qp_end_date   := cc1.qp_period_to_date;
+                end;
+              else
+                vd_qp_start_date := cc1.qp_period_from_date;
+                vd_qp_end_date   := cc1.qp_period_to_date;
+              end if;
+               /* if cc1.event_name = 'Month After Month Of Shipment' then
                   vd_evevnt_date   := add_months(vd_shipment_date,
                                                  cc1.no_of_event_months);
                   vd_qp_start_date := to_date('01-' ||
@@ -1675,7 +1718,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
               else
                vd_qp_start_date := cc1.qp_period_from_date;
                vd_qp_end_date   := cc1.qp_period_to_date;
-              end if;
+              end if;*/
             
               if cur_pcdi_rows.eod_trade_date >= vd_qp_start_date and
                  cur_pcdi_rows.eod_trade_date <= vd_qp_end_date then
@@ -4340,7 +4383,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                            and pcbpd.is_active = 'Y'
                            and ppfh.is_active = 'Y'
                            and pfqpp.is_active = 'Y'
-                           and pofh.is_active(+) = 'Y'
+                          -- and pofh.is_active(+) = 'Y'
                            and pcbpd.process_id = pc_process_id
                            and pfqpp.process_id = pc_process_id
                            and ppfh.process_id = pc_process_id)
@@ -4379,7 +4422,28 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 vd_qp_start_date := cc1.qp_start_date;
                 vd_qp_end_date   := cc1.qp_end_date;
               elsif cc1.qp_period_type = 'Event' then
-                if cc1.event_name = 'Month After Month Of Shipment' then
+                begin
+                  select dieqp.expected_qp_start_date,
+                         dieqp.expected_qp_end_date
+                    into vd_qp_start_date,
+                         vd_qp_end_date
+                    from di_del_item_exp_qp_details dieqp
+                   where dieqp.pcdi_id = cur_pcdi_rows.pcdi_id
+                     and dieqp.pcbpd_id = cur_called_off_rows.pcbpd_id
+                     and dieqp.is_active = 'Y';
+                exception
+                  when no_data_found then
+                    vd_qp_start_date := cc1.qp_start_date;
+                    vd_qp_end_date   := cc1.qp_end_date;
+                  when others then
+                    vd_qp_start_date := cc1.qp_start_date;
+                    vd_qp_end_date   := cc1.qp_end_date;
+                end;
+              else
+                vd_qp_start_date := cc1.qp_start_date;
+                vd_qp_end_date   := cc1.qp_end_date;
+              end if;
+               /* if cc1.event_name = 'Month After Month Of Shipment' then
                   vd_evevnt_date   := add_months(vd_shipment_date,
                                                  cc1.no_of_event_months);
                   vd_qp_start_date := to_date('01-' ||
@@ -4448,7 +4512,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
               else
               vd_qp_start_date := cc1.qp_start_date;
               vd_qp_end_date   := cc1.qp_end_date;
-              end if;
+              end if; */
             
               if cur_pcdi_rows.eod_trade_date >= vd_qp_start_date and
                  cur_pcdi_rows.eod_trade_date <= vd_qp_end_date then
@@ -5047,7 +5111,29 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                 vd_qp_start_date := cc1.qp_date;
                 vd_qp_end_date   := cc1.qp_date;
               elsif cc1.qp_pricing_period_type = 'Event' then
-                if cc1.event_name = 'Month After Month Of Shipment' then
+                 begin
+                  select dieqp.expected_qp_start_date,
+                         dieqp.expected_qp_end_date
+                    into vd_qp_start_date,
+                         vd_qp_end_date
+                    from di_del_item_exp_qp_details dieqp
+                   where dieqp.pcdi_id = cur_pcdi_rows.pcdi_id
+                     and dieqp.pcbpd_id = cur_not_called_off_rows.pcbpd_id
+                     and dieqp.is_active = 'Y';
+                exception
+                  when no_data_found then
+                    vd_qp_start_date := cc1.qp_period_from_date;
+                    vd_qp_end_date   := cc1.qp_period_to_date;
+                  when others then
+                    vd_qp_start_date := cc1.qp_period_from_date;
+                    vd_qp_end_date   := cc1.qp_period_to_date;
+                end;
+              
+              else
+                vd_qp_start_date := cc1.qp_period_from_date;
+                vd_qp_end_date   := cc1.qp_period_to_date;
+              end if;
+               /* if cc1.event_name = 'Month After Month Of Shipment' then
                   vd_evevnt_date   := add_months(vd_shipment_date,
                                                  cc1.no_of_event_months);
                   vd_qp_start_date := to_date('01-' ||
@@ -5117,7 +5203,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
               else
                 vd_qp_start_date := cc1.qp_period_from_date;
                 vd_qp_end_date   := cc1.qp_period_to_date;
-              end if;
+              end if; */
             
               if cur_pcdi_rows.eod_trade_date >= vd_qp_start_date and
                  cur_pcdi_rows.eod_trade_date <= vd_qp_end_date then

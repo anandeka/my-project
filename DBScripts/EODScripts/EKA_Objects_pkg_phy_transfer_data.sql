@@ -43,6 +43,7 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_TRANSFER_DATA" is
                                    pc_dbd_id       varchar2);
 
 end pkg_phy_transfer_data; 
+ 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
 
@@ -535,6 +536,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
       --dbms_mview.refresh('spq_stock_payable_qty', 'c');
       dbms_mview.refresh('mv_qat_quality_valuation', 'c');
       dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'c');
+      dbms_mview.refresh('DI_DEL_ITEM_EXP_QP_DETAILS', 'c');
     end if;
   exception
     when others then
