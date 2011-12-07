@@ -1,0 +1,6 @@
+1.Connect to App schema
+2.Run GrantsToCRC.sql from the App Schema by defining the CRC schema as mentioned in the script.
+3.Connect to CRC schema
+4.Run CRC_SchemaObjects.sql from the CRC Schema  by defining the App schema as mentioned in the script(Note: Please add '.' as per the script after the schema name.)
+5.run GrantToApp.sql from the CRC Schema  by defining the App schema as mentioned in the script
+6.run App.sql from App achema  by defining the CRC schema as mentioned in the script(Note: Please add '.' as per the script after the schema name.)
