@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0270
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Suresh Gottipati
+ 
+Created on*        		:  09-Dec-2011
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.         :  N/A
+ 
+FS Enhancement details           :  N/A
+ 
+FS Amendment details		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 82149
+Author: suresh.gottipati
+Date: 3:42:09 PM, Friday, December 09, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+
+
+Revision: 82147
+Author: elaiyaraja.nallathambi
+Date: 3:39:30 PM, Friday, December 09, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyInventoryUnrealizedPhysicalPnL.rpt
+
+
+
+
