@@ -997,6 +997,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                 case
                                when nvl(dgrd.is_afloat, 'N') = 'N' then
                                 shm.city_id
+                                else
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
                              end end city_id,
                              dgrd.quality_id
                         from gmr_goods_movement_record   gmr,
@@ -1343,6 +1346,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                 case
                                when nvl(dgrd.is_afloat, 'N') = 'N' then
                                 shm.city_id
+                                else
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
                              end end city_id,
                              dgrd.product_id,
                              dgrd.quality_id,
@@ -1359,6 +1365,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                              pcm.internal_contract_ref_no(+)
                          and pcm.internal_contract_ref_no =
                              pcdi.internal_contract_ref_no
+                         and pcdi.pcdi_id=pci.pcdi_id    
                          and agh.int_sales_contract_item_ref_no =
                              pci.internal_contract_item_ref_no
                          and agh.int_alloc_group_id = dgrd.int_alloc_group_id
@@ -1368,7 +1375,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and gsm.is_required_for_m2m = 'Y'
                          and gmr.dbd_id = pc_dbd_id
                          and pci.dbd_id = pc_dbd_id
-                         and pci.dbd_id = pc_dbd_id
+                         and agh.dbd_id = pc_dbd_id
                          and pcm.dbd_id = pc_dbd_id
                          and dgrd.dbd_id = pc_dbd_id
                          and pcdi.dbd_id = pc_dbd_id
@@ -2224,6 +2231,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                 case
                                when nvl(dgrd.is_afloat, 'N') = 'N' then
                                 shm.city_id
+                                else
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
                              end end city_id,
                              dgrd.quality_id
                         from gmr_goods_movement_record   gmr,
@@ -2603,6 +2613,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                 case
                                when nvl(dgrd.is_afloat, 'N') = 'N' then
                                 shm.city_id
+                                else
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
                              end end city_id,
                              dgrd.product_id,
                              pcpq.assay_header_id,
