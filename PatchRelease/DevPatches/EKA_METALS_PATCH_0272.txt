@@ -1,0 +1,77 @@
+Patch No*          		:  EKA_METALS_PATCH_0272
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sivachalabathi
+ 
+Created on*        		:  12-Dec-2011
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+----------
+Revision: 82318
+Author: sivachalabathi.s
+Date: 7:00:03 PM, Monday, December 12, 2011
+Message:
+derivative added
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_VIEW_V_FUTURE_OPTION_POSITION.sql
+
+
+
+Revision: 82319
+Author: sivachalabathi.s
+Date: 7:01:48 PM, Monday, December 12, 2011
+Message:
+derivative added
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_24_Againg_report.sql
+
+
+RPT Files:
+==========
+Revision: 82315
+Author: sivachalabathi.s
+Date: 6:57:41 PM, Monday, December 12, 2011
+Message:
+derivative added
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing.rpt
+
+Revision: 82152
+Author: sivachalabathi.s
+Date: 4:17:50 PM, Friday, December 09, 2011
+Message:
+CP name filter added
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AgingReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AgingReport_Excel.rpt
