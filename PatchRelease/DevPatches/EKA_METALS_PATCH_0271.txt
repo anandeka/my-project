@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0271
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Manoranjan Kumar
+ 
+Created on*        		:  12-Dec-2011
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details  :  N/A
+ 
+FS Amendment details    :  N/A
+
+Dependent patches:		:  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 82230
+Author: manoranjan.kumar
+Date: 12:08:44 PM, Monday, December 12, 2011
+Message:
+Assay Related bug is fixed..updated URM table for the rule "The middle one is final"..
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_132.sql
+
+
