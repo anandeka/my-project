@@ -25,6 +25,7 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
                                         pc_element_id           varchar2,
                                         pc_calendar_month       varchar2,
                                         pc_calendar_year        varchar2,
+                                         pc_price_unit_id       varchar2,
                                         pn_charge_amt           out number,
                                         pc_charge_price_unit_id out varchar2);
 
@@ -99,7 +100,6 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
 end; 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -3590,6 +3590,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                                               cc_tmpc.element_id,
                                                               cc_tmpc.shipment_month,
                                                               cc_tmpc.shipment_year,
+                                                              cc_tmpc.base_price_unit_id_in_ppu,
                                                               pn_charge_amt,
                                                               pc_charge_price_unit_id);
       
@@ -3627,6 +3628,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                                               cc_tmpc.element_id,
                                                               cc_tmpc.shipment_month,
                                                               cc_tmpc.shipment_year,
+                                                              cc_tmpc.base_price_unit_id_in_ppu,
                                                               pn_charge_amt,
                                                               pc_charge_price_unit_id);
         if pn_charge_amt = 0 then
@@ -3914,17 +3916,40 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                         pc_element_id           varchar2,
                                         pc_calendar_month       varchar2,
                                         pc_calendar_year        varchar2,
+                                        pc_price_unit_id        varchar2,
                                         pn_charge_amt           out number,
                                         pc_charge_price_unit_id out varchar2) is
     vc_price_unit_id   varchar2(15);
     vn_penality_charge number;
+    vn_total_chagre    number;
+    vn_charge_amt      number;
+    vn_chagre_price_unit_id varchar2(15);   
+    
+    cursor cur_vcs is select * from vcs_valuation_curve_setup vcs
+                      where vcs.product_id=pc_conc_product_id
+                        and vcs.applicable_id=pc_charge_type
+                        and vcs.corporate_id=pc_corporate_id
+                        and vcs.is_active='Y';
+    
   begin
-    if pc_charge_type in ('Treatment Charges', 'Refining Charges') then
+  vn_total_chagre:=0;
+  for cur_vcs_rows in cur_vcs
+  loop  
+  vn_charge_amt :=0;
+    if pc_charge_type in ('Treatment Charges', 'Refining Charges') then     
       begin
-        select t.charge_value,
-               t.charge_unit_id
-          into pn_charge_amt,
-               pc_charge_price_unit_id
+        select nvl(sum(t.charge_value * case
+                         when t.charge_unit_id <> pc_price_unit_id then
+                          pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+                                                                          1,
+                                                                          t.charge_unit_id,
+                                                                          pc_price_unit_id,
+                                                                          pd_trade_date)
+                         else
+                          1
+                       end),
+                   0)
+          into vn_charge_amt
           from (select mdcbm.charge_value,
                        mdcbm.charge_unit_id,
                        rank() over(order by mdcd.as_of_date desc nulls last) as td_rank
@@ -3940,15 +3965,23 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                    and mdcd.internal_element_id = pc_element_id
                    and mdcbm.calendar_month = pc_calendar_month
                    and mdcbm.calendar_year = pc_calendar_year
+                   and mdcd.valuation_curve_id = cur_vcs_rows.vcs_id
                    and mdcd.charge_type = pc_charge_type) t
          where t.td_rank = 1;
-      exception
-        when no_data_found then
+        if vn_charge_amt = 0 then
           begin
-            select t.charge_value,
-                   t.charge_unit_id
-              into pn_charge_amt,
-                   pc_charge_price_unit_id
+            select nvl(sum(t.charge_value * case
+                             when t.charge_unit_id <> pc_price_unit_id then
+                              pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+                                                                              1,
+                                                                              t.charge_unit_id,
+                                                                              pc_price_unit_id,
+                                                                              pd_trade_date)
+                             else
+                              1
+                           end),
+                       0)
+              into vn_charge_amt
               from (select mdcbm.charge_value,
                            mdcbm.charge_unit_id,
                            rank() over(order by mdcd.as_of_date desc nulls last) as td_rank
@@ -3968,37 +4001,30 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                    pc_calendar_year,
                                    'dd-Mon-yyyy')
                        and nvl(mdcbm.is_beyond, 'N') = 'Y'
+                       and mdcd.valuation_curve_id = cur_vcs_rows.vcs_id
                        and mdcd.charge_type = pc_charge_type) t
              where t.td_rank = 1;
-          exception
-            when no_data_found then
-              pn_charge_amt := 0;
           end;
+        end if;
       end;
+         vn_total_chagre := vn_total_chagre + vn_charge_amt;       
+         vn_chagre_price_unit_id:= pc_price_unit_id;                                                                      
+     
       --
     elsif pc_charge_type = 'Penalties' then
-      -- pn_charge_amt := 10;      
+     
       begin
-        select ppu.product_price_unit_id
-          into vc_price_unit_id
-          from v_ppu_pum         ppu,
-               pdm_productmaster pdm,
-               ak_corporate      akc
-         where ppu.product_id = pc_conc_product_id
-           and ppu.product_id = pdm.product_id
-           and pdm.base_quantity_unit = ppu.weight_unit_id
-           and ppu.cur_id = akc.base_cur_id
-           and akc.corporate_id = pc_corporate_id;
-      
-      exception
-        when no_data_found then
-          vc_price_unit_id := null;
-      end;
-      begin
-        select t.charge_value,
-               t.charge_unit_id
-          into pn_charge_amt,
-               pc_charge_price_unit_id
+        select sum(t.charge_value * case
+                     when t.charge_unit_id <> pc_price_unit_id then
+                      pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+                                                                      1,
+                                                                      t.charge_unit_id,
+                                                                      pc_price_unit_id,
+                                                                      pd_trade_date)
+                     else
+                      1
+                   end)
+          into vn_charge_amt
           from (select mdcbm.charge_value,
                        mdcbm.charge_unit_id,
                        rank() over(order by mdcd.as_of_date desc nulls last) as td_rank
@@ -4014,15 +4040,22 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                    and nvl(mdcbm.is_beyond, 'N') = 'N'
                    and mdcbm.calendar_month = pc_calendar_month
                    and mdcbm.calendar_year = pc_calendar_year
+                   and mdcd.valuation_curve_id = cur_vcs_rows.vcs_id
                    and mdcd.charge_type = pc_charge_type) t
          where t.td_rank = 1;
-      exception
-        when no_data_found then
+      if vn_charge_amt=0 then
           begin
-            select t.charge_value,
-                   t.charge_unit_id
-              into pn_charge_amt,
-                   pc_charge_price_unit_id
+            select sum(t.charge_value * case
+                         when t.charge_unit_id <> pc_price_unit_id then
+                          pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+                                                                          1,
+                                                                          t.charge_unit_id,
+                                                                          pc_price_unit_id,
+                                                                          pd_trade_date)
+                         else
+                          1
+                       end)
+              into vn_charge_amt
               from (select mdcbm.charge_value,
                            mdcbm.charge_unit_id,
                            rank() over(order by mdcd.as_of_date desc nulls last) as td_rank
@@ -4042,14 +4075,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                                    pc_calendar_year,
                                    'dd-Mon-yyyy')
                        and nvl(mdcbm.is_beyond, 'N') = 'Y'
+                       and mdcd.valuation_curve_id = cur_vcs_rows.vcs_id
                        and mdcd.charge_type = pc_charge_type) t
-             where t.td_rank = 1;
-          exception
-            when no_data_found then
-              pn_charge_amt := 0;
+             where t.td_rank = 1;          
           end;
+       end if;
       end;
-      if pn_charge_amt <> 0 and pc_charge_price_unit_id is not null and
+      
+     /* if pn_charge_amt <> 0 and pc_charge_price_unit_id is not null and
          vc_price_unit_id is not null then
         vn_penality_charge := pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
                                                                               pn_charge_amt,
@@ -4059,9 +4092,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
       else
         vn_penality_charge := 0;
       end if;
-      pn_charge_amt           := vn_penality_charge;
-      pc_charge_price_unit_id := vc_price_unit_id;
-    end if;
+      
+      --pn_charge_amt           := vn_penality_charge;
+     -- pc_charge_price_unit_id := vc_price_unit_id;*/
+      vn_total_chagre := vn_total_chagre + vn_charge_amt; 
+      vn_chagre_price_unit_id:=pc_price_unit_id;  
+      
+    end if;    
+  end loop;  
+   pn_charge_amt           := vn_total_chagre;
+   pc_charge_price_unit_id := vn_chagre_price_unit_id;
+  
   exception
     when no_data_found then
       pn_charge_amt           := 0;

@@ -7519,6 +7519,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                               cc_tmpc.element_id,
                                                               cc_tmpc.shipment_month,
                                                               cc_tmpc.shipment_year,
+                                                              cc_tmpc.base_price_unit_id_in_ppu,
                                                               pn_charge_amt,
                                                               pc_charge_price_unit_id);
       
@@ -7555,6 +7556,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                               cc_tmpc.element_id,
                                                               cc_tmpc.shipment_month,
                                                               cc_tmpc.shipment_year,
+                                                              cc_tmpc.base_price_unit_id_in_ppu,
                                                               pn_charge_amt,
                                                               pc_charge_price_unit_id);
       
@@ -9304,6 +9306,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
     vn_penality                    number;
     vc_penality_price_unit_id      varchar2(20);
     vn_total_penality              number;
+    vc_price_unit_id               varchar2(15);
   
   begin
     for cur_unrealized_rows in cur_unrealized
@@ -9537,6 +9540,23 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                    cur_unrealized_rows.base_cur_decimal);
       vn_total_penality   := 0;
       if cur_unrealized_rows.ele_rank = 1 then
+      begin
+        select ppu.product_price_unit_id
+          into vc_price_unit_id
+          from v_ppu_pum         ppu,
+               pdm_productmaster pdm,
+               ak_corporate      akc
+         where ppu.product_id = cur_unrealized_rows.conc_product_id
+           and ppu.product_id = pdm.product_id
+           and pdm.base_quantity_unit = ppu.weight_unit_id
+           and ppu.cur_id = akc.base_cur_id
+           and nvl(ppu.weight,1)=1
+           and akc.corporate_id = pc_corporate_id;
+      
+      exception
+        when no_data_found then
+          vc_price_unit_id := null;
+      end;
         vn_total_penality := 0;
         for cc in (select pci.internal_contract_item_ref_no,
                           pqca.element_id,
@@ -9572,6 +9592,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PHYSICAL_PROCESS" IS
                                                                 cc.element_id,
                                                                 cur_unrealized_rows.shipment_month,
                                                                 cur_unrealized_rows.shipment_year,
+                                                                vc_price_unit_id,
                                                                 vn_penality,
                                                                 vc_penality_price_unit_id);
           if nvl(vn_penality, 0) <> 0 then
@@ -12805,6 +12826,7 @@ select 'Sales' section_type,
     vn_total_penality              number;
     vn_penality                    number;
     vc_penality_price_unit_id      varchar2(15);
+    vc_price_unit_id               varchar2(15);
   begin
   
     for cur_grd_rows in cur_grd
@@ -13056,6 +13078,24 @@ select 'Sales' section_type,
         end if;
         vn_total_penality := 0;
         if cur_grd_rows.ele_rank = 1 then
+         begin
+        select ppu.product_price_unit_id
+          into vc_price_unit_id
+          from v_ppu_pum         ppu,
+               pdm_productmaster pdm,
+               ak_corporate      akc
+         where ppu.product_id = cur_grd_rows.conc_product_id
+           and ppu.product_id = pdm.product_id
+           and pdm.base_quantity_unit = ppu.weight_unit_id
+           and ppu.cur_id = akc.base_cur_id
+           and nvl(ppu.weight,1)=1
+           and akc.corporate_id = pc_corporate_id;
+      
+      exception
+        when no_data_found then
+          vc_price_unit_id := null;
+      end;
+        
           vn_total_penality := 0;
           for cc in (select pci.internal_contract_item_ref_no,
                             pqca.element_id,
@@ -13091,6 +13131,7 @@ select 'Sales' section_type,
                                                                   cc.element_id,
                                                                   cur_grd_rows.shipment_month,
                                                                   cur_grd_rows.shipment_year,
+                                                                  vc_price_unit_id,
                                                                   vn_penality,
                                                                   vc_penality_price_unit_id);
             if nvl(vn_penality, 0) <> 0 then
