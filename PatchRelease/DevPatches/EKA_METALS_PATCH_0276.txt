@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0275
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Abhishek Vijay
+ 
+Created on*        		:  15-Dec-2011
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Mining
+ 
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 82656
+Author: abhishek.vijay
+Date: 4:50:15 PM, Thursday, December 15, 2011
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_129.sql
+
+
+
+
+
