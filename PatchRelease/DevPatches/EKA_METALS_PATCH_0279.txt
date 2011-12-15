@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0279
+
+Project / Product* 		:  METALS/Traksys
+==================================================================
+Created by*        		: Manorajan
+ 
+Created on*        		:  15-Dec-2011
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Risk
+ 
+Sub-Module  			 :  Credit Limit.
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 82676
+Author: manoranjan.kumar
+Date: 6:24:41 PM, Thursday, December 15, 2011
+Message:
+credit limit.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_131.sql
+
+Revision: 82675
+Author: manoranjan.kumar
+Date: 6:21:33 PM, Thursday, December 15, 2011
+Message:
+credit limit.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_135.sql
+
+
+
+
+
+
+
