@@ -1,0 +1,81 @@
+Patch No*          		:  EKA_METALS_PATCH_0281
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja
+ 
+Created on*        		:  15-Dec-2011
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+ 
+Sub-Module  			 :  Reports 
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction/EOD 
+==================================================================
+Revision: 82692
+Author: elaiyaraja.nallathambi
+Date: 7:46:22 PM, Thursday, December 15, 2011
+Message:
+Released Position Delivery Pricing Derivative Report as per latest FS Changes
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricingDerivative.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricingDerivative_Excel.rpt
+
+Revision: 82695
+Author: sivachalabathi.s
+Date: 8:14:51 PM, Thursday, December 15, 2011
+Message:
+eom report/bug fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_137_SLV_SLS_Month.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_138_Derivatives_EOM_Script.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_139_Physical_EOM_Script.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_140_PositionDeliveryPricingDerivative.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_141_Derivatives_EOM_Script.sql
+
+
+
+Revision: 82694
+Author: sivachalabathi.s
+Date: 8:12:46 PM, Thursday, December 15, 2011
+Message:
+eom report/bug fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_25_Derivatives_RFC_RPC_Script.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_26_Derivatives_RFC_RPC_Script.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_27_Physical_Latest_RFC_PRC_Script.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_28_DML_RPC_RFC_Scripts.sql
+
+
+
+
+
+
+
+
+
