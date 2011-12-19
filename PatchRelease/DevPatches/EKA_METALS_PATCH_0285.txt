@@ -1,0 +1,72 @@
+Patch No*          		:  EKA_METALS_PATCH_0285
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja 
+ 
+Created on*        		:  19-Dec-2011
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+ 
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD 
+==================================================================
+Revision: 82821
+Author: elaiyaraja.nallathambi
+Date: 11:09:23 AM, Monday, December 19, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalConc.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClearerStatementReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClearerSummaryReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyDerivativesRealizedPnLReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyDerivativesUnRealizedPnLReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFutureOptionSummaryPositionReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyInventoryUnrealizedPhysicalPnL.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyInventoryUnrealizedPhysicalPnLConc.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyOpenUnrealizedPhysicalConc.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyOpenUnrealizedPhysicalPnL.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyUpcomingOptionExpiryReport.rpt
+
+Revision: 82824
+Author: elaiyaraja.nallathambi
+Date: 11:38:35 AM, Monday, December 19, 2011
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_144.sql
+
+
+
+
+
+
+
+
