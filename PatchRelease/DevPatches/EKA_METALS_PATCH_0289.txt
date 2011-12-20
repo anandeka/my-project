@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0289
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Mohit Kumar Gupta
+ 
+Created on*        		:  20-Dec-2011
+
+Bug / Enhancement*              :  Inhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+ 
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 82947
+Author: mohitkumar.gupta
+Date: 5:49:08 PM, Tuesday, December 20, 2011
+Message:
+For vat invoice detail.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_146.sql
+
+
+
+
+
+
+
