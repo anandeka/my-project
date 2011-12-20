@@ -1,0 +1,76 @@
+Patch No*          		:  EKA_METALS_PATCH_0287
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok Kumar
+ 
+Created on*        		:  20-Dec-2011
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+ 
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 82898
+Author: elaiyaraja.nallathambi
+Date: 10:28:04 AM, Tuesday, December 20, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AgingReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AgingReport_Excel.rpt
+
+Revision: 82899
+Author: elaiyaraja.nallathambi
+Date: 10:33:16 AM, Tuesday, December 20, 2011
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_cash_flow_report.sql
+
+
+Revision: 82900
+Author: elaiyaraja.nallathambi
+Date: 10:33:25 AM, Tuesday, December 20, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_CASH_FLOW_REPORT.sql
+
+
+
+
+
+
+
+
+
+
+
+
