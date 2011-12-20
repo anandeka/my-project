@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0288
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar Behera
+ 
+Created on*        		:  20-Dec-2011
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+Revision: 82918
+Author: pradeep.kumar
+Date: 1:08:04 PM, Tuesday, December 20, 2011
+Message:
+-- Added Tolling Quantity
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR.SQL
+
