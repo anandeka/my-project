@@ -1,0 +1,75 @@
+Patch No*          		:  EKA_METALS_PATCH_0291
+
+Project / Product* 		:  Traxys
+==================================================================
+Created by*        		:  Elaiyaraja
+ 
+Created on*        		:  21-Dec-2011
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+ 
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 83057
+Author: elaiyaraja.nallathambi
+Date: 6:57:56 PM, Wednesday, December 21, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricingDerivative.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricingDerivative_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing_Excel.rpt
+
+Revision: 83058
+Author: elaiyaraja.nallathambi
+Date: 6:58:28 PM, Wednesday, December 21, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+
+Revision: 83059
+Author: elaiyaraja.nallathambi
+Date: 6:59:52 PM, Wednesday, December 21, 2011
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_pfc_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details.sql
+
+
+
+
+
+
+
+
+
