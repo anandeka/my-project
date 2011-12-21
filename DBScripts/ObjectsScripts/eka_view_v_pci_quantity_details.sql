@@ -133,13 +133,18 @@ select pcdi.pcdi_id,
    and pcm.trader_id = akcu.user_id(+)
    and cpc.business_line_id = blm.business_line_id(+)
    and pcdi.pcdi_id = diqs.pcdi_id
-   and nvl(pcm.is_tolling_contract,'N') = 'N'
+   and nvl(pcm.is_tolling_contract, 'N') = 'N'
    and akcu.gabid = gab.gabid
    and pcdb.country_id = cym.country_id
    and pcdb.city_id = cim.city_id
    and pci.pcdi_id = pfs.pcdi_id
    and pci.internal_contract_item_ref_no =
        pfs.internal_contract_item_ref_no
+   and pci.is_active = 'Y'
+   and pcm.is_active = 'Y'
+   and pcdi.is_active = 'Y'
+   and ciqs.is_active = 'Y'
+   and pcdb.is_active = 'Y'
 union all
 select pcdi.pcdi_id,
        pci.internal_contract_item_ref_no,
@@ -157,7 +162,7 @@ select pcdi.pcdi_id,
          else
           pdm.product_desc
        end) product_name,
-       nvl(qat.quality_name,qav_qat.quality_name) quality,
+       nvl(qat.quality_name, qav_qat.quality_name) quality,
        gab.firstname || ' ' || gab.lastname trader,
        null instrument_name,
        itm.incoterm,
@@ -219,7 +224,7 @@ select pcdi.pcdi_id,
          else
           pdm.product_id
        end) product_id,
-       nvl(qat.quality_id,qav_qat.quality_id) quality_id,
+       nvl(qat.quality_id, qav_qat.quality_id) quality_id,
        gab.gabid trader_id,
        null derivative_def_id,
        null instrument_id,
@@ -305,7 +310,7 @@ select pcdi.pcdi_id,
    and ppm.property_id = qav.attribute_id
    and pcpq.quality_template_id = qav.quality_id
    and qav.is_deleted = 'N'
-    and nvl(pcm.is_tolling_contract,'N') = 'N'
+   and nvl(pcm.is_tolling_contract, 'N') = 'N'
    and qav.comp_quality_id = qav_qat.quality_id(+)
    and pcpq.quality_template_id = qat.quality_id(+)
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
@@ -323,4 +328,8 @@ select pcdi.pcdi_id,
    and akcu.gabid = gab.gabid
    and pcdb.country_id = cym.country_id
    and pcdb.city_id = cim.city_id
-
+   and pci.is_active = 'Y'
+   and pcm.is_active = 'Y'
+   and pcdi.is_active = 'Y'
+   and ciqs.is_active = 'Y'
+   and pcdb.is_active = 'Y'
