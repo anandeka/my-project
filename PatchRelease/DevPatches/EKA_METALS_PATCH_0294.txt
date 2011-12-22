@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0294
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Babu Lal
+ 
+Created on*        		:  22-Dec-2011
+
+Bug / Enhancement*              :  Inhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 83150
+Author: babulal.meena
+Date: 8:52:11 PM, Thursday, December 22, 2011
+Message:
+Db script due to Created View for MetalAccount and Smelter InProcess
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_METAL_ACCOUNTS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_SMELTERS_IN_PROCESS.sql
