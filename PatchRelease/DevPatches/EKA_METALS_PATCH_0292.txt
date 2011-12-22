@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_PATCH_0292
+
+Project / Product* 		:  Traxys
+==================================================================
+Created by*        		:  Jana
+ 
+Created on*        		:  22-Dec-2011
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  PL/SQL
+ 
+Sub-Module  			 :  Contract Price
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 83092
+Author: sivachalabathi.s
+Date: 12:33:25 PM, Thursday, December 22, 2011
+Message:
+online price calculation added
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_exchange_details.sql
+
+Revision: 83091
+Author: sivachalabathi.s
+Date: 12:11:39 PM, Thursday, December 22, 2011
+Message:
+online price calculation added
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_contract_exchange_detail.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_contract_payable_qty.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_der_instrument_price_unit.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_stockpayable_qty.sql
