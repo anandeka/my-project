@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0293
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Mohit Kumar Gupta
+ 
+Created on*        		:  22-Dec-2011
+
+Bug / Enhancement*              :  Inhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+ 
+Sub-Module  			 :  Contract Approval
+ 
+Section   		   	 : N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 83141
+Author: mohitkumar.gupta
+Date: 6:33:27 PM, Thursday, December 22, 2011
+Message:
+for bug 60221.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_148.sql
+
+
+
+
+
