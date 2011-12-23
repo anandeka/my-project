@@ -49,8 +49,10 @@ select (case
                                             1) baseqty_conv_rate,
        null price_fixation_status,
        sum(nvl(grd.qty, 0)) total_qty,
-       sum(nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0)) item_open_qty,
-       sum(nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0)) open_qty,
+       sum(nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
+           nvl(grd.title_transfer_out_qty, 0)) item_open_qty,
+       sum(nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
+           nvl(grd.title_transfer_out_qty, 0)) open_qty,
        0 price_fixed_qty,
        0 unfixed_qty,
        grd.qty_unit_id item_qty_unit_id,
@@ -141,8 +143,9 @@ select (case
    and pci.strategy_id = css.strategy_id(+)
    and pci.profit_center_id = cpc.profit_center_id(+)
    and cpc.business_line_id = blm.business_line_id(+)
-   and gmr.is_internal_movement = 'N'   
-   and (nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0)) > 0
+   and gmr.is_internal_movement = 'N'
+   and (nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
+       nvl(grd.title_transfer_out_qty, 0)) > 0
    and gmr.created_by = gab.gabid(+)
  group by pci.internal_contract_ref_no,
           (case
@@ -268,8 +271,10 @@ select (case
                                             1) baseqty_conv_rate,
        null price_fixation_status,
        sum(nvl(grd.qty, 0)) total_qty,
-       sum((nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0))) item_open_qty,
-       sum((nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0))) open_qty,
+       sum((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
+           nvl(grd.title_transfer_out_qty, 0))) item_open_qty,
+       sum((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
+           nvl(grd.title_transfer_out_qty, 0))) open_qty,
        0 price_fixed_qty,
        0 unfixed_qty,
        grd.qty_unit_id item_qty_unit_id,
@@ -357,11 +362,12 @@ select (case
    and grd.internal_contract_item_ref_no =
        pci.internal_contract_item_ref_no(+)
    and pci.inco_term_id = itm.incoterm_id(+)
-   and pci.strategy_id = css.strategy_id(+)
-   and pci.profit_center_id = cpc.profit_center_id(+)
+   and grd.strategy_id = css.strategy_id(+)
+   and grd.profit_center_id = cpc.profit_center_id(+)
    and cpc.business_line_id = blm.business_line_id(+)
    and gmr.is_internal_movement = 'Y'
-   and (nvl(grd.current_qty, 0)+nvl(grd.release_shipped_qty, 0) - nvl(grd.title_transfer_out_qty, 0)) > 0
+   and (nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
+       nvl(grd.title_transfer_out_qty, 0)) > 0
    and gmr.created_by = gab.gabid(+)
  group by pci.internal_contract_ref_no,
           (case
@@ -484,11 +490,11 @@ select (case
           nvl(pci.purchase_sales, 'P')
        end) purchase_sales,
        pkg_general.f_get_converted_quantity(dgrd.product_id,
-                                            dgrd.net_weight_unit_id ,   --qty_unit_id,
+                                            dgrd.net_weight_unit_id, --qty_unit_id,
                                             pdm.base_quantity_unit,
                                             1) baseqty_conv_rate,
        null price_fixation_status,
-       sum(nvl(dgrd.net_weight, 0)) total_qty,--sum(nvl(dgrd.qty, 0)) total_qty,
+       sum(nvl(dgrd.net_weight, 0)) total_qty, --sum(nvl(dgrd.qty, 0)) total_qty,
        sum(nvl(dgrd.current_qty, 0)) item_open_qty,
        sum(nvl(dgrd.current_qty, 0)) open_qty,
        0 price_fixed_qty,
@@ -531,7 +537,7 @@ select (case
        'BASEMETAL' position_type,
        1 contract_row,
        pkg_general.f_get_converted_quantity(dgrd.product_id,
-                                            dgrd.net_weight_unit_id,    --qty_unit_id,
+                                            dgrd.net_weight_unit_id, --qty_unit_id,
                                             pdm.base_quantity_unit,
                                             1) compqty_base_conv_rate,
        qum.qty_unit comp_base_qty_unit,
@@ -573,7 +579,7 @@ select (case
    and dim.product_derivative_id = pdd.derivative_def_id
    and gmr.corporate_id = akc.corporate_id
    and akc.groupid = gcd.groupid
-   --and dgrd.is_deleted = 'N'
+      --and dgrd.is_deleted = 'N'
    and dgrd.status = 'Active'
    and dgrd.internal_contract_item_ref_no =
        pci.internal_contract_item_ref_no(+)
@@ -583,7 +589,7 @@ select (case
    and cpc.business_line_id = blm.business_line_id(+)
    and gmr.is_internal_movement = 'N'
    and nvl(dgrd.current_qty, 0) > 0
-   and nvl(dgrd.inventory_status,'NA')<>'Out'
+   and nvl(dgrd.inventory_status, 'NA') <> 'Out'
    and gmr.created_by = gab.gabid(+)
  group by pci.internal_contract_ref_no,
           (case
@@ -628,7 +634,7 @@ select (case
              nvl(pci.purchase_sales, 'P')
           end),
           dgrd.product_id,
-          dgrd.net_weight_unit_id ,--dgrd.qty_unit_id,
+          dgrd.net_weight_unit_id, --dgrd.qty_unit_id,
           pdm.base_quantity_unit,
           qum.qty_unit,
           pci.contract_ref_no,
