@@ -1,0 +1,75 @@
+Patch No*          		:  EKA_METALS_PATCH_0295
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja N
+ 
+Created on*        		:  32-Dec-2011
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  	Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+ 
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 83231
+Author: elaiyaraja.nallathambi
+Date: 6:15:28 PM, Friday, December 23, 2011
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_31_DML_RPC_RFC_Scripts.sql
+
+Revision: 83232
+Author: elaiyaraja.nallathambi
+Date: 6:16:10 PM, Friday, December 23, 2011
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_149.sql
+
+Revision: 83233
+Author: elaiyaraja.nallathambi
+Date: 6:17:32 PM, Friday, December 23, 2011
+Message:
+Filter Screen Updated
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFXExposureReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProjectedPriceExposure.rpt
+
+Revision: 83234
+Author: sivachalabathi.s
+Date: 6:22:52 PM, Friday, December 23, 2011
+Message:
+bug fixes,physical position report
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_concentrate_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_stock_details.sql
+
