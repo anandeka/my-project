@@ -66,7 +66,8 @@ FROM   (SELECT returnable_temp.corporate_id,
                                qat.long_desc,
                                qav.comp_quality_id comp_quality_id,
                                aml.underlying_product_id underlying_product_id,
-                               pdm.product_desc
+                               pdm.product_desc,
+                               ppm.product_id
                         FROM   aml_attribute_master_list      aml,
                                ppm_product_properties_mapping ppm,
                                qav_quality_attribute_values   qav,
@@ -86,13 +87,16 @@ FROM   (SELECT returnable_temp.corporate_id,
                         AND    aml.underlying_product_id IS NOT NULL
                         AND    qav.comp_quality_id IS NOT NULL
                         AND    pdm.product_id = aml.underlying_product_id) product_temp,
-                       cpm_corporateproductmaster cpm
+                       cpm_corporateproductmaster cpm,
+                       grd_goods_record_detail grd
                 WHERE  spq.internal_action_ref_no = axs.internal_action_ref_no
                 AND    spq.smelter_id IS NULL
                 AND    spq.is_active = 'Y'
                 AND    spq.is_stock_split = 'N'
                 AND    spq.qty_type = 'Returnable'
+                AND    grd.internal_grd_ref_no = spq.internal_grd_ref_no
                 AND    product_temp.attribute_id = spq.element_id
+                AND    product_temp.product_id = grd.product_id
                 AND    cpm.is_active = 'Y'
                 AND    cpm.is_deleted = 'N'
                 AND    cpm.product_id = product_temp.underlying_product_id
