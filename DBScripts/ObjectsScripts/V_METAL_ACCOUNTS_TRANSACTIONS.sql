@@ -1,5 +1,5 @@
-create or replace view V_METAL_ACCOUNTS_TRANSACTIONS
-as 
+CREATE OR REPLACE VIEW V_METAL_ACCOUNTS_TRANSACTIONS
+AS
 SELECT mat_temp.unique_id,
        mat_temp.corporate_id,
        mat_temp.internal_contract_ref_no,
@@ -22,7 +22,10 @@ SELECT mat_temp.unique_id,
        mat_temp.product_name,
        mat_temp.debt_qty,
        mat_temp.debt_qty_unit_id,
-       mat_temp.internal_action_ref_no
+       qum.qty_unit debt_qty_unit,
+       mat_temp.internal_action_ref_no,
+       to_char(mat_temp.activity_date,
+               'dd-Mon-yyyy') activity_date
 FROM   (SELECT retn_temp.unique_id,
                retn_temp.corporate_id,
                retn_temp.internal_contract_ref_no,
@@ -42,7 +45,8 @@ FROM   (SELECT retn_temp.unique_id,
                retn_temp.product_name,
                (-1 * retn_temp.qty) debt_qty,
                retn_temp.qty_unit_id debt_qty_unit_id,
-               retn_temp.internal_action_ref_no
+               retn_temp.internal_action_ref_no,
+               retn_temp.activity_date
         FROM   (SELECT spq.spq_id unique_id,
                        axs.corporate_id,
                        pci.internal_contract_ref_no,
@@ -62,7 +66,8 @@ FROM   (SELECT retn_temp.unique_id,
                        product_temp.product_desc product_name,
                        spq.payable_qty qty,
                        spq.qty_unit_id qty_unit_id,
-                       axs.internal_action_ref_no
+                       axs.internal_action_ref_no,
+                       axs.eff_date activity_date
                 FROM   spq_stock_payable_qty spq,
                        grd_goods_record_detail grd,
                        v_pci pci,
@@ -125,7 +130,8 @@ FROM   (SELECT retn_temp.unique_id,
                        pdm.product_desc product_name,
                        (prrqs.qty_sign * prrqs.qty) qty,
                        prrqs.qty_unit_id qty_unit_id,
-                       axs.internal_action_ref_no
+                       axs.internal_action_ref_no,
+                       axs.eff_date activity_date
                 FROM   prrqs_prr_qty_status prrqs,
                        axs_action_summary   axs,
                        pdm_productmaster    pdm
@@ -154,7 +160,8 @@ FROM   (SELECT retn_temp.unique_id,
                pdm.product_desc product_name,
                (prrqs.qty_sign * prrqs.qty) debt_qty,
                prrqs.qty_unit_id debt_qty_unit_id,
-               axs.internal_action_ref_no
+               axs.internal_action_ref_no,
+               axs.eff_date activity_date
         FROM   prrqs_prr_qty_status      prrqs,
                axs_action_summary        axs,
                pdm_productmaster         pdm,
@@ -169,8 +176,10 @@ FROM   (SELECT retn_temp.unique_id,
         AND    gmr.internal_gmr_ref_no = prrqs.internal_gmr_ref_no) mat_temp,
        axm_action_master axm,
        phd_profileheaderdetails phd,
-       phd_profileheaderdetails phd_debt
+       phd_profileheaderdetails phd_debt,
+       qum_quantity_unit_master qum
 WHERE  axm.action_id = mat_temp.activity_action_id
 AND    phd.profileid = mat_temp.supplier_id
 AND    phd_debt.profileid(+) = mat_temp.debt_supplier_id
-ORDER  BY mat_temp.internal_action_ref_no DESC;
+AND    qum.qty_unit_id = mat_temp.debt_qty_unit_id
+ORDER  BY mat_temp.activity_date DESC;
