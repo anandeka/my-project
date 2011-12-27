@@ -25,7 +25,15 @@ SELECT mat_temp.unique_id,
        qum.qty_unit debt_qty_unit,
        mat_temp.internal_action_ref_no,
        to_char(mat_temp.activity_date,
-               'dd-Mon-yyyy') activity_date
+               'dd-Mon-yyyy') activity_date,
+       (CASE
+           WHEN ash_fa.assay_type IS NOT NULL THEN
+            ash_fa.assay_type
+           WHEN ash_pa.assay_type IS NOT NULL THEN
+            ash_pa.assay_type
+           ELSE
+            'Contractual Assay'
+       END) assay_type
 FROM   (SELECT retn_temp.unique_id,
                retn_temp.corporate_id,
                retn_temp.internal_contract_ref_no,
@@ -103,6 +111,7 @@ FROM   (SELECT retn_temp.unique_id,
                 WHERE  spq.internal_action_ref_no = axs.internal_action_ref_no
                 AND    spq.smelter_id IS NULL
                 AND    spq.is_active = 'Y'
+                AND    spq.is_stock_split = 'N'
                 AND    spq.qty_type = 'Returnable'
                 AND    product_temp.attribute_id = spq.element_id
                 AND    product_temp.product_id = grd.product_id
@@ -177,9 +186,31 @@ FROM   (SELECT retn_temp.unique_id,
        axm_action_master axm,
        phd_profileheaderdetails phd,
        phd_profileheaderdetails phd_debt,
-       qum_quantity_unit_master qum
+       qum_quantity_unit_master qum,
+       (SELECT ash.ash_id,
+               ash.assay_type,
+               ash.use_for_finalization,
+               ash.use_for_pricing,
+               ash.use_for_position,
+               ash.internal_grd_ref_no,
+               ash.internal_gmr_ref_no
+        FROM   ash_assay_header ash
+        WHERE  ash.is_active = 'Y'
+        AND    ash.assay_type = 'Provisional Assay') ash_pa,
+       (SELECT ash.ash_id,
+               ash.assay_type,
+               ash.use_for_finalization,
+               ash.use_for_pricing,
+               ash.use_for_position,
+               ash.internal_grd_ref_no,
+               ash.internal_gmr_ref_no
+        FROM   ash_assay_header ash
+        WHERE  ash.is_active = 'Y'
+        AND    ash.assay_type = 'Final Assay') ash_fa
 WHERE  axm.action_id = mat_temp.activity_action_id
 AND    phd.profileid = mat_temp.supplier_id
 AND    phd_debt.profileid(+) = mat_temp.debt_supplier_id
 AND    qum.qty_unit_id = mat_temp.debt_qty_unit_id
+AND    ash_pa.internal_grd_ref_no(+) = mat_temp.stock_id
+AND    ash_fa.internal_grd_ref_no(+) = mat_temp.stock_id
 ORDER  BY mat_temp.activity_date DESC;
