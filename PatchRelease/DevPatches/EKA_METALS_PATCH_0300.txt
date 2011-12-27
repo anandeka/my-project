@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0300
+
+Project / Product* 		:  METALS (Mining)
+==================================================================
+Created by*        		:  Pradeep Kumar Behera
+ 
+Created on*        		:  27-Dec-2011
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 : Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 83362
+Author: pradeep.kumar
+Date: 6:28:56 PM, Tuesday, December 27, 2011
+Message:
+-- SLV Entry for Metal Account Transaction
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_151.sql
+
+
+
+
+
