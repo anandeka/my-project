@@ -155,10 +155,6 @@ Insert into GM_GRID_MASTER
 	} ]', NULL, '/private/jsp/mining/tolling/listing/ListOfMetalAccountTransactions.jsp', '/private/js/mining/tolling/listing/ListOfMetalAccountTransactions.js');
 
 
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('Contractual Assay', 'Contractual Assay');
 
 Insert into SLV_STATIC_LIST_VALUE
    (VALUE_ID, VALUE_TEXT)
