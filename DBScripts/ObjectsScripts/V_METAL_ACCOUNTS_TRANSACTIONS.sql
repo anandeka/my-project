@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW V_METAL_ACCOUNTS_TRANSACTIONS
-AS
+AS 
 SELECT mat_temp.unique_id,
        mat_temp.corporate_id,
        mat_temp.internal_contract_ref_no,
@@ -27,10 +27,8 @@ SELECT mat_temp.unique_id,
        to_char(mat_temp.activity_date,
                'dd-Mon-yyyy') activity_date,
        (CASE
-           WHEN ash_fa.assay_type IS NOT NULL THEN
-            ash_fa.assay_type
-           WHEN ash_pa.assay_type IS NOT NULL THEN
-            ash_pa.assay_type
+           WHEN ash_pa_fa.assay_type IS NOT NULL THEN
+            ash_pa_fa.assay_type
            ELSE
             'Contractual Assay'
        END) assay_type
@@ -189,28 +187,15 @@ FROM   (SELECT retn_temp.unique_id,
        qum_quantity_unit_master qum,
        (SELECT ash.ash_id,
                ash.assay_type,
-               ash.use_for_finalization,
-               ash.use_for_pricing,
-               ash.use_for_position,
-               ash.internal_grd_ref_no,
-               ash.internal_gmr_ref_no
-        FROM   ash_assay_header ash
-        WHERE  ash.is_active = 'Y'
-        AND    ash.assay_type = 'Provisional Assay') ash_pa,
-       (SELECT ash.ash_id,
-               ash.assay_type,
-               ash.use_for_finalization,
-               ash.use_for_pricing,
-               ash.use_for_position,
-               ash.internal_grd_ref_no,
-               ash.internal_gmr_ref_no
-        FROM   ash_assay_header ash
-        WHERE  ash.is_active = 'Y'
-        AND    ash.assay_type = 'Final Assay') ash_fa
+               sam.internal_grd_ref_no
+        FROM   sam_stock_assay_mapping sam,
+               ash_assay_header        ash
+        WHERE  ash.pricing_assay_ash_id = sam.ash_id
+        AND    sam.is_latest_pricing_assay = 'Y'
+        AND    sam.is_active = 'Y') ash_pa_fa
 WHERE  axm.action_id = mat_temp.activity_action_id
 AND    phd.profileid = mat_temp.supplier_id
 AND    phd_debt.profileid(+) = mat_temp.debt_supplier_id
 AND    qum.qty_unit_id = mat_temp.debt_qty_unit_id
-AND    ash_pa.internal_grd_ref_no(+) = mat_temp.stock_id
-AND    ash_fa.internal_grd_ref_no(+) = mat_temp.stock_id
+AND    ash_pa_fa.internal_grd_ref_no(+) = mat_temp.stock_id
 ORDER  BY mat_temp.activity_date DESC;
