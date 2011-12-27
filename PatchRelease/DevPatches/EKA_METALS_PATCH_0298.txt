@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0298
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P Hulbatte
+ 
+Created on*        		:  26-Dec-2011
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+ 
+Sub-Module  			 :  Free metal invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 83328
+Author: anandp
+Date: 4:03:36 PM, Tuesday, December 27, 2011
+Message:
+For free metal invoice.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_135.sql
+
+
