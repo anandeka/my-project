@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0300
+
+Project / Product* 		:  METALS (Mining)
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+ 
+Created on*        		:  28-Dec-2011
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :Weighing And Sampling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 83392
+Author: anupkumar.agarwal
+Date: 11:32:11 AM, Wednesday, December 28, 2011
+Message:
+1:Master Script : For Gen rating unique No During Rearrange Case Of WNS(WNSGROUPID) for Cancellation Purpose.
+2:Object Script: Added new Column in Table ASH (WNS_GROUP_ID) For WNS Rearrange Case 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_151.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_136.sql
+
+
+
+
