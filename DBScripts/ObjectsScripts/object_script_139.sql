@@ -1,0 +1,1 @@
+alter table IS_INVOICE_SUMMARY add(IS_INV_DRAFT  CHAR(1 CHAR)   DEFAULT 'N');
