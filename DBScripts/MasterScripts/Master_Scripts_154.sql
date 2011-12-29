@@ -1,0 +1,3 @@
+UPDATE GMC_GRID_MENU_CONFIGURATION
+set LINK_CALLED ='function(){viewContract();}'
+WHERE MENU_ID='MIN_1_1'
