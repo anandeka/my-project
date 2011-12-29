@@ -1,0 +1,42 @@
+SET DEFINE OFF;
+UPDATE GM_GRID_MASTER
+SET DEFAULT_RECORD_MODEL_STATE ='[{"dataIndex":"","fixed":true,"header":"<div class=\"x-grid3-hd-checker\">&#160;</div>","hideable":false,"id":"checker","sortable":false,"width":20},{"dataIndex":"contractRefNo","header":"Contract No.","id":1,"sortable":true,"width":150},
+{"dataIndex":"contractType","header":"Contract Type","id":2,"sortable":true,"width":150},
+{"dataIndex":"cpName","header":"CP Name","id":3,"sortable":true,"width":150},
+{"dataIndex":"tradeType","header":"Execution Type","id":4,"sortable":true,"width":150},
+{"dataIndex":"deliveryItemRefNo","header":"Delivery Ref. No.","id":5,"sortable":true,"width":150},
+{"dataIndex":"assetclass","header":"Product","id":6,"sortable":true,"width":150},
+{"dataIndex":"qualityName","header":"Quality","id":7,"sortable":true,"width":150},
+{"dataIndex":"attributes","header":"Attributes","id":8,"sortable":true,"width":150},
+{"dataIndex":"issueDate","header":"Issue Date","id":9,"sortable":true,"width":150},
+{"dataIndex":"quotaMonth","header":"Quota Period","id":10,"sortable":true,"width":150},
+{"dataIndex":"location","header":"Location","id":11,"sortable":true,"width":150},
+{"dataIndex":"traxysOrg","header":"Org","id":12,"sortable":true,"width":150},
+{"dataIndex":"incotermLocation","header":"Incoterm & Location","id":13,"sortable":true,"width":150},
+{"dataIndex":"quotaQty","header":"Quota Quantity(Min)","id":14,"sortable":true,"width":150},
+{"dataIndex":"quotaQtyUnit","header":"Quota Qty. Unit","id":15,"sortable":true,"width":150},
+{"dataIndex":"quotaOpenQty","header":"Quota Open Qty.","id":16,"sortable":true,"width":150},
+{"dataIndex":"allocatedQty","header":"Allocated Qty.","id":17,"sortable":true,"width":150},
+{"dataIndex":"strategy","header":"Strategy","id":18,"sortable":true,"width":150},
+{"dataIndex":"bookProfitCenter","header":"Book/Profit Center","id":19,"sortable":true,"width":150},
+{"dataIndex":"trader","header":"Trader","id":20,"sortable":true,"width":150},
+{"dataIndex":"qpPricingBasis","header":"QP-Pricing Basis","id":21,"sortable":true,"width":150},
+{"dataIndex":"qpPricing","header":"QP-Pricing","id":22,"sortable":true,"width":150},
+{"dataIndex":"pricing","header":"Pricing","id":23,"sortable":true,"width":150},
+{"dataIndex":"quotaQuantityMax","header":"Quota Quantity(Max)","id":24,"sortable":true,"width":150},
+{"dataIndex":"quotaQuantityBasis","header":"Quota Quantity Basis","id":25,"sortable":true,"width":150},
+{"dataIndex":"toBeCalledOffQty","header":"To be called Off Quantity","id":26,"sortable":true,"width":150},
+{"dataIndex":"calledOffQty","header":"Called Off Quantity","id":27,"sortable":true,"width":150},
+{"dataIndex":"executedQty","header":"Executed Quantity","id":28,"sortable":true,"width":150},
+{"dataIndex":"pricingStatus","header":"Pricing Status","id":29,"sortable":true,"width":150},
+{"dataIndex":"fixedPriceQty","header":"Fixed Price Quantity","id":30,"sortable":true,"width":150},
+{"dataIndex":"titleTransferQty","header":"Title Transfer Quantity","id":31,"sortable":true,"width":150},
+{"dataIndex":"provInvoicedQty","header":"Prov. Invoiced Quantity","id":32,"sortable":true,"width":150},
+{"dataIndex":"finalInvoicedQty","header":"Final Invoiced Quantity","id":33,"sortable":true,"width":150},
+{"dataIndex":"payInCurrency","header":"Pay-In Currency","id":34,"sortable":true,"width":150},
+{"dataIndex":"fullfillmentStatus","header":"Fullfillment Status","id":35,"sortable":true,"width":150},
+{"dataIndex":"passThrough","header":"Pass Through","id":36,"sortable":true,"width":150}]'
+WHERE GRID_ID ='MLODI';
+UPDATE GM_GRID_MASTER 
+SET DEFAULT_RECORD_MODEL_STATE='[{"dataIndex":"","fixed":true,"header":"<div class=\"x-grid3-hd-checker\">&#160;</div>","hideable":false,"id":"checker","sortable":false,"width":20},{"dataIndex":"contractNo","header":"Contract Ref. No","id":1,"sortable":true,"width":150},{"dataIndex":"contractType","header":"Contract Type","id":2,"sortable":true,"width":150},{"dataIndex":"counterParty","header":"CP Name","id":3,"sortable":true,"width":150},{"dataIndex":"partnershipType","header":"Execution Type","id":4,"sortable":true,"width":150},{"dataIndex":"tradeType","header":"Product Group Type","id":5,"sortable":true,"width":150},{"dataIndex":"itemStatus","header":"Item Status","id":6,"sortable":true,"width":150},{"dataIndex":"deliveryRefNo","header":"Delivery Ref. No.","id":7,"sortable":true,"width":150},{"dataIndex":"itemRefNo","header":"Item Ref. No.","id":8,"sortable":true,"width":150},{"dataIndex":"product","header":"Product","id":9,"sortable":true,"width":150},{"dataIndex":"quality","header":"Quality","id":10,"sortable":true,"width":150},{"dataIndex":"issueDate","header":"Issue Date","id":11,"sortable":true,"width":150},{"dataIndex":"quotaMonth","header":"Quota Period","id":12,"sortable":true,"width":150},{"dataIndex":"location","header":"Location","id":13,"sortable":true,"width":150},{"dataIndex":"traxysOrg","header":"Org","id":14,"sortable":true,"width":150},{"dataIndex":"incotermLocation","header":"INCO Term & Location","id":15,"sortable":true,"width":150},{"dataIndex":"qty","header":"Item Quantity","id":16,"sortable":true,"width":150},{"dataIndex":"openQty","header":"Open Qty.","id":17,"sortable":true,"width":150},{"dataIndex":"allocatedQty","header":"Allocated Qty.","id":18,"sortable":true,"width":150},{"dataIndex":"incoterm","header":"Incoterm","id":19,"sortable":true,"width":150},{"dataIndex":"strategy","header":"Strategy","id":20,"sortable":true,"width":150},{"dataIndex":"bookProfitCenter","header":"Book/Profit Center","id":21,"sortable":true,"width":150},{"dataIndex":"trader","header":"Trader","id":22,"sortable":true,"width":150},{"dataIndex":"pricing","header":"Pricing","id":23,"sortable":true,"width":150},{"dataIndex":"executedQty","header":"Executed Quantity","id":24,"sortable":true,"width":150},{"dataIndex":"titleTransferQty","header":"Title Transfer Quantity","id":25,"sortable":true,"width":150},{"dataIndex":"provInvoicedQty","header":"Prov. Invoiced Quantity","id":26,"sortable":true,"width":150},{"dataIndex":"finalInvoicedQty","header":"Final Invoiced Quantity","id":27,"sortable":true,"width":150},{"dataIndex":"payInCurrency","header":"Pay-In Currency","id":28,"sortable":true,"width":150},{"dataIndex":"payableContent","header":"Payable Content","id":29,"sortable":true,"width":150},{"dataIndex":"origin","header":"Origin","id":30,"sortable":true,"width":150},{"dataIndex":"passThrough","header":"passThrough","id":31,"sortable":true,"width":150}]'
+WHERE GRID_ID ='MLOCI'
