@@ -43,7 +43,6 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_TRANSFER_DATA" is
                                    pc_dbd_id       varchar2);
 
 end pkg_phy_transfer_data; 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
 
@@ -537,6 +536,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('mv_qat_quality_valuation', 'c');
       dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'c');
       dbms_mview.refresh('DI_DEL_ITEM_EXP_QP_DETAILS', 'c');
+      dbms_mview.refresh('PCMTE_PCM_TOLLING_EXT', 'c');
+      dbms_mview.refresh('PQDT_PAYABLE_EXT_TOLLING', 'c');
+      dbms_mview.refresh('PQCAPD_PRD_QLTY_CATTR_PAY_DTLS', 'c');
+      dbms_mview.refresh('SAM_STOCK_ASSAY_MAPPING', 'c');
     end if;
   exception
     when others then
@@ -880,6 +883,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        p_shipped_tare_weight,
        sdcts_id,
        partnership_type,
+       profit_center_id,
+       strategy_id,
+       is_warrant,
+       warrant_no,
        dbd_id)
       select ul.internal_action_ref_no,
              ul.internal_dgrd_ref_no,
@@ -959,6 +966,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.p_shipped_tare_weight,
              ul.sdcts_id,
              ul.partnership_type,
+             ul.profit_center_id,
+             ul.strategy_id,
+             ul.is_warrant,
+             ul.warrant_no,
              pc_dbd_id
         from dgrdul_delivered_grd_ul@eka_appdb ul,
              axs_action_summary@eka_appdb      axs
@@ -1052,6 +1063,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        place_of_delivery_country_id,
        place_of_delivery_state_id,
        place_of_delivery_city_id,
+       tolling_qty,
+       tolling_gmr_type,
+       pool_id,
+       is_warrant,
+       is_pass_through,
+       pledge_input_gmr,
+       is_apply_freight_allowance,
        dbd_id)
       select ul.internal_action_ref_no,
              ul.internal_gmr_ref_no,
@@ -1137,6 +1155,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.place_of_delivery_country_id,
              ul.place_of_delivery_state_id,
              ul.place_of_delivery_city_id,
+             ul.tolling_qty,
+             ul.tolling_gmr_type,
+             ul.pool_id,
+             ul.is_warrant,
+             ul.is_pass_through,
+             ul.pledge_input_gmr,
+             ul.is_apply_freight_allowance,
              pc_dbd_id
         from gmrul_gmr_ul@eka_appdb       ul,
              axs_action_summary@eka_appdb axs
@@ -1280,6 +1305,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        internal_contract_ref_no,
        price_description,
        element_id,
+       is_free_metal_applicable,
        dbd_id)
       select ul.pcbphul_id,
              ul.internal_action_ref_no,
@@ -1291,6 +1317,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.internal_contract_ref_no,
              ul.price_description,
              ul.element_id,
+             ul. is_free_metal_applicable,
              pc_dbd_id
         from pcbphul_pc_base_prc_header_ul@eka_appdb ul,
              axs_action_summary@eka_appdb            axs
@@ -1493,6 +1520,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        is_price_optionality_present,
        entry_type,
        is_phy_optionality_present,
+       item_price_type,
+       item_price,
+       item_price_unit,
+       qty_declaration_date,
+       quality_declaration_date,
+       inco_location_declaration_date,
        dbd_id)
       select ul.pcdiul_id,
              ul.internal_action_ref_no,
@@ -1533,6 +1566,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.is_price_optionality_present,
              ul.entry_type,
              ul.is_phy_optionality_present,
+             ul.item_price_type,
+             ul.item_price,
+             ul.item_price_unit,
+             ul.qty_declaration_date,
+             ul.quality_declaration_date,
+             ul.inco_location_declaration_date,
              pc_dbd_id
         from pcdiul_pc_delivery_item_ul@eka_appdb ul,
              axs_action_summary@eka_appdb         axs
@@ -1595,6 +1634,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        m2m_city_id,
        m2m_region_id,
        is_called_off,
+       expected_qp_start_date,
+       expected_qp_end_date,
        dbd_id)
       select ul.pciul_id,
              ul.internal_action_ref_no,
@@ -1623,6 +1664,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.m2m_city_id,
              ul.m2m_region_id,
              ul.is_called_off,
+             ul.expected_qp_start_date,
+             ul.expected_qp_end_date,
              pc_dbd_id
         from pciul_phy_contract_item_ul@eka_appdb ul,
              axs_action_summary@eka_appdb         axs
@@ -1712,6 +1755,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        weight_allowance_unit_id,
        entry_type,
        unit_of_measure,
+       approval_status,
+       is_tolling_contract,
+       cp_address_id,
+       is_lot_level_invoice,
        dbd_id)
       select ul.pcmul_id,
              ul.internal_action_ref_no,
@@ -1761,6 +1808,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.weight_allowance_unit_id,
              ul.entry_type,
              ul.unit_of_measure,
+             ul.approval_status,
+             ul.is_tolling_contract,
+             ul.cp_address_id,
+             ul.is_lot_level_invoice,
              pc_dbd_id
         from pcmul_phy_contract_main_ul@eka_appdb ul,
              axs_action_summary@eka_appdb         axs
@@ -1778,6 +1829,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        version,
        entry_type,
        is_active,
+       quality_name,
        dbd_id)
       select ul.pcpdqdul_id,
              ul.internal_action_ref_no,
@@ -1787,6 +1839,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.version,
              ul.entry_type,
              ul.is_active,
+             ul.quality_name,
              pc_dbd_id
         from pcpdqdul_pd_quality_dtl_ul@eka_appdb ul,
              axs_action_summary@eka_appdb         axs
@@ -1822,6 +1875,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        is_quality_print_name_req,
        entry_type,
        quality_print_name,
+       input_output,
        dbd_id)
       select ul.pcpdul_id,
              ul.internal_action_ref_no,
@@ -1849,6 +1903,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.is_quality_print_name_req,
              ul.entry_type,
              ul.quality_print_name,
+             ul.input_output,
              pc_dbd_id
         from pcpdul_pc_product_defintn_ul@eka_appdb ul,
              axs_action_summary@eka_appdb           axs
@@ -2030,6 +2085,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        is_active,
        event_name,
        no_of_event_months,
+       is_spot_pricing,
        dbd_id)
       select ul.pfqppul_id,
              ul.internal_action_ref_no,
@@ -2057,6 +2113,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              ul.event_name,
              ul.no_of_event_months,
+             ul.is_spot_pricing,
              pc_dbd_id
         from pfqppul_phy_formula_qp_prc_ul@eka_appdb ul,
              axs_action_summary@eka_appdb            axs
@@ -2693,6 +2750,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        slab_tier,
        version,
        is_active,
+       payable_type,
        dbd_id)
       select ul.pcpchul_id,
              ul.internal_action_ref_no,
@@ -2705,6 +2763,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.slab_tier,
              ul.version,
              ul.is_active,
+             ul.payable_type,
              pc_dbd_id
         from pcpchul_payble_contnt_headr_ul@eka_appdb ul,
              axs_action_summary@eka_appdb             axs
@@ -2722,6 +2781,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        pcpq_id,
        version,
        is_active,
+       quality_name,
        dbd_id)
       select ul.pqdul_id,
              ul.internal_action_ref_no,
@@ -2731,6 +2791,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.pcpq_id,
              ul.version,
              ul.is_active,
+             ul.quality_name,
              pc_dbd_id
         from pqdul_payable_quality_dtl_ul@eka_appdb ul,
              axs_action_summary@eka_appdb           axs
@@ -2830,6 +2891,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        element_id,
        version,
        is_active,
+       element_name,
        dbd_id)
       select ul.tedul_id,
              ul.internal_action_ref_no,
@@ -2839,6 +2901,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.element_id,
              ul.version,
              ul.is_active,
+             ul.element_name,
              pc_dbd_id
         from tedul_treatment_element_dtl_ul@eka_appdb ul,
              axs_action_summary@eka_appdb             axs
@@ -2856,6 +2919,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        pcpq_id,
        version,
        is_active,
+       quality_name,
        dbd_id)
       select ul.tqdul_id,
              ul.internal_action_ref_no,
@@ -2865,6 +2929,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.pcpq_id,
              ul.version,
              ul.is_active,
+             ul.quality_name,
              pc_dbd_id
         from tqdul_treatment_quality_dtl_ul@eka_appdb ul,
              axs_action_summary@eka_appdb             axs
@@ -2935,6 +3000,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        split_limit_unit_id,
        version,
        is_active,
+       element_name,
+       quality_id,
        dbd_id)
       select ul.pcarul_id,
              ul.internal_action_ref_no,
@@ -2949,6 +3016,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.split_limit_unit_id,
              ul.version,
              ul.is_active,
+             ul.element_name,
+             ul.quality_id,
              pc_dbd_id
         from pcarul_assaying_rules_ul@eka_appdb ul,
              axs_action_summary@eka_appdb       axs
@@ -3000,6 +3069,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        pcpq_id,
        version,
        is_active,
+       quality_name,
        dbd_id)
       select ul.arqdul_id,
              ul.internal_action_ref_no,
@@ -3009,6 +3079,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.pcpq_id,
              ul.version,
              ul.is_active,
+             ul.quality_name,
              pc_dbd_id
         from arqdul_assay_quality_dtl_ul@eka_appdb ul,
              axs_action_summary@eka_appdb          axs
@@ -3198,6 +3269,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        pcpq_id,
        version,
        is_active,
+       quality_name,
        dbd_id)
       select ul.rqdul_id,
              ul.internal_action_ref_no,
@@ -3207,6 +3279,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.pcpq_id,
              ul.version,
              ul.is_active,
+             ul.quality_name,
              pc_dbd_id
         from rqdul_refining_quality_dtl_ul@eka_appdb ul,
              axs_action_summary@eka_appdb            axs
@@ -3224,6 +3297,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        element_id,
        version,
        is_active,
+       element_name,
        dbd_id)
       select ul.redul_id,
              ul.internal_action_ref_no,
@@ -3233,6 +3307,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              ul.element_id,
              ul.version,
              ul.is_active,
+             ul.element_name,
              pc_dbd_id
         from redul_refining_element_dtl_ul@eka_appdb ul,
              axs_action_summary@eka_appdb            axs
@@ -3380,6 +3455,7 @@ insert into diphul_di_penalty_header_ul
   qty_unit_id,
   version,
   is_active,
+  qty_type,
   dbd_id)
   select ul.cipq_id,
          ul.internal_action_ref_no,
@@ -3390,6 +3466,7 @@ insert into diphul_di_penalty_header_ul
          ul.qty_unit_id,
          ul.version,
          ul.is_active,
+         ul.qty_type,
          pc_dbd_id
         from cipql_ctrt_itm_payable_qty_log@eka_appdb ul,
              axs_action_summary@eka_appdb             axs
@@ -3412,6 +3489,7 @@ insert into dipql_del_itm_payble_qty_log
   version,
   is_active,
   is_price_optionality_present,
+  qty_type,
   dbd_id)
   select ul.dipq_id,
          ul.internal_action_ref_no,
@@ -3424,6 +3502,7 @@ insert into dipql_del_itm_payble_qty_log
          ul.version,
          ul.is_active,
          ul.is_price_optionality_present,
+         ul.qty_type,
          pc_dbd_id
         from dipql_del_itm_payble_qty_log@eka_appdb ul,
              axs_action_summary@eka_appdb             axs
@@ -3447,6 +3526,14 @@ insert into spql_stock_payable_qty_log
   qty_unit_id,
   version,
   is_active,
+  qty_type,
+  activity_action_id,
+  is_stock_split,
+  supplier_id,
+  smelter_id,
+  in_process_stock_id,
+  free_metal_stock_id,
+  free_metal_qty,
   dbd_id)
   select ul.spq_id,
          ul.internal_action_ref_no,
@@ -3461,6 +3548,14 @@ insert into spql_stock_payable_qty_log
          ul.qty_unit_id,
          ul.version,
          ul.is_active,
+         ul.qty_type,
+         ul.activity_action_id,
+         ul.is_stock_split,
+         ul.supplier_id,
+         ul.smelter_id,
+         ul.in_process_stock_id,
+         ul.free_metal_stock_id,
+         ul.free_metal_qty,
          pc_dbd_id
         from spql_stock_payable_qty_log@eka_appdb ul,
              axs_action_summary@eka_appdb             axs
@@ -3468,7 +3563,34 @@ insert into spql_stock_payable_qty_log
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;              
+    commit; 
+    
+  insert into dipchul_di_payblecon_header_ul
+  (dipchul_id,
+   internal_action_ref_no,
+   entry_type,
+   dipch_id,
+   pcdi_id,
+   pcpch_id,
+   version,
+   is_active,
+   dbd_id)
+   select ul.dipchul_id,
+          ul.internal_action_ref_no,
+          ul.entry_type,
+          ul.dipch_id,
+          ul.pcdi_id,
+          ul.pcpch_id,
+          ul.version,
+          ul.is_active,
+          pc_dbd_id 
+    from dipchul_di_payblecon_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb             axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;            
      
   exception
     when others then

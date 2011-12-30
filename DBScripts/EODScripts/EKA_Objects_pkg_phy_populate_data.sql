@@ -188,7 +188,11 @@ procedure sp_phy_create_dipq_data(pc_corporate_id varchar2,
 procedure sp_phy_create_spq_data(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_user_id      varchar2);                                                                            
-                                     
+
+ procedure sp_phy_create_dipch_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);                                   
+
 end pkg_phy_populate_data; 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
@@ -992,8 +996,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             'sp_phy_create_spq_data');
     sp_phy_create_spq_data(pc_corporate_id, pd_trade_date, pc_user_id);    
     commit;    
-       
-       
+  
+  if pkg_process_status.sp_get(pc_corporate_id,
+                                 gvc_process,
+                                 pd_trade_date) = 'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'sp_phy_create_dipch_data');
+    sp_phy_create_dipch_data(pc_corporate_id, pd_trade_date, pc_user_id);
+    commit;
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -2163,6 +2180,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        p_shipped_tare_weight,
        sdcts_id,
        partnership_type,
+       profit_center_id,
+       strategy_id,
+       is_warrant,
+       warrant_no,
        dbd_id)
       select decode(internal_dgrd_ref_no,
                     'Empty_String',
@@ -2334,6 +2355,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     'Empty_String',
                     null,
                     partnership_type),
+             decode(profit_center_id,
+                    'Empty_String',
+                    null,
+                    profit_center_id),
+             decode(strategy_id, 'Empty_String', null, strategy_id),
+             decode(is_warrant, 'Empty_String', null, is_warrant),
+             decode(warrant_no, 'Empty_String', null, warrant_no),
              gvc_dbd_id
         from (select dgrdul.internal_dgrd_ref_no,
                      substr(max(case
@@ -2838,6 +2866,30 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    dgrdul.partnership_type
                                 end),
                             24) partnership_type,
+                     substr(max(case
+                                  when dgrdul.profit_center_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dgrdul.profit_center_id
+                                end),
+                            24) profit_center_id,
+                     substr(max(case
+                                  when dgrdul.strategy_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dgrdul.strategy_id
+                                end),
+                            24) strategy_id,
+                     substr(max(case
+                                  when dgrdul.is_warrant is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dgrdul.is_warrant
+                                end),
+                            24) is_warrant,
+                     substr(max(case
+                                  when dgrdul.warrant_no is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dgrdul.warrant_no
+                                end),
+                            24) warrant_no,
                      gvc_dbd_id
                 from dgrdul_delivered_grd_ul dgrdul,
                      axs_action_summary      axs,
@@ -2975,6 +3027,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        place_of_delivery_city_id,
        --total_gross_weight,
        -- total_tare_weight,
+       tolling_qty,
+       tolling_gmr_type,
+       pool_id,
+       is_warrant,
+       is_pass_through,
+       pledge_input_gmr,
+       is_apply_freight_allowance,
        dbd_id)
       select decode(internal_gmr_ref_no,
                     'Empty_String',
@@ -3184,6 +3243,22 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                                                                                                'Empty_String',
                                                                                                                null,
                                                                                                                total_tare_weight), */
+             decode(tolling_qty, 'Empty_String', null, tolling_qty),
+             decode(tolling_gmr_type,
+                    'Empty_String',
+                    null,
+                    tolling_gmr_type),
+             decode(pool_id, 'Empty_String', null, pool_id),
+             decode(is_warrant, 'Empty_String', null, is_warrant),
+             decode(is_pass_through, 'Empty_String', null, is_pass_through),
+             decode(pledge_input_gmr,
+                    'Empty_String',
+                    null,
+                    pledge_input_gmr),
+             decode(is_apply_freight_allowance,
+                    'Empty_String',
+                    null,
+                    is_apply_freight_allowance),
              gvc_dbd_id
         from (select gmrul.internal_gmr_ref_no,
                      substr(max(case
@@ -3686,6 +3761,48 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                                                                                                                                                                       gmrul.total_tare_weight
                                                                                                                                                                                    end),
                                                                                                                                                                                24) total_tare_weight,*/
+                     substr(max(case
+                                  when gmrul.tolling_qty is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   gmrul.tolling_qty
+                                end),
+                            24) tolling_qty,
+                     substr(max(case
+                                  when gmrul.tolling_gmr_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   gmrul.tolling_gmr_type
+                                end),
+                            24) tolling_gmr_type,
+                     substr(max(case
+                                  when gmrul.pool_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   gmrul.pool_id
+                                end),
+                            24) pool_id,
+                     substr(max(case
+                                  when gmrul.is_warrant is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   gmrul.is_warrant
+                                end),
+                            24) is_warrant,
+                     substr(max(case
+                                  when gmrul.is_pass_through is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   gmrul.is_pass_through
+                                end),
+                            24) is_pass_through,
+                     substr(max(case
+                                  when gmrul.pledge_input_gmr is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   gmrul.pledge_input_gmr
+                                end),
+                            24) pledge_input_gmr,
+                     substr(max(case
+                                  when gmrul.is_apply_freight_allowance is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   gmrul.is_apply_freight_allowance
+                                end),
+                            24) is_apply_freight_allowance,
                      gvc_dbd_id
                 from gmrul_gmr_ul       gmrul,
                      axs_action_summary axs,
@@ -4237,6 +4354,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        internal_contract_ref_no,
        price_description,
        element_id,
+       is_free_metal_applicable,
        dbd_id)
       select decode(pcbph_id, 'Empty_String', null, pcbph_id),
            /*  decode(optionality_desc,
@@ -4253,10 +4371,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     'Empty_String',
                     null,
                     price_description),
-             decode(element_id,
+             decode(element_id, 'Empty_String', null, element_id),
+             decode(is_free_metal_applicable,
                     'Empty_String',
                     null,
-                    element_id),       
+                    is_free_metal_applicable),
              gvc_dbd_id
         from (select pcbphul.pcbph_id,
                      substr(max(case
@@ -4295,6 +4414,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcbphul.element_id
                                 end),
                             24) element_id,
+                     substr(max(case
+                                  when pcbphul.is_free_metal_applicable is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcbphul.is_free_metal_applicable
+                                end),
+                            24) is_free_metal_applicable,
                      gvc_dbd_id
                 from pcbphul_pc_base_prc_header_ul pcbphul,
                      axs_action_summary            axs,
@@ -4943,6 +5068,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        price_option_call_off_status,
        is_price_optionality_present,
        is_phy_optionality_present,
+       item_price_type,
+       item_price,
+       item_price_unit,
+       qty_declaration_date,
+       quality_declaration_date,
+       inco_location_declaration_date,
        dbd_id)
       select decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(internal_contract_ref_no,
@@ -5040,6 +5171,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     'Empty_String',
                     null,
                     is_phy_optionality_present),
+             decode(item_price_type, 'Empty_String', null, item_price_type),
+             decode(item_price, 'Empty_String', null, item_price),
+             decode(item_price_unit, 'Empty_String', null, item_price_unit),
+             decode(qty_declaration_date, 'Empty_String', null, qty_declaration_date),
+             decode(quality_declaration_date, 'Empty_String', null, quality_declaration_date),
+             decode(inco_location_declaration_date, 'Empty_String', null, inco_location_declaration_date),             
              gvc_dbd_id
         from (select pcdiul.pcdi_id,
                      substr(max(case
@@ -5253,6 +5390,42 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcdiul.is_phy_optionality_present
                                 end),
                             24) is_phy_optionality_present,
+                     substr(max(case
+                                  when pcdiul.item_price_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdiul.item_price_type
+                                end),
+                            24) item_price_type,
+                     substr(max(case
+                                  when pcdiul.item_price is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdiul.item_price
+                                end),
+                            24) item_price,
+                     substr(max(case
+                                  when pcdiul.item_price_unit is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdiul.item_price_unit
+                                end),
+                            24) item_price_unit,
+                      substr(max(case
+                                  when pcdiul.qty_declaration_date is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdiul.qty_declaration_date
+                                end),
+                            24) qty_declaration_date,
+                     substr(max(case
+                                  when pcdiul.quality_declaration_date is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdiul.quality_declaration_date
+                                end),
+                            24) quality_declaration_date,
+                     substr(max(case
+                                  when pcdiul.inco_location_declaration_date is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdiul.inco_location_declaration_date
+                                end),
+                            24) inco_location_declaration_date,       
                      gvc_dbd_id
                 from pcdiul_pc_delivery_item_ul pcdiul,
                      axs_action_summary         axs,
@@ -5425,6 +5598,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        m2m_city_id,
        m2m_region_id,
        is_called_off,
+       expected_qp_start_date,
+       expected_qp_end_date,
        dbd_id)
       select decode(internal_contract_item_ref_no,
                     'Empty_String',
@@ -5486,6 +5661,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
              decode(m2m_city_id, 'Empty_String', null, m2m_city_id),
              decode(m2m_region_id, 'Empty_String', null, m2m_region_id),
              decode(is_called_off, 'Empty_String', null, is_called_off),
+             decode(expected_qp_start_date,
+                    'Empty_String',
+                    null,
+                    expected_qp_start_date),
+             decode(expected_qp_end_date,
+                    'Empty_String',
+                    null,
+                    expected_qp_end_date),
              gvc_dbd_id
         from (select pciul.internal_contract_item_ref_no,
                      substr(max(case
@@ -5627,6 +5810,18 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pciul.is_called_off
                                 end),
                             24) is_called_off,
+                     substr(max(case
+                                  when pciul.expected_qp_start_date is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pciul.expected_qp_start_date
+                                end),
+                            24) expected_qp_start_date,
+                     substr(max(case
+                                  when pciul.expected_qp_end_date is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pciul.expected_qp_end_date
+                                end),
+                            24) expected_qp_end_date,
                      gvc_dbd_id
                 from pciul_phy_contract_item_ul pciul,
                      axs_action_summary         axs,
@@ -5851,6 +6046,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        weight_allowance,
        weight_allowance_unit_id,
        unit_of_measure,
+       is_tolling_contract,
+       approval_status,
+       cp_address_id,
+       is_lot_level_invoice,
        dbd_id)
       select decode(internal_contract_ref_no,
                     'Empty_String',
@@ -5971,6 +6170,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     null,
                     weight_allowance_unit_id),
              decode(unit_of_measure, 'Empty_String', null, unit_of_measure),
+             decode(is_tolling_contract,
+                    'Empty_String',
+                    null,
+                    is_tolling_contract),
+             decode(approval_status, 'Empty_String', null, approval_status),
+             decode(cp_address_id, 'Empty_String', null, cp_address_id),
+             decode(is_lot_level_invoice, 'Empty_String', null, is_lot_level_invoice),
              gvc_dbd_id
         from (select pcmul.internal_contract_ref_no,
                      substr(max(case
@@ -6250,6 +6456,30 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcmul.unit_of_measure
                                 end),
                             24) unit_of_measure,
+                     substr(max(case
+                                  when pcmul.is_tolling_contract is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcmul.is_tolling_contract
+                                end),
+                            24) is_tolling_contract,
+                     substr(max(case
+                                  when pcmul.approval_status is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcmul.approval_status
+                                end),
+                            24) approval_status,
+                     substr(max(case
+                                  when pcmul.cp_address_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcmul.cp_address_id
+                                end),
+                            24) cp_address_id,
+                     substr(max(case
+                                  when pcmul.is_lot_level_invoice is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcmul.is_lot_level_invoice
+                                end),
+                            24) is_lot_level_invoice,       
                      gvc_dbd_id
                 from pcmul_phy_contract_main_ul pcmul,
                      axs_action_summary         axs,
@@ -6265,6 +6495,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by pcmul.internal_contract_ref_no) t;
+       
+     update pcm_physical_contract_main pcm
+           set pcm.is_tolling_extn = 'Y'
+         where pcm.corporate_id=pc_corporate_id
+           and pcm.dbd_id=gvc_dbd_id
+           and exists
+               (select pcmte.int_contract_ref_no
+                  from pcmte_pcm_tolling_ext pcmte
+                 where pcmte.int_contract_ref_no =
+                       pcm.internal_contract_ref_no);
+    
   exception
     when others then
       vobj_error_log.extend;
@@ -6303,12 +6544,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into pcpdqd_pd_quality_details
-      (pcpdqd_id, pcqpd_id, pcpq_id, version, is_active, dbd_id)
+      (pcpdqd_id, pcqpd_id, pcpq_id, version, is_active,quality_name, dbd_id)
       select decode(pcpdqd_id, 'Empty_String', null, pcpdqd_id),
              decode(pcqpd_id, 'Empty_String', null, pcqpd_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(quality_name, 'Empty_String', null, quality_name),
              gvc_dbd_id
         from (select pcpdqdul.pcpdqd_id,
                      substr(max(case
@@ -6335,6 +6577,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcpdqdul.is_active
                                 end),
                             24) is_active,
+                     substr(max(case
+                                  when pcpdqdul.quality_name is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpdqdul.quality_name
+                                end),
+                            24) quality_name,       
                      gvc_dbd_id
                 from pcpdqdul_pd_quality_dtl_ul pcpdqdul,
                      axs_action_summary         axs,
@@ -6412,6 +6660,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        strategy_id,
        is_quality_print_name_req,
        quality_print_name,
+       input_output,
        dbd_id)
       select decode(pcpd_id, 'Empty_String', null, pcpd_id),
              decode(internal_contract_ref_no,
@@ -6463,6 +6712,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     'Empty_String',
                     null,
                     quality_print_name),
+             decode(input_output, 'Empty_String', null, input_output),
              gvc_dbd_id
         from (select pcpdul.pcpd_id,
                      substr(max(case
@@ -6597,6 +6847,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcpdul.quality_print_name
                                 end),
                             24) quality_print_name,
+                     substr(max(case
+                                  when pcpdul.input_output is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpdul.input_output
+                                end),
+                            24) input_output,
                      gvc_dbd_id
                 from pcpdul_pc_product_defintn_ul pcpdul,
                      axs_action_summary           axs,
@@ -7281,6 +7537,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        is_active,
        event_name,
        no_of_event_months,
+       is_spot_pricing,
        --event_id,
        dbd_id)
       select decode(pfqpp_id, 'Empty_String', null, pfqpp_id),
@@ -7339,6 +7596,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     'Empty_String',
                     null,
                     no_of_event_months),
+             decode(is_spot_pricing,
+                    'Empty_String',
+                    null,
+                    is_spot_pricing),       
              /* decode(event_id,
                                                                                                                             'Empty_String',
                                                                                                                             null,
@@ -7477,6 +7738,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pfqppul.no_of_event_months
                                 end),
                             24) no_of_event_months,
+                     substr(max(case
+                                  when pfqppul.is_spot_pricing is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pfqppul.is_spot_pricing
+                                end),
+                            24) is_spot_pricing,       
                      /* substr(max(case
                                                                                                                                                                                                           when pfqppul.event_id is not null then
                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -9335,6 +9602,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        slab_tier,
        version,
        is_active,
+       payable_type,
        dbd_id)
       select decode(pcpch_id, 'Empty_String', null, pcpch_id),
              decode(internal_contract_ref_no,
@@ -9347,6 +9615,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
              decode(slab_tier, 'Empty_String', null, slab_tier),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(payable_type, 'Empty_String', null, payable_type),
              gvc_dbd_id
         from (select pcpchul.pcpch_id,
                      substr(max(case
@@ -9391,8 +9660,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcpchul.is_active
                                 end),
                             24) is_active,
-                     gvc_dbd_id
-              
+                     substr(max(case
+                                  when pcpchul.payable_type is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcpchul.payable_type
+                                end),
+                            24) payable_type,       
+                     gvc_dbd_id              
                 from pcpchul_payble_contnt_headr_ul pcpchul,
                      axs_action_summary             axs,
                      dbd_database_dump              dbd,
@@ -9407,6 +9681,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by pcpchul.pcpch_id) t;
+               
   exception
     when others then
       vobj_error_log.extend;
@@ -9445,12 +9720,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into pqd_payable_quality_details
-      (pqd_id, pcpch_id, pcpq_id, version, is_active, dbd_id)
+      (pqd_id, pcpch_id, pcpq_id, version, is_active,quality_name, dbd_id)
       select decode(pqd_id, 'Empty_String', null, pqd_id),
              decode(pcpch_id, 'Empty_String', null, pcpch_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(quality_name, 'Empty_String', null, quality_name),
              gvc_dbd_id
         from (select pqdul.pqd_id,
                      substr(max(case
@@ -9477,6 +9753,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pqdul.is_active
                                 end),
                             24) is_active,
+                     substr(max(case
+                                  when pqdul.quality_name is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pqdul.quality_name
+                                end),
+                            24) quality_name,       
                      gvc_dbd_id
               
                 from pqdul_payable_quality_dtl_ul pqdul,
@@ -9858,12 +10140,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert  all into ted_treatment_element_details
-      (ted_id, pcth_id, element_id, version, is_active, dbd_id)
+      (ted_id, pcth_id, element_id, version, is_active,element_name,dbd_id)
       select decode(ted_id, 'Empty_String', null, ted_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(element_id, 'Empty_String', null, element_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(element_name, 'Empty_String', null, element_name),
              gvc_dbd_id
         from (select tedul.ted_id,
                      substr(max(case
@@ -9891,6 +10174,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    tedul.is_active
                                 end),
                             24) is_active,
+                     substr(max(case
+                                  when tedul.element_name is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tedul.element_name
+                                end),
+                            24) element_name,       
                      gvc_dbd_id
               
                 from tedul_treatment_element_dtl_ul tedul,
@@ -9945,12 +10234,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into tqd_treatment_quality_details
-      (tqd_id, pcth_id, pcpq_id, version, is_active, dbd_id)
+      (tqd_id, pcth_id, pcpq_id, version, is_active,quality_name,dbd_id)
       select decode(tqd_id, 'Empty_String', null, tqd_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(quality_name, 'Empty_String', null, quality_name),
              gvc_dbd_id
         from (select tqdul.tqd_id,
                      substr(max(case
@@ -9978,6 +10268,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    tqdul.is_active
                                 end),
                             24) is_active,
+                     substr(max(case
+                                  when tqdul.quality_name is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   tqdul.quality_name
+                                end),
+                            24) quality_name,       
                      gvc_dbd_id
               
                 from tqdul_treatment_quality_dtl_ul tqdul,
@@ -10235,6 +10531,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        split_limit_unit_id,
        version,
        is_active,
+       element_name,
+       quality_id,
        dbd_id)
       select decode(pcar_id, 'Empty_String', null, pcar_id),
              decode(internal_contract_ref_no,
@@ -10258,6 +10556,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     split_limit_unit_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(element_name, 'Empty_String', null, element_name),
+             decode(quality_id, 'Empty_String', null, quality_id),
              gvc_dbd_id
         from (select pcarul.pcar_id,
                      substr(max(case
@@ -10316,6 +10616,18 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcarul.is_active
                                 end),
                             24) is_active,
+                     substr(max(case
+                                  when pcarul.element_name is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.element_name
+                                end),
+                            24) element_name,
+                     substr(max(case
+                                  when pcarul.quality_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcarul.quality_id
+                                end),
+                            24) quality_id,       
                      gvc_dbd_id
               
                 from pcarul_assaying_rules_ul pcarul,
@@ -10499,12 +10811,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into arqd_assay_quality_details
-      (arqd_id, pcar_id, pcpq_id, version, is_active, dbd_id)
+      (arqd_id, pcar_id, pcpq_id, version, is_active,quality_name,dbd_id)
       select decode(arqd_id, 'Empty_String', null, arqd_id),
              decode(pcar_id, 'Empty_String', null, pcar_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(quality_name, 'Empty_String', null, quality_name),
              gvc_dbd_id
         from (select arqdul.arqd_id,
                      substr(max(case
@@ -10531,6 +10844,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    arqdul.is_active
                                 end),
                             24) is_active,
+                     substr(max(case
+                                  when arqdul.quality_name is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   arqdul.quality_name
+                                end),
+                            24) quality_name,       
                      gvc_dbd_id
               
                 from arqdul_assay_quality_dtl_ul arqdul,
@@ -11231,12 +11550,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into rqd_refining_quality_details
-      (rqd_id, pcrh_id, pcpq_id, version, is_active, dbd_id)
+      (rqd_id, pcrh_id, pcpq_id, version, is_active,quality_name,dbd_id)
       select decode(rqd_id, 'Empty_String', null, rqd_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(quality_name, 'Empty_String', null, quality_name),
              gvc_dbd_id
         from (select rqdul.rqd_id,
                      substr(max(case
@@ -11264,6 +11584,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    rqdul.is_active
                                 end),
                             24) is_active,
+                     substr(max(case
+                                  when rqdul.quality_name is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   rqdul.quality_name
+                                end),
+                            24) quality_name,       
                      
                      gvc_dbd_id
               
@@ -11319,12 +11645,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into red_refining_element_details
-      (red_id, pcrh_id, element_id, version, is_active, dbd_id)
+      (red_id, pcrh_id, element_id, version, is_active,element_name,dbd_id)
       select decode(red_id, 'Empty_String', null, red_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(element_id, 'Empty_String', null, element_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(element_name, 'Empty_String', null, element_name),
              gvc_dbd_id
         from (select redul.red_id,
                      substr(max(case
@@ -11352,6 +11679,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    redul.is_active
                                 end),
                             24) is_active,
+                     substr(max(case
+                                  when redul.element_name is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   redul.element_name
+                                end),
+                            24) element_name,       
                      
                      gvc_dbd_id
               
@@ -11662,7 +11995,7 @@ procedure sp_phy_create_dith_data(pc_corporate_id varchar2,
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
+    
   end;
 procedure sp_phy_create_dirh_data(pc_corporate_id varchar2,
                                      pd_trade_date   date,
@@ -11752,6 +12085,7 @@ procedure sp_phy_create_dirh_data(pc_corporate_id varchar2,
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
+  
 
   end;
   
@@ -11872,6 +12206,8 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
        qty_unit_id,
        version,
        is_active,
+       qty_type,
+       internal_action_ref_no,
        dbd_id)
       select cipqul.cipq_id,
              substr(max(case
@@ -11905,6 +12241,18 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
                            cipqul.is_active
                         end),
                     24) is_active,
+             substr(max(case
+                          when cipqul.qty_type is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           cipqul.qty_type
+                        end),
+                    24) qty_type,
+             substr(max(case
+                          when cipqul.internal_action_ref_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           cipqul.internal_action_ref_no
+                        end),
+                    24) internal_action_ref_no,
              gvc_dbd_id
         from cipql_ctrt_itm_payable_qty_log cipqul,
              axs_action_summary             axs,
@@ -11966,6 +12314,8 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
        version,
        is_active,
        is_price_optionality_present,
+       qty_type,
+       internal_action_ref_no,
        dbd_id)
       select dipqul.dipq_id,
              substr(max(case
@@ -12011,6 +12361,18 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
                            dipqul.is_price_optionality_present
                         end),
                     24) is_price_optionality_present,
+             substr(max(case
+                          when dipqul.qty_type is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           dipqul.qty_type
+                        end),
+                    24) qty_type,
+             substr(max(case
+                          when dipqul.internal_action_ref_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           dipqul.internal_action_ref_no
+                        end),
+                    24) internal_action_ref_no,
              gvc_dbd_id
         from dipql_del_itm_payble_qty_log dipqul,
              axs_action_summary           axs,
@@ -12074,6 +12436,15 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
        qty_unit_id,
        version,
        is_active,
+       qty_type,
+       activity_action_id,
+       is_stock_split,
+       supplier_id,
+       smelter_id,
+       in_process_stock_id,
+       free_metal_stock_id,
+       free_metal_qty,
+       internal_action_ref_no,
        dbd_id)
       select spqul.spq_id,
              substr(max(case
@@ -12131,6 +12502,60 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
                            spqul.is_active
                         end),
                     24) is_active,
+             substr(max(case
+                          when spqul.qty_type is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.qty_type
+                        end),
+                    24) qty_type,
+             substr(max(case
+                          when spqul.activity_action_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.activity_action_id
+                        end),
+                    24) activity_action_id,
+             substr(max(case
+                          when spqul.is_stock_split is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.is_stock_split
+                        end),
+                    24) is_stock_split,
+             substr(max(case
+                          when spqul.supplier_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.supplier_id
+                        end),
+                    24) supplier_id,
+             substr(max(case
+                          when spqul.smelter_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.smelter_id
+                        end),
+                    24) smelter_id,
+             substr(max(case
+                          when spqul.in_process_stock_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.in_process_stock_id
+                        end),
+                    24) in_process_stock_id,
+             substr(max(case
+                          when spqul.free_metal_stock_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.free_metal_stock_id
+                        end),
+                    24) free_metal_stock_id,
+             substr(max(case
+                          when spqul.free_metal_qty is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.free_metal_qty
+                        end),
+                    24) free_metal_qty,
+             substr(max(case
+                          when spqul.internal_action_ref_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.internal_action_ref_no
+                        end),
+                    24) internal_action_ref_no,
              gvc_dbd_id
         from spql_stock_payable_qty_log spqul,
              axs_action_summary         axs,
@@ -12162,11 +12587,96 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-  
-  
 
-
+procedure sp_phy_create_dipch_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+        procedure name                                           : sp_create_spq_data
+        author                                                   : 
+        created date                                             : 28TH OCT 2011
+        purpose                                                  : populate SPQ table data for day end processing
+        parameters
+                                                                 : pc_corporate_id - corporate id
+                                                                 : pd_trade_date    - day end date
+        modified date  :
+        modify description :
+    ******************************************************************************************************************************************/
+   is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
   
-  
+  begin
+    insert into dipch_di_payablecontent_header
+    (dipch_id,
+    pcdi_id,
+    pcpch_id,
+    version,
+    is_active,
+    dbd_id) 
+    select decode(dipch_id, 'Empty_String', null, dipch_id),             
+           decode(pcdi_id, 'Empty_String', null, pcdi_id),
+           decode(pcpch_id, 'Empty_String', null, pcpch_id),
+           decode(version, 'Empty_String', null, version),         
+           decode(is_active, 'Empty_String', null, is_active),
+           gvc_dbd_id
+        from(select dipchul.dipch_id,
+                     substr(max(case
+                                  when dipchul.pcdi_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dipchul.pcdi_id
+                                end),
+                            24) pcdi_id,
+                     substr(max(case
+                                  when dipchul.pcpch_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dipchul.pcpch_id
+                                end),
+                            24) pcpch_id,
+                     substr(max(case
+                                  when dipchul.version is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dipchul.version
+                                end),
+                            24) version,
+                     
+                     substr(max(case
+                                  when dipchul.is_active is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dipchul.is_active
+                                end),
+                            24) is_active,                     
+                     gvc_dbd_id              
+                from dipchul_di_payblecon_header_ul dipchul,
+                     axs_action_summary             axs,
+                     dbd_database_dump              dbd,
+                     dbd_database_dump              dbd_ul
+               where dbd.dbd_id = axs.dbd_id
+                 and dbd.process = gvc_process
+                 and dipchul.internal_action_ref_no =
+                     axs.internal_action_ref_no
+                 and axs.eff_date <= pd_trade_date
+                 and axs.corporate_id = pc_corporate_id
+                 and dipchul.dbd_id = dbd_ul.dbd_id
+                 and dbd_ul.corporate_id = pc_corporate_id
+                 and dbd_ul.process = gvc_process
+               group by dipchul.dipch_id) t;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_create_spq_data',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           gvc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
 end pkg_phy_populate_data; 
 /

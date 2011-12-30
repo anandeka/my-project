@@ -39,6 +39,12 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_PRE_CHECK_PROCESS" is
                                          pc_dbd_id       varchar2,
                                          pc_user_id      varchar2,
                                          pc_process      varchar2);
+                                         
+  procedure sp_pre_check_m2m_tolling_extn(pc_corporate_id varchar2,
+                                         pd_trade_date   date,
+                                         pc_dbd_id       varchar2,
+                                         pc_user_id      varchar2,
+                                         pc_process      varchar2);                                         
   procedure sp_calc_m2m_quality_premimum(pc_corporate_id          varchar2,
                                          pd_trade_date            date,
                                          pc_valuation_point_id    varchar2,
@@ -186,8 +192,25 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                             gvc_dbd_id,
                             vn_logno,
                             'sp_pre_check_physicals_concen');
-    --**                            
+    --**   
+      if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    sp_pre_check_m2m_tolling_extn(pc_corporate_id,
+                                 pd_trade_date,
+                                 gvc_dbd_id,
+                                 pc_user_id,
+                                 pc_process);
   
+    vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            gvc_dbd_id,
+                            vn_logno,
+                            'sp_pre_check_m2m_tolling_extn');
+    --**                          
+                               
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -842,8 +865,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
     --dbms_mview.refresh('MV_QAT_QUALITY_VALUATION', 'C');
     --added newly to maintain consistency in both physical process and precheck. 28th
     delete from tmpc_temp_m2m_pre_check tmpc
-     where corporate_id = pc_corporate_id
-       and tmpc.product_type = 'BASEMETAL';
+     where corporate_id = pc_corporate_id;
     vc_error_loc := 1;
     /*    sp_write_log(pc_corporate_id,
                  pd_trade_date,
@@ -899,6 +921,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                  and pci.is_active = 'Y'
                  and pcm.contract_status = 'In Position'
                  and pcm.contract_type = 'BASEMETAL'
+                 and pcpd.input_output='Input'
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
                  and pcpd.dbd_id = pci.dbd_id
@@ -977,7 +1000,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and grd.dbd_id = pc_dbd_id
                          and gmr.dbd_id = pc_dbd_id
                          and pci.dbd_id = pc_dbd_id
-                         and pci.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
                          and pcm.dbd_id = pc_dbd_id
                          and gmr.corporate_id = pc_corporate_id
                          and grd.status = 'Active'
@@ -1015,6 +1038,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcm.internal_contract_ref_no =
                              pcdi.internal_contract_ref_no
                          and pcm.contract_type = 'BASEMETAL'
+                         and pcdi.pcdi_id=pci.pcdi_id
                          and agh.int_sales_contract_item_ref_no =
                              pci.internal_contract_item_ref_no
                          and agh.int_alloc_group_id = dgrd.int_alloc_group_id
@@ -1024,7 +1048,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and gmr.is_deleted = 'N'
                          and gmr.dbd_id = pc_dbd_id
                          and pci.dbd_id = pc_dbd_id
-                         and pci.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
                          and pcm.dbd_id = pc_dbd_id
                          and dgrd.dbd_id = pc_dbd_id
                          and gmr.corporate_id = pc_corporate_id
@@ -2090,9 +2114,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
   begin
     --dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'C');
     --added newly to maintain consistency in both physical process and precheck. 28th
-    delete from tmpc_temp_m2m_pre_check tmpc
-     where corporate_id = pc_corporate_id
-       and tmpc.product_type = 'CONCENTRATES';
+  
     vc_error_loc := 1;
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
@@ -2137,11 +2159,18 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                  and pcpd.dbd_id = pci.dbd_id
                  and pci.pcdi_id = pcdi.pcdi_id
                  and pci.dbd_id = pcdi.dbd_id
+                 and pcm.dbd_id=pc_dbd_id
+                 and pcpd.dbd_id=pc_dbd_id
                  and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
                  and pcdi.is_active = 'Y'
+                 and pcm.is_active='Y'
+                 and pcpd.is_active='Y'
                  and pcm.issue_date <= pd_trade_date
                  and pcm.contract_type = 'CONCENTRATES'
+                 and pcm.is_tolling_contract='N'
+                 and pcm.is_tolling_extn='N'
+                 and pcpd.input_output='Input'
                  and pcpd.product_id = pdm.product_id
                  and pci.m2m_city_id = cim.city_id
                  and cim.country_id = cym.country_id
@@ -2207,15 +2236,20 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcdi.internal_contract_ref_no =
                              pcm.internal_contract_ref_no
                          and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.is_tolling_contract='N'
+                         and pcm.is_tolling_extn='N'
                          and grd.shed_id = shm.storage_loc_id(+)
                          and grd.dbd_id = pc_dbd_id
                          and gmr.dbd_id = pc_dbd_id
                          and pci.dbd_id = pc_dbd_id
-                         and pci.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
                          and pcm.dbd_id = pc_dbd_id
                          and gmr.corporate_id = pc_corporate_id
                          and grd.status = 'Active'
                          and grd.is_deleted = 'N'
+                         and pci.is_active='Y'
+                         and pcm.is_active='Y'
+                         and pcdi.is_active='Y'
                          and nvl(grd.inventory_status, 'NA') <> 'Out'
                          and pcm.purchase_sales = 'P'
                       union all
@@ -2249,6 +2283,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcm.internal_contract_ref_no =
                              pcdi.internal_contract_ref_no
                          and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.is_tolling_contract='N'
+                         and pcm.is_tolling_extn='N'
+                         and pci.pcdi_id=pcdi.pcdi_id
                          and agh.int_sales_contract_item_ref_no =
                              pci.internal_contract_item_ref_no
                          and agh.int_alloc_group_id = dgrd.int_alloc_group_id
@@ -2256,9 +2293,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcm.purchase_sales = 'S'
                          and gsm.is_required_for_m2m = 'Y'
                          and gmr.is_deleted = 'N'
+                         and pci.is_active='Y'
+                         and pcm.is_active='Y'
+                         and pcdi.is_active='Y'
                          and gmr.dbd_id = pc_dbd_id
                          and pci.dbd_id = pc_dbd_id
-                         and pci.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
                          and pcm.dbd_id = pc_dbd_id
                          and dgrd.dbd_id = pc_dbd_id
                          and gmr.corporate_id = pc_corporate_id
@@ -2319,7 +2359,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
        assay_header_id,
        element_id,
        element_name,
-       product_type)
+       product_type,
+       is_tolling_contract,
+       is_tolling_extn)
       (select pcm.corporate_id corporate_id,
               mv_qat.conc_product_id conc_product_id,
               mv_qat.conc_quality_id conc_quality_id,
@@ -2353,7 +2395,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
               pcpq.assay_header_id,
               mv_qat.attribute_id,
               aml.attribute_name,
-              'CONCENTRATES'
+              'CONCENTRATES',
+              pcm.is_tolling_contract,
+              pcm.is_tolling_extn
          from pcm_physical_contract_main    pcm,
               pci_physical_contract_item    pci,
               pcpq_pc_product_quality       pcpq,
@@ -2367,6 +2411,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
               aml_attribute_master_list     aml
         where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
           and pcm.contract_type = 'CONCENTRATES'
+          and pcm.is_tolling_contract='N'
+          and pcm.is_tolling_extn='N'
           and pcdi.pcdi_id = pci.pcdi_id
           and pci.internal_contract_item_ref_no =
               ciqs.internal_contract_item_ref_no(+)
@@ -2388,7 +2434,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
           and pci.is_active = 'Y'
           and ciqs.is_active = 'Y'
           and pcm.is_active = 'Y'
-          and pci.is_active = 'Y'
+          and pcdi.is_active = 'Y'
+          and pcpq.is_active='Y'
           and pcm.dbd_id = pc_dbd_id
           and pcdi.dbd_id = pc_dbd_id
           and pci.dbd_id = pc_dbd_id
@@ -2429,7 +2476,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
        shipment_month,
        shipment_year,
        shipment_date,
-       internal_m2m_id)
+       internal_m2m_id,
+       is_tolling_contract,
+       is_tolling_extn)
       select m2m.corporate_id,
              m2m.product_group_type,
              m2m.product_id conc_product_id,
@@ -2461,7 +2510,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
              m2m.shipment_month,
              m2m.shipment_year,
              m2m.shipment_date,
-             null internal_m2m_id
+             null internal_m2m_id,
+             m2m.is_tolling_contract,
+             m2m.is_tolling_extn
         from (select temp.corporate_id,
                      temp.product_group_type,
                      mv_qat.product_id element_product_id,
@@ -2497,7 +2548,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                      vdip.price_unit_id valuation_price_unit_id, -- from view
                      to_char(pd_trade_date, 'Mon') shipment_month,
                      to_char(pd_trade_date, 'yyyy') shipment_year,
-                     pd_trade_date shipment_date
+                     pd_trade_date shipment_date,
+                     temp.is_tolling_contract,
+                     temp.is_tolling_extn
                 from (select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
                                     nvl(grd.inventory_status, 'NA') in
@@ -2536,7 +2589,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                              grd.product_id,
                              pcpq.assay_header_id,
                              grd.quality_id quality_id,
-                             pci.m2m_inco_term
+                             pci.m2m_inco_term,
+                             pcm.is_tolling_contract,
+                             pcm.is_tolling_extn
                         from grd_goods_record_detail     grd,
                              gmr_goods_movement_record   gmr,
                              pci_physical_contract_item  pci,
@@ -2556,7 +2611,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and grd.dbd_id = pc_dbd_id
                          and gmr.dbd_id = pc_dbd_id
                          and pci.dbd_id = pc_dbd_id
-                         and pci.dbd_id = pc_dbd_id
                          and pcm.dbd_id = pc_dbd_id
                          and pcdi.dbd_id = pc_dbd_id
                          and pcpq.dbd_id = pc_dbd_id
@@ -2571,6 +2625,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and nvl(grd.inventory_status, 'NA') <> 'Out'
                          and pcm.purchase_sales = 'P'
                          and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.is_tolling_contract='N'
+                         and pcm.is_tolling_extn='N'
                          and gmr.is_internal_movement = 'N'
                       union all
                       select case
@@ -2620,7 +2676,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                              dgrd.product_id,
                              pcpq.assay_header_id,
                              dgrd.quality_id,
-                             pci.m2m_inco_term
+                             pci.m2m_inco_term,
+                             pcm.is_tolling_contract,
+                             pcm.is_tolling_extn
                         from gmr_goods_movement_record   gmr,
                              pci_physical_contract_item  pci,
                              pcm_physical_contract_main  pcm,
@@ -2642,10 +2700,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and dgrd.shed_id = shm.storage_loc_id(+)
                          and pcm.purchase_sales = 'S'
                          and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.is_tolling_contract='N'
+                         and pcm.is_tolling_extn='N'
                          and gsm.is_required_for_m2m = 'Y'
                          and gmr.dbd_id = pc_dbd_id
-                         and pci.dbd_id = pc_dbd_id
-                         and pci.dbd_id = pc_dbd_id
+                         and pci.dbd_id = pc_dbd_id                         
                          and pcm.dbd_id = pc_dbd_id
                          and dgrd.dbd_id = pc_dbd_id
                          and pcdi.dbd_id = pc_dbd_id
@@ -2658,6 +2717,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pci.is_active = 'Y'
                          and pcm.is_active = 'Y'
                          and pcdi.is_active = 'Y'
+                         and pcpq.is_active='Y'
                          and upper(agh.realized_status) in
                              ('UNREALIZED', 'UNDERCMA', 'REVERSEREALIZED',
                               'REVERSEUNDERCMA')
@@ -2703,7 +2763,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                              grd.product_id,
                              null assay_header_id,
                              grd.quality_id quality_id,
-                             null m2m_inco_term
+                             null m2m_inco_term,
+                             null is_tolling_contract,
+                             null is_tolling_extn
                         from grd_goods_record_detail     grd,
                              gmr_goods_movement_record   gmr,
                              sld_storage_location_detail shm,
@@ -2838,6 +2900,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                            and pcpd.product_id = qat.conc_product_id
                            and pcm.contract_status = 'In Position'
                            and pcm.contract_type = 'CONCENTRATES'
+                           and pcpd.input_output='Input'
                            and pcm.corporate_id = pc_corporate_id
                            and pci.item_qty > 0
                            and pci.pcpq_id = pcpq.pcpq_id
@@ -2857,11 +2920,15 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                            and pcpd.dbd_id = pc_dbd_id
                            and pcdi.is_active = 'Y'
                            and pci.is_active = 'Y'
-                           and pcm.is_active = 'Y') t,
+                           and pcm.is_active = 'Y'
+                           and pcpd.is_active='Y'
+                           and pcpq.is_active='Y') t,
                        tmpc_temp_m2m_pre_check tmpc
                  where tmpc.section_name = 'OPEN'
                    and tmpc.corporate_id = pc_corporate_id
                    and tmpc.product_type = 'CONCENTRATES'
+                   and tmpc.is_tolling_contract='N'
+                   and tmpc.is_tolling_extn='N'
                    and tmpc.internal_contract_item_ref_no =
                        t.internal_contract_item_ref_no
                    and tmpc.element_id = t.element_id
@@ -2877,6 +2944,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.element_id = cc2.element_id
          and tmpc.section_name = 'OPEN'
          and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='N'
+         and tmpc.is_tolling_extn='N'
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
     -------------------- 
@@ -2962,6 +3031,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                            and pcpd.product_id = qat.conc_product_id
                            and pcm.contract_status = 'In Position'
                            and pcm.contract_type = 'CONCENTRATES'
+                           and pcpd.input_output='Input'
                            and pcm.corporate_id = pc_corporate_id
                            and pci.item_qty > 0
                            and pci.pcpq_id = pcpq.pcpq_id
@@ -2981,11 +3051,15 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                            and pcpd.dbd_id = pc_dbd_id
                            and pcdi.is_active = 'Y'
                            and pci.is_active = 'Y'
-                           and pcm.is_active = 'Y') t,
+                           and pcm.is_active = 'Y'
+                           and pcpq.is_active='Y'
+                           and pcpd.is_active='Y') t,
                        tmpc_temp_m2m_pre_check tmpc
                  where tmpc.section_name = 'OPEN'
                    and tmpc.corporate_id = pc_corporate_id
                    and tmpc.product_type = 'CONCENTRATES'
+                   and tmpc.is_tolling_contract='N'
+                   and tmpc.is_tolling_extn='N'
                    and tmpc.internal_contract_item_ref_no =
                        t.internal_contract_item_ref_no
                    and tmpc.element_id = t.element_id
@@ -3001,6 +3075,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.element_id = cc2.element_id
          and tmpc.section_name = 'OPEN'
          and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='N'
+         and tmpc.is_tolling_extn='N'
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
     -------
@@ -3022,6 +3098,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                  from tmpc_temp_m2m_pre_check tmpc
                 where tmpc.corporate_id = pc_corporate_id
                   and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='N'
+                  and tmpc.is_tolling_extn='N'
                 group by tmpc.shipment_date,
                          tmpc.shipment_month,
                          tmpc.shipment_year)
@@ -3036,6 +3114,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
          where tmpc.shipment_month = cc.shipment_month
            and tmpc.shipment_year = cc.shipment_year
            and tmpc.product_type = 'CONCENTRATES'
+           and tmpc.is_tolling_contract='N'
+           and tmpc.is_tolling_extn='N'
            and tmpc.shipment_date = cc.shipment_date;
       end if;
     end loop;
@@ -3071,7 +3151,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                     and qat.instrument_id = vdip.instrument_id(+)
                     and tmpc.element_id = qat.attribute_id
                     and tmpc.corporate_id = pc_corporate_id
-                    and tmpc.product_type = 'CONCENTRATES')
+                    and tmpc.product_type = 'CONCENTRATES'
+                    and tmpc.is_tolling_contract='N'
+                    and tmpc.is_tolling_extn='N')
       loop
         update tmpc_temp_m2m_pre_check tmpc
            set tmpc.instrument_id     = cc.instrument_id,
@@ -3079,6 +3161,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                tmpc.derivative_def_id = cc.product_derivative_id,
                tmpc.m2m_price_unit_id = cc.price_unit_id
          where tmpc.product_type = 'CONCENTRATES'
+           and tmpc.is_tolling_contract='N'
+           and tmpc.is_tolling_extn='N'
            and tmpc.conc_product_id = cc.conc_product_id
            and tmpc.conc_quality_id = cc.conc_quality_id
            and tmpc.element_id = cc.element_id
@@ -3107,6 +3191,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                   and tmpc.corporate_id = pc_corporate_id
                   and tmpc.value_type <> 'FIXED'
                   and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='N'
+                  and tmpc.is_tolling_extn='N'
                 group by tmpc.corporate_id,
                          tmpc.shipment_month,
                          tmpc.shipment_year,
@@ -3134,6 +3220,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
            and decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK') =
                cc.trade_type
            and tmpc.product_type = 'CONCENTRATES'
+           and tmpc.is_tolling_contract='N'
+           and tmpc.is_tolling_extn='N'
            and tmpc.corporate_id = cc.corporate_id;
       end if;
     end loop;
@@ -3158,6 +3246,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                   and tmpc.corporate_id = pc_corporate_id
                   and tmpc.value_type <> 'FIXED'
                   and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='N'
+                  and tmpc.is_tolling_extn='N'
                 group by tmpc.corporate_id,
                          tmpc.shipment_month,
                          tmpc.shipment_year,
@@ -3185,6 +3275,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
            and decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK') =
                cc.trade_type
            and tmpc.product_type = 'CONCENTRATES'
+           and tmpc.is_tolling_contract='N'
+           and tmpc.is_tolling_extn='N'
            and tmpc.corporate_id = cc.corporate_id;
       end if;
     end loop;
@@ -3202,6 +3294,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                  where tmpc.corporate_id = pc_corporate_id
                    and tmpc.value_type <> 'FIXED'
                    and tmpc.product_type = 'CONCENTRATES'
+                   and tmpc.is_tolling_contract='N'
+                   and tmpc.is_tolling_extn='N'
                    and tmpc.valuation_dr_id = drm.dr_id
                  group by tmpc.corporate_id,
                           drm.period_date,
@@ -3217,6 +3311,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
              tmpc.valuation_date  = ccv.period_date
        where tmpc.valuation_dr_id = ccv.valuation_dr_id
          and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='N'
+         and tmpc.is_tolling_extn='N'
          and tmpc.corporate_id = ccv.corporate_id;
     end loop;
     commit;
@@ -3254,6 +3350,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                   and tmpc.corporate_id = akc.corporate_id
                   and tmpc.product_id = pdm.product_id
                   and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='N'
+                  and tmpc.is_tolling_extn='N'
                   and tmpc.conc_product_id = pdm_conc.product_id
                   and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'Y'
                   and ppu.product_id = pdm.product_id
@@ -3290,6 +3388,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                   and tmpc.corporate_id = akc.corporate_id
                   and tmpc.product_id = pdm.product_id
                   and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='N'
+                  and tmpc.is_tolling_extn='N'
                   and tmpc.conc_product_id = pdm_conc.product_id
                   and ppu.product_id = pdm_conc.product_id
                   and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'N'
@@ -3312,6 +3412,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
          set tmpc.base_price_unit_id_in_ppu = cc.internal_price_unit_id,
              tmpc.base_price_unit_id_in_pum = cc.price_unit_id
        where tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='N'
+         and tmpc.is_tolling_extn='N'
          and tmpc.corporate_id = cc.corporate_id
          and tmpc.element_id = cc.element_id
          and tmpc.conc_product_id = cc.conc_product_id
@@ -3361,6 +3463,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                  and tmpc.corporate_id = akc.corporate_id
                  and tmpc.product_id = pdm.product_id
                  and tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.is_tolling_contract='N'
+                 and tmpc.is_tolling_extn='N'
                  and tmpc.conc_product_id = pdm_conc.product_id
                  and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'Y'
                  and pum.cur_id = akc.base_cur_id
@@ -3390,6 +3494,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                  and tmpc.corporate_id = akc.corporate_id
                  and tmpc.product_id = pdm.product_id
                  and tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.is_tolling_contract='N'
+                 and tmpc.is_tolling_extn='N'
                  and tmpc.conc_product_id = pdm_conc.product_id
                  and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'N'
                  and pum.cur_id = akc.base_cur_id
@@ -3450,12 +3556,16 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
          and div.price_unit_id = pum.price_unit_id
          and tmpc.value_type <> 'FIXED'
          and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='N'
+         and tmpc.is_tolling_extn='N'
          and div.is_deleted = 'N'
          and not exists
        (select 1
                 from eodeom_derivative_quote_detail dqd
                where tmpc.valuation_dr_id = dqd.dr_id
                  and tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.is_tolling_contract='N'
+                 and tmpc.is_tolling_extn='N'
                  and div.available_price_id = dqd.available_price_id
                  and div.price_source_id = dqd.price_source_id
                  and div.price_unit_id = dqd.price_unit_id
@@ -3511,6 +3621,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
              pdm_productmaster       pdm,
              qat_quality_attributes  qat
        where tmpc.corporate_id = pc_corporate_id
+         and tmpc.is_tolling_contract='N'
+         and tmpc.is_tolling_extn='N'
          and tmpc.valuation_city_id = cim.city_id(+)
          and tmpc.valuation_incoterm_id = itm.incoterm_id(+)
          and tmpc.conc_product_id = pdm.product_id
@@ -3524,7 +3636,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                      ldc_location_diff_cost  ldc
                where ldh.loc_diff_id = ldc.loc_diff_id
                  and ldh.product_id = tmpc.conc_product_id
-                 and tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.product_type = 'CONCENTRATES'                 
                  and ldh.valuation_city_id = tmpc.valuation_city_id
                  and ldh.inco_term_id = tmpc.valuation_incoterm_id
                  and ldh.as_on_date <= pd_trade_date
@@ -3564,6 +3676,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
                              pdm_productmaster       pdm,
                              qat_quality_attributes  qat
                        where tmpc.product_type = 'CONCENTRATES'
+                         and tmpc.is_tolling_contract='N'
+                         and tmpc.is_tolling_extn='N'
                          and tmpc.corporate_id = pc_corporate_id
                          and tmpc.conc_product_id = pdm.product_id
                          and tmpc.conc_quality_id = qat.quality_id
@@ -3772,6 +3886,1860 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_PRE_CHECK_PROCESS" is
     
   end;
   /*End  of Concentrate Precheck */
+
+procedure sp_pre_check_m2m_tolling_extn(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_dbd_id       varchar2,
+                                   pc_user_id      varchar2,
+                                   pc_process      varchar2) is
+    pragma autonomous_transaction;
+    /******************************************************************************************************************************************
+    procedure name                            : sp_pre_check_m2m_values
+    author                                    : Suresh Gottipati
+    created date                              : 20th Dec 2011
+    purpose                                   : pre check for physicals m2m data
+    
+    parameters
+    pc_corporate_id                           : corporate id
+    pd_trade_date                             : eod date id
+    pc_user_id                                : user id
+    pc_process                                : process
+    
+    modification history
+    modified date                             :
+    modified by                               :
+    modify description                        :
+    ******************************************************************************************************************************************/
+    vobj_error_log          tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count      number := 1;
+    vc_drid                 varchar2(15);
+    vn_qty_premimum_amt     number(10);
+    vn_pp_amt               number(10);
+    vc_error_loc            varchar2(100);
+    vc_treat_charge         varchar2(50);
+    vc_refine_charge        varchar2(50);
+    vc_penalty_charge       varchar2(50);
+    pn_charge_amt           number;
+    pc_charge_price_unit_id varchar2(20);
+    vc_charge_type          varchar2(15);
+    vc_m2m_id               varchar2(15);
+  begin
+    --dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'C');
+    --added newly to maintain consistency in both physical process and precheck. 28th
+    
+    vc_error_loc := 1;
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 gvc_process || ' - Before Insert TMPC @' || systimestamp);
+    ---check the valuation point for open contracts for concentrates
+    insert into eel_eod_eom_exception_log
+      (corporate_id,
+       submodule_name,
+       exception_code,
+       data_missing_for,
+       trade_ref_no,
+       process,
+       process_run_date,
+       process_run_by,
+       trade_date)
+      select t.corporate_id,
+             'Physicals M2M Pre-Check',
+             'M2M-015',
+             t.valuation_point,
+             substr(f_string_aggregate(t.contract_ref_no), 1, 1000),
+             pc_process,
+             systimestamp,
+             pc_user_id,
+             pd_trade_date
+        from (select pcm.corporate_id,
+                     pcm.contract_ref_no,
+                     pdm.product_desc || ',' || cim.city_name || ',' ||
+                     cym.country_name valuation_point
+                from pci_physical_contract_item pci,
+                     pcdi_pc_delivery_item      pcdi,
+                     pcm_physical_contract_main pcm,
+                     pcmte_pcm_tolling_ext      pcmte,
+                     pcpd_pc_product_definition pcpd,
+                     pdm_productmaster          pdm,
+                     cym_countrymaster          cym,
+                     cim_citymaster             cim
+               where pci.dbd_id = pc_dbd_id
+                 and pci.is_active = 'Y'
+                 and pcm.contract_status = 'In Position'
+                 and pcm.internal_contract_ref_no=pcmte.int_contract_ref_no
+                 and pcm.internal_contract_ref_no =
+                     pcpd.internal_contract_ref_no
+                 and pcpd.dbd_id = pci.dbd_id
+                 and pci.pcdi_id = pcdi.pcdi_id
+                 and pci.dbd_id = pcdi.dbd_id
+                 and pcdi.internal_contract_ref_no =
+                     pcm.internal_contract_ref_no
+                 and pcdi.is_active = 'Y'
+                 and pcm.is_active='Y'
+                 and pcpd.is_active='Y'
+                 and pcm.issue_date <= pd_trade_date
+                 and pcm.contract_type = 'CONCENTRATES'
+                 and pcm.is_tolling_contract='Y'
+                 and pcm.is_tolling_extn='Y'
+                 and pcpd.input_output='Input'
+                 and pcpd.product_id = pdm.product_id
+                 and pci.m2m_city_id = cim.city_id
+                 and cim.country_id = cym.country_id
+                 and not exists
+               (select mvp.valuation_point
+                        from mvp_m2m_valuation_point      mvp,
+                             mvpl_m2m_valuation_point_loc mvpl
+                       where mvp.corporate_id = pcm.corporate_id
+                         and mvp.product_id = pdm.product_id
+                         and mvpl.loc_city_id = pci.m2m_city_id
+                         and mvp.mvp_id = mvpl.mvp_id)) t
+       group by t.corporate_id,
+                t.valuation_point;
+    vc_error_loc := 2;
+    ---check the valuation point for Stock/GMR for Concentrate
+    insert into eel_eod_eom_exception_log
+      (corporate_id,
+       submodule_name,
+       exception_code,
+       data_missing_for,
+       trade_ref_no,
+       process,
+       process_run_date,
+       process_run_by,
+       trade_date)
+      select tt.corporate_id,
+             'Physicals M2M Pre-Check',
+             'M2M-015',
+             pdm.product_desc || ',' || cim.city_name || ',' ||
+             cym.country_name valuation_point,
+             substr(f_string_aggregate(tt.contract_ref_no), 1, 1000),
+             pc_process,
+             sysdate,
+             pc_user_id,
+             pd_trade_date
+        from (select t.corporate_id,
+                     t.contract_ref_no,
+                     t.product_id,
+                     t. city_id,
+                     t. quality_id
+                from (select pcm.corporate_id,
+                             pcm.contract_ref_no,
+                             grd.product_id,
+                             case
+                               when grd.is_afloat = 'Y' then
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                               else
+                                shm.city_id
+                             end city_id,
+                             grd.quality_id quality_id
+                        from grd_goods_record_detail     grd,
+                             gmr_goods_movement_record   gmr,
+                             pci_physical_contract_item  pci,
+                             pcm_physical_contract_main  pcm,
+                             pcmte_pcm_tolling_ext       pcmte,
+                             pcdi_pc_delivery_item       pcdi,
+                             sld_storage_location_detail shm
+                       where grd.internal_gmr_ref_no =
+                             gmr.internal_gmr_ref_no
+                         and grd.internal_contract_item_ref_no =
+                             pci.internal_contract_item_ref_no
+                         and pci.pcdi_id = pcdi.pcdi_id
+                         and pcdi.internal_contract_ref_no =
+                             pcm.internal_contract_ref_no
+                         and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.internal_contract_ref_no=pcmte.int_contract_ref_no
+                         and pcm.is_tolling_contract='Y'
+                         and pcm.is_tolling_extn='Y'
+                         and grd.shed_id = shm.storage_loc_id(+)
+                         and grd.dbd_id = pc_dbd_id
+                         and gmr.dbd_id = pc_dbd_id
+                         and pci.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
+                         and pcm.dbd_id = pc_dbd_id
+                         and gmr.corporate_id = pc_corporate_id
+                         and grd.status = 'Active'
+                         and grd.is_deleted = 'N'
+                         and gmr.is_deleted='N'
+                         and pci.is_active='Y'
+                         and pcdi.is_active='Y'
+                         and pcm.is_active='Y'
+                         and nvl(grd.inventory_status, 'NA') <> 'Out'
+                         and pcm.purchase_sales = 'P'
+                      union all
+                      select pcm.corporate_id,
+                             pcm.contract_ref_no,
+                             dgrd.product_id,
+                             case
+                               when nvl(dgrd.stock_status, 'N') =
+                                    'For Invoicing' then
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                               else
+                                case
+                               when nvl(dgrd.is_afloat, 'N') = 'N' then
+                                shm.city_id
+                                else
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                             end end city_id,
+                             dgrd.quality_id
+                        from gmr_goods_movement_record   gmr,
+                             pci_physical_contract_item  pci,
+                             pcm_physical_contract_main  pcm,
+                             pcmte_pcm_tolling_ext       pcmte,
+                             pcdi_pc_delivery_item       pcdi,
+                             gsm_gmr_stauts_master       gsm,
+                             agh_alloc_group_header      agh,
+                             sld_storage_location_detail shm,
+                             dgrd_delivered_grd          dgrd
+                       where gmr.internal_contract_ref_no =
+                             pcm.internal_contract_ref_no(+)
+                         and pcm.internal_contract_ref_no =
+                             pcdi.internal_contract_ref_no
+                         and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.internal_contract_ref_no=pcmte.int_contract_ref_no
+                         and pcm.is_tolling_contract='Y'
+                         and pcm.is_tolling_extn='Y'
+                         and pcdi.pcdi_id=pci.pcdi_id
+                         and agh.int_sales_contract_item_ref_no =
+                             pci.internal_contract_item_ref_no
+                         and agh.int_alloc_group_id = dgrd.int_alloc_group_id
+                         and dgrd.shed_id = shm.storage_loc_id(+)
+                         and pcm.purchase_sales = 'S'
+                         and gsm.is_required_for_m2m = 'Y'
+                         and gmr.is_deleted = 'N'
+                         and agh.is_deleted='N'
+                         and pci.is_active='Y'
+                         and pcdi.is_active='Y'
+                         and pcm.is_active='Y'
+                         and gmr.dbd_id = pc_dbd_id
+                         and pci.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
+                         and pcm.dbd_id = pc_dbd_id
+                         and dgrd.dbd_id = pc_dbd_id
+                         and gmr.corporate_id = pc_corporate_id
+                         and gmr.status_id = gsm.status_id
+                         and agh.is_deleted = 'N'
+                         and upper(agh.realized_status) in
+                             ('UNREALIZED', 'UNDERCMA', 'REVERSEREALIZED',
+                              'REVERSEUNDERCMA')
+                         and dgrd.status = 'Active'
+                         and dgrd.net_weight > 0) t
+               where not exists (select mvp.valuation_point
+                        from mvp_m2m_valuation_point      mvp,
+                             mvpl_m2m_valuation_point_loc mvpl
+                       where mvp.corporate_id = t.corporate_id
+                         and mvp.product_id = t.product_id
+                         and mvpl.loc_city_id = t.city_id
+                         and mvp.mvp_id = mvpl.mvp_id)) tt,
+             cim_citymaster cim,
+             cym_countrymaster cym,
+             pdm_productmaster pdm
+       where tt.product_id = pdm.product_id
+         and tt.city_id = cim.city_id
+         and cim.country_id = cym.country_id
+       group by tt.corporate_id,
+                pdm.product_desc || ',' || cim.city_name || ',' ||
+                cym.country_name;
+    vc_error_loc := 3;
+    ---insert into tmpc for the OPEN Contract
+    insert into tmpc_temp_m2m_pre_check
+      (corporate_id,
+       conc_product_id,
+       conc_quality_id,
+       product_id,
+       quality_id,
+       mvp_id,
+       mvpl_id,
+       valuation_region,
+       valuation_point,
+       valuation_incoterm_id,
+       valuation_city_id,
+       valuation_basis,
+       reference_incoterm,
+       refernce_location,
+       pcdi_id,
+       internal_contract_item_ref_no,
+       contract_ref_no,
+       internal_gmr_ref_no,
+       internal_grd_ref_no,
+       section_name,
+       value_type,
+       derivative_def_id,
+       instrument_id,
+       m2m_price_unit_id,
+       shipment_month,
+       shipment_year,
+       shipment_date,
+       internal_m2m_id,
+       assay_header_id,
+       element_id,
+       element_name,
+       product_type,
+       is_tolling_contract,
+       is_tolling_extn)
+      (select pcm.corporate_id corporate_id,
+              mv_qat.conc_product_id conc_product_id,
+              mv_qat.conc_quality_id conc_quality_id,
+              mv_qat.product_id product_id,
+              mv_qat.quality_id quality_id,
+              mvp.mvp_id mvp_id,
+              mvpl.mvpl_id mvpl_id,
+              mvp.valuation_region valuation_region,
+              mvp.valuation_point valuation_point,
+              pci.m2m_inco_term valuation_incoterm_id,
+              pci.m2m_city_id valuation_city_id,
+              mvp.valuation_basis valuationn_basics,
+              mvp.valuation_incoterm_id reference_incoterm,
+              mvp.benchmark_city_id refernce_location,
+              pci.pcdi_id pcdi_id,
+              pci.internal_contract_item_ref_no internal_contract_item_ref_no,
+              pcm.contract_ref_no contract_ref_no,
+              null internal_gmr_ref_no,
+              null internal_grd_ref_no,
+              'OPEN' section_name,
+              mv_qat.eval_basis value_type,
+              mv_qat.derivative_def_id derivative_def_id,
+              mv_qat.instrument_id instrument_id,
+              vdip.price_unit_id m2m_price_unit_id, --DIV
+              pci.expected_delivery_month shipment_month,
+              pci.expected_delivery_year shipment_year,
+              to_date(('01-' || pci.expected_delivery_month || '-' ||
+                      pci.expected_delivery_year),
+                      'dd-Mon-yyyy') shipment_date,
+              '' internal_m2m_id,
+              pcpq.assay_header_id,
+              mv_qat.attribute_id,
+              aml.attribute_name,
+              'CONCENTRATES',
+              pcm.is_tolling_contract,
+              pcm.is_tolling_extn
+         from pcm_physical_contract_main    pcm,
+              pcmte_pcm_tolling_ext         pcmte,
+              pci_physical_contract_item    pci,
+              pcpq_pc_product_quality       pcpq,
+              pcdi_pc_delivery_item         pcdi,
+              ciqs_contract_item_qty_status ciqs,
+              mvp_m2m_valuation_point       mvp,
+              mvpl_m2m_valuation_point_loc  mvpl,
+              mv_conc_qat_quality_valuation mv_qat,
+              v_derivatives_val_month       vdvm,
+              v_der_instrument_price_unit   vdip,
+              aml_attribute_master_list     aml,
+              dipch_di_payablecontent_header dipch,
+              pcpch_pc_payble_content_header pcpch
+        where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+          and pcm.contract_type = 'CONCENTRATES'
+          and pcm.internal_contract_ref_no=pcmte.int_contract_ref_no
+          and pcdi.pcdi_id = pci.pcdi_id
+          and pci.internal_contract_item_ref_no =
+              ciqs.internal_contract_item_ref_no(+)
+          and pci.pcpq_id = pcpq.pcpq_id
+          and pcm.corporate_id = pc_corporate_id
+          and mv_qat.corporate_id = pcm.corporate_id
+          and pcm.issue_date <= pd_trade_date
+          and pcm.contract_status in ('In Position', 'Pending Approval')
+          and pcm.is_tolling_contract='Y'
+          and pcm.is_tolling_extn='Y'
+          and pcm.corporate_id = mvp.corporate_id
+          and mv_qat.conc_product_id = mvp.product_id(+)
+          and mv_qat.attribute_id = aml.attribute_id
+          and mvp.mvp_id = mvpl.mvp_id(+)
+          and mvpl.loc_city_id = pci.m2m_city_id
+          and pci.internal_contract_item_ref_no =
+              vdvm.internal_contract_item_ref_no(+)
+          and pcpq.quality_template_id = mv_qat.conc_quality_id
+          and mv_qat.instrument_id = vdip.instrument_id(+)
+          and pcdi.pcdi_id=dipch.pcdi_id
+          and dipch.pcpch_id=pcpch.pcpch_id
+          and aml.attribute_id=pcpch.element_id
+          and pcpch.payable_type='Payable'
+          and ciqs.open_qty <> 0
+          and pcdi.is_active = 'Y'
+          and ciqs.is_active = 'Y'
+          and pcm.is_active = 'Y'
+          and pci.is_active = 'Y'
+          and pcpch.is_active='Y'
+          and dipch.is_active='Y'
+          and aml.is_active='Y'
+          and pcpq.is_active='Y'
+          and pcm.dbd_id = pc_dbd_id
+          and pcdi.dbd_id = pc_dbd_id
+          and pci.dbd_id = pc_dbd_id
+          and ciqs.dbd_id = pc_dbd_id
+          and pcpq.dbd_id = pc_dbd_id
+          and pcpch.dbd_id=pc_dbd_id
+          and dipch.dbd_id=pc_dbd_id
+          and pcm.contract_status <> 'Cancelled');
+    vc_error_loc := 4;
+    --Insert into tmpc for inventory Concentrate
+    insert into tmpc_temp_m2m_pre_check
+      (corporate_id,
+       product_type,
+       conc_product_id,
+       conc_quality_id,
+       product_id,
+       quality_id,
+       element_id,
+       element_name,
+       assay_header_id,
+       mvp_id,
+       mvpl_id,
+       valuation_region,
+       valuation_point,
+       valuation_incoterm_id,
+       valuation_city_id,
+       valuation_basis,
+       reference_incoterm,
+       refernce_location,
+       pcdi_id,
+       internal_contract_item_ref_no,
+       contract_ref_no,
+       internal_gmr_ref_no,
+       internal_grd_ref_no,
+       section_name,
+       value_type,
+       derivative_def_id,
+       instrument_id,
+       m2m_price_unit_id,
+       shipment_month,
+       shipment_year,
+       shipment_date,
+       internal_m2m_id,
+       is_tolling_contract,
+       is_tolling_extn)
+      select m2m.corporate_id,
+             m2m.product_group_type,
+             m2m.product_id conc_product_id,
+             m2m.quality_id conc_quality_id,
+             m2m.element_product_id,
+             m2m.element_quality_id,
+             m2m.attribute_id,
+             m2m.attribute_name,
+             m2m.assay_header_id,
+             m2m.mvp_id,
+             m2m.mvpl_id,
+             m2m.valuation_region,
+             m2m.valuation_point,
+             m2m.valuation_incoterm_id,
+             m2m.valuation_city_id,
+             m2m.valuation_basis,
+             m2m.reference_incoterm,
+             m2m.refernce_location,
+             m2m.pcdi_id,
+             m2m.internal_contract_item_ref_no,
+             m2m. contract_ref_no,
+             m2m.internal_gmr_ref_no,
+             m2m.internal_grd_ref_no,
+             m2m.section_name,
+             m2m.value_type,
+             m2m.derivative_def_id,
+             m2m.instrument_id,
+             m2m.valuation_price_unit_id,
+             m2m.shipment_month,
+             m2m.shipment_year,
+             m2m.shipment_date,
+             null internal_m2m_id,
+             m2m.is_tolling_contract,
+             m2m.is_tolling_extn
+        from (select temp.corporate_id,
+                     temp.product_group_type,
+                     mv_qat.product_id element_product_id,
+                     mv_qat.quality_id element_quality_id,
+                     temp.product_id,
+                     temp.quality_id,
+                     aml.attribute_id,
+                     aml.attribute_name,
+                     temp.assay_header_id,
+                     mv_qat.eval_basis value_type,
+                     mvp.mvp_id,
+                     mvpl.mvpl_id,
+                     mvp.valuation_region,
+                     mvp.valuation_point,
+                     case
+                       when temp.section_name in ('Stock NTT', 'Stock TT') then
+                        nvl(mvp.in_store_incoterm_id, temp.m2m_inco_term)
+                       else
+                        nvl(mvp.in_transit_incoterm_id, temp.m2m_inco_term)
+                     end valuation_incoterm_id,
+                     temp.city_id valuation_city_id,
+                     mvp.valuation_basis,
+                     mvp.valuation_incoterm_id reference_incoterm,
+                     mvp.benchmark_city_id refernce_location,
+                     temp.pcdi_id,
+                     mv_qat.instrument_id,
+                     mv_qat.derivative_def_id,
+                     temp.internal_contract_item_ref_no,
+                     temp.contract_ref_no,
+                     temp.internal_gmr_ref_no,
+                     temp.internal_grd_ref_no,
+                     temp.section_name,
+                     vdip.price_unit_id valuation_price_unit_id, -- from view
+                     to_char(pd_trade_date, 'Mon') shipment_month,
+                     to_char(pd_trade_date, 'yyyy') shipment_year,
+                     pd_trade_date shipment_date,
+                     temp.is_tolling_contract,
+                     temp.is_tolling_extn
+                from (select case
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Shipped NTT'
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Shipped TT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Stock NTT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Stock TT'
+                               else
+                                'Others'
+                             end section_name,
+                             pcm.product_group_type,
+                             pcm.issue_date,
+                             pcm.corporate_id,
+                             pci.internal_contract_item_ref_no,
+                             pcm.internal_contract_ref_no,
+                             gmr.internal_gmr_ref_no,
+                             grd.internal_grd_ref_no,
+                             pcm.contract_type,
+                             pcm.contract_ref_no,
+                             pcdi.pcdi_id,
+                             case
+                               when grd.is_afloat = 'Y' then
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                               else
+                                shm.city_id
+                             end city_id,
+                             grd.product_id,
+                             pcpq.assay_header_id,
+                             grd.quality_id quality_id,
+                             pci.m2m_inco_term,
+                             pcm.is_tolling_contract,
+                             pcpch.element_id,
+                             pcm.is_tolling_extn
+                        from grd_goods_record_detail     grd,
+                             gmr_goods_movement_record   gmr,
+                             pci_physical_contract_item  pci,
+                             pcm_physical_contract_main  pcm,
+                             pcmte_pcm_tolling_ext       pcmte,
+                             pcdi_pc_delivery_item       pcdi,
+                             sld_storage_location_detail shm,
+                             pcpq_pc_product_quality     pcpq,
+                             dipch_di_payablecontent_header dipch,
+                             pcpch_pc_payble_content_header pcpch
+                       where grd.internal_gmr_ref_no =
+                             gmr.internal_gmr_ref_no
+                         and grd.internal_contract_item_ref_no =
+                             pci.internal_contract_item_ref_no
+                         and pci.pcdi_id = pcdi.pcdi_id
+                         and pcpq.pcpq_id = pci.pcpq_id
+                         and pcdi.internal_contract_ref_no =
+                             pcm.internal_contract_ref_no
+                         and grd.shed_id = shm.storage_loc_id(+)
+                         and pcdi.pcdi_id=dipch.pcdi_id
+                         and dipch.pcpch_id=pcpch.pcpch_id
+                         and pcpch.payable_type='Payable'
+                         and grd.dbd_id = pc_dbd_id
+                         and gmr.dbd_id = pc_dbd_id
+                         and pci.dbd_id = pc_dbd_id
+                         and pcm.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
+                         and pcpq.dbd_id = pc_dbd_id
+                         and dipch.dbd_id=pc_dbd_id
+                         and pcpch.dbd_id=pc_dbd_id
+                         and gmr.corporate_id = pc_corporate_id
+                         and grd.status = 'Active'
+                         and grd.is_deleted = 'N'
+                         and gmr.is_deleted = 'N'
+                         and pci.is_active = 'Y'
+                         and pcm.is_active = 'Y'
+                         and pcdi.is_active = 'Y'
+                         and pcpq.is_active = 'Y'
+                         and pcpch.is_active='Y'
+                         and dipch.is_active='Y'
+                         and nvl(grd.inventory_status, 'NA') <> 'Out'
+                         and pcm.purchase_sales = 'P'
+                         and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.internal_contract_ref_no=pcmte.int_contract_ref_no
+                         and pcm.is_tolling_contract='Y'
+                         and pcm.is_tolling_extn='Y'
+                         and gmr.is_internal_movement = 'N'
+                      union all
+                      select case
+                               when nvl(gmr.inventory_status, 'NA') =
+                                    'Under CMA' then
+                                'UnderCMA NTT'
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Shipped NTT'
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Shipped TT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Stock NTT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Stock TT'
+                               else
+                                'Others'
+                             end section_name,
+                             pcm.product_group_type,
+                             pcm.issue_date,
+                             pcm.corporate_id,
+                             pci.internal_contract_item_ref_no,
+                             pcm.internal_contract_ref_no,
+                             gmr.internal_gmr_ref_no,
+                             grd.internal_grd_ref_no,
+                             pcm.contract_type,
+                             pcm.contract_ref_no,
+                             pcdi.pcdi_id,
+                             case
+                               when nvl(grd.stock_status, 'N') =
+                                    'For Invoicing' then
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                               else
+                                case
+                               when nvl(grd.is_afloat, 'N') = 'N' then
+                                shm.city_id
+                                else
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                             end end city_id,
+                             grd.product_id,
+                             pcpq.assay_header_id,
+                             grd.quality_id,
+                             pci.m2m_inco_term,
+                             pcm.is_tolling_contract,
+                             pcpch.element_id,
+                             pcm.is_tolling_extn
+                        from gmr_goods_movement_record   gmr,
+                             pcm_physical_contract_main  pcm,
+                             pcmte_pcm_tolling_ext       pcmte,
+                             pcdi_pc_delivery_item       pcdi,                             
+                             pci_physical_contract_item  pci,
+                             pcpq_pc_product_quality     pcpq,                                                         
+                             grd_goods_record_detail     grd,
+                             sld_storage_location_detail shm,
+                             gsm_gmr_stauts_master       gsm,
+                             dipch_di_payablecontent_header dipch,
+                             pcpch_pc_payble_content_header pcpch  
+                       where gmr.internal_contract_ref_no =
+                             pcm.internal_contract_ref_no(+)
+                         and pcm.internal_contract_ref_no=pcmte.int_contract_ref_no      
+                         and pcm.internal_contract_ref_no =
+                             pcdi.internal_contract_ref_no
+                         and pcdi.pcdi_id = pci.pcdi_id
+                         and pcpq.pcpq_id = pci.pcpq_id
+                         and gmr.internal_gmr_ref_no=grd.internal_gmr_ref_no
+                         and grd.shed_id = shm.storage_loc_id(+)
+                         and gmr.status_id = gsm.status_id 
+                         and pcdi.pcdi_id=dipch.pcdi_id
+                         and dipch.pcpch_id=pcpch.pcpch_id
+                         and pcpch.payable_type='Payable'
+                         and pcm.purchase_sales = 'S'
+                         and pcm.contract_type = 'CONCENTRATES'                                              
+                         and pcm.is_tolling_contract='Y'
+                         and pcm.is_tolling_extn='Y'
+                         and gsm.is_required_for_m2m = 'Y'
+                         and gmr.dbd_id = pc_dbd_id
+                         and pci.dbd_id = pc_dbd_id                         
+                         and pcm.dbd_id = pc_dbd_id
+                         and grd.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
+                         and pcpq.dbd_id = pc_dbd_id  
+                         and dipch.dbd_id=pc_dbd_id
+                         and pcpch.dbd_id=pc_dbd_id                                               
+                         and gmr.corporate_id = pc_corporate_id                                               
+                         and gmr.is_deleted = 'N'
+                         and grd.is_deleted='N'
+                         and pci.is_active = 'Y'
+                         and pcm.is_active = 'Y'
+                         and pcdi.is_active = 'Y' 
+                         and pcpq.is_active='Y'
+                         and dipch.is_active='Y'                        
+                         and pcpch.is_active='Y'
+                         and grd.status = 'Active'                       
+                         and gmr.is_internal_movement = 'N'
+                      union all -- Internal movement
+                      select case
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Shipped NTT'
+                               when nvl(grd.is_afloat, 'N') = 'Y' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Shipped TT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') in
+                                    ('In', 'None', 'NA') then
+                                'Stock NTT'
+                               when nvl(grd.is_afloat, 'N') = 'N' and
+                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                                'Stock TT'
+                               else
+                                'Others'
+                             end section_name,
+                             null product_group_type,
+                             null issue_date,
+                             gmr.corporate_id,
+                             null internal_contract_item_ref_no,
+                             null internal_contract_ref_no,
+                             gmr.internal_gmr_ref_no,
+                             grd.internal_grd_ref_no,
+                             null contract_type,
+                             null contract_ref_no,
+                             null pcdi_id,
+                             case
+                               when grd.is_afloat = 'Y' then
+                                nvl(gmr.destination_city_id,
+                                    gmr.discharge_city_id)
+                               else
+                                shm.city_id
+                             end city_id,
+                             grd.product_id,
+                             null assay_header_id,
+                             grd.quality_id quality_id,
+                             null m2m_inco_term,
+                             null is_tolling_contract,
+                             null element_id,
+                             null is_tolling_extn
+                        from grd_goods_record_detail     grd,
+                             gmr_goods_movement_record   gmr,
+                             sld_storage_location_detail shm,
+                             pdm_productmaster           pdm,
+                             pdtm_product_type_master    pdtm
+                       where grd.internal_gmr_ref_no =
+                             gmr.internal_gmr_ref_no
+                         and gmr.is_internal_movement = 'Y'
+                         and grd.dbd_id = pc_dbd_id
+                         and gmr.dbd_id = pc_dbd_id
+                         and gmr.corporate_id = pc_corporate_id
+                         and gmr.shed_id = shm.storage_loc_id(+)
+                         and grd.product_id = pdm.product_id
+                         and pdm.product_type_id = pdtm.product_type_id
+                         and pdtm.product_type_name = 'Composite'
+                         and grd.status = 'Active'
+                         and grd.is_deleted = 'N'        
+                         and gmr.is_deleted = 'N'
+                         and nvl(grd.inventory_status, 'NA') <> 'Out') temp,
+                     mv_conc_qat_quality_valuation mv_qat,
+                     mvp_m2m_valuation_point mvp,
+                     mvpl_m2m_valuation_point_loc mvpl,
+                     v_der_instrument_price_unit vdip,
+                     aml_attribute_master_list aml
+               where temp.corporate_id = mv_qat.corporate_id
+                 and temp.quality_id = mv_qat.conc_quality_id
+                 and mv_qat.instrument_id = vdip.instrument_id(+)
+                 and temp.corporate_id = mvp.corporate_id
+                 and temp.product_id = mvp.product_id
+                 and temp. issue_date <= pd_trade_date
+                 and mvp.mvp_id = mvpl.mvp_id
+                 and mvpl.loc_city_id = temp.city_id
+                 and aml.attribute_id = mv_qat.attribute_id
+                 and temp.element_id=aml.attribute_id
+                 and aml.is_active = 'Y') m2m;
+  
+    --End of insert into tmpc for Inventory  Concentrate
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 'finished inserting tmpc' || sql%rowcount);
+  
+    vc_error_loc := 5;
+  
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 'start update tmpc shipment month year as per basis month');
+    --Updating tmpc table , setting the 
+    --Shipment month and shipment year
+    --to the basis month calculation for open contracts as per the quality setup and product rule 
+    --do the update )
+    ----------------------------- 
+    vc_error_loc := 6;
+    for cc2 in (select t.pcdi_id,
+                       t.internal_contract_ref_no,
+                       t.internal_contract_item_ref_no,
+                       t.basis_type,
+                       t.transit_days,
+                       t.contract_ref_no,
+                       t.expected_delivery_month,
+                       t.expected_delivery_year,
+                       t.element_id,
+                       t.date_type,
+                       t.ship_arrival_date,
+                       t.ship_arrival_days,
+                       t.expected_ship_arrival_date,
+                       (case
+                         when t.ship_arrival_date = 'Start Date' then
+                          to_date('01-' || to_char(t.expected_ship_arrival_date,
+                                                   'Mon-yyyy'))
+                         when t.ship_arrival_date = 'End Date' then
+                          last_day(t.expected_ship_arrival_date)
+                         else
+                          (to_date('01-' || to_char(t.expected_ship_arrival_date,
+                                                    'Mon-yyyy')) +
+                          trunc((last_day(t.expected_ship_arrival_date) -
+                                 to_date('01-' ||
+                                          to_char(t.expected_ship_arrival_date,
+                                                  'Mon-yyyy'))) / 2))
+                       end) + t.ship_arrival_days basis_month_year
+                  from (select pcdi.pcdi_id,
+                               pcdi.internal_contract_ref_no,
+                               pci.internal_contract_item_ref_no,
+                               pcdi.basis_type,
+                               nvl(pcdi.transit_days, 0) transit_days,
+                               pcm.contract_ref_no,
+                               pci.expected_delivery_month,
+                               pci.expected_delivery_year,
+                               pqca.element_id,
+                               qat.date_type,
+                               qat.ship_arrival_date,
+                               nvl(qat.ship_arrival_days, 0) ship_arrival_days,
+                               (case
+                                  when qat.date_type = 'Shipment Date' then
+                                   (case
+                                  when pcdi.basis_type = 'Shipment' then
+                                   last_day('01-' ||
+                                            pci.expected_delivery_month || '-' ||
+                                            pci.expected_delivery_year)
+                                  else
+                                   last_day('01-' ||
+                                            pci.expected_delivery_month || '-' ||
+                                            pci.expected_delivery_year) -
+                                   nvl(pcdi.transit_days, 0)
+                                end) else(case
+                                 when pcdi.basis_type = 'Shipment' then
+                                  last_day('01-' ||
+                                           pci.expected_delivery_month || '-' ||
+                                           pci.expected_delivery_year) +
+                                  nvl(pcdi.transit_days, 0)
+                                 else
+                                  last_day('01-' ||
+                                           pci.expected_delivery_month || '-' ||
+                                           pci.expected_delivery_year)
+                               end) end) expected_ship_arrival_date
+                          from pcdi_pc_delivery_item         pcdi,
+                               pci_physical_contract_item    pci,
+                               pcm_physical_contract_main    pcm,
+                               pcpd_pc_product_definition    pcpd,
+                               pcpq_pc_product_quality       pcpq,
+                               ash_assay_header              ash,
+                               asm_assay_sublot_mapping      asm,
+                               pqca_pq_chemical_attributes   pqca,
+                               mv_conc_qat_quality_valuation qat,
+                               pdm_productmaster             pdm
+                        --qat_quality_attributes     qat
+                         where pcdi.pcdi_id = pci.pcdi_id
+                           and pcdi.internal_contract_ref_no =
+                               pcm.internal_contract_ref_no
+                           and pcm.internal_contract_ref_no =
+                               pcpd.internal_contract_ref_no
+                           and pcpd.product_id = qat.conc_product_id
+                           and pcm.contract_status = 'In Position'
+                           and pcm.contract_type = 'CONCENTRATES'
+                           and pcpd.input_output='Input'
+                           and pcm.corporate_id = pc_corporate_id
+                           and pci.item_qty > 0
+                           and pci.pcpq_id = pcpq.pcpq_id
+                              --and pcpq.quality_template_id = qat.quality_id
+                           and pcpq.assay_header_id = ash.ash_id
+                           and ash.ash_id = asm.ash_id
+                           and asm.asm_id = pqca.asm_id
+                           and pcpq.quality_template_id = qat.conc_quality_id
+                           and pqca.element_id = qat.attribute_id
+                           and qat.conc_product_id = pdm.product_id
+                           and nvl(pdm.valuation_against_underlying, 'Y') = 'Y'
+                           and qat.corporate_id = pc_corporate_id
+                           and pci.dbd_id = pc_dbd_id
+                           and pcdi.dbd_id = pc_dbd_id
+                           and pcm.dbd_id = pc_dbd_id
+                           and pcpq.dbd_id = pc_dbd_id
+                           and pcpd.dbd_id = pc_dbd_id
+                           and pcdi.is_active = 'Y'
+                           and pci.is_active = 'Y'
+                           and pcm.is_active = 'Y'
+                           and pcpd.is_active='Y'
+                           and pcpq.is_active='Y'
+                           and pqca.is_active='Y'
+                           and ash.is_active='Y'
+                           and asm.is_active='Y') t,
+                       tmpc_temp_m2m_pre_check tmpc
+                 where tmpc.section_name = 'OPEN'
+                   and tmpc.corporate_id = pc_corporate_id
+                   and tmpc.product_type = 'CONCENTRATES'
+                   and tmpc.is_tolling_contract='Y'
+                   and tmpc.is_tolling_extn='Y'
+                   and tmpc.internal_contract_item_ref_no =
+                       t.internal_contract_item_ref_no
+                   and tmpc.element_id = t.element_id
+                   and tmpc.pcdi_id = t.pcdi_id)
+    loop
+      update tmpc_temp_m2m_pre_check tmpc
+         set tmpc.shipment_month = to_char(cc2.basis_month_year, 'Mon'),
+             tmpc.shipment_year  = to_char(cc2.basis_month_year, 'YYYY'),
+             tmpc.shipment_date  = cc2.basis_month_year
+       where tmpc.pcdi_id = cc2.pcdi_id
+         and tmpc.internal_contract_item_ref_no =
+             cc2.internal_contract_item_ref_no
+         and tmpc.element_id = cc2.element_id
+         and tmpc.section_name = 'OPEN'
+         and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='Y'
+         and tmpc.is_tolling_extn='Y'
+         and tmpc.corporate_id = pc_corporate_id;
+    end loop;
+    -------------------- 
+  
+    for cc2 in (select t.pcdi_id,
+                       t.internal_contract_ref_no,
+                       t.internal_contract_item_ref_no,
+                       t.basis_type,
+                       t.transit_days,
+                       t.contract_ref_no,
+                       t.expected_delivery_month,
+                       t.expected_delivery_year,
+                       t.element_id,
+                       t.date_type,
+                       t.ship_arrival_date,
+                       t.ship_arrival_days,
+                       t.expected_ship_arrival_date,
+                       (case
+                         when t.ship_arrival_date = 'Start Date' then
+                          to_date('01-' || to_char(t.expected_ship_arrival_date,
+                                                   'Mon-yyyy'))
+                         when t.ship_arrival_date = 'End Date' then
+                          last_day(t.expected_ship_arrival_date)
+                         else
+                          (to_date('01-' || to_char(t.expected_ship_arrival_date,
+                                                    'Mon-yyyy')) +
+                          trunc((last_day(t.expected_ship_arrival_date) -
+                                 to_date('01-' ||
+                                          to_char(t.expected_ship_arrival_date,
+                                                  'Mon-yyyy'))) / 2))
+                       end) + t.ship_arrival_days basis_month_year
+                  from (select pcdi.pcdi_id,
+                               pcdi.internal_contract_ref_no,
+                               pci.internal_contract_item_ref_no,
+                               pcdi.basis_type,
+                               nvl(pcdi.transit_days, 0) transit_days,
+                               pcm.contract_ref_no,
+                               pci.expected_delivery_month,
+                               pci.expected_delivery_year,
+                               pqca.element_id,
+                               qat.date_type,
+                               qat.ship_arrival_date,
+                               nvl(qat.ship_arrival_days, 0) ship_arrival_days,
+                               (case
+                                  when qat.date_type = 'Shipment Date' then
+                                   (case
+                                  when pcdi.basis_type = 'Shipment' then
+                                   last_day('01-' ||
+                                            pci.expected_delivery_month || '-' ||
+                                            pci.expected_delivery_year)
+                                  else
+                                   last_day('01-' ||
+                                            pci.expected_delivery_month || '-' ||
+                                            pci.expected_delivery_year) -
+                                   nvl(pcdi.transit_days, 0)
+                                end) else(case
+                                 when pcdi.basis_type = 'Shipment' then
+                                  last_day('01-' ||
+                                           pci.expected_delivery_month || '-' ||
+                                           pci.expected_delivery_year) +
+                                  nvl(pcdi.transit_days, 0)
+                                 else
+                                  last_day('01-' ||
+                                           pci.expected_delivery_month || '-' ||
+                                           pci.expected_delivery_year)
+                               end) end) expected_ship_arrival_date
+                          from pcdi_pc_delivery_item        pcdi,
+                               pci_physical_contract_item   pci,
+                               pcm_physical_contract_main   pcm,
+                               pcpd_pc_product_definition   pcpd,
+                               pcpq_pc_product_quality      pcpq,
+                               ash_assay_header             ash,
+                               asm_assay_sublot_mapping     asm,
+                               pqca_pq_chemical_attributes  pqca,
+                               v_conc_qat_quality_valuation qat,
+                               pdm_productmaster            pdm
+                        --qat_quality_attributes     qat
+                         where pcdi.pcdi_id = pci.pcdi_id
+                           and pcdi.internal_contract_ref_no =
+                               pcm.internal_contract_ref_no
+                           and pcm.internal_contract_ref_no =
+                               pcpd.internal_contract_ref_no
+                           and pcpd.product_id = qat.conc_product_id
+                           and pcm.contract_status = 'In Position'
+                           and pcm.contract_type = 'CONCENTRATES'
+                           and pcpd.input_output='Input'
+                           and pcm.corporate_id = pc_corporate_id
+                           and pci.item_qty > 0
+                           and pci.pcpq_id = pcpq.pcpq_id
+                              --and pcpq.quality_template_id = qat.quality_id
+                           and pcpq.assay_header_id = ash.ash_id
+                           and ash.ash_id = asm.ash_id
+                           and asm.asm_id = pqca.asm_id
+                           and pcpq.quality_template_id = qat.conc_quality_id
+                           and pqca.element_id = qat.attribute_id
+                           and qat.conc_product_id = pdm.product_id
+                           and nvl(pdm.valuation_against_underlying, 'Y') = 'N'
+                           and qat.corporate_id = pc_corporate_id
+                           and pci.dbd_id = pc_dbd_id
+                           and pcdi.dbd_id = pc_dbd_id
+                           and pcm.dbd_id = pc_dbd_id
+                           and pcpq.dbd_id = pc_dbd_id
+                           and pcpd.dbd_id = pc_dbd_id
+                           and pcdi.is_active = 'Y'
+                           and pci.is_active = 'Y'
+                           and pcm.is_active = 'Y'
+                           and pcpq.is_active='Y'
+                           and pcpd.is_active='Y'
+                           and pqca.is_active='Y'
+                           and ash.is_active='Y'
+                           and asm.is_active='Y') t,
+                       tmpc_temp_m2m_pre_check tmpc
+                 where tmpc.section_name = 'OPEN'
+                   and tmpc.corporate_id = pc_corporate_id
+                   and tmpc.product_type = 'CONCENTRATES'
+                   and tmpc.is_tolling_contract='Y'
+                   and tmpc.is_tolling_extn='Y'
+                   and tmpc.internal_contract_item_ref_no =
+                       t.internal_contract_item_ref_no
+                   and tmpc.element_id = t.element_id
+                   and tmpc.pcdi_id = t.pcdi_id)
+    loop
+      update tmpc_temp_m2m_pre_check tmpc
+         set tmpc.shipment_month = to_char(cc2.basis_month_year, 'Mon'),
+             tmpc.shipment_year  = to_char(cc2.basis_month_year, 'YYYY'),
+             tmpc.shipment_date  = cc2.basis_month_year
+       where tmpc.pcdi_id = cc2.pcdi_id
+         and tmpc.internal_contract_item_ref_no =
+             cc2.internal_contract_item_ref_no
+         and tmpc.element_id = cc2.element_id
+         and tmpc.section_name = 'OPEN'
+         and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='Y'
+         and tmpc.is_tolling_extn='Y'         
+         and tmpc.corporate_id = pc_corporate_id;
+    end loop;
+    -------
+  
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 'start update tmpc shipment month year to trade date month for the expired');
+  
+    --End of insert into tmpc for Stock
+    --Updating tmpc table , setting the 
+    --Shipment month and shipment year
+    --to the eod month and year .(if shipment month ,year is less then the eod date month and year then 
+    --do the update )
+    vc_error_loc := 7;
+    for cc in (select tmpc.shipment_date,
+                      tmpc.shipment_month,
+                      tmpc.shipment_year
+                 from tmpc_temp_m2m_pre_check tmpc
+                where tmpc.corporate_id = pc_corporate_id
+                  and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='Y'
+                   and tmpc.is_tolling_extn='Y'
+                group by tmpc.shipment_date,
+                         tmpc.shipment_month,
+                         tmpc.shipment_year)
+    loop
+      if to_date('01-' || cc.shipment_month || '-' || cc.shipment_year,
+                 'dd-Mon-YYYY') <
+         to_date('01-' || to_char(pd_trade_date, 'Mon-yyyy'), 'dd-Mon-yyyy') then
+        update tmpc_temp_m2m_pre_check tmpc
+           set tmpc.shipment_month = to_char(pd_trade_date, 'Mon'),
+               tmpc.shipment_year  = to_char(pd_trade_date, 'YYYY'),
+               tmpc.shipment_date  = pd_trade_date
+         where tmpc.shipment_month = cc.shipment_month
+           and tmpc.shipment_year = cc.shipment_year
+           and tmpc.product_type = 'CONCENTRATES'
+           and tmpc.is_tolling_contract='Y'
+           and tmpc.is_tolling_extn='Y'
+           and tmpc.shipment_date = cc.shipment_date;
+      end if;
+    end loop;
+    --End of update
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 'finished update tmpc' || sql%rowcount);
+  
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 'qpbm Fixed' || sql%rowcount);
+    --Updating the tmpc table
+    --By setting the valuatin_dr_id
+    --It is checking for not Fixed contract
+    --For this We are calling the  fn_get_val_drid
+    begin
+      for cc in (select tmpc.conc_product_id,
+                        tmpc.conc_quality_id,
+                        tmpc.element_id,
+                        qat.instrument_id,
+                        qat.product_derivative_id,
+                        qat.eval_basis,
+                        qat.exch_valuation_month,
+                        vdip.price_unit_id
+                   from tmpc_temp_m2m_pre_check      tmpc,
+                        v_conc_qat_quality_valuation qat,
+                        v_der_instrument_price_unit  vdip
+                  where tmpc.conc_product_id = qat.conc_product_id
+                    and tmpc.conc_quality_id = qat.conc_quality_id
+                    and tmpc.corporate_id = qat.corporate_id
+                    and qat.instrument_id = vdip.instrument_id(+)
+                    and tmpc.element_id = qat.attribute_id
+                    and tmpc.corporate_id = pc_corporate_id
+                    and tmpc.product_type = 'CONCENTRATES'
+                    and tmpc.is_tolling_contract='Y'
+                    and tmpc.is_tolling_extn='Y')
+      loop
+        update tmpc_temp_m2m_pre_check tmpc
+           set tmpc.instrument_id     = cc.instrument_id,
+               tmpc.value_type        = cc.eval_basis,
+               tmpc.derivative_def_id = cc.product_derivative_id,
+               tmpc.m2m_price_unit_id = cc.price_unit_id
+         where tmpc.product_type = 'CONCENTRATES'
+           and tmpc.is_tolling_contract='Y'
+           and tmpc.is_tolling_extn='Y'
+           and tmpc.conc_product_id = cc.conc_product_id
+           and tmpc.conc_quality_id = cc.conc_quality_id
+           and tmpc.element_id = cc.element_id
+           and tmpc.corporate_id = pc_corporate_id;
+      end loop;
+      commit;
+    
+    end;
+    -----------------------
+    vc_error_loc := 8;
+    for cc in (select tmpc.corporate_id,
+                      tmpc.shipment_month,
+                      tmpc.shipment_year,
+                      tmpc.instrument_id,
+                      decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK') trade_type,
+                      tmpc.quality_id,
+                      qat.eval_basis,
+                      qat.exch_valuation_month
+                 from tmpc_temp_m2m_pre_check       tmpc,
+                      mv_conc_qat_quality_valuation qat,
+                      pdm_productmaster             pdm
+                where tmpc.quality_id = qat.quality_id
+                  and tmpc.corporate_id = qat.corporate_id
+                  and tmpc.conc_product_id = pdm.product_id
+                  and nvl(pdm.valuation_against_underlying, 'Y') = 'Y'
+                  and tmpc.corporate_id = pc_corporate_id
+                  and tmpc.value_type <> 'FIXED'
+                  and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='Y'
+                  and tmpc.is_tolling_extn='Y'
+                group by tmpc.corporate_id,
+                         tmpc.shipment_month,
+                         tmpc.shipment_year,
+                         tmpc.instrument_id,
+                         decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK'),
+                         tmpc.quality_id,
+                         qat.eval_basis,
+                         qat.exch_valuation_month)
+    loop
+      if cc.eval_basis <> 'FIXED' then
+        vc_drid := fn_get_val_drid(pc_corporate_id,
+                                   cc.instrument_id,
+                                   cc.shipment_month,
+                                   cc.shipment_year,
+                                   cc.exch_valuation_month,
+                                   pd_trade_date,
+                                   cc.trade_type,
+                                   pc_process);
+        update tmpc_temp_m2m_pre_check tmpc
+           set tmpc.valuation_dr_id = vc_drid
+         where tmpc.instrument_id = cc.instrument_id
+           and tmpc.shipment_month = cc.shipment_month
+           and tmpc.shipment_year = cc.shipment_year
+           and tmpc.quality_id = cc.quality_id
+           and decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK') =
+               cc.trade_type
+           and tmpc.product_type = 'CONCENTRATES'
+           and tmpc.is_tolling_contract='Y'
+           and tmpc.is_tolling_extn='Y'
+           and tmpc.corporate_id = cc.corporate_id;
+      end if;
+    end loop;
+    commit;
+    --------
+  
+    for cc in (select tmpc.corporate_id,
+                      tmpc.shipment_month,
+                      tmpc.shipment_year,
+                      tmpc.instrument_id,
+                      decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK') trade_type,
+                      tmpc.quality_id,
+                      qat.eval_basis,
+                      qat.exch_valuation_month
+                 from tmpc_temp_m2m_pre_check      tmpc,
+                      v_conc_qat_quality_valuation qat,
+                      pdm_productmaster            pdm
+                where tmpc.conc_quality_id = qat.quality_id
+                  and tmpc.conc_product_id = pdm.product_id
+                   and nvl(pdm.valuation_against_underlying, 'Y') = 'N'
+                  and tmpc.corporate_id = qat.corporate_id
+                  and tmpc.corporate_id = pc_corporate_id
+                  and tmpc.value_type <> 'FIXED'
+                  and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='Y'
+                  and tmpc.is_tolling_extn='Y'
+                group by tmpc.corporate_id,
+                         tmpc.shipment_month,
+                         tmpc.shipment_year,
+                         tmpc.instrument_id,
+                         decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK'),
+                         tmpc.quality_id,
+                         qat.eval_basis,
+                         qat.exch_valuation_month)
+    loop
+      if cc.eval_basis <> 'FIXED' then
+        vc_drid := fn_get_val_drid(pc_corporate_id,
+                                   cc.instrument_id,
+                                   cc.shipment_month,
+                                   cc.shipment_year,
+                                   cc.exch_valuation_month,
+                                   pd_trade_date,
+                                   cc.trade_type,
+                                   pc_process);
+        update tmpc_temp_m2m_pre_check tmpc
+           set tmpc.valuation_dr_id = vc_drid
+         where tmpc.instrument_id = cc.instrument_id
+           and tmpc.shipment_month = cc.shipment_month
+           and tmpc.shipment_year = cc.shipment_year
+           and tmpc.quality_id = cc.quality_id
+           and decode(tmpc.section_name, 'OPEN', 'OPEN', 'STOCK') =
+               cc.trade_type
+           and tmpc.product_type = 'CONCENTRATES'
+           and tmpc.is_tolling_contract='Y'
+           and tmpc.is_tolling_extn='Y'
+           and tmpc.corporate_id = cc.corporate_id;
+      end if;
+    end loop;
+    commit;
+  
+    --update the valuation month,year,prompt date
+    for ccv in (select tmpc.corporate_id,
+                       tmpc.valuation_dr_id,
+                       nvl(drm.period_date, drm.prompt_date) period_date,
+                       nvl(drm.period_month, to_char(drm.prompt_date, 'Mon')) period_month,
+                       nvl(drm.period_year, to_char(drm.prompt_date, 'yyyy')) period_year,
+                       drm.prompt_date
+                  from tmpc_temp_m2m_pre_check tmpc,
+                       drm_derivative_master   drm
+                 where tmpc.corporate_id = pc_corporate_id
+                   and tmpc.value_type <> 'FIXED'
+                   and tmpc.product_type = 'CONCENTRATES'
+                   and tmpc.is_tolling_contract='Y'
+                   and tmpc.is_tolling_extn='Y'
+                   and tmpc.valuation_dr_id = drm.dr_id
+                 group by tmpc.corporate_id,
+                          drm.period_date,
+                          tmpc.valuation_dr_id,
+                          drm.period_month,
+                          drm.period_year,
+                          drm.prompt_date)
+    loop
+      update tmpc_temp_m2m_pre_check tmpc
+         set tmpc.valuation_month = ccv.period_month,
+             tmpc.valuation_year  = ccv.period_year,
+             tmpc.prompt_date     = ccv.prompt_date,
+             tmpc.valuation_date  = ccv.period_date
+       where tmpc.valuation_dr_id = ccv.valuation_dr_id
+         and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='Y'
+         and tmpc.is_tolling_extn='Y'
+         and tmpc.corporate_id = ccv.corporate_id;
+    end loop;
+    commit;
+    -- get the contract base price Unit id
+    /* begin
+      select product_price_unit_id
+        into vn_contract_base_price_unit_id
+        from v_ppu_pum pum
+       where pum.cur_id = cur_pcdi_rows.invoice_currency_id
+         and pum.weight_unit_id = cur_pcdi_rows.qty_unit_id
+         and pum.product_id = cur_pcdi_rows.product_id;
+    exception
+      when no_data_found then
+        vn_contract_base_price_unit_id := null;
+    end;*/
+    --Updating tmpc table and setting the 
+    --base_price_unit_id_in_ppu.
+    vc_error_loc := 9;
+  
+    for cc in (select tmpc.corporate_id,
+                      tmpc.conc_product_id,
+                      tmpc.product_id,
+                      akc.base_cur_id,
+                      pdm.base_quantity_unit,
+                      ppu.internal_price_unit_id,
+                      pum.price_unit_id,
+                      tmpc.element_id
+                 from tmpc_temp_m2m_pre_check tmpc,
+                      ak_corporate            akc,
+                      pdm_productmaster       pdm,
+                      pdm_productmaster       pdm_conc,
+                      ppu_product_price_units ppu,
+                      pum_price_unit_master   pum
+                where tmpc.corporate_id = pc_corporate_id
+                  and tmpc.corporate_id = akc.corporate_id
+                  and tmpc.product_id = pdm.product_id
+                  and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='Y'
+                  and tmpc.is_tolling_extn='Y'
+                  and tmpc.conc_product_id = pdm_conc.product_id
+                  and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'Y'
+                  and ppu.product_id = pdm.product_id
+                  and ppu.is_active = 'Y'
+                  and ppu.is_deleted = 'N'
+                  and ppu.price_unit_id = pum.price_unit_id
+                  and pum.cur_id = akc.base_cur_id
+                  and nvl(pum.weight, 1) = 1
+                  and pum.weight_unit_id = pdm.base_quantity_unit
+                group by tmpc.corporate_id,
+                         tmpc.conc_product_id,
+                         tmpc.product_id,
+                         akc.base_cur_id,
+                         pdm.base_quantity_unit,
+                         ppu.internal_price_unit_id,
+                         pum.price_unit_id,
+                         tmpc.element_id
+               union all
+               select tmpc.corporate_id,
+                      tmpc.conc_product_id,
+                      tmpc.product_id,
+                      akc.base_cur_id,
+                      pdm_conc.base_quantity_unit,
+                      ppu.internal_price_unit_id,
+                      pum.price_unit_id,
+                      tmpc.element_id
+                 from tmpc_temp_m2m_pre_check tmpc,
+                      ak_corporate            akc,
+                      pdm_productmaster       pdm,
+                      pdm_productmaster       pdm_conc,
+                      ppu_product_price_units ppu,
+                      pum_price_unit_master   pum
+                where tmpc.corporate_id = pc_corporate_id
+                  and tmpc.corporate_id = akc.corporate_id
+                  and tmpc.product_id = pdm.product_id
+                  and tmpc.product_type = 'CONCENTRATES'
+                  and tmpc.is_tolling_contract='Y'
+                  and tmpc.is_tolling_extn='Y'
+                  and tmpc.conc_product_id = pdm_conc.product_id
+                  and ppu.product_id = pdm_conc.product_id
+                  and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'N'
+                  and ppu.is_active = 'Y'
+                  and ppu.is_deleted = 'N'
+                  and ppu.price_unit_id = pum.price_unit_id
+                  and pum.cur_id = akc.base_cur_id
+                  and nvl(pum.weight, 1) = 1
+                  and pum.weight_unit_id = pdm_conc.base_quantity_unit
+                group by tmpc.corporate_id,
+                         tmpc.product_id,
+                         tmpc.conc_product_id,
+                         akc.base_cur_id,
+                         pdm_conc.base_quantity_unit,
+                         ppu.internal_price_unit_id,
+                         pum.price_unit_id,
+                         tmpc.element_id)
+    loop
+      update tmpc_temp_m2m_pre_check tmpc
+         set tmpc.base_price_unit_id_in_ppu = cc.internal_price_unit_id,
+             tmpc.base_price_unit_id_in_pum = cc.price_unit_id
+       where tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='Y'
+         and tmpc.is_tolling_extn='Y'
+         and tmpc.corporate_id = cc.corporate_id
+         and tmpc.element_id = cc.element_id
+         and tmpc.conc_product_id = cc.conc_product_id
+         and tmpc.product_id = cc.product_id;
+      commit;
+    
+    end loop;
+    commit;
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 gvc_process || ' - M2M-012 @' || systimestamp);
+    vc_error_loc := 12;
+  
+    insert into eel_eod_eom_exception_log
+      (corporate_id,
+       submodule_name,
+       exception_code,
+       data_missing_for,
+       trade_ref_no,
+       process,
+       process_run_date,
+       process_run_by,
+       trade_date)
+      select t.corporate_id,
+             'Physicals M2M Pre-Check',
+             'M2M-030',
+             t.product_name || '(' || t.price_unit_name || ')',
+             null,
+             pc_process,
+             systimestamp,
+             pc_user_id,
+             pd_trade_date
+        from (select tmpc.corporate_id,
+                     tmpc.product_id,
+                     pdm.product_desc product_name,
+                     akc.base_cur_id,
+                     pdm.base_quantity_unit,
+                     pum.price_unit_id,
+                     pum.price_unit_name
+                from tmpc_temp_m2m_pre_check tmpc,
+                     ak_corporate            akc,
+                     pdm_productmaster       pdm,
+                     pdm_productmaster       pdm_conc,
+                     pum_price_unit_master   pum
+               where tmpc.corporate_id = pc_corporate_id
+                 and tmpc.corporate_id = akc.corporate_id
+                 and tmpc.product_id = pdm.product_id
+                 and tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.is_tolling_contract='Y'
+                 and tmpc.is_tolling_extn='Y'
+                 and tmpc.conc_product_id = pdm_conc.product_id
+                 and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'Y'
+                 and pum.cur_id = akc.base_cur_id
+                 and nvl(pum.weight, 1) = 1
+                 and pum.weight_unit_id = pdm.base_quantity_unit
+               group by tmpc.corporate_id,
+                        tmpc.product_id,
+                        akc.base_cur_id,
+                        pdm.base_quantity_unit,
+                        pum.price_unit_name,
+                        pdm.product_desc,
+                        pum.price_unit_id
+              union all
+              select tmpc.corporate_id,
+                     tmpc.conc_product_id product_id,
+                     pdm_conc.product_desc product_name,
+                     akc.base_cur_id,
+                     pdm_conc.base_quantity_unit,
+                     pum.price_unit_id,
+                     pum.price_unit_name
+                from tmpc_temp_m2m_pre_check tmpc,
+                     ak_corporate            akc,
+                     pdm_productmaster       pdm,
+                     pdm_productmaster       pdm_conc,
+                     pum_price_unit_master   pum
+               where tmpc.corporate_id = pc_corporate_id
+                 and tmpc.corporate_id = akc.corporate_id
+                 and tmpc.product_id = pdm.product_id
+                 and tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.is_tolling_contract='Y'
+                 and tmpc.is_tolling_extn='Y'
+                 and tmpc.conc_product_id = pdm_conc.product_id
+                 and nvl(pdm_conc.valuation_against_underlying, 'Y') = 'N'
+                 and pum.cur_id = akc.base_cur_id
+                 and nvl(pum.weight, 1) = 1
+                 and pum.weight_unit_id = pdm_conc.base_quantity_unit
+               group by tmpc.corporate_id,
+                        pum.price_unit_name,
+                        tmpc.conc_product_id,
+                        akc.base_cur_id,
+                        pdm_conc.product_desc,
+                        pdm_conc.base_quantity_unit,
+                        pum.price_unit_id) t
+       where not exists (select 1
+                from ppu_product_price_units ppu
+               where ppu.product_id = t.product_id
+                 and ppu.price_unit_id = t.price_unit_id
+                 and ppu.is_active = 'Y'
+                 and ppu.is_deleted = 'N');
+  
+    insert into eel_eod_eom_exception_log
+      (corporate_id,
+       submodule_name,
+       exception_code,
+       data_missing_for,
+       trade_ref_no,
+       process,
+       process_run_date,
+       process_run_by,
+       trade_date)
+      select tmpc.corporate_id,
+             'Physicals M2M Pre-Check',
+             'M2M-012',
+             'Settlement Price missing for ' || dim.instrument_name ||
+             ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
+             pum.price_unit_name || ',' || apm.available_price_name ||
+             ' Price,Prompt Date:' || drm.dr_id_name,
+             null,
+             pc_process,
+             systimestamp,
+             pc_user_id,
+             pd_trade_date
+        from tmpc_temp_m2m_pre_check      tmpc,
+             div_der_instrument_valuation div,
+             dim_der_instrument_master    dim,
+             pdd_product_derivative_def   pdd,
+             drm_derivative_master        drm,
+             ps_price_source              ps,
+             apm_available_price_master   apm,
+             pum_price_unit_master        pum
+       where tmpc.instrument_id = div.instrument_id
+         and tmpc.product_id = pdd.product_id
+         and div.instrument_id = drm.instrument_id
+         and drm.instrument_id = dim.instrument_id
+         and tmpc.corporate_id = pc_corporate_id
+         and tmpc.valuation_dr_id = drm.dr_id
+         and div.price_source_id = ps.price_source_id
+         and div.available_price_id = apm.available_price_id
+         and div.price_unit_id = pum.price_unit_id
+         and tmpc.value_type <> 'FIXED'
+         and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract='Y'
+         and tmpc.is_tolling_extn='Y'
+         and div.is_deleted = 'N'
+         and not exists
+       (select 1
+                from eodeom_derivative_quote_detail dqd
+               where tmpc.valuation_dr_id = dqd.dr_id
+                 and tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.is_tolling_contract='Y'
+                 and tmpc.is_tolling_extn='Y'
+                 and div.available_price_id = dqd.available_price_id
+                 and div.price_source_id = dqd.price_source_id
+                 and div.price_unit_id = dqd.price_unit_id
+                 and dqd.dq_trade_date = pd_trade_date
+                 and dqd.corporate_id = pc_corporate_id
+                 and dqd.dbd_id = gvc_dbd_id
+                 and dqd.price is not null)
+       group by tmpc.corporate_id,
+                'Settlement Price missing for ' || dim.instrument_name ||
+                ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
+                pum.price_unit_name || ',' || apm.available_price_name ||
+                ' Price,Prompt Date:' || drm.dr_id_name;
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 'Settlement price' || sql%rowcount);
+  
+    -- settlement price missing for differential contract for price calcuation
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 gvc_process || ' - M2M-012 Second @' || systimestamp);
+  
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 gvc_process || ' - M2M-010 @' || systimestamp);
+    --Location Differential
+    insert into eel_eod_eom_exception_log
+      (corporate_id,
+       submodule_name,
+       exception_code,
+       data_missing_for,
+       trade_ref_no,
+       process,
+       process_run_date,
+       process_run_by,
+       trade_date)
+      select tmpc.corporate_id,
+             'Physicals M2M Pre-Check',
+             'M2M-010',
+             pdm.product_desc || ',' || tmpc.valuation_point || ',' ||
+             qat.quality_name || ',' || itm.incoterm || ',' ||
+             cim.city_name,
+             f_string_aggregate(tmpc.contract_ref_no),
+             pc_process,
+             systimestamp,
+             pc_user_id,
+             pd_trade_date
+        from tmpc_temp_m2m_pre_check tmpc,
+             cim_citymaster          cim,
+             itm_incoterm_master     itm,
+             pdm_productmaster       pdm,
+             qat_quality_attributes  qat
+       where tmpc.corporate_id = pc_corporate_id
+         and tmpc.is_tolling_contract='Y'
+         and tmpc.is_tolling_extn='Y'
+         and tmpc.valuation_city_id = cim.city_id(+)
+         and tmpc.valuation_incoterm_id = itm.incoterm_id(+)
+         and tmpc.conc_product_id = pdm.product_id
+         and tmpc.conc_quality_id = qat.quality_id
+         and not exists
+       (select ldh.inco_term_id,
+                     ldh.product_id,
+                     ldh.valuation_city_id,
+                     ldh.valuation_point_id
+                from lds_location_diff_setup ldh,
+                     ldc_location_diff_cost  ldc
+               where ldh.loc_diff_id = ldc.loc_diff_id
+                 and ldh.product_id = tmpc.conc_product_id
+                 and tmpc.product_type = 'CONCENTRATES'                 
+                 and ldh.valuation_city_id = tmpc.valuation_city_id
+                 and ldh.inco_term_id = tmpc.valuation_incoterm_id
+                 and ldh.as_on_date <= pd_trade_date
+                 and ldh.valuation_point_id = tmpc.mvp_id
+                    -- and ldc.quality_id = tmpc.quality_id
+                 and ldh.corporate_id = pc_corporate_id)
+       group by tmpc.corporate_id,
+                pdm.product_desc || ',' || tmpc.valuation_point || ',' ||
+                qat.quality_name || ',' || itm.incoterm || ',' ||
+                cim.city_name;
+  
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 'finished tmpc and i commit now');
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'Precheck M2M',
+                 gvc_process || ' Before Commit @' || systimestamp);
+  
+    ---***For loop for calling the sp_calc_m2m_tc_pc_rc_charge
+    --which will do the precheck for the tc,rc and pc
+    begin
+      for cc_tmpc in (select tmpc.corporate_id,
+                             tmpc.conc_product_id,
+                             pdm.product_desc conc_product_desc,
+                             tmpc.conc_quality_id,
+                             qat.quality_name conc_qat_name,
+                             tmpc.element_id,
+                             tmpc.element_name,
+                             tmpc.base_price_unit_id_in_ppu,
+                             tmpc.shipment_month,
+                             tmpc.shipment_year,
+                             tmpc.mvp_id valuation_point_id,
+                             tmpc.valuation_point
+                        from tmpc_temp_m2m_pre_check tmpc,
+                             pdm_productmaster       pdm,
+                             qat_quality_attributes  qat
+                       where tmpc.product_type = 'CONCENTRATES'
+                         and tmpc.is_tolling_contract='Y'
+                         and tmpc.is_tolling_extn='Y'
+                         and tmpc.corporate_id = pc_corporate_id
+                         and tmpc.conc_product_id = pdm.product_id
+                         and tmpc.conc_quality_id = qat.quality_id
+                       group by tmpc.corporate_id,
+                                tmpc.conc_product_id,
+                                pdm.product_desc,
+                                tmpc.conc_quality_id,
+                                tmpc.base_price_unit_id_in_ppu,
+                                tmpc.element_id,
+                                tmpc.valuation_point,
+                                tmpc.mvp_id,
+                                qat.quality_name,
+                                tmpc.element_name,
+                                tmpc.shipment_month,
+                                tmpc.shipment_year)
+      loop
+        --for treatment charge precheck
+        pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
+                                                              pd_trade_date,
+                                                              cc_tmpc.conc_product_id,
+                                                              cc_tmpc.conc_quality_id,
+                                                              cc_tmpc.valuation_point_id, --valuation_id
+                                                              'Treatment Charges', --charge_type
+                                                              cc_tmpc.element_id,
+                                                              cc_tmpc.shipment_month,
+                                                              cc_tmpc.shipment_year,
+                                                              cc_tmpc.base_price_unit_id_in_ppu,
+                                                              pn_charge_amt,
+                                                              pc_charge_price_unit_id);
+      
+        if pn_charge_amt = 0 then
+          insert into eel_eod_eom_exception_log
+            (corporate_id,
+             submodule_name,
+             exception_code,
+             data_missing_for,
+             trade_ref_no,
+             process,
+             process_run_date,
+             process_run_by,
+             trade_date)
+          values
+            (pc_corporate_id,
+             'Physicals M2M Pre-Check',
+             'PHY-102',
+             cc_tmpc.conc_product_desc || ',' || cc_tmpc.conc_qat_name || ',' ||
+             cc_tmpc.element_name || ',' || cc_tmpc.shipment_month || '-' ||
+             cc_tmpc.shipment_year || '-' || cc_tmpc.valuation_point,
+             null,
+             pc_process,
+             sysdate,
+             pc_user_id,
+             pd_trade_date);
+        end if;
+        --for refine charge precheck
+        pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
+                                                              pd_trade_date,
+                                                              cc_tmpc.conc_product_id,
+                                                              cc_tmpc.conc_quality_id,
+                                                              cc_tmpc.valuation_point_id, --valuation_id
+                                                              'Refining Charges', --charge_type
+                                                              cc_tmpc.element_id,
+                                                              cc_tmpc.shipment_month,
+                                                              cc_tmpc.shipment_year,
+                                                              cc_tmpc.base_price_unit_id_in_ppu,
+                                                              pn_charge_amt,
+                                                              pc_charge_price_unit_id);
+        if pn_charge_amt = 0 then
+          insert into eel_eod_eom_exception_log
+            (corporate_id,
+             submodule_name,
+             exception_code,
+             data_missing_for,
+             trade_ref_no,
+             process,
+             process_run_date,
+             process_run_by,
+             trade_date)
+          values
+            (pc_corporate_id,
+             'Physicals M2M Pre-Check',
+             'PHY-103',
+             cc_tmpc.conc_product_desc || ',' || cc_tmpc.conc_qat_name || ',' ||
+             cc_tmpc.element_name || ',' || cc_tmpc.shipment_month || '-' ||
+             cc_tmpc.shipment_year || '-' || cc_tmpc.valuation_point,
+             null,
+             pc_process,
+             sysdate,
+             pc_user_id,
+             pd_trade_date);
+        end if;
+      end loop;
+    
+      --for penalty charge precheck     
+      /*for cc_tmpc in (select tmpc.corporate_id,
+                             tmpc.contract_ref_no,
+                             tmpc.conc_product_id,
+                             pdm.product_desc,
+                             tmpc.conc_quality_id,
+                             qat.quality_name,
+                             pqca.element_id,
+                             aml.attribute_name,
+                             tmpc.mvp_id,
+                             tmpc.valuation_point,
+                             tmpc.shipment_month,
+                             tmpc.shipment_year
+                        from tmpc_temp_m2m_pre_check     tmpc,
+                             ash_assay_header            ash,
+                             asm_assay_sublot_mapping    asm,
+                             pqca_pq_chemical_attributes pqca,
+                             pdm_productmaster           pdm,
+                             qat_quality_attributes      qat,
+                             aml_attribute_master_list   aml
+                       where tmpc.product_type = 'CONCENTRATES'
+                         and tmpc.assay_header_id = ash.ash_id
+                         and tmpc.corporate_id = pc_corporate_id
+                         and ash.ash_id = asm.ash_id
+                         and asm.asm_id = pqca.asm_id
+                         and tmpc.conc_product_id = pdm.product_id
+                         and tmpc.conc_quality_id = qat.quality_id
+                         and aml.attribute_id = pqca.element_id
+                         and pqca.is_elem_for_pricing = 'N'
+                         and pqca.is_active = 'Y'
+                         and ash.is_active = 'Y'
+                         and asm.is_active = 'Y'
+                         and pdm.is_active = 'Y'
+                         and qat.is_active = 'Y'
+                         and aml.is_active = 'Y'
+                       group by tmpc.corporate_id,
+                                tmpc.contract_ref_no,
+                                pdm.product_id,
+                                pdm.product_desc,
+                                qat.quality_id,
+                                qat.quality_name,
+                                pqca.element_id,
+                                aml.attribute_name,
+                                tmpc.mvp_id,
+                                tmpc.valuation_point,
+                                tmpc.shipment_month,
+                                tmpc.shipment_year)
+      loop
+      
+        pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
+                                                              pd_trade_date,
+                                                              cc_tmpc.conc_product_id,
+                                                              cc_tmpc.conc_quality_id,
+                                                              cc_tmpc.mvp_id, --valuation_id
+                                                              'Penalties', --charge_type
+                                                              cc_tmpc.element_id,
+                                                              cc_tmpc.shipment_month,
+                                                              cc_tmpc.shipment_year,
+                                                              pn_charge_amt,
+                                                              pc_charge_price_unit_id);
+        if pn_charge_amt = 0 then
+          insert into eel_eod_eom_exception_log
+            (corporate_id,
+             submodule_name,
+             exception_code,
+             data_missing_for,
+             trade_ref_no,
+             process,
+             process_run_date,
+             process_run_by,
+             trade_date)
+          values
+            (pc_corporate_id,
+             'Physicals M2M Pre-Check',
+             'PHY-104',
+             cc_tmpc.product_desc || ',' || cc_tmpc.quality_name || ',' ||
+             cc_tmpc.contract_ref_no ||','|| cc_tmpc.attribute_name || ',' ||
+             cc_tmpc.shipment_month || '-' || cc_tmpc.shipment_year || '-' ||
+             cc_tmpc.valuation_point,
+             null,
+             pc_process,
+             sysdate,
+             pc_user_id,
+             pd_trade_date);
+         end if;
+      end loop;*/
+    
+    end;
+    ---***end of for loop 
+    commit;
+  exception
+    when others then
+      dbms_output.put_line(sqlerrm);
+      rollback;
+      sp_write_log(pc_corporate_id,
+                   pd_trade_date,
+                   'Precheck M2M',
+                   'is it here ????');
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_pre_check_m2m_conc_values',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    
+  end;  
   procedure sp_calc_m2m_quality_premimum(pc_corporate_id          varchar2,
                                          pd_trade_date            date,
                                          pc_valuation_point_id    varchar2,
