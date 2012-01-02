@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0309
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  02-Jan-20112
+
+Bug / Enhancement*              :  BI Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI
+ 
+Sub-Module  			 :  BI
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 83622
+Author: sivachalabathi.s
+Date: 12:15:13 PM, Monday, January 02, 2012
+Message:
+BI-MV-DDL-PROC ADDED FOR QA
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_141_BI-DDL.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_142_BI-FUN-PROC.SQL
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_143_BI-MV.sql
