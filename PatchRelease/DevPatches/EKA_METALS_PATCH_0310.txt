@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0310
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  02-Jan-20112
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 83642
+Author: babulal.meena
+Date: 3:04:44 PM, Monday, January 02, 2012
+Message:
+Fix, duplicate record was coming into MetalAccountTransaction Screen 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_METAL_ACCOUNTS_TRANSACTIONS.sql
