@@ -192,6 +192,7 @@ FROM   (SELECT retn_temp.unique_id,
                ash_assay_header        ash
         WHERE  ash.pricing_assay_ash_id = sam.ash_id
         AND    sam.is_latest_pricing_assay = 'Y'
+        AND    ash.assay_type in ('Weighing and Sampling Assay','Provisional Assay')
         AND    sam.is_active = 'Y') ash_pa_fa
 WHERE  axm.action_id = mat_temp.activity_action_id
 AND    phd.profileid = mat_temp.supplier_id
