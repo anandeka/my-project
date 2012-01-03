@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0311
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit Gupta
+ 
+Created on*        		:  03-Jan-20112
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Cost
+ 
+Sub-Module  			 :  COG
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 83795
+Author: mohitkumar.gupta
+Date: 5:25:56 PM, Tuesday, January 03, 2012
+Message:
+For COG.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_144.sql
+
+
+Revision: 83796
+Author: mohitkumar.gupta
+Date: 5:26:46 PM, Tuesday, January 03, 2012
+Message:
+For COG.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_157.sql
