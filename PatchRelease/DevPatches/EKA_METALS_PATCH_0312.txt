@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0312
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar Behera
+ 
+Created on*        		:  04-Jan-20112
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  MFT(Mining)
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 83830
+Author: pradeep.kumar
+Date: 12:38:02 PM, Wednesday, January 04, 2012
+Message:
+-- Added to Capture Feeding Points  per Smelter level
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_145.sql
+
