@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0316
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar Behera
+ 
+Created on*        		:  06-Jan-2012
+
+Bug / Enhancement*            :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	               :  Logistics
+ 
+Sub-Module  			 :  Pledge Material
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 84029
+Author: pradeep.kumar
+Date: 11:19:46 AM, Friday, January 06, 2012
+Message:
+-- Added For List Of Pledge
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_158.sql
+
+
