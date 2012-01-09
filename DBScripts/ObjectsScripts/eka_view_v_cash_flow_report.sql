@@ -1,4 +1,4 @@
-create or replace view V_CASH_FLOW_REPORT AS
+CREATE OR REPLACE VIEW V_CASH_FLOW_REPORT AS
 SELECT iss.corporate_id, akc.groupid,
        NVL (cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
        NVL (cpc.profit_center_name,
@@ -150,6 +150,7 @@ SELECT iss.corporate_id, akc.groupid,
  WHERE iss.is_active = 'Y'
    AND iss.corporate_id IS NOT NULL
    AND iss.cp_id = phd.profileid
+   and iss.is_inv_draft = 'N'
    AND iss.internal_invoice_ref_no = incm.internal_invoice_ref_no(+)
    AND incm.internal_contract_ref_no = pcm.internal_contract_ref_no(+)
    AND iss.corporate_id = akc.corporate_id
@@ -181,7 +182,4 @@ SELECT iss.corporate_id, akc.groupid,
                     END
                    )
            END
-          )
---/;
-
-
+          ) 
