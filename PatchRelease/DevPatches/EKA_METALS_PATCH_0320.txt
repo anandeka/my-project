@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0320
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  10-Jan-2012
+
+Bug / Enhancement*              :  Enhancemt
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	               :  Invoice Draft
+ 
+Sub-Module  			 :  output DOC
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 84281
+Author: girishkv
+Date: 2:13:50 PM, Tuesday, January 10, 2012
+Message:
+draft invoice output DOC.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_148.sql
+
+Revision: 84286
+Author: girishkv
+Date: 2:24:35 PM, Tuesday, January 10, 2012
+Message:
+draft invoice output DOC.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_162.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_34.sql
+
