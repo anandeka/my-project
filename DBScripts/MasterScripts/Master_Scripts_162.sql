@@ -8,7 +8,7 @@ Insert into DM_DOCUMENT_MASTER
  Insert into ADM_ACTION_DOCUMENT_MASTER
    (ADM_ID, ACTION_ID, DOC_ID, IS_DELETED)
  Values
-   ('ADM-DFT-PI-&corpId', 'CREATE_DFT_PI', 'CREATE_DFT_PI', 'N');
+   ('ADM-DFT-PI', 'CREATE_DFT_PI', 'CREATE_DFT_PI', 'N');
 
 
 Insert into DKM_DOC_REF_KEY_MASTER
@@ -16,17 +16,8 @@ Insert into DKM_DOC_REF_KEY_MASTER
  Values
    ('DFT-PI', 'Draft Provisional Invoice', 'SELECT COUNT (*) FROM DS_DOCUMENT_SUMMARY ds WHERE DS.DOC_REF_NO = :pc_document_ref_no AND DS.CORPORATE_ID = :pc_corporate_id');
 
-Insert into DRFM_DOC_REF_NO_MAPPING
-   (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
- Values
-   ('DRFM-DFT-PI-&corpId', '&corpId', 'CREATE_DFT_PI', 'DFT-PI', 'N');
 
-Insert into DRF_DOC_REF_NUMBER_FORMAT
-   (DOC_REF_NUMBER_FORMAT_ID, DOC_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('DRF-DFT-PI-&corpId', 'DFT-PI', '&corpId', 'DFT-PI-', 0, 
-    0, '-&corpId', 1, 'N');
+
 Insert into DGM_DOCUMENT_GENERATION_MASTER
    (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
     FETCH_QUERY, IS_CONCENTRATE)
@@ -834,14 +825,7 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
       AND cpcr.internal_invoice_ref_no = ?', 'Y');
 
 
-Insert into DC_DOCUMENT_CONFIGURATION
-   (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
-    NAVIGATION)
- Values
-   ('CREATE_DFT_PI', '&corpId', 'Y', 'Y', 'select count(*) as countRow
-from IS_D isd
-where isd.INTERNAL_DOC_REF_NO = ?', 
-    '/metals/loadListOfInvoiceDraft.action?gridId=LOID');
+
 
 Insert into DM_DOCUMENT_MASTER
    (DOC_ID, DOC_NAME, DISPLAY_ORDER, VERSION, IS_ACTIVE, 
@@ -861,17 +845,9 @@ Insert into DKM_DOC_REF_KEY_MASTER
  Values
    ('DFT-FI', 'Draft Final Invoice', 'SELECT COUNT (*) FROM DS_DOCUMENT_SUMMARY ds WHERE DS.DOC_REF_NO = :pc_document_ref_no AND DS.CORPORATE_ID = :pc_corporate_id');
 
-Insert into DRFM_DOC_REF_NO_MAPPING
-   (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
- Values
-   ('DRFM-DFT-FI-&corpId', '&corpId', 'CREATE_DFT_FI', 'DFT-FI', 'N');
 
-Insert into DRF_DOC_REF_NUMBER_FORMAT
-   (DOC_REF_NUMBER_FORMAT_ID, DOC_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('DRF-DFT-FI-&corpId', 'DFT-FI', '&corpId', 'DFT-FI-', 0, 
-    0, '-&corpId', 1, 'N');
+
+
 
 
 Insert into DGM_DOCUMENT_GENERATION_MASTER
@@ -1672,15 +1648,6 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
 
 
 
-Insert into DC_DOCUMENT_CONFIGURATION
-   (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
-    NAVIGATION)
- Values
-   ('DGM-DFT-FI', '&corpId', 'Y', 'Y', 'select count(*) as countRow
-from IS_D isd
-where isd.INTERNAL_DOC_REF_NO = ?', 
-    '/metals/loadListOfInvoiceDraft.action?gridId=LOID');
-
 Insert into DM_DOCUMENT_MASTER
    (DOC_ID, DOC_NAME, DISPLAY_ORDER, VERSION, IS_ACTIVE, 
     IS_DELETED, ACTIVITY_ID)
@@ -1699,17 +1666,7 @@ Insert into DKM_DOC_REF_KEY_MASTER
  Values
    ('DFT-DFI', 'Draft Direct Final Invoice', 'SELECT COUNT (*) FROM DS_DOCUMENT_SUMMARY ds WHERE DS.DOC_REF_NO = :pc_document_ref_no AND DS.CORPORATE_ID = :pc_corporate_id');
 
-Insert into DRFM_DOC_REF_NO_MAPPING
-   (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
- Values
-   ('DRFM-DFI-&corpId', '&corpId', 'CREATE_DFT_DFI', 'DFT-DFI', 'N');
 
-Insert into DRF_DOC_REF_NUMBER_FORMAT
-   (DOC_REF_NUMBER_FORMAT_ID, DOC_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('DRF-DFT-DFI-&corpId', 'DFT-DFI', '&corpId', 'DFT-DFI-', 0, 
-    0, '-&corpId', 1, 'N');
 Insert into DGM_DOCUMENT_GENERATION_MASTER
    (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
     FETCH_QUERY, IS_CONCENTRATE)
@@ -2040,19 +1997,6 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
 
 
 
-
-Insert into DC_DOCUMENT_CONFIGURATION
-   (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
-    NAVIGATION)
- Values
-   ('CREATE_DFT_DFI', '&corpId', 'Y', 'Y', 'select count(*) as countRow
-from IS_D isd
-where isd.INTERNAL_DOC_REF_NO = ?', 
-    '/metals/loadListOfInvoiceDraft.action?gridId=LOID');
-
-
-
-
 Insert into DM_DOCUMENT_MASTER
    (DOC_ID, DOC_NAME, DISPLAY_ORDER, VERSION, IS_ACTIVE, 
     IS_DELETED, ACTIVITY_ID)
@@ -2071,17 +2015,6 @@ Insert into DKM_DOC_REF_KEY_MASTER
  Values
    ('DFT-API', 'Draft Advance Payment Invoice', 'SELECT COUNT (*) FROM DS_DOCUMENT_SUMMARY ds WHERE DS.DOC_REF_NO = :pc_document_ref_no AND DS.CORPORATE_ID = :pc_corporate_id');
 
-Insert into DRFM_DOC_REF_NO_MAPPING
-   (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
- Values
-   ('DFT-API-&corpId', '&corpId', 'CREATE_DFT_API', 'DFT-API', 'N');
-
-Insert into DRF_DOC_REF_NUMBER_FORMAT
-   (DOC_REF_NUMBER_FORMAT_ID, DOC_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('DRF-DFT-API-&corpId', 'DFT-API', '&corpId', 'DFT-API-', 0, 
-    0, '-&corpId', 1, 'N');
 
 Insert into DGM_DOCUMENT_GENERATION_MASTER
    (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
@@ -2227,20 +2160,6 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
       AND invs.internal_invoice_ref_no = ?', 'N');
 
 
-
-
-Insert into DC_DOCUMENT_CONFIGURATION
-   (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
-    NAVIGATION)
- Values
-   ('CREATE_DFT_API', '&corpId', 'Y', 'Y', 'select count(*) as countRow
-from API_D isd
-where isd.INTERNAL_DOC_REF_NO = ?', 
-    '/metals/loadListOfInvoiceDraft.action?gridId=LOID');
-
-
-
-
 Insert into DM_DOCUMENT_MASTER
    (DOC_ID, DOC_NAME, DISPLAY_ORDER, VERSION, IS_ACTIVE, 
     IS_DELETED, ACTIVITY_ID)
@@ -2260,19 +2179,6 @@ Insert into DKM_DOC_REF_KEY_MASTER
    (DOC_KEY_ID, DOC_KEY_DESC, VALIDATION_QUERY)
  Values
    ('VAT_DFT_KEY', 'Draft Vat Invoice', 'SELECT COUNT (*) FROM DS_DOCUMENT_SUMMARY ds WHERE DS.DOC_REF_NO = :pc_document_ref_no AND DS.CORPORATE_ID = :pc_corporate_id');
-
-Insert into DRFM_DOC_REF_NO_MAPPING
-   (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
- Values
-   ('DFT-VAT-&corpId', '&corpId', 'CREATE_DFT_VAT', 'VAT_DFT_KEY', 'N');
-
-Insert into DRF_DOC_REF_NUMBER_FORMAT
-   (DOC_REF_NUMBER_FORMAT_ID, DOC_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('DRF-DFT-VAT-&corpId', 'VAT_DFT_KEY', '&corpId', 'DFT-VAT-', 0, 
-    0, '-&corpId', 1, 'N');
-    
 
 
 
@@ -2394,14 +2300,5 @@ PCM.PURCHASE_SALES,
 INVS.IS_INV_DRAFT,
 INVS.VAT_PARENT_REF_NO', 'N');
 
-
-Insert into DC_DOCUMENT_CONFIGURATION
-   (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
-    NAVIGATION)
- Values
-   ('CREATE_DFT_VAT', '&corpId', 'Y', 'Y', 'select count(*) as countRow
-from VAT_D isd
-where isd.INTERNAL_DOC_REF_NO = ?', 
-    '/metals/loadListOfInvoiceDraft.action?gridId=LOID');
 
 
