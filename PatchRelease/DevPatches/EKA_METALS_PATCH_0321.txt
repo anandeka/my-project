@@ -1,0 +1,82 @@
+Patch No*          		:  EKA_METALS_PATCH_0322
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja 
+ 
+Created on*        		:  10-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+ 
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Revision: 84171
+Author: sivachalabathi.s
+Date: 3:13:14 PM, Monday, January 09, 2012
+Message:
+Draft Invoice removed from cash flow reports
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_cash_flow.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_cash_flow_report.sql
+
+Revision: 84318
+Author: elaiyaraja.nallathambi
+Date: 5:11:54 PM, Tuesday, January 10, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProjectedPriceExposure.rpt
+
+Revision: 84321
+Author: elaiyaraja.nallathambi
+Date: 5:21:41 PM, Tuesday, January 10, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_163.sql
+
+Revision: 84324
+Author: elaiyaraja.nallathambi
+Date: 5:22:36 PM, Tuesday, January 10, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_35_DML_RFP_RPC_RFC_Scripts.sql
+
+Revision: 84319
+Author: elaiyaraja.nallathambi
+Date: 5:12:26 PM, Tuesday, January 10, 2012
+Message:
+LME Trader Card Report released
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/LMETraderCard.rpt
+
+
+
+
+
