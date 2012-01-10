@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0319
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar Behera
+ 
+Created on*        		:  10-Jan-2012
+
+Bug / Enhancement*              :  Enhancemt
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	               :  Logistics
+ 
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  Pleadge & Financial Settlements
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 84266
+Author: pradeep.kumar
+Date: 12:29:52 PM, Tuesday, January 10, 2012
+Message:
+-- AMC,GM & GMC Script For Financial Settlements
+-- GMC script For Pledge
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_161.sql
+
