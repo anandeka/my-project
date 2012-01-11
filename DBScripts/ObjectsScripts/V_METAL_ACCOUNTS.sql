@@ -16,7 +16,7 @@ FROM   (SELECT returnable_temp.corporate_id,
                returnable_temp.qty_unit_id,
                returnable_temp.qty_type
         FROM   (SELECT axs.corporate_id,
-                       prrqs.supplier_cp_id supplier_id,
+                       prrqs.cp_id supplier_id,
                        prrqs.product_id product_id,
                        pdm.product_desc product_name,
                        SUM(prrqs.qty_sign *
@@ -32,7 +32,7 @@ FROM   (SELECT returnable_temp.corporate_id,
                        pdm_productmaster          pdm,
                        cpm_corporateproductmaster cpm
                 WHERE  prrqs.internal_action_ref_no = axs.internal_action_ref_no
-                AND    prrqs.smelter_cp_id IS NULL
+                AND    prrqs.cp_type = 'Supplier'
                 AND    prrqs.is_active = 'Y'
                 AND    prrqs.qty_type = 'Returnable'
                 AND    aml.attribute_id(+) = prrqs.element_id
@@ -42,7 +42,7 @@ FROM   (SELECT returnable_temp.corporate_id,
                 AND    cpm.product_id = pdm.product_id
                 AND    cpm.corporate_id = axs.corporate_id
                 GROUP  BY axs.corporate_id,
-                          prrqs.supplier_cp_id,
+                          prrqs.cp_id,
                           prrqs.product_id,
                           pdm.product_desc,
                           cpm.inventory_qty_unit,
@@ -97,6 +97,7 @@ FROM   (SELECT returnable_temp.corporate_id,
                 AND    grd.internal_grd_ref_no = spq.internal_grd_ref_no
                 AND    product_temp.attribute_id = spq.element_id
                 AND    product_temp.product_id = grd.product_id
+                AND    product_temp.quality_id = grd.quality_id
                 AND    cpm.is_active = 'Y'
                 AND    cpm.is_deleted = 'N'
                 AND    cpm.product_id = product_temp.underlying_product_id
@@ -115,7 +116,7 @@ FROM   (SELECT returnable_temp.corporate_id,
                   returnable_temp.qty_type
         UNION
         SELECT axs.corporate_id,
-               prrqs.supplier_cp_id supplier_id,
+               prrqs.cp_id supplier_id,
                prrqs.product_id product_id,
                pdm.product_desc product_name,
                SUM(prrqs.qty_sign *
@@ -131,7 +132,7 @@ FROM   (SELECT returnable_temp.corporate_id,
                pdm_productmaster          pdm,
                cpm_corporateproductmaster cpm
         WHERE  prrqs.internal_action_ref_no = axs.internal_action_ref_no
-        AND    prrqs.smelter_cp_id IS NULL
+        AND    prrqs.cp_type = 'Supplier'
         AND    prrqs.is_active = 'Y'
         AND    prrqs.qty_type = 'Returned'
         AND    aml.attribute_id(+) = prrqs.element_id
@@ -141,7 +142,7 @@ FROM   (SELECT returnable_temp.corporate_id,
         AND    cpm.product_id = pdm.product_id
         AND    cpm.corporate_id = axs.corporate_id
         GROUP  BY axs.corporate_id,
-                  prrqs.supplier_cp_id,
+                  prrqs.cp_id,
                   prrqs.product_id,
                   pdm.product_desc,
                   cpm.inventory_qty_unit,

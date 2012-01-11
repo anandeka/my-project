@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW V_METAL_ACCOUNTS_TRANSACTIONS
-AS 
+AS
 SELECT mat_temp.unique_id,
        mat_temp.corporate_id,
        mat_temp.internal_contract_ref_no,
@@ -113,6 +113,7 @@ FROM   (SELECT retn_temp.unique_id,
                 AND    spq.qty_type = 'Returnable'
                 AND    product_temp.attribute_id = spq.element_id
                 AND    product_temp.product_id = grd.product_id
+                AND    product_temp.quality_id = grd.quality_id
                 AND    grd.internal_grd_ref_no = spq.internal_grd_ref_no
                 AND    gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
                 AND    pci.internal_contract_item_ref_no =
@@ -131,8 +132,8 @@ FROM   (SELECT retn_temp.unique_id,
                        '' internal_gmr_ref_no,
                        '' gmr_ref_no,
                        prrqs.activity_action_id,
-                       prrqs.supplier_cp_id supplier_id,
-                       prrqs.to_supplier_cp_id to_supplier_id,
+                       prrqs.cp_id supplier_id,
+                       prrqs.to_cp_id to_supplier_id,
                        prrqs.product_id product_id,
                        pdm.product_desc product_name,
                        (prrqs.qty_sign * prrqs.qty) qty,
@@ -143,7 +144,7 @@ FROM   (SELECT retn_temp.unique_id,
                        axs_action_summary   axs,
                        pdm_productmaster    pdm
                 WHERE  prrqs.internal_action_ref_no = axs.internal_action_ref_no
-                AND    prrqs.smelter_cp_id IS NULL
+                AND    prrqs.cp_type = 'Supplier'
                 AND    prrqs.is_active = 'Y'
                 AND    prrqs.qty_type = 'Returnable'
                 AND    pdm.product_id = prrqs.product_id) retn_temp
@@ -161,8 +162,8 @@ FROM   (SELECT retn_temp.unique_id,
                prrqs.internal_gmr_ref_no,
                gmr.gmr_ref_no,
                prrqs.activity_action_id,
-               prrqs.supplier_cp_id supplier_id,
-               prrqs.to_supplier_cp_id debt_supplier_id,
+               prrqs.cp_id supplier_id,
+               prrqs.to_cp_id debt_supplier_id,
                prrqs.product_id product_id,
                pdm.product_desc product_name,
                (prrqs.qty_sign * prrqs.qty) debt_qty,
@@ -175,7 +176,7 @@ FROM   (SELECT retn_temp.unique_id,
                dgrd_delivered_grd        dgrd,
                gmr_goods_movement_record gmr
         WHERE  prrqs.internal_action_ref_no = axs.internal_action_ref_no
-        AND    prrqs.smelter_cp_id IS NULL
+        AND    prrqs.cp_type = 'Supplier'
         AND    prrqs.is_active = 'Y'
         AND    prrqs.qty_type = 'Returned'
         AND    pdm.product_id = prrqs.product_id
@@ -192,7 +193,8 @@ FROM   (SELECT retn_temp.unique_id,
                ash_assay_header        ash
         WHERE  ash.pricing_assay_ash_id = sam.ash_id
         AND    sam.is_latest_pricing_assay = 'Y'
-        AND    ash.assay_type in ('Weighing and Sampling Assay','Provisional Assay')
+        AND    ash.assay_type IN
+               ('Weighing and Sampling Assay', 'Provisional Assay')
         AND    sam.is_active = 'Y') ash_pa_fa
 WHERE  axm.action_id = mat_temp.activity_action_id
 AND    phd.profileid = mat_temp.supplier_id
