@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0324
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar reddy
+ 
+Created on*        		:  12-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical Trade
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+Revision: 84605
+Author: rajeshwar.reddy
+Date: 20:33:07, 12 January 2012
+Message:
+Container key.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_166.sql
+
+
