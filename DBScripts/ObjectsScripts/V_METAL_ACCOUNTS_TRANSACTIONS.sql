@@ -121,16 +121,16 @@ FROM   (SELECT retn_temp.unique_id,
                 UNION
                 SELECT prrqs.prrqs_id unique_id,
                        axs.corporate_id,
-                       '' internal_contract_ref_no,
-                       '' contract_ref_no,
-                       '' internal_contract_item_ref_no,
-                       '' contract_item_ref_no,
-                       '' pcdi_id,
-                       '' delivery_item_ref_no,
-                       '' stock_id,
-                       '' stock_ref_no,
-                       '' internal_gmr_ref_no,
-                       '' gmr_ref_no,
+                       pci.internal_contract_ref_no internal_contract_ref_no,
+                       pci.contract_ref_no contract_ref_no,
+                       grd.internal_contract_item_ref_no internal_contract_item_ref_no,
+                       pci.contract_item_ref_no contract_item_ref_no,
+                       pci.pcdi_id pcdi_id,
+                       pci.delivery_item_ref_no delivery_item_ref_no,
+                       prrqs.internal_grd_ref_no stock_id,
+                       grd.internal_stock_ref_no stock_ref_no,
+                       prrqs.internal_gmr_ref_no internal_gmr_ref_no,
+                       gmr.gmr_ref_no gmr_ref_no,
                        prrqs.activity_action_id,
                        prrqs.cp_id supplier_id,
                        prrqs.to_cp_id to_supplier_id,
@@ -140,14 +140,23 @@ FROM   (SELECT retn_temp.unique_id,
                        prrqs.qty_unit_id qty_unit_id,
                        axs.internal_action_ref_no,
                        axs.eff_date activity_date
-                FROM   prrqs_prr_qty_status prrqs,
-                       axs_action_summary   axs,
-                       pdm_productmaster    pdm
+                FROM   prrqs_prr_qty_status      prrqs,
+                       axs_action_summary        axs,
+                       pdm_productmaster         pdm,
+                       grd_goods_record_detail   grd,
+                       gmr_goods_movement_record gmr,
+                       v_pci                     pci
                 WHERE  prrqs.internal_action_ref_no = axs.internal_action_ref_no
+                AND    gmr.internal_gmr_ref_no = prrqs.internal_gmr_ref_no
+                AND    grd.internal_grd_ref_no = prrqs.internal_grd_ref_no
+                AND    grd.internal_gmr_ref_no = prrqs.internal_gmr_ref_no
+                AND    pci.internal_contract_item_ref_no =
+                       grd.internal_contract_item_ref_no
                 AND    prrqs.cp_type = 'Supplier'
                 AND    prrqs.is_active = 'Y'
                 AND    prrqs.qty_type = 'Returnable'
-                AND    pdm.product_id = prrqs.product_id) retn_temp
+                AND    pdm.product_id = prrqs.product_id
+                AND    prrqs.activity_action_id = 'pledgeTransfer') retn_temp
         UNION
         SELECT prrqs.prrqs_id unique_id,
                axs.corporate_id,

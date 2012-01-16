@@ -1,4 +1,5 @@
-CREATE OR REPLACE VIEW V_LIST_OF_GMR AS
+CREATE OR REPLACE VIEW V_LIST_OF_GMR
+AS
 SELECT gmr.corporate_id,
        (SELECT f_string_aggregate(pci.contract_ref_no)
         FROM   gcim_gmr_contract_item_mapping gcim,
@@ -149,9 +150,9 @@ SELECT gmr.corporate_id,
        (SELECT aku_sub.login_name
         FROM   ak_corporate_user aku_sub
         WHERE  aku_sub.user_id = axs_last.created_by) updated_by,
-        gmr.is_final_weight is_final_weight,
-        gmr.is_warrant is_warrant,
-        gmr.tolling_qty tolling_qty
+       gmr.is_final_weight is_final_weight,
+       gmr.is_warrant is_warrant,
+       gmr.tolling_qty tolling_qty
 FROM   gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
@@ -214,7 +215,9 @@ AND    gmr.internal_gmr_ref_no = bl_details.internal_gmr_ref_no(+)
 AND    nvl(gmr.is_settlement_gmr,
            'N') = 'N'
 AND    nvl(gmr.tolling_gmr_type,
-           'None Tolling') NOT IN ('Input Process', 'Output Process','Mark For Tolling','Received Materials')
+           'None Tolling') NOT IN
+       ('Input Process', 'Output Process', 'Mark For Tolling',
+        'Received Materials', 'Pledge', 'Financial Settlement')
 AND    gam.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
 AND    vd.status(+) = 'Active'
-AND    axs_last.internal_action_ref_no = gmr.internal_action_ref_no
+AND    axs_last.internal_action_ref_no = gmr.internal_action_ref_no;
