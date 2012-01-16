@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0327
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P Hulbatte
+ 
+Created on*        		:  16-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+ 
+Sub-Module  			 :  Pledge invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 84806
+Author: anandp
+Date: 3:54:39 PM, Monday, January 16, 2012
+Message:
+For pledge invoice.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_151.sql
+
+
+
+
+
