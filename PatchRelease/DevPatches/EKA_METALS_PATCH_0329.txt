@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0329
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar Behera
+ 
+Created on*        		:  16-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 84842
+Author: pradeep.kumar
+Date: 6:36:13 PM, Monday, January 16, 2012
+Message:
+-- Create Pledge - GMC Script
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_168.sql
+
