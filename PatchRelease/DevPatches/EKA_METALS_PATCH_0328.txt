@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_0328
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  16-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 84836
+Author: babulal.meena
+Date: 6:03:52 PM, Monday, January 16, 2012
+Message:
+Pledge Transfer & Metal Balanace 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_36.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_167.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR.SQL
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_METAL_ACCOUNTS_TRANSACTIONS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_152.sql
