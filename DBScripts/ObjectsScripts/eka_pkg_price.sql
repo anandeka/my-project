@@ -56,7 +56,7 @@ CREATE OR REPLACE PACKAGE pkg_price IS
         pd_trade_date       DATE
     ) RETURN DATE;
 
-END;
+END; 
 /
 CREATE OR REPLACE PACKAGE BODY pkg_price IS
 
@@ -244,7 +244,10 @@ CREATE OR REPLACE PACKAGE BODY pkg_price IS
                                            pfqpp.is_qp_any_day_basis,
                                            pofh.qty_to_be_fixed,
                                            pofh.priced_qty,
-                                           pofh.pofh_id
+                                           pofh.pofh_id,
+                                           pofh.no_of_prompt_days,
+                                           nvl(pofh.no_of_prompt_days_fixed,0)no_of_prompt_days_fixed,
+                                           nvl(pofh.no_of_prompt_days,0) - nvl(pofh.no_of_prompt_days_fixed,0)no_of_day_unfixed
                                     FROM   poch_price_opt_call_off_header poch,
                                            pocd_price_option_calloff_dtls pocd,
                                            pcbpd_pc_base_price_detail     pcbpd,
@@ -666,7 +669,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_price IS
                                     vn_any_day_cont_price_ufix_qty := (vn_any_day_unfixed_qty *
                                                                       vn_during_total_val_price);
                                 ELSE
-                                    WHILE vd_dur_qp_start_date <=
+                                  /*  WHILE vd_dur_qp_start_date <=
                                           vd_dur_qp_end_date LOOP
                                         IF f_is_day_holiday(cur_pcdi_rows.instrument_id,
                                                             vd_dur_qp_start_date) THEN
@@ -680,7 +683,11 @@ CREATE OR REPLACE PACKAGE BODY pkg_price IS
                                             vn_count_val_qp           := vn_count_val_qp + 1;
                                         END IF;
                                         vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
-                                    END LOOP;
+                                    END LOOP;*/
+                                    vn_count_val_qp := cc1.no_of_day_unfixed;
+                                     vn_during_total_val_price := vn_during_total_val_price +
+                                                                         vn_during_val_price * vn_count_val_qp;
+
                                 END IF;
                                 IF (vn_count_val_qp + vn_count_set_qp) <> 0 THEN
                                     IF vn_market_flag = 'N' THEN
@@ -3735,5 +3742,5 @@ CREATE OR REPLACE PACKAGE BODY pkg_price IS
         RETURN vd_prompt_date;
     END;
 
-END;
+END; 
 /
