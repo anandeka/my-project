@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_0332
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  18-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+ 
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 85043
+Author: babulal.meena
+Date: 4:04:23 PM, Wednesday, January 18, 2012
+Message:
+DB View Script of below listing screen :-
+1. List of Pledge
+2. List Of Metal Account Transaction
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_GMR_ASSAY_FINALIZED_STATUS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_PLEDGE_GMR.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_METAL_ACCOUNTS_TRANSACTIONS.sql
