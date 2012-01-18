@@ -46,6 +46,7 @@ Insert into SLS_STATIC_LIST_SETUP
 
 alter table SCM_STOCK_COST_MAPPING add weight_loss_gain_ratio number(25,10) default 1 ;
 alter table SCM_STOCK_COST_MAPPING add prev_transformation_ratio number(25,10);
+alter table PQCA_PQ_CHEMICAL_ATTRIBUTES add assay_winner varchar2(50);
 
 
 
