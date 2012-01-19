@@ -1,9 +1,9 @@
-CREATE OR REPLACE PACKAGE "PKG_PHY_TRANSFER_DATA" is
+create or replace package pkg_phy_transfer_data is
 
   -- Author  : SURESHGOTTIPATI
   -- Created : 5/2/2011 3:09:18 PM
   -- Purpose : 
-
+  gvc_previous_dbd_id varchar2(15);
   procedure sp_phy_transfer_data(pc_corporate_id       in varchar2,
                                  pt_previous_pull_date timestamp,
                                  pt_current_pull_date  timestamp,
@@ -25,13 +25,11 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_TRANSFER_DATA" is
                                   pc_dbd_id             varchar2,
                                   pd_trade_date         date);
 
-  procedure sp_phy_insert_costing_data(pc_corporate_id       in varchar2,
-                                       pt_previous_pull_date timestamp,
-                                       pt_current_pull_date  timestamp,
-                                       pc_user_id            varchar2,
-                                       pc_process            varchar2,
-                                       pc_dbd_id             varchar2,
-                                       pd_trade_date         date);
+  procedure sp_phy_insert_costing_data(pc_corporate_id in varchar2,
+                                       pc_user_id      varchar2,
+                                       pc_process      varchar2,
+                                       pc_dbd_id       varchar2,
+                                       pd_trade_date   date);
   procedure sp_phy_delete_m2m_data(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_user_id      varchar2,
@@ -39,12 +37,11 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_TRANSFER_DATA" is
   procedure sp_phy_insert_m2m_data(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_user_id      varchar2,
-                                   pc_process      varchar2,
-                                   pc_dbd_id       varchar2);
+                                   pc_process      varchar2);
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
+create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
   procedure sp_phy_transfer_data(pc_corporate_id       in varchar2,
                                  pt_previous_pull_date timestamp,
@@ -78,8 +75,23 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
     vn_eel_error_count number := 1;
     vn_logno           number := 25;
     vc_app_eodeom_id   varchar2(15);
+    vc_err_msg         varchar2(10);
   begin
-  
+    vc_err_msg := '1';
+    begin
+      select dbd.dbd_id
+        into gvc_previous_dbd_id
+        from dbd_database_dump dbd
+       where dbd.corporate_id = pc_corporate_id
+         and dbd.trade_date =
+             (select max(dbd.trade_date)
+                from dbd_database_dump dbd
+               where dbd.corporate_id = pc_corporate_id
+                 and dbd.trade_date < pd_trade_date);
+    exception
+      when no_data_found then
+        gvc_previous_dbd_id := null;
+    end;
     --Get the Latest EOD/EOM Table id from app schema which is used for Transfering AXS data
     begin
       if pc_process = 'EOD' then
@@ -113,7 +125,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    vn_logno   := vn_logno + 1;
+    vc_err_msg := '2';
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
@@ -130,11 +143,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
     end if;
   
     vn_logno := vn_logno + 1;
+  
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'sp_phy_insert_ul_data');
+    vc_err_msg := '3';
     sp_phy_insert_ul_data(pc_corporate_id,
                           pt_previous_pull_date,
                           pt_current_pull_date,
@@ -153,9 +168,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
                             vc_dbd_id,
                             vn_logno,
                             'sp_phy_insert_costing_data');
+    vc_err_msg := '4';
     sp_phy_insert_costing_data(pc_corporate_id,
-                               pt_previous_pull_date,
-                               pt_current_pull_date,
                                pc_user_id,
                                pc_process,
                                pc_dbd_id,
@@ -164,16 +178,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        'Cancel' then
       goto cancel_process;
     end if;
+  
+    vc_err_msg := '5';
     sp_phy_delete_m2m_data(pc_corporate_id,
                            pd_trade_date,
                            pc_user_id,
                            pc_process);
+    vc_err_msg := '6';
     sp_phy_insert_m2m_data(pc_corporate_id,
                            pd_trade_date,
                            pc_user_id,
-                           pc_process,
-                           pc_dbd_id);                           
-                            
+                           pc_process);
   
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while transafer data');
@@ -186,7 +201,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
                                                            'Code:' ||
                                                            sqlcode ||
                                                            'Message:' ||
-                                                           sqlerrm,
+                                                           sqlerrm || ' ' ||
+                                                           vc_err_msg,
                                                            '',
                                                            pc_process,
                                                            pc_user_id,
@@ -227,17 +243,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              where corporate_id = pc_corporate_id);
     delete from lds_location_diff_setup
      where corporate_id = pc_corporate_id;
-    commit;  
+    commit;
     --Moved 
     delete from mvpl_m2m_valuation_point_loc
      where mvp_id in (select mvp_id
                         from mvp_m2m_valuation_point
                        where corporate_id = pc_corporate_id);
-    commit;                       
+    commit;
     delete from mvp_m2m_valuation_point
      where corporate_id = pc_corporate_id;
     --ends here
-    commit;    
+    commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -276,8 +292,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
   (pc_corporate_id varchar2,
    pd_trade_date   date,
    pc_user_id      varchar2,
-   pc_process      varchar2,
-   pc_dbd_id       varchar2) is
+   pc_process      varchar2) is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   begin
@@ -317,7 +332,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
        where corporate_id = pc_corporate_id
          and is_deleted = 'N'
          and is_active = 'Y';
-    commit;  
+    commit;
     insert into mvpl_m2m_valuation_point_loc
       (mvpl_id, mvp_id, loc_city_id)
       select mvpl_id,
@@ -328,7 +343,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
                           from mvp_m2m_valuation_point
                          where corporate_id = pc_corporate_id)
          and is_deleted = 'N';
-    commit;  
+    commit;
     /*INSERT INTO mmv_m2m_market_values
     (mmv_id,
      as_on_date,
@@ -410,7 +425,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              valuation_city_id
         from lds_location_diff_setup@eka_appdb ldh
        where corporate_id = pc_corporate_id;
-    commit;  
+    commit;
     insert into ldc_location_diff_cost
       (loc_diff_id, cost_component_id, cost_value, cost_price_unit_id)
       select loc_diff_id,
@@ -422,7 +437,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
              (select loc_diff_id
                 from lds_location_diff_setup
                where corporate_id = pc_corporate_id);
-      commit;
+    commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -528,7 +543,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('RM_RATIO_MASTER', 'c');
       dbms_mview.refresh('AML_ATTRIBUTE_MASTER_LIST', 'c');
       dbms_mview.refresh('PPM_PRODUCT_PROPERTIES_MAPPING', 'c');
-      dbms_mview.refresh('QAV_QUALITY_ATTRIBUTE_VALUES', 'c');      
+      dbms_mview.refresh('QAV_QUALITY_ATTRIBUTE_VALUES', 'c');
       dbms_mview.refresh('MDCD_M2M_DED_CHARGE_DETAILS', 'c');
       dbms_mview.refresh('MDCBM_DED_CHARGES_BY_MONTH', 'c');
       dbms_mview.refresh('MNM_MONTH_NAME_MASTER', 'c');
@@ -540,6 +555,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('PQDT_PAYABLE_EXT_TOLLING', 'c');
       dbms_mview.refresh('PQCAPD_PRD_QLTY_CATTR_PAY_DTLS', 'c');
       dbms_mview.refresh('SAM_STOCK_ASSAY_MAPPING', 'c');
+      dbms_mview.refresh('II_INVOICABLE_ITEM', 'c');
+      dbms_mview.refresh('IID_INVOICABLE_ITEM_DETAILS', 'c');
+      dbms_mview.refresh('SCM_STOCK_COST_MAPPING', 'c');
     end if;
   exception
     when others then
@@ -639,7 +657,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;         
+    commit;
     insert into aghul_alloc_group_header_ul
       (internal_action_ref_no,
        int_alloc_group_id,
@@ -693,7 +711,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into cigcul_contrct_itm_gmr_cost_ul
       (cogul_ref_no,
        internal_action_ref_no,
@@ -731,7 +749,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into csul_cost_store_ul
       (internal_cost_ul_id,
        internal_cost_id,
@@ -803,7 +821,28 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+  
+    commit;
+    insert into cdl_cost_delta_log
+      (cdl_id,
+       internal_action_ref_no,
+       cost_ref_no,
+       delta_cost,
+       version,
+       dbd_id)
+      select ul.cdl_id,
+             ul.internal_action_ref_no,
+             ul.cost_ref_no,
+             ul.delta_cost,
+             ul.version,
+             pc_dbd_id
+        from cdl_cost_delta_log@eka_appdb ul,
+             axs_action_summary@eka_appdb axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
     insert into dgrdul_delivered_grd_ul
       (internal_action_ref_no,
        internal_dgrd_ref_no,
@@ -977,7 +1016,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into gmrul_gmr_ul
       (internal_action_ref_no,
        internal_gmr_ref_no,
@@ -1169,7 +1208,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into mogrdul_moved_out_grd_ul
       (internal_action_ref_no,
        entry_type,
@@ -1251,7 +1290,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcbpdul_pc_base_price_dtl_ul
       (pcbpdul_id,
        internal_action_ref_no,
@@ -1325,7 +1364,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcdbul_pc_delivery_basis_ul
       (pcdbul_id,
        internal_action_ref_no,
@@ -1401,7 +1440,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcdiobul_di_optional_basis_ul
       (pcdiobul_id,
        internal_action_ref_no,
@@ -1453,7 +1492,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-      commit;
+    commit;
     insert into pcdiqdul_di_quality_detail_ul
       (pcdiqdul_id,
        internal_action_ref_no,
@@ -1579,7 +1618,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcipful_pci_pricing_formula_ul
       (pcipful_id,
        internal_action_ref_no,
@@ -1605,7 +1644,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pciul_phy_contract_item_ul
       (pciul_id,
        internal_action_ref_no,
@@ -1673,7 +1712,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcjvul_pc_jv_detail_ul
       (pcjvul_id,
        internal_action_ref_no,
@@ -1705,7 +1744,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcmul_phy_contract_main_ul
       (pcmul_id,
        internal_action_ref_no,
@@ -1819,7 +1858,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcpdqdul_pd_quality_dtl_ul
       (pcpdqdul_id,
        internal_action_ref_no,
@@ -1911,7 +1950,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcpqul_pc_product_quality_ul
       (pcpqul_id,
        internal_action_ref_no,
@@ -1961,7 +2000,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcqpdul_pc_qual_prm_discnt_ul
       (pcqpdul_id,
        internal_action_ref_no,
@@ -1995,7 +2034,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pffxdul_phy_formula_fx_dtl_ul
       (pffxdul_id,
        internal_action_ref_no,
@@ -2057,7 +2096,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pfqppul_phy_formula_qp_prc_ul
       (pfqppul_id,
        internal_action_ref_no,
@@ -2121,7 +2160,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into ppfdul_phy_price_frmula_dtl_ul
       (ppfdul_id,
        internal_action_ref_no,
@@ -2167,7 +2206,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into ppfhul_phy_price_frmla_hdr_ul
       (ppfhul_id,
        internal_action_ref_no,
@@ -2201,7 +2240,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into ciqsl_contract_itm_qty_sts_log
       (ciqs_id,
        internal_action_ref_no,
@@ -2251,7 +2290,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into ciqsl_contract_itm_qty_sts_log
       (ciqs_id,
        internal_action_ref_no,
@@ -2311,7 +2350,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into diqsl_delivery_itm_qty_sts_log
       (diqs_id,
        internal_action_ref_no,
@@ -2363,7 +2402,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into cqsl_contract_qty_status_log
       (cqs_id,
        internal_action_ref_no,
@@ -2415,7 +2454,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into grdl_goods_record_detail_log
       (internal_grd_ref_no,
        internal_action_ref_no,
@@ -2613,7 +2652,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+  
+    commit;
     insert into vdul_voyage_detail_ul
       (internal_gmr_ref_no,
        internal_action_ref_no,
@@ -2737,7 +2777,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcpchul_payble_contnt_headr_ul
       (pcpchul_id,
        internal_action_ref_no,
@@ -2771,7 +2811,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pqdul_payable_quality_dtl_ul
       (pqdul_id,
        internal_action_ref_no,
@@ -2799,7 +2839,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcepcul_elem_payble_content_ul
       (pcepcul_id,
        internal_action_ref_no,
@@ -2881,7 +2921,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into tedul_treatment_element_dtl_ul
       (tedul_id,
        internal_action_ref_no,
@@ -2909,7 +2949,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into tqdul_treatment_quality_dtl_ul
       (tqdul_id,
        internal_action_ref_no,
@@ -2985,7 +3025,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcarul_assaying_rules_ul
       (pcarul_id,
        internal_action_ref_no,
@@ -3025,7 +3065,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcaeslul_assay_elm_splt_lmt_ul
       (pcaeslul_id,
        internal_action_ref_no,
@@ -3059,7 +3099,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into arqdul_assay_quality_dtl_ul
       (arqdul_id,
        internal_action_ref_no,
@@ -3087,7 +3127,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcaphul_attr_penalty_header_ul
       (pcaphul_id,
        internal_action_ref_no,
@@ -3117,7 +3157,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcapul_attribute_penalty_ul
       (pcapul_id,
        internal_action_ref_no,
@@ -3173,7 +3213,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pqdul_penalty_quality_dtl_ul
       (pqdul_id,
        internal_action_ref_no,
@@ -3199,7 +3239,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into padul_penalty_attribute_dtl_ul
       (padul_id,
        internal_action_ref_no,
@@ -3227,7 +3267,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcrhul_refining_header_ul
       (pcrhul_id,
        internal_action_ref_no,
@@ -3259,7 +3299,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into rqdul_refining_quality_dtl_ul
       (rqdul_id,
        internal_action_ref_no,
@@ -3287,7 +3327,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into redul_refining_element_dtl_ul
       (redul_id,
        internal_action_ref_no,
@@ -3315,7 +3355,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit;  
+    commit;
     insert into pcercul_elem_refing_charge_ul
       (pcercul_id,
        internal_action_ref_no,
@@ -3363,111 +3403,111 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-    commit; 
-     insert into dithul_di_treatment_header_ul(
-  dithul_id,
-  internal_action_ref_no,
-  entry_type,
-  dith_id,
-  pcdi_id,
-  pcth_id,
-  version,
-  is_active,
-  dbd_id) 
-  select ul.dithul_id,
-         ul.internal_action_ref_no,
-         ul.entry_type,
-         ul.dith_id,
-         ul.pcdi_id,
-         ul.pcth_id,
-         ul.version,
-         ul.is_active,
-         pc_dbd_id
-         from dithul_di_treatment_header_ul@eka_appdb ul,
-             axs_action_summary@eka_appdb            axs
-       where ul.internal_action_ref_no = axs.internal_action_ref_no
-         and axs.corporate_id = pc_corporate_id
-         and axs.created_date > pt_previous_pull_date
-         and axs.created_date <= pt_current_pull_date;
-    commit;    
-    
- insert into dirhul_di_refining_header_ul(
-  dirhul_id,
-  internal_action_ref_no,
-  entry_type,
-  dirh_id,
-  pcdi_id,
-  pcrh_id,
-  version,
-  is_active,
-  dbd_id) 
-  select ul.dirhul_id,
-         ul.internal_action_ref_no,
-         ul.entry_type,
-         ul.dirh_id,
-         ul.pcdi_id,
-         ul.pcrh_id,
-         ul.version,
-         ul.is_active,
-         pc_dbd_id
-         from dirhul_di_refining_header_ul@eka_appdb ul,
+    commit;
+    insert into dithul_di_treatment_header_ul
+      (dithul_id,
+       internal_action_ref_no,
+       entry_type,
+       dith_id,
+       pcdi_id,
+       pcth_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.dithul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.dith_id,
+             ul.pcdi_id,
+             ul.pcth_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from dithul_di_treatment_header_ul@eka_appdb ul,
              axs_action_summary@eka_appdb            axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
     commit;
-         
-insert into diphul_di_penalty_header_ul
-  (diphul_id,
-   internal_action_ref_no,
-   entry_type,
-   diph_id,
-   pcdi_id,
-   pcaph_id,
-   version,
-   is_active,
-   dbd_id)
-  select ul.diphul_id,
-         ul.internal_action_ref_no,
-         ul.entry_type,
-         ul.diph_id,
-         ul.pcdi_id,
-         ul.pcaph_id,
-         ul.version,
-         ul.is_active,
-         pc_dbd_id
-    from diphul_di_penalty_header_ul@eka_appdb ul,
-         axs_action_summary@eka_appdb          axs
-   where ul.internal_action_ref_no = axs.internal_action_ref_no
-     and axs.corporate_id = pc_corporate_id
-     and axs.created_date > pt_previous_pull_date
-     and axs.created_date <= pt_current_pull_date;
-    commit; 
-   
-   insert into cipql_ctrt_itm_payable_qty_log
-  (cipq_id,
-  internal_action_ref_no,
-  entry_type,
-  internal_contract_item_ref_no,
-  element_id,
-  payable_qty_delta,
-  qty_unit_id,
-  version,
-  is_active,
-  qty_type,
-  dbd_id)
-  select ul.cipq_id,
-         ul.internal_action_ref_no,
-         ul.entry_type,
-         ul.internal_contract_item_ref_no,
-         ul.element_id,
-         ul.payable_qty_delta,
-         ul.qty_unit_id,
-         ul.version,
-         ul.is_active,
-         ul.qty_type,
-         pc_dbd_id
+  
+    insert into dirhul_di_refining_header_ul
+      (dirhul_id,
+       internal_action_ref_no,
+       entry_type,
+       dirh_id,
+       pcdi_id,
+       pcrh_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.dirhul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.dirh_id,
+             ul.pcdi_id,
+             ul.pcrh_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from dirhul_di_refining_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb           axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
+  
+    insert into diphul_di_penalty_header_ul
+      (diphul_id,
+       internal_action_ref_no,
+       entry_type,
+       diph_id,
+       pcdi_id,
+       pcaph_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.diphul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.diph_id,
+             ul.pcdi_id,
+             ul.pcaph_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from diphul_di_penalty_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb          axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
+  
+    insert into cipql_ctrt_itm_payable_qty_log
+      (cipq_id,
+       internal_action_ref_no,
+       entry_type,
+       internal_contract_item_ref_no,
+       element_id,
+       payable_qty_delta,
+       qty_unit_id,
+       version,
+       is_active,
+       qty_type,
+       dbd_id)
+      select ul.cipq_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.internal_contract_item_ref_no,
+             ul.element_id,
+             ul.payable_qty_delta,
+             ul.qty_unit_id,
+             ul.version,
+             ul.is_active,
+             ul.qty_type,
+             pc_dbd_id
         from cipql_ctrt_itm_payable_qty_log@eka_appdb ul,
              axs_action_summary@eka_appdb             axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
@@ -3475,129 +3515,128 @@ insert into diphul_di_penalty_header_ul
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
     commit;
-    
-
-insert into dipql_del_itm_payble_qty_log
-  (dipq_id,
-  internal_action_ref_no,
-  entry_type,
-  pcdi_id,
-  element_id,
-  payable_qty_delta,
-  qty_unit_id,
-  price_option_call_off_status,
-  version,
-  is_active,
-  is_price_optionality_present,
-  qty_type,
-  dbd_id)
-  select ul.dipq_id,
-         ul.internal_action_ref_no,
-         ul.entry_type,
-         ul.pcdi_id,
-         ul.element_id,
-         ul.payable_qty_delta,
-         ul.qty_unit_id,
-         ul.price_option_call_off_status,
-         ul.version,
-         ul.is_active,
-         ul.is_price_optionality_present,
-         ul.qty_type,
-         pc_dbd_id
+  
+    insert into dipql_del_itm_payble_qty_log
+      (dipq_id,
+       internal_action_ref_no,
+       entry_type,
+       pcdi_id,
+       element_id,
+       payable_qty_delta,
+       qty_unit_id,
+       price_option_call_off_status,
+       version,
+       is_active,
+       is_price_optionality_present,
+       qty_type,
+       dbd_id)
+      select ul.dipq_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.pcdi_id,
+             ul.element_id,
+             ul.payable_qty_delta,
+             ul.qty_unit_id,
+             ul.price_option_call_off_status,
+             ul.version,
+             ul.is_active,
+             ul.is_price_optionality_present,
+             ul.qty_type,
+             pc_dbd_id
         from dipql_del_itm_payble_qty_log@eka_appdb ul,
+             axs_action_summary@eka_appdb           axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
+  
+    insert into spql_stock_payable_qty_log
+      (spq_id,
+       internal_action_ref_no,
+       entry_type,
+       internal_gmr_ref_no,
+       action_no,
+       stock_type,
+       internal_grd_ref_no,
+       internal_dgrd_ref_no,
+       element_id,
+       payable_qty_delta,
+       qty_unit_id,
+       version,
+       is_active,
+       qty_type,
+       activity_action_id,
+       is_stock_split,
+       supplier_id,
+       smelter_id,
+       in_process_stock_id,
+       free_metal_stock_id,
+       free_metal_qty,
+       dbd_id)
+      select ul.spq_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.internal_gmr_ref_no,
+             ul.action_no,
+             ul.stock_type,
+             ul.internal_grd_ref_no,
+             ul.internal_dgrd_ref_no,
+             ul.element_id,
+             ul.payable_qty_delta,
+             ul.qty_unit_id,
+             ul.version,
+             ul.is_active,
+             ul.qty_type,
+             ul.activity_action_id,
+             ul.is_stock_split,
+             ul.supplier_id,
+             ul.smelter_id,
+             ul.in_process_stock_id,
+             ul.free_metal_stock_id,
+             ul.free_metal_qty,
+             pc_dbd_id
+        from spql_stock_payable_qty_log@eka_appdb ul,
+             axs_action_summary@eka_appdb         axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
+  
+    insert into dipchul_di_payblecon_header_ul
+      (dipchul_id,
+       internal_action_ref_no,
+       entry_type,
+       dipch_id,
+       pcdi_id,
+       pcpch_id,
+       version,
+       is_active,
+       dbd_id)
+      select ul.dipchul_id,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.dipch_id,
+             ul.pcdi_id,
+             ul.pcpch_id,
+             ul.version,
+             ul.is_active,
+             pc_dbd_id
+        from dipchul_di_payblecon_header_ul@eka_appdb ul,
              axs_action_summary@eka_appdb             axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
     commit;
-    
-insert into spql_stock_payable_qty_log
-  (spq_id,
-  internal_action_ref_no,
-  entry_type,
-  internal_gmr_ref_no,
-  action_no,
-  stock_type,
-  internal_grd_ref_no,
-  internal_dgrd_ref_no,
-  element_id,
-  payable_qty_delta,
-  qty_unit_id,
-  version,
-  is_active,
-  qty_type,
-  activity_action_id,
-  is_stock_split,
-  supplier_id,
-  smelter_id,
-  in_process_stock_id,
-  free_metal_stock_id,
-  free_metal_qty,
-  dbd_id)
-  select ul.spq_id,
-         ul.internal_action_ref_no,
-         ul.entry_type,
-         ul.internal_gmr_ref_no,
-         ul.action_no,
-         ul.stock_type,
-         ul.internal_grd_ref_no,
-         ul.internal_dgrd_ref_no,
-         ul.element_id,
-         ul.payable_qty_delta,
-         ul.qty_unit_id,
-         ul.version,
-         ul.is_active,
-         ul.qty_type,
-         ul.activity_action_id,
-         ul.is_stock_split,
-         ul.supplier_id,
-         ul.smelter_id,
-         ul.in_process_stock_id,
-         ul.free_metal_stock_id,
-         ul.free_metal_qty,
-         pc_dbd_id
-        from spql_stock_payable_qty_log@eka_appdb ul,
-             axs_action_summary@eka_appdb             axs
-       where ul.internal_action_ref_no = axs.internal_action_ref_no
-         and axs.corporate_id = pc_corporate_id
-         and axs.created_date > pt_previous_pull_date
-         and axs.created_date <= pt_current_pull_date;
-    commit; 
-    
-  insert into dipchul_di_payblecon_header_ul
-  (dipchul_id,
-   internal_action_ref_no,
-   entry_type,
-   dipch_id,
-   pcdi_id,
-   pcpch_id,
-   version,
-   is_active,
-   dbd_id)
-   select ul.dipchul_id,
-          ul.internal_action_ref_no,
-          ul.entry_type,
-          ul.dipch_id,
-          ul.pcdi_id,
-          ul.pcpch_id,
-          ul.version,
-          ul.is_active,
-          pc_dbd_id 
-    from dipchul_di_payblecon_header_ul@eka_appdb ul,
-             axs_action_summary@eka_appdb             axs
-       where ul.internal_action_ref_no = axs.internal_action_ref_no
-         and axs.corporate_id = pc_corporate_id
-         and axs.created_date > pt_previous_pull_date
-         and axs.created_date <= pt_current_pull_date;
-    commit;            
-     
+  
   exception
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_phy_insert_ul_data',
-                                                           'm2m-013',
+                                                           'M2M-013',
                                                            'code:' ||
                                                            sqlcode ||
                                                            'message:' ||
@@ -3629,13 +3668,11 @@ insert into spql_stock_payable_qty_log
     --                modified date                            :
     --                modify description                       :
     --*****************************************************************************************************************************************
-  (pc_corporate_id       in varchar2,
-   pt_previous_pull_date timestamp,
-   pt_current_pull_date  timestamp,
-   pc_user_id            varchar2,
-   pc_process            varchar2,
-   pc_dbd_id             varchar2,
-   pd_trade_date         date) is
+  (pc_corporate_id in varchar2,
+   pc_user_id      varchar2,
+   pc_process      varchar2,
+   pc_dbd_id       varchar2,
+   pd_trade_date   date) is
   
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
@@ -3686,7 +3723,7 @@ insert into spql_stock_payable_qty_log
              version,
              pc_dbd_id
         from invd_inventory_detail@eka_appdb;
-    commit;  
+    commit;
     insert into invm_inventory_master
       (internal_inv_id,
        inv_ref_no,
@@ -3705,7 +3742,19 @@ insert into spql_stock_payable_qty_log
        secondary_cost,
        is_active,
        version,
-       dbd_id)
+       dbd_id,
+       product_premium,
+       quality_premium,
+       price_unit_id,
+       price_unit_cur_id,
+       price_unit_cur_code,
+       price_unit_weight_unit_id,
+       price_unit_weight_unit,
+       price_unit_weight,
+       material_cost_per_unit,
+       secondary_cost_per_unit,
+       product_premium_per_unit,
+       quality_premium_per_unit)
       select t.inv_id,
              invm.inv_ref_no,
              invm.internal_gmr_ref_no,
@@ -3728,39 +3777,347 @@ insert into spql_stock_payable_qty_log
              t.total_sc secondary_cost,
              invm.is_active,
              invm.version,
-             pc_dbd_id
+             pc_dbd_id,
+             t.total_product_premium,
+             t.total_quality_premium,
+             pum.price_unit_id,
+             pum.cur_id,
+             cm.cur_code,
+             pum.weight_unit_id,
+             qum.qty_unit,
+             pum.weight,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_mc / t.cur_inv_qty)
+             
+               else
+                0
+             end as material_cost_per_unit,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_sc / t.cur_inv_qty)
+               else
+                0
+             end as secondary_cost_per_unit,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_product_premium / t.cur_inv_qty)
+               else
+                0
+             end as product_premium_per_unit,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_quality_premium / t.cur_inv_qty)
+               else
+                0
+             end as quality_premium_per_unit
         from (select invd.inv_id,
                      nvl(sum(invd.transaction_qty), 0) cur_inv_qty,
                      nvl(sum(case
-                               when invd.is_direct_cost = 'Y' then
+                               when invd.is_direct_cost = 'Y' and
+                                    scm.cost_component_name = 'Material Cost' then
                                 invd.transaction_cost
                                else
                                 0
                              end),
                          0) as total_mc,
                      nvl(sum(case
-                               when invd.is_secondary_cost = 'Y' then
+                               when scm.cost_type = 'SECONDARY_COST' then
                                 invd.transaction_cost
                                else
                                 0
                              end),
-                         0) as total_sc
-                from invd_inventory_detail invd,
-                     dbd_database_dump     dbd
+                         0) as total_sc,
+                     nvl(sum(case
+                               when scm.cost_component_name = 'Location Premium' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_product_premium,
+                     nvl(sum(case
+                               when scm.cost_component_name = 'Quality Premium' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_quality_premium
+                from invd_inventory_detail     invd,
+                     dbd_database_dump         dbd,
+                     scm_service_charge_master scm
                where invd.transaction_date <= pd_trade_date
                  and invd.dbd_id = dbd.dbd_id
+                 and invd.dbd_id = pc_dbd_id
                  and dbd.corporate_id = pc_corporate_id
                  and dbd.trade_date <= pd_trade_date
+                 and invd.cost_component_id = scm.cost_id
+                 and invd.account_type = 'COG'
                group by invd.inv_id) t,
-             invm_inventory_master@eka_appdb invm
-       where t.inv_id = invm.internal_inv_id;
-    commit;  
+             invm_inventory_master@eka_appdb invm,
+             pum_price_unit_master pum,
+             cm_currency_master cm,
+             qum_quantity_unit_master qum
+       where t.inv_id = invm.internal_inv_id
+         and invm.cog_cur_id = pum.cur_id
+         and invm.inv_qty_id = pum.weight_unit_id
+         and nvl(pum.weight, 1) = 1
+         and pum.cur_id = cm.cur_id
+         and pum.weight_unit_id = qum.qty_unit_id;
+  
+    insert into invs_inventory_sales
+      (internal_inv_id,
+       inv_ref_no,
+       internal_gmr_ref_no,
+       sales_internal_gmr_ref_no,
+       internal_grd_ref_no,
+       internal_contract_item_ref_no,
+       inv_in_action_ref_no,
+       inv_status,
+       original_inv_qty,
+       current_inv_qty,
+       inv_qty_id,
+       is_active,
+       dbd_id,
+       product_premium,
+       quality_premium,
+       price_unit_id,
+       price_unit_cur_id,
+       price_unit_cur_code,
+       price_unit_weight_unit_id,
+       price_unit_weight_unit,
+       price_unit_weight,
+       material_cost_per_unit,
+       secondary_cost_per_unit,
+       product_premium_per_unit,
+       quality_premium_per_unit)
+      select t.inv_id,
+             invm.inv_ref_no,
+             invm.internal_gmr_ref_no,
+             null, -- sales gmr 
+             invm.internal_grd_ref_no,
+             invm.internal_contract_item_ref_no,
+             invm.inv_in_action_ref_no,
+             invm.inv_status,
+             invm.original_inv_qty,
+             t.cur_inv_qty current_inv_qty,
+             invm.inv_qty_id,
+             invm.is_active,
+             pc_dbd_id,
+             t.total_product_premium,
+             t.total_quality_premium,
+             pum.price_unit_id,
+             pum.cur_id,
+             cm.cur_code,
+             pum.weight_unit_id,
+             qum.qty_unit,
+             pum.weight,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_mc / t.cur_inv_qty)
+             
+               else
+                0
+             end as material_cost_per_unit,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_sc / t.cur_inv_qty)
+               else
+                0
+             end as secondary_cost_per_unit,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_product_premium / t.cur_inv_qty)
+               else
+                0
+             end as product_premium_per_unit,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_quality_premium / t.cur_inv_qty)
+               else
+                0
+             end as quality_premium_per_unit
+        from (select invd.inv_id,
+                     nvl(sum(invd.transaction_qty), 0) cur_inv_qty,
+                     nvl(sum(case
+                               when invd.is_direct_cost = 'Y' and
+                                    scm.cost_component_name = 'Material Cost' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_mc,
+                     nvl(sum(case
+                               when scm.cost_type = 'SECONDARY_COST' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_sc,
+                     nvl(sum(case
+                               when scm.cost_component_name = 'Location Premium' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_product_premium,
+                     nvl(sum(case
+                               when scm.cost_component_name = 'Quality Premium' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_quality_premium
+                from invd_inventory_detail     invd,
+                     dbd_database_dump         dbd,
+                     scm_service_charge_master scm
+               where invd.transaction_date <= pd_trade_date
+                 and invd.dbd_id = dbd.dbd_id
+                 and invd.dbd_id = pc_dbd_id
+                 and dbd.corporate_id = pc_corporate_id
+                 and dbd.trade_date <= pd_trade_date
+                 and invd.cost_component_id = scm.cost_id
+                 and invd.account_type = 'COGS'
+               group by invd.inv_id) t,
+             invm_inventory_master@eka_appdb invm,
+             pum_price_unit_master pum,
+             cm_currency_master cm,
+             qum_quantity_unit_master qum
+       where t.inv_id = invm.internal_inv_id
+         and invm.cog_cur_id = pum.cur_id
+         and invm.inv_qty_id = pum.weight_unit_id
+         and nvl(pum.weight, 1) = 1
+         and pum.cur_id = cm.cur_id
+         and pum.weight_unit_id = qum.qty_unit_id;
+  
+    insert into is_invoice_summary
+      (internal_invoice_ref_no,
+       invoice_type,
+       invoice_type_name,
+       total_invoice_item_amount,
+       total_tax_amount,
+       total_item_amount_cur_id,
+       tax_amount_cur_id,
+       total_other_charge_amount,
+       other_charge_amount_cur_id,
+       payment_due_date,
+       invoice_issue_date,
+       cp_ref_no,
+       recieved_raised_type,
+       invoice_created_date,
+       profit_center_id,
+       total_amount_to_pay,
+       posting_status,
+       amount_paid,
+       invoice_status,
+       is_dc_created_oncancel,
+       cancel_invoice_ref_no,
+       cancelled_debit_credit_ref_no,
+       created_from,
+       invoiced_qty,
+       approval_status,
+       internal_contract_ref_no,
+       is_active,
+       invoice_ref_no,
+       api_adjusted_amount,
+       is_considered_for_final,
+       amount_to_pay_before_adj,
+       new_fx_rate,
+       invoiced_price_unit_id,
+       invoiced_price,
+       new_invoiced_qty_unit_id,
+       new_invoiced_qty,
+       corporate_id,
+       internal_comments,
+       bill_to_address,
+       cp_id,
+       fx_to_base,
+       bill_to_cp_id,
+       reason_for_modification,
+       is_dc_created,
+       credit_term,
+       provisional_pymt_pctg,
+       invoice_cur_id,
+       is_prov_created,
+       cancelled_invoice_int_ref_no,
+       vat_parent_ref_no,
+       is_free_metal,
+       is_inv_draft,
+       dbd_id,
+       is_cancelled_today)
+      select internal_invoice_ref_no,
+             invoice_type,
+             invoice_type_name,
+             total_invoice_item_amount,
+             total_tax_amount,
+             total_item_amount_cur_id,
+             tax_amount_cur_id,
+             total_other_charge_amount,
+             other_charge_amount_cur_id,
+             payment_due_date,
+             invoice_issue_date,
+             cp_ref_no,
+             recieved_raised_type,
+             invoice_created_date,
+             profit_center_id,
+             total_amount_to_pay,
+             posting_status,
+             amount_paid,
+             invoice_status,
+             is_dc_created_oncancel,
+             cancel_invoice_ref_no,
+             cancelled_debit_credit_ref_no,
+             created_from,
+             invoiced_qty,
+             approval_status,
+             internal_contract_ref_no,
+             is_active,
+             invoice_ref_no,
+             api_adjusted_amount,
+             is_considered_for_final,
+             amount_to_pay_before_adj,
+             new_fx_rate,
+             invoiced_price_unit_id,
+             invoiced_price,
+             new_invoiced_qty_unit_id,
+             new_invoiced_qty,
+             corporate_id,
+             internal_comments,
+             bill_to_address,
+             cp_id,
+             fx_to_base,
+             bill_to_cp_id,
+             reason_for_modification,
+             is_dc_created,
+             credit_term,
+             provisional_pymt_pctg,
+             invoice_cur_id,
+             is_prov_created,
+             cancelled_invoice_int_ref_no,
+             vat_parent_ref_no,
+             is_free_metal,
+             is_inv_draft,
+             pc_dbd_id,
+             'N'
+        from is_invoice_summary@eka_appdb is1
+       where is1.invoice_issue_date <= pd_trade_date;
+  
+    update is_invoice_summary is1
+       set is1.is_cancelled_today = 'Y'
+     where is1.is_active = 'N'
+       and is1.dbd_id = pc_dbd_id
+       and is1.internal_invoice_ref_no in
+           (select is1.internal_invoice_ref_no
+              from is_invoice_summary is2
+             where is2.dbd_id = gvc_previous_dbd_id
+               and is2.is_active = 'Y');
+  
+    commit;
   exception
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_phy_insert_costing_data',
-                                                           'm2m-013',
+                                                           'M2M-013',
                                                            'code:' ||
                                                            sqlcode ||
                                                            'message:' ||
@@ -3774,7 +4131,5 @@ insert into spql_stock_payable_qty_log
     
   end;
 
-  
-
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /

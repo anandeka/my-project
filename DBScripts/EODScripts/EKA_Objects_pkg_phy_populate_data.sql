@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_PHY_POPULATE_DATA" is
+create or replace package "PKG_PHY_POPULATE_DATA" is
 
   -- Author  : SURESHGOTTIPATI
   -- Created : 5/2/2011 5:33:53 PM
@@ -171,31 +171,31 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_POPULATE_DATA" is
                                      pd_trade_date   date,
                                      pc_user_id      varchar2);
   procedure sp_phy_create_dith_data(pc_corporate_id varchar2,
-                                     pd_trade_date   date,
-                                     pc_user_id      varchar2); 
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
   procedure sp_phy_create_dirh_data(pc_corporate_id varchar2,
-                                     pd_trade_date   date,
-                                     pc_user_id      varchar2);
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
   procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
+  procedure sp_phy_create_cipq_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
+  procedure sp_phy_create_dipq_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2);
+  procedure sp_phy_create_spq_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
+
+  procedure sp_phy_create_dipch_data(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_user_id      varchar2);
- procedure sp_phy_create_cipq_data(pc_corporate_id varchar2,
-                                     pd_trade_date   date,
-                                     pc_user_id      varchar2);  
-procedure sp_phy_create_dipq_data(pc_corporate_id varchar2,
-                                     pd_trade_date   date,
-                                     pc_user_id      varchar2);  
-procedure sp_phy_create_spq_data(pc_corporate_id varchar2,
-                                     pd_trade_date   date,
-                                     pc_user_id      varchar2);                                                                            
 
- procedure sp_phy_create_dipch_data(pc_corporate_id varchar2,
-                                   pd_trade_date   date,
-                                   pc_user_id      varchar2);                                   
-
-end pkg_phy_populate_data; 
+end pkg_phy_populate_data;
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
+create or replace package body "PKG_PHY_POPULATE_DATA" is
 
   procedure sp_phy_populate_table_data
   /*******************************************************************************************************************************************
@@ -238,7 +238,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_agd_data');
     sp_phy_create_agd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -252,7 +252,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_agh_data');
     sp_phy_create_agh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -266,7 +266,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_cigc_data');
     sp_phy_create_cigc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -280,7 +280,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_cs_data');
     sp_phy_create_cs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -294,7 +294,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_dgrd_data');
     sp_phy_create_dgrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -308,7 +308,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_gmr_data');
     sp_phy_create_gmr_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -322,7 +322,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_mogrd_data');
     sp_phy_create_mogrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -336,7 +336,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcad_data');
     sp_phy_create_pcad_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -350,7 +350,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcbpd_data');
     sp_phy_create_pcbpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -364,7 +364,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcbph_data');
     sp_phy_create_pcbph_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -378,7 +378,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcdb_data');
     sp_phy_create_pcdb_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -392,7 +392,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcdd_data');
     sp_phy_create_pcdd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -406,7 +406,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcdiob_data');
     sp_phy_create_pcdiob_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -420,7 +420,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcdipe_data');
     sp_phy_create_pcdipe_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -434,7 +434,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcdiqd_data');
     sp_phy_create_pcdiqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;    
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -448,7 +448,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcdi_data');
     sp_phy_create_pcdi_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -476,7 +476,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pci_data');
     sp_phy_create_pci_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -490,7 +490,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcjv_data');
     sp_phy_create_pcjv_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -504,7 +504,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcm_data');
     sp_phy_create_pcm_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -518,7 +518,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcpdqd_data');
     sp_phy_create_pcpdqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -531,7 +531,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcpd_data');
     sp_phy_create_pcpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -544,7 +544,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcpq_data');
     sp_phy_create_pcpq_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -557,7 +557,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcqpd_data');
     sp_phy_create_pcqpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -570,7 +570,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pffxd_data');
     sp_phy_create_pffxd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -583,7 +583,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pfqpp_data');
     sp_phy_create_pfqpp_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -596,7 +596,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_ppfd_data');
     sp_phy_create_ppfd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -609,7 +609,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_ppfh_data');
     sp_phy_create_ppfh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -622,7 +622,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_ciqs_data');
     sp_phy_create_ciqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -635,7 +635,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_diqs_data');
     sp_phy_create_diqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -648,7 +648,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_cqs_data');
     sp_phy_create_cqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -661,7 +661,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_grd_data');
     sp_phy_create_grd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -674,7 +674,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_vd_data');
     sp_phy_create_vd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -687,7 +687,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcpch_data');
     sp_phy_create_pcpch_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -700,7 +700,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pqd_data');
     sp_phy_create_pqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -713,7 +713,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcepc_data');
     sp_phy_create_pcepc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -726,7 +726,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcth_data');
     sp_phy_create_pcth_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -739,7 +739,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_ted_data');
     sp_phy_create_ted_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -752,7 +752,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_tqd_data');
     sp_phy_create_tqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -765,7 +765,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcetc_data');
     sp_phy_create_pcetc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -778,7 +778,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcar_data');
     sp_phy_create_pcar_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -791,7 +791,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcaesl_data');
     sp_phy_create_pcaesl_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -804,7 +804,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_arqd_data');
     sp_phy_create_arqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -817,7 +817,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcaph_data');
     sp_phy_create_pcaph_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -830,7 +830,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcap_data');
     sp_phy_create_pcap_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -843,7 +843,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pqdp_data');
     sp_phy_create_pqdp_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -856,7 +856,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pad_data');
     sp_phy_create_pad_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -869,7 +869,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_pcrh_data');
     sp_phy_create_pcrh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -882,7 +882,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_rqd_data');
     sp_phy_create_rqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -895,7 +895,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             vn_logno,
                             'sp_phy_create_red_data');
     sp_phy_create_red_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -907,8 +907,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             pc_dbd_id,
                             vn_logno,
                             'sp_phy_create_pcerc_data');
-    sp_phy_create_pcerc_data(pc_corporate_id, pd_trade_date, pc_user_id);    
-    commit; 
+    sp_phy_create_pcerc_data(pc_corporate_id, pd_trade_date, pc_user_id);
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -920,10 +920,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             pc_dbd_id,
                             vn_logno,
                             'sp_phy_create_dith_data');
-    sp_phy_create_dith_data(pc_corporate_id, pd_trade_date, pc_user_id);    
-    commit;    
- 
-    
+    sp_phy_create_dith_data(pc_corporate_id, pd_trade_date, pc_user_id);
+    commit;
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -935,10 +934,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             pc_dbd_id,
                             vn_logno,
                             'sp_phy_create_dirh_data');
-    sp_phy_create_dirh_data(pc_corporate_id, pd_trade_date, pc_user_id);    
-    commit;    
-    
-    
+    sp_phy_create_dirh_data(pc_corporate_id, pd_trade_date, pc_user_id);
+    commit;
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -950,9 +948,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             pc_dbd_id,
                             vn_logno,
                             'sp_phy_create_diph_data');
-    sp_phy_create_diph_data(pc_corporate_id, pd_trade_date, pc_user_id);    
-    commit; 
-    
+    sp_phy_create_diph_data(pc_corporate_id, pd_trade_date, pc_user_id);
+    commit;
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -964,10 +962,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             pc_dbd_id,
                             vn_logno,
                             'sp_phy_create_cipq_data');
-    sp_phy_create_cipq_data(pc_corporate_id, pd_trade_date, pc_user_id);    
-    commit;    
-   
-    
+    sp_phy_create_cipq_data(pc_corporate_id, pd_trade_date, pc_user_id);
+    commit;
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -979,10 +976,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             pc_dbd_id,
                             vn_logno,
                             'sp_phy_create_dipq_data');
-    sp_phy_create_dipq_data(pc_corporate_id, pd_trade_date, pc_user_id);    
-    commit;    
-   
-    
+    sp_phy_create_dipq_data(pc_corporate_id, pd_trade_date, pc_user_id);
+    commit;
+  
     if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
@@ -994,10 +990,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                             pc_dbd_id,
                             vn_logno,
                             'sp_phy_create_spq_data');
-    sp_phy_create_spq_data(pc_corporate_id, pd_trade_date, pc_user_id);    
-    commit;    
+    sp_phy_create_spq_data(pc_corporate_id, pd_trade_date, pc_user_id);
+    commit;
   
-  if pkg_process_status.sp_get(pc_corporate_id,
+    if pkg_process_status.sp_get(pc_corporate_id,
                                  gvc_process,
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
@@ -1228,17 +1224,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                 end),
                             24) is_deleted,
                      /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                 when agdul.no_of_bales is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  agdul.no_of_bales
-                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                           24) no_of_bales,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          when agdul.no_of_bales is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           agdul.no_of_bales
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    24) no_of_bales,*/
                      /* substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                 when agdul.pool_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  agdul.pool_id
-                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                           24) pool_id,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          when agdul.pool_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           agdul.pool_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    24) pool_id,*/
                      substr(max(case
                                   when agdul.internal_action_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1338,9 +1334,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        --today_status,
        internal_action_ref_no,
        /*gravity,
-                                                                                                                                       gravity_type,
-                                                                                                                                       density_mass_qty_unit_id,
-                                                                                                                                       density_volume_qty_unit_id,*/
+                                                                                                                                                                          gravity_type,
+                                                                                                                                                                          density_mass_qty_unit_id,
+                                                                                                                                                                          density_volume_qty_unit_id,*/
        partnership_type,
        dbd_id)
       select decode(int_alloc_group_id,
@@ -1399,9 +1395,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     null,
                     internal_action_ref_no),
              /*decode(gravity, 'Empty_String', null, gravity),
-                                                                                                                                                                                                                                                                decode(gravity_type, 'Empty_String', null, gravity_type),
-                                                                                                                                                                                                                                                                decode(density_mass_qty_unit_id, 'Empty_String', null, density_mass_qty_unit_id),
-                                                                                                                                                                                                                                                                decode(density_volume_qty_unit_id, 'Empty_String', null, internal_action_ref_no),*/
+                                                                                                                                                                                                                                                                                                                                 decode(gravity_type, 'Empty_String', null, gravity_type),
+                                                                                                                                                                                                                                                                                                                                 decode(density_mass_qty_unit_id, 'Empty_String', null, density_mass_qty_unit_id),
+                                                                                                                                                                                                                                                                                                                                 decode(density_volume_qty_unit_id, 'Empty_String', null, internal_action_ref_no),*/
              decode(partnership_type,
                     'Empty_String',
                     null,
@@ -1518,11 +1514,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                 end),
                             24) realized_creation_date,
                      /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.today_status is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.today_status
-                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                           24) today_status,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          when aghul.today_status is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           aghul.today_status
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    24) today_status,*/
                      substr(max(case
                                   when aghul.internal_action_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1530,29 +1526,29 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                 end),
                             24) internal_action_ref_no,
                      /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.gravity is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.gravity
-                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                           24) gravity,
-                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.gravity_type is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.gravity_type
-                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                           24) gravity_type,
-                                                                                                                                                                                                                                                                                                                                                                                                                                    substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.density_mass_qty_unit_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.density_mass_qty_unit_id
-                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                           24) density_mass_qty_unit_id,
-                                                                                                                                                                                                                                                                                                                                                                                                                                    substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                 when aghul.density_volume_qty_unit_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  aghul.density_volume_qty_unit_id
-                                                                                                                                                                                                                                                                                                                                                                                                                                               end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                           24) density_volume_qty_unit_id, */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          when aghul.gravity is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           aghul.gravity
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    24) gravity,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          when aghul.gravity_type is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           aghul.gravity_type
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    24) gravity_type,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          when aghul.density_mass_qty_unit_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           aghul.density_mass_qty_unit_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    24) density_mass_qty_unit_id,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          when aghul.density_volume_qty_unit_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           aghul.density_volume_qty_unit_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    24) density_volume_qty_unit_id, */
                      substr(max(case
                                   when aghul.partnership_type is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2111,13 +2107,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        net_weight,
        net_weight_unit_id,
        /*discharge_date,
-                                                                                                                                               discharge_country_id,
-                                                                                                                                               discharge_port_id,
-                                                                                                                                               fulfillment_date,
-                                                                                                                                               remarks,
-                                                                                                                                               vessel_qty_before_discharge,
-                                                                                                                                               is_voyage_stock,
-                                                                                                                                               container_size,*/
+                                                                                                                                                                                  discharge_country_id,
+                                                                                                                                                                                  discharge_port_id,
+                                                                                                                                                                                  fulfillment_date,
+                                                                                                                                                                                  remarks,
+                                                                                                                                                                                  vessel_qty_before_discharge,
+                                                                                                                                                                                  is_voyage_stock,
+                                                                                                                                                                                  container_size,*/
        bl_date,
        bl_number,
        shed_id,
@@ -2215,16 +2211,16 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     null,
                     net_weight_unit_id),
              /*decode(discharge_date, 'Empty_String', null, discharge_date),
-                                                                                                                                                                                                                                                                             decode(discharge_country_id, 'Empty_String', null, discharge_country_id),
-                                                                                                                                                                                                                                                                             decode(discharge_port_id, 'Empty_String', null, discharge_port_id),
-                                                                                                                                                                                                                                                                             decode(fulfillment_date, 'Empty_String', null, fulfillment_date),
-                                                                                                                                                                                                                                                                             decode(remarks, 'Empty_String', null, remarks),
-                                                                                                                                                                                                                                                                             decode(vessel_qty_before_discharge, 'Empty_String', null, vessel_qty_before_discharge),
-                                                                                                                                                                                                                                                                             decode(is_voyage_stock, 'Empty_String', null, is_voyage_stock),
-                                                                                                                                                                                                                                                                             decode(container_size,
-                                                                                                                                                                                                                                                                                    'Empty_String',
-                                                                                                                                                                                                                                                                                    null,
-                                                                                                                                                                                                                                                                                    container_size),*/
+                                                                                                                                                                                                                                                                                                                                              decode(discharge_country_id, 'Empty_String', null, discharge_country_id),
+                                                                                                                                                                                                                                                                                                                                              decode(discharge_port_id, 'Empty_String', null, discharge_port_id),
+                                                                                                                                                                                                                                                                                                                                              decode(fulfillment_date, 'Empty_String', null, fulfillment_date),
+                                                                                                                                                                                                                                                                                                                                              decode(remarks, 'Empty_String', null, remarks),
+                                                                                                                                                                                                                                                                                                                                              decode(vessel_qty_before_discharge, 'Empty_String', null, vessel_qty_before_discharge),
+                                                                                                                                                                                                                                                                                                                                              decode(is_voyage_stock, 'Empty_String', null, is_voyage_stock),
+                                                                                                                                                                                                                                                                                                                                              decode(container_size,
+                                                                                                                                                                                                                                                                                                                                                     'Empty_String',
+                                                                                                                                                                                                                                                                                                                                                     null,
+                                                                                                                                                                                                                                                                                                                                                     container_size),*/
              decode(bl_date, 'Empty_String', null, bl_date),
              decode(bl_number, 'Empty_String', null, bl_number),
              decode(shed_id, 'Empty_String', null, shed_id),
@@ -2443,53 +2439,53 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                 end),
                             24) net_weight_unit_id,
                      /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.discharge_date is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.discharge_date
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) discharge_date,
-                                                                                                                                                                                                                                                                                                                                                                                                                                  substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.discharge_country_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.discharge_country_id
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) discharge_country_id,
-                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.discharge_port_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.discharge_port_id
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) discharge_port_id,
-                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.fulfillment_date is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.fulfillment_date
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) fulfillment_date,
-                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.remarks is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.remarks
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) remarks,
-                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.vessel_qty_before_discharge is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.vessel_qty_before_discharge
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) vessel_qty_before_discharge,
-                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.is_voyage_stock is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.is_voyage_stock
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) is_voyage_stock,
-                                                                                                                                                                                                                                                                                                                                                                                                                                  substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.container_size is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.container_size
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) container_size,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when dgrdul.discharge_date is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dgrdul.discharge_date
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) discharge_date,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when dgrdul.discharge_country_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dgrdul.discharge_country_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) discharge_country_id,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when dgrdul.discharge_port_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dgrdul.discharge_port_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) discharge_port_id,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when dgrdul.fulfillment_date is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dgrdul.fulfillment_date
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) fulfillment_date,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when dgrdul.remarks is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dgrdul.remarks
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) remarks,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when dgrdul.vessel_qty_before_discharge is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dgrdul.vessel_qty_before_discharge
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) vessel_qty_before_discharge,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when dgrdul.is_voyage_stock is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dgrdul.is_voyage_stock
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) is_voyage_stock,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when dgrdul.container_size is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dgrdul.container_size
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) container_size,*/
                      substr(max(case
                                   when dgrdul.bl_date is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2527,11 +2523,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                 end),
                             24) internal_stock_ref_no,
                      /* substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  when dgrdul.warehouse_ref_no is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   dgrdul.warehouse_ref_no
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            24) warehouse_ref_no,*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when dgrdul.warehouse_ref_no is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dgrdul.warehouse_ref_no
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) warehouse_ref_no,*/
                      substr(max(case
                                   when dgrdul.warehouse_profile_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -2905,6 +2901,24 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by dgrdul.internal_dgrd_ref_no) t;
+    --
+    -- Update Payment Due Date From Contract
+    --
+    update dgrd_delivered_grd dgrd
+       set dgrd.payment_due_date = (select pcdi.payment_due_date
+                                      from pci_physical_contract_item pci,
+                                           pcdi_pc_delivery_item      pcdi
+                                     where pcdi.pcdi_id = pci.pcdi_id
+                                       and pcdi.dbd_id = pci.dbd_id
+                                       and pcdi.dbd_id = gvc_dbd_id
+                                       and pci.internal_contract_item_ref_no =
+                                           dgrd.internal_contract_item_ref_no
+                                       and dgrd.dbd_id = gvc_dbd_id)
+     where dgrd.dbd_id = gvc_dbd_id;
+    update dgrd_delivered_grd dgrd
+       set dgrd.payment_due_date = pd_trade_date
+     where dgrd.dbd_id = gvc_dbd_id
+       and dgrd.payment_due_date is null;
   exception
     when others then
       vobj_error_log.extend;
@@ -3236,13 +3250,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     null,
                     place_of_delivery_city_id),
              /* decode(total_gross_weight,
-                                                                                                               'Empty_String',
-                                                                                                               null,
-                                                                                                               total_gross_weight),
-                                                                                                        decode(total_tare_weight,
-                                                                                                               'Empty_String',
-                                                                                                               null,
-                                                                                                               total_tare_weight), */
+                                                                                                                                                                                'Empty_String',
+                                                                                                                                                                                null,
+                                                                                                                                                                                total_gross_weight),
+                                                                                                                                                                         decode(total_tare_weight,
+                                                                                                                                                                                'Empty_String',
+                                                                                                                                                                                null,
+                                                                                                                                                                                total_tare_weight), */
              decode(tolling_qty, 'Empty_String', null, tolling_qty),
              decode(tolling_gmr_type,
                     'Empty_String',
@@ -3750,17 +3764,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                 end),
                             24) place_of_delivery_city_id,
                      /* substr(max(case
-                                                                                                                                                                                     when gmrul.total_gross_weight is not null then
-                                                                                                                                                                                      to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                      gmrul.total_gross_weight
-                                                                                                                                                                                   end),
-                                                                                                                                                                               24) total_gross_weight,
-                                                                                                                                                                        substr(max(case
-                                                                                                                                                                                     when gmrul.total_tare_weight is not null then
-                                                                                                                                                                                      to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                      gmrul.total_tare_weight
-                                                                                                                                                                                   end),
-                                                                                                                                                                               24) total_tare_weight,*/
+                                                                                                                                                                                                                                                                                              when gmrul.total_gross_weight is not null then
+                                                                                                                                                                                                                                                                                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                               gmrul.total_gross_weight
+                                                                                                                                                                                                                                                                                            end),
+                                                                                                                                                                                                                                                                                        24) total_gross_weight,
+                                                                                                                                                                                                                                                                                 substr(max(case
+                                                                                                                                                                                                                                                                                              when gmrul.total_tare_weight is not null then
+                                                                                                                                                                                                                                                                                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                               gmrul.total_tare_weight
+                                                                                                                                                                                                                                                                                            end),
+                                                                                                                                                                                                                                                                                        24) total_tare_weight,*/
                      substr(max(case
                                   when gmrul.tolling_qty is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4348,7 +4362,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   begin
     insert into pcbph_pc_base_price_header
       (pcbph_id,
-    --   optionality_desc,
+       --   optionality_desc,
        version,
        is_active,
        internal_contract_ref_no,
@@ -4357,10 +4371,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
        is_free_metal_applicable,
        dbd_id)
       select decode(pcbph_id, 'Empty_String', null, pcbph_id),
-           /*  decode(optionality_desc,
-                    'Empty_String',
-                    null,
-                    optionality_desc),*/
+             /*  decode(optionality_desc,
+                                                                                     'Empty_String',
+                                                                                     null,
+                                                                                     optionality_desc),*/
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(internal_contract_ref_no,
@@ -4384,12 +4398,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcbphul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                   /*  substr(max(case
-                                  when pcbphul.optionality_desc is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   pcbphul.optionality_desc
-                                end),
-                            24) optionality_desc,*/
+                     /*  substr(max(case
+                                                                                                                                           when pcbphul.optionality_desc is not null then
+                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                            pcbphul.optionality_desc
+                                                                                                                                         end),
+                                                                                                                                     24) optionality_desc,*/
                      substr(max(case
                                   when pcbphul.version is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4408,7 +4422,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcbphul.price_description
                                 end),
                             24) price_description,
-                      substr(max(case
+                     substr(max(case
                                   when pcbphul.element_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcbphul.element_id
@@ -5174,9 +5188,18 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
              decode(item_price_type, 'Empty_String', null, item_price_type),
              decode(item_price, 'Empty_String', null, item_price),
              decode(item_price_unit, 'Empty_String', null, item_price_unit),
-             decode(qty_declaration_date, 'Empty_String', null, qty_declaration_date),
-             decode(quality_declaration_date, 'Empty_String', null, quality_declaration_date),
-             decode(inco_location_declaration_date, 'Empty_String', null, inco_location_declaration_date),             
+             decode(qty_declaration_date,
+                    'Empty_String',
+                    null,
+                    qty_declaration_date),
+             decode(quality_declaration_date,
+                    'Empty_String',
+                    null,
+                    quality_declaration_date),
+             decode(inco_location_declaration_date,
+                    'Empty_String',
+                    null,
+                    inco_location_declaration_date),
              gvc_dbd_id
         from (select pcdiul.pcdi_id,
                      substr(max(case
@@ -5408,7 +5431,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    pcdiul.item_price_unit
                                 end),
                             24) item_price_unit,
-                      substr(max(case
+                     substr(max(case
                                   when pcdiul.qty_declaration_date is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcdiul.qty_declaration_date
@@ -5425,7 +5448,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcdiul.inco_location_declaration_date
                                 end),
-                            24) inco_location_declaration_date,       
+                            24) inco_location_declaration_date,
                      gvc_dbd_id
                 from pcdiul_pc_delivery_item_ul pcdiul,
                      axs_action_summary         axs,
@@ -5837,6 +5860,65 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by pciul.internal_contract_item_ref_no) t;
+    --
+    -- Update Price Description
+    --   
+  
+    update pci_physical_contract_item pci
+       set (pci.pcbph_id, pci.price_description) = (select pcbph.pcbph_id,
+                                                           pcbph.price_description
+                                                      from poch_price_opt_call_off_header poch,
+                                                           pocd_price_option_calloff_dtls pocd,
+                                                           pcbpd_pc_base_price_detail     pcbpd,
+                                                           pcbph_pc_base_price_header     pcbph
+                                                     where poch.pcdi_id =
+                                                           pci.pcdi_id
+                                                       and poch.poch_id =
+                                                           pocd.poch_id
+                                                       and pocd.pcbpd_id =
+                                                           pcbpd.pcbpd_id
+                                                       and pcbpd.pcbph_id =
+                                                           pcbph.pcbph_id
+                                                       and pcbpd.dbd_id =
+                                                           gvc_dbd_id
+                                                       and pcbph.dbd_id =
+                                                           gvc_dbd_id
+                                                       and poch.is_active = 'Y'
+                                                       and pocd.is_active = 'Y'
+                                                       and pcbpd.is_active = 'Y'
+                                                       and pcbph.is_active = 'Y'
+                                                       and pci.dbd_id =
+                                                           gvc_dbd_id)
+     where pci.dbd_id = gvc_dbd_id
+       and pci.is_active = 'Y';
+    update pci_physical_contract_item pci
+       set (pci.pcbph_id, pci.price_description) = (select pcbph.pcbph_id,
+                                                           pcbph.price_description
+                                                      from pcipf_pci_pricing_formula  pcipf,
+                                                           pcbph_pc_base_price_header pcbph,
+                                                           pcbpd_pc_base_price_detail pcbpd
+                                                     where pci.internal_contract_item_ref_no =
+                                                           pcipf.internal_contract_item_ref_no
+                                                       and pcipf.pcbph_id =
+                                                           pcbph.pcbph_id
+                                                       and pcbph.pcbph_id =
+                                                           pcbpd.pcbph_id
+                                                       and pci.dbd_id =
+                                                           gvc_dbd_id
+                                                       and pcipf.dbd_id =
+                                                           gvc_dbd_id
+                                                       and pcbph.dbd_id =
+                                                           gvc_dbd_id
+                                                       and pcbpd.dbd_id =
+                                                           gvc_dbd_id
+                                                       and pci.is_active = 'Y'
+                                                       and pcipf.is_active = 'Y'
+                                                       and pcbpd.is_active = 'Y'
+                                                       and pcbph.is_active = 'Y')
+     where pci.dbd_id = gvc_dbd_id
+       and pci.is_active = 'Y'
+       and pci.pcbph_id is null;
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -6103,9 +6185,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
              decode(purchase_sales, 'Empty_String', null, purchase_sales),
              decode(corporate_id, 'Empty_String', null, corporate_id),
              /*decode(sub_corporate_id,
-                                                                                                                                                                   'Empty_String',
-                                                                                                                                                                   null,
-                                                                                                                                                                   sub_corporate_id),*/
+                                                                                                                                                                                                                                    'Empty_String',
+                                                                                                                                                                                                                                    null,
+                                                                                                                                                                                                                                    sub_corporate_id),*/
              decode(contract_status, 'Empty_String', null, contract_status),
              decode(prod_qual_comments,
                     'Empty_String',
@@ -6138,9 +6220,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     is_optionality_contract),
              decode(payment_term_id, 'Empty_String', null, payment_term_id),
              /* decode(payment_due_date,
-                                                                                                                                                                   'Empty_String',
-                                                                                                                                                                   null,
-                                                                                                                                                                   payment_due_date), */
+                                                                                                                                                                                                                                    'Empty_String',
+                                                                                                                                                                                                                                    null,
+                                                                                                                                                                                                                                    payment_due_date), */
              decode(provisional_pymt_pctg,
                     'Empty_String',
                     null,
@@ -6176,7 +6258,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     is_tolling_contract),
              decode(approval_status, 'Empty_String', null, approval_status),
              decode(cp_address_id, 'Empty_String', null, cp_address_id),
-             decode(is_lot_level_invoice, 'Empty_String', null, is_lot_level_invoice),
+             decode(is_lot_level_invoice,
+                    'Empty_String',
+                    null,
+                    is_lot_level_invoice),
              gvc_dbd_id
         from (select pcmul.internal_contract_ref_no,
                      substr(max(case
@@ -6301,11 +6386,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                 end),
                             24) corporate_id,
                      /*substr(max(case
-                                                                                                                                                                                                                                                                         when pcmul.sub_corporate_id is not null then
-                                                                                                                                                                                                                                                                          to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                          pcmul.sub_corporate_id
-                                                                                                                                                                                                                                                                       end),
-                                                                                                                                                                                                                                                                   24) sub_corporate_id,*/
+                                                                                                                                                                                                                                                                                                                                                                                  when pcmul.sub_corporate_id is not null then
+                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                   pcmul.sub_corporate_id
+                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                            24) sub_corporate_id,*/
                      substr(max(case
                                   when pcmul.contract_status is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -6385,11 +6470,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                 end),
                             24) payment_term_id,
                      /*  substr(max(case
-                                                                                                                                                                                                                                                                         when pcmul. payment_due_date is not null then
-                                                                                                                                                                                                                                                                          to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                          pcmul. payment_due_date
-                                                                                                                                                                                                                                                                       end),
-                                                                                                                                                                                                                                                                   24) payment_due_date, */
+                                                                                                                                                                                                                                                                                                                                                                                  when pcmul. payment_due_date is not null then
+                                                                                                                                                                                                                                                                                                                                                                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                   pcmul. payment_due_date
+                                                                                                                                                                                                                                                                                                                                                                                end),
+                                                                                                                                                                                                                                                                                                                                                                            24) payment_due_date, */
                      substr(max(case
                                   when pcmul.provisional_pymt_pctg is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -6479,7 +6564,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcmul.is_lot_level_invoice
                                 end),
-                            24) is_lot_level_invoice,       
+                            24) is_lot_level_invoice,
                      gvc_dbd_id
                 from pcmul_phy_contract_main_ul pcmul,
                      axs_action_summary         axs,
@@ -6495,17 +6580,16 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by pcmul.internal_contract_ref_no) t;
-       
-     update pcm_physical_contract_main pcm
-           set pcm.is_tolling_extn = 'Y'
-         where pcm.corporate_id=pc_corporate_id
-           and pcm.dbd_id=gvc_dbd_id
-           and exists
-               (select pcmte.int_contract_ref_no
-                  from pcmte_pcm_tolling_ext pcmte
-                 where pcmte.int_contract_ref_no =
-                       pcm.internal_contract_ref_no);
-    
+  
+    update pcm_physical_contract_main pcm
+       set pcm.is_tolling_extn = 'Y'
+     where pcm.corporate_id = pc_corporate_id
+       and pcm.dbd_id = gvc_dbd_id
+       and exists
+     (select pcmte.int_contract_ref_no
+              from pcmte_pcm_tolling_ext pcmte
+             where pcmte.int_contract_ref_no = pcm.internal_contract_ref_no);
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -6544,7 +6628,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into pcpdqd_pd_quality_details
-      (pcpdqd_id, pcqpd_id, pcpq_id, version, is_active,quality_name, dbd_id)
+      (pcpdqd_id,
+       pcqpd_id,
+       pcpq_id,
+       version,
+       is_active,
+       quality_name,
+       dbd_id)
       select decode(pcpdqd_id, 'Empty_String', null, pcpdqd_id),
              decode(pcqpd_id, 'Empty_String', null, pcqpd_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
@@ -6582,7 +6672,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcpdqdul.quality_name
                                 end),
-                            24) quality_name,       
+                            24) quality_name,
                      gvc_dbd_id
                 from pcpdqdul_pd_quality_dtl_ul pcpdqdul,
                      axs_action_summary         axs,
@@ -7596,14 +7686,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                     'Empty_String',
                     null,
                     no_of_event_months),
-             decode(is_spot_pricing,
-                    'Empty_String',
-                    null,
-                    is_spot_pricing),       
+             decode(is_spot_pricing, 'Empty_String', null, is_spot_pricing),
              /* decode(event_id,
-                                                                                                                            'Empty_String',
-                                                                                                                            null,
-                                                                                                                            event_id),*/
+                                                                                                                                                                                             'Empty_String',
+                                                                                                                                                                                             null,
+                                                                                                                                                                                             event_id),*/
              gvc_dbd_id
         from (select pfqppul.pfqpp_id,
                      substr(max(case
@@ -7743,13 +7830,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pfqppul.is_spot_pricing
                                 end),
-                            24) is_spot_pricing,       
+                            24) is_spot_pricing,
                      /* substr(max(case
-                                                                                                                                                                                                          when pfqppul.event_id is not null then
-                                                                                                                                                                                                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                           pfqppul.event_id
-                                                                                                                                                                                                        end),
-                                                                                                                                                                                                    24) event_id, */
+                                                                                                                                                                                                                                                                                                                   when pfqppul.event_id is not null then
+                                                                                                                                                                                                                                                                                                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                    pfqppul.event_id
+                                                                                                                                                                                                                                                                                                                 end),
+                                                                                                                                                                                                                                                                                                             24) event_id, */
                      gvc_dbd_id
                 from pfqppul_phy_formula_qp_prc_ul pfqppul,
                      axs_action_summary            axs,
@@ -8963,6 +9050,27 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
          and dbd_ul.corporate_id = pc_corporate_id
          and dbd_ul.process = gvc_process
        group by grdul.internal_grd_ref_no;
+    --
+    -- Update Payment Due Date From Contract
+    --
+    update grd_goods_record_detail grd
+       set grd.payment_due_date = (select pcdi.payment_due_date
+                                     from pci_physical_contract_item pci,
+                                          pcdi_pc_delivery_item      pcdi
+                                    where pcdi.pcdi_id = pci.pcdi_id
+                                      and pcdi.dbd_id = pci.dbd_id
+                                      and pcdi.dbd_id = gvc_dbd_id
+                                      and pci.internal_contract_item_ref_no =
+                                          grd.internal_contract_item_ref_no
+                                      and grd.dbd_id = gvc_dbd_id
+                                   
+                                   )
+    
+     where grd.dbd_id = gvc_dbd_id;
+    update grd_goods_record_detail grd
+       set grd.payment_due_date = pd_trade_date
+     where grd.dbd_id = gvc_dbd_id
+       and grd.payment_due_date is null;
   exception
     when others then
       vobj_error_log.extend;
@@ -9665,8 +9773,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcpchul.payable_type
                                 end),
-                            24) payable_type,       
-                     gvc_dbd_id              
+                            24) payable_type,
+                     gvc_dbd_id
                 from pcpchul_payble_contnt_headr_ul pcpchul,
                      axs_action_summary             axs,
                      dbd_database_dump              dbd,
@@ -9681,7 +9789,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by pcpchul.pcpch_id) t;
-               
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -9720,7 +9828,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into pqd_payable_quality_details
-      (pqd_id, pcpch_id, pcpq_id, version, is_active,quality_name, dbd_id)
+      (pqd_id, pcpch_id, pcpq_id, version, is_active, quality_name, dbd_id)
       select decode(pqd_id, 'Empty_String', null, pqd_id),
              decode(pcpch_id, 'Empty_String', null, pcpch_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
@@ -9758,7 +9866,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pqdul.quality_name
                                 end),
-                            24) quality_name,       
+                            24) quality_name,
                      gvc_dbd_id
               
                 from pqdul_payable_quality_dtl_ul pqdul,
@@ -10139,8 +10247,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
     vn_eel_error_count number := 1;
   
   begin
-    insert  all into ted_treatment_element_details
-      (ted_id, pcth_id, element_id, version, is_active,element_name,dbd_id)
+    insert all into ted_treatment_element_details
+      (ted_id,
+       pcth_id,
+       element_id,
+       version,
+       is_active,
+       element_name,
+       dbd_id)
       select decode(ted_id, 'Empty_String', null, ted_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(element_id, 'Empty_String', null, element_id),
@@ -10179,7 +10293,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    tedul.element_name
                                 end),
-                            24) element_name,       
+                            24) element_name,
                      gvc_dbd_id
               
                 from tedul_treatment_element_dtl_ul tedul,
@@ -10234,7 +10348,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into tqd_treatment_quality_details
-      (tqd_id, pcth_id, pcpq_id, version, is_active,quality_name,dbd_id)
+      (tqd_id, pcth_id, pcpq_id, version, is_active, quality_name, dbd_id)
       select decode(tqd_id, 'Empty_String', null, tqd_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
@@ -10273,7 +10387,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    tqdul.quality_name
                                 end),
-                            24) quality_name,       
+                            24) quality_name,
                      gvc_dbd_id
               
                 from tqdul_treatment_quality_dtl_ul tqdul,
@@ -10627,7 +10741,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    pcarul.quality_id
                                 end),
-                            24) quality_id,       
+                            24) quality_id,
                      gvc_dbd_id
               
                 from pcarul_assaying_rules_ul pcarul,
@@ -10811,7 +10925,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into arqd_assay_quality_details
-      (arqd_id, pcar_id, pcpq_id, version, is_active,quality_name,dbd_id)
+      (arqd_id, pcar_id, pcpq_id, version, is_active, quality_name, dbd_id)
       select decode(arqd_id, 'Empty_String', null, arqd_id),
              decode(pcar_id, 'Empty_String', null, pcar_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
@@ -10849,7 +10963,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    arqdul.quality_name
                                 end),
-                            24) quality_name,       
+                            24) quality_name,
                      gvc_dbd_id
               
                 from arqdul_assay_quality_dtl_ul arqdul,
@@ -11550,7 +11664,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into rqd_refining_quality_details
-      (rqd_id, pcrh_id, pcpq_id, version, is_active,quality_name,dbd_id)
+      (rqd_id, pcrh_id, pcpq_id, version, is_active, quality_name, dbd_id)
       select decode(rqd_id, 'Empty_String', null, rqd_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
@@ -11589,7 +11703,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    rqdul.quality_name
                                 end),
-                            24) quality_name,       
+                            24) quality_name,
                      
                      gvc_dbd_id
               
@@ -11645,7 +11759,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
   
   begin
     insert into red_refining_element_details
-      (red_id, pcrh_id, element_id, version, is_active,element_name,dbd_id)
+      (red_id,
+       pcrh_id,
+       element_id,
+       version,
+       is_active,
+       element_name,
+       dbd_id)
       select decode(red_id, 'Empty_String', null, red_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(element_id, 'Empty_String', null, element_id),
@@ -11684,7 +11804,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    redul.element_name
                                 end),
-                            24) element_name,       
+                            24) element_name,
                      
                      gvc_dbd_id
               
@@ -11907,39 +12027,34 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_POPULATE_DATA" is
       sp_insert_error_log(vobj_error_log);
     
   end;
-procedure sp_phy_create_dith_data(pc_corporate_id varchar2,
-                                     pd_trade_date   date,
-                                     pc_user_id      varchar2)
-/******************************************************************************************************************************************
-    procedure name                                           : sp_create_dith_data
-    author                                                   : 
-    created date                                             : 12TH JAN 2011
-    purpose                                                  : populate pcm table data for day end processing
-    parameters
-                                                             : pc_corporate_id - corporate id
-                                                             : pd_trade_date    - day end date
-    modified date  :
-    modify description :
-******************************************************************************************************************************************/
+  procedure sp_phy_create_dith_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+        procedure name                                           : sp_create_dith_data
+        author                                                   : 
+        created date                                             : 12TH JAN 2011
+        purpose                                                  : populate pcm table data for day end processing
+        parameters
+                                                                 : pc_corporate_id - corporate id
+                                                                 : pd_trade_date    - day end date
+        modified date  :
+        modify description :
+    ******************************************************************************************************************************************/
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   
   begin
-  insert into dith_di_treatment_header
-  (dith_id,
-  pcdi_id,
-  pcth_id,
-  version,
-  is_active,
-  dbd_id) 
-  select decode(dith_id, 'Empty_String', null, dith_id),
+    insert into dith_di_treatment_header
+      (dith_id, pcdi_id, pcth_id, version, is_active, dbd_id)
+      select decode(dith_id, 'Empty_String', null, dith_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              gvc_dbd_id
-             from (select dithul.dith_id,
+        from (select dithul.dith_id,
                      substr(max(case
                                   when dithul.pcdi_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -11964,7 +12079,7 @@ procedure sp_phy_create_dith_data(pc_corporate_id varchar2,
                                    dithul.is_active
                                 end),
                             24) is_active,
-                     gvc_dbd_id              
+                     gvc_dbd_id
                 from dithul_di_treatment_header_ul dithul,
                      axs_action_summary            axs,
                      dbd_database_dump             dbd,
@@ -11997,39 +12112,34 @@ procedure sp_phy_create_dith_data(pc_corporate_id varchar2,
       sp_insert_error_log(vobj_error_log);
     
   end;
-procedure sp_phy_create_dirh_data(pc_corporate_id varchar2,
-                                     pd_trade_date   date,
-                                     pc_user_id      varchar2)
-/******************************************************************************************************************************************
-    procedure name                                           : sp_create_dirh_data
-    author                                                   : 
-    created date                                             : 12TH JAN 2011
-    purpose                                                  : populate pcm table data for day end processing
-    parameters
-                                                             : pc_corporate_id - corporate id
-                                                             : pd_trade_date    - day end date
-    modified date  :
-    modify description :
-******************************************************************************************************************************************/
+  procedure sp_phy_create_dirh_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+        procedure name                                           : sp_create_dirh_data
+        author                                                   : 
+        created date                                             : 12TH JAN 2011
+        purpose                                                  : populate pcm table data for day end processing
+        parameters
+                                                                 : pc_corporate_id - corporate id
+                                                                 : pd_trade_date    - day end date
+        modified date  :
+        modify description :
+    ******************************************************************************************************************************************/
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   
   begin
-  insert into dirh_di_refining_header
-  (dirh_id,
-  pcdi_id,
-  pcrh_id,
-  version,
-  is_active,
-  dbd_id) 
-  select decode(dirh_id, 'Empty_String', null, dirh_id),
+    insert into dirh_di_refining_header
+      (dirh_id, pcdi_id, pcrh_id, version, is_active, dbd_id)
+      select decode(dirh_id, 'Empty_String', null, dirh_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              gvc_dbd_id
-             from (select dirhul.dirh_id,
+        from (select dirhul.dirh_id,
                      substr(max(case
                                   when dirhul.pcdi_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -12054,11 +12164,11 @@ procedure sp_phy_create_dirh_data(pc_corporate_id varchar2,
                                    dirhul.is_active
                                 end),
                             24) is_active,
-                     gvc_dbd_id              
+                     gvc_dbd_id
                 from dirhul_di_refining_header_ul dirhul,
-                     axs_action_summary            axs,
-                     dbd_database_dump             dbd,
-                     dbd_database_dump             dbd_ul
+                     axs_action_summary           axs,
+                     dbd_database_dump            dbd,
+                     dbd_database_dump            dbd_ul
                where dbd.dbd_id = axs.dbd_id
                  and dbd.process = gvc_process
                  and dirhul.internal_action_ref_no =
@@ -12085,43 +12195,37 @@ procedure sp_phy_create_dirh_data(pc_corporate_id varchar2,
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-  
-
+    
   end;
-  
-procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
-                                     pd_trade_date   date,
-                                     pc_user_id      varchar2)
-/******************************************************************************************************************************************
-    procedure name                                           : sp_create_diph_data
-    author                                                   : 
-    created date                                             : 12TH JAN 2011
-    purpose                                                  : populate pcm table data for day end processing
-    parameters
-                                                             : pc_corporate_id - corporate id
-                                                             : pd_trade_date    - day end date
-    modified date  :
-    modify description :
-******************************************************************************************************************************************/
+
+  procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2)
+  /******************************************************************************************************************************************
+        procedure name                                           : sp_create_diph_data
+        author                                                   : 
+        created date                                             : 12TH JAN 2011
+        purpose                                                  : populate pcm table data for day end processing
+        parameters
+                                                                 : pc_corporate_id - corporate id
+                                                                 : pd_trade_date    - day end date
+        modified date  :
+        modify description :
+    ******************************************************************************************************************************************/
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   
   begin
-  insert into diph_di_penalty_header
-  (diph_id,
-  pcdi_id,
-  pcaph_id,
-  version,
-  is_active,
-  dbd_id) 
-  select decode(diph_id, 'Empty_String', null, diph_id),
+    insert into diph_di_penalty_header
+      (diph_id, pcdi_id, pcaph_id, version, is_active, dbd_id)
+      select decode(diph_id, 'Empty_String', null, diph_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcaph_id, 'Empty_String', null, pcaph_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              gvc_dbd_id
-             from (select diphul.diph_id,
+        from (select diphul.diph_id,
                      substr(max(case
                                   when diphul.pcdi_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -12146,11 +12250,11 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
                                    diphul.is_active
                                 end),
                             24) is_active,
-                     gvc_dbd_id              
+                     gvc_dbd_id
                 from diphul_di_penalty_header_ul diphul,
-                     axs_action_summary            axs,
-                     dbd_database_dump             dbd,
-                     dbd_database_dump             dbd_ul
+                     axs_action_summary          axs,
+                     dbd_database_dump           dbd,
+                     dbd_database_dump           dbd_ul
                where dbd.dbd_id = axs.dbd_id
                  and dbd.process = gvc_process
                  and diphul.internal_action_ref_no =
@@ -12177,9 +12281,9 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
-
-  end; 
- procedure sp_phy_create_cipq_data(pc_corporate_id varchar2,
+    
+  end;
+  procedure sp_phy_create_cipq_data(pc_corporate_id varchar2,
                                     pd_trade_date   date,
                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
@@ -12588,9 +12692,9 @@ procedure sp_phy_create_diph_data(pc_corporate_id varchar2,
       sp_insert_error_log(vobj_error_log);
   end;
 
-procedure sp_phy_create_dipch_data(pc_corporate_id varchar2,
-                                   pd_trade_date   date,
-                                   pc_user_id      varchar2)
+  procedure sp_phy_create_dipch_data(pc_corporate_id varchar2,
+                                     pd_trade_date   date,
+                                     pc_user_id      varchar2)
   /******************************************************************************************************************************************
         procedure name                                           : sp_create_spq_data
         author                                                   : 
@@ -12608,19 +12712,14 @@ procedure sp_phy_create_dipch_data(pc_corporate_id varchar2,
   
   begin
     insert into dipch_di_payablecontent_header
-    (dipch_id,
-    pcdi_id,
-    pcpch_id,
-    version,
-    is_active,
-    dbd_id) 
-    select decode(dipch_id, 'Empty_String', null, dipch_id),             
-           decode(pcdi_id, 'Empty_String', null, pcdi_id),
-           decode(pcpch_id, 'Empty_String', null, pcpch_id),
-           decode(version, 'Empty_String', null, version),         
-           decode(is_active, 'Empty_String', null, is_active),
-           gvc_dbd_id
-        from(select dipchul.dipch_id,
+      (dipch_id, pcdi_id, pcpch_id, version, is_active, dbd_id)
+      select decode(dipch_id, 'Empty_String', null, dipch_id),
+             decode(pcdi_id, 'Empty_String', null, pcdi_id),
+             decode(pcpch_id, 'Empty_String', null, pcpch_id),
+             decode(version, 'Empty_String', null, version),
+             decode(is_active, 'Empty_String', null, is_active),
+             gvc_dbd_id
+        from (select dipchul.dipch_id,
                      substr(max(case
                                   when dipchul.pcdi_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -12645,8 +12744,8 @@ procedure sp_phy_create_dipch_data(pc_corporate_id varchar2,
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    dipchul.is_active
                                 end),
-                            24) is_active,                     
-                     gvc_dbd_id              
+                            24) is_active,
+                     gvc_dbd_id
                 from dipchul_di_payblecon_header_ul dipchul,
                      axs_action_summary             axs,
                      dbd_database_dump              dbd,
@@ -12678,5 +12777,5 @@ procedure sp_phy_create_dipch_data(pc_corporate_id varchar2,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end pkg_phy_populate_data; 
+end pkg_phy_populate_data;
 /
