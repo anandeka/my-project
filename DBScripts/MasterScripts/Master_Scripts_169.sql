@@ -19,14 +19,6 @@ Insert into RML_REPORT_MASTER_LIST
    ('86', '21', 'DailyInventoryUnrealizedPhysicalPnL_cog.rpt', 'Daily Inventory Unrealized PnL(Cog)-BM', NULL, 
     NULL, NULL, 'populateFilter', 'EOD', 'Y');
 
-Insert into RML_REPORT_MASTER_LIST
-   (REPORT_ID, SECTION_ID, REPORT_FILE_NAME, REPORT_DISPLAY_NAME, FEATURE_ID, 
-    REPORT_DISPLAY_NAME_DE, REPORT_DISPLAY_NAME_ES, ACTION_METHOD, REPORT_TYPE, IS_ACTIVE)
- Values
-   ('65', '21', 'TradePnLReport.rpt', 'Trade PnL Report', NULL, 
-    NULL, NULL, 'populateFilter', 'EOD', 'Y');    
-    
-
 
 Insert into AMC_APP_MENU_CONFIGURATION
    (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
