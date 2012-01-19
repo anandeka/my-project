@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0334
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Jana
+ 
+Created on*        		:  19-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+ 
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+
+----
+SQL Files:
+===========
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_154.sql	(Revision: 85118)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_169.sql	(Revision: 85116)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_37.sql	(Revision: 85117)
+
+
+RPT Files:
+===========
+
+Revision: 85128
+Author: jana
+Date: 10:58:34 AM, Thursday, January 19, 2012
+Message:
+BM unrealized pnl with COG released
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyInventoryUnrealizedPhysicalPnL_cog.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyRealizedPNLReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TradePnLReport.rpt
