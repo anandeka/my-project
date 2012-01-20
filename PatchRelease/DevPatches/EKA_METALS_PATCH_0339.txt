@@ -44,3 +44,12 @@ Message:
 dueDate column added into GEPD table
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_158.sql
+
+Revision: 85398
+Author: babulal.meena
+Date: 7:19:45 PM, Friday, January 20, 2012
+Message:
+List Of In process stock(mining) query as db view
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_IN_PROCESS_STOCK.sql
+
