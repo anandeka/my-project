@@ -107,7 +107,33 @@ FROM   (SELECT returnable_temp.corporate_id,
                           product_temp.underlying_product_id,
                           product_temp.product_desc,
                           cpm.inventory_qty_unit,
-                          spq.qty_type) returnable_temp
+                          spq.qty_type
+                UNION
+                --Smelter Base Stock as Returnable(Debt)
+                SELECT sbs.corporate_id,
+                       sbs.smelter_cp_id smelter_id,
+                       sbs.product_id product_id,
+                       pdm.product_desc product_name,
+                       SUM(pkg_general.f_get_converted_quantity(cpm.product_id,
+                                                                sbs.qty_unit_id,
+                                                                cpm.inventory_qty_unit,
+                                                                sbs.qty)) total_qty,
+                       cpm.inventory_qty_unit qty_unit_id,
+                       'Returnable' qty_type
+                FROM   sbs_smelter_base_stock     sbs,
+                       pdm_productmaster          pdm,
+                       cpm_corporateproductmaster cpm
+                WHERE  pdm.product_id = sbs.product_id
+                AND    sbs.is_active = 'Y'
+                AND    cpm.corporate_id = sbs.corporate_id
+                AND    cpm.product_id = pdm.product_id
+                AND    cpm.is_active = 'Y'
+                AND    cpm.is_deleted = 'N'
+                GROUP  BY sbs.corporate_id,
+                          sbs.smelter_cp_id,
+                          sbs.product_id,
+                          pdm.product_desc,
+                          cpm.inventory_qty_unit) returnable_temp
         GROUP  BY returnable_temp.corporate_id,
                   returnable_temp.smelter_id,
                   returnable_temp.product_id,

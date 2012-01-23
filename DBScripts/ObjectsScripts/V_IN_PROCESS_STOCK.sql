@@ -1,5 +1,5 @@
-create or replace view V_IN_PROCESS_STOCK
-as
+CREATE OR REPLACE VIEW V_IN_PROCESS_STOCK
+AS
 SELECT gmr.corporate_id,
        grd.internal_grd_ref_no,
        grd.internal_stock_ref_no stock_ref_no,
@@ -62,4 +62,50 @@ AND    gmr.internal_gmr_ref_no = gam.internal_gmr_ref_no(+)
 AND    gam.internal_action_ref_no(+) = gmr.gmr_first_int_action_ref_no
 AND    axs.internal_action_ref_no(+) = gam.internal_action_ref_no
 AND    axs.status(+) = 'Active'
-AND    axm.action_id(+) = axs.action_id;
+AND    axm.action_id(+) = axs.action_id
+UNION
+SELECT sbs.corporate_id,
+       sbs.sbs_id internal_grd_ref_no,
+       '' stock_ref_no,
+       '' internal_gmr_ref_no,
+       '' gmr_ref_no,
+       '' action_id,
+       '' action_name,
+       '' internal_action_ref_no,
+       sbs.activity_date,
+       '' action_ref_no,
+       '' internal_contract_item_ref_no,
+       '' contract_item_ref_no,
+       '' internal_contract_ref_no,
+       '' contract_ref_no,
+       sbs.smelter_cp_id smelter_cp_id,
+       phd.companyname smelter_cp_name,
+       sbs.product_id,
+       pdm.product_desc product_name,
+       sbs.quality_id,
+       qat.quality_name,
+       sbs.element_id,
+       aml.attribute_name element_name,
+       sbs.warehouse_profile_id,
+       shm.companyname AS warehouse,
+       sbs.shed_id,
+       shm.shed_name,
+       nvl(sbs.qty,
+           0) AS stock_qty,
+       pkg_general.f_get_quantity_unit(sbs.qty_unit_id) AS qty_unit,
+       sbs.qty_unit_id AS qty_unit_id,
+       'Returnable' payable_returnable_type,
+       'Base Stock' tolling_stock_type
+FROM   sbs_smelter_base_stock    sbs,
+       pdm_productmaster         pdm,
+       qat_quality_attributes    qat,
+       aml_attribute_master_list aml,
+       phd_profileheaderdetails  phd,
+       v_shm_shed_master         shm
+WHERE  pdm.product_id = sbs.product_id
+AND    qat.quality_id = sbs.quality_id
+AND    phd.profileid = sbs.smelter_cp_id
+AND    aml.attribute_id(+) = sbs.element_id
+AND    sbs.is_active = 'Y'
+AND    shm.profile_id = sbs.warehouse_profile_id
+AND    shm.shed_id = sbs.shed_id;

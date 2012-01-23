@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW V_LIST_OF_GMR
-AS
+AS 
 SELECT gmr.corporate_id,
        (SELECT f_string_aggregate(pci.contract_ref_no)
         FROM   gcim_gmr_contract_item_mapping gcim,
@@ -201,7 +201,7 @@ FROM   gmr_goods_movement_record gmr,
                sd.bl_date bl_date
         FROM   sd_shipment_detail sd) bl_details
 WHERE  gmr.internal_gmr_ref_no = gam.internal_gmr_ref_no(+)
-AND    price_alloc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+AND    price_alloc.internal_gmr_ref_no(+) = gmr.internal_gmr_ref_no
 AND    gam.internal_action_ref_no(+) = gmr.gmr_first_int_action_ref_no
 AND    axs.internal_action_ref_no(+) = gam.internal_action_ref_no
 AND    axs.status(+) = 'Active'
@@ -234,3 +234,4 @@ AND    nvl(gmr.tolling_gmr_type,
 AND    gam.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
 AND    vd.status(+) = 'Active'
 AND    axs_last.internal_action_ref_no = gmr.internal_action_ref_no;
+
