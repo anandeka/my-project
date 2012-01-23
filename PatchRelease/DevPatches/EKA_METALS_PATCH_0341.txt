@@ -37,10 +37,11 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction 
 ==================================================================
-Revision: 85371
-Author: mohitkumar.gupta
-Date: 3:53:48 PM, Friday, January 20, 2012
+Revision: 85379
+Author: sriveenam
+Date: Friday, January 20, 2012 4:50:42 PM
 Message:
-For COG:-add column in CS table.
+added weightnote wty in sid
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_159.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_159.sql
+
