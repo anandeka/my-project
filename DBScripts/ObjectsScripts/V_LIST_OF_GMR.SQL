@@ -1,12 +1,7 @@
 CREATE OR REPLACE VIEW V_LIST_OF_GMR
-AS 
+AS
 SELECT gmr.corporate_id,
-       (SELECT f_string_aggregate(pci.contract_ref_no)
-        FROM   gcim_gmr_contract_item_mapping gcim,
-               v_pci                          pci
-        WHERE  gam.internal_gmr_ref_no = gcim.internal_gmr_ref_no
-        AND    gcim.internal_contract_item_ref_no =
-               pci.internal_contract_item_ref_no) contract_ref_no,
+       cp.contract_ref_no contract_ref_no,
        gmr.trucking_receipt_no trucking_receipt_no,
        gmr.rail_receipt_no rail_receipt_no,
        to_char(gmr.trucking_receipt_date,
@@ -40,12 +35,7 @@ SELECT gmr.corporate_id,
              AND    qat_sub.quality_id = grd_sub.quality_id
              AND    grd_sub.is_deleted = 'N')
            ELSE
-            (SELECT f_string_aggregate(pci.product_specs)
-             FROM   gcim_gmr_contract_item_mapping gcim,
-                    v_pci                          pci
-             WHERE  gcim.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-             AND    gcim.internal_contract_item_ref_no =
-                    pci.internal_contract_item_ref_no)
+            cp.product_specs
        END) productspec,
        nvl(nvl(gmr.current_qty,
                0) - nvl(moved_out_qty,
@@ -109,26 +99,9 @@ SELECT gmr.corporate_id,
                                            '-',
                                            1,
                                            1) - 1))) gmr_middle_no,
-       (SELECT f_string_aggregate(pcm.middle_no)
-        FROM   gcim_gmr_contract_item_mapping gcim,
-               v_pci                          pci,
-               pcm_physical_contract_main     pcm
-        WHERE  gam.internal_gmr_ref_no = gcim.internal_gmr_ref_no
-        AND    gcim.internal_contract_item_ref_no =
-               pci.internal_contract_item_ref_no
-        AND    pci.internal_contract_ref_no = pcm.internal_contract_ref_no) conc_middle_no,
-       (SELECT f_string_aggregate(pci.internal_contract_item_ref_no)
-        FROM   gcim_gmr_contract_item_mapping gcim,
-               v_pci                          pci
-        WHERE  gam.internal_gmr_ref_no = gcim.internal_gmr_ref_no
-        AND    gcim.internal_contract_item_ref_no =
-               pci.internal_contract_item_ref_no) internal_contract_item_ref_nos,
-       (SELECT f_string_aggregate(pci.contract_item_ref_no)
-        FROM   gcim_gmr_contract_item_mapping gcim,
-               v_pci                          pci
-        WHERE  gam.internal_gmr_ref_no = gcim.internal_gmr_ref_no
-        AND    gcim.internal_contract_item_ref_no =
-               pci.internal_contract_item_ref_no) item_nos,
+       cp.contract_ref_no_middle_no conc_middle_no,
+       cp.internal_contract_item_ref_no internal_contract_item_ref_nos,
+       cp.contract_item_ref_no item_nos,
        nvl(gmr.tt_under_cma_qty,
            0) tt_under_cma_qty,
        nvl(gmr.tt_in_qty,
@@ -153,7 +126,7 @@ SELECT gmr.corporate_id,
        gmr.is_final_weight is_final_weight,
        gmr.is_warrant is_warrant,
        gmr.tolling_qty tolling_qty,
-       price_alloc.price_allocation_method
+       cp.price_allocation_method
 FROM   gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
@@ -176,32 +149,26 @@ FROM   gmr_goods_movement_record gmr,
        phd_profileheaderdetails phd_warehouse,
        sld_storage_location_detail sld,
        vd_voyage_detail vd,
-       (SELECT f_string_aggregate(pci.internal_contract_ref_no) internal_contract_ref_no,
-               f_string_aggregate(gcim.internal_gmr_ref_no) internal_gmr_ref_no,
+       (SELECT f_string_aggregate(gcim.internal_gmr_ref_no) internal_gmr_ref_no,
+               f_string_aggregate(pci.internal_contract_ref_no) internal_contract_ref_no,
+               f_string_aggregate(pci.contract_ref_no) contract_ref_no,
+               f_string_aggregate(pci.middle_no) contract_ref_no_middle_no,
                f_string_aggregate(pci.cp_id) contract_party_profile_id,
-               f_string_aggregate(pci.cp_name) AS cp_name
+               f_string_aggregate(pci.cp_name) AS cp_name,
+               f_string_aggregate(pci.internal_contract_item_ref_no) internal_contract_item_ref_no,
+               f_string_aggregate(pci.contract_item_ref_no) contract_item_ref_no,
+               f_string_aggregate(pci.product_specs) product_specs,
+               f_string_aggregate(pci.price_allocation_method) AS price_allocation_method
         FROM   v_pci                          pci,
                gcim_gmr_contract_item_mapping gcim
         WHERE  pci.internal_contract_item_ref_no =
                gcim.internal_contract_item_ref_no
         GROUP  BY gcim.internal_gmr_ref_no) cp,
-       (SELECT DISTINCT pcdi.price_allocation_method,
-                        gcim.internal_gmr_ref_no,
-                        f_string_aggregate(pci.internal_contract_ref_no) internal_contract_ref_no
-        FROM   v_pci                          pci,
-               gcim_gmr_contract_item_mapping gcim,
-               pcdi_pc_delivery_item          pcdi
-        WHERE  pci.internal_contract_item_ref_no =
-               gcim.internal_contract_item_ref_no
-        AND    pcdi.pcdi_id = pci.pcdi_id
-        GROUP  BY gcim.internal_gmr_ref_no,
-                  pcdi.price_allocation_method) price_alloc,
        (SELECT sd.internal_gmr_ref_no,
                sd.bl_no bl_no,
                sd.bl_date bl_date
         FROM   sd_shipment_detail sd) bl_details
 WHERE  gmr.internal_gmr_ref_no = gam.internal_gmr_ref_no(+)
-AND    price_alloc.internal_gmr_ref_no(+) = gmr.internal_gmr_ref_no
 AND    gam.internal_action_ref_no(+) = gmr.gmr_first_int_action_ref_no
 AND    axs.internal_action_ref_no(+) = gam.internal_action_ref_no
 AND    axs.status(+) = 'Active'
@@ -234,4 +201,3 @@ AND    nvl(gmr.tolling_gmr_type,
 AND    gam.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
 AND    vd.status(+) = 'Active'
 AND    axs_last.internal_action_ref_no = gmr.internal_action_ref_no;
-
