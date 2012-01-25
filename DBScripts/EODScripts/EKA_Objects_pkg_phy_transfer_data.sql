@@ -3843,13 +3843,9 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
                              end),
                          0) as total_quality_premium
                 from invd_inventory_detail     invd,
-                     dbd_database_dump         dbd,
                      scm_service_charge_master scm
                where invd.transaction_date <= pd_trade_date
-                 and invd.dbd_id = dbd.dbd_id
                  and invd.dbd_id = pc_dbd_id
-                 and dbd.corporate_id = pc_corporate_id
-                 and dbd.trade_date <= pd_trade_date
                  and invd.cost_component_id = scm.cost_id
                  and invd.account_type = 'COG'
                group by invd.inv_id) t,
@@ -3862,132 +3858,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
          and invm.inv_qty_id = pum.weight_unit_id
          and nvl(pum.weight, 1) = 1
          and pum.cur_id = cm.cur_id
-         and pum.weight_unit_id = qum.qty_unit_id;
-  
-    insert into invs_inventory_sales
-      (internal_inv_id,
-       inv_ref_no,
-       internal_gmr_ref_no,
-       sales_internal_gmr_ref_no,
-       internal_grd_ref_no,
-       internal_contract_item_ref_no,
-       inv_in_action_ref_no,
-       inv_status,
-       original_inv_qty,
-       current_inv_qty,
-       inv_qty_id,
-       is_active,
-       dbd_id,
-       product_premium,
-       quality_premium,
-       price_unit_id,
-       price_unit_cur_id,
-       price_unit_cur_code,
-       price_unit_weight_unit_id,
-       price_unit_weight_unit,
-       price_unit_weight,
-       material_cost_per_unit,
-       secondary_cost_per_unit,
-       product_premium_per_unit,
-       quality_premium_per_unit)
-      select t.inv_id,
-             invm.inv_ref_no,
-             invm.internal_gmr_ref_no,
-             null, -- sales gmr 
-             invm.internal_grd_ref_no,
-             invm.internal_contract_item_ref_no,
-             invm.inv_in_action_ref_no,
-             invm.inv_status,
-             invm.original_inv_qty,
-             t.cur_inv_qty current_inv_qty,
-             invm.inv_qty_id,
-             invm.is_active,
-             pc_dbd_id,
-             t.total_product_premium,
-             t.total_quality_premium,
-             pum.price_unit_id,
-             pum.cur_id,
-             cm.cur_code,
-             pum.weight_unit_id,
-             qum.qty_unit,
-             pum.weight,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_mc / t.cur_inv_qty)
-             
-               else
-                0
-             end as material_cost_per_unit,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_sc / t.cur_inv_qty)
-               else
-                0
-             end as secondary_cost_per_unit,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_product_premium / t.cur_inv_qty)
-               else
-                0
-             end as product_premium_per_unit,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_quality_premium / t.cur_inv_qty)
-               else
-                0
-             end as quality_premium_per_unit
-        from (select invd.inv_id,
-                     nvl(sum(invd.transaction_qty), 0) cur_inv_qty,
-                     nvl(sum(case
-                               when invd.is_direct_cost = 'Y' and
-                                    scm.cost_component_name = 'Material Cost' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_mc,
-                     nvl(sum(case
-                               when scm.cost_type = 'SECONDARY_COST' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_sc,
-                     nvl(sum(case
-                               when scm.cost_component_name = 'Location Premium' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_product_premium,
-                     nvl(sum(case
-                               when scm.cost_component_name = 'Quality Premium' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_quality_premium
-                from invd_inventory_detail     invd,
-                     dbd_database_dump         dbd,
-                     scm_service_charge_master scm
-               where invd.transaction_date <= pd_trade_date
-                 and invd.dbd_id = dbd.dbd_id
-                 and invd.dbd_id = pc_dbd_id
-                 and dbd.corporate_id = pc_corporate_id
-                 and dbd.trade_date <= pd_trade_date
-                 and invd.cost_component_id = scm.cost_id
-                 and invd.account_type = 'COGS'
-               group by invd.inv_id) t,
-             invm_inventory_master@eka_appdb invm,
-             pum_price_unit_master pum,
-             cm_currency_master cm,
-             qum_quantity_unit_master qum
-       where t.inv_id = invm.internal_inv_id
-         and invm.cog_cur_id = pum.cur_id
-         and invm.inv_qty_id = pum.weight_unit_id
-         and nvl(pum.weight, 1) = 1
-         and pum.cur_id = cm.cur_id
-         and pum.weight_unit_id = qum.qty_unit_id;
+         and pum.weight_unit_id = qum.qty_unit_id
+         and invm.internal_dgrd_ref_no is null;
   
     insert into is_invoice_summary
       (internal_invoice_ref_no,
