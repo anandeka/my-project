@@ -1,12 +1,12 @@
-Patch No*          		:  EKA_METALS_PATCH_0345
+Patch No*          		:  EKA_METALS_PATCH_0346
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Janna
+Created by*        		:  Suresh
  
 Created on*        		:  27-Jan-2012
 
-Bug / Enhancement*              :  Enhancement
+Bug / Enhancement*              :  BUG
  
 Bug ID*            		:  NA
 
@@ -17,9 +17,9 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  EOD
+Module  		   	 :  DEV
  
-Sub-Module  			 :  EOD
+Sub-Module  			 :  DEV
  
 Section   		   	 :  N/A
  
@@ -35,25 +35,14 @@ Dependent patches:		 :  N/A
 
 
 ==================================================================
-Schema type (Transaction / EOD)* : EOD
+Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-
-SQL Files:
-===========
-
-Realized PNL Change and Realized Not Fixed Relased for Tetsing
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/21_DDL_EODDB_TABLE_ALTER_SCRIPTS.sql(Revision: 85713)
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql(Revision: 85713)
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql(Revision: 85713)
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql(Revision: 85713
-
-RPT Files:
-===========
-
+Revision: 85768
+Author: suresh.gottipati
+Date: 11:26:23 AM, Friday, January 27, 2012
 Message:
-Realized Not Fixed Changes to Unrealized PNL
-PNL Change Section updated with the latest format
+Bug Fixes
 ----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt(Revision: 85765)
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyRealizedPNLReport.rpt(Revision: 85765)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+
+
