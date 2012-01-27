@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0351
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  ABHISHEK
+ 
+Created on*        		:  27-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  CONTRACT
+ 
+Sub-Module  			 :  NA
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+Revision: 85876
+Author: abhishek.vijay
+Date: 7:41:11 PM, Friday, January 27, 2012
+Message:
+change in listing screen 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_172.sql
+
+
+
+
