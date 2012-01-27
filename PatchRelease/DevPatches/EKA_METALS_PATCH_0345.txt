@@ -1,12 +1,12 @@
-Patch No*          		:  EKA_METALS_PATCH_0346
+Patch No*          		:  EKA_METALS_PATCH_0345
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Suresh
+Created by*        		:  Janna
  
 Created on*        		:  27-Jan-2012
 
-Bug / Enhancement*              :  BUG
+Bug / Enhancement*              :  Enhancement
  
 Bug ID*            		:  NA
 
@@ -17,9 +17,9 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  DEV
+Module  		   	 :  EOD
  
-Sub-Module  			 :  DEV
+Sub-Module  			 :  EOD
  
 Section   		   	 :  N/A
  
@@ -35,14 +35,25 @@ Dependent patches:		 :  N/A
 
 
 ==================================================================
-Schema type (Transaction / EOD)* : Transaction
+Schema type (Transaction / EOD)* : EOD
 ==================================================================
-Revision: 85768
-Author: suresh.gottipati
-Date: 11:26:23 AM, Friday, January 27, 2012
-Message:
-Bug Fixes
+
+SQL Files:
+===========
+
+Realized PNL Change and Realized Not Fixed Relased for Tetsing
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/21_DDL_EODDB_TABLE_ALTER_SCRIPTS.sql(Revision: 85713)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql(Revision: 85713)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql(Revision: 85713)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql(Revision: 85713
 
+RPT Files:
+===========
 
+Message:
+Realized Not Fixed Changes to Unrealized PNL
+PNL Change Section updated with the latest format
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt(Revision: 85765)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyRealizedPNLReport.rpt(Revision: 85765)
