@@ -15,3 +15,5 @@ alter table GRDL_GOODS_RECORD_DETAIL_LOG add (IS_TRANS_SHIP                   CH
   SUPPLIER_PCDI_ID                VARCHAR2(15 CHAR),
   PAYABLE_RETURNABLE_TYPE         VARCHAR2(10 CHAR),
   CARRY_OVER_QTY                  NUMBER(20,5));
+
+  ALTER TABLE cs_cost_store ADD ( reversal_type  VARCHAR2(20 CHAR) DEFAULT 'CONTRACT',  acc_direct_actual VARCHAR2(20 CHAR) DEFAULT 'N',  acc_original_accrual VARCHAR2(20 CHAR) DEFAULT 'N',  acc_under_accrual VARCHAR2(20 CHAR) DEFAULT 'N',  acc_over_accrual VARCHAR2(20 CHAR) DEFAULT 'N' );
