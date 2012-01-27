@@ -43,5 +43,14 @@ Message:
 GRDL changes
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_GRDL.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_164.sql
+
+Revision: 85862
+Author: sriveenam
+Date: Friday, January 27, 2012 7:10:28 PM
+Message:
+cs updated
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_164.sql
+
+
 
