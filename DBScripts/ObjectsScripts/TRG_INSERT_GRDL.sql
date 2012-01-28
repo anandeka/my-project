@@ -635,6 +635,13 @@ BEGIN
              :NEW.INTERNAL_ACTION_REF_NO,'Insert', 'N'
                         );
    END IF;
+   
+   INSERT INTO ACI_ASSAY_CONTENT_UPDATE_INPUT
+			(INTERNAL_GRD_NO,CONT_TYPE, 
+			ASH_ID, IS_DELETED) 
+		VALUES (:NEW.INTERNAL_GRD_REF_NO,
+			'GRD',NULL, 'N'
+		       );	
 END;
 /
 
