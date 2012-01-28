@@ -31,3 +31,10 @@ Insert into SLS_STATIC_LIST_SETUP
    (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
  Values
    ('containerSize', '60 Ft', 'N', 3);
+
+
+Insert into SLS_STATIC_LIST_SETUP
+   (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
+ Values
+   ('Container', 'Container', 'Y', 1);
+
