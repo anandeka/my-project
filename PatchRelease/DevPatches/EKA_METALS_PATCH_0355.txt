@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0355
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam Singh
+ 
+Created on*        		:  28-Jan-2012
+
+Bug / Enhancement*              :  Enhancement*
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling / Derivative
+ 
+Sub-Module  			 :  NA
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+Revision: 85920
+Author: uttam
+Date: 5:03:21 PM, Saturday, January 28, 2012
+Message:
+Return Material and  Derivative Allocation Scripts.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_38.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_174.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_167.sql
+
+
+
+
