@@ -214,8 +214,55 @@ Insert into GM_GRID_MASTER
         mapping : "deliveryItemPeriod"
     } ]', NULL, 'physical/derivative/listing/DerivativeAllocationListingFilter.jsp', '/private/js/physical/derivative/listing/DeAllocationListing.js');
 
+SET DEFINE OFF;
+Insert into GM_GRID_MASTER
+   (GRID_ID, GRID_NAME, DEFAULT_COLUMN_MODEL_STATE, TAB_ID, URL, 
+    DEFAULT_RECORD_MODEL_STATE, OTHER_URL, SCREEN_SPECIFIC_JSP, SCREEN_SPECIFIC_JS)
+ Values
+   ('TPF_LIST', 'Price Fixations', '[{"dataIndex":"","fixed":true,"header":"<div class=\"x-grid3-hd-checker\"></div>","hideable":false,"id":"checker","sortable":false,"width":20},
+   {"dataIndex":"product","header":"Product","id":1,"sortable":true,"width":150},
+   {"dataIndex":"priceFixationRefNo","header":"Price Fixation Ref.No.","id":2,"sortable":true,"width":150},
+   {"dataIndex":"contractType","header":"Contract Type","id":3,"sortable":true,"width":150},
+   {"dataIndex":"deliveryItemRefNo","header":"Dl Ref.No.","id":4,"sortable":true,"width":150},
+   {"dataIndex":"profitCenter","header":"Profit Center","id":5,"sortable":true,"width":150},
+   {"dataIndex":"priceFixationDate","header":"Price Fixation Date","id":6,"sortable":true,"width":150},
+   {"dataIndex":"price","header":"Price","id":7,"sortable":true,"width":150},
+   {"dataIndex":"qpPeriod","header":"QP Period","id":8,"sortable":true,"width":150},
+   {"dataIndex":"qtyPriced","header":"Qty.Priced","id":9,"sortable":true,"width":150},
+   {"dataIndex":"gmrAllocatedQty","header":"GMR Allocated Qty.","id":10,"sortable":true,"width":150},
+   {"dataIndex":"cpName","header":"CP Name","id":11,"sortable":true,"width":150},
+   {"dataIndex":"deliveryItemPeriod","header":"Dl Period","id":12,"sortable":true,"width":150},
+   {"dataIndex":"hedgeAllocationStatus","header":"Hedge Allocation Status","id":13,"sortable":true,"width":150}]', NULL, NULL, 
+    '[ 
+                {name: "product", mapping: "product"}, 
+                {name: "priceFixationRefNo", mapping: "priceFixationRefNo"},
+                {name: "contractType", mapping: "contractType"},
+                {name: "deliveryItemRefNo", mapping: "deliveryItemRefNo"},
+                {name: "profitCenter", mapping: "profitCenter"},
+                {name: "priceFixationDate", mapping: "priceFixationDate"},
+                {name: "price", mapping: "price"},
+                {name: "qpPeriod", mapping: "qpPeriod"},
+                {name: "qtyPriced", mapping: "qtyPriced"},
+                {name: "gmrAllocatedQty", mapping: "gmrAllocatedQty"},
+                {name: "cpName", mapping: "cpName"},
+                {name: "deliveryItemPeriod", mapping: "deliveryItemPeriod"},
+                {name: "hedgeAllocationStatus", mapping: "hedgeAllocationStatus"}
+                                
+                               ]', NULL, 'physical/derivative/listing/ListOfPriceFixations.jsp', '/private/js/physical/derivative/listing/ListOfPriceFixations.js');
 
 
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('MINING_PF', 'TPF_LIST', 'Operation', 1, 1, 
+    NULL, NULL, NULL, NULL, NULL);
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('MINING_PF_1', 'TPF_LIST', 'Allocate Hedge', 1, 2, 
+    NULL, 'function(){loadAllocateHedge();}', NULL, 'MINING_PF', NULL);
 
 
 Insert into GMC_GRID_MENU_CONFIGURATION
@@ -438,54 +485,6 @@ Insert into GM_GRID_MASTER
 
 
 
-SET DEFINE OFF;
-Insert into GM_GRID_MASTER
-   (GRID_ID, GRID_NAME, DEFAULT_COLUMN_MODEL_STATE, TAB_ID, URL, 
-    DEFAULT_RECORD_MODEL_STATE, OTHER_URL, SCREEN_SPECIFIC_JSP, SCREEN_SPECIFIC_JS)
- Values
-   ('TPF_LIST', 'Price Fixations', '[{"dataIndex":"","fixed":true,"header":"<div class=\"x-grid3-hd-checker\"></div>","hideable":false,"id":"checker","sortable":false,"width":20},
-   {"dataIndex":"product","header":"Product","id":1,"sortable":true,"width":150},
-   {"dataIndex":"priceFixationRefNo","header":"Price Fixation Ref.No.","id":2,"sortable":true,"width":150},
-   {"dataIndex":"contractType","header":"Contract Type","id":3,"sortable":true,"width":150},
-   {"dataIndex":"deliveryItemRefNo","header":"Dl Ref.No.","id":4,"sortable":true,"width":150},
-   {"dataIndex":"profitCenter","header":"Profit Center","id":5,"sortable":true,"width":150},
-   {"dataIndex":"priceFixationDate","header":"Price Fixation Date","id":6,"sortable":true,"width":150},
-   {"dataIndex":"price","header":"Price","id":7,"sortable":true,"width":150},
-   {"dataIndex":"qpPeriod","header":"QP Period","id":8,"sortable":true,"width":150},
-   {"dataIndex":"qtyPriced","header":"Qty.Priced","id":9,"sortable":true,"width":150},
-   {"dataIndex":"gmrAllocatedQty","header":"GMR Allocated Qty.","id":10,"sortable":true,"width":150},
-   {"dataIndex":"cpName","header":"CP Name","id":11,"sortable":true,"width":150},
-   {"dataIndex":"deliveryItemPeriod","header":"Dl Period","id":12,"sortable":true,"width":150},
-   {"dataIndex":"hedgeAllocationStatus","header":"Hedge Allocation Status","id":13,"sortable":true,"width":150}]', NULL, NULL, 
-    '[ 
-                {name: "product", mapping: "product"}, 
-                {name: "priceFixationRefNo", mapping: "priceFixationRefNo"},
-                {name: "contractType", mapping: "contractType"},
-                {name: "deliveryItemRefNo", mapping: "deliveryItemRefNo"},
-                {name: "profitCenter", mapping: "profitCenter"},
-                {name: "priceFixationDate", mapping: "priceFixationDate"},
-                {name: "price", mapping: "price"},
-                {name: "qpPeriod", mapping: "qpPeriod"},
-                {name: "qtyPriced", mapping: "qtyPriced"},
-                {name: "gmrAllocatedQty", mapping: "gmrAllocatedQty"},
-                {name: "cpName", mapping: "cpName"},
-                {name: "deliveryItemPeriod", mapping: "deliveryItemPeriod"},
-                {name: "hedgeAllocationStatus", mapping: "hedgeAllocationStatus"}
-                                
-                               ]', NULL, 'physical/derivative/listing/ListOfPriceFixations.jsp', '/private/js/physical/derivative/listing/ListOfPriceFixations.js');
 
 
 
-
-Insert into GMC_GRID_MENU_CONFIGURATION
-   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
-    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
- Values
-   ('MINING_PF', 'TPF_LIST', 'Operation', 1, 1, 
-    NULL, NULL, NULL, NULL, NULL);
-Insert into GMC_GRID_MENU_CONFIGURATION
-   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
-    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
- Values
-   ('MINING_PF_1', 'TPF_LIST', 'Allocate Hedge', 1, 2, 
-    NULL, 'function(){loadAllocateHedge();}', NULL, 'MINING_PF', NULL);
