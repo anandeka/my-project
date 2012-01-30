@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0356
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  30-Jan-2012
+
+Bug / Enhancement*              :  Enhancement*
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+ 
+Sub-Module  			 :  NA
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+Revision: 86035
+Author: abhishek.vijay
+Date: 6:57:41 PM, Monday, January 30, 2012
+Message:
+change for price allocation 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_176.sql
+
+
+
+
+
+
