@@ -13,7 +13,7 @@ GRANT WRITE ON DIRECTORY EXAMPLE TO Schema_Name;
 --After above steps, we need to run following script to load the image in DB table using 'LOAD' procedure
 
 begin
-for cc in(select ak.corporate_id from ak_corporate ak where AK.corporate_id not in('EKA-SYS')
+for cc in(select ak.corporate_id from ak_corporate ak where AK.corporate_id not in('EKA-SYS'))
 loop
 load(cc.corporate_id,'Traxys.jpg','Traxys','Traxys');
 end loop;
