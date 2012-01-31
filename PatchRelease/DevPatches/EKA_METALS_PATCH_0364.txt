@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0364
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  31-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+ 
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+
+Revision: 86114
+Author: abhishek.vijay
+Date: 3:08:53 PM, Tuesday, January 31, 2012
+Message:
+change in column name 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_170.sql
+
