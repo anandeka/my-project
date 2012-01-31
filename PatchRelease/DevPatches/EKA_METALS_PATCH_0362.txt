@@ -1,0 +1,96 @@
+Patch No*          		:  EKA_METALS_PATCH_0362
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh
+ 
+Created on*        		:  31-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+ 
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+Revision: 86108
+Author: suresh.gottipati
+Date: 2:43:18 PM, Tuesday, January 31, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/LOGO.sql
+
+
+
+Revision: 86104
+Author: suresh.gottipati
+Date: 2:35:40 PM, Tuesday, January 31, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/LOAD.sql
+
+
+Revision: 86104
+Author: suresh.gottipati
+Date: 2:35:40 PM, Tuesday, January 31, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_AK_CORPORATE.sql
+
+
+Revision: 86101
+Author: elaiyaraja.nallathambi
+Date: 2:27:18 PM, Tuesday, January 31, 2012
+Message:
+LOGO Changes Pointing to DB Column rather than STATIC OLEDB Object.
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AdvancePaymentDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/AirWayAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/AirWayDetails.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ContractPreview.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/DirectFinalSalesMapping.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ProfomaDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/PurchaseCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/SalesCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ShipmentAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ShipmentBackToBack.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ShipmentDetail.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TrainAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TrainDetails.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TruckAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TruckDetail.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/VatDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighNote_Purchase.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighNote_Sales.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighingandSampling.rpt
+
+
+
