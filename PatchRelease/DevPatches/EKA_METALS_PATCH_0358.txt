@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0358
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  B Ravi Kumar
+ 
+Created on*        		:  31-Jan-2012
+
+Bug / Enhancement*              :  Enhancement*
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoicing
+ 
+Sub-Module  			 :  NA
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+Revision: 86054
+Author: b.ravikumar
+Date: 11:51:36 AM, Tuesday, January 31, 2012
+Message:
+-for receive material
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_177.sql
+
+
+
+
+
+
+
+
