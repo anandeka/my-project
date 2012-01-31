@@ -1,0 +1,72 @@
+Patch No*          		:  EKA_METALS_PATCH_0360
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  31-Jan-2012
+
+Bug / Enhancement*              :  Enhancement*
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Documents
+ 
+Sub-Module  			 :  Price fixation 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+Revision: 86097
+Author: sriveenam
+Date: Tuesday, January 31, 2012 1:21:38 PM
+Message:
+price fixation document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_178.sql
+
+Revision: 86098
+Author: sriveenam
+Date: Tuesday, January 31, 2012 1:23:00 PM
+Message:
+price fixation document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_168.sql
+
+Revision: 86096
+Author: sriveenam
+Date: Tuesday, January 31, 2012 1:20:24 PM
+Message:
+price fixation document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_39.sql
+
+
+
+
+
+
+
+
+
+
+
