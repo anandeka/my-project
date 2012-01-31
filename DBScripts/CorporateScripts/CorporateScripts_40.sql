@@ -100,3 +100,20 @@ from IS_D isd
 where isd.INTERNAL_DOC_REF_NO = ?', 
     '/metals/loadListOfInvoiceDraft.action?gridId=LOID');
 
+Insert into DC_DOCUMENT_CONFIGURATION
+   (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
+    NAVIGATION)
+ Values
+   ('CREATE_DFT_DC', '&corpId', 'Y', 'Y', 'select count(*) as countRow
+from IS_D isd
+where isd.INTERNAL_DOC_REF_NO = ?', 
+    '/metals/loadListOfInvoiceDraft.action?gridId=LOID');
+    
+    Insert into DC_DOCUMENT_CONFIGURATION
+   (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
+    NAVIGATION)
+ Values
+   ('CREATE_DFT_SI', '&corpId', 'Y', 'Y', 'select count(*) as countRow
+from IS_D isd
+where isd.INTERNAL_DOC_REF_NO = ?', 
+    '/metals/loadListOfInvoiceDraft.action?gridId=LOID');
