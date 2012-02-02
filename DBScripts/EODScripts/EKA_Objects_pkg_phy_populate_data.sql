@@ -197,7 +197,7 @@ create or replace package "PKG_PHY_POPULATE_DATA" is
                                pd_trade_date   date,
                                pc_user_id      varchar2);
 
-end pkg_phy_populate_data;
+end pkg_phy_populate_data; 
 /
 create or replace package body "PKG_PHY_POPULATE_DATA" is
 
@@ -5888,7 +5888,8 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
                                                       from poch_price_opt_call_off_header poch,
                                                            pocd_price_option_calloff_dtls pocd,
                                                            pcbpd_pc_base_price_detail     pcbpd,
-                                                           pcbph_pc_base_price_header     pcbph
+                                                           pcbph_pc_base_price_header     pcbph,
+                                                           pcm_physical_contract_main     pcm
                                                      where poch.pcdi_id =
                                                            pci.pcdi_id
                                                        and poch.poch_id =
@@ -5901,6 +5902,10 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
                                                            gvc_dbd_id
                                                        and pcbph.dbd_id =
                                                            gvc_dbd_id
+                                                       and pcbph.internal_contract_ref_no=pcm.internal_contract_ref_no
+                                                       and upper(pcm.contract_type) ='BASEMETAL'
+                                                       and pcm.is_active ='Y'
+                                                       and pcm.dbd_id=gvc_dbd_id    
                                                        and poch.is_active = 'Y'
                                                        and pocd.is_active = 'Y'
                                                        and pcbpd.is_active = 'Y'
@@ -5914,7 +5919,8 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
                                                            pcbph.price_description
                                                       from pcipf_pci_pricing_formula  pcipf,
                                                            pcbph_pc_base_price_header pcbph,
-                                                           pcbpd_pc_base_price_detail pcbpd
+                                                           pcbpd_pc_base_price_detail pcbpd,
+                                                           pcm_physical_contract_main  pcm
                                                      where pci.internal_contract_item_ref_no =
                                                            pcipf.internal_contract_item_ref_no
                                                        and pcipf.pcbph_id =
@@ -5929,6 +5935,10 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
                                                            gvc_dbd_id
                                                        and pcbpd.dbd_id =
                                                            gvc_dbd_id
+                                                       and pcbph.internal_contract_ref_no=pcm.internal_contract_ref_no
+                                                       and upper(pcm.contract_type) ='BASEMETAL'
+                                                       and pcm.is_active ='Y'
+                                                       and pcm.dbd_id=gvc_dbd_id      
                                                        and pci.is_active = 'Y'
                                                        and pcipf.is_active = 'Y'
                                                        and pcbpd.is_active = 'Y'
@@ -12954,5 +12964,5 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
       sp_insert_error_log(vobj_error_log);
   end;
 
-end pkg_phy_populate_data;
+end pkg_phy_populate_data; 
 /
