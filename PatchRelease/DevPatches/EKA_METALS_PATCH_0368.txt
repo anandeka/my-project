@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0368
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna/Saurab Raj
+ 
+Created on*        		:  2-Feb-2012
+
+Bug / Enhancement*              :  Bug fixes
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+ 
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+SQL Files:
+===========
+
+Concentrate trades considered in BM pnl calculation
+----
+Revision: 86365
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql	(Revision: 86365)
+
+
+
+
