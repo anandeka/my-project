@@ -15,19 +15,19 @@ Insert into DRF_DOC_REF_NUMBER_FORMAT
 Insert into DRFM_DOC_REF_NO_MAPPING
    (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
  Values
-   ('DRFM-PFD-1', 'LDE', 'CREATE_PFD', 'PFD_KEY_1', 'N');
+   ('DRFM-PFD-1', 'LDE', 'CREATE_PRICE_FIXATION', 'PFD_KEY_1', 'N');
    
 Insert into DRFM_DOC_REF_NO_MAPPING
    (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
  Values
-   ('DRFM-PFD-2', 'EKA', 'CREATE_PFD', 'PFD_KEY_2', 'N');
+   ('DRFM-PFD-2', 'EKA', 'CREATE_PRICE_FIXATION', 'PFD_KEY_2', 'N');
    
 Insert into CDC_CORPORATE_DOC_CONFIG
    (DOC_TEMPLATE_ID, CORPORATE_ID, DOC_ID, DOC_TEMPLATE_NAME, DOC_TEMPLATE_NAME_DE, 
     DOC_TEMPLATE_NAME_ES, DOC_PRINT_NAME, DOC_PRINT_NAME_DE, DOC_PRINT_NAME_ES, DOC_RPT_FILE_NAME, 
     IS_ACTIVE, DOC_AUTO_GENERATE)
  Values
-   ('CDC-PFD-1', 'LDE', 'CREATE_PFD', 'Price Fixation', NULL, 
+   ('CDC-PFD-1', 'LDE', 'CREATE_PRICE_FIXATION', 'Price Fixation', NULL, 
     NULL, NULL, NULL, NULL, 'PriceFixationDocument.rpt', 
     'Y', 'Y');
     
@@ -36,7 +36,7 @@ Insert into CDC_CORPORATE_DOC_CONFIG
     DOC_TEMPLATE_NAME_ES, DOC_PRINT_NAME, DOC_PRINT_NAME_DE, DOC_PRINT_NAME_ES, DOC_RPT_FILE_NAME, 
     IS_ACTIVE, DOC_AUTO_GENERATE)
  Values
-   ('CDC-PFD-2', 'EKA', 'CREATE_PFD', 'Price Fixation', NULL, 
+   ('CDC-PFD-2', 'EKA', 'CREATE_PRICE_FIXATION', 'Price Fixation', NULL, 
     NULL, NULL, NULL, NULL, 'PriceFixationDocument.rpt', 
     'Y', 'Y');
 
@@ -45,7 +45,7 @@ Insert into DC_DOCUMENT_CONFIGURATION
    (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
     NAVIGATION)
  Values
-   ('CREATE_PFD', 'LDE', 'Y', 'Y', 'select count(*) as countRow
+   ('CREATE_PRICE_FIXATION', 'LDE', 'Y', 'Y', 'select count(*) as countRow
 from PFD_D pfd
 where pfd.INTERNAL_DOC_REF_NO = ?', 
     '/metals/loadListOfDeliveryItems.action?gridId=LODI');
@@ -55,7 +55,7 @@ Insert into DC_DOCUMENT_CONFIGURATION
    (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
     NAVIGATION)
  Values
-   ('CREATE_PFD', 'EKA', 'Y', 'Y', 'select count(*) as countRow
+   ('CREATE_PRICE_FIXATION', 'EKA', 'Y', 'Y', 'select count(*) as countRow
 from PFD_D pfd
 where pfd.INTERNAL_DOC_REF_NO = ?',
     '/metals/loadListOfDeliveryItems.action?gridId=LODI');
