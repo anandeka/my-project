@@ -36,13 +36,13 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Trnsaction
 ==================================================================
-Revision: 86097
+Revision: 86393
 Author: sriveenam
-Date: Tuesday, January 31, 2012 1:21:38 PM
+Date: Friday, February 03, 2012 11:30:52 AM
 Message:
-price fixation document
+modified docid same as actionid
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_178.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_178.sql
 
 Revision: 86098
 Author: sriveenam
@@ -52,13 +52,23 @@ price fixation document
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_168.sql
 
-Revision: 86096
+Revision: 86394
 Author: sriveenam
-Date: Tuesday, January 31, 2012 1:20:24 PM
+Date: Friday, February 03, 2012 11:32:54 AM
 Message:
-price fixation document
+modified docid same as actionid
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_39.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_39.sql
+
+Revision: 86395
+Author: sriveenam
+Date: Friday, February 03, 2012 11:37:04 AM
+Message:
+added for pricefixation document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+
+
 
 
 
