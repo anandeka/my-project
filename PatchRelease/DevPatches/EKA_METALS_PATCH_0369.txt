@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_0369
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  3-Feb-2012
+
+Bug / Enhancement*              :  Bug Fixes for COG
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+ 
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+SQL Files:
+===========
+
+Precheck : added Beyond Month and Year Not Null added
+Populate : GMR updated is_final_invoiced and is_provisional_invoiced
+Physical Process : Delat Price Changes, CIPD Base Price Calcualtion moved to the end, Realized But Not Fixed changed to Realized But Not Final Invoiced
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/22_DDL_EODDB_TABLE_ALTER_SCRIPT.sql(Revision: 86389)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql(Revision: 86389)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql(Revision: 86389)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql(Revision: 86389)
+
+RPT Files:
+
+Unrealized Report : Realized Not Final Invoice Incorporated
+Realized Report : Removed column contract ref no and container number and added stock ref no
+Inventory Report : COG for Purchase multiplied by -1 for display purpose
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyInventoryUnrealizedPhysicalPnL_cog.rpt(Revision: 86388)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt(Revision: 86388)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyRealizedPNLReport.rpt(Revision: 86388)
+
+
