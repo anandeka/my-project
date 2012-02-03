@@ -3850,6 +3850,36 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by gmrul.internal_gmr_ref_no) t;
+--
+-- Update FI AND PI Flag
+--          
+Update gmr_goods_movement_record gmr
+set (gmr.is_final_invoiced, gmr.is_provisional_invoiced) = 
+(
+select case when (SUM(case
+               when is1.invoice_type_name = 'Final' then
+                1
+               else
+                0
+             end)) = 0 then 'N' ELSE 'Y' END  fi_done,
+case when (SUM(case
+               when is1.invoice_type_name = 'Provisional' then
+                1
+               else
+                0
+             end)) = 0 then 'N' ELSE 'Y' END  Pi_done
+from is_invoice_summary          is1,
+     iid_invoicable_item_details iid
+ where is1.invoice_status = 'Active'
+   and is1.corporate_id = pc_corporate_id
+and IS1.INVOICE_TYPE_NAME in ('Final', 'Provisional')
+ and is1.dbd_id = gvc_dbd_id
+   and is1.internal_invoice_ref_no = iid.internal_invoice_ref_no
+   and gmr.dbd_id = gvc_dbd_id
+   and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+ group by iid.internal_gmr_ref_no)
+ where gmr.dbd_id = gvc_dbd_id ;
+     
   exception
     when others then
       vobj_error_log.extend;

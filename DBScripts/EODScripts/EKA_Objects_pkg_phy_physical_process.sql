@@ -1007,13 +1007,7 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
     vn_price_main_cur_id           varchar2(15);
     vn_price_main_cur_code         varchar2(15);
     vn_price_main_cur_factor       number;
-    vn_tot_contract_value_in_base  number;
     vn_price_weight                number;
-    vn_price_unfix_qty_amt_base    number;
-    vn_price_fix_qty_amt_base      number;
-    vn_during_total_set_price_base number;
-    vn_during_total_val_price_base number;
-    vn_during_qp_price_base        number;
   begin
     for cur_pcdi_rows in cur_pcdi
     loop
@@ -1023,13 +1017,12 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
         vd_payment_due_date := cur_pcdi_rows.payment_due_date;
       end if;
       -- Get the base main cur id
-      vc_base_main_cur_id            := cur_pcdi_rows.base_cur_id;
-      vc_base_main_cur_code          := cur_pcdi_rows.base_currency_name;
-      vc_price_fixation_status       := null;
-      vn_total_contract_value        := 0;
-      vc_exch_rate_string            := null;
-      vn_price_in_base_price_unit_id := 0;
-      vn_tot_contract_value_in_base  := 0;
+      vc_base_main_cur_id      := cur_pcdi_rows.base_cur_id;
+      vc_base_main_cur_code    := cur_pcdi_rows.base_currency_name;
+      vc_price_fixation_status := null;
+      vn_total_contract_value  := 0;
+      vc_exch_rate_string      := null;
+    
       if cur_pcdi_rows.price_option_call_off_status in
          ('Called Off', 'Not Applicable') then
         vc_price_fixation_status := null;
@@ -1094,16 +1087,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
               vn_fw_exch_rate_price_to_base := 1.0;
             end if;
           
-            vn_tot_contract_value_in_base := vn_tot_contract_value_in_base +
-                                             (vn_fw_exch_rate_price_to_base *
-                                             vn_price_main_cur_factor *
-                                             pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                   vc_price_weight_unit_id,
-                                                                                   cur_pcdi_rows.item_qty_unit_id,
-                                                                                   1) *
-                                             vn_contract_price *
-                                             vn_total_quantity *
-                                             (vn_qty_to_be_priced / 100));
           elsif cur_called_off_rows.price_basis in ('Index', 'Formula') then
           
             for cc1 in (select ppfh.ppfh_id,
@@ -1408,17 +1391,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                   vn_fw_exch_rate_price_to_base := 1.0;
                 end if;
               
-                vn_tot_contract_value_in_base := vn_tot_contract_value_in_base +
-                                                 (vn_fw_exch_rate_price_to_base *
-                                                 vn_price_main_cur_factor *
-                                                 pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                       vc_price_weight_unit_id,
-                                                                                       cur_pcdi_rows.item_qty_unit_id,
-                                                                                       1) *
-                                                 vn_contract_price *
-                                                 vn_total_quantity *
-                                                 (vn_qty_to_be_priced / 100));
-              
               elsif vc_period = 'After QP' then
                 vn_after_price := 0;
                 vn_after_count := 0;
@@ -1508,17 +1480,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                   else
                     vn_fw_exch_rate_price_to_base := 1.0;
                   end if;
-                
-                  vn_tot_contract_value_in_base := vn_tot_contract_value_in_base +
-                                                   (vn_fw_exch_rate_price_to_base *
-                                                   vn_price_main_cur_factor *
-                                                   pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                         vc_price_weight_unit_id,
-                                                                                         cur_pcdi_rows.item_qty_unit_id,
-                                                                                         1) *
-                                                   vn_contract_price *
-                                                   vn_total_quantity *
-                                                   (vn_qty_to_be_priced / 100));
                 
                 end if;
               
@@ -1610,27 +1571,7 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                   --
                   -- Total Price in Base
                   --
-                  vn_during_total_set_price_base := vn_during_total_set_price_base +
-                                                    (vn_fw_exch_rate_price_to_base *
-                                                    vn_price_main_cur_factor *
-                                                    pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                          vc_price_weight_unit_id,
-                                                                                          cur_pcdi_rows.item_qty_unit_id,
-                                                                                          1) *
-                                                    cc.user_price);
                 
-                  --  
-                  -- Total Amount in Base
-                  --
-                  vn_price_fix_qty_amt_base := vn_price_fix_qty_amt_base +
-                                               (vn_fw_exch_rate_price_to_base *
-                                               vn_price_main_cur_factor *
-                                               pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                     vc_price_weight_unit_id,
-                                                                                     cur_pcdi_rows.item_qty_unit_id,
-                                                                                     1) *
-                                               cc.user_price *
-                                               cc.qty_fixed);
                   if cc.final_price is not null then
                     vc_price_fixation_status := 'Finalized';
                   end if;
@@ -1861,17 +1802,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                     vn_fw_exch_rate_price_to_base := 1.0;
                   end if;
                   -- Price in Base
-                  vn_during_total_val_price_base := vn_during_total_val_price_base +
-                                                    (vn_fw_exch_rate_price_to_base *
-                                                    vn_price_main_cur_factor *
-                                                    pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                          vc_price_weight_unit_id,
-                                                                                          cur_pcdi_rows.item_qty_unit_id,
-                                                                                          1) *
-                                                    vn_during_val_price);
-                  -- Amount in Base
-                  vn_price_unfix_qty_amt_base := (vn_any_day_unfixed_qty *
-                                                 vn_during_total_val_price_base);
                 
                 else
                 
@@ -1897,40 +1827,31 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                 if (vn_count_val_qp + vn_count_set_qp) <> 0 then
                 
                   if vn_market_flag = 'N' then
-                    vn_during_qp_price      := (vn_any_day_price_fix_qty_amt +
-                                               vn_any_day_price_unfix_qty_amt) /
-                                               cc1.qty_to_be_fixed;
-                    vn_during_qp_price_base := (vn_price_fix_qty_amt_base +
-                                               vn_price_unfix_qty_amt_base) /
-                                               cc1.qty_to_be_fixed;
+                    vn_during_qp_price := (vn_any_day_price_fix_qty_amt +
+                                          vn_any_day_price_unfix_qty_amt) /
+                                          cc1.qty_to_be_fixed;
+                  
                   else
                     vn_during_qp_price := (vn_during_total_set_price +
                                           vn_during_total_val_price) /
                                           (vn_count_set_qp +
                                           vn_count_val_qp);
                   
-                    vn_during_qp_price_base := (vn_during_total_set_price_base +
-                                               vn_during_total_val_price_base) /
-                                               (vn_count_set_qp +
-                                               vn_count_val_qp);
                   end if;
                 
-                  vn_total_quantity             := cur_pcdi_rows.item_qty;
-                  vn_qty_to_be_priced           := cur_called_off_rows.qty_to_be_priced;
-                  vn_total_contract_value       := vn_total_contract_value +
-                                                   vn_total_quantity *
-                                                   (vn_qty_to_be_priced / 100) *
-                                                   vn_during_qp_price;
-                  vn_tot_contract_value_in_base := vn_tot_contract_value_in_base +
-                                                   vn_total_quantity *
-                                                   (vn_qty_to_be_priced / 100) *
-                                                   vn_during_qp_price_base;
+                  vn_total_quantity       := cur_pcdi_rows.item_qty;
+                  vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
+                  vn_total_contract_value := vn_total_contract_value +
+                                             vn_total_quantity *
+                                             (vn_qty_to_be_priced / 100) *
+                                             vn_during_qp_price;
+                
                   --                  vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
                 
                 else
-                  vn_total_quantity             := cur_pcdi_rows.item_qty;
-                  vn_total_contract_value       := 0;
-                  vn_tot_contract_value_in_base := 0;
+                  vn_total_quantity       := cur_pcdi_rows.item_qty;
+                  vn_total_contract_value := 0;
+                
                   --                  vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
                 end if;
                 vc_price_unit_id := cc1.ppu_price_unit_id;
@@ -1940,12 +1861,9 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
           
           end if;
         end loop;
-        vn_average_price               := round(vn_total_contract_value /
-                                                vn_total_quantity,
-                                                3);
-        vn_price_in_base_price_unit_id := round(vn_tot_contract_value_in_base /
-                                                vn_total_quantity,
-                                                3);
+        vn_average_price := round(vn_total_contract_value /
+                                  vn_total_quantity,
+                                  3);
       
         vn_error_no := vn_error_no + 1;
       elsif cur_pcdi_rows.price_option_call_off_status = 'Not Called Off' then
@@ -2011,17 +1929,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
             else
               vn_fw_exch_rate_price_to_base := 1.0;
             end if;
-          
-            vn_tot_contract_value_in_base := vn_tot_contract_value_in_base +
-                                             (vn_fw_exch_rate_price_to_base *
-                                             vn_price_main_cur_factor *
-                                             pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                   vc_price_weight_unit_id,
-                                                                                   cur_pcdi_rows.item_qty_unit_id,
-                                                                                   1) *
-                                             vn_contract_price *
-                                             vn_total_quantity *
-                                             (vn_qty_to_be_priced / 100));
           
             vn_error_no := 3;
           elsif cur_not_called_off_rows.price_basis in ('Index', 'Formula') then
@@ -2319,17 +2226,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                   vn_fw_exch_rate_price_to_base := 1.0;
                 end if;
               
-                vn_tot_contract_value_in_base := vn_tot_contract_value_in_base +
-                                                 (vn_fw_exch_rate_price_to_base *
-                                                 vn_price_main_cur_factor *
-                                                 pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                       vc_price_weight_unit_id,
-                                                                                       cur_pcdi_rows.item_qty_unit_id,
-                                                                                       1) *
-                                                 vn_before_qp_price *
-                                                 vn_total_quantity *
-                                                 (vn_qty_to_be_priced / 100));
-              
               elsif vc_period = 'After QP' then
                 vc_price_fixation_status := 'Un-priced';
                 vn_error_no              := 5;
@@ -2522,16 +2418,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                   vn_fw_exch_rate_price_to_base := 1.0;
                 end if;
               
-                vn_tot_contract_value_in_base := vn_tot_contract_value_in_base +
-                                                 (vn_fw_exch_rate_price_to_base *
-                                                 vn_price_main_cur_factor *
-                                                 pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                       vc_price_weight_unit_id,
-                                                                                       cur_pcdi_rows.item_qty_unit_id,
-                                                                                       1) *
-                                                 vn_after_qp_price *
-                                                 vn_total_quantity *
-                                                 (vn_qty_to_be_priced / 100));
               elsif vc_period = 'During QP' then
                 vc_price_fixation_status := 'Un-priced';
                 vn_error_no              := 6;
@@ -2730,16 +2616,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                   vn_fw_exch_rate_price_to_base := 1.0;
                 end if;
               
-                vn_tot_contract_value_in_base := vn_tot_contract_value_in_base +
-                                                 (vn_fw_exch_rate_price_to_base *
-                                                 vn_price_main_cur_factor *
-                                                 pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
-                                                                                       vc_price_weight_unit_id,
-                                                                                       cur_pcdi_rows.item_qty_unit_id,
-                                                                                       1) *
-                                                 vn_during_qp_price *
-                                                 vn_total_quantity *
-                                                 (vn_qty_to_be_priced / 100));
               end if;
             end loop;
           end if;
@@ -2796,6 +2672,34 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
         when no_data_found then
           vc_contract_base_price_unit_id := null;
       end;
+      --
+      -- Convert the final price into base price unit ID
+      --
+    
+      --
+      -- Get the Forward Exchange Rate from Price Unit ID to Base Price Unit ID
+      --
+      if vc_price_cur_id <> vc_base_main_cur_id then
+        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+                                                pd_trade_date,
+                                                vd_payment_due_date,
+                                                vc_price_cur_id,
+                                                vc_base_main_cur_id,
+                                                30,
+                                                vn_fw_exch_rate_price_to_base,
+                                                vn_forward_points);
+      
+      else
+        vn_fw_exch_rate_price_to_base := 1.0;
+      end if;
+    
+      vn_price_in_base_price_unit_id := vn_fw_exch_rate_price_to_base *
+                                        vn_contract_main_cur_factor *
+                                        pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
+                                                                             vc_price_weight_unit_id,
+                                                                             cur_pcdi_rows.item_qty_unit_id,
+                                                                             1) *
+                                        vn_average_price;
     
       /*pkg_general.sp_forward_cur_exchange_rate(pc_corporate_id,
       pd_trade_date,
@@ -3909,7 +3813,11 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
              pcbpd.qty_to_be_priced,
              pocd.is_any_day_pricing,
              pcbpd.price_basis,
-             pcbph.price_description
+             pcbph.price_description,
+             pofh.no_of_prompt_days,
+             pofh.final_price,
+             pofh.avg_price_in_price_in_cur,
+             pocd.pay_in_price_unit_id
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -3977,6 +3885,11 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
     vn_avarage_price               number;
     vc_price_basis                 varchar2(15);
     vc_price_description           varchar2(4000);
+    vn_delta_price                 number;
+    vc_delta_pricing_flag          char(1);
+    vn_delta_priced_qty            number;
+    vn_delta_avg_price             number;
+    vn_total_delta_priced_qty      number;
   
   begin
     for cur_gmr_rows in cur_gmr
@@ -4192,44 +4105,9 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
           --  vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
         
         elsif vc_period = 'After QP' then
-          vn_after_price := 0;
-          vn_after_count := 0;
-          for pfd_price in (select pfd.user_price,
-                                   pfd.price_unit_id,
-                                   pofh.final_price
-                              from poch_price_opt_call_off_header poch,
-                                   pocd_price_option_calloff_dtls pocd,
-                                   pofh_price_opt_fixation_header pofh,
-                                   pfd_price_fixation_details     pfd
-                             where poch.poch_id = pocd.poch_id
-                               and pocd.pocd_id = pofh.pocd_id
-                               and pfd.pofh_id = cur_gmr_ele_rows.pofh_id
-                               and pofh.pofh_id = pfd.pofh_id
-                               and poch.is_active = 'Y'
-                               and pocd.is_active = 'Y'
-                               and pofh.is_active = 'Y'
-                               and pfd.is_active = 'Y')
-          loop
-            if pfd_price.final_price is not null then
-              vc_price_fixation_status := 'Finalized';
-            end if;
-          
-            vn_after_price := vn_after_price + pfd_price.user_price;
-            vn_after_count := vn_after_count + 1;
-          
-          end loop;
-          --   end if;
-          if vn_after_count = 0 then
-            vn_after_qp_price         := 0;
-            vn_total_contract_value   := 0;
-            vc_after_qp_price_unit_id := null;
-            vc_price_fixation_status  := 'Un-priced';
-            vn_total_quantity         := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
-                                                                              cur_gmr_rows.payable_qty_unit_id,
-                                                                              cur_gmr_rows.qty_unit_id,
-                                                                              cur_gmr_rows.payable_qty);
-          else
-            vn_after_qp_price       := vn_after_price / vn_after_count;
+          if cur_gmr_ele_rows.final_price is not null and
+             cur_gmr_ele_rows.avg_price_in_price_in_cur is not null then
+            vn_after_qp_price       := cur_gmr_ele_rows.avg_price_in_price_in_cur;
             vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
                                                                             cur_gmr_rows.payable_qty_unit_id,
                                                                             cur_gmr_rows.qty_unit_id,
@@ -4238,14 +4116,108 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
             vn_total_contract_value := vn_total_contract_value +
                                        vn_total_quantity *
                                        (vn_qty_to_be_priced / 100) *
-                                       vn_after_price;
-          
-            ---  vn_total_contract_value := vn_total_contract_value +vn_after_qp_price;
-            -- vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
-            if vc_price_fixation_status <> 'Finalized' then
-              vc_price_fixation_status := 'Partially Priced';
+                                       vn_after_qp_price;
+          else
+            vn_after_price := 0;
+            vn_after_count := 0;
+            for pfd_price in (select pfd.user_price,
+                                     pfd.price_unit_id,
+                                     pofh.final_price
+                                from poch_price_opt_call_off_header poch,
+                                     pocd_price_option_calloff_dtls pocd,
+                                     pofh_price_opt_fixation_header pofh,
+                                     pfd_price_fixation_details     pfd
+                               where poch.poch_id = pocd.poch_id
+                                 and pocd.pocd_id = pofh.pocd_id
+                                 and pfd.pofh_id = cur_gmr_ele_rows.pofh_id
+                                 and pofh.pofh_id = pfd.pofh_id
+                                 and poch.is_active = 'Y'
+                                 and pocd.is_active = 'Y'
+                                 and pofh.is_active = 'Y'
+                                 and nvl(pfd.is_delta_pricing, 'N') = 'N'
+                                 and pfd.is_active = 'Y')
+            loop
+              if pfd_price.final_price is not null then
+                vc_price_fixation_status := 'Finalized';
+              end if;
+            
+              vn_after_price := vn_after_price + pfd_price.user_price;
+              vn_after_count := vn_after_count + 1;
+            
+            end loop;
+            --   end if;
+            if vn_after_count = 0 then
+              vn_after_qp_price         := 0;
+              vn_total_contract_value   := 0;
+              vc_after_qp_price_unit_id := null;
+              vc_price_fixation_status  := 'Un-priced';
+              vn_total_quantity         := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
+                                                                                cur_gmr_rows.payable_qty_unit_id,
+                                                                                cur_gmr_rows.qty_unit_id,
+                                                                                cur_gmr_rows.payable_qty);
             else
-              vc_price_fixation_status := 'Partially Priced';
+              begin
+                select pfd.user_price,
+                       pfd.is_delta_pricing,
+                       pofh.delta_priced_qty
+                  into vn_delta_price,
+                       vc_delta_pricing_flag,
+                       vn_delta_priced_qty
+                  from pfd_price_fixation_details     pfd,
+                       pofh_price_opt_fixation_header pofh
+                 where pfd.pofh_id = cur_gmr_ele_rows.pofh_id
+                   and pofh.pofh_id = pfd.pofh_id
+                   and pfd.is_delta_pricing = 'Y'
+                   and pofh.is_active = 'Y'
+                   and pfd.is_active = 'Y';
+              exception
+                when no_data_found then
+                  vn_delta_price        := null;
+                  vc_delta_pricing_flag := 'N';
+                  vn_delta_priced_qty   := null;
+              end;
+              if vc_delta_pricing_flag = 'Y' then
+                vn_after_qp_price         := vn_after_price /
+                                             vn_after_count;
+                vn_total_quantity         := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
+                                                                                  cur_gmr_rows.payable_qty_unit_id,
+                                                                                  cur_gmr_rows.qty_unit_id,
+                                                                                  cur_gmr_rows.payable_qty);
+                vn_total_delta_priced_qty := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
+                                                                                  cur_gmr_rows.payable_qty_unit_id,
+                                                                                  cur_gmr_rows.qty_unit_id,
+                                                                                  vn_delta_priced_qty);
+                vn_qty_to_be_priced       := cur_gmr_ele_rows.qty_to_be_priced;
+                vn_delta_avg_price        := (((vn_total_quantity -
+                                             vn_total_delta_priced_qty) *
+                                             vn_after_qp_price) +
+                                             (vn_total_delta_priced_qty *
+                                             vn_delta_price)) /
+                                             vn_total_quantity;
+                vn_total_contract_value   := vn_total_contract_value +
+                                             vn_total_quantity *
+                                             (vn_qty_to_be_priced / 100) *
+                                             vn_delta_avg_price;
+              else
+                vn_after_qp_price       := vn_after_price / vn_after_count;
+                vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
+                                                                                cur_gmr_rows.payable_qty_unit_id,
+                                                                                cur_gmr_rows.qty_unit_id,
+                                                                                cur_gmr_rows.payable_qty);
+                vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
+                vn_total_contract_value := vn_total_contract_value +
+                                           vn_total_quantity *
+                                           (vn_qty_to_be_priced / 100) *
+                                           vn_after_price;
+              
+                ---  vn_total_contract_value := vn_total_contract_value +vn_after_qp_price;
+                -- vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
+                if vc_price_fixation_status <> 'Finalized' then
+                  vc_price_fixation_status := 'Partially Priced';
+                else
+                  vc_price_fixation_status := 'Partially Priced';
+                end if;
+              end if;
             end if;
           end if;
         elsif vc_period = 'During QP' then
@@ -4829,6 +4801,11 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
     vc_prompt_month                varchar2(15);
     vc_prompt_year                 number;
     vc_prompt_date                 date;
+    vn_delta_price                 number;
+    vc_delta_pricing_flag          char(1);
+    vn_delta_priced_qty            number;
+    vn_delta_avg_price             number;
+    vn_total_delta_priced_qty      number;
   
   begin
   
@@ -4888,7 +4865,11 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                                pfqpp.is_qp_any_day_basis,
                                pofh.qty_to_be_fixed,
                                pofh.priced_qty,
-                               pofh.pofh_id
+                               pofh.pofh_id,
+                               pofh.no_of_prompt_days,
+                               pofh.avg_price_in_price_in_cur,
+                               pofh.final_price,
+                               pocd.pay_in_price_unit_id
                           from poch_price_opt_call_off_header poch,
                                pocd_price_option_calloff_dtls pocd,
                                pcbpd_pc_base_price_detail     pcbpd,
@@ -5141,50 +5122,9 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                 vc_price_unit_id        := cc1.ppu_price_unit_id;
               
               elsif vc_period = 'After QP' then
-                vn_after_price := 0;
-                vn_after_count := 0;
-                for pfd_price in (select pfd.user_price,
-                                         pfd.price_unit_id,
-                                         pofh.final_price
-                                    from poch_price_opt_call_off_header poch,
-                                         pocd_price_option_calloff_dtls pocd,
-                                         pofh_price_opt_fixation_header pofh,
-                                         pfd_price_fixation_details     pfd
-                                   where poch.poch_id = pocd.poch_id
-                                     and pocd.pocd_id = pofh.pocd_id
-                                     and pfd.pofh_id = cc1.pofh_id
-                                     and pofh.pofh_id = pfd.pofh_id
-                                     and poch.is_active = 'Y'
-                                     and pocd.is_active = 'Y'
-                                     and pofh.is_active = 'Y'
-                                     and pfd.is_active = 'Y')
-                loop
-                  vn_after_price            := vn_after_price +
-                                               pfd_price.user_price;
-                  vn_after_count            := vn_after_count + 1;
-                  vc_after_qp_price_unit_id := pfd_price.price_unit_id;
-                
-                  if pfd_price.final_price is not null then
-                    vc_price_fixation_status := 'Finalized';
-                  end if;
-                
-                end loop;
-                if vn_after_count = 0 then
-                  vn_after_qp_price        := 0;
-                  vn_total_contract_value  := 0;
-                  vc_price_fixation_status := 'Un-priced';
-                  vn_total_quantity        := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
-                                                                                   cur_pcdi_rows.payable_qty_unit_id,
-                                                                                   cur_pcdi_rows.item_qty_unit_id,
-                                                                                   cur_pcdi_rows.payable_qty);
-                else
-                  if vc_price_fixation_status <> 'Finalized' then
-                    vc_price_fixation_status := 'Partially Priced';
-                  else
-                    vc_price_fixation_status := 'Partially Priced';
-                  end if;
-                  vn_after_qp_price       := vn_after_price /
-                                             vn_after_count;
+                if cc1.avg_price_in_price_in_cur is not null and
+                   cc1.final_price is not null then
+                  vn_after_qp_price       := cc1.avg_price_in_price_in_cur;
                   vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
                                                                                   cur_pcdi_rows.payable_qty_unit_id,
                                                                                   cur_pcdi_rows.item_qty_unit_id,
@@ -5194,7 +5134,111 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                                              vn_total_quantity *
                                              (vn_qty_to_be_priced / 100) *
                                              vn_after_qp_price;
-                  vc_price_unit_id        := vc_after_qp_price_unit_id;
+                  vc_price_unit_id        := cc1.pay_in_price_unit_id;
+                else
+                  vn_after_price := 0;
+                  vn_after_count := 0;
+                  for pfd_price in (select pfd.user_price,
+                                           pfd.price_unit_id,
+                                           pofh.final_price
+                                      from poch_price_opt_call_off_header poch,
+                                           pocd_price_option_calloff_dtls pocd,
+                                           pofh_price_opt_fixation_header pofh,
+                                           pfd_price_fixation_details     pfd
+                                     where poch.poch_id = pocd.poch_id
+                                       and pocd.pocd_id = pofh.pocd_id
+                                       and pfd.pofh_id = cc1.pofh_id
+                                       and pofh.pofh_id = pfd.pofh_id
+                                       and poch.is_active = 'Y'
+                                       and pocd.is_active = 'Y'
+                                       and pofh.is_active = 'Y'
+                                       and nvl(pfd.is_delta_pricing, 'N') = 'N'
+                                       and pfd.is_active = 'Y')
+                  loop
+                    vn_after_price            := vn_after_price +
+                                                 pfd_price.user_price;
+                    vn_after_count            := vn_after_count + 1;
+                    vc_after_qp_price_unit_id := pfd_price.price_unit_id;
+                  
+                    if pfd_price.final_price is not null then
+                      vc_price_fixation_status := 'Finalized';
+                    end if;
+                  
+                  end loop;
+                  if vn_after_count = 0 then
+                    vn_after_qp_price        := 0;
+                    vn_total_contract_value  := 0;
+                    vc_price_fixation_status := 'Un-priced';
+                    vn_total_quantity        := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
+                                                                                     cur_pcdi_rows.payable_qty_unit_id,
+                                                                                     cur_pcdi_rows.item_qty_unit_id,
+                                                                                     cur_pcdi_rows.payable_qty);
+                  else
+                    if vc_price_fixation_status <> 'Finalized' then
+                      vc_price_fixation_status := 'Partially Priced';
+                    else
+                      vc_price_fixation_status := 'Partially Priced';
+                    end if;
+                  
+                    begin
+                      select pfd.user_price,
+                             pfd.is_delta_pricing,
+                             pofh.delta_priced_qty
+                        into vn_delta_price,
+                             vc_delta_pricing_flag,
+                             vn_delta_priced_qty
+                        from pfd_price_fixation_details     pfd,
+                             pofh_price_opt_fixation_header pofh
+                       where pfd.pofh_id = cc1.pofh_id
+                         and pofh.pofh_id = pfd.pofh_id
+                         and pfd.is_delta_pricing = 'Y'
+                         and pofh.is_active = 'Y'
+                         and pfd.is_active = 'Y';
+                    exception
+                      when no_data_found then
+                        vn_delta_price        := null;
+                        vc_delta_pricing_flag := 'N';
+                        vn_delta_priced_qty   := null;
+                    end;
+                    if vc_delta_pricing_flag = 'Y' then
+                      vn_after_qp_price         := vn_after_price /
+                                                   vn_after_count;
+                      vn_total_quantity         := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
+                                                                                        cur_pcdi_rows.payable_qty_unit_id,
+                                                                                        cur_pcdi_rows.item_qty_unit_id,
+                                                                                        cur_pcdi_rows.payable_qty);
+                      vn_total_delta_priced_qty := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
+                                                                                        cur_pcdi_rows.payable_qty_unit_id,
+                                                                                        cur_pcdi_rows.item_qty_unit_id,
+                                                                                        vn_delta_priced_qty);
+                      vn_qty_to_be_priced       := cur_called_off_rows.qty_to_be_priced;
+                      vn_delta_avg_price        := (((vn_total_quantity -
+                                                   vn_total_delta_priced_qty) *
+                                                   vn_after_qp_price) +
+                                                   (vn_total_delta_priced_qty *
+                                                   vn_delta_price)) /
+                                                   vn_total_quantity;
+                      vn_total_contract_value   := vn_total_contract_value +
+                                                   vn_total_quantity *
+                                                   (vn_qty_to_be_priced / 100) *
+                                                   vn_delta_avg_price;
+                      vc_price_unit_id          := vc_after_qp_price_unit_id;
+                    
+                    else
+                      vn_after_qp_price       := vn_after_price /
+                                                 vn_after_count;
+                      vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
+                                                                                      cur_pcdi_rows.payable_qty_unit_id,
+                                                                                      cur_pcdi_rows.item_qty_unit_id,
+                                                                                      cur_pcdi_rows.payable_qty);
+                      vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
+                      vn_total_contract_value := vn_total_contract_value +
+                                                 vn_total_quantity *
+                                                 (vn_qty_to_be_priced / 100) *
+                                                 vn_after_qp_price;
+                      vc_price_unit_id        := vc_after_qp_price_unit_id;
+                    end if;
+                  end if;
                 end if;
               
               elsif vc_period = 'During QP' then
@@ -11748,44 +11792,54 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
              poue.net_m2m_refining_charge        = cur_update_pnl.net_m2m_refining_charge,
              -- poue.expected_cog_net_sale_value    = round(cur_update_pnl.expected_cog_net_sale_value, 3),
              /*poue.unrealized_pnl_in_base_cur     = round(cur_update_pnl.unrealized_pnl_in_base_cur,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                                       
-                                                    
-                                                                 
-                                                                 
-                                                                                           
-                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+             
+             
+             
+                          
+                                                                                                        
+                                                                                                                     
+                                                                                                                                  
                                                                                                                                                             
-                                                                                                                                                                         
                                                                                                                                                                                       
-                                                                                                                                                                                                                
+                                                                                                                                                                                                   
+                                                                                                                                                                                                   
                                                                                                                                                                                                                 
                                                                                                                                                                                                                              
-                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                                    
                                                                                                                                                                                                                                                                                                                                      
                                                                                                                                                                                                                                                                                                                                                                
-                                                                                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                                                                                                                                                   
                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                             
                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  3),*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      3),*/
              poue.contract_price_string     = cur_update_pnl.contract_price_string,
              poue.m2m_price_string          = cur_update_pnl.m2m_price_string,
              poue.contract_rc_tc_pen_string = cur_update_pnl.contract_rc_tc_pen_string,
@@ -13046,44 +13100,54 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
              poue.net_m2m_refining_charge        = cur_update_pnl.net_m2m_refining_charge,
              -- poue.expected_cog_net_sale_value    = round(cur_update_pnl.expected_cog_net_sale_value, 3),
              /*poue.unrealized_pnl_in_base_cur     = round(cur_update_pnl.unrealized_pnl_in_base_cur,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                                       
-                                                    
-                                                                 
-                                                                 
-                                                                                           
-                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+             
+             
+             
+                          
+                                                                                                        
+                                                                                                                     
+                                                                                                                                  
                                                                                                                                                             
-                                                                                                                                                                         
                                                                                                                                                                                       
-                                                                                                                                                                                                                
+                                                                                                                                                                                                   
+                                                                                                                                                                                                   
                                                                                                                                                                                                                 
                                                                                                                                                                                                                              
-                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                                    
                                                                                                                                                                                                                                                                                                                                      
                                                                                                                                                                                                                                                                                                                                                                
-                                                                                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                                                                                                                                                   
                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                             
                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  3),*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      3),*/
              poue.contract_price_string     = cur_update_pnl.contract_price_string,
              poue.m2m_price_string          = cur_update_pnl.m2m_price_string,
              poue.contract_rc_tc_pen_string = cur_update_pnl.contract_rc_tc_pen_string,
@@ -13830,7 +13894,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
     vn_sc_in_base_cur              number;
     vc_price_fixation_status       varchar2(50);
     vc_error_msg                   varchar2(100);
-    vc_ppu_m2m_price_unit_id       varchar2(15);
     vn_trade_day_pnl_per_base_unit number;
     vc_price_string                varchar2(500);
   begin
@@ -14070,16 +14133,16 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
         vn_pnl_in_val_cur := (nvl(vn_expected_cog_in_val_cur, 0) -
                              vn_m2m_total_amount);
       end if;
-      vc_error_msg         := '15';
-      vn_pnl_in_val_cur    := round(vn_pnl_in_val_cur, 2);
-      vn_pnl_in_base_cur   := round(vn_pnl_in_val_cur, 2);
-      vn_pnl_per_base_unit := round(vn_pnl_in_base_cur /
-                                    nvl(vn_qty_in_base, 1),
-                                    5);
-      vc_error_msg         := '16';
-      vc_error_msg         := '17';
+      vc_error_msg              := '15';
+      vn_pnl_in_val_cur         := round(vn_pnl_in_val_cur, 2);
+      vn_pnl_in_base_cur        := round(vn_pnl_in_val_cur, 2);
+      vn_pnl_per_base_unit      := round(vn_pnl_in_base_cur /
+                                         nvl(vn_qty_in_base, 1),
+                                         5);
+      vc_error_msg              := '16';
+      vc_error_msg              := '17';
+      vn_pnl_in_exch_price_unit := 0;
     
-      vn_pnl_in_exch_price_unit      := 0;
       vn_trade_day_pnl_per_base_unit := vn_pnl_in_base_cur / vn_qty_in_base;
       vc_error_msg                   := '18';
     
@@ -14946,7 +15009,6 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
     vn_sc_in_base_cur              number;
     vc_price_fixation_status       varchar2(50);
     vc_error_msg                   varchar2(100);
-    vc_ppu_m2m_price_unit_id       varchar2(15);
     vn_trade_day_pnl_per_base_unit number;
   begin
     for cur_grd_rows in cur_grd
@@ -15139,14 +15201,13 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
         vn_pnl_in_val_cur := (nvl(vn_expected_cog_in_val_cur, 0) -
                              vn_m2m_total_amount);
       end if;
-      vc_error_msg         := '15';
-      vn_pnl_in_val_cur    := round(vn_pnl_in_val_cur, 2);
-      vn_pnl_in_base_cur   := round(vn_pnl_in_val_cur, 2);
-      vn_pnl_per_base_unit := round(vn_pnl_in_base_cur /
-                                    nvl(vn_qty_in_base, 1),
-                                    5);
-      vc_error_msg         := '16';
-    
+      vc_error_msg              := '15';
+      vn_pnl_in_val_cur         := round(vn_pnl_in_val_cur, 2);
+      vn_pnl_in_base_cur        := round(vn_pnl_in_val_cur, 2);
+      vn_pnl_per_base_unit      := round(vn_pnl_in_base_cur /
+                                         nvl(vn_qty_in_base, 1),
+                                         5);
+      vc_error_msg              := '16';
       vn_pnl_in_exch_price_unit := 0;
     
       vn_trade_day_pnl_per_base_unit := vn_pnl_in_base_cur / vn_qty_in_base;
@@ -23028,7 +23089,7 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
         vn_cog_net_sale_value := -1 * (vn_cog_net_sale_value +
                                  abs(vn_sc_in_base_cur));
       else
-        vn_cog_net_sale_value := vn_cog_net_sale_value +
+        vn_cog_net_sale_value := vn_cog_net_sale_value -
                                  abs(vn_sc_in_base_cur);
       end if;
       vc_error_msg := '9';
@@ -23707,7 +23768,7 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
     vn_quality_premium_per_unit    number;
     vn_product_premium             number;
     vn_product_premium_per_unit    number;
-    vn_qty_in_base                 number;
+    vn_qty_in_base_qty_unit_id     number;
     vn_sc_in_base_cur              number;
     vc_price_cur_id                varchar2(15);
     vc_price_cur_code              varchar2(15);
@@ -23845,16 +23906,35 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
              null quality_premium_per_unit,
              pcdb.premium product_premium,
              pcdb.premium_unit_id product_premium_unit_id,
-             prd.item_qty_in_base_qty_unit,
-             prd.item_qty,
-             prd.qty_unit_id,
-             prd.qty_unit,
-             prd.delivery_item_no
+             case
+               when rgmr.is_mc_change_for_sales = 'Y' then
+                dgrd.realized_qty
+               else
+                prd.item_qty
+             end item_qty,
+             case
+               when rgmr.is_mc_change_for_sales = 'Y' then
+                dgrd.net_weight_unit_id
+               else
+                prd.qty_unit_id
+             end qty_unit_id,
+             case
+               when rgmr.is_mc_change_for_sales = 'Y' then
+                qum_dgrd.qty_unit
+               else
+                prd.qty_unit
+             end qty_unit,
+             prd.delivery_item_no,
+             rgmr.is_mc_change_for_sales,
+             rgmr.is_mc_change_for_purchase,
+             prd.item_qty_in_base_qty_unit
         from prd_physical_realized_daily    prd,
              rgmr_realized_gmr              rgmr,
              cipd_contract_item_price_daily cipd,
              gscs_gmr_sec_cost_summary      gscs,
-             pcdb_pc_delivery_basis         pcdb
+             pcdb_pc_delivery_basis         pcdb,
+             dgrd_delivered_grd             dgrd,
+             qum_quantity_unit_master       qum_dgrd
        where rgmr.process_id = pc_process_id
          and prd.int_alloc_group_id = rgmr.int_alloc_group_id
          and prd.sales_internal_gmr_ref_no = rgmr.internal_gmr_ref_no
@@ -23868,6 +23948,9 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
          and prd.contract_type = 'S'
          and prd.internal_contract_ref_no = pcdb.internal_contract_ref_no
          and pcdb.process_id = pc_process_id
+         and dgrd.internal_dgrd_ref_no = prd.internal_grd_ref_no
+         and dgrd.process_id = pc_process_id
+         and qum_dgrd.qty_unit_id = dgrd.net_weight_unit_id
       union
       select pd_trade_date trade_date,
              prd.corporate_id,
@@ -23995,14 +24078,35 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
              invs.quality_premium_per_unit,
              null product_premium,
              null product_premium_unit_id,
-             prd.item_qty_in_base_qty_unit,
-             prd.item_qty,
-             prd.qty_unit_id,
-             prd.qty_unit,
-             prd.delivery_item_no
+             case
+               when rgmr.is_mc_change_for_purchase = 'Y' then
+                agd.qty
+               else
+                prd.item_qty
+             end item_qty,
+             case
+               when rgmr.is_mc_change_for_purchase = 'Y' then
+                agd.qty_unit_id
+               else
+                prd.qty_unit_id
+             end qty_unit_id,
+             case
+               when rgmr.is_mc_change_for_purchase = 'Y' then
+                qum_agd.qty_unit
+               else
+                prd.qty_unit
+             end qty_unit,
+             prd.delivery_item_no,
+             rgmr.is_mc_change_for_sales,
+             rgmr.is_mc_change_for_purchase,
+             prd.item_qty_in_base_qty_unit
         from prd_physical_realized_daily prd,
              rgmr_realized_gmr           rgmr,
-             invs_inventory_sales        invs
+             invs_inventory_sales        invs,
+             grd_goods_record_detail     grd,
+             agh_alloc_group_header      agh,
+             agd_alloc_group_detail      agd,
+             qum_quantity_unit_master    qum_agd
        where rgmr.process_id = pc_process_id
          and prd.int_alloc_group_id = rgmr.int_alloc_group_id
          and prd.sales_internal_gmr_ref_no = rgmr.internal_gmr_ref_no
@@ -24012,7 +24116,14 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
          and invs.sales_internal_gmr_ref_no = prd.sales_internal_gmr_ref_no
          and invs.process_id = pc_process_id
          and invs.is_active = 'Y'
-         and prd.contract_type = 'P';
+         and prd.contract_type = 'P'
+         and grd.internal_grd_ref_no = prd.internal_grd_ref_no
+         and grd.process_id = pc_process_id
+         and agd.internal_stock_ref_no = grd.internal_grd_ref_no
+         and agd.process_id = pc_process_id
+         and agh.int_alloc_group_id = agd.int_alloc_group_id
+         and agh.process_id = pc_process_id
+         and qum_agd.qty_unit_id = agd.qty_unit_id;
     cursor cur_update_pnl is
       select prd.corporate_id,
              prd.int_alloc_group_id,
@@ -24041,14 +24152,18 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
        realized_status,
        realized_process_id,
        realized_process_date,
-       section_name)
+       section_name,
+       is_mc_change_for_sales,
+       is_mc_change_for_purchase)
       select pc_corporate_id,
-             t.sales_internal_gmr_ref_no,
              t.int_alloc_group_id,
+             t.sales_internal_gmr_ref_no,
              'Previously Realized PNL Change',
              tdc.process_id,
              t.trade_date,
-             t.section_name
+             t.section_name,
+             is_mc_change_for_sales,
+             is_mc_change_for_purchase
         from (
               --
               -- Get the 'Realized Today', 'Previously Realized PNL Change' data for EOD/EOM
@@ -24056,7 +24171,9 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
               select prd.sales_internal_gmr_ref_no,
                       prd.int_alloc_group_id,
                       max(prd.trade_date) trade_date,
-                      'Material Cost Change Purchase' section_name
+                      'Material Cost Change Purchase' section_name,
+                      'N' is_mc_change_for_sales,
+                      'Y' is_mc_change_for_purchase
                 from grdl_goods_record_detail_log grdl,
                       grd_goods_record_detail      grd,
                       prd_physical_realized_daily  prd,
@@ -24077,7 +24194,9 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
               select prd.sales_internal_gmr_ref_no,
                      prd.int_alloc_group_id,
                      max(prd.trade_date) trade_date,
-                     'Material Cost Change Sales' section_name
+                     'Material Cost Change Sales' section_name,
+                     'Y' is_mc_change_for_sales,
+                     'N' is_mc_change_for_purchase
                 from dgrdul_delivered_grd_ul     dgrdul,
                      dgrd_delivered_grd          dgrd,
                      prd_physical_realized_daily prd,
@@ -24155,13 +24274,17 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
        internal_gmr_ref_no,
        realized_status,
        realized_process_id,
-       realized_process_date)
+       realized_process_date,
+       is_mc_change_for_sales,
+       is_mc_change_for_purchase)
       select pc_process_id,
              int_alloc_group_id,
              internal_gmr_ref_no,
              realized_status,
              realized_process_id,
-             realized_process_date
+             realized_process_date,
+             max(is_mc_change_for_sales),
+             max(is_mc_change_for_purchase)
         from trgmr_temp_rgmr t
        where t.corporate_id = pc_corporate_id
        group by int_alloc_group_id,
@@ -24250,8 +24373,23 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
   
     for cur_realized_rows in cur_realized
     loop
+      --
+      -- If there is quantity change, this qty is used in this EOD
+      --
+      if (cur_realized_rows.contract_type = 'P' and
+         cur_realized_rows.is_mc_change_for_purchase = 'Y') or
+         (cur_realized_rows.contract_type = 'S' and
+         cur_realized_rows.is_mc_change_for_sales = 'Y') then
+        select pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                    cur_realized_rows.qty_unit_id,
+                                                    cur_realized_rows.base_qty_unit_id,
+                                                    cur_realized_rows.item_qty)
+          into vn_qty_in_base_qty_unit_id
+          from dual;
+      else
+        vn_qty_in_base_qty_unit_id := cur_realized_rows.item_qty_in_base_qty_unit;
+      end if;
     
-      vn_qty_in_base := cur_realized_rows.item_qty_in_base_qty_unit;
       --
       -- Calcualte the New Quality Premium (Sales from Contract and Purchase from INVS)
       --
@@ -24262,11 +24400,12 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
                                 pd_trade_date,
                                 pc_process_id,
                                 vn_quality_premium_per_unit);
-        vn_quality_premium := vn_quality_premium_per_unit * vn_qty_in_base;
+        vn_quality_premium := vn_quality_premium_per_unit *
+                              vn_qty_in_base_qty_unit_id;
       else
         vn_quality_premium_per_unit := cur_realized_rows.quality_premium_per_unit;
         vn_quality_premium          := vn_quality_premium_per_unit *
-                                       vn_qty_in_base;
+                                       vn_qty_in_base_qty_unit_id;
       end if;
       vc_error_msg := '7';
     
@@ -24287,7 +24426,7 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
             vn_product_premium_per_unit := cur_realized_rows.product_premium;
           end if;
           vn_product_premium := round(vn_product_premium_per_unit *
-                                      vn_qty_in_base,
+                                      vn_qty_in_base_qty_unit_id,
                                       2);
         else
           vn_product_premium          := 0;
@@ -24296,13 +24435,13 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
       else
         vn_product_premium_per_unit := cur_realized_rows.product_premium_per_unit;
         vn_product_premium          := vn_product_premium_per_unit *
-                                       vn_qty_in_base;
+                                       vn_qty_in_base_qty_unit_id;
       end if;
       --
       -- Secondary Cost in Base
       --
       vn_sc_in_base_cur := cur_realized_rows.avg_secondary_cost *
-                           vn_qty_in_base;
+                           vn_qty_in_base_qty_unit_id;
     
       --
       -- Pricing Main Currency Details
@@ -24342,7 +24481,7 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
       -- Contratc value in base cur = Price Per Unit in Base * Qty in Base
       -- 
       if cur_realized_rows.contract_type = 'P' then
-        vn_contract_value_in_price_cur := cur_realized_rows.item_qty_in_base_qty_unit *
+        vn_contract_value_in_price_cur := vn_qty_in_base_qty_unit_id *
                                           cur_realized_rows.contract_price;
         vn_contract_value_in_base_cur  := vn_contract_value_in_price_cur;
       
@@ -24585,7 +24724,7 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
          vc_price_cur_id,
          vc_price_cur_code,
          vn_contract_value_in_base_cur,
-         vn_sc_in_base_cur / cur_realized_rows.item_qty_in_base_qty_unit, --secondary_cost_per_unit,
+         vn_sc_in_base_cur / vn_qty_in_base_qty_unit_id, -- secondary_cost_per_unit,
          vn_product_premium_per_unit,
          vn_product_premium,
          vn_quality_premium_per_unit,
@@ -24627,7 +24766,7 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
          cur_realized_rows.group_cur_code,
          cur_realized_rows.group_qty_unit_id,
          cur_realized_rows.group_qty_unit,
-         cur_realized_rows.item_qty_in_base_qty_unit,
+         vn_qty_in_base_qty_unit_id,
          cur_realized_rows.base_qty_unit_id,
          cur_realized_rows.base_qty_unit,
          cur_realized_rows.base_cur_id,
@@ -24732,7 +24871,7 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
              prd.contract_issue_date,
              prd.internal_contract_item_ref_no,
              prd.contract_type,
-             'Realized Not Fixed' unrealized_type,
+             'Realized Not Final Invoiced' unrealized_type,
              prd.profit_center_id,
              prd.profit_center_name,
              prd.profit_center_short_name,
@@ -24805,7 +24944,8 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
              prd.delivery_item_no
         from prd_physical_realized_daily    prd,
              cipd_contract_item_price_daily cipd,
-             agh_alloc_group_header         agh
+             agh_alloc_group_header         agh,
+             gmr_goods_movement_record      gmr
        where (prd.sales_internal_gmr_ref_no, prd.int_alloc_group_id,
               prd.trade_date) in
              (select prd.sales_internal_gmr_ref_no,
@@ -24823,10 +24963,125 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
          and prd.internal_contract_item_ref_no =
              cipd.internal_contract_item_ref_no
          and cipd.process_id = pc_process_id
-         and cipd.price_fixation_status <> 'Fixed' -- As of today contract is not yet fixed
          and agh.int_alloc_group_id = prd.int_alloc_group_id
          and agh.process_id = pc_process_id
-         and agh.is_deleted = 'N'; -- Allocation is Active 
+         and agh.is_deleted = 'N' -- Allocation is Active 
+         and gmr.internal_gmr_ref_no = prd.sales_internal_gmr_ref_no
+         and gmr.process_id = pc_process_id
+         and nvl(gmr.is_final_invoiced, 'N') = 'N' -- As of today FI is not done
+         and prd.contract_type = 'S'
+         and cipd.price_basis <> 'Fixed' -- For Variable contracts only
+      union
+      select prd.corporate_id,
+             prd.corporate_name,
+             pc_process_id,
+             prd.pcdi_id,
+             prd.del_distribution_item_no,
+             prd.internal_contract_ref_no,
+             prd.contract_ref_no,
+             prd.contract_issue_date,
+             prd.internal_contract_item_ref_no,
+             prd.contract_type,
+             'Realized Not Final Invoiced' unrealized_type,
+             prd.profit_center_id,
+             prd.profit_center_name,
+             prd.profit_center_short_name,
+             prd.cp_profile_id cp_id,
+             prd.cp_name,
+             prd.trade_user_id,
+             prd.trade_user_name,
+             prd.product_id,
+             prd.product_name,
+             prd.item_qty,
+             prd.qty_unit_id,
+             prd.qty_unit,
+             prd.quality_id,
+             prd.quality_name,
+             prd.product_name product_desc,
+             prd.price_type_id,
+             prd.price_type_name,
+             prd.price_description price_string,
+             null as delivery_period_string,
+             null fixation_method,
+             cipd.price_fixation_status price_fixation_status,
+             prd.incoterm_id,
+             prd.incoterm,
+             prd.origination_city_id,
+             prd.origination_city_name,
+             prd.origination_country_id,
+             prd.origination_country_name,
+             prd.destination_city_id,
+             prd.destination_city_name,
+             prd.destination_country_id,
+             prd.destination_country_name,
+             prd.payment_term_id,
+             prd.payment_term,
+             prd.price_fixation_details,
+             cipd.contract_price,
+             cipd.price_unit_id,
+             cipd.price_unit_cur_id,
+             cipd.price_unit_cur_code,
+             cipd.price_unit_weight_unit_id,
+             cipd.price_unit_weight_unit,
+             cipd.price_unit_weight,
+             prd.base_cur_id,
+             prd.base_cur_code,
+             prd.realized_date,
+             prd.contract_price realized_price,
+             prd.price_unit_id realized_price_id,
+             prd.price_unit_cur_id realized_price_cur_id,
+             prd.price_unit_cur_code realized_price_cur_code,
+             prd.price_unit_weight_unit_id realized_price_weight_unit,
+             prd.price_unit_weight realized_price_weight,
+             prd.item_qty as realized_qty,
+             prd.qty_unit_id realized_qty_unit_id,
+             prd.group_id,
+             prd.group_name,
+             prd.group_cur_id,
+             prd.group_cur_code,
+             prd.group_qty_unit_id,
+             prd.group_qty_unit,
+             prd.base_qty_unit_id,
+             prd.base_qty_unit,
+             prd.item_qty_in_base_qty_unit qty_in_base_unit,
+             prd.strategy_id,
+             prd.strategy_name,
+             prd.internal_grd_ref_no as realized_internal_stock_ref_no,
+             prd.sales_internal_gmr_ref_no,
+             null sales_gmr_ref_no,
+             prd.base_price_unit_id,
+             prd.internal_grd_ref_no,
+             prd.internal_gmr_ref_no,
+             prd.delivery_item_no
+        from prd_physical_realized_daily    prd,
+             cipd_contract_item_price_daily cipd,
+             agh_alloc_group_header         agh,
+             gmr_goods_movement_record      gmr
+       where (prd.sales_internal_gmr_ref_no, prd.int_alloc_group_id,
+              prd.trade_date) in
+             (select prd.sales_internal_gmr_ref_no,
+                     prd.int_alloc_group_id,
+                     max(prd.trade_date) trade_date
+                from prd_physical_realized_daily prd,
+                     tdc_trade_date_closure      tdc
+               where prd.trade_date = tdc.trade_date
+                 and tdc.process = pc_process
+                 and prd.corporate_id = pc_corporate_id
+                 and prd.realized_type in
+                     ('Realized Today', 'Previously Realized PNL Change')
+               group by prd.sales_internal_gmr_ref_no,
+                        prd.int_alloc_group_id)
+         and prd.internal_contract_item_ref_no =
+             cipd.internal_contract_item_ref_no
+         and cipd.process_id = pc_process_id
+         and agh.int_alloc_group_id = prd.int_alloc_group_id
+         and agh.process_id = pc_process_id
+         and agh.is_deleted = 'N' -- Allocation is Active 
+         and gmr.internal_gmr_ref_no = prd.internal_gmr_ref_no
+         and gmr.process_id = pc_process_id
+         and nvl(gmr.is_final_invoiced, 'N') = 'N' -- As of today FI is not done
+         and prd.contract_type = 'P'
+         and cipd.price_basis <> 'Fixed';
   
     vobj_error_log                 tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count             number := 1;
@@ -24911,7 +25166,8 @@ create or replace package body "PKG_PHY_PHYSICAL_PROCESS" is
           into vn_prev_unr_pnl
           from poud_phy_open_unreal_daily poud_prev_day
          where poud_prev_day.process_id = gvc_previous_process_id
-           and poud_prev_day.unrealized_type = 'Realized Not Fixed'
+           and poud_prev_day.unrealized_type =
+               'Realized Not Final Invoiced'
            and corporate_id = pc_corporate_id
            and poud_prev_day.sales_internal_gmr_ref_no =
                cur_not_fixed_rows.sales_internal_gmr_ref_no

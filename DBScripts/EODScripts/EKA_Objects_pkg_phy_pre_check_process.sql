@@ -5813,6 +5813,8 @@ procedure sp_pre_check_m2m_tolling_extn(pc_corporate_id varchar2,
                                'dd-Mon-yyyy')
                    and qp.product_id = pc_product_id
                    and nvl(qpbm.is_beyond, 'N') = 'Y'
+                   and qpbm.beyond_month is not null
+                   and qpbm.beyond_year is not null
                    and qp.as_on_date <= pd_trade_date) t
          where t.latest_record = 1;
       exception
@@ -5852,6 +5854,8 @@ procedure sp_pre_check_m2m_tolling_extn(pc_corporate_id varchar2,
                                'dd-Mon-yyyy')
                    and qp.product_id = pc_product_id
                    and nvl(qpbm.is_beyond, 'N') = 'Y'
+                   and qpbm.beyond_month is not null
+                   and qpbm.beyond_year is not null
                    and qp.as_on_date <= pd_trade_date) t
          where t.latest_record = 1;
       exception
@@ -5969,6 +5973,8 @@ procedure sp_pre_check_m2m_tolling_extn(pc_corporate_id varchar2,
                                    pc_calendar_year,
                                    'dd-Mon-yyyy')
                        and nvl(mdcbm.is_beyond, 'N') = 'Y'
+                       and mdcbm.beyond_month is not null
+                       and mdcbm.beyond_year is not null
                        and mdcd.valuation_curve_id = cur_vcs_rows.vcs_id
                        and mdcd.charge_type = pc_charge_type) t
              where t.td_rank = 1;
@@ -6043,6 +6049,8 @@ procedure sp_pre_check_m2m_tolling_extn(pc_corporate_id varchar2,
                                    pc_calendar_year,
                                    'dd-Mon-yyyy')
                        and nvl(mdcbm.is_beyond, 'N') = 'Y'
+                       and mdcbm.beyond_month is not null
+                       and mdcbm.beyond_year is not null
                        and mdcd.valuation_curve_id = cur_vcs_rows.vcs_id
                        and mdcd.charge_type = pc_charge_type) t
              where t.td_rank = 1;          
@@ -6148,6 +6156,8 @@ procedure sp_pre_check_m2m_tolling_extn(pc_corporate_id varchar2,
                                pc_calendar_year,
                                'dd-Mon-yyyy')
                    and nvl(ppbm.is_beyond, 'N') = 'Y'
+                   and ppbm.beyond_month is not null
+                   and ppbm.beyond_year  is not null
                    and pp.as_on_date <= pd_trade_date) t
          where t. latest_record = 1;
       exception
@@ -6186,6 +6196,8 @@ procedure sp_pre_check_m2m_tolling_extn(pc_corporate_id varchar2,
                                pc_calendar_year,
                                'dd-Mon-yyyy')
                    and nvl(ppbm.is_beyond, 'N') = 'Y'
+                   and ppbm.beyond_month is not null
+                   and ppbm.beyond_year is not null
                    and pp.as_on_date <= pd_trade_date) t
          where t. latest_record = 1;
         pn_pp_amt := vn_premium;
