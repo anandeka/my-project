@@ -197,7 +197,7 @@ create or replace package "PKG_PHY_POPULATE_DATA" is
                                pd_trade_date   date,
                                pc_user_id      varchar2);
 
-end pkg_phy_populate_data; 
+end pkg_phy_populate_data;
 /
 create or replace package body "PKG_PHY_POPULATE_DATA" is
 
@@ -3870,9 +3870,9 @@ case when (SUM(case
              end)) = 0 then 'N' ELSE 'Y' END  Pi_done
 from is_invoice_summary          is1,
      iid_invoicable_item_details iid
- where is1.invoice_status = 'Active'
+ where is1.is_active ='Y'
    and is1.corporate_id = pc_corporate_id
-and IS1.INVOICE_TYPE_NAME in ('Final', 'Provisional')
+and is1.invoice_type_name in ('Final', 'Provisional')
  and is1.dbd_id = gvc_dbd_id
    and is1.internal_invoice_ref_no = iid.internal_invoice_ref_no
    and gmr.dbd_id = gvc_dbd_id
