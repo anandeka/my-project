@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0372
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  4-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  DEV
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Appoval
+ 
+Sub-Module  			 :  set up
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 86482
+Author: girishkv
+Date: 2:13:36 PM, Saturday, February 04, 2012
+Message:
+ACS table added approval.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_182.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_174.sql
+
+
+
+
+
+
+
