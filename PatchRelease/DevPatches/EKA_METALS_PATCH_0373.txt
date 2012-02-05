@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0373
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit Gupta
+ 
+Created on*        		:  5-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  DEV
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  COG
+ 
+Sub-Module  			 :  COG
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 86514
+Author: mohitkumar.gupta
+Date: 4:06:32 PM, Sunday, February 05, 2012
+Message:
+COG:-For inventory Qty modify.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_175.sql
+
+
+
+
+
+
