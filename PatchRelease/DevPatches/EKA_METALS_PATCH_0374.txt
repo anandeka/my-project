@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0374
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  B Ravi Kumar
+ 
+Created on*        		:  6-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  DEV
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoicing
+ 
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 86568
+Author: b.ravikumar
+Date: 4:20:35 PM, Monday, February 06, 2012
+Message:
+GMC changes for API on tolling contracts
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_183.sql
+
+
+
+
+
+
+
