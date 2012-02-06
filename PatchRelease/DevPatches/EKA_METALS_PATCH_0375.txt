@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0375
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  6-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  DEV
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+ 
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 86588
+Author: pradeep.kumar
+Date: 7:13:58 PM, Monday, February 06, 2012
+Message:
+-- Added ETA in List Of GMR
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR.SQL
+
+
+
+
+
+
+
