@@ -1,16 +1,19 @@
-
 Insert into ACS_APPROVAL_CONFIG_SETUP
-   (ENTITY_TYPE, APPROVAL, ISACTIVE)
+   (ACS_ID,ENTITY_TYPE, APPROVAL, ISACTIVE)
  Values
-   ('Sales', 'Always', 'Y');
+   ('1','Sales', 'Always', 'Y');
    
    Insert into ACS_APPROVAL_CONFIG_SETUP
-   (ENTITY_TYPE, APPROVAL, ISACTIVE)
+   (ACS_ID,ENTITY_TYPE, APPROVAL, ISACTIVE)
  Values
-   ('Sales', 'On Occurence Of', 'N');
+   ('2','Sales', 'On Occurence Of', 'N');
    
-   Insert into ACS_APPROVAL_CONFIG_SETUP
-   (ENTITY_TYPE, APPROVAL, ISACTIVE)
+Insert into aes_approval_event_setup
+   (aes_id,acs_id, event_type)
  Values
-   ('Sales', 'Not Required', 'N');
+   ('1','1','Approve');
    
+   Insert into aes_approval_event_setup
+   (aes_id,acs_id, event_type)
+ Values
+   ('2','2','Credit breach');
