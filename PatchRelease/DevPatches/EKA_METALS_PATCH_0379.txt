@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0379
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  8-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  DEV
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics 
+ 
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 86791
+Author: anupkumar.agarwal
+Date: 6:09:01 PM, Wednesday, February 08, 2012
+Message:
+1: Added New Columns In GMR ,GMRUL, AGMR, GRD, AGRD, DGRD, DGRDUL,AGRD
+2: View For Metal Balance Transfer  To Get Base Vs Concentrates Product Details
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_BASE_VS_CONC_PRODUCT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_178.sql
+
+
+
+
+
+
+
+
+
+
+
+
