@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0382
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		 : Anup Kumar Agarwal
+ 
+Created on*        		  :  9-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		  :  NA
+
+==================================================================
+Branch (DEV / REL)*	  :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	   :  Logistics
+ 
+Sub-Module  		   :  
+ 
+Section   		   :  N/A
+ 
+Screen		           	   :  N/A
+ 
+FS Number and Clause No.	   :  N/A
+ 
+FS Enhancement details 	    :  N/A
+ 
+FS Amendment details   	    :  N/A
+
+Dependent patches:	    :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 86879
+Author: anupkumar.agarwal
+Date: 5:15:09 PM, Thursday, February 09, 2012
+Message:
+Listing Of Metal Balance transfer Script
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_186.sql
+
+
