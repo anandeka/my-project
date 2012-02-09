@@ -1,4 +1,5 @@
-define APP_SCHEMA=TRAXYS_AUTOMATION_APP.
+define APP_SCHEMA=TRAXYS_APP.
+define EOD_SCHEMA=TRAXYS_EOD.
 
 
 /* Formatted on 2011/10/21 12:38 (Formatter Plus v4.8.8) */
@@ -725,7 +726,7 @@ AS
             rlt_risk_limit_type rlt,
             v_cm_currency_master cm,
             v_qum_quantity_unit qum,
-            pe_metals_build3_eod.tre_trader_risk_exposure eod
+            EOD_SCHEMA.tre_trader_risk_exposure eod
       WHERE rle.rlt_id = rlt.rlt_id
         AND rlt.risk_type = 'TRADER RISK LIMIT'
         AND rle.exposure_curr_id = cm.cur_id
@@ -1419,7 +1420,7 @@ AS
             rlt_risk_limit_type rlt,
             v_cm_currency_master cm,
             v_qum_quantity_unit qum,
-            pe_metals_build3_eod.cre_cp_risk_exposure eod
+            EOD_SCHEMA.cre_cp_risk_exposure eod
       WHERE rle.rlt_id = rlt.rlt_id
         AND rlt.risk_type = 'CP RISK LIMIT'
         AND rle.exposure_curr_id = cm.cur_id
@@ -2193,18 +2194,18 @@ AS
                    is_cash_settlement, is_physical_settlement,
                    MAX (drt.created_date) OVER (PARTITION BY 1) created_date,
                    'N' is_phy_val_curve
-              FROM traxys_automation_app.v_cdc_derivative_master drm,
-                   traxys_automation_app.dim_der_instrument_master dim,
-                   traxys_automation_app.pdd_product_derivative_def pdd,
-                   traxys_automation_app.emt_exchangemaster emt,
-                   traxys_automation_app.irm_instrument_type_master irm,
-                   traxys_automation_app.pac_product_asset_class pac,
-                   traxys_automation_app.pum_price_unit_master pum,
-                   traxys_automation_app.pdm_productmaster pdm,
-                   traxys_automation_app.v_cdc_derivative_trade drt,
-                   traxys_automation_app.cm_currency_master cm,
-                   traxys_automation_app.clm_calendar_master clm,
-                   traxys_automation_app.qat_quality_attributes qat
+              FROM APP_SCHEMA.v_cdc_derivative_master drm,
+                   APP_SCHEMA.dim_der_instrument_master dim,
+                   APP_SCHEMA.pdd_product_derivative_def pdd,
+                   APP_SCHEMA.emt_exchangemaster emt,
+                   APP_SCHEMA.irm_instrument_type_master irm,
+                   APP_SCHEMA.pac_product_asset_class pac,
+                   APP_SCHEMA.pum_price_unit_master pum,
+                   APP_SCHEMA.pdm_productmaster pdm,
+                   APP_SCHEMA.v_cdc_derivative_trade drt,
+                   APP_SCHEMA.cm_currency_master cm,
+                   APP_SCHEMA.clm_calendar_master clm,
+                   APP_SCHEMA.qat_quality_attributes qat
              WHERE drt.dr_id = drm.dr_id
                AND drm.instrument_id = dim.instrument_id
                AND dim.product_derivative_id = pdd.derivative_def_id
@@ -2233,23 +2234,23 @@ AS
                    is_cash_settlement, is_physical_settlement,
                    MAX (pcm.issue_date) OVER (PARTITION BY 1) created_date,
                    'Y' is_phy_val_curve
-              FROM traxys_automation_app.v_cdc_derivative_master drm,
-                   traxys_automation_app.dim_der_instrument_master dim,
-                   traxys_automation_app.pdd_product_derivative_def pdd,
-                   traxys_automation_app.emt_exchangemaster emt,
-                   traxys_automation_app.irm_instrument_type_master irm,
-                   traxys_automation_app.pac_product_asset_class pac,
-                   traxys_automation_app.pum_price_unit_master pum,
-                   traxys_automation_app.pdm_productmaster pdm,
-                   traxys_automation_app.pci_physical_contract_item pci,
-                   traxys_automation_app.pcm_physical_contract_main pcm,
-                   traxys_automation_app.pip_physical_item_pricing pip,
-                   traxys_automation_app.ppu_product_price_units ppu,
-                   traxys_automation_app.piq_physical_item_quality piq,
-                   traxys_automation_app.cm_currency_master cm,
-                   traxys_automation_app.clm_calendar_master clm,
-                   traxys_automation_app.qat_quality_attributes qat,
-                   traxys_automation_app.v_contract_item_val_month vcim
+              FROM APP_SCHEMA.v_cdc_derivative_master drm,
+                   APP_SCHEMA.dim_der_instrument_master dim,
+                   APP_SCHEMA.pdd_product_derivative_def pdd,
+                   APP_SCHEMA.emt_exchangemaster emt,
+                   APP_SCHEMA.irm_instrument_type_master irm,
+                   APP_SCHEMA.pac_product_asset_class pac,
+                   APP_SCHEMA.pum_price_unit_master pum,
+                   APP_SCHEMA.pdm_productmaster pdm,
+                   APP_SCHEMA.pci_physical_contract_item pci,
+                   APP_SCHEMA.pcm_physical_contract_main pcm,
+                   APP_SCHEMA.pip_physical_item_pricing pip,
+                   APP_SCHEMA.ppu_product_price_units ppu,
+                   APP_SCHEMA.piq_physical_item_quality piq,
+                   APP_SCHEMA.cm_currency_master cm,
+                   APP_SCHEMA.clm_calendar_master clm,
+                   APP_SCHEMA.qat_quality_attributes qat,
+                   APP_SCHEMA.v_contract_item_val_month vcim
              WHERE pci.internal_contract_ref_no = pcm.internal_contract_ref_no
                AND ppu.product_id = pdm.product_id
                AND ppu.internal_price_unit_id = pip.price_unit_id
@@ -2306,7 +2307,7 @@ AS
             SUM (eod.qty_exposure) qty_exposure,
             (  rle.qty_exposure
              - SUM
-                  (traxys_automation_app.pkg_general.f_get_converted_quantity
+                  (APP_SCHEMA.pkg_general.f_get_converted_quantity
                                                     (rle.product_id,
                                                      eod.qty_exp_unit_id,
                                                      rle.exposure_qty_unit_id,
@@ -2318,7 +2319,7 @@ AS
             SUM (eod.value_exposure) value_exposure,
             (  rle.value_exposure
              - SUM
-                  (traxys_automation_app.pkg_general.f_get_converted_currency_amt
+                  (APP_SCHEMA.pkg_general.f_get_converted_currency_amt
                                                         (rle.product_id,
                                                          eod.value_exp_cur_id,
                                                          rle.exposure_curr_id,
@@ -2330,7 +2331,7 @@ AS
             rle.mtm_exposure, SUM (eod.m2m_exposure) m2m_exposure,
             (  rle.mtm_exposure
              - SUM
-                  (traxys_automation_app.pkg_general.f_get_converted_currency_amt
+                  (APP_SCHEMA.pkg_general.f_get_converted_currency_amt
                                                         (rle.product_id,
                                                          eod.value_exp_cur_id,
                                                          rle.exposure_curr_id,
@@ -2353,7 +2354,7 @@ AS
             rlt_risk_limit_type rlt,
             v_cm_currency_master cm,
             v_qum_quantity_unit qum,
-            TRAXYS_AUTOMATION_EOD.tre_trader_risk_exposure eod
+            EOD_SCHEMA.tre_trader_risk_exposure eod
       WHERE rle.rlt_id = rlt.rlt_id
         AND rlt.risk_type = 'TRADER RISK LIMIT'
         AND rle.exposure_curr_id = cm.cur_id
@@ -2416,7 +2417,7 @@ AS
             SUM (eod.qty_exposure) qty_exposure,
             (  rle.qty_exposure
              - SUM
-                  (traxys_automation_app.pkg_general.f_get_converted_quantity
+                  (APP_SCHEMA.pkg_general.f_get_converted_quantity
                                                     (rle.product_id,
                                                      eod.qty_exp_unit_id,
                                                      rle.exposure_qty_unit_id,
@@ -2428,7 +2429,7 @@ AS
             SUM (eod.value_exposure) value_exposure,
             (  rle.value_exposure
              - SUM
-                  (traxys_automation_app.pkg_general.f_get_converted_currency_amt
+                  (APP_SCHEMA.pkg_general.f_get_converted_currency_amt
                                                         (rle.product_id,
                                                          eod.value_exp_cur_id,
                                                          rle.exposure_curr_id,
@@ -2440,7 +2441,7 @@ AS
             rle.mtm_exposure, SUM (eod.m2m_exposure) m2m_exposure,
             (  rle.mtm_exposure
              - SUM
-                  (traxys_automation_app.pkg_general.f_get_converted_currency_amt
+                  (APP_SCHEMA.pkg_general.f_get_converted_currency_amt
                                                         (rle.product_id,
                                                          eod.value_exp_cur_id,
                                                          rle.exposure_curr_id,
@@ -2463,7 +2464,7 @@ AS
             rlt_risk_limit_type rlt,
             v_cm_currency_master cm,
             v_qum_quantity_unit qum,
-            TRAXYS_AUTOMATION_EOD.cre_cp_risk_exposure eod
+            EOD_SCHEMA.cre_cp_risk_exposure eod
       WHERE rle.rlt_id = rlt.rlt_id
         AND rlt.risk_type = 'CP RISK LIMIT'
         AND rle.exposure_curr_id = cm.cur_id
