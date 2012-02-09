@@ -42,8 +42,9 @@ SQL Files:
 
 Event Based GMR Price is coming as zero
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql(Revision: 86849)
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_dqd_derivative_quote_detail.sql(Revision: 86849)
+
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_drm_multiple_prompt.sql(Revision: 86849)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_dqd_derivative_quote_detail.sql(Revision: 86849)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql(Revision: 86849)
 
 
