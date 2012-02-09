@@ -46,7 +46,13 @@ Message:
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_BASE_VS_CONC_PRODUCT.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_178.sql
 
-
+Revision: 86818
+Author: babulal.meena
+Date: 11:11:41 AM, Thursday, February 09, 2012
+Message:
+MBT changes Started 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_METAL_ACCOUNTS_TRANSACTIONS.sql
 
 
 
