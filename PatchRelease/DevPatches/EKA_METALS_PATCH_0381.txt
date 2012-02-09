@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0381
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		 :  Pradeep Kumar Behera
+ 
+Created on*        		  :  9-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		  :  NA
+
+==================================================================
+Branch (DEV / REL)*	  :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	   :  Logistics
+ 
+Sub-Module  		   :  
+ 
+Section   		   :  N/A
+ 
+Screen		           	   :  N/A
+ 
+FS Number and Clause No.	   :  N/A
+ 
+FS Enhancement details 	    :  N/A
+ 
+FS Amendment details   	    :  N/A
+
+Dependent patches:	    :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 86877
+Author: pradeep.kumar
+Date: 5:06:40 PM, Thursday, February 09, 2012
+Message:
+-- Added for mode of transport
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_185.sql
+
+Revision: 86875
+Author: pradeep.kumar
+Date: 5:04:04 PM, Thursday, February 09, 2012
+Message:
+-- Added for mode of transport
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR.SQL
+
