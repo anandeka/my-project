@@ -382,7 +382,7 @@ create or replace package body pkg_price is
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -395,7 +395,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_before_price_dr_id
                              and dq.instrument_id =
@@ -569,7 +569,7 @@ create or replace package body pkg_price is
                     into vn_during_val_price,
                          vc_during_val_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -582,7 +582,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_during_price_dr_id
                              and dq.instrument_id =
@@ -835,7 +835,7 @@ create or replace package body pkg_price is
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -848,7 +848,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_before_price_dr_id
                              and dq.instrument_id =
@@ -947,7 +947,7 @@ create or replace package body pkg_price is
                     into vn_after_qp_price,
                          vc_after_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_after_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -960,7 +960,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_after_price_dr_id
                              and dq.instrument_id =
@@ -1059,7 +1059,7 @@ create or replace package body pkg_price is
                     into vn_during_qp_price,
                          vc_during_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -1072,7 +1072,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_during_price_dr_id
                              and dq.instrument_id =
@@ -1388,7 +1388,7 @@ create or replace package body pkg_price is
             into vn_before_qp_price,
                  vc_before_qp_price_unit_id
             from dq_derivative_quotes        dq,
-                 dqd_derivative_quote_detail dqd
+                 v_dqd_derivative_quote_detail dqd
            where dq.dq_id = dqd.dq_id
              and dqd.dr_id = vc_before_price_dr_id
              and dq.instrument_id = cur_gmr_rows.instrument_id
@@ -1400,7 +1400,7 @@ create or replace package body pkg_price is
              and dq.trade_date =
                  (select max(dq.trade_date)
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
                      and dq.instrument_id = cur_gmr_rows.instrument_id
@@ -1554,7 +1554,7 @@ create or replace package body pkg_price is
             into vn_during_val_price,
                  vc_during_val_price_unit_id
             from dq_derivative_quotes        dq,
-                 dqd_derivative_quote_detail dqd
+                 v_dqd_derivative_quote_detail dqd
            where dq.dq_id = dqd.dq_id
              and dqd.dr_id = vc_during_price_dr_id
              and dq.instrument_id = cur_gmr_rows.instrument_id
@@ -1566,7 +1566,7 @@ create or replace package body pkg_price is
              and dq.trade_date =
                  (select max(dq.trade_date)
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
                      and dq.instrument_id = cur_gmr_rows.instrument_id
@@ -2046,7 +2046,7 @@ create or replace package body pkg_price is
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -2059,7 +2059,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_before_price_dr_id
                              and dq.instrument_id =
@@ -2244,7 +2244,7 @@ create or replace package body pkg_price is
                     into vn_during_val_price,
                          vc_during_val_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -2257,7 +2257,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_during_price_dr_id
                              and dq.instrument_id =
@@ -2521,7 +2521,7 @@ create or replace package body pkg_price is
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -2534,7 +2534,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_before_price_dr_id
                              and dq.instrument_id =
@@ -2636,7 +2636,7 @@ create or replace package body pkg_price is
                     into vn_after_qp_price,
                          vc_after_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_after_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -2649,7 +2649,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_after_price_dr_id
                              and dq.instrument_id =
@@ -2751,7 +2751,7 @@ create or replace package body pkg_price is
                     into vn_during_qp_price,
                          vc_during_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -2764,7 +2764,7 @@ create or replace package body pkg_price is
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes        dq,
-                                 dqd_derivative_quote_detail dqd
+                                 v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_during_price_dr_id
                              and dq.instrument_id =
@@ -3153,7 +3153,7 @@ create or replace package body pkg_price is
               into vn_before_qp_price,
                    vc_before_qp_price_unit_id
               from dq_derivative_quotes        dq,
-                   dqd_derivative_quote_detail dqd
+                   v_dqd_derivative_quote_detail dqd
              where dq.dq_id = dqd.dq_id
                and dqd.dr_id = vc_before_price_dr_id
                and dq.instrument_id = cur_gmr_rows.instrument_id
@@ -3165,7 +3165,7 @@ create or replace package body pkg_price is
                and dq.trade_date =
                    (select max(dq.trade_date)
                       from dq_derivative_quotes        dq,
-                           dqd_derivative_quote_detail dqd
+                           v_dqd_derivative_quote_detail dqd
                      where dq.dq_id = dqd.dq_id
                        and dqd.dr_id = vc_before_price_dr_id
                        and dq.instrument_id = cur_gmr_rows.instrument_id
@@ -3340,7 +3340,7 @@ create or replace package body pkg_price is
               into vn_during_val_price,
                    vc_during_val_price_unit_id
               from dq_derivative_quotes        dq,
-                   dqd_derivative_quote_detail dqd
+                   v_dqd_derivative_quote_detail dqd
              where dq.dq_id = dqd.dq_id
                and dqd.dr_id = vc_during_price_dr_id
                and dq.instrument_id = cur_gmr_rows.instrument_id
@@ -3352,7 +3352,7 @@ create or replace package body pkg_price is
                and dq.trade_date =
                    (select max(dq.trade_date)
                       from dq_derivative_quotes        dq,
-                           dqd_derivative_quote_detail dqd
+                           v_dqd_derivative_quote_detail dqd
                      where dq.dq_id = dqd.dq_id
                        and dqd.dr_id = vc_during_price_dr_id
                        and dq.instrument_id = cur_gmr_rows.instrument_id
