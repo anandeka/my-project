@@ -1,0 +1,73 @@
+Patch No*          		:  EKA_METALS_PATCH_0386
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  10-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	  :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Reports
+ 
+Sub-Module  		        :  
+ 
+Section   			:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 86999
+Author: elaiyaraja.nallathambi
+Date: 7:58:24 PM, Friday, February 10, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_ASSAY_COMPARISION.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_CASH_FLOW.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_LOGISTICS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_FACT_PHY_UNREAL_FIXED_PRICE.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_mv_bi_list_of_pledge_gmr.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_mv_bi_metal_acc_transactions.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_report_general.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_ASSAY_COMPARISION.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_CASH_FLOW.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_LOGISTICS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_list_of_pledge_gmr.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_metal_acc_transactions.sql
+
+Revision: 87000
+Author: elaiyaraja.nallathambi
+Date: 7:59:12 PM, Friday, February 10, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_187.txt
+
+
+
+
+
+
+
+
