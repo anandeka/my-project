@@ -1,0 +1,44 @@
+SET DEFINE OFF;
+update AMC_APP_MENU_CONFIGURATION amc 
+set AMC.LINK_CALLED = '/ekaBI/biSpecificAction.do?method=getBIPage&URL_PROPERTY=CFMURL'
+where AMC.TAB_ID = 'Analytics' 
+  and AMC.MENU_ID = 'BI-4';
+COMMIT;
+
+delete from AMC_APP_MENU_CONFIGURATION amc
+where amc.menu_id in ('BI-3','BI-5','BI-6','BI-8','BI-9','BI-10','BI-11','BI-12','BI-13');
+Commit;
+
+
+SET DEFINE OFF;
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
+    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+ Values
+   ('BI-9', 'Physical Position Manager', 2, 2, '/ekaBI/biSpecificAction.do?method=getBIPage&URL_PROPERTY=PPMURL', 
+    NULL, 'BI-1', NULL, 'Analytics', NULL);
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
+    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+ Values
+   ('BI-10', 'Pledge', 5, 2, '/ekaBI/biSpecificAction.do?method=getBIPage&URL_PROPERTY=PRURL', 
+    NULL, 'BI-1', NULL, 'Analytics', NULL);
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
+    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+ Values
+   ('BI-11', 'Assay Comparision', 6, 2, '/ekaBI/biSpecificAction.do?method=getBIPage&URL_PROPERTY=ACMURL', 
+    NULL, 'BI-1', NULL, 'Analytics', NULL);
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
+    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+ Values
+   ('BI-12', 'Metal Account', 7, 2, '/ekaBI/biSpecificAction.do?method=getBIPage&URL_PROPERTY=MAURL', 
+    NULL, 'BI-1', NULL, 'Analytics', NULL);
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
+    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID)
+ Values
+   ('BI-13', 'Logistics', 8, 2, '/ekaBI/biSpecificAction.do?method=getBIPage&URL_PROPERTY=LMURL', 
+    NULL, 'BI-1', NULL, 'Analytics', NULL);
+COMMIT;
