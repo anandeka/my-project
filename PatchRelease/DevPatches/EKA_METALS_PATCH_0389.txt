@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_0389
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar reddy
+ 
+Created on*        		:  13-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	  :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Assay
+ 
+Sub-Module  		        :  
+ 
+Section   			:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 87048
+Author: rajeshwar.reddy
+Date: 15:46:18, 13 February 2012
+Message:
+MININGPROVISIONALASSAY.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_188.sql
+
+
+
+
