@@ -1,0 +1,12 @@
+Insert into ARF_ACTION_REF_NUMBER_FORMAT
+   (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
+    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
+ Values
+   ('ARF-FS-&corpId, 'FSRefNo', '&corpId', 'FS-', 1, 
+    1, '-&corpId', 1, 'N');
+
+
+Insert into ARFM_ACTION_REF_NO_MAPPING
+   (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
+ Values
+   ('ARFM-FS-&corpId', '&corpId', 'financialSettlement', 'FSRefNo', 'N');
