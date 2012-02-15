@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0392
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Baiju Kaimalal
+ 
+Created on*        		:  15-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	  :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  General
+ 
+Sub-Module  		        :  
+ 
+Section   			:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 87242
+Author: baijukaimala
+Date: Wednesday, February 15, 2012 10:25:17 PM
+Message:
+DB Patch for Menu navigation changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_191.sql
+
+l
+
+
+
+
+
+
