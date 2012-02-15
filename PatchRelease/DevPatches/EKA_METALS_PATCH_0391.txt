@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0391
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+ 
+Created on*        		:  15-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	  :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Logistics
+ 
+Sub-Module  		        :  
+ 
+Section   			:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 87205
+Author: anupkumar.agarwal
+Date: 6:54:46 PM, Wednesday, February 15, 2012
+Message:
+Financial settlement And Metal balance Operation Scripts 
+
+Master Scripts & Corporate Scripts  For Financial Settlement .
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_42.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_190.sql
+
+
+
+
+
+
