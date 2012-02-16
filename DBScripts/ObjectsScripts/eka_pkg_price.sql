@@ -193,6 +193,7 @@ create or replace package body pkg_price is
     vc_prompt_month                varchar2(15);
     vc_prompt_year                 number;
     vc_prompt_date                 date;
+    vn_no_of_trading_days          number;
   begin
     for cur_pcdi_rows in cur_pcdi
     loop
@@ -627,7 +628,12 @@ create or replace package body pkg_price is
                       END IF;
                       vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
                   END LOOP;*/
-                  vn_count_val_qp           := cc1.no_of_prompt_days -
+                  vn_no_of_trading_days:=pkg_general.f_get_instrument_trading_days(cur_pcdi_rows.instrument_id,
+                                                                                   vd_qp_start_date,
+                                                                                   vd_qp_end_date);
+                                                                                          
+                                                                                   
+                  vn_count_val_qp           := vn_no_of_trading_days -
                                                vn_count_set_qp;
                   vn_during_total_val_price := vn_during_total_val_price +
                                                vn_during_val_price *
@@ -1143,7 +1149,7 @@ create or replace package body pkg_price is
                 from grd_goods_record_detail grd
                where grd.status = 'Active'
                  and grd.is_deleted = 'N'
-                 and nvl(grd.inventory_status, 'NA') <> 'Out'
+               --and nvl(grd.inventory_status, 'NA') <> 'Out'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id) grd,
@@ -1205,7 +1211,7 @@ create or replace package body pkg_price is
                      grd.product_id
                 from dgrd_delivered_grd grd
                where grd.status = 'Active'
-                 and nvl(grd.inventory_status, 'NA') <> 'Out'
+              --  and nvl(grd.inventory_status, 'NA') <> 'Out'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id) grd,
@@ -1837,6 +1843,7 @@ create or replace package body pkg_price is
     vc_prompt_month                varchar2(15);
     vc_prompt_year                 number;
     vc_prompt_date                 date;
+    vn_no_of_trading_days          number;
   begin
     for cur_pcdi_rows in cur_pcdi
     loop
@@ -2302,7 +2309,10 @@ create or replace package body pkg_price is
                       END IF;
                       vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
                   END LOOP;*/
-                  vn_count_val_qp           := cc1.no_of_prompt_days -
+                  vn_no_of_trading_days:=pkg_general.f_get_instrument_trading_days(cur_pcdi_rows.instrument_id,
+                                                                                   vd_qp_start_date,
+                                                                                   vd_qp_end_date);
+                  vn_count_val_qp           := vn_no_of_trading_days -
                                                vn_count_set_qp;
                   vn_during_total_val_price := vn_during_total_val_price +
                                                vn_during_val_price *
@@ -2840,7 +2850,7 @@ create or replace package body pkg_price is
                 from grd_goods_record_detail grd
                where grd.status = 'Active'
                  and grd.is_deleted = 'N'
-                 and nvl(grd.inventory_status, 'NA') <> 'Out'
+                -- and nvl(grd.inventory_status, 'NA') <> 'Out'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id) grd,
@@ -2917,7 +2927,7 @@ create or replace package body pkg_price is
                      grd.product_id
                 from dgrd_delivered_grd grd
                where grd.status = 'Active'
-                 and nvl(grd.inventory_status, 'NA') <> 'Out'
+                -- and nvl(grd.inventory_status, 'NA') <> 'Out'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id) grd,
