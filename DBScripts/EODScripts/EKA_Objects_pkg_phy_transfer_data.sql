@@ -39,7 +39,7 @@ create or replace package pkg_phy_transfer_data is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -558,6 +558,16 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('II_INVOICABLE_ITEM', 'c');
       dbms_mview.refresh('IID_INVOICABLE_ITEM_DETAILS', 'c');
       dbms_mview.refresh('SCM_STOCK_COST_MAPPING', 'c');
+      dbms_mview.refresh('GTH_GMR_TREATMENT_HEADER','c');
+      dbms_mview.refresh('GRH_GMR_REFINING_HEADER','c');
+      dbms_mview.refresh('GPH_GMR_PENALTY_HEADER','c');
+      dbms_mview.refresh('SAC_STOCK_ASSAY_CONTENT','c');
+      dbms_mview.refresh('IIED_INV_ITEM_ELEMENT_DETAILS','c');
+      dbms_mview.refresh('INTC_INV_TREATMENT_CHARGES','c');
+      dbms_mview.refresh('INRC_INV_REFINING_CHARGES','c');
+      dbms_mview.refresh('IEPD_INV_EPENALTY_DETAILS','c');
+      dbms_mview.refresh('IAM_INVOICE_ASSAY_MAPPING','c');
+      dbms_mview.refresh('IAM_INVOICE_ACTION_MAPPING','c');
     end if;
   exception
     when others then
@@ -2550,6 +2560,21 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        rail_car_no,
        sdcts_id,
        partnership_type,
+       is_trans_ship,
+       is_mark_for_tolling,
+       tolling_qty,
+       tolling_stock_type,
+       element_id,
+       expected_sales_ccy,
+       profit_center_id,
+       strategy_id,
+       is_warrant,
+       warrant_no,
+       pcdi_id,
+       supp_contract_item_ref_no,
+       supplier_pcdi_id,
+       payable_returnable_type,
+       carry_over_qty,
        dbd_id)
       select ul.internal_grd_ref_no,
              ul.internal_action_ref_no,
@@ -2645,6 +2670,21 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.rail_car_no,
              ul.sdcts_id,
              ul.partnership_type,
+             ul.is_trans_ship,
+             ul.is_mark_for_tolling,
+             ul.tolling_qty,
+             ul.tolling_stock_type,
+             ul.element_id,
+             ul.expected_sales_ccy,
+             ul.profit_center_id,
+             ul.strategy_id,
+             ul.is_warrant,
+             ul.warrant_no,
+             ul.pcdi_id,
+             ul.supp_contract_item_ref_no,
+             ul.supplier_pcdi_id,
+             ul.payable_returnable_type,
+             ul.carry_over_qty,
              pc_dbd_id
         from grdl_goods_record_detail_log@eka_appdb ul,
              axs_action_summary@eka_appdb           axs
@@ -3729,6 +3769,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        inv_ref_no,
        internal_gmr_ref_no,
        internal_grd_ref_no,
+       internal_dgrd_ref_no,
        internal_contract_item_ref_no,
        inv_in_action_ref_no,
        inv_status,
@@ -3759,6 +3800,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              invm.inv_ref_no,
              invm.internal_gmr_ref_no,
              invm.internal_grd_ref_no,
+             internal_dgrd_ref_no,
+             
              invm.internal_contract_item_ref_no,
              invm.inv_in_action_ref_no,
              invm.inv_status,
@@ -4003,5 +4046,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /

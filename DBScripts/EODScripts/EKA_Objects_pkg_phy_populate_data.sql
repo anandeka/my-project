@@ -3854,10 +3854,9 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
 -- Update FI AND PI Flag
 --          
 Update gmr_goods_movement_record gmr
-set (gmr.is_final_invoiced, gmr.is_provisional_invoiced) = 
-(
+set (gmr.is_final_invoiced, gmr.is_provisional_invoiced, gmr.latest_internal_invoice_ref_no) = (
 select case when (SUM(case
-               when is1.invoice_type_name = 'Final' then
+               when is1.invoice_type_name = 'Final' or  is1.invoice_type_name = 'DirectFinal' then
                 1
                else
                 0
@@ -3867,16 +3866,21 @@ case when (SUM(case
                 1
                else
                 0
-             end)) = 0 then 'N' ELSE 'Y' END  Pi_done
+             end)) = 0 then 'N' ELSE 'Y' END  Pi_done,
+substr(max(to_char(axs.created_date, 'yyyymmddhh24missff9') ||axs.internal_action_ref_no),24) latest_internal_invoice_ref_no            
 from is_invoice_summary          is1,
-     iid_invoicable_item_details iid
+     iid_invoicable_item_details iid,
+     iam_invoice_action_mapping@eka_appdb iam,
+     axs_action_summary axs
  where is1.is_active ='Y'
    and is1.corporate_id = pc_corporate_id
-and is1.invoice_type_name in ('Final', 'Provisional')
+and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
  and is1.dbd_id = gvc_dbd_id
    and is1.internal_invoice_ref_no = iid.internal_invoice_ref_no
    and gmr.dbd_id = gvc_dbd_id
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+  and iam.internal_invoice_ref_no = is1.internal_invoice_ref_no
+   and iam.invoice_action_ref_no = axs.internal_action_ref_no
  group by iid.internal_gmr_ref_no)
  where gmr.dbd_id = gvc_dbd_id ;
      
@@ -8685,7 +8689,23 @@ and is1.invoice_type_name in ('Final', 'Provisional')
        no_of_pieces,
        rail_car_no,
        partnership_type,
-       dbd_id)
+       is_trans_ship,
+       is_mark_for_tolling,
+       tolling_qty,
+       tolling_stock_type,
+       element_id,
+       expected_sales_ccy,
+       profit_center_id,
+       strategy_id,
+       is_warrant,
+       warrant_no,
+       pcdi_id,
+       supp_contract_item_ref_no,
+       supplier_pcdi_id,
+       payable_returnable_type,
+       carry_over_qty,
+       dbd_id
+       )
       select grdul. internal_grd_ref_no,
              substr(max(case
                           when grdul.internal_gmr_ref_no is not null then
@@ -9094,7 +9114,99 @@ and is1.invoice_type_name in ('Final', 'Provisional')
                            grdul.partnership_type
                         end),
                     24) partnership_type,
-             gvc_dbd_id
+             substr(max(case
+                          when grdul.is_trans_ship is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.is_trans_ship
+                        end),
+                    24) is_trans_ship,
+             substr(max(case
+                          when grdul.is_mark_for_tolling is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.is_mark_for_tolling
+                        end),
+                    24) is_mark_for_tolling,
+             substr(max(case
+                          when grdul.tolling_qty is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.tolling_qty
+                        end),
+                    24) tolling_qty,
+             substr(max(case
+                          when grdul.tolling_stock_type is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.tolling_stock_type
+                        end),
+                    24) tolling_stock_type,
+             substr(max(case
+                          when grdul.element_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.element_id
+                        end),
+                    24) element_id,
+             substr(max(case
+                          when grdul.expected_sales_ccy is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.expected_sales_ccy
+                        end),
+                    24) expected_sales_ccy,
+             substr(max(case
+                          when grdul.profit_center_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.profit_center_id
+                        end),
+                    24) profit_center_id,
+             substr(max(case
+                          when grdul.strategy_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.strategy_id
+                        end),
+                    24) strategy_id,
+             substr(max(case
+                          when grdul.is_warrant is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.is_warrant
+                        end),
+                    24) is_warrant,
+             substr(max(case
+                          when grdul.warrant_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.warrant_no
+                        end),
+                    24) warrant_no,
+             substr(max(case
+                          when grdul.pcdi_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.pcdi_id
+                        end),
+                    24) pcdi_id,
+             substr(max(case
+                          when grdul.supp_contract_item_ref_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.supp_contract_item_ref_no
+                        end),
+                    24) supp_contract_item_ref_no,
+             substr(max(case
+                          when grdul.supplier_pcdi_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.supplier_pcdi_id
+                        end),
+                    24) supplier_pcdi_id,
+                                 
+             substr(max(case
+                          when grdul.payable_returnable_type is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.payable_returnable_type
+                        end),
+                    24) payable_returnable_type,
+             substr(max(case
+                          when grdul.carry_over_qty is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.carry_over_qty
+                        end),
+                    24) carry_over_qty,
+                    gvc_dbd_id
+
         from grdl_goods_record_detail_log grdul,
              axs_action_summary           axs,
              dbd_database_dump            dbd,
@@ -9129,6 +9241,37 @@ and is1.invoice_type_name in ('Final', 'Provisional')
        set grd.payment_due_date = pd_trade_date
      where grd.dbd_id = gvc_dbd_id
        and grd.payment_due_date is null;
+ -- Purchase from GRD      
+ for cur_grd in (      
+select grd.internal_gmr_ref_no, grd.product_id
+                           from grd_goods_record_detail grd,
+                           pdm_productmaster pdm
+                          where element_id is null
+                            and grd.dbd_id = gvc_dbd_id
+                            and grd.product_id = pdm.product_id
+                            and pdm.product_type_id='Standard'
+                          group by grd.internal_gmr_ref_no,grd.product_id) loop
+                                 
+update gmr_goods_movement_record gmr
+   set gmr.product_id =  cur_grd.product_id
+ where gmr.dbd_id = gvc_dbd_id
+ and gmr.internal_gmr_ref_no = cur_grd.internal_gmr_ref_no;
+ 
+ end loop;
+-- Sales from DGRD
+for cur_dgrd in (
+select dgrd.internal_gmr_ref_no,
+       dgrd.product_id
+  from dgrd_delivered_grd dgrd
+ where dgrd.dbd_id = gvc_dbd_id) loop
+update gmr_goods_movement_record gmr
+   set gmr.product_id =  cur_dgrd.product_id
+ where gmr.dbd_id = gvc_dbd_id
+ and gmr.internal_gmr_ref_no = cur_dgrd.internal_gmr_ref_no;
+end loop;
+
+
+       
   exception
     when others then
       vobj_error_log.extend;
@@ -12848,6 +12991,7 @@ and is1.invoice_type_name in ('Final', 'Provisional')
        internal_gmr_ref_no,
        sales_internal_gmr_ref_no,
        internal_grd_ref_no,
+       internal_dgrd_ref_no,
        internal_contract_item_ref_no,
        inv_in_action_ref_no,
        inv_status,
@@ -12868,12 +13012,14 @@ and is1.invoice_type_name in ('Final', 'Provisional')
        secondary_cost_per_unit,
        product_premium_per_unit,
        quality_premium_per_unit,
-       process_id)
+       process_id,
+       stock_qty)
       select t.inv_id,
              invm.inv_ref_no,
              grd.internal_gmr_ref_no, -- Purchase gmr
-             invm.internal_gmr_ref_no, -- Sales gmr 
+             invm.internal_gmr_ref_no, -- Sales gmr
              agd.internal_stock_ref_no internal_grd_ref_no, -- Purchase GRD
+             dgrd.internal_dgrd_ref_no,
              invm.internal_contract_item_ref_no,
              invm.inv_in_action_ref_no,
              invm.inv_status,
@@ -12915,7 +13061,8 @@ and is1.invoice_type_name in ('Final', 'Provisional')
                else
                 0
              end as quality_premium_per_unit,
-             gvc_process_id
+             gvc_process_id,
+             agd.qty
         from (select invd.inv_id,
                      nvl(sum(invd.transaction_qty), 0) cur_inv_qty,
                      nvl(sum(case
