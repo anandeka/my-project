@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0393
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Uttam Singh
+ 
+Created on*        		:  16-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*	  :  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Logistic 
+ 
+Sub-Module  		        :  Tolling
+ 
+Section   			:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 87253
+Author: uttam
+Date: 9:44:20 AM, Thursday, February 16, 2012
+Message:
+cancel yield and cancel return material
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_43.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_192.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_183.sql    
+
+
+
+
+
+
+
+
+
+
+
+
