@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0407
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B 
+ 
+Created on*        		:  16-Feb-2012
+
+Bug / Enhancement*              :  
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoicing
+
+Sub-Module  			 :  Invoicing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 87388
+Author: b.ravikumar
+Date: 8:16:01 PM, Thursday, February 16, 2012
+Message:
+-for delta calculations
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_190.sql
+
+
