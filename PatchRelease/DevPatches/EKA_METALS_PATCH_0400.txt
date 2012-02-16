@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_0400
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit Gupta
+ 
+Created on*        		:  16-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : COG
+ 
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 87319
+Author: mohitkumar.gupta
+Date: 3:55:06 PM, Thursday, February 16, 2012
+Message:
+For Conc COG.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_187.sql
+
+
+Revision: 87320
+Author: mohitkumar.gupta
+Date: 3:56:46 PM, Thursday, February 16, 2012
+Message:
+For Conc COG.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_193.sql
+
+
