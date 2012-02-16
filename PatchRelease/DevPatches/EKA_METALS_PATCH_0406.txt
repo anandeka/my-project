@@ -34,7 +34,7 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* : (Transaction 
+Schema type (Transaction / EOD)* : Transaction 
 ==================================================================
 Revision: 87380
 Author: sivachalabathi.s
