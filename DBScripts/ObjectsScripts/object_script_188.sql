@@ -1,0 +1,1 @@
+create materialized view log on  cci_corp_currency_instrument;
