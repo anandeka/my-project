@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0405
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam 
+ 
+Created on*        		:  16-Feb-2012
+
+Bug / Enhancement*              : Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistic
+
+Sub-Module  			 :  Tolling / MFT
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : (Transaction 
+==================================================================
+
+Revision: 87369
+Author: uttam
+Date: 7:25:28 PM, Thursday, February 16, 2012
+Message:
+bug 61571 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_194.sql
+
+
