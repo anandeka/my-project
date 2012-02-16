@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0399
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sachin Talwar
+ 
+Created on*        		:  16-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Assay
+ 
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 87310
+Author: sachin
+Date: 3:29:25 PM, Thursday, February 16, 2012
+Message:
+is final assay column for pricing assay and sam update trigger
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_UPDATE_SAM.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_186.sql
+
