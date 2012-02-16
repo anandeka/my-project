@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0406
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva 
+ 
+Created on*        		:  16-Feb-2012
+
+Bug / Enhancement*              : Bug
+ 
+Bug ID*            		:  61748
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  Report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : (Transaction 
+==================================================================
+Revision: 87380
+Author: sivachalabathi.s
+Date: 7:52:03 PM, Thursday, February 16, 2012
+Message:
+bug fix 61748
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_VIEW_V_FUTURE_OPTION_POSITION.sql
