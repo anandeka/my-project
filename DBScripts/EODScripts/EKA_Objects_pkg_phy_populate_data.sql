@@ -3867,7 +3867,7 @@ case when (SUM(case
                else
                 0
              end)) = 0 then 'N' ELSE 'Y' END  Pi_done,
-substr(max(to_char(axs.created_date, 'yyyymmddhh24missff9') ||axs.internal_action_ref_no),24) latest_internal_invoice_ref_no            
+substr(max(to_char(axs.created_date, 'yyyymmddhh24missff9') ||iam.internal_invoice_ref_no),24) latest_internal_invoice_ref_no            
 from is_invoice_summary          is1,
      iid_invoicable_item_details iid,
      iam_invoice_action_mapping@eka_appdb iam,
