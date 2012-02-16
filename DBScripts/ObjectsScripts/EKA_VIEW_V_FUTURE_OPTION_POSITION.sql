@@ -220,7 +220,7 @@ WITH ucm_mfact AS
                     cm_base.cur_code base_cur_code,
                     (CASE
                         WHEN pm.period_type_name IN ('Day', 'Week')
-                           THEN TO_CHAR (drm.period_date, 'Mon-yyyy')
+                           THEN TO_CHAR (nvl(drm.period_date,drm.prompt_date), 'Mon-yyyy')
                         ELSE drm.period_month || '-' || drm.period_year
                      END
                     ) delivery_month
@@ -529,5 +529,4 @@ WITH ucm_mfact AS
                 AND ak.base_cur_id = cm_base.cur_id(+)
                 AND dt.strike_price_unit_id = pum_strike.price_unit_id(+)
                 AND dt.dr_id = vlq.dr_id(+)
-                AND dt.corporate_id = vlq.corporate_id(+)
-
+                AND dt.corporate_id = vlq.corporate_id(+) 
