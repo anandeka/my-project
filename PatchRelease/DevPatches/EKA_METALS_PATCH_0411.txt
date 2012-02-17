@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_PATCH_0411
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  17-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Dashboard 
+
+Sub-Module  			 :  Dashboard
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 87505
+Author: sivachalabathi.s
+Date: 6:13:10 PM, Friday, February 17, 2012
+Message:
+physical position dashboard
+----
+1) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_contract_open_position.sql
+2) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_gmr_stock_details.sql
+3) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_FWD_POSITION_BY_PRODUCT.sql
+4) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PHYSICAL_CALL_OFF_DUE.sql
+5) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PHY_POSITION_BY_PRODUCT.sql
+6) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PRICE_CALL_OFF_DUE.sql
+7) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_RECENT_TRADES_BY_PRODUCT.sql
+8) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_TOP5_INV_BY_LOC_BY_PROD.sql
+9) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_TOP5_QUALITIES_BY_PRODUCT.sql
+
+
+Revision: 87506
+Author: sivachalabathi.s
+Date: 6:14:46 PM, Friday, February 17, 2012
+Message:
+physical position dashboard
+----
+10) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_197_dash_board_menu.sql
+
+
+
