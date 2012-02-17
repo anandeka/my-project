@@ -1,0 +1,101 @@
+Patch No*          		:  EKA_METALS_PATCH_0411
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  17-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+
+Revision: 87529
+Author: elaiyaraja.nallathambi
+Date: 8:56:34 PM, Friday, February 17, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_198.sql
+
+
+Revision: 87528
+Author: elaiyaraja.nallathambi
+Date: 8:56:03 PM, Friday, February 17, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_46_DML_RPC_RFC_Scripts.sql
+
+
+Revision: 87530
+Author: elaiyaraja.nallathambi
+Date: 8:58:02 PM, Friday, February 17, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_pcdi_details.sql
+
+Revision: 87531
+Author: elaiyaraja.nallathambi
+Date: 8:58:36 PM, Friday, February 17, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_CONC_PHY_POSITION.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PHY_POSITION_MGR.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_logistics_inventory.sql
+
+
+Revision: 87532
+Author: elaiyaraja.nallathambi
+Date: 8:59:37 PM, Friday, February 17, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_LOGISTICS_INVENTORY.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_PHY_POSITION_MGR.sql
+
+
+Revision: 87535
+Author: elaiyaraja.nallathambi
+Date: 9:15:13 PM, Friday, February 17, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractedVsDeliveredReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UnpricedQuantityReport.rpt
+
+
+
+
+
