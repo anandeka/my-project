@@ -1,4 +1,4 @@
-create or replace function f_get_pricing_month(pc_pcbpd_id in varchar2)
+create or replace function "F_GET_PRICING_MONTH"(pc_pcbpd_id in varchar2)
   return varchar2 is
   cursor cur_qp_end_date is
     select pcm.contract_ref_no,
@@ -43,7 +43,7 @@ create or replace function f_get_pricing_month(pc_pcbpd_id in varchar2)
        and pcbpd.pcbpd_id = ppfh.pcbpd_id(+)
        and ppfh.ppfh_id = pfqpp.ppfh_id(+)
        and pcm.contract_status = 'In Position'
-       and pcm.contract_type in ('BASEMETAL','CONCENTRATES')
+       and pcm.contract_type in ('BASEMETAL', 'CONCENTRATES')
        and pcbpd.price_basis <> 'Fixed'
        and pci.item_qty > 0
        and pcdi.is_active = 'Y'
@@ -62,14 +62,13 @@ create or replace function f_get_pricing_month(pc_pcbpd_id in varchar2)
   vd_qp_end_date   date;
   vd_shipment_date date;
   vd_arrival_date  date;
-  vd_evevnt_date   date;
 
 begin
 
   for cur_rows in cur_qp_end_date
   loop
     if cur_rows.price_basis in ('Index', 'Formula') then
-
+    
       if cur_rows.basis_type = 'Shipment' then
         if cur_rows.delivery_period_type = 'Month' then
           vd_shipment_date := last_day('01-' || cur_rows.delivery_to_month || '-' ||
@@ -78,7 +77,7 @@ begin
           vd_shipment_date := cur_rows.delivery_to_date;
         end if;
         vd_arrival_date := vd_shipment_date + cur_rows.transit_days;
-
+      
       elsif cur_rows.basis_type = 'Arrival' then
         if cur_rows.delivery_period_type = 'Month' then
           vd_arrival_date := last_day('01-' || cur_rows.delivery_to_month || '-' ||
@@ -88,7 +87,7 @@ begin
         end if;
         vd_shipment_date := vd_arrival_date - cur_rows.transit_days;
       end if;
-
+    
       if cur_rows.qp_period_type = 'Period' then
         vd_qp_start_date := cur_rows.qp_start_date;
         vd_qp_end_date   := cur_rows.qp_end_date;
@@ -99,61 +98,28 @@ begin
         vd_qp_start_date := cur_rows.qp_start_date;
         vd_qp_end_date   := cur_rows.qp_end_date;
       elsif cur_rows.qp_period_type = 'Event' then
-        if cur_rows.event_name = 'Month After Month Of Shipment' then
-          vd_evevnt_date   := add_months(vd_shipment_date,
-                                         cur_rows.no_of_event_months);
-          vd_qp_start_date := to_date('01-' ||
-                                      to_char(vd_evevnt_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-          vd_qp_end_date   := last_day(vd_qp_start_date);
-        elsif cur_rows.event_name = 'Month After Month Of Arrival' then
-          vd_evevnt_date   := add_months(vd_arrival_date,
-                                         cur_rows.no_of_event_months);
-          vd_qp_start_date := to_date('01-' ||
-                                      to_char(vd_evevnt_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-          vd_qp_end_date   := last_day(vd_qp_start_date);
-        elsif cur_rows.event_name = 'Month Before Month Of Shipment' then
-          vd_evevnt_date   := add_months(vd_shipment_date,
-                                         -1 * cur_rows.no_of_event_months);
-          vd_qp_start_date := to_date('01-' ||
-                                      to_char(vd_evevnt_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-          vd_qp_end_date   := last_day(vd_qp_start_date);
-        elsif cur_rows.event_name = 'Month Before Month Of Arrival' then
-          vd_evevnt_date   := add_months(vd_arrival_date,
-                                         -1 * cur_rows.no_of_event_months);
-          vd_qp_start_date := to_date('01-' ||
-                                      to_char(vd_evevnt_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-          vd_qp_end_date   := last_day(vd_qp_start_date);
-        elsif cur_rows.event_name = 'First Half Of Shipment Month' then
-          vd_qp_start_date := to_date('01-' ||
-                                      to_char(vd_shipment_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-          vd_qp_end_date   := to_date('15-' ||
-                                      to_char(vd_shipment_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-        elsif cur_rows.event_name = 'First Half Of Arrival Month' then
-          vd_qp_start_date := to_date('01-' ||
-                                      to_char(vd_arrival_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-          vd_qp_end_date   := to_date('15-' ||
-                                      to_char(vd_arrival_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-        elsif cur_rows.event_name = 'First Half Of Shipment Month' then
-          vd_qp_start_date := to_date('16-' ||
-                                      to_char(vd_shipment_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-          vd_qp_end_date   := last_day(vd_qp_start_date);
-        elsif cur_rows.event_name = 'Second Half Of Arrival Month' then
-          vd_qp_start_date := to_date('16-' ||
-                                      to_char(vd_arrival_date, 'Mon-yyyy'),
-                                      'dd-mon-yyyy');
-          vd_qp_end_date   := last_day(vd_qp_start_date);
-        end if;
+        begin
+          select dieqp.expected_qp_start_date,
+                 dieqp.expected_qp_end_date
+            into vd_qp_start_date,
+                 vd_qp_end_date
+            from di_del_item_exp_qp_details dieqp
+           where dieqp.pcdi_id = cur_rows.pcdi_id
+             and dieqp.pcbpd_id = pc_pcbpd_id
+             and dieqp.is_active = 'Y';
+        exception
+          when no_data_found then
+            vd_qp_start_date := cur_rows.qp_start_date;
+            vd_qp_end_date   := cur_rows.qp_end_date;
+          when others then
+            vd_qp_start_date := cur_rows.qp_start_date;
+            vd_qp_end_date   := cur_rows.qp_end_date;
+        end;
+      else
+        vd_qp_start_date := cur_rows.qp_start_date;
+        vd_qp_end_date   := cur_rows.qp_end_date;
       end if;
-
+    
     end if;
   end loop;
 
