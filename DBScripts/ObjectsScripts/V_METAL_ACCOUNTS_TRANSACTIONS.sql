@@ -274,4 +274,4 @@ select mat_temp.unique_id,
    and phd_debt.profileid(+) = mat_temp.debt_supplier_id
    and qum.qty_unit_id = mat_temp.debt_qty_unit_id
    and ash_temp.internal_grd_ref_no(+) = mat_temp.stock_id
- order by mat_temp.activity_date desc
+ order by mat_temp.activity_date desc;
