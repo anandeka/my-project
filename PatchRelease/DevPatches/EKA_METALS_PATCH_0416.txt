@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0416
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  20-Feb-2012
+
+Bug / Enhancement*              : Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Online Report
+
+Sub-Module  			 :  Price Delivery Report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+SQL FILES
+
+Added QP Period Type
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details_by_qp.sql(Revision: 87616)
+
+
+RPT FIles
+
+Bug Fix for 60742,60737,60128,60735,60770,60735,61234,61746
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing.rpt(Revision: 87615)
+
+
+
+
+
