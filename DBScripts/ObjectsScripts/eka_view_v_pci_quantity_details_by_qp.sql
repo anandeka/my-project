@@ -81,6 +81,7 @@ select pcdi.pcdi_id,
                                             1) compqty_base_conv_rate,
        qum.qty_unit comp_base_qty_unit,
        qum.qty_unit_id comp_base_qty_unit_id,
+       POCD.QP_PERIOD_TYPE,
        1 contract_row
   from pcm_physical_contract_main     pcm,
        ciqs_contract_item_qty_status  ciqs,
@@ -251,7 +252,9 @@ select tt.pcdi_id,
        tt.baseqty_conv_rate compqty_base_conv_rate,
        tt.qty_unit comp_base_qty_unit,
        tt.qty_unit_id comp_base_qty_unit_id,
+       tt.QP_PERIOD_TYPE,
        tt.contract_row
+       
   from (select pcdi.pcdi_id,
                 pocd.pcbpd_id,
                 pci.internal_contract_item_ref_no,
@@ -366,6 +369,7 @@ select tt.pcdi_id,
                qat.quality_name comp_quality,
                qum.qty_unit comp_base_qty_unit,
                qum.qty_unit_id comp_base_qty_unit_id,
+                POCD.QP_PERIOD_TYPE,
                row_number() over(partition by pci.internal_contract_item_ref_no order by pci.internal_contract_item_ref_no, aml.attribute_id) contract_row
           from pcm_physical_contract_main     pcm,
                ciqs_contract_item_qty_status  ciqs,
@@ -457,5 +461,4 @@ select tt.pcdi_id,
            and pcdb.country_id = cym.country_id
            and pfs.price_fixation_status <> 'Fixed'
            and pcdb.city_id = cim.city_id) tt
- where tt.open_qty > 0
-
+ where tt.open_qty > 0 
