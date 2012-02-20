@@ -1290,7 +1290,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                               vc_exch_rate_missing);
       -- If exchange rate was missing and premium became null let us not throw the error                        
       -- Since the procedure already throw an error for exchange rate
-      if vn_qty_premimum_amt is null and vc_exch_rate_missing = 'N' then
+      if (vn_qty_premimum_amt is null or vn_qty_premimum_amt = 0) and
+         vc_exch_rate_missing = 'N' then
         insert into eel_eod_eom_exception_log
           (corporate_id,
            submodule_name,
@@ -1368,7 +1369,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       -- If exchange rate was missing and premium became null let us not throw the error                        
       -- Since the procedure already throw an error for exchange rate
       --
-      if vn_pp_amt is null and vc_exch_rate_missing = 'N' then
+      if (vn_pp_amt is null or vn_pp_amt = 0) and
+         vc_exch_rate_missing = 'N' then
         insert into eel_eod_eom_exception_log
           (corporate_id,
            submodule_name,
@@ -5704,7 +5706,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     
       vn_total_premium := vn_total_premium + vn_premium;
     end loop;
-    if vn_total_premium is null then
+  
+    if (vn_total_premium is null or vn_total_premium = 0) then
       --
       -- Premium based on the not beyond  values
       --  
@@ -6366,7 +6369,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     
       vn_total_premium := vn_total_premium + vn_premium;
     end loop;
-    if vn_total_premium is null then
+    if (vn_total_premium is null or vn_total_premium = 0) then
       --
       -- Premium based on the not beyond  values
       --  
