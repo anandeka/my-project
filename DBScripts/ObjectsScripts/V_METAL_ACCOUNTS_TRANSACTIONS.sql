@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_METAL_ACCOUNTS_TRANSACTIONS AS
+create or replace view v_metal_accounts_transactions as
 select mat_temp.unique_id,
        mat_temp.corporate_id,
        mat_temp.internal_contract_ref_no,
@@ -24,6 +24,7 @@ select mat_temp.unique_id,
        qum.qty_unit debt_qty_unit,
        mat_temp.internal_action_ref_no,
        to_char(mat_temp.activity_date, 'dd-Mon-yyyy') activity_date,
+       mat_temp.assay_content,
        nvl(ash_temp.is_final_assay_fully_finalized, 'N') assay_finalized
   from (select retn_temp.unique_id,
                retn_temp.corporate_id,
@@ -45,7 +46,8 @@ select mat_temp.unique_id,
                (-1 * retn_temp.qty) debt_qty,
                retn_temp.qty_unit_id debt_qty_unit_id,
                retn_temp.internal_action_ref_no,
-               retn_temp.activity_date
+               retn_temp.activity_date,
+               retn_temp.assay_content
           from (select spq.spq_id unique_id,
                        axs.corporate_id,
                        pci.internal_contract_ref_no,
@@ -66,7 +68,8 @@ select mat_temp.unique_id,
                        spq.payable_qty qty,
                        spq.qty_unit_id qty_unit_id,
                        axs.internal_action_ref_no,
-                       axs.eff_date activity_date
+                       axs.eff_date activity_date,
+                       spq.assay_content
                   from spq_stock_payable_qty spq,
                        grd_goods_record_detail grd,
                        v_pci pci,
@@ -133,7 +136,8 @@ select mat_temp.unique_id,
                        (prrqs.qty_sign * prrqs.qty) qty,
                        prrqs.qty_unit_id qty_unit_id,
                        axs.internal_action_ref_no,
-                       axs.eff_date activity_date
+                       axs.eff_date activity_date,
+                       prrqs.assay_content
                   from prrqs_prr_qty_status      prrqs,
                        axs_action_summary        axs,
                        pdm_productmaster         pdm,
@@ -174,7 +178,8 @@ select mat_temp.unique_id,
                        (prrqs.qty_sign * prrqs.qty) qty,
                        prrqs.qty_unit_id qty_unit_id,
                        axs.internal_action_ref_no,
-                       axs.eff_date activity_date
+                       axs.eff_date activity_date,
+                       prrqs.assay_content
                   from prrqs_prr_qty_status      prrqs,
                        axs_action_summary        axs,
                        pdm_productmaster         pdm,
@@ -215,7 +220,8 @@ select mat_temp.unique_id,
                        (prrqs.qty_sign * prrqs.qty) qty,
                        prrqs.qty_unit_id qty_unit_id,
                        axs.internal_action_ref_no,
-                       axs.eff_date activity_date
+                       axs.eff_date activity_date,
+                       prrqs.assay_content
                   from prrqs_prr_qty_status prrqs,
                        axs_action_summary   axs,
                        pdm_productmaster    pdm
@@ -247,7 +253,8 @@ select mat_temp.unique_id,
                (prrqs.qty_sign * prrqs.qty) debt_qty,
                prrqs.qty_unit_id debt_qty_unit_id,
                axs.internal_action_ref_no,
-               axs.eff_date activity_date
+               axs.eff_date activity_date,
+               prrqs.assay_content
           from prrqs_prr_qty_status      prrqs,
                axs_action_summary        axs,
                pdm_productmaster         pdm,
@@ -264,8 +271,7 @@ select mat_temp.unique_id,
        phd_profileheaderdetails phd,
        phd_profileheaderdetails phd_debt,
        qum_quantity_unit_master qum,
-       (select ash.is_final_assay_fully_finalized,
-               ash.internal_grd_ref_no
+       (select ash.is_final_assay_fully_finalized, ash.internal_grd_ref_no
           from ash_assay_header ash
          where ash.assay_type = 'Final Assay'
            and ash.is_active = 'Y') ash_temp
@@ -274,4 +280,4 @@ select mat_temp.unique_id,
    and phd_debt.profileid(+) = mat_temp.debt_supplier_id
    and qum.qty_unit_id = mat_temp.debt_qty_unit_id
    and ash_temp.internal_grd_ref_no(+) = mat_temp.stock_id
- order by mat_temp.activity_date desc;
+ order by mat_temp.activity_date desc
