@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0422
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi
+ 
+Created on*        		:  22-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoicing
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 87813
+Author: b.ravikumar
+Date: 7:33:43 PM, Wednesday, February 22, 2012
+Message:
+charge type column added:mayank
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_195.sql
+
+
+
+
