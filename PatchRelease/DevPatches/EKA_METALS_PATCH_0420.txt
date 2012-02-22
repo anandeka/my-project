@@ -52,6 +52,14 @@ View In Process Stock Changed For Assay Content Column
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_IN_PROCESS_STOCK.sql
 
+Revision: 87788
+Author: anupkumar.agarwal
+Date: 5:40:11 PM, Wednesday, February 22, 2012
+Message:
+Added Constraints
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_194.sql
+
 
 
 
