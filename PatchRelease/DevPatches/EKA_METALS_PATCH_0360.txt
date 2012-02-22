@@ -36,11 +36,11 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Trnsaction
 ==================================================================
-Revision: 86393
+Revision: 87810
 Author: sriveenam
-Date: Friday, February 03, 2012 11:30:52 AM
+Date: Wednesday, February 22, 2012 7:24:53 PM
 Message:
-modified docid same as actionid
+modified for latest changes
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_178.sql
 
