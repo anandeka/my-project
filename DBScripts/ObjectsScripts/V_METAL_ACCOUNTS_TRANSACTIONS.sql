@@ -189,7 +189,7 @@ select mat_temp.unique_id,
                  where prrqs.internal_action_ref_no =
                        axs.internal_action_ref_no
                    and gmr.internal_gmr_ref_no = prrqs.internal_gmr_ref_no
-                   and dgrd.internal_dgrd_ref_no = prrqs.internal_grd_ref_no
+                   and dgrd.internal_dgrd_ref_no = prrqs.internal_dgrd_ref_no
                    and dgrd.internal_gmr_ref_no = prrqs.internal_gmr_ref_no
                    and pci.internal_contract_item_ref_no =
                        dgrd.internal_contract_item_ref_no
@@ -198,7 +198,7 @@ select mat_temp.unique_id,
                    and prrqs.qty_type = 'Returnable'
                    and pdm.product_id = prrqs.product_id
                    and prrqs.activity_action_id = 'financialSettlement'
-                
+
                 union
                 select prrqs.prrqs_id unique_id,
                        axs.corporate_id,
@@ -271,7 +271,8 @@ select mat_temp.unique_id,
        phd_profileheaderdetails phd,
        phd_profileheaderdetails phd_debt,
        qum_quantity_unit_master qum,
-       (select ash.is_final_assay_fully_finalized, ash.internal_grd_ref_no
+       (select ash.is_final_assay_fully_finalized,
+               ash.internal_grd_ref_no
           from ash_assay_header ash
          where ash.assay_type = 'Final Assay'
            and ash.is_active = 'Y') ash_temp
@@ -281,3 +282,4 @@ select mat_temp.unique_id,
    and qum.qty_unit_id = mat_temp.debt_qty_unit_id
    and ash_temp.internal_grd_ref_no(+) = mat_temp.stock_id
  order by mat_temp.activity_date desc
+
