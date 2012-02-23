@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0425
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  22-Feb-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : EOD
+ 
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 87848
+Author: suresh.gottipati
+Date: 11:28:37 AM, Thursday, February 23, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_qat_quality_valuation.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_mv_conc_qat_quality_valuation.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_conc_qat_quality_valuation.sql
+
+
+
