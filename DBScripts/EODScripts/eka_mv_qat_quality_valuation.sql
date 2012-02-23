@@ -1,3 +1,4 @@
+drop materialized view mv_qat_quality_valuation; 
 CREATE MATERIALIZED VIEW mv_qat_quality_valuation NOCACHE
 LOGGING
 NOCOMPRESS
@@ -77,4 +78,4 @@ select cpm.corporate_id,
    and pdm.is_deleted = 'N'
    and cpm.is_active = 'Y'
    and cpm.is_deleted = 'N'
-   and qat.eval_basis = 'FIXED'
+   and qat.eval_basis = 'FIXED';
