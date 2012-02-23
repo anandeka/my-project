@@ -19,25 +19,31 @@ select ppm.product_id conc_product_id,
        qat_quality_attributes         qat,
        pdm_productmaster              pdm,
        pdd_product_derivative_def     pdd,
-       dim_der_instrument_master      dim,
-       irm_instrument_type_master     irm,
+       (select dim.product_derivative_id,
+               dim.instrument_id
+          from dim_der_instrument_master  dim,
+               pdd_product_derivative_def pdd,
+               irm_instrument_type_master irm
+         where pdd.derivative_def_id = dim.product_derivative_id
+           and dim.instrument_type_id = irm.instrument_type_id
+           and irm.instrument_type = 'Future'
+           and dim.is_active = 'Y'
+           and dim.is_deleted = 'N'
+           and irm.is_active = 'Y'
+           and irm.is_deleted = 'N'
+         group by dim.product_derivative_id,
+                  dim.instrument_id) dim,
        cpm_corporateproductmaster     cpm
  where  ppm.property_id = qav.attribute_id
    and qav.quality_id = qat.quality_id
    and qat.instrument_id = pdd.derivative_def_id
    and ppm.product_id = pdm.product_id
-   and pdd.derivative_def_id = dim.product_derivative_id
-   and pdd.product_id = cpm.product_id
-   and dim.instrument_type_id = irm.instrument_type_id
-   and irm.instrument_type = 'Future'
+   and pdd.derivative_def_id = dim.product_derivative_id(+)
+   and pdd.product_id = cpm.product_id  
    and qat.is_active = 'Y'
    and qat.is_deleted = 'N'
    and pdd.is_active = 'Y'
    and pdd.is_deleted = 'N'
-   and dim.is_active = 'Y'
-   and dim.is_deleted = 'N'
-   and irm.is_active = 'Y'
-   and irm.is_deleted = 'N'
    and cpm.is_active = 'Y'
    and cpm.is_deleted = 'N'
    and qav.is_deleted = 'N'
@@ -85,4 +91,3 @@ select ppm.product_id conc_product_id,
    and pdm.is_deleted = 'N'
    and pdm.valuation_against_underlying = 'N'
    and qat.eval_basis='FIXED'
-/
