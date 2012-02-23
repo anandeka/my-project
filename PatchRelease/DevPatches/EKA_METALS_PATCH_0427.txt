@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0427
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sivachalabathi
+ 
+Created on*        		:  23-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Price process
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 87875
+Author: sivachalabathi.s
+Date: 4:23:26 PM, Thursday, February 23, 2012
+Message:
+Multiple Instrument per currency pair handled
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/SP_SPOT_CUR_EXCHANGE_RATE.sql
