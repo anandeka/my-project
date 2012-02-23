@@ -27,12 +27,57 @@ create or replace procedure "SP_SPOT_CUR_EXCHANGE_RATE"
   vn_prev_working_day_price number;
   vn_next_working_day_price number;
   k                         number;
+  vc_instrument_id          varchar2(15);
+  vc_direct_pair            varchar2(1);
   --vn_last_day               number;
   vtp_tbl_formula tp_tbl_formula := tp_tbl_formula();
 begin
-  vd_sdate     := pd_qp_start_date;
-  vd_edate     := pd_qp_end_date;
-  vn_row_count := 1;
+  vd_sdate       := pd_qp_start_date;
+  vd_edate       := pd_qp_end_date;
+  vc_direct_pair := 'Y';
+  vn_row_count   := 1;
+  begin
+    select max(dim.instrument_id)
+      into vc_instrument_id
+      from cci_corp_currency_instrument cci,
+           dim_der_instrument_master    dim,
+           pdd_product_derivative_def   pdd,
+           pdm_productmaster            pdm,
+           pdm_productmaster            pdm_dir
+     where cci.instrument_id = dim.instrument_id
+       and dim.product_derivative_id = pdd.derivative_def_id
+       and pdd.product_id = pdm.product_id
+       and cci.corporate_id = pc_corporate_id
+       and cci.is_deleted = 'N'
+       and dim.is_active = 'Y'
+       and pdd.is_active = 'Y'
+       and pdm.is_active = 'Y'
+       and pdm.base_cur_id = pdm_dir.base_cur_id
+       and pdm.quote_cur_id = pdm_dir.quote_cur_id
+       and pdm_dir.product_id = pc_currency_pair;
+    vc_direct_pair := 'Y';
+  exception
+    when no_data_found then
+      vc_direct_pair := 'N';
+      select max(dim.instrument_id)
+        into vc_instrument_id
+        from cci_corp_currency_instrument cci,
+             dim_der_instrument_master    dim,
+             pdd_product_derivative_def   pdd,
+             pdm_productmaster            pdm,
+             pdm_productmaster            pdm_dir
+       where cci.instrument_id = dim.instrument_id
+         and dim.product_derivative_id = pdd.derivative_def_id
+         and pdd.product_id = pdm.product_id
+         and cci.corporate_id = pc_corporate_id
+         and cci.is_deleted = 'N'
+         and dim.is_active = 'Y'
+         and pdd.is_active = 'Y'
+         and pdm.is_active = 'Y'
+         and pdm.base_cur_id = pdm_dir.quote_cur_id
+         and pdm.quote_cur_id = pdm_dir.base_cur_id
+         and pdm_dir.product_id = pc_currency_pair;
+  end;
   while vd_edate >= vd_sdate
   loop
     vtp_tbl_formula.extend;
@@ -68,7 +113,8 @@ begin
          and pdd.derivative_def_id = dim.product_derivative_id
          and cfq.corporate_id = pc_corporate_id
          and cfq.trade_date = vd_sdate
-         and pdd.product_id = pc_currency_pair
+         and dim.instrument_id = vc_instrument_id
+            -- and pdd.product_id = pc_currency_pair
          and cfqd.is_deleted = 'N'
          and cfq.price_source_id = pc_price_source_id
          and cfqd.is_spot = 'Y'
@@ -85,7 +131,8 @@ begin
             from pdd_product_derivative_def pdd,
                  dim_der_instrument_master  dim
            where dim.product_derivative_id = pdd.derivative_def_id
-             and pdd.product_id = pc_currency_pair
+                -- and pdd.product_id = pc_currency_pair
+             and dim.instrument_id = vc_instrument_id
              and pdd.is_active = 'Y'
              and pdd.is_deleted = 'N'
              and dim.is_currency_curve = 'Y'
@@ -133,7 +180,12 @@ begin
           end loop;
           --Get the prev working day Price
           begin
-            select cfqd.rate
+            select (case
+                     when vc_direct_pair = 'Y' then
+                      cfqd.rate
+                     else
+                      1 / cfqd.rate
+                   end)
               into vn_prev_working_day_price
               from cfqd_currency_fwd_quote_detail cfqd,
                    cfq_currency_forward_quotes    cfq,
@@ -144,7 +196,8 @@ begin
                and pdd.derivative_def_id = dim.product_derivative_id
                and cfq.corporate_id = pc_corporate_id
                and cfq.trade_date = vd_prev_working_date
-               and pdd.product_id = pc_currency_pair
+                  --   and pdd.product_id = pc_currency_pair
+               and dim.instrument_id = vc_instrument_id
                and cfqd.is_deleted = 'N'
                and cfq.price_source_id = pc_price_source_id
                and cfqd.is_spot = 'Y'
@@ -182,7 +235,12 @@ begin
           end loop;
           --Find  the Next working day price
           begin
-            select cfqd.rate
+            select (case
+                     when vc_direct_pair = 'Y' then
+                      cfqd.rate
+                     else
+                      1 / cfqd.rate
+                   end) --cfqd.rate
               into vn_next_working_day_price
               from cfqd_currency_fwd_quote_detail cfqd,
                    cfq_currency_forward_quotes    cfq,
@@ -193,7 +251,8 @@ begin
                and pdd.derivative_def_id = dim.product_derivative_id
                and cfq.corporate_id = pc_corporate_id
                and cfq.trade_date = vd_next_working_date
-               and pdd.product_id = pc_currency_pair
+                  --   and pdd.product_id = pc_currency_pair
+               and dim.instrument_id = vc_instrument_id
                and cfqd.is_deleted = 'N'
                and cfq.price_source_id = pc_price_source_id
                and cfqd.is_spot = 'Y'
@@ -232,7 +291,12 @@ begin
           end loop;
           --Get the prev working day Price
           begin
-            select cfqd.rate
+            select (case
+                     when vc_direct_pair = 'Y' then
+                      cfqd.rate
+                     else
+                      1 / cfqd.rate
+                   end)
               into vn_prev_working_day_price
               from cfqd_currency_fwd_quote_detail cfqd,
                    cfq_currency_forward_quotes    cfq,
@@ -243,7 +307,8 @@ begin
                and pdd.derivative_def_id = dim.product_derivative_id
                and cfq.corporate_id = pc_corporate_id
                and cfq.trade_date = vd_prev_working_date
-               and pdd.product_id = pc_currency_pair
+                  -- and pdd.product_id = pc_currency_pair
+               and dim.instrument_id = vc_instrument_id
                and cfqd.is_deleted = 'N'
                and cfq.price_source_id = pc_price_source_id
                and cfqd.is_spot = 'Y'
@@ -297,7 +362,12 @@ begin
           end loop;
           --Find  the Next working day price 
           begin
-            select cfqd.rate
+            select (case
+                     when vc_direct_pair = 'Y' then
+                      cfqd.rate
+                     else
+                      1 / cfqd.rate
+                   end)
               into vn_next_working_day_price
               from cfqd_currency_fwd_quote_detail cfqd,
                    cfq_currency_forward_quotes    cfq,
@@ -308,7 +378,8 @@ begin
                and pdd.derivative_def_id = dim.product_derivative_id
                and cfq.corporate_id = pc_corporate_id
                and cfq.trade_date = vd_next_working_date
-               and pdd.product_id = pc_currency_pair
+                  --  and pdd.product_id = pc_currency_pair
+               and dim.instrument_id = vc_instrument_id
                and cfqd.is_deleted = 'N'
                and cfq.price_source_id = pc_price_source_id
                and cfqd.is_spot = 'Y'
