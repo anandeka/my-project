@@ -4,7 +4,7 @@ Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
  
-Created on*        		:  22-Feb-2012
+Created on*        		:  23-Feb-2012
 
 Bug / Enhancement*              : Bug
  
@@ -41,8 +41,10 @@ SQL FILES
 
 
 Removed PCI Price Description Update as it is causing single row sub query returns more than one rows.
+PCI Price Description Update from CIPD
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql(Revision: 87801)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql(Revision: 87845)
 
 
 
