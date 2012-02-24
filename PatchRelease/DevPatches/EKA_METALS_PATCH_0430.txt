@@ -41,8 +41,10 @@ Author: anupkumar.agarwal
 Date: 12:49:09 PM, Friday, February 24, 2012
 Message:
 1:View Changed 
-2:Removed Column From SPQ
+2:Removed Column From SPQ,SPQL
+3:Trigger Changed for SPQL
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_IN_PROCESS_STOCK.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_199.sql
+
 
