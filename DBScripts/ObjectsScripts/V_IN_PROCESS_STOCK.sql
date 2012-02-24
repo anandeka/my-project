@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_IN_PROCESS_STOCK AS
+create or replace view v_in_process_stock as
 select gmr.corporate_id,
        grd.internal_grd_ref_no,
        grd.internal_stock_ref_no stock_ref_no,
@@ -46,7 +46,8 @@ select gmr.corporate_id,
        spq_stock_payable_qty        spq
  where grd.is_deleted = 'N'
    and grd.status = 'Active'
-   and grd.tolling_stock_type in ('MFT In Process Stock')
+   and grd.tolling_stock_type in
+       ('MFT In Process Stock', 'Delta MFT IP Stock')
    and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
    and gmr.is_deleted = 'N'
    and wrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
