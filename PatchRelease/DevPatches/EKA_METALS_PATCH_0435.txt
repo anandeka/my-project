@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_PATCH_0435
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  25-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoicing
+
+Sub-Module  			 :  Invoice Document PI,FI and DFI for concentrate
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+Revision: 88005
+Author: anandp
+Date: 6:31:21 PM, Saturday, February 25, 2012
+Message:
+For TC/RC/Penalty population in the child tables.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_203.sql
+
+Revision: 88004
+Author: anandp
+Date: 6:30:11 PM, Saturday, February 25, 2012
+Message:
+For new columns in TC/RC/penalty child tables.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_201.sql
+
+
+
+
+
+
+
