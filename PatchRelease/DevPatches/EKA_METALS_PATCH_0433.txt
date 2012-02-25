@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_0433
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  25-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoicing
+
+Sub-Module  			 :  Invoice Document PI,FI and DFI for concentrate
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+Revision: 87981
+Author: anandp
+Date: 3:00:44 PM, Saturday, February 25, 2012
+Message:
+Modified.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_200.sql
+
+Revision: 87980
+Author: anandp
+Date: 2:57:16 PM, Saturday, February 25, 2012
+Message:
+Modified.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_201.sql
+
+
+
+
+
+
