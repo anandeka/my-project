@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0434
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit Gupta
+ 
+Created on*        		:  25-Feb-2012
+
+Bug / Enhancement*              : Bug
+ 
+Bug ID*            		: 61585
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  COG
+
+Sub-Module  			 :  cost component
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+Revision: 87999
+Author: mohitkumar.gupta
+Date: 5:34:07 PM, Saturday, February 25, 2012
+Message:
+For cost component issue.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_202.sql
+
+
+
+
+
+
