@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0436
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  25-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoicing
+
+Sub-Module  			 :  Debit/Credit Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+Revision: 88028
+Author: b.ravikumar
+Date: 4:08:39 PM, Sunday, February 26, 2012
+Message:
+-for DC support for Concentrate/Tolling invoices
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_203.sql
+
+
+
+
+
+
+
+
+
