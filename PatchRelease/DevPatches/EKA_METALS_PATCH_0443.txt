@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0443
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  27-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Mining Contract
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+Revision: 88123
+Author: sishir.pagada
+Date: 8:50:50 PM, Monday, February 27, 2012
+Message:
+Boliden outout document changes...
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETOUTPUTPRODUCTDETAILS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETOUTPUTQUALITYDETAILS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETRETURNABLECONTENTDETAILS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETTOLPAYABLECONTENTDETAILS.sql
+
+
