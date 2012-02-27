@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0442
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit
+ 
+Created on*        		:  27-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  COG
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+Revision: 88115
+Author: mohitkumar.gupta
+Date: 8:00:17 PM, Monday, February 27, 2012
+Message:
+For UL table updation during COG posting.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_206.sql
+
+
