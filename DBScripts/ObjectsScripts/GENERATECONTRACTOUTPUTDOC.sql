@@ -34,6 +34,14 @@ IS
    product_group_type         VARCHAR2 (50)   := '';
    qualityprintnamereq        VARCHAR2 (15)   := '';
    qualityprintname           VARCHAR2 (1000) := '';
+   istollingcontract          VARCHAR2 (1);
+   agreementnumber            VARCHAR2 (50);
+   contractservicetype        VARCHAR2 (50);
+   passthrough                VARCHAR2 (10);
+   inputoutputproduct         VARCHAR2 (50);
+   inputoutputquality         VARCHAR2 (50);
+
+
 
    CURSOR cr_delivery
    IS
@@ -54,11 +62,11 @@ BEGIN
       SELECT TO_CHAR (pcm.issue_date, 'dd-Mon-YYYY'), pcm.contract_ref_no,
              NVL (pcm.cp_contract_ref_no, 'NA'), ak.corporate_name,
              ak.corporate_id, pcm.purchase_sales, phd.companyname,
-             pcm.cp_id, pcm.product_group_type, pcm.partnership_type
+             pcm.cp_id, pcm.product_group_type, pcm.partnership_type, pcm.is_tolling_contract
         INTO issuedate, contractrefno,
              cpcontractrefno, corporatename,
              corporateid, contracttype, counterparty,
-             cpid, product_group_type, executiontype
+             cpid, product_group_type, executiontype, istollingcontract
         FROM pcm_physical_contract_main pcm,
              ak_corporate ak,
              phd_profileheaderdetails phd
@@ -77,6 +85,7 @@ BEGIN
          counterparty := '';
          cpid := '';
          product_group_type := '';
+         istollingcontract :='';
    END;
 
    IF (contracttype = 'P')
@@ -122,6 +131,40 @@ BEGIN
                 'N', 'FULL', 'N'
                );
 
+  IF(istollingcontract = 'Y')
+   THEN
+    BEGIN
+        SELECT pcmte.agreement_number
+            INTO agreementnumber
+                FROM pcmte_pcm_tolling_ext pcmte
+                    WHERE pcmte.int_contract_ref_no =
+                                  (SELECT pcm.internal_contract_ref_no
+                                     FROM pcm_physical_contract_main pcm
+                                    WHERE pcm.contract_ref_no = contractrefno);
+    EXCEPTION
+            WHEN NO_DATA_FOUND
+                THEN
+                agreementnumber := NULL;
+    END;
+
+    display_order := display_order + 1;
+
+    INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Agreement No', 'Y', NULL,
+                NULL, agreementnumber, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+
+    END IF;
+
    display_order := display_order + 1;
 
    INSERT INTO cod_contract_output_detail
@@ -137,6 +180,9 @@ BEGIN
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
+
+ 
+
 
    BEGIN
       SELECT NVL ((gab.firstname || ' ' || gab.lastname), 'NA')
@@ -374,6 +420,62 @@ BEGIN
                    'N', 'FULL', 'N'
                   );
    END IF;
+   
+    IF(istollingcontract = 'Y')
+     THEN
+      IF (contracttype = 'P')
+        THEN
+            contractservicetype :='Buy Tolling Services';
+        ELSE
+            contractservicetype :='Sell Tolling Services';
+        END IF;
+
+    display_order := display_order + 1;
+
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Contract Type', 'Y', NULL,
+                NULL, contractservicetype, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+ 
+     BEGIN
+        SELECT pcmte.is_pass_through
+            INTO passthrough
+                FROM pcmte_pcm_tolling_ext pcmte
+                    WHERE pcmte.int_contract_ref_no =
+                                  (SELECT pcm.internal_contract_ref_no
+                                     FROM pcm_physical_contract_main pcm
+                                    WHERE pcm.contract_ref_no = contractrefno);
+    EXCEPTION
+            WHEN NO_DATA_FOUND
+                THEN
+                passthrough := NULL;
+    END;
+
+    display_order := display_order + 1;
+
+    INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Pass Through', 'Y', NULL,
+                NULL, passthrough, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+   END IF;
 
    BEGIN
       SELECT    pdm.product_desc
@@ -400,6 +502,7 @@ BEGIN
              qum_quantity_unit_master qum
        WHERE pcpd.product_id = pdm.product_id
          AND pcpd.qty_unit_id = qum.qty_unit_id
+         and pcpd.input_output = 'Input'
          AND pcpd.internal_contract_ref_no = p_contractno;
    EXCEPTION
       WHEN NO_DATA_FOUND
@@ -407,6 +510,15 @@ BEGIN
          productdef := '';
    END;
 
+    IF(istollingcontract = 'Y')
+    THEN
+    inputoutputproduct := 'Input Product and Quantity';
+    inputoutputquality := 'Input Quality/Qualities';
+    ELSE
+    inputoutputproduct := 'Product and Quantity';
+    inputoutputquality := 'Quality/Qualities';
+    END IF;
+    
    display_order := display_order + 1;
 
    INSERT INTO cod_contract_output_detail
@@ -416,8 +528,8 @@ BEGIN
                 post_content_text, is_custom_section, is_footer_section,
                 is_amend_section, print_type, is_changed
                )
-        VALUES (docid, display_order, NULL, 'Product and Quantity',
-                'Product and Quantity', 'Y', NULL,
+        VALUES (docid, display_order, NULL, inputoutputproduct,
+                inputoutputproduct, 'Y', NULL,
                 NULL, productdef, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
@@ -430,6 +542,7 @@ BEGIN
         INTO qualityprintnamereq, qualityprintname
         FROM pcpd_pc_product_definition pcpd, pcm_physical_contract_main pcm
        WHERE pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
+         AND pcpd.input_output = 'Input'
          AND pcpd.internal_contract_ref_no = p_contractno;
    END;
 
@@ -442,8 +555,8 @@ BEGIN
                    post_content_text, is_custom_section, is_footer_section,
                    is_amend_section, print_type, is_changed
                   )
-           VALUES (docid, display_order, NULL, 'Quality/Qualities',
-                   'Quality/Qualities', 'Y', NULL,
+           VALUES (docid, display_order, NULL, inputoutputquality,
+                   inputoutputquality, 'Y', NULL,
                    NULL, qualityprintname, NULL,
                    NULL, 'N', 'N',
                    'N', 'FULL', 'N'
@@ -456,12 +569,32 @@ BEGIN
                    post_content_text, is_custom_section, is_footer_section,
                    is_amend_section, print_type, is_changed
                   )
-           VALUES (docid, display_order, NULL, 'Quality/Qualities',
-                   'Quality/Qualities', 'Y', NULL,
+           VALUES (docid, display_order, NULL, inputoutputquality,
+                   inputoutputquality, 'Y', NULL,
                    NULL, getcontractqualitydetails (p_contractno), NULL,
                    NULL, 'N', 'N',
                    'N', 'FULL', 'N'
                   );
+   END IF;
+   
+   
+   IF(istollingcontract = 'Y')
+        THEN
+   display_order := display_order + 1;
+
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Output Product and Qualities',
+                'Output Product and Qualities', 'Y', NULL,
+                NULL, getoutputproductdetails (p_contractno), NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
    END IF;
 
    FOR delivery_rec IN cr_delivery
@@ -559,6 +692,8 @@ BEGIN
 
    IF (product_group_type = 'CONCENTRATES')
    THEN
+   IF(istollingcontract = 'N')
+   THEN
       display_order := display_order + 1;
 
       INSERT INTO cod_contract_output_detail
@@ -574,6 +709,41 @@ BEGIN
                    NULL, 'N', 'N',
                    'N', 'FULL', 'N'
                   );
+   
+   ELSE
+   
+       display_order := display_order + 1;
+
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Payable Content',
+                   'Payable Content', 'Y', NULL,
+                   NULL, gettolpayablecontentdetails (p_contractno), NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
+      display_order := display_order + 1;
+
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name, is_print_reqd, pre_content_text_id,
+                   post_content_text_id, contract_content, pre_content_text,
+                   post_content_text, is_custom_section, is_footer_section,
+                   is_amend_section, print_type, is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Returnable Content',
+                   'Returnable Content', 'Y', NULL,
+                   NULL, getreturnablecontentdetails (p_contractno), NULL,
+                   NULL, 'N', 'N',
+                   'N', 'FULL', 'N'
+                  );
+    END IF;
+    
 
       display_order := display_order + 1;
 
@@ -639,6 +809,7 @@ BEGIN
                    'N', 'FULL', 'N'
                   );
    END IF;
+
 
    BEGIN
       SELECT pcm.payment_text
@@ -763,6 +934,5 @@ BEGIN
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
-END; 
+END;
 /
-
