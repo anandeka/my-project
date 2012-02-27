@@ -45,13 +45,14 @@ Message:
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_204.sql
 
-Revision: 88109
+Revision: 88117
 Author: pradeep.kumar
-Date: 7:40:52 PM, Monday, February 27, 2012
+Date: 8:03:24 PM, Monday, February 27, 2012
 Message:
 -- view changed...
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_PLEDGE_GMR.sql
+
 
 
 
