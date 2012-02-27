@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0439
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  27-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+
+Revision: 88089
+Author: pradeep.kumar
+Date: 5:15:17 PM, Monday, February 27, 2012
+Message:
+-- update SLS for Element_Type
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_204.sql
+
+
+
+
+
+
