@@ -29,10 +29,11 @@ select gmr.corporate_id,
           from pofh_price_opt_fixation_header pofh
          where pofh.is_active = 'Y'
            and pofh.internal_gmr_ref_no = gepd.internal_gmr_ref_no) qp_end_date,
-       (select f_string_aggregate(invs.invoice_issue_date)
+       (select invs.invoice_issue_date
           from is_invoice_summary          invs,
                iid_invoicable_item_details iid
          where invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
+           and iid.internal_gmr_ref_no = gepd.pledge_input_gmr
            and invs.internal_invoice_ref_no =
                (select max(invs_temp.internal_invoice_ref_no) internal_invoice_ref_no
                   from is_invoice_summary          invs_temp,
@@ -41,10 +42,11 @@ select gmr.corporate_id,
                        iid.internal_invoice_ref_no
                    and invs_temp.is_active = 'Y'
                    and iid.internal_gmr_ref_no = gepd.pledge_input_gmr)) supplier_inv_date,
-       (select f_string_aggregate(invs.invoice_ref_no)
+       (select invs.invoice_ref_no
           from is_invoice_summary          invs,
                iid_invoicable_item_details iid
          where invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
+           and iid.internal_gmr_ref_no = gepd.pledge_input_gmr
            and invs.internal_invoice_ref_no =
                (select max(invs_temp.internal_invoice_ref_no) internal_invoice_ref_no
                   from is_invoice_summary          invs_temp,
@@ -53,7 +55,7 @@ select gmr.corporate_id,
                        iid.internal_invoice_ref_no
                    and invs_temp.is_active = 'Y'
                    and iid.internal_gmr_ref_no = gepd.pledge_input_gmr)) supplier_inv_no,
-       (select f_string_aggregate(invs.invoice_issue_date)
+       (select invs.invoice_issue_date
           from is_invoice_summary          invs,
                iid_invoicable_item_details iid
          where invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
@@ -66,7 +68,7 @@ select gmr.corporate_id,
                        iid.internal_invoice_ref_no
                    and invs_temp.is_active = 'Y'
                    and iid.internal_gmr_ref_no = gepd.internal_gmr_ref_no)) pledge_inv_date,
-       (select f_string_aggregate(invs.invoice_ref_no)
+       (select invs.invoice_ref_no
         
           from is_invoice_summary          invs,
                iid_invoicable_item_details iid
