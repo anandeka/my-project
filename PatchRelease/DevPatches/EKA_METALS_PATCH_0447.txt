@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_0447
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  28-Feb-2012
+
+Bug / Enhancement*              : Bug
+ 
+Bug ID*            		:  PNL Reverse Realized Issue 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+SQL Files
+
+bug fixes in pnl change,reverse realized, realized contract event based price
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/25_DDL_EODDB_TABLE_ALTER_SCRIPT.sql(Revision: 88161)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql(Revision: 88161)
+
+
