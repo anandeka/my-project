@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0446
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  31-Jan-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoicing
+	
+Sub-Module  			 :  MFT invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+Revision: 88158
+Author: anandp
+Date: 1:20:30 PM, Tuesday, February 28, 2012
+Message:
+For internal movement issue for pass through case.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_207.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
