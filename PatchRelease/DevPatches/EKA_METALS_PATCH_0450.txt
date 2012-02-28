@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_0450
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  28-Feb-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+SQL Files:
+===========
+
+
+Revision: 88275
+Author: sivachalabathi.s
+Date: 10:16:36 PM, Tuesday, February 28, 2012
+Message:
+bug fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql
+
+
+RPT Files: (Note: RPT files to be copied into this Path::\\ ekaEar\zeka-metals-presentation-8.0.1.war\WEB-INF\classes\reports
+===========
+Revision: 88273
+Author: sivachalabathi.s
+Date: 10:14:25 PM, Tuesday, February 28, 2012
+Message:
+bug fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProjectedPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProjectedPriceExposure_Excel.rpt
