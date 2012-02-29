@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0461
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurab
+ 
+Created on*        		:  29-Feb-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+==================================================================
+Schema type (Transaction / EOD)* : NA
+==================================================================
+
+RPT Files:
+============
+Revision: 88396
+Author: sivachalabathi.s
+Date: 6:44:37 PM, Wednesday, February 29, 2012
+Message:
+bug fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFXExposureReport.rpt
+
