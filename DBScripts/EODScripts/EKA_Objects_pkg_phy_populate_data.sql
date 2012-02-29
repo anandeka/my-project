@@ -1814,7 +1814,8 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
        income_expense,
        est_payment_due_date,
        inv_to_accrual_curr_fx,
-       dbd_id)
+       dbd_id,
+       is_actual_posted_in_cog)
       select decode(internal_cost_id,
                     'Empty_String',
                     null,
@@ -1883,7 +1884,8 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
                     'Empty_String',
                     null,
                     inv_to_accrual_curr_fx),
-             gvc_dbd_id
+             gvc_dbd_id,
+             nvl(is_actual_posted_in_cog,'Y')
         from (select csul.internal_cost_id,
                      substr(max(case
                                   when csul.internal_action_ref_no is not null then
@@ -2056,7 +2058,13 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
                                    csul.inv_to_accrual_curr_fx
                                 end),
                             24) inv_to_accrual_curr_fx,
-                     gvc_dbd_id
+                     gvc_dbd_id,
+                     substr(max(case
+                                  when csul.is_actual_posted_in_cog is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   csul.is_actual_posted_in_cog
+                                end),24) is_actual_posted_in_cog
+                     
                 from csul_cost_store_ul csul,
                      axs_action_summary axs,
                      dbd_database_dump  dbd,

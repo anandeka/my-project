@@ -23,12 +23,11 @@ create or replace package "PKG_METALS_GENERAL" is
                                 pc_qty_unit_id     varchar2) return number;
 
   procedure sp_get_penalty_charge(pc_inter_cont_item_ref_no varchar2,
-                                  -- pc_element_id             varchar2,
-                                  pc_dbd_id          varchar2,
-                                  pn_penalty_qty     number,
-                                  pc_pc_qty_unit_id  varchar2,
-                                  pn_total_pc_charge out number,
-                                  pc_pc_cur_id       out varchar2);
+                                  pc_dbd_id                 varchar2,
+                                  pn_penalty_qty            number,
+                                  pc_pc_qty_unit_id         varchar2,
+                                  pn_total_pc_charge        out number,
+                                  pc_pc_cur_id              out varchar2);
 
   procedure sp_get_refine_charge(pc_inter_cont_item_ref_no varchar2,
                                  pc_element_id             varchar2,
@@ -77,7 +76,26 @@ create or replace package "PKG_METALS_GENERAL" is
                                       pc_element_id       varchar2,
                                       pn_total_pc_charge  out number,
                                       pc_pc_cur_id        out varchar2);
-end; 
+  function f_get_next_day(p_date     in date,
+                          p_day      in varchar2,
+                          p_position in number) return date;
+
+  function f_is_day_holiday(pc_instrumentid in varchar2,
+                            pc_trade_date   date) return boolean;
+
+  procedure sp_quality_premium_fw_rate(pc_int_contract_item_ref_no in varchar2,
+                                       pc_corporate_id             in varchar2,
+                                       pd_trade_date               in date,
+                                       pc_price_unit_id            in varchar2,
+                                       pc_base_cur_id              in varchar2,
+                                       pd_payment_due_date         in date,
+                                       pc_product_id               in varchar2,
+                                       pc_base_qty_unit_id         in varchar2,
+                                       pc_process_id               in varchar2,
+                                       pn_premium                  out number,
+                                       pc_exch_rate_string         out varchar2);
+
+end;
 /
 create or replace package body "PKG_METALS_GENERAL" is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -336,7 +354,6 @@ create or replace package body "PKG_METALS_GENERAL" is
     end loop;
     return(vn_item_qty - vn_deduct_total_qty);
   end;
-
   procedure sp_get_penalty_charge(pc_inter_cont_item_ref_no varchar2,
                                   pc_dbd_id                 varchar2,
                                   pn_penalty_qty            number,
@@ -547,8 +564,8 @@ create or replace package body "PKG_METALS_GENERAL" is
                 vn_tier_penalty := vn_tier_penalty + vn_penalty_charge;
                 /** vn_range_gap;*/
               /* dbms_output.put_line(' Variable  Penalty charge for this ' ||
-                                                   vn_penalty_charge);
-                              dbms_output.put_line('---------------------------');*/
+                                                                                                                         vn_penalty_charge);
+                                                                                                    dbms_output.put_line('---------------------------');*/
               --calculate total Penalty charge
               end loop;
             end if;
@@ -1502,7 +1519,8 @@ create or replace package body "PKG_METALS_GENERAL" is
                   and gmr.dbd_id = pc_dbd_id
                   and grd.dbd_id = pc_dbd_id
                   and pci.dbd_id = pc_dbd_id
-                  and grd.internal_contract_item_ref_no=pci.internal_contract_item_ref_no
+                  and grd.internal_contract_item_ref_no =
+                      pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
                   and grd.internal_grd_ref_no = pc_inter_grd_ref_no)
     loop
@@ -1838,7 +1856,8 @@ create or replace package body "PKG_METALS_GENERAL" is
                   and gmr.dbd_id = pc_dbd_id
                   and grd.dbd_id = pc_dbd_id
                   and pci.dbd_id = pc_dbd_id
-                  and grd.internal_contract_item_ref_no=pci.internal_contract_item_ref_no
+                  and grd.internal_contract_item_ref_no =
+                      pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
                   and grd.internal_grd_ref_no = pc_inter_grd_ref_no)
     loop
@@ -1910,8 +1929,10 @@ create or replace package body "PKG_METALS_GENERAL" is
                                         pcepc.refining_charge_unit_id
                                     and ppu.price_unit_id =
                                         pum.price_unit_id
-                                    and pci.internal_contract_item_ref_no = cc.internal_contract_item_ref_no
-                                    and gmr.internal_contract_ref_no = cc.internal_contract_ref_no
+                                    and pci.internal_contract_item_ref_no =
+                                        cc.internal_contract_item_ref_no
+                                    and gmr.internal_contract_ref_no =
+                                        cc.internal_contract_ref_no
                                     and gmr.internal_gmr_ref_no =
                                         grh.internal_gmr_ref_no
                                     and pci.dbd_id = pc_dbd_id
@@ -2248,7 +2269,8 @@ create or replace package body "PKG_METALS_GENERAL" is
                   and gmr.dbd_id = pc_dbd_id
                   and grd.dbd_id = pc_dbd_id
                   and pci.dbd_id = pc_dbd_id
-                  and grd.internal_contract_item_ref_no=pci.internal_contract_item_ref_no
+                  and grd.internal_contract_item_ref_no =
+                      pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
                   and grd.internal_grd_ref_no = pc_inter_grd_ref_no)
     loop
@@ -2404,5 +2426,221 @@ create or replace package body "PKG_METALS_GENERAL" is
       pn_total_pc_charge := -1;
       pc_pc_cur_id       := null;
   end;
-end; 
+  function f_get_next_day(p_date     in date,
+                          p_day      in varchar2,
+                          p_position in number) return date is
+  
+    v_position_date      date;
+    v_next_position      number;
+    v_start_day          varchar2(10);
+    v_first_day_position date;
+  
+  begin
+  
+    begin
+      v_next_position := (p_position - 1) * 7;
+      v_start_day     := to_char(to_date('01-' ||
+                                         to_char(trunc(p_date), 'mon-yyyy'),
+                                         'dd-mon-yyyy'),
+                                 'dy');
+      if upper(trim(v_start_day)) = upper(trim(p_day)) then
+        v_first_day_position := to_date('01-' ||
+                                        to_char(trunc(p_date), 'mon-yyyy'),
+                                        'dd-mon-yyyy');
+      else
+        v_first_day_position := next_day(to_date('01-' ||
+                                                 to_char(p_date, 'mon-yyyy'),
+                                                 'dd-mon-yyyy'),
+                                         trim(p_day));
+      end if;
+    
+      if v_next_position <= 1 then
+        v_position_date := trunc(v_first_day_position);
+      else
+        v_position_date := trunc(v_first_day_position) + v_next_position;
+      end if;
+    exception
+      when no_data_found then
+        return null;
+      when others then
+        return null;
+    end;
+    return v_position_date;
+  end f_get_next_day;
+  function f_is_day_holiday(pc_instrumentid in varchar2,
+                            pc_trade_date   date) return boolean is
+    pc_counter number(1);
+    result_val boolean;
+  begin
+    --Checking the Week End Holiday List
+    begin
+      select count(*)
+        into pc_counter
+        from dual
+       where to_char(pc_trade_date, 'Dy') in
+             (select clwh.holiday
+                from dim_der_instrument_master    dim,
+                     clm_calendar_master          clm,
+                     clwh_calendar_weekly_holiday clwh
+               where dim.holiday_calender_id = clm.calendar_id
+                 and clm.calendar_id = clwh.calendar_id
+                 and dim.instrument_id = pc_instrumentid
+                 and clm.is_deleted = 'N'
+                 and clwh.is_deleted = 'N');
+      if (pc_counter = 1) then
+        result_val := true;
+      else
+        result_val := false;
+      end if;
+      if (result_val = false) then
+        --Checking Other Holiday List
+        select count(*)
+          into pc_counter
+          from dual
+         where trim(pc_trade_date) in
+               (select trim(hl.holiday_date)
+                  from hm_holiday_master         hm,
+                       hl_holiday_list           hl,
+                       dim_der_instrument_master dim,
+                       clm_calendar_master       clm
+                 where hm.holiday_id = hl.holiday_id
+                   and dim.holiday_calender_id = clm.calendar_id
+                   and clm.calendar_id = hm.calendar_id
+                   and dim.instrument_id = pc_instrumentid
+                   and hm.is_deleted = 'N'
+                   and hl.is_deleted = 'N');
+        if (pc_counter = 1) then
+          result_val := true;
+        else
+          result_val := false;
+        end if;
+      end if;
+    end;
+    return result_val;
+  end f_is_day_holiday;
+  procedure sp_quality_premium_fw_rate(pc_int_contract_item_ref_no in varchar2,
+                                       pc_corporate_id             in varchar2,
+                                       pd_trade_date               in date,
+                                       pc_price_unit_id            in varchar2,
+                                       pc_base_cur_id              in varchar2,
+                                       pd_payment_due_date         in date,
+                                       pc_product_id               in varchar2,
+                                       pc_base_qty_unit_id         in varchar2,
+                                       pc_process_id               in varchar2,
+                                       pn_premium                  out number,
+                                       pc_exch_rate_string         out varchar2) is
+  
+    cursor cur_preimium is
+      select pcqpd.premium_disc_value,
+             pcqpd.premium_disc_unit_id
+        from pci_physical_contract_item     pci,
+             pcpq_pc_product_quality        pcpq,
+             pcpdqd_pd_quality_details      pcpdqd,
+             pcqpd_pc_qual_premium_discount pcqpd
+       where pci.pcpq_id = pcpq.pcpq_id
+         and pcpq.pcpq_id = pcpdqd.pcpq_id
+         and pcpdqd.pcqpd_id = pcqpd.pcqpd_id
+         and pci.process_id = pc_process_id
+         and pcpq.process_id = pc_process_id
+         and pcqpd.process_id = pc_process_id
+         and pcpdqd.process_id = pc_process_id
+         and pci.internal_contract_item_ref_no =
+             pc_int_contract_item_ref_no;
+    vn_premium                 number;
+    vn_total_premium           number := 0;
+    vc_premium_cur_id          varchar2(15);
+    vc_premium_main_cur_id     varchar2(15);
+    vc_premium_main_cur_code   varchar2(15);
+    vn_premium_cur_main_factor number;
+    vc_premium_weight_unit_id  varchar2(15);
+    vn_premium_weight          number;
+    vn_premium_to_base_fw_rate number;
+    vn_forward_points          number;
+    vc_base_cur_code           varchar2(15);
+    vobj_error_log             tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count         number := 1;
+  begin
+    select cm.cur_code
+      into vc_base_cur_code
+      from cm_currency_master cm
+     where cm.cur_id = pc_base_cur_id;
+    for cur_preimium_rows in cur_preimium
+    loop
+      if cur_preimium_rows.premium_disc_unit_id = pc_price_unit_id then
+        vn_premium := cur_preimium_rows.premium_disc_value;
+      else
+        --
+        -- Get the Currency, Weight Unit and Weight Unit of Premium Price Unit
+        --
+        select ppu.cur_id,
+               ppu.weight_unit_id,
+               nvl(ppu.weight, 1)
+          into vc_premium_cur_id,
+               vc_premium_weight_unit_id,
+               vn_premium_weight
+          from v_ppu_pum ppu
+         where ppu.product_price_unit_id = pc_price_unit_id;
+      
+        --
+        -- Get the Main Currency of the Premium Price Unit
+        --
+        pkg_general.sp_get_base_cur_detail(vc_premium_cur_id,
+                                           vc_premium_main_cur_id,
+                                           vc_premium_main_cur_code,
+                                           vn_premium_cur_main_factor);
+        --
+        -- Exchange Rate from Premium to Base Currency
+        --                                           
+        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+                                                pd_trade_date,
+                                                pd_payment_due_date,
+                                                vc_premium_main_cur_id,
+                                                pc_base_cur_id,
+                                                30,
+                                                vn_premium_to_base_fw_rate,
+                                                vn_forward_points);
+        if pc_exch_rate_string is null then
+          pc_exch_rate_string := '1 ' || vc_base_cur_code || '=' ||
+                                 vn_premium_to_base_fw_rate || ' ' ||
+                                 vc_premium_main_cur_code;
+        else
+          pc_exch_rate_string := pc_exch_rate_string || ',' || '1 ' ||
+                                 vc_base_cur_code || '=' ||
+                                 vn_premium_to_base_fw_rate || ' ' ||
+                                 vc_premium_main_cur_code;
+        end if;
+      
+        if vc_premium_main_cur_code <> vc_base_cur_code then
+          if vn_premium_to_base_fw_rate is null or
+             vn_premium_to_base_fw_rate = 0 then
+            vobj_error_log.extend;
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure sp_quality_premium_fw_rate-sp_calc_phy_open_unrealized ',
+                                                                 'PHY-005',
+                                                                 vc_base_cur_code ||
+                                                                 ' to ' ||
+                                                                 vc_premium_main_cur_code || ' (' ||
+                                                                 to_char(pd_payment_due_date,
+                                                                         'dd-Mon-yyyy') || ') ',
+                                                                 '',
+                                                                 pkg_phy_physical_process.gvc_process,
+                                                                 null, --pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
+          end if;
+        end if;
+        vn_premium := (cur_preimium_rows.premium_disc_value /
+                      vn_premium_cur_main_factor) *
+                      vn_premium_to_base_fw_rate *
+                      pkg_general.f_get_converted_quantity(pc_product_id,
+                                                           vc_premium_weight_unit_id,
+                                                           pc_base_qty_unit_id,
+                                                           1);
+      end if;
+      vn_total_premium := vn_total_premium + vn_premium;
+    end loop;
+    pn_premium := vn_total_premium;
+  end;
+end;
 /

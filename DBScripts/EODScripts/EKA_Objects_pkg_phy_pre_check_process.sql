@@ -11,6 +11,19 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                          pc_user_id      varchar2,
                          pc_process      varchar2);
 
+  procedure sp_m2m_tc_pc_rc_charge(pc_corporate_id       varchar2,
+                                   pd_trade_date         date,
+                                   pc_conc_product_id    varchar2,
+                                   pc_conc_quality_id    varchar2,
+                                   pc_valuation_point_id varchar2,
+                                   pc_charge_type        varchar2,
+                                   pc_element_id         varchar2,
+                                   pc_calendar_month     varchar2,
+                                   pc_calendar_year      varchar2,
+                                   pc_price_unit_id      varchar2,
+                                   pd_payment_due_date   date,
+                                   pn_charge_amt         out number,
+                                   pc_exch_rate_string   out varchar2);
   procedure sp_calc_m2m_tc_pc_rc_charge(pc_corporate_id         varchar2,
                                         pd_trade_date           date,
                                         pc_conc_product_id      varchar2,
@@ -29,10 +42,17 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2,
                                     pc_process      varchar2);
+
   procedure sp_update_ld_base_metal(pc_corporate_id varchar2,
                                     pd_trade_date   date,
                                     pc_user_id      varchar2,
                                     pc_process      varchar2);
+
+  procedure sp_update_ld_concentrates(pc_corporate_id varchar2,
+                                      pd_trade_date   date,
+                                      pc_user_id      varchar2,
+                                      pc_process      varchar2);
+
   procedure sp_pre_check_m2m_conc_values(pc_corporate_id varchar2,
                                          pd_trade_date   date,
                                          pc_dbd_id       varchar2,
@@ -44,17 +64,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                           pc_dbd_id       varchar2,
                                           pc_user_id      varchar2,
                                           pc_process      varchar2);
-  procedure sp_calc_m2m_quality_premimum(pc_corporate_id          varchar2,
-                                         pd_trade_date            date,
-                                         pc_valuation_point_id    varchar2,
-                                         pc_quality_id            varchar2,
-                                         pc_product_id            varchar2,
-                                         pc_premium_price_unit_id varchar2,
-                                         pc_calendar_month        varchar2,
-                                         pc_calendar_year         varchar2,
-                                         pc_user_id               varchar2,
-                                         pc_process               varchar2,
-                                         pn_qp_amt                out number);
+
   procedure sp_m2m_quality_premimum(pc_corporate_id          varchar2,
                                     pd_trade_date            date,
                                     pc_valuation_point_id    varchar2,
@@ -69,15 +79,6 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pn_qp_amt                out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2);
-  procedure sp_calc_m2m_product_premimum(pc_corporate_id          varchar2,
-                                         pd_trade_date            date,
-                                         pc_product_id            varchar2,
-                                         pc_calendar_month        varchar2,
-                                         pc_calendar_year         varchar2,
-                                         pc_user_id               varchar2,
-                                         pc_process               varchar2,
-                                         pc_premium_price_unit_id varchar2,
-                                         pn_pp_amt                out number);
   procedure sp_m2m_product_premimum(pc_corporate_id          varchar2,
                                     pd_trade_date            date,
                                     pc_product_id            varchar2,
@@ -1386,7 +1387,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
            'Physicals M2M Pre-Check',
            'PHY-100',
            cc.product_desc || ',' || cc.shipment_month || '-' ||
-           cc.shipment_year || to_char(cc.payment_due_date, 'dd-Mon-yyyy'),
+           cc.shipment_year,
            null,
            pc_process,
            sysdate,
@@ -1585,7 +1586,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     --        Procedure Name                            : sp_update_ld_base_metal
     --        Author                                    : janna
     --        Created Date                              : 08th Feb 2012
-    --        Purpose                                   : Update Location Differential for Base Metals
+    --        Purpose                                   : Update Location Differential for Base Metal
     --
     --        Modification History
     --        Modified Date                             :
@@ -1645,7 +1646,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  and ldh1.product_id = ldh.product_id)
       
        order by 1;
-    -- Variables       
     vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count           number := 1;
     vc_error_loc                 varchar2(10) := '0';
@@ -1842,7 +1842,274 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-  /*Start of Concentrate Precheck */
+
+  procedure sp_update_ld_concentrates
+  --------------------------------------------------------------------------------------------------------------------------
+    --        Procedure Name                            : sp_update_ld_concentrates
+    --        Author                                    : janna
+    --        Created Date                              : 08th Feb 2012
+    --        Purpose                                   : Update Location Differential for oncentrates
+    --
+    --        Modification History
+    --        Modified Date                             :
+    --        Modified By                               :
+    --        Modify Description                        :
+    --------------------------------------------------------------------------------------------------------------------------
+  
+  (pc_corporate_id varchar2,
+   pd_trade_date   date,
+   pc_user_id      varchar2,
+   pc_process      varchar2)
+  
+   is
+    pragma autonomous_transaction;
+    cursor cur_loc_diff is
+      select tmpc.mvp_id || tmpc.valuation_city_id ||
+             tmpc.valuation_incoterm_id || tmpc.conc_product_id ||
+             to_char(tmpc.payment_due_date, 'dd-Mon-yyyy') pk_loc_diff,
+             tmpc.mvp_id,
+             tmpc.valuation_city_id,
+             tmpc.valuation_incoterm_id,
+             tmpc.conc_product_id,
+             ldc.cost_value cost_value,
+             ldc.cost_price_unit_id,
+             tmpc.payment_due_date,
+             tmpc.conc_base_price_unit_id_ppu
+        from lds_location_diff_setup ldh,
+             ldc_location_diff_cost ldc,
+             (select tmpc.valuation_incoterm_id,
+                     tmpc.valuation_city_id,
+                     tmpc.conc_product_id,
+                     tmpc.payment_due_date,
+                     tmpc.mvp_id,
+                     tmpc.conc_base_price_unit_id_ppu
+                from tmpc_temp_m2m_pre_check tmpc
+               where tmpc.product_type = 'CONCENTRATES'
+                 and tmpc.corporate_id = pc_corporate_id
+               group by tmpc.valuation_incoterm_id,
+                        tmpc.valuation_city_id,
+                        tmpc.conc_product_id,
+                        tmpc.payment_due_date,
+                        tmpc.mvp_id,
+                        tmpc.conc_base_price_unit_id_ppu) tmpc
+       where ldh.loc_diff_id = ldc.loc_diff_id
+         and ldh.valuation_city_id = tmpc.valuation_city_id
+         and tmpc.mvp_id = ldh.valuation_point_id
+         and tmpc.conc_product_id = ldh.product_id
+         and ldh.inco_term_id = tmpc.valuation_incoterm_id
+         and ldh.corporate_id = pc_corporate_id
+         and ldh.as_on_date =
+             (select max(ldh1.as_on_date)
+                from lds_location_diff_setup ldh1
+               where ldh1.as_on_date <= pd_trade_date
+                 and ldh1.valuation_point_id = ldh.valuation_point_id
+                 and ldh1.inco_term_id = ldh.inco_term_id
+                 and ldh1.valuation_city_id = ldh.valuation_city_id
+                 and ldh1.product_id = ldh.product_id)
+      
+       order by 1;
+    vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count           number := 1;
+    vc_error_loc                 varchar2(10) := '0';
+    vc_current_loc_diff_pk       varchar2(100);
+    vc_previous_loc_diff_pk      varchar2(100);
+    vn_loc_diff                  number := 0;
+    vn_total_loc_diff            number := 0;
+    vc_ld_exch_rate_string       varchar2(500);
+    vc_total_ld_exch_rate_string varchar2(500);
+    vc_ld_cur_id                 varchar2(15);
+    vc_ld_unit_id                varchar2(15);
+    vn_ld_weight                 number;
+    vc_ld_main_cur_id            varchar2(15);
+    vc_ld_main_cur_code          varchar2(15);
+    vc_ld_main_cur_factor        number;
+    vc_base_cur_id               varchar2(15);
+    vc_base_cur_code             varchar2(15);
+    vc_base_weight_unit_id       varchar2(15);
+    vn_fw_exch_rate_ld_to_base   number;
+    vn_forward_points            number;
+    vc_valuation_city_id         varchar2(15);
+    vc_valuation_incoterm_id     varchar2(15);
+    vc_product_id                varchar2(15);
+    vd_payment_due_date          date;
+    vc_mvp_id                    varchar2(15);
+    vc_data_missing_for          varchar2(100);
+  
+  begin
+    for cur_loc_diff_rows in cur_loc_diff
+    loop
+      vc_current_loc_diff_pk := cur_loc_diff_rows.pk_loc_diff;
+      -- When the PK changes renitialize the variable
+      if (vc_current_loc_diff_pk = vc_previous_loc_diff_pk) or
+         vc_previous_loc_diff_pk is null then
+        null;
+      else
+        update tmpc_temp_m2m_pre_check tmpc
+           set tmpc.m2m_loc_incoterm_deviation = vn_total_loc_diff,
+               tmpc.m2m_ld_fw_exch_rate        = vc_total_ld_exch_rate_string
+         where tmpc.corporate_id = pc_corporate_id
+           and tmpc.valuation_city_id = vc_valuation_city_id
+           and tmpc.valuation_incoterm_id = vc_valuation_incoterm_id
+           and tmpc.conc_product_id = vc_product_id
+           and tmpc.payment_due_date = vd_payment_due_date
+           and tmpc.mvp_id = vc_mvp_id
+           and tmpc.product_type = 'CONCENTRATES';
+      
+        vn_loc_diff                  := 0;
+        vn_total_loc_diff            := 0;
+        vc_ld_exch_rate_string       := null;
+        vc_total_ld_exch_rate_string := null;
+      end if;
+      vc_error_loc := '1';
+      if cur_loc_diff_rows.cost_price_unit_id <>
+         cur_loc_diff_rows.conc_base_price_unit_id_ppu then
+        --
+        -- Get the Currency of the Premium Price Unit
+        --
+        vc_error_loc := '2';
+        select ppu.cur_id,
+               ppu.weight_unit_id,
+               nvl(ppu.weight, 1)
+          into vc_ld_cur_id,
+               vc_ld_unit_id,
+               vn_ld_weight
+          from v_ppu_pum ppu
+         where ppu.product_price_unit_id =
+               cur_loc_diff_rows.cost_price_unit_id;
+        vc_error_loc := '3';
+        --
+        -- Get the Main Currency of the Premium Price Unit
+        --   
+        pkg_general.sp_get_base_cur_detail(vc_ld_cur_id,
+                                           vc_ld_main_cur_id,
+                                           vc_ld_main_cur_code,
+                                           vc_ld_main_cur_factor);
+        vc_error_loc := '4';
+        --
+        -- Get the Details of the Base Currency
+        --  
+      
+        select ppu.cur_id,
+               ppu.weight_unit_id,
+               cm.cur_code
+          into vc_base_cur_id,
+               vc_base_weight_unit_id,
+               vc_base_cur_code
+          from v_ppu_pum          ppu,
+               cm_currency_master cm
+         where ppu.product_price_unit_id =
+               cur_loc_diff_rows.conc_base_price_unit_id_ppu
+           and ppu.cur_id = cm.cur_id;
+        --
+        -- Get the Exchange Rate from Premium Price Currency to Base Currency
+        -- 
+        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+                                                pd_trade_date,
+                                                cur_loc_diff_rows.payment_due_date,
+                                                vc_ld_main_cur_id,
+                                                vc_base_cur_id,
+                                                30,
+                                                vn_fw_exch_rate_ld_to_base,
+                                                vn_forward_points);
+        vc_error_loc := '5';
+        if vn_fw_exch_rate_ld_to_base = 0 then
+          vc_data_missing_for := vc_ld_main_cur_code || ' / ' ||
+                                 vc_base_cur_code || ' ' ||
+                                 to_char(cur_loc_diff_rows.payment_due_date,
+                                         'dd-Mon-yyyy');
+          insert into eel_eod_eom_exception_log eel
+            (corporate_id,
+             submodule_name,
+             exception_code,
+             data_missing_for,
+             trade_ref_no,
+             process,
+             process_run_date,
+             process_run_by,
+             dr_id,
+             trade_date)
+          values
+            (pc_corporate_id,
+             'Physicals Pre-Check',
+             'PHY-005',
+             vc_data_missing_for,
+             null,
+             pc_process,
+             systimestamp,
+             pc_user_id,
+             null,
+             pd_trade_date);
+        end if;
+        vc_error_loc := '6';
+        if vc_base_cur_id <> vc_ld_main_cur_id then
+          vc_ld_exch_rate_string := '1 ' || vc_ld_main_cur_code || '=' ||
+                                    vn_fw_exch_rate_ld_to_base || ' ' ||
+                                    vc_base_cur_code;
+          if vc_total_ld_exch_rate_string is null then
+            vc_total_ld_exch_rate_string := vc_ld_exch_rate_string;
+          else
+            if instr(vc_total_ld_exch_rate_string, vc_ld_exch_rate_string) = 0 then
+              vc_total_ld_exch_rate_string := vc_total_ld_exch_rate_string || ',' ||
+                                              vc_ld_exch_rate_string;
+            end if;
+          end if;
+        end if;
+      
+        vn_loc_diff := (cur_loc_diff_rows.cost_value / vn_ld_weight) *
+                       vc_ld_main_cur_factor * vn_fw_exch_rate_ld_to_base *
+                       pkg_general.f_get_converted_quantity(cur_loc_diff_rows.conc_product_id,
+                                                            vc_base_weight_unit_id,
+                                                            vc_ld_unit_id,
+                                                            
+                                                            1);
+      else
+        vn_loc_diff := cur_loc_diff_rows.cost_value;
+      end if;
+      vn_total_loc_diff := vn_total_loc_diff + vn_loc_diff;
+      --
+      -- These variable are required since for updation these value are required 
+      -- And NOT the cursor values as the record in the cursor is new
+      -- 
+      vc_previous_loc_diff_pk  := cur_loc_diff_rows.pk_loc_diff;
+      vc_valuation_city_id     := cur_loc_diff_rows.valuation_city_id;
+      vc_valuation_incoterm_id := cur_loc_diff_rows.valuation_incoterm_id;
+      vc_product_id            := cur_loc_diff_rows.conc_product_id;
+      vd_payment_due_date      := cur_loc_diff_rows.payment_due_date;
+      vc_mvp_id                := cur_loc_diff_rows.mvp_id;
+    end loop;
+    vc_error_loc := '7';
+    update tmpc_temp_m2m_pre_check tmpc
+       set tmpc.m2m_loc_incoterm_deviation = vn_total_loc_diff,
+           tmpc.m2m_ld_fw_exch_rate        = vc_total_ld_exch_rate_string
+     where tmpc.corporate_id = pc_corporate_id
+       and tmpc.valuation_city_id = vc_valuation_city_id
+       and tmpc.valuation_incoterm_id = vc_valuation_incoterm_id
+       and tmpc.conc_product_id = vc_product_id
+       and tmpc.payment_due_date = vd_payment_due_date
+       and tmpc.mvp_id = vc_mvp_id
+       and tmpc.product_type = 'CONCENTRATES';
+    vc_error_loc := '8';
+    commit;
+  exception
+    when others then
+      rollback;
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_update_ld_concentrates',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm || ' ' ||
+                                                           vc_error_loc,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
+  /*Start of Concentrate Precheck*/
   procedure sp_pre_check_m2m_conc_values(pc_corporate_id varchar2,
                                          pd_trade_date   date,
                                          pc_dbd_id       varchar2,
@@ -1866,19 +2133,19 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     modified by                               :
     modify description                        :
     ******************************************************************************************************************************************/
-    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count number := 1;
-    vc_drid            varchar2(15);
-    --vn_qty_premimum_amt     number(10);
-    --vn_pp_amt               number(10);
-    vc_error_loc varchar2(100);
-    --vc_treat_charge         varchar2(50);
-    --vc_refine_charge        varchar2(50);
-    --vc_penalty_charge       varchar2(50);
-    pn_charge_amt           number;
-    pc_charge_price_unit_id varchar2(20);
-    --vc_charge_type          varchar2(15);
-    --vc_m2m_id               varchar2(15);
+    vobj_error_log              tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count          number := 1;
+    vc_drid                     varchar2(15);
+    vc_error_loc                varchar2(100);
+    pn_charge_amt               number;
+    vn_no_loc_diff_error_count  number;
+    vc_exch_rate_string         varchar2(100);
+    vn_qty_premimum_amt         number;
+    vn_pp_amt                   number;
+    vc_quality_exch_rate_string varchar2(100);
+    vc_exch_rate_missing        varchar2(1);
+    vc_product_exch_rate_string varchar2(100);
+  
   begin
     --dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'C');
     --added newly to maintain consistency in both physical process and precheck. 28th
@@ -2129,7 +2396,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        element_name,
        product_type,
        is_tolling_contract,
-       is_tolling_extn)
+       is_tolling_extn,
+       payment_due_date)
       (select pcm.corporate_id corporate_id,
               mv_qat.conc_product_id conc_product_id,
               mv_qat.conc_quality_id conc_quality_id,
@@ -2165,7 +2433,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
               aml.attribute_name,
               'CONCENTRATES',
               pcm.is_tolling_contract,
-              pcm.is_tolling_extn
+              pcm.is_tolling_extn,
+              pcdi.payment_due_date
          from pcm_physical_contract_main    pcm,
               pci_physical_contract_item    pci,
               pcpq_pc_product_quality       pcpq,
@@ -2246,7 +2515,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        shipment_date,
        internal_m2m_id,
        is_tolling_contract,
-       is_tolling_extn)
+       is_tolling_extn,
+       payment_due_date)
       select m2m.corporate_id,
              m2m.product_group_type,
              m2m.product_id conc_product_id,
@@ -2280,7 +2550,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              m2m.shipment_date,
              null internal_m2m_id,
              m2m.is_tolling_contract,
-             m2m.is_tolling_extn
+             m2m.is_tolling_extn,
+             payment_due_date
         from (select temp.corporate_id,
                      temp.product_group_type,
                      mv_qat.product_id element_product_id,
@@ -2313,12 +2584,13 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      temp.internal_gmr_ref_no,
                      temp.internal_grd_ref_no,
                      temp.section_name,
-                     vdip.price_unit_id valuation_price_unit_id, -- from view
+                     vdip.price_unit_id valuation_price_unit_id,
                      to_char(pd_trade_date, 'Mon') shipment_month,
                      to_char(pd_trade_date, 'yyyy') shipment_year,
                      pd_trade_date shipment_date,
                      temp.is_tolling_contract,
-                     temp.is_tolling_extn
+                     temp.is_tolling_extn,
+                     payment_due_date
                 from (select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
                                     nvl(grd.inventory_status, 'NA') in
@@ -2359,7 +2631,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              grd.quality_id quality_id,
                              pci.m2m_inco_term,
                              pcm.is_tolling_contract,
-                             pcm.is_tolling_extn
+                             pcm.is_tolling_extn,
+                             pd_trade_date payment_due_date
                         from grd_goods_record_detail     grd,
                              gmr_goods_movement_record   gmr,
                              pci_physical_contract_item  pci,
@@ -2446,7 +2719,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              dgrd.quality_id,
                              pci.m2m_inco_term,
                              pcm.is_tolling_contract,
-                             pcm.is_tolling_extn
+                             pcm.is_tolling_extn,
+                             pd_trade_date payment_due_date
                         from gmr_goods_movement_record   gmr,
                              pci_physical_contract_item  pci,
                              pcm_physical_contract_main  pcm,
@@ -2533,7 +2807,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              grd.quality_id quality_id,
                              null m2m_inco_term,
                              null is_tolling_contract,
-                             null is_tolling_extn
+                             null is_tolling_extn,
+                             pd_trade_date payment_due_date
                         from grd_goods_record_detail     grd,
                              gmr_goods_movement_record   gmr,
                              sld_storage_location_detail shm,
@@ -2568,8 +2843,36 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  and mvpl.loc_city_id = temp.city_id
                  and aml.attribute_id = mv_qat.attribute_id
                  and aml.is_active = 'Y') m2m;
-  
     --End of insert into tmpc for Inventory  Concentrate
+  
+    for cur_ppu in (select tmpc.conc_product_id,
+                           ppu.product_price_unit_id
+                      from tmpc_temp_m2m_pre_check tmpc,
+                           pdm_productmaster       pdm,
+                           v_ppu_pum               ppu,
+                           ak_corporate            akc
+                     where tmpc.corporate_id = pc_corporate_id
+                       and tmpc.product_type = 'CONCENTRATES'
+                       and tmpc.is_tolling_contract = 'N'
+                       and tmpc.is_tolling_extn = 'N'
+                       and tmpc.conc_product_id = pdm.product_id
+                       and ppu.product_id = pdm.product_id
+                       and ppu.weight_unit_id = pdm.base_quantity_unit
+                       and ppu.cur_id = akc.base_cur_id
+                     group by tmpc.conc_product_id,
+                              ppu.product_price_unit_id)
+    loop
+    
+      update tmpc_temp_m2m_pre_check tmpc
+         set tmpc.conc_base_price_unit_id_ppu = cur_ppu.product_price_unit_id
+       where tmpc.corporate_id = pc_corporate_id
+         and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract = 'N'
+         and tmpc.is_tolling_extn = 'N'
+         and tmpc.conc_product_id = cur_ppu.conc_product_id;
+    
+    end loop;
+  
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -3084,20 +3387,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.corporate_id = ccv.corporate_id;
     end loop;
     commit;
-    -- get the contract base price Unit id
-    /* begin
-      select product_price_unit_id
-        into vn_contract_base_price_unit_id
-        from v_ppu_pum pum
-       where pum.cur_id = cur_pcdi_rows.invoice_currency_id
-         and pum.weight_unit_id = cur_pcdi_rows.qty_unit_id
-         and pum.product_id = cur_pcdi_rows.product_id;
-    exception
-      when no_data_found then
-        vn_contract_base_price_unit_id := null;
-    end;*/
-    --Updating tmpc table and setting the 
-    --base_price_unit_id_in_ppu.
+  
     vc_error_loc := 9;
   
     for cc in (select tmpc.corporate_id,
@@ -3350,7 +3640,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  pd_trade_date,
                  'Precheck M2M',
                  'Settlement price' || sql%rowcount);
-  
     -- settlement price missing for differential contract for price calcuation
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
@@ -3416,6 +3705,15 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                 qat.quality_name || ',' || itm.incoterm || ',' ||
                 cim.city_name;
   
+    vn_no_loc_diff_error_count := sql%rowcount;
+    commit;
+    if vn_no_loc_diff_error_count = 0 then
+      sp_update_ld_concentrates(pc_corporate_id,
+                                pd_trade_date,
+                                pc_user_id,
+                                pc_process);
+    end if;
+  
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -3435,11 +3733,12 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              qat.quality_name conc_qat_name,
                              tmpc.element_id,
                              tmpc.element_name,
-                             tmpc.base_price_unit_id_in_ppu,
+                             tmpc.conc_base_price_unit_id_ppu,
                              tmpc.shipment_month,
                              tmpc.shipment_year,
                              tmpc.mvp_id valuation_point_id,
-                             tmpc.valuation_point
+                             tmpc.valuation_point,
+                             tmpc.payment_due_date
                         from tmpc_temp_m2m_pre_check tmpc,
                              pdm_productmaster       pdm,
                              qat_quality_attributes  qat
@@ -3453,28 +3752,31 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                 tmpc.conc_product_id,
                                 pdm.product_desc,
                                 tmpc.conc_quality_id,
-                                tmpc.base_price_unit_id_in_ppu,
+                                tmpc.conc_base_price_unit_id_ppu,
                                 tmpc.element_id,
                                 tmpc.valuation_point,
                                 tmpc.mvp_id,
                                 qat.quality_name,
                                 tmpc.element_name,
                                 tmpc.shipment_month,
-                                tmpc.shipment_year)
+                                tmpc.shipment_year,
+                                tmpc.payment_due_date)
       loop
         --for treatment charge precheck
-        pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
-                                                              pd_trade_date,
-                                                              cc_tmpc.conc_product_id,
-                                                              cc_tmpc.conc_quality_id,
-                                                              cc_tmpc.valuation_point_id, --valuation_id
-                                                              'Treatment Charges', --charge_type
-                                                              cc_tmpc.element_id,
-                                                              cc_tmpc.shipment_month,
-                                                              cc_tmpc.shipment_year,
-                                                              cc_tmpc.base_price_unit_id_in_ppu,
-                                                              pn_charge_amt,
-                                                              pc_charge_price_unit_id);
+      
+        pkg_phy_pre_check_process.sp_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
+                                                         pd_trade_date,
+                                                         cc_tmpc.conc_product_id,
+                                                         cc_tmpc.conc_quality_id,
+                                                         cc_tmpc.valuation_point_id,
+                                                         'Treatment Charges',
+                                                         cc_tmpc.element_id,
+                                                         cc_tmpc.shipment_month,
+                                                         cc_tmpc.shipment_year,
+                                                         cc_tmpc.conc_base_price_unit_id_ppu,
+                                                         cc_tmpc.payment_due_date,
+                                                         pn_charge_amt,
+                                                         vc_exch_rate_string);
       
         if pn_charge_amt = 0 then
           insert into eel_eod_eom_exception_log
@@ -3499,20 +3801,35 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              sysdate,
              pc_user_id,
              pd_trade_date);
+        else
+        
+          update tmpc_temp_m2m_pre_check tmpc
+             set tmpc.m2m_treatment_charge = pn_charge_amt,
+                 tmpc.m2m_tc_fw_exch_rate  = vc_exch_rate_string
+           where tmpc.corporate_id = pc_corporate_id
+             and tmpc.conc_product_id = cc_tmpc.conc_product_id
+             and tmpc.conc_quality_id = cc_tmpc.conc_quality_id
+             and tmpc.mvp_id = cc_tmpc.valuation_point_id
+             and tmpc.element_id = cc_tmpc.element_id
+             and tmpc.shipment_month = cc_tmpc.shipment_month
+             and tmpc.shipment_year = cc_tmpc.shipment_year
+             and tmpc.payment_due_date = cc_tmpc.payment_due_date;
+        
         end if;
         --for refine charge precheck
-        pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
-                                                              pd_trade_date,
-                                                              cc_tmpc.conc_product_id,
-                                                              cc_tmpc.conc_quality_id,
-                                                              cc_tmpc.valuation_point_id, --valuation_id
-                                                              'Refining Charges', --charge_type
-                                                              cc_tmpc.element_id,
-                                                              cc_tmpc.shipment_month,
-                                                              cc_tmpc.shipment_year,
-                                                              cc_tmpc.base_price_unit_id_in_ppu,
-                                                              pn_charge_amt,
-                                                              pc_charge_price_unit_id);
+        pkg_phy_pre_check_process.sp_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
+                                                         pd_trade_date,
+                                                         cc_tmpc.conc_product_id,
+                                                         cc_tmpc.conc_quality_id,
+                                                         cc_tmpc.valuation_point_id, --valuation_id
+                                                         'Refining Charges', --charge_type
+                                                         cc_tmpc.element_id,
+                                                         cc_tmpc.shipment_month,
+                                                         cc_tmpc.shipment_year,
+                                                         cc_tmpc.conc_base_price_unit_id_ppu,
+                                                         cc_tmpc.payment_due_date,
+                                                         pn_charge_amt,
+                                                         vc_exch_rate_string);
         if pn_charge_amt = 0 then
           insert into eel_eod_eom_exception_log
             (corporate_id,
@@ -3536,95 +3853,21 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              sysdate,
              pc_user_id,
              pd_trade_date);
+        else
+        
+          update tmpc_temp_m2m_pre_check tmpc
+             set tmpc.m2m_refining_charge = pn_charge_amt,
+                 tmpc.m2m_rc_fw_exch_rate = vc_exch_rate_string
+           where tmpc.corporate_id = pc_corporate_id
+             and tmpc.conc_product_id = cc_tmpc.conc_product_id
+             and tmpc.conc_quality_id = cc_tmpc.conc_quality_id
+             and tmpc.mvp_id = cc_tmpc.valuation_point_id
+             and tmpc.element_id = cc_tmpc.element_id
+             and tmpc.shipment_month = cc_tmpc.shipment_month
+             and tmpc.shipment_year = cc_tmpc.shipment_year
+             and tmpc.payment_due_date = cc_tmpc.payment_due_date;
         end if;
       end loop;
-    
-      --for penalty charge precheck     
-      /*for cc_tmpc in (select tmpc.corporate_id,
-                             tmpc.contract_ref_no,
-                             tmpc.conc_product_id,
-                             pdm.product_desc,
-                             tmpc.conc_quality_id,
-                             qat.quality_name,
-                             pqca.element_id,
-                             aml.attribute_name,
-                             tmpc.mvp_id,
-                             tmpc.valuation_point,
-                             tmpc.shipment_month,
-                             tmpc.shipment_year
-                        from tmpc_temp_m2m_pre_check     tmpc,
-                             ash_assay_header            ash,
-                             asm_assay_sublot_mapping    asm,
-                             pqca_pq_chemical_attributes pqca,
-                             pdm_productmaster           pdm,
-                             qat_quality_attributes      qat,
-                             aml_attribute_master_list   aml
-                       where tmpc.product_type = 'CONCENTRATES'
-                         and tmpc.assay_header_id = ash.ash_id
-                         and tmpc.corporate_id = pc_corporate_id
-                         and ash.ash_id = asm.ash_id
-                         and asm.asm_id = pqca.asm_id
-                         and tmpc.conc_product_id = pdm.product_id
-                         and tmpc.conc_quality_id = qat.quality_id
-                         and aml.attribute_id = pqca.element_id
-                         and pqca.is_elem_for_pricing = 'N'
-                         and pqca.is_active = 'Y'
-                         and ash.is_active = 'Y'
-                         and asm.is_active = 'Y'
-                         and pdm.is_active = 'Y'
-                         and qat.is_active = 'Y'
-                         and aml.is_active = 'Y'
-                       group by tmpc.corporate_id,
-                                tmpc.contract_ref_no,
-                                pdm.product_id,
-                                pdm.product_desc,
-                                qat.quality_id,
-                                qat.quality_name,
-                                pqca.element_id,
-                                aml.attribute_name,
-                                tmpc.mvp_id,
-                                tmpc.valuation_point,
-                                tmpc.shipment_month,
-                                tmpc.shipment_year)
-      loop
-      
-        pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
-                                                              pd_trade_date,
-                                                              cc_tmpc.conc_product_id,
-                                                              cc_tmpc.conc_quality_id,
-                                                              cc_tmpc.mvp_id, --valuation_id
-                                                              'Penalties', --charge_type
-                                                              cc_tmpc.element_id,
-                                                              cc_tmpc.shipment_month,
-                                                              cc_tmpc.shipment_year,
-                                                              pn_charge_amt,
-                                                              pc_charge_price_unit_id);
-        if pn_charge_amt = 0 then
-          insert into eel_eod_eom_exception_log
-            (corporate_id,
-             submodule_name,
-             exception_code,
-             data_missing_for,
-             trade_ref_no,
-             process,
-             process_run_date,
-             process_run_by,
-             trade_date)
-          values
-            (pc_corporate_id,
-             'Physicals M2M Pre-Check',
-             'PHY-104',
-             cc_tmpc.product_desc || ',' || cc_tmpc.quality_name || ',' ||
-             cc_tmpc.contract_ref_no ||','|| cc_tmpc.attribute_name || ',' ||
-             cc_tmpc.shipment_month || '-' || cc_tmpc.shipment_year || '-' ||
-             cc_tmpc.valuation_point,
-             null,
-             pc_process,
-             sysdate,
-             pc_user_id,
-             pd_trade_date);
-         end if;
-      end loop;*/
     
     end;
     ---***end of for loop 
@@ -3679,23 +3922,13 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     modified by                               :
     modify description                        :
     ******************************************************************************************************************************************/
-    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count number := 1;
-    vc_drid            varchar2(15);
-    --vn_qty_premimum_amt     number(10);
-    --vn_pp_amt               number(10);
-    vc_error_loc varchar2(100);
-    --vc_treat_charge         varchar2(50);
-    --vc_refine_charge        varchar2(50);
-    --vc_penalty_charge       varchar2(50);
+    vobj_error_log          tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count      number := 1;
+    vc_drid                 varchar2(15);
+    vc_error_loc            varchar2(100);
     pn_charge_amt           number;
     pc_charge_price_unit_id varchar2(20);
-    --vc_charge_type          varchar2(15);
-    --vc_m2m_id               varchar2(15);
   begin
-    --dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'C');
-    --added newly to maintain consistency in both physical process and precheck. 28th
-  
     vc_error_loc := 1;
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
@@ -4148,7 +4381,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      temp.internal_gmr_ref_no,
                      temp.internal_grd_ref_no,
                      temp.section_name,
-                     vdip.price_unit_id valuation_price_unit_id, -- from view
+                     vdip.price_unit_id valuation_price_unit_id,
                      to_char(pd_trade_date, 'Mon') shipment_month,
                      to_char(pd_trade_date, 'yyyy') shipment_year,
                      pd_trade_date shipment_date,
@@ -4946,18 +5179,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.corporate_id = ccv.corporate_id;
     end loop;
     commit;
-    -- get the contract base price Unit id
-    /* begin
-      select product_price_unit_id
-        into vn_contract_base_price_unit_id
-        from v_ppu_pum pum
-       where pum.cur_id = cur_pcdi_rows.invoice_currency_id
-         and pum.weight_unit_id = cur_pcdi_rows.qty_unit_id
-         and pum.product_id = cur_pcdi_rows.product_id;
-    exception
-      when no_data_found then
-        vn_contract_base_price_unit_id := null;
-    end;*/
     --Updating tmpc table and setting the 
     --base_price_unit_id_in_ppu.
     vc_error_loc := 9;
@@ -5400,94 +5621,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              pd_trade_date);
         end if;
       end loop;
-    
-      --for penalty charge precheck     
-      /*for cc_tmpc in (select tmpc.corporate_id,
-                             tmpc.contract_ref_no,
-                             tmpc.conc_product_id,
-                             pdm.product_desc,
-                             tmpc.conc_quality_id,
-                             qat.quality_name,
-                             pqca.element_id,
-                             aml.attribute_name,
-                             tmpc.mvp_id,
-                             tmpc.valuation_point,
-                             tmpc.shipment_month,
-                             tmpc.shipment_year
-                        from tmpc_temp_m2m_pre_check     tmpc,
-                             ash_assay_header            ash,
-                             asm_assay_sublot_mapping    asm,
-                             pqca_pq_chemical_attributes pqca,
-                             pdm_productmaster           pdm,
-                             qat_quality_attributes      qat,
-                             aml_attribute_master_list   aml
-                       where tmpc.product_type = 'CONCENTRATES'
-                         and tmpc.assay_header_id = ash.ash_id
-                         and tmpc.corporate_id = pc_corporate_id
-                         and ash.ash_id = asm.ash_id
-                         and asm.asm_id = pqca.asm_id
-                         and tmpc.conc_product_id = pdm.product_id
-                         and tmpc.conc_quality_id = qat.quality_id
-                         and aml.attribute_id = pqca.element_id
-                         and pqca.is_elem_for_pricing = 'N'
-                         and pqca.is_active = 'Y'
-                         and ash.is_active = 'Y'
-                         and asm.is_active = 'Y'
-                         and pdm.is_active = 'Y'
-                         and qat.is_active = 'Y'
-                         and aml.is_active = 'Y'
-                       group by tmpc.corporate_id,
-                                tmpc.contract_ref_no,
-                                pdm.product_id,
-                                pdm.product_desc,
-                                qat.quality_id,
-                                qat.quality_name,
-                                pqca.element_id,
-                                aml.attribute_name,
-                                tmpc.mvp_id,
-                                tmpc.valuation_point,
-                                tmpc.shipment_month,
-                                tmpc.shipment_year)
-      loop
-      
-        pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
-                                                              pd_trade_date,
-                                                              cc_tmpc.conc_product_id,
-                                                              cc_tmpc.conc_quality_id,
-                                                              cc_tmpc.mvp_id, --valuation_id
-                                                              'Penalties', --charge_type
-                                                              cc_tmpc.element_id,
-                                                              cc_tmpc.shipment_month,
-                                                              cc_tmpc.shipment_year,
-                                                              pn_charge_amt,
-                                                              pc_charge_price_unit_id);
-        if pn_charge_amt = 0 then
-          insert into eel_eod_eom_exception_log
-            (corporate_id,
-             submodule_name,
-             exception_code,
-             data_missing_for,
-             trade_ref_no,
-             process,
-             process_run_date,
-             process_run_by,
-             trade_date)
-          values
-            (pc_corporate_id,
-             'Physicals M2M Pre-Check',
-             'PHY-104',
-             cc_tmpc.product_desc || ',' || cc_tmpc.quality_name || ',' ||
-             cc_tmpc.contract_ref_no ||','|| cc_tmpc.attribute_name || ',' ||
-             cc_tmpc.shipment_month || '-' || cc_tmpc.shipment_year || '-' ||
-             cc_tmpc.valuation_point,
-             null,
-             pc_process,
-             sysdate,
-             pc_user_id,
-             pd_trade_date);
-         end if;
-      end loop;*/
-    
     end;
     ---***end of for loop 
     commit;
@@ -5706,8 +5839,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     
       vn_total_premium := vn_total_premium + vn_premium;
     end loop;
-  
-    if (vn_total_premium is null or vn_total_premium = 0) then
+    if vn_total_premium is null or vn_total_premium = 0 then
       --
       -- Premium based on the not beyond  values
       --  
@@ -5813,7 +5945,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       end loop;
     
     end if;
-  
+    if vn_total_premium is null then
+      vn_total_premium := 0;
+    end if;
     pn_qp_amt           := vn_total_premium;
     pc_exch_rate_string := vc_total_exch_rate_string;
   
@@ -5834,145 +5968,339 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-  procedure sp_calc_m2m_quality_premimum(pc_corporate_id          varchar2,
-                                         pd_trade_date            date,
-                                         pc_valuation_point_id    varchar2,
-                                         pc_quality_id            varchar2,
-                                         pc_product_id            varchar2,
-                                         pc_premium_price_unit_id varchar2,
-                                         pc_calendar_month        varchar2,
-                                         pc_calendar_year         varchar2,
-                                         pc_user_id               varchar2,
-                                         pc_process               varchar2,
-                                         pn_qp_amt                out number) is
-    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count number := 1;
+  procedure sp_m2m_tc_pc_rc_charge(pc_corporate_id       varchar2,
+                                   pd_trade_date         date,
+                                   pc_conc_product_id    varchar2,
+                                   pc_conc_quality_id    varchar2,
+                                   pc_valuation_point_id varchar2,
+                                   pc_charge_type        varchar2,
+                                   pc_element_id         varchar2,
+                                   pc_calendar_month     varchar2,
+                                   pc_calendar_year      varchar2,
+                                   pc_price_unit_id      varchar2,
+                                   pd_payment_due_date   date,
+                                   pn_charge_amt         out number,
+                                   pc_exch_rate_string   out varchar2) is
+    cursor cur_vcs is
+      select *
+        from vcs_valuation_curve_setup vcs
+       where vcs.product_id = pc_conc_product_id
+         and vcs.applicable_id = pc_charge_type
+         and vcs.corporate_id = pc_corporate_id
+         and vcs.is_active = 'Y';
+    cursor cur_data(pc_vcs_id varchar2) is
+      select charge_value,
+             charge_unit_id
+        from (select mdcbm.charge_value,
+                     mdcbm.charge_unit_id,
+                     rank() over(order by mdcd.as_of_date desc nulls last) as td_rank
+                from mdcd_m2m_ded_charge_details mdcd,
+                     mdcbm_ded_charges_by_month  mdcbm
+               where mdcd.internal_mdcd_ref_no = mdcbm.mdcd_id
+                 and mdcd.corporate_id = pc_corporate_id
+                 and mdcd.as_of_date <= pd_trade_date
+                 and mdcd.product_id = pc_conc_product_id
+                 and mdcd.quality_id = pc_conc_quality_id
+                 and nvl(mdcbm.is_beyond, 'N') = 'N'
+                 and mdcd.valuation_region_id = pc_valuation_point_id
+                 and mdcd.internal_element_id = pc_element_id
+                 and mdcbm.calendar_month = pc_calendar_month
+                 and mdcbm.calendar_year = pc_calendar_year
+                 and mdcd.valuation_curve_id = pc_vcs_id
+                 and mdcd.charge_type = pc_charge_type) t
+       where t.td_rank = 1;
+    cursor cur_data_beyond(pc_vcs_id varchar2) is
+      select charge_value,
+             charge_unit_id
+        from (select mdcbm.charge_value,
+                     mdcbm.charge_unit_id,
+                     rank() over(order by mdcd.as_of_date desc nulls last) as td_rank
+                from mdcd_m2m_ded_charge_details mdcd,
+                     mdcbm_ded_charges_by_month  mdcbm
+               where mdcd.internal_mdcd_ref_no = mdcbm.mdcd_id
+                 and mdcd.corporate_id = pc_corporate_id
+                 and mdcd.as_of_date <= pd_trade_date
+                 and mdcd.product_id = pc_conc_product_id
+                 and mdcd.quality_id = pc_conc_quality_id
+                 and mdcd.valuation_region_id = pc_valuation_point_id
+                 and mdcd.internal_element_id = pc_element_id
+                 and to_date('01-' || mdcbm.beyond_month || '-' ||
+                             mdcbm.beyond_year,
+                             'dd-Mon-yyyy') <
+                     to_date('01-' || pc_calendar_month || '-' ||
+                             pc_calendar_year,
+                             'dd-Mon-yyyy')
+                 and nvl(mdcbm.is_beyond, 'N') = 'Y'
+                 and mdcbm.beyond_month is not null
+                 and mdcbm.beyond_year is not null
+                 and mdcd.valuation_curve_id = pc_vcs_id
+                 and mdcd.charge_type = pc_charge_type) t
+       where t.td_rank = 1;
+    vc_price_unit_id               varchar2(15);
+    vn_total_charge                number;
+    vn_charge_amt                  number;
+    vn_charge_price_unit_id        varchar2(15);
+    vc_charge_cur_id               varchar2(15);
+    vc_charge_weight_unit_id       varchar2(15);
+    vn_charge_weight               number;
+    vc_charge_main_cur_id          varchar2(15);
+    vc_charge_main_cur_code        varchar2(15);
+    vc_charge_main_cur_factor      number;
+    vn_fw_exch_rate_charge_to_base number;
+    vn_forward_points              number;
+    vc_data_missing_for            varchar2(50);
+    vc_exch_rate_string            varchar2(50);
+    vc_total_exch_rate_string      varchar2(100);
+    vc_base_cur_id                 varchar2(15);
+    vc_base_cur_code               varchar2(15);
+    vc_base_weight_unit_id         varchar2(15);
   begin
-    select nvl(sum(t.premium * pkg_phy_pre_check_process.
-                   f_get_converted_price(t.corporate_id,
-                                         1,
-                                         t.premium_price_unit_id,
-                                         pc_premium_price_unit_id,
-                                         pd_trade_date)),
-               -1) total_premiumalue
-      into pn_qp_amt
-      from (select qp.corporate_id,
-                   qp.product_id,
-                   qpbm.premium,
-                   qpbm.premium_price_unit_id,
-                   qp.as_on_date,
-                   rank() over(order by qp.as_on_date desc nulls last) as latest_record -- as we have to use rank function, if same day, 
-            --different curve found, some those premium values into m2m price unit
-              from qpbm_quality_premium_by_month qpbm,
-                   qp_quality_premium            qp
-             where qp.qp_id = qpbm.qp_id
-               and qp.corporate_id = pc_corporate_id
-               and qp.valuation_point_id = pc_valuation_point_id
-               and qp.quality_id = pc_quality_id
-               and qpbm.calendar_month = pc_calendar_month
-               and qpbm.calendar_year = pc_calendar_year
-               and qp.product_id = pc_product_id
-               and nvl(qpbm.is_beyond, 'N') = 'N'
-               and qp.as_on_date <= pd_trade_date) t
-     where t.latest_record = 1;
-    --Based on Beyond values
-    --dbms_output.put_line('pn_qp_amt' ||pn_qp_amt);
-    if pn_qp_amt = -1 then
-      begin
-        select sum(t.premium * pkg_phy_pre_check_process.
-                   f_get_converted_price(t.corporate_id,
-                                         1,
-                                         t.premium_price_unit_id,
-                                         pc_premium_price_unit_id,
-                                         pd_trade_date)) total_premiumalue
-          into pn_qp_amt
-          from (select qp.corporate_id,
-                       qp.product_id,
-                       qpbm.premium,
-                       qpbm.premium_price_unit_id,
-                       qp.as_on_date,
-                       rank() over(order by qp.as_on_date desc nulls last) as latest_record -- as we have to use rank function, if same day, 
-                --different curve found, some those premium values into m2m price unit
-                  from qpbm_quality_premium_by_month qpbm,
-                       qp_quality_premium            qp
-                 where qp.qp_id = qpbm.qp_id
-                   and qp.corporate_id = pc_corporate_id
-                   and qp.valuation_point_id = pc_valuation_point_id
-                   and qp.quality_id = pc_quality_id
-                   and to_date('01-' || qpbm.beyond_month || '-' ||
-                               qpbm.beyond_year,
-                               'dd-Mon-yyyy') <
-                       to_date('01-' || pc_calendar_month || '-' ||
-                               pc_calendar_year,
-                               'dd-Mon-yyyy')
-                   and qp.product_id = pc_product_id
-                   and nvl(qpbm.is_beyond, 'N') = 'Y'
-                   and qpbm.beyond_month is not null
-                   and qpbm.beyond_year is not null
-                   and qp.as_on_date <= pd_trade_date) t
-         where t.latest_record = 1;
-      exception
-        when no_data_found then
-          pn_qp_amt := 0;
-          --vc_premimum_price_unit_id := null;
-      end;
+    vn_total_charge := 0;
+    for cur_vcs_rows in cur_vcs
+    loop
+      vn_charge_amt := 0;
+      --
+      -- Charges Based on Not beyond Values
+      --  
+      for cur_data_rows in cur_data(cur_vcs_rows.vcs_id)
+      loop
+      
+        --
+        -- Get the Currency of the Charge Price Unit
+        --
+        select ppu.cur_id,
+               ppu.weight_unit_id,
+               nvl(ppu.weight, 1)
+          into vc_charge_cur_id,
+               vc_charge_weight_unit_id,
+               vn_charge_weight
+          from v_ppu_pum ppu
+         where ppu.product_price_unit_id = cur_data_rows.charge_unit_id;
+        --
+        -- Get the Main Currency of the Premium Price Unit
+        --   
+        pkg_general.sp_get_base_cur_detail(vc_charge_cur_id,
+                                           vc_charge_main_cur_id,
+                                           vc_charge_main_cur_code,
+                                           vc_charge_main_cur_factor);
+        --
+        -- Get the Details of the Base Currency
+        --  
+        select ppu.cur_id,
+               ppu.weight_unit_id,
+               cm.cur_code
+          into vc_base_cur_id,
+               vc_base_weight_unit_id,
+               vc_base_cur_code
+          from v_ppu_pum          ppu,
+               cm_currency_master cm
+         where ppu.product_price_unit_id = pc_price_unit_id
+           and ppu.cur_id = cm.cur_id;
+      
+        --
+        -- Get the Exchange Rate from Premium Price Currency to Base Currency
+        -- 
+        if vc_charge_main_cur_id <> vc_base_cur_id then
+          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+                                                  pd_trade_date,
+                                                  pd_payment_due_date,
+                                                  vc_charge_main_cur_id,
+                                                  vc_base_cur_id,
+                                                  30,
+                                                  vn_fw_exch_rate_charge_to_base,
+                                                  vn_forward_points);
+        
+          if vn_fw_exch_rate_charge_to_base = 0 then
+          
+            vc_data_missing_for := vc_charge_main_cur_code || ' / ' ||
+                                   vc_base_cur_code || ' ' ||
+                                   to_char(pd_payment_due_date,
+                                           'dd-Mon-yyyy');
+            insert into eel_eod_eom_exception_log eel
+              (corporate_id,
+               submodule_name,
+               exception_code,
+               data_missing_for,
+               trade_ref_no,
+               process,
+               process_run_date,
+               process_run_by,
+               dr_id,
+               trade_date)
+            values
+              (pc_corporate_id,
+               'Physicals Pre-Check',
+               'PHY-005',
+               vc_data_missing_for,
+               null,
+               null, --pc_process,
+               systimestamp,
+               null, --pc_user_id,
+               null,
+               pd_trade_date);
+          end if;
+        
+          if vc_base_cur_id <> vc_charge_main_cur_id then
+            vc_exch_rate_string := '1 ' || vc_charge_main_cur_code || '=' ||
+                                   vn_fw_exch_rate_charge_to_base || ' ' ||
+                                   vc_base_cur_code;
+            if vc_total_exch_rate_string is null then
+            
+              vc_total_exch_rate_string := vc_exch_rate_string;
+            else
+              if instr(vc_total_exch_rate_string, vc_exch_rate_string) = 0 then
+                vc_total_exch_rate_string := vc_total_exch_rate_string || ',' ||
+                                             vc_exch_rate_string;
+              
+              end if;
+            end if;
+          end if;
+        else
+          vn_fw_exch_rate_charge_to_base := 1;
+        end if;
+      
+        vn_charge_amt := (cur_data_rows.charge_value / vn_charge_weight) *
+                         vc_charge_main_cur_factor *
+                         vn_fw_exch_rate_charge_to_base *
+                         pkg_general.f_get_converted_quantity(pc_conc_product_id,
+                                                              vc_base_weight_unit_id,
+                                                              vc_charge_weight_unit_id,
+                                                              
+                                                              1);
+      
+        vn_total_charge := vn_total_charge + vn_charge_amt;
+      
+      end loop;
+      --
+      -- Charges Based on beyond Values
+      --  
+      if vn_total_charge is null or vn_total_charge = 0 then
+        for cur_data_beyond_rows in cur_data_beyond(cur_vcs_rows.vcs_id)
+        loop
+        
+          --
+          -- Get the Currency of the Charge Price Unit
+          --
+          select ppu.cur_id,
+                 ppu.weight_unit_id,
+                 nvl(ppu.weight, 1)
+            into vc_charge_cur_id,
+                 vc_charge_weight_unit_id,
+                 vn_charge_weight
+            from v_ppu_pum ppu
+           where ppu.product_price_unit_id =
+                 cur_data_beyond_rows.charge_unit_id;
+          --
+          -- Get the Main Currency of the Premium Price Unit
+          --   
+          pkg_general.sp_get_base_cur_detail(vc_charge_cur_id,
+                                             vc_charge_main_cur_id,
+                                             vc_charge_main_cur_code,
+                                             vc_charge_main_cur_factor);
+          --
+          -- Get the Details of the Base Currency
+          --  
+          select ppu.cur_id,
+                 ppu.weight_unit_id,
+                 cm.cur_code
+            into vc_base_cur_id,
+                 vc_base_weight_unit_id,
+                 vc_base_cur_code
+            from v_ppu_pum          ppu,
+                 cm_currency_master cm
+           where ppu.product_price_unit_id = pc_price_unit_id
+             and ppu.cur_id = cm.cur_id;
+        
+          --
+          -- Get the Exchange Rate from Premium Price Currency to Base Currency
+          -- 
+          if vc_charge_main_cur_id <> vc_base_cur_id then
+            pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+                                                    pd_trade_date,
+                                                    pd_payment_due_date,
+                                                    vc_charge_main_cur_id,
+                                                    vc_base_cur_id,
+                                                    30,
+                                                    vn_fw_exch_rate_charge_to_base,
+                                                    vn_forward_points);
+          
+            if vn_fw_exch_rate_charge_to_base = 0 then
+            
+              vc_data_missing_for := vc_charge_main_cur_code || ' / ' ||
+                                     vc_base_cur_code || ' ' ||
+                                     to_char(pd_payment_due_date,
+                                             'dd-Mon-yyyy');
+              insert into eel_eod_eom_exception_log eel
+                (corporate_id,
+                 submodule_name,
+                 exception_code,
+                 data_missing_for,
+                 trade_ref_no,
+                 process,
+                 process_run_date,
+                 process_run_by,
+                 dr_id,
+                 trade_date)
+              values
+                (pc_corporate_id,
+                 'Physicals Pre-Check',
+                 'PHY-005',
+                 vc_data_missing_for,
+                 null,
+                 null, --pc_process,
+                 systimestamp,
+                 null, --pc_user_id,
+                 null,
+                 pd_trade_date);
+            end if;
+          
+            if vc_base_cur_id <> vc_charge_main_cur_id then
+              vc_exch_rate_string := '1 ' || vc_charge_main_cur_code || '=' ||
+                                     vn_fw_exch_rate_charge_to_base || ' ' ||
+                                     vc_base_cur_code;
+              if vc_total_exch_rate_string is null then
+              
+                vc_total_exch_rate_string := vc_exch_rate_string;
+              else
+                if instr(vc_total_exch_rate_string, vc_exch_rate_string) = 0 then
+                  vc_total_exch_rate_string := vc_total_exch_rate_string || ',' ||
+                                               vc_exch_rate_string;
+                
+                end if;
+              end if;
+            end if;
+          else
+            vn_fw_exch_rate_charge_to_base := 1;
+          end if;
+        
+          vn_charge_amt := (cur_data_beyond_rows.charge_value /
+                           vn_charge_weight) * vc_charge_main_cur_factor *
+                           vn_fw_exch_rate_charge_to_base *
+                           pkg_general.f_get_converted_quantity(pc_conc_product_id,
+                                                                vc_base_weight_unit_id,
+                                                                vc_charge_weight_unit_id,
+                                                                
+                                                                1);
+        
+          vn_total_charge := vn_total_charge + vn_charge_amt;
+        
+        end loop;
+      
+      end if;
+      --
+    end loop;
+    if vn_total_charge is null then
+      vn_total_charge := 0;
     end if;
+    pn_charge_amt       := vn_total_charge;
+    pc_exch_rate_string := vc_total_exch_rate_string;
   exception
     when no_data_found then
-      begin
-        select sum(t.premium * pkg_phy_pre_check_process.
-                   f_get_converted_price(t.corporate_id,
-                                         1,
-                                         t.premium_price_unit_id,
-                                         pc_premium_price_unit_id,
-                                         pd_trade_date)) total_premiumalue
-          into pn_qp_amt
-          from (select qp.corporate_id,
-                       qp.product_id,
-                       qpbm.premium,
-                       qpbm.premium_price_unit_id,
-                       qp.as_on_date,
-                       rank() over(order by qp.as_on_date desc nulls last) as latest_record -- as we have to use rank function, if same day, 
-                --different curve found, some those premium values into m2m price unit
-                  from qpbm_quality_premium_by_month qpbm,
-                       qp_quality_premium            qp
-                 where qp.qp_id = qpbm.qp_id
-                   and qp.corporate_id = pc_corporate_id
-                   and qp.valuation_point_id = pc_valuation_point_id
-                   and qp.quality_id = pc_quality_id
-                   and to_date('01-' || qpbm.beyond_month || '-' ||
-                               qpbm.beyond_year,
-                               'dd-Mon-yyyy') <
-                       to_date('01-' || pc_calendar_month || '-' ||
-                               pc_calendar_year,
-                               'dd-Mon-yyyy')
-                   and qp.product_id = pc_product_id
-                   and nvl(qpbm.is_beyond, 'N') = 'Y'
-                   and qpbm.beyond_month is not null
-                   and qpbm.beyond_year is not null
-                   and qp.as_on_date <= pd_trade_date) t
-         where t.latest_record = 1;
-      exception
-        when no_data_found then
-          pn_qp_amt := 0;
-          -- vc_premimum_price_unit_id := null;
-      end;
+      pn_charge_amt := 0;
     when others then
-      vobj_error_log.extend;
-      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_calc_m2m_quality_premimum',
-                                                           'M2M-013',
-                                                           'Code:' ||
-                                                           sqlcode ||
-                                                           'Message:' ||
-                                                           sqlerrm,
-                                                           '',
-                                                           pc_process,
-                                                           pc_user_id,
-                                                           sysdate,
-                                                           pd_trade_date);
-      sp_insert_error_log(vobj_error_log);
-  end sp_calc_m2m_quality_premimum;
+      dbms_output.put_line(sqlerrm);
+      pn_charge_amt := 0;
+  end;
   procedure sp_calc_m2m_tc_pc_rc_charge(pc_corporate_id         varchar2,
                                         pd_trade_date           date,
                                         pc_conc_product_id      varchar2,
@@ -5985,8 +6313,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                         pc_price_unit_id        varchar2,
                                         pn_charge_amt           out number,
                                         pc_charge_price_unit_id out varchar2) is
-    vc_price_unit_id varchar2(15);
-    --vn_penality_charge      number;
+    vc_price_unit_id        varchar2(15);
     vn_total_chagre         number;
     vn_charge_amt           number;
     vn_chagre_price_unit_id varchar2(15);
@@ -6155,20 +6482,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
             end;
           end if;
         end;
-      
-        /* if pn_charge_amt <> 0 and pc_charge_price_unit_id is not null and
-            vc_price_unit_id is not null then
-           vn_penality_charge := pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
-                                                                                 pn_charge_amt,
-                                                                                 pc_charge_price_unit_id,
-                                                                                 vc_price_unit_id,
-                                                                                 pd_trade_date);
-         else
-           vn_penality_charge := 0;
-         end if;
-         
-         --pn_charge_amt           := vn_penality_charge;
-        -- pc_charge_price_unit_id := vc_price_unit_id;*/
         vn_total_chagre         := vn_total_chagre + vn_charge_amt;
         vn_chagre_price_unit_id := pc_price_unit_id;
       
@@ -6369,7 +6682,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     
       vn_total_premium := vn_total_premium + vn_premium;
     end loop;
-    if (vn_total_premium is null or vn_total_premium = 0) then
+    if vn_total_premium is null or vn_total_premium = 0 then
       --
       -- Premium based on the not beyond  values
       --  
@@ -6472,6 +6785,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       end loop;
     
     end if;
+    if vn_total_premium is null then
+      vn_total_premium := 0;
+    end if;
     pn_pp_amt           := vn_total_premium;
     pc_exch_rate_string := vc_total_exch_rate_string;
   exception
@@ -6491,139 +6807,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-  procedure sp_calc_m2m_product_premimum(pc_corporate_id          varchar2,
-                                         pd_trade_date            date,
-                                         pc_product_id            varchar2,
-                                         pc_calendar_month        varchar2,
-                                         pc_calendar_year         varchar2,
-                                         pc_user_id               varchar2,
-                                         pc_process               varchar2,
-                                         pc_premium_price_unit_id varchar2,
-                                         pn_pp_amt                out number) is
-    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count number := 1;
-    vn_premium         number := 0;
-    -- vc_premium_status  varchar2(10);
-  begin
-    --Premium based on the not beyond  values
-  
-    select nvl(sum(t.premium *
-                   pkg_phy_pre_check_process.f_get_converted_price(t.corporate_id,
-                                                                   1,
-                                                                   t.premium_price_unit_id,
-                                                                   pc_premium_price_unit_id,
-                                                                   pd_trade_date)),
-               -1) total_prod_premimum
-      into vn_premium
-      from (select ppbm.premium,
-                   ppbm.premium_price_unit_id,
-                   pp.corporate_id,
-                   pp.product_id,
-                   pp.as_on_date,
-                   rank() over(order by pp.as_on_date desc nulls last) as latest_record
-              from pp_product_premium            pp,
-                   ppbm_product_premium_by_month ppbm
-             where pp.pp_id = ppbm.pp_id
-               and pp.corporate_id = pc_corporate_id
-               and pp.product_id = pc_product_id
-               and ppbm.calendar_month = pc_calendar_month
-               and ppbm.calendar_year = pc_calendar_year
-               and nvl(ppbm.is_beyond, 'N') = 'N'
-               and pp.as_on_date <= pd_trade_date) t
-     where t. latest_record = 1;
-    if vn_premium = -1 then
-      begin
-        select sum(t.premium *
-                   pkg_phy_pre_check_process.f_get_converted_price(t.corporate_id,
-                                                                   1,
-                                                                   t.premium_price_unit_id,
-                                                                   pc_premium_price_unit_id,
-                                                                   pd_trade_date)) total_prod_premimum
-          into vn_premium
-          from (select ppbm.premium,
-                       ppbm.premium_price_unit_id,
-                       pp.corporate_id,
-                       pp.product_id,
-                       pp.as_on_date,
-                       rank() over(order by pp.as_on_date desc nulls last) as latest_record
-                  from pp_product_premium            pp,
-                       ppbm_product_premium_by_month ppbm
-                 where pp.pp_id = ppbm.pp_id
-                   and pp.corporate_id = pc_corporate_id
-                   and pp.product_id = pc_product_id --
-                   and to_date('01-' || ppbm.beyond_month || '-' ||
-                               ppbm.beyond_year,
-                               'dd-Mon-yyyy') <
-                       to_date('01-' || pc_calendar_month || '-' ||
-                               pc_calendar_year,
-                               'dd-Mon-yyyy')
-                   and nvl(ppbm.is_beyond, 'N') = 'Y'
-                   and ppbm.beyond_month is not null
-                   and ppbm.beyond_year is not null
-                   and pp.as_on_date <= pd_trade_date) t
-         where t. latest_record = 1;
-      exception
-        when no_data_found then
-          vn_premium := 0;
-          --vc_premium_status := 'NO_DATA';
-      end;
-    end if;
-    pn_pp_amt := vn_premium;
-  exception
-    when no_data_found then
-      --Premium based on the beyond  values
-      begin
-        select sum(t.premium *
-                   pkg_phy_pre_check_process.f_get_converted_price(t.corporate_id,
-                                                                   1,
-                                                                   t.premium_price_unit_id,
-                                                                   pc_premium_price_unit_id,
-                                                                   pd_trade_date)) total_prod_premimum
-          into vn_premium
-          from (select ppbm.premium,
-                       ppbm.premium_price_unit_id,
-                       pp.corporate_id,
-                       pp.product_id,
-                       pp.as_on_date,
-                       rank() over(order by pp.as_on_date desc nulls last) as latest_record
-                  from pp_product_premium            pp,
-                       ppbm_product_premium_by_month ppbm
-                 where pp.pp_id = ppbm.pp_id
-                   and pp.corporate_id = pc_corporate_id
-                   and pp.product_id = pc_product_id --
-                   and to_date('01-' || ppbm.beyond_month || '-' ||
-                               ppbm.beyond_year,
-                               'dd-Mon-yyyy') <
-                       to_date('01-' || pc_calendar_month || '-' ||
-                               pc_calendar_year,
-                               'dd-Mon-yyyy')
-                   and nvl(ppbm.is_beyond, 'N') = 'Y'
-                   and ppbm.beyond_month is not null
-                   and ppbm.beyond_year is not null
-                   and pp.as_on_date <= pd_trade_date) t
-         where t. latest_record = 1;
-        pn_pp_amt := vn_premium;
-      exception
-        when no_data_found then
-          vn_premium := 0;
-          pn_pp_amt  := vn_premium;
-      end;
-    when others then
-      vobj_error_log.extend;
-      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_calc_m2m_product_premimum',
-                                                           'M2M-013',
-                                                           'Code:' ||
-                                                           sqlcode ||
-                                                           'Message:' ||
-                                                           sqlerrm,
-                                                           '',
-                                                           pc_process,
-                                                           pc_user_id,
-                                                           sysdate,
-                                                           pd_trade_date);
-      sp_insert_error_log(vobj_error_log);
-  end sp_calc_m2m_product_premimum;
 
   function f_get_converted_quantity(pc_product_id          in varchar2,
                                     pc_from_qty_unit_id    in varchar2,

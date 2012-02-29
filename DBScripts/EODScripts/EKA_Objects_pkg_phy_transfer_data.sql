@@ -568,6 +568,11 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('IEPD_INV_EPENALTY_DETAILS', 'c');
       dbms_mview.refresh('IAM_INVOICE_ASSAY_MAPPING', 'c');
       dbms_mview.refresh('IAM_INVOICE_ACTION_MAPPING', 'c');
+      dbms_mview.refresh('AGMR_ACTION_GMR','c');
+      dbms_mview.refresh('REM_REGION_MASTER','c');
+      dbms_mview.refresh('BVD_BP_VAT_DETAILS','c');
+      dbms_mview.refresh('IOC_INVOICE_OTHER_CHARGE','c');
+      dbms_mview.refresh('YPD_YIELD_PCT_DETAIL','c');
     end if;
   exception
     when others then
@@ -792,6 +797,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        income_expense,
        est_payment_due_date,
        inv_to_accrual_curr_fx,
+       is_actual_posted_in_cog,
        dbd_id)
       select ul.internal_cost_ul_id,
              ul.internal_cost_id,
@@ -824,6 +830,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.income_expense,
              ul.est_payment_due_date,
              ul.inv_to_accrual_curr_fx,
+             ul.is_actual_posted_in_cog,
              pc_dbd_id
         from csul_cost_store_ul@eka_appdb ul,
              axs_action_summary@eka_appdb axs
@@ -3632,7 +3639,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_stock_split,
              ul.supplier_id,
              ul.smelter_id,
-             null, --ul.in_process_stock_id,
+             null, -- ul.in_process_stock_id,
              ul.free_metal_stock_id,
              ul.free_metal_qty,
              pc_dbd_id
@@ -3669,6 +3676,81 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
+  
+    insert into sswh_spe_settle_washout_header
+      (
+       
+       sswh_id,
+       internal_action_ref_no,
+       settlement_qty,
+       settlement_qty_unit_id,
+       settlement_date,
+       purchase_amt,
+       sale_amt,
+       pay_in_curr_id,
+       remarks,
+       is_active,
+       internal_gmr_ref_no,
+       dbd_id)
+    
+      select sswh_id,
+             sswh.internal_action_ref_no,
+             settlement_qty,
+             settlement_qty_unit_id,
+             settlement_date,
+             purchase_amt,
+             sale_amt,
+             pay_in_curr_id,
+             remarks,
+             is_active,
+             internal_gmr_ref_no,
+             pc_dbd_id
+      
+        from sswh_spe_settle_washout_header@eka_appdb sswh,
+             axs_action_summary@eka_appdb             axs
+       where sswh.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
+    insert into sswd_spe_settle_washout_detail
+      (
+       
+       sswd_id,
+       sswh_id,
+       contract_type,
+       internal_contract_item_ref_no,
+       contract_item_ref_no,
+       product_id,
+       quality_id,
+       price,
+       price_unit_id,
+       qty,
+       qty_unit_id,
+       is_active,
+       dbd_id)
+    
+      select sswd_id,
+             sswh_id,
+             contract_type,
+             internal_contract_item_ref_no,
+             contract_item_ref_no,
+             product_id,
+             quality_id,
+             price,
+             price_unit_id,
+             qty,
+             qty_unit_id,
+             is_active,
+             pc_dbd_id
+      
+        from sswd_spe_settle_washout_detail@eka_appdb sswd
+      
+       where sswd.sswh_id in
+             (select sswh_id
+                from sswh_spe_settle_washout_header sswh
+               where sswh.dbd_id = pc_dbd_id);
+  
     commit;
   
   exception
@@ -4025,6 +4107,15 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
               from is_invoice_summary is2
              where is2.dbd_id = gvc_previous_dbd_id
                and is2.is_active = 'Y');
+  
+    update is_invoice_summary is1
+       set is1.is_invoice_new = 'Y'
+     where is1.is_active = 'Y'
+       and is1.dbd_id = pc_dbd_id
+       and is1.internal_invoice_ref_no not in
+           (select is2.internal_invoice_ref_no
+              from is_invoice_summary is2
+             where is2.dbd_id = gvc_previous_dbd_id);
   
     commit;
   exception
