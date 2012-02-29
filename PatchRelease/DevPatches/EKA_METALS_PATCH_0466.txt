@@ -36,10 +36,11 @@ Dependent patches:		 :  N/A
 ********************************************
 EOD Script:
 
-Revision: 88422
+Revision: 88428
 Author: elaiyaraja.nallathambi
-Date: 10:01:38 PM, Wednesday, February 29, 2012
+Date: 10:24:25 PM, Wednesday, February 29, 2012
 Message:
-
+Newly Designed Document
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_feed_consumption.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_feed_consumption.sql
+
