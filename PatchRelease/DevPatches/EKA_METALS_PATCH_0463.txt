@@ -1,4 +1,4 @@
-Patch No*          		:  EKA_METALS_PATCH_0460
+Patch No*          		:  EKA_METALS_PATCH_0463
 
 Project / Product* 		:  METALS
 ==================================================================
@@ -16,7 +16,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  EOD
+Module  		   	 :  MV LOG
 
 Sub-Module  			 :  
  
@@ -32,14 +32,14 @@ FS Amendment details   		 :  N/A
 
 Dependent patches:		 :  N/A
 
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
 
 SQL Files
 
 
-Event based contract price Qty to be fixed = open qty during qp
-After QP for Event Based Open Contracts Take the Spot Price
+MV for EOD reports
 ----
 
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql(Revision: 88401)
-
-
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_212.sql(Revision: 88405)
