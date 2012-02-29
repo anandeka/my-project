@@ -1,4 +1,4 @@
-create or replace package pkg_phy_transfer_data is
+create or replace package "PKG_PHY_TRANSFER_DATA" is
 
   -- Author  : SURESHGOTTIPATI
   -- Created : 5/2/2011 3:09:18 PM
@@ -39,7 +39,7 @@ create or replace package pkg_phy_transfer_data is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -558,16 +558,16 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('II_INVOICABLE_ITEM', 'c');
       dbms_mview.refresh('IID_INVOICABLE_ITEM_DETAILS', 'c');
       dbms_mview.refresh('SCM_STOCK_COST_MAPPING', 'c');
-      dbms_mview.refresh('GTH_GMR_TREATMENT_HEADER','c');
-      dbms_mview.refresh('GRH_GMR_REFINING_HEADER','c');
-      dbms_mview.refresh('GPH_GMR_PENALTY_HEADER','c');
-      dbms_mview.refresh('SAC_STOCK_ASSAY_CONTENT','c');
-      dbms_mview.refresh('IIED_INV_ITEM_ELEMENT_DETAILS','c');
-      dbms_mview.refresh('INTC_INV_TREATMENT_CHARGES','c');
-      dbms_mview.refresh('INRC_INV_REFINING_CHARGES','c');
-      dbms_mview.refresh('IEPD_INV_EPENALTY_DETAILS','c');
-      dbms_mview.refresh('IAM_INVOICE_ASSAY_MAPPING','c');
-      dbms_mview.refresh('IAM_INVOICE_ACTION_MAPPING','c');
+      dbms_mview.refresh('GTH_GMR_TREATMENT_HEADER', 'c');
+      dbms_mview.refresh('GRH_GMR_REFINING_HEADER', 'c');
+      dbms_mview.refresh('GPH_GMR_PENALTY_HEADER', 'c');
+      dbms_mview.refresh('SAC_STOCK_ASSAY_CONTENT', 'c');
+      dbms_mview.refresh('IIED_INV_ITEM_ELEMENT_DETAILS', 'c');
+      dbms_mview.refresh('INTC_INV_TREATMENT_CHARGES', 'c');
+      dbms_mview.refresh('INRC_INV_REFINING_CHARGES', 'c');
+      dbms_mview.refresh('IEPD_INV_EPENALTY_DETAILS', 'c');
+      dbms_mview.refresh('IAM_INVOICE_ASSAY_MAPPING', 'c');
+      dbms_mview.refresh('IAM_INVOICE_ACTION_MAPPING', 'c');
     end if;
   exception
     when others then
@@ -3632,7 +3632,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_stock_split,
              ul.supplier_id,
              ul.smelter_id,
-             ul.in_process_stock_id,
+             null, --ul.in_process_stock_id,
              ul.free_metal_stock_id,
              ul.free_metal_qty,
              pc_dbd_id
@@ -4046,5 +4046,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
