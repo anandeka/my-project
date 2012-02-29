@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0457
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sisir Kumar Pagada
+ 
+Created on*        		:  29-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  Output Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+SQL Files
+===========================================================
+
+Revision: 88328
+Author: sishir.pagada
+Date: 1:21:04 PM, Wednesday, February 29, 2012
+Message:
+Modified the Traxys Trader name to Trader.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+
+
+
+
