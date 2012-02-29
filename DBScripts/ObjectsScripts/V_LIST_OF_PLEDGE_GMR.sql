@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_LIST_OF_PLEDGE_GMR AS
+create or replace view v_list_of_pledge_gmr as
 select gmr.corporate_id,
        gmr.internal_gmr_ref_no,
        gmr.gmr_ref_no,
@@ -29,59 +29,72 @@ select gmr.corporate_id,
           from pofh_price_opt_fixation_header pofh
          where pofh.is_active = 'Y'
            and pofh.internal_gmr_ref_no = gepd.internal_gmr_ref_no) qp_end_date,
-       (select invs.invoice_issue_date
+       (select distinct invs.invoice_issue_date
           from is_invoice_summary          invs,
                iid_invoicable_item_details iid
          where invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
+           and iid.is_active = 'Y'
+           and invs.is_active = 'Y'
            and iid.internal_gmr_ref_no = gepd.pledge_input_gmr
            and invs.internal_invoice_ref_no =
                (select max(invs_temp.internal_invoice_ref_no) internal_invoice_ref_no
                   from is_invoice_summary          invs_temp,
-                       iid_invoicable_item_details iid
+                       iid_invoicable_item_details iid_temp
                  where invs_temp.internal_invoice_ref_no =
-                       iid.internal_invoice_ref_no
+                       iid_temp.internal_invoice_ref_no
+                   and iid_temp.is_active = 'Y'
                    and invs_temp.is_active = 'Y'
-                   and iid.internal_gmr_ref_no = gepd.pledge_input_gmr)) supplier_inv_date,
-       (select invs.invoice_ref_no
+                   and iid_temp.internal_gmr_ref_no = gepd.pledge_input_gmr)) supplier_inv_date,
+       (select distinct invs.invoice_ref_no
           from is_invoice_summary          invs,
                iid_invoicable_item_details iid
          where invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
+           and iid.is_active = 'Y'
+           and invs.is_active = 'Y'
            and iid.internal_gmr_ref_no = gepd.pledge_input_gmr
            and invs.internal_invoice_ref_no =
                (select max(invs_temp.internal_invoice_ref_no) internal_invoice_ref_no
                   from is_invoice_summary          invs_temp,
-                       iid_invoicable_item_details iid
+                       iid_invoicable_item_details iid_temp
                  where invs_temp.internal_invoice_ref_no =
-                       iid.internal_invoice_ref_no
+                       iid_temp.internal_invoice_ref_no
+                   and iid_temp.is_active = 'Y'
                    and invs_temp.is_active = 'Y'
-                   and iid.internal_gmr_ref_no = gepd.pledge_input_gmr)) supplier_inv_no,
-       (select invs.invoice_issue_date
+                   and iid_temp.internal_gmr_ref_no = gepd.pledge_input_gmr)) supplier_inv_no,
+       (select distinct invs.invoice_issue_date
           from is_invoice_summary          invs,
                iid_invoicable_item_details iid
          where invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
            and iid.internal_gmr_ref_no = gepd.internal_gmr_ref_no
+           and iid.is_active = 'Y'
+           and invs.is_active = 'Y'
            and invs.internal_invoice_ref_no =
                (select max(invs_temp.internal_invoice_ref_no) internal_invoice_ref_no
                   from is_invoice_summary          invs_temp,
-                       iid_invoicable_item_details iid
+                       iid_invoicable_item_details iid_temp
                  where invs_temp.internal_invoice_ref_no =
-                       iid.internal_invoice_ref_no
+                       iid_temp.internal_invoice_ref_no
                    and invs_temp.is_active = 'Y'
-                   and iid.internal_gmr_ref_no = gepd.internal_gmr_ref_no)) pledge_inv_date,
-       (select invs.invoice_ref_no
-        
+                   and iid_temp.is_active = 'Y'
+                   and iid_temp.internal_gmr_ref_no =
+                       gepd.internal_gmr_ref_no)) pledge_inv_date,
+       (select distinct invs.invoice_ref_no
           from is_invoice_summary          invs,
                iid_invoicable_item_details iid
          where invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
            and iid.internal_gmr_ref_no = gepd.internal_gmr_ref_no
+           and iid.is_active = 'Y'
+           and invs.is_active = 'Y'
            and invs.internal_invoice_ref_no =
                (select max(invs_temp.internal_invoice_ref_no) internal_invoice_ref_no
                   from is_invoice_summary          invs_temp,
-                       iid_invoicable_item_details iid
+                       iid_invoicable_item_details iid_temp
                  where invs_temp.internal_invoice_ref_no =
-                       iid.internal_invoice_ref_no
+                       iid_temp.internal_invoice_ref_no
                    and invs_temp.is_active = 'Y'
-                   and iid.internal_gmr_ref_no = gepd.internal_gmr_ref_no)) pledge_inv_no,
+                   and iid_temp.is_active = 'Y'
+                   and iid_temp.internal_gmr_ref_no =
+                       gepd.internal_gmr_ref_no)) pledge_inv_no,
        gmr_afs.assay_finalized assay_finalized
   from gmr_goods_movement_record      gmr,
        gam_gmr_action_mapping         gam,
@@ -112,4 +125,4 @@ select gmr.corporate_id,
    and pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
    and aml.attribute_id = gepd.element_id
    and pdm.product_id = gepd.product_id
-   and gmr_afs.internal_gmr_ref_no = gepd.pledge_input_gmr
+   and gmr_afs.internal_gmr_ref_no = gepd.pledge_input_gmr;
