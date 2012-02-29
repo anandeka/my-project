@@ -1,0 +1,77 @@
+Patch No*          		:  EKA_METALS_PATCH_0465
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  29-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+********************************************
+
+Revision: 88419
+Author: elaiyaraja.nallathambi
+Date: 10:00:50 PM, Wednesday, February 29, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_209.sql
+
+Revision: 88421
+Author: elaiyaraja.nallathambi
+Date: 10:01:18 PM, Wednesday, February 29, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_48_DML_RPC_RFC_Scripts.sql
+
+Revision: 88422
+Author: elaiyaraja.nallathambi
+Date: 10:01:38 PM, Wednesday, February 29, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_INVOICE_GMR_DETAILS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_feed_consumption.sql
+
+
+Revision: 88423
+Author: elaiyaraja.nallathambi
+Date: 10:02:38 PM, Wednesday, February 29, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractStatusReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CustomsReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FeedConsumptionReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YTDMTDYIELD.rpt
+
+
+
