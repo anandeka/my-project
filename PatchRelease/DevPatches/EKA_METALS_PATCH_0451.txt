@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0451
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  mohit Gupta
+ 
+Created on*        		:  29-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  COG
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+
+Revision: 88281
+Author: mohitkumar.gupta
+Date: 10:28:23 AM, Wednesday, February 29, 2012
+Message:
+Add a new column is_delete in SID.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_209.sql
+
+
+
