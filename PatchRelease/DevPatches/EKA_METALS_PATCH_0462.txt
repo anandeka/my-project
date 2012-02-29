@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_PATCH_0462
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  29-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Mining
+
+Sub-Module  			 :  Output Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+==================================================================
+Schema type (Transaction / EOD)* : NA
+==================================================================
+
+Revision: 88411
+Author: sishir.pagada
+Date: 8:27:04 PM, Wednesday, February 29, 2012
+Message:
+payable type check..
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETRETURNABLECONTENTDETAILS.sql
+
+
+
+Revision: 88412
+Author: sishir.pagada
+Date: 8:28:43 PM, Wednesday, February 29, 2012
+Message:
+payable type check..
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETTOLPAYABLECONTENTDETAILS.sql
+
+
+
+
