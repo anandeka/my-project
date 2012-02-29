@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0458
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Manoranjan
+ 
+Created on*        		:  29-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+
+Sub-Module  			 :  Washout
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+SQL Files
+===========================================================
+Revision: 88335
+Author: manoranjan.kumar
+Date: 1:48:51 PM, Wednesday, February 29, 2012
+Message:
+washout scripts
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_47.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_207.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_211.sql
+
+
