@@ -6,7 +6,7 @@ Created by*        		:  Janna
  
 Created on*        		:  29-Feb-2012
 
-Bug / Enhancement*              : Bug
+Bug / Enhancement*              :  Bug
  
 Bug ID*            		:  
 
@@ -37,7 +37,9 @@ SQL Files
 
 
 Event based contract price Qty to be fixed = open qty during qp
+After QP for Event Based Open Contracts Take the Spot Price
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql(Revision: 88401)
 
 
