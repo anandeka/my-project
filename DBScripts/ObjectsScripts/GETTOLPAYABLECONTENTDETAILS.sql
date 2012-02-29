@@ -17,6 +17,7 @@ IS
      AND pcpq.quality_template_id = qat.quality_id
      AND pqd.is_active = 'Y'
      AND pcpch.is_active = 'Y'
+     AND pcpch.payable_type = 'Payable'
      AND pcm.internal_contract_ref_no = pContractNo;
 
     cursor cr_pc          
