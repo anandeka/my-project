@@ -58,7 +58,6 @@ Message:
 
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_INVOICE_GMR_DETAILS.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_feed_consumption.sql
 
 
 Revision: 88423
