@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0459
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: ANUP KUMAR AGARWAL
+ 
+Created on*        		:  29-Feb-2012
+
+Bug / Enhancement*              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  ASSAY
+
+Sub-Module  			 :  DOCUMENT
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+SQL Files
+===========================================================
+Revision: 88362
+Author: anupkumar.agarwal
+Date: 3:38:13 PM, Wednesday, February 29, 2012
+Message:
+ELEMNT TO TRACK FOR SELF ASSAY 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_208.sql
+
+
