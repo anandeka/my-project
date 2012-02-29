@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0455
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  29-Feb-2012
+
+Bug / Enhancement*              : Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+SQL Files
+
+
+Revision: 88294
+Author: anupkumar.agarwal
+Date: 11:30:11 AM, Wednesday, February 29, 2012
+Message:
+View Changed
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_PLEDGE_GMR.sql
+
+
