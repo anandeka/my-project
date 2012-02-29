@@ -224,7 +224,7 @@ BEGIN
                 is_amend_section, print_type, is_changed
                )
         VALUES (docid, display_order, NULL, contractsection,
-                'Traxys Trader', 'Y', NULL,
+                'Trader', 'Y', NULL,
                 NULL, traxystrader, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
