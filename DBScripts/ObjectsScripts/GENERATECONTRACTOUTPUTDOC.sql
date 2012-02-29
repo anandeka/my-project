@@ -38,6 +38,7 @@ IS
    agreementnumber            VARCHAR2 (50);
    contractservicetype        VARCHAR2 (50);
    passthrough                VARCHAR2 (10);
+   passthroughdetails         VARCHAR2 (10);
    inputoutputproduct         VARCHAR2 (50);
    inputoutputquality         VARCHAR2 (50);
 
@@ -459,6 +460,13 @@ BEGIN
                 THEN
                 passthrough := NULL;
     END;
+    
+    IF(passthrough='Y')
+    THEN 
+        passthroughdetails:= 'Yes';
+        ELSE
+        passthroughdetails:= 'No';
+    END IF;
 
     display_order := display_order + 1;
 
@@ -471,7 +479,7 @@ BEGIN
                )
         VALUES (docid, display_order, NULL, contractsection,
                 'Pass Through', 'Y', NULL,
-                NULL, passthrough, NULL,
+                NULL, passthroughdetails, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
