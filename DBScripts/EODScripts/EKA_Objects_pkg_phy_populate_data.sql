@@ -1784,301 +1784,339 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   begin
-    insert into cs_cost_store
-      (internal_cost_id,
-       internal_action_ref_no,
-       cog_ref_no,
-       cost_ref_no,
-       cost_type,
-       cost_component_id,
-       rate_type,
-       cost_value,
-       rate_price_unit_id,
-       transaction_amt,
-       transaction_amt_cur_id,
-       fx_to_base,
-       transact_amt_sign,
-       cost_acc_type,
-       base_amt,
-       base_amt_cur_id,
-       cost_in_base_price_unit_id,
-       base_price_unit_id,
-       cost_in_transact_price_unit_id,
-       counter_party_id,
-       parent_estimated_cost_ref_no,
-       estimated_amt,
-       is_inv_possible,
-       version,
-       is_deleted,
-       effective_date,
-       income_expense,
-       est_payment_due_date,
-       inv_to_accrual_curr_fx,
-       dbd_id,
-       is_actual_posted_in_cog)
-      select decode(internal_cost_id,
-                    'Empty_String',
-                    null,
-                    internal_cost_id),
-             decode(internal_action_ref_no,
-                    'Empty_String',
-                    null,
-                    internal_action_ref_no),
-             decode(cog_ref_no, 'Empty_String', null, cog_ref_no),
-             decode(cost_ref_no, 'Empty_String', null, cost_ref_no),
-             decode(cost_type, 'Empty_String', null, cost_type),
-             decode(cost_component_id,
-                    'Empty_String',
-                    null,
-                    cost_component_id),
-             decode(rate_type, 'Empty_String', null, rate_type),
-             decode(cost_value, 'Empty_String', null, cost_value),
-             decode(rate_price_unit_id,
-                    'Empty_String',
-                    null,
-                    rate_price_unit_id),
-             decode(transaction_amt, 'Empty_String', null, transaction_amt),
-             decode(transaction_amt_cur_id,
-                    'Empty_String',
-                    null,
-                    transaction_amt_cur_id),
-             decode(fx_to_base, 'Empty_String', null, fx_to_base),
-             decode(transact_amt_sign,
-                    'Empty_String',
-                    null,
-                    transact_amt_sign),
-             decode(cost_acc_type, 'Empty_String', null, cost_acc_type),
-             decode(base_amt, 'Empty_String', null, base_amt),
-             decode(base_amt_cur_id, 'Empty_String', null, base_amt_cur_id),
-             decode(cost_in_base_price_unit_id,
-                    'Empty_String',
-                    null,
-                    cost_in_base_price_unit_id),
-             decode(base_price_unit_id,
-                    'Empty_String',
-                    null,
-                    base_price_unit_id),
-             decode(cost_in_transact_price_unit_id,
-                    'Empty_String',
-                    null,
-                    cost_in_transact_price_unit_id),
-             decode(counter_party_id,
-                    'Empty_String',
-                    null,
-                    counter_party_id),
-             decode(parent_estimated_cost_ref_no,
-                    'Empty_String',
-                    null,
-                    parent_estimated_cost_ref_no),
-             decode(estimated_amt, 'Empty_String', null, estimated_amt),
-             decode(is_inv_possible, 'Empty_String', null, is_inv_possible),
-             decode(version, 'Empty_String', null, version),
-             decode(is_deleted, 'Empty_String', null, is_deleted),
-             decode(effective_date, 'Empty_String', null, effective_date),
-             decode(income_expense, 'Empty_String', null, income_expense),
-             decode(est_payment_due_date,
-                    'Empty_String',
-                    null,
-                    est_payment_due_date),
-             decode(inv_to_accrual_curr_fx,
-                    'Empty_String',
-                    null,
-                    inv_to_accrual_curr_fx),
-             gvc_dbd_id,
-             nvl(is_actual_posted_in_cog,'Y')
-        from (select csul.internal_cost_id,
-                     substr(max(case
-                                  when csul.internal_action_ref_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.internal_action_ref_no
-                                end),
-                            24) internal_action_ref_no,
-                     substr(max(case
-                                  when csul.cog_ref_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.cog_ref_no
-                                end),
-                            24) cog_ref_no,
-                     
-                     substr(max(case
-                                  when csul.cost_ref_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.cost_ref_no
-                                end),
-                            24) cost_ref_no,
-                     substr(max(case
-                                  when csul.cost_type is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.cost_type
-                                end),
-                            24) cost_type,
-                     substr(max(case
-                                  when csul.cost_component_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.cost_component_id
-                                end),
-                            24) cost_component_id,
-                     substr(max(case
-                                  when csul.rate_type is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.rate_type
-                                end),
-                            24) rate_type,
-                     substr(max(case
-                                  when csul.cost_value is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.cost_value
-                                end),
-                            24) cost_value,
-                     substr(max(case
-                                  when csul.rate_price_unit_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.rate_price_unit_id
-                                end),
-                            24) rate_price_unit_id,
-                     substr(max(case
-                                  when csul.transaction_amt is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.transaction_amt
-                                end),
-                            24) transaction_amt,
-                     substr(max(case
-                                  when csul.transaction_amt_cur_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.transaction_amt_cur_id
-                                end),
-                            24) transaction_amt_cur_id,
-                     substr(max(case
-                                  when csul.fx_to_base is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.fx_to_base
-                                end),
-                            24) fx_to_base,
-                     
-                     substr(max(case
-                                  when csul.transact_amt_sign is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.transact_amt_sign
-                                end),
-                            24) transact_amt_sign,
-                     substr(max(case
-                                  when csul.cost_acc_type is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.cost_acc_type
-                                end),
-                            24) cost_acc_type,
-                     substr(max(case
-                                  when csul.base_amt is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.base_amt
-                                end),
-                            24) base_amt,
-                     substr(max(case
-                                  when csul.base_amt_cur_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.base_amt_cur_id
-                                end),
-                            24) base_amt_cur_id,
-                     substr(max(case
-                                  when csul.cost_in_base_price_unit_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.cost_in_base_price_unit_id
-                                end),
-                            24) cost_in_base_price_unit_id,
-                     substr(max(case
-                                  when csul.base_price_unit_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.base_price_unit_id
-                                end),
-                            24) base_price_unit_id,
-                     substr(max(case
-                                  when csul.cost_in_transact_price_unit_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.cost_in_transact_price_unit_id
-                                end),
-                            24) cost_in_transact_price_unit_id,
-                     substr(max(case
-                                  when csul.counter_party_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.counter_party_id
-                                end),
-                            24) counter_party_id,
-                     substr(max(case
-                                  when csul.parent_estimated_cost_ref_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.parent_estimated_cost_ref_no
-                                end),
-                            24) parent_estimated_cost_ref_no,
-                     
-                     substr(max(case
-                                  when csul.estimated_amt is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.estimated_amt
-                                end),
-                            24) estimated_amt,
-                     substr(max(case
-                                  when csul.is_inv_possible is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.is_inv_possible
-                                end),
-                            24) is_inv_possible,
-                     substr(max(case
-                                  when csul.version is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.version
-                                end),
-                            24) version,
-                     substr(max(case
-                                  when csul.is_deleted is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.is_deleted
-                                end),
-                            24) is_deleted,
-                     substr(max(case
-                                  when csul.effective_date is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.effective_date
-                                end),
-                            24) effective_date,
-                     substr(max(case
-                                  when csul.income_expense is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.income_expense
-                                end),
-                            24) income_expense,
-                     substr(max(case
-                                  when csul.est_payment_due_date is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.est_payment_due_date
-                                end),
-                            24) est_payment_due_date,
-                     substr(max(case
-                                  when csul.inv_to_accrual_curr_fx is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.inv_to_accrual_curr_fx
-                                end),
-                            24) inv_to_accrual_curr_fx,
-                     gvc_dbd_id,
-                     substr(max(case
-                                  when csul.is_actual_posted_in_cog is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   csul.is_actual_posted_in_cog
-                                end),24) is_actual_posted_in_cog
-                     
-                from csul_cost_store_ul csul,
-                     axs_action_summary axs,
-                     dbd_database_dump  dbd,
-                     dbd_database_dump  dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
-                 and csul.internal_action_ref_no =
-                     axs.internal_action_ref_no
-                 and axs.eff_date <= pd_trade_date
-                 and axs.corporate_id = pc_corporate_id
-                 and csul.dbd_id = dbd_ul.dbd_id
-                 and dbd_ul.corporate_id = pc_corporate_id
-                 and dbd_ul.process = gvc_process
-               group by csul.internal_cost_id) t;
+insert into cs_cost_store
+  (internal_cost_id,
+   internal_action_ref_no,
+   cog_ref_no,
+   cost_ref_no,
+   cost_type,
+   cost_component_id,
+   rate_type,
+   cost_value,
+   rate_price_unit_id,
+   transaction_amt,
+   transaction_amt_cur_id,
+   fx_to_base,
+   transact_amt_sign,
+   cost_acc_type,
+   base_amt,
+   base_amt_cur_id,
+   cost_in_base_price_unit_id,
+   base_price_unit_id,
+   cost_in_transact_price_unit_id,
+   counter_party_id,
+   parent_estimated_cost_ref_no,
+   estimated_amt,
+   is_inv_possible,
+   version,
+   is_deleted,
+   effective_date,
+   income_expense,
+   est_payment_due_date,
+   inv_to_accrual_curr_fx,
+   dbd_id,
+   is_actual_posted_in_cog,
+   acc_direct_actual,
+   acc_original_accrual,
+   acc_over_accrual,
+   acc_under_accrual,
+   delta_cost_in_base_price_id,
+   reversal_type
+   
+   )
+  select decode(internal_cost_id, 'Empty_String', null, internal_cost_id),
+         decode(internal_action_ref_no,
+                'Empty_String',
+                null,
+                internal_action_ref_no),
+         decode(cog_ref_no, 'Empty_String', null, cog_ref_no),
+         decode(cost_ref_no, 'Empty_String', null, cost_ref_no),
+         decode(cost_type, 'Empty_String', null, cost_type),
+         decode(cost_component_id, 'Empty_String', null, cost_component_id),
+         decode(rate_type, 'Empty_String', null, rate_type),
+         decode(cost_value, 'Empty_String', null, cost_value),
+         decode(rate_price_unit_id,
+                'Empty_String',
+                null,
+                rate_price_unit_id),
+         decode(transaction_amt, 'Empty_String', null, transaction_amt),
+         decode(transaction_amt_cur_id,
+                'Empty_String',
+                null,
+                transaction_amt_cur_id),
+         decode(fx_to_base, 'Empty_String', null, fx_to_base),
+         decode(transact_amt_sign, 'Empty_String', null, transact_amt_sign),
+         decode(cost_acc_type, 'Empty_String', null, cost_acc_type),
+         decode(base_amt, 'Empty_String', null, base_amt),
+         decode(base_amt_cur_id, 'Empty_String', null, base_amt_cur_id),
+         decode(cost_in_base_price_unit_id,
+                'Empty_String',
+                null,
+                cost_in_base_price_unit_id),
+         decode(base_price_unit_id,
+                'Empty_String',
+                null,
+                base_price_unit_id),
+         decode(cost_in_transact_price_unit_id,
+                'Empty_String',
+                null,
+                cost_in_transact_price_unit_id),
+         decode(counter_party_id, 'Empty_String', null, counter_party_id),
+         decode(parent_estimated_cost_ref_no,
+                'Empty_String',
+                null,
+                parent_estimated_cost_ref_no),
+         decode(estimated_amt, 'Empty_String', null, estimated_amt),
+         decode(is_inv_possible, 'Empty_String', null, is_inv_possible),
+         decode(version, 'Empty_String', null, version),
+         decode(is_deleted, 'Empty_String', null, is_deleted),
+         decode(effective_date, 'Empty_String', null, effective_date),
+         decode(income_expense, 'Empty_String', null, income_expense),
+         decode(est_payment_due_date,
+                'Empty_String',
+                null,
+                est_payment_due_date),
+         decode(inv_to_accrual_curr_fx,
+                'Empty_String',
+                null,
+                inv_to_accrual_curr_fx),
+         gvc_dbd_id,
+         nvl(is_actual_posted_in_cog, 'Y'),
+         nvl(acc_direct_actual, 'N'),
+         nvl(acc_original_accrual, 'N'),
+         nvl(acc_over_accrual, 'N'),
+         nvl(acc_under_accrual, 'N'),
+         delta_cost_in_base_price_id,
+         nvl(reversal_type, 'N')
+    from (select csul.internal_cost_id,
+                 substr(max(case
+                              when csul.internal_action_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.internal_action_ref_no
+                            end),
+                        24) internal_action_ref_no,
+                 substr(max(case
+                              when csul.cog_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.cog_ref_no
+                            end),
+                        24) cog_ref_no,
+                 
+                 substr(max(case
+                              when csul.cost_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.cost_ref_no
+                            end),
+                        24) cost_ref_no,
+                 substr(max(case
+                              when csul.cost_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.cost_type
+                            end),
+                        24) cost_type,
+                 substr(max(case
+                              when csul.cost_component_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.cost_component_id
+                            end),
+                        24) cost_component_id,
+                 substr(max(case
+                              when csul.rate_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.rate_type
+                            end),
+                        24) rate_type,
+                 substr(max(case
+                              when csul.cost_value is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.cost_value
+                            end),
+                        24) cost_value,
+                 substr(max(case
+                              when csul.rate_price_unit_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.rate_price_unit_id
+                            end),
+                        24) rate_price_unit_id,
+                 substr(max(case
+                              when csul.transaction_amt is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.transaction_amt
+                            end),
+                        24) transaction_amt,
+                 substr(max(case
+                              when csul.transaction_amt_cur_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.transaction_amt_cur_id
+                            end),
+                        24) transaction_amt_cur_id,
+                 substr(max(case
+                              when csul.fx_to_base is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.fx_to_base
+                            end),
+                        24) fx_to_base,
+                 
+                 substr(max(case
+                              when csul.transact_amt_sign is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.transact_amt_sign
+                            end),
+                        24) transact_amt_sign,
+                 substr(max(case
+                              when csul.cost_acc_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.cost_acc_type
+                            end),
+                        24) cost_acc_type,
+                 substr(max(case
+                              when csul.base_amt is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.base_amt
+                            end),
+                        24) base_amt,
+                 substr(max(case
+                              when csul.base_amt_cur_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.base_amt_cur_id
+                            end),
+                        24) base_amt_cur_id,
+                 substr(max(case
+                              when csul.cost_in_base_price_unit_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.cost_in_base_price_unit_id
+                            end),
+                        24) cost_in_base_price_unit_id,
+                 substr(max(case
+                              when csul.base_price_unit_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.base_price_unit_id
+                            end),
+                        24) base_price_unit_id,
+                 substr(max(case
+                              when csul.cost_in_transact_price_unit_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.cost_in_transact_price_unit_id
+                            end),
+                        24) cost_in_transact_price_unit_id,
+                 substr(max(case
+                              when csul.counter_party_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.counter_party_id
+                            end),
+                        24) counter_party_id,
+                 substr(max(case
+                              when csul.parent_estimated_cost_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.parent_estimated_cost_ref_no
+                            end),
+                        24) parent_estimated_cost_ref_no,
+                 
+                 substr(max(case
+                              when csul.estimated_amt is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.estimated_amt
+                            end),
+                        24) estimated_amt,
+                 substr(max(case
+                              when csul.is_inv_possible is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.is_inv_possible
+                            end),
+                        24) is_inv_possible,
+                 substr(max(case
+                              when csul.version is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.version
+                            end),
+                        24) version,
+                 substr(max(case
+                              when csul.is_deleted is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.is_deleted
+                            end),
+                        24) is_deleted,
+                 substr(max(case
+                              when csul.effective_date is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.effective_date
+                            end),
+                        24) effective_date,
+                 substr(max(case
+                              when csul.income_expense is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.income_expense
+                            end),
+                        24) income_expense,
+                 substr(max(case
+                              when csul.est_payment_due_date is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.est_payment_due_date
+                            end),
+                        24) est_payment_due_date,
+                 substr(max(case
+                              when csul.inv_to_accrual_curr_fx is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.inv_to_accrual_curr_fx
+                            end),
+                        24) inv_to_accrual_curr_fx,
+                 gvc_dbd_id,
+                 substr(max(case
+                              when csul.is_actual_posted_in_cog is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.is_actual_posted_in_cog
+                            end),
+                        24) is_actual_posted_in_cog,
+                 substr(max(case
+                              when csul.acc_direct_actual is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.acc_direct_actual
+                            end),
+                        24) acc_direct_actual,
+                 substr(max(case
+                              when csul.acc_original_accrual is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.acc_original_accrual
+                            end),
+                        24) acc_original_accrual,
+                 substr(max(case
+                              when csul.acc_over_accrual is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.acc_over_accrual
+                            end),
+                        24) acc_over_accrual,
+                 substr(max(case
+                              when csul.acc_under_accrual is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.acc_under_accrual
+                            end),
+                        24) acc_under_accrual,
+                 substr(max(case
+                              when csul.delta_cost_in_base_price_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.delta_cost_in_base_price_id
+                            end),
+                        24) delta_cost_in_base_price_id,
+                 substr(max(case
+                              when csul.reversal_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               csul.reversal_type
+                            end),
+                        24) reversal_type
+          
+            from csul_cost_store_ul csul,
+                 axs_action_summary axs,
+                 dbd_database_dump  dbd,
+                 dbd_database_dump  dbd_ul
+           where dbd.dbd_id = axs.dbd_id
+             and dbd.process = gvc_process
+             and csul.internal_action_ref_no = axs.internal_action_ref_no
+             and axs.eff_date <= pd_trade_date
+             and axs.corporate_id = pc_corporate_id
+             and csul.dbd_id = dbd_ul.dbd_id
+             and dbd_ul.corporate_id = pc_corporate_id
+             and dbd_ul.process = gvc_process
+           group by csul.internal_cost_id) t;
   
   exception
     when others then

@@ -568,11 +568,11 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('IEPD_INV_EPENALTY_DETAILS', 'c');
       dbms_mview.refresh('IAM_INVOICE_ASSAY_MAPPING', 'c');
       dbms_mview.refresh('IAM_INVOICE_ACTION_MAPPING', 'c');
-      dbms_mview.refresh('AGMR_ACTION_GMR','c');
-      dbms_mview.refresh('REM_REGION_MASTER','c');
-      dbms_mview.refresh('BVD_BP_VAT_DETAILS','c');
-      dbms_mview.refresh('IOC_INVOICE_OTHER_CHARGE','c');
-      dbms_mview.refresh('YPD_YIELD_PCT_DETAIL','c');
+      dbms_mview.refresh('AGMR_ACTION_GMR', 'c');
+      dbms_mview.refresh('REM_REGION_MASTER', 'c');
+      dbms_mview.refresh('BVD_BP_VAT_DETAILS', 'c');
+      dbms_mview.refresh('IOC_INVOICE_OTHER_CHARGE', 'c');
+      dbms_mview.refresh('YPD_YIELD_PCT_DETAIL', 'c');
     end if;
   exception
     when others then
@@ -798,7 +798,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        est_payment_due_date,
        inv_to_accrual_curr_fx,
        is_actual_posted_in_cog,
-       dbd_id)
+       dbd_id,
+       acc_direct_actual,
+       acc_original_accrual,
+       acc_over_accrual,
+       acc_under_accrual,
+       delta_cost_in_base_price_id,
+       reversal_type)
       select ul.internal_cost_ul_id,
              ul.internal_cost_id,
              ul.entry_type,
@@ -831,7 +837,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.est_payment_due_date,
              ul.inv_to_accrual_curr_fx,
              ul.is_actual_posted_in_cog,
-             pc_dbd_id
+             pc_dbd_id,
+             ul.acc_direct_actual,
+             ul.acc_original_accrual,
+             ul.acc_over_accrual,
+             ul.acc_under_accrual,
+             ul.delta_cost_in_base_price_id,
+             ul.reversal_type
         from csul_cost_store_ul@eka_appdb ul,
              axs_action_summary@eka_appdb axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no

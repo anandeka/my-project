@@ -1501,7 +1501,8 @@ create or replace package body pkg_phy_physical_process is
          and pum.is_deleted = 'N'
          and pum1.price_unit_id = cs.transaction_price_unit_id
          and pum1.is_active = 'Y'
-         and pum1.is_deleted = 'N';
+         and pum1.is_deleted = 'N'
+         and cs.income_expense = 'Expense';
   
     --
     -- Check the exchange rate from Transaction Currency to Base Currency
