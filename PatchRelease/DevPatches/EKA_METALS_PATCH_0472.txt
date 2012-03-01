@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0472
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  01-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Overall Realized PNL Report
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+SQL Files
+
+Overall Realized PNL Report
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_49.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_214.sql
+
+
+
+RPT files
+
+Overall Realized PNL Report
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOverallRealizedPhysicalPnl.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOverallRealizedPhysicalPnl_Excel.rpt
+
+
+
+
+
