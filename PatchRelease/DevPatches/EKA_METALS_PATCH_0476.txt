@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0476
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  02-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+RPT files: to be copied into eka presentation- folder.
+---------
+Revision: 88629
+Author: sivachalabathi.s
+Date: 10:13:50 PM, Friday, March 02, 2012
+Message:
+bug fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/LMETraderCard.rpt
+
+SQL: APP DB
+============
+Revision: 88631
+Author: sivachalabathi.s
+Date: 10:16:57 PM, Friday, March 02, 2012
+Message:
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_212.sql
+
+
+
+
+
