@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0474
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja
+ 
+Created on*        		:  02-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 88592
+Author: elaiyaraja.nallathambi
+Date: 5:58:22 PM, Friday, March 02, 2012
+Message:
+Profit Center Issue Fixed for Report ID '86'
+and Removed Report ID '66' and '68'
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_50_DML_RPC_RFC_Scripts.SQL
+
+
+
+
+
+
+
