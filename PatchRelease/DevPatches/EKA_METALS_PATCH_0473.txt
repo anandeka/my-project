@@ -37,14 +37,9 @@ Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 RPT Files
 ===========
-Revision: 88553
-Author: sivachalabathi.s
-Date: 1:02:56 PM, Friday, March 02, 2012
-Message:
-bug fixes
 ----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProjectedPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt (Revision: 88553)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProjectedPriceExposure.rpt (Revision: 88564)
 
 SQL Files:
 ==========
@@ -56,6 +51,7 @@ bug fixes
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exp_conc.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql
+
 
 
 
