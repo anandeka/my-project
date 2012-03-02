@@ -123,6 +123,6 @@ begin
     end if;
   end loop;
 
-  return to_char(last_day(vd_qp_end_date), 'dd-Mon-yyyy');
-end f_get_pricing_month;
+  return to_char(vd_qp_end_date, 'dd-Mon-yyyy');
+end f_get_pricing_month; 
 /
