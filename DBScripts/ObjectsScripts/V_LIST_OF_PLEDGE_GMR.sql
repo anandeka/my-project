@@ -4,6 +4,8 @@ select gmr.corporate_id,
        gmr.gmr_ref_no,
        gmr.internal_contract_ref_no,
        pcm.contract_ref_no contract_ref_no,
+       gepd.pledge_input_gmr,
+       pledge_input_gmr.gmr_ref_no pledge_input_gmr_ref_no,
        gepd.supplier_cp_id supplier_cp_id,
        phd_supplier.companyname supplier_cp_name,
        gepd.pledge_cp_id pledge_cp_id,
@@ -107,7 +109,8 @@ select gmr.corporate_id,
        pcm_physical_contract_main     pcm,
        aml_attribute_master_list      aml,
        pdm_productmaster              pdm,
-       v_gmr_assay_finalized_status   gmr_afs
+       v_gmr_assay_finalized_status   gmr_afs,
+       gmr_goods_movement_record      pledge_input_gmr
  where gmr.internal_gmr_ref_no = gam.internal_gmr_ref_no(+)
    and gam.internal_action_ref_no(+) = gmr.gmr_first_int_action_ref_no
    and axs.internal_action_ref_no(+) = gam.internal_action_ref_no
@@ -125,4 +128,5 @@ select gmr.corporate_id,
    and pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
    and aml.attribute_id = gepd.element_id
    and pdm.product_id = gepd.product_id
-   and gmr_afs.internal_gmr_ref_no = gepd.pledge_input_gmr;
+   and gmr_afs.internal_gmr_ref_no = gepd.pledge_input_gmr
+   and pledge_input_gmr.internal_gmr_ref_no = gepd.pledge_input_gmr
