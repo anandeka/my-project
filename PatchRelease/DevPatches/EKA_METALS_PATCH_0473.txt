@@ -49,6 +49,9 @@ Date: 1:04:51 PM, Friday, March 02, 2012
 Message:
 bug fixes
 ----
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_multiple_premium.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_pricing_month.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exp_conc.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql
 
