@@ -43,7 +43,7 @@ Revision: 88676 for all Files
 Secondary Cost for Sales + Purchase )Shipped But Not TT) Calculation Based on the changes as in COG Module
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/28_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
 
