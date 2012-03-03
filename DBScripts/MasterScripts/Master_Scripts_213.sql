@@ -1,1 +1,1 @@
-update SLV_STATIC_LIST_VALUE set VALUE_TEXT = 'Warehouse Reciept No.' where VALUE_ID = 'WarehouseRefNo'
+delete from SLS_STATIC_LIST_SETUP where LIST_TYPE = 'ListOfGMRSearchCriteria'and VALUE_ID='WarehouseRefNo';
