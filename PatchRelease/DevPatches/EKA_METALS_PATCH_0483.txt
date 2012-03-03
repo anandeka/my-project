@@ -35,6 +35,13 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
+
+SQL Files:
+==========
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql (Revision: 88690)
+
+
 RPT files: to be copied into eka presentation- folder.
 
 
