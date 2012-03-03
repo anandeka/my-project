@@ -664,6 +664,7 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'End of EOD/EOM Process From Physical');
+  
     vc_err_msg := 'end of physical sp process run ';
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while pnl calculation');
@@ -1426,198 +1427,12 @@ create or replace package body pkg_phy_physical_process is
                                        1)
      where cisc.process_id = pc_process_id;
   
-    --For GMR
-  
-    insert into gsc_gmr_sec_cost
-      (internal_gmr_ref_no,
-       cost_component_id,
-       avg_cost,
-       process_id,
-       secondary_cost,
-       internal_contract_item_ref_no,
-       avg_cost_in_trn_cur,
-       avg_cost_price_unit_id,
-       payment_due_date,
-       product_id,
-       corporate_id,
-       transact_price_unit_id,
-       transact_qty_unit_id,
-       price_qty_unit_id,
-       cost_value,
-       transact_cur_id,
-       transact_main_cur_id,
-       currency_factor,
-       base_cur_id,
-       base_qty_unit_id,
-       base_price_unit_id)
-      select cigc.internal_gmr_ref_no,
-             cs.cost_component_id,
-             cs.cost_in_base_price_unit_id avg_cost,
-             pc_process_id,
-             0 secondary_cost,
-             cigc.int_contract_item_ref_no,
-             cs.cost_in_transact_price_unit_id,
-             cs.transaction_price_unit_id,
-             pd_trade_date,
-             gmr.product_id,
-             gmr.corporate_id,
-             cs.transaction_price_unit_id,
-             cigc.qty_unit_id transact_qty_unit_id,
-             pum1.weight_unit_id price_qty_unit_id,
-             cs.cost_value,
-             cs.transaction_amt_cur_id,
-             nvl(scd.cur_id, transaction_amt_cur_id) transaction_amt_main_cur_id,
-             nvl(scd.factor, 1),
-             akc.base_cur_id,
-             pdm.base_quantity_unit base_qty_unit_id,
-             pum.price_unit_id base_price_unit_id
-        from cs_cost_store               cs,
-             cigc_contract_item_gmr_cost cigc,
-             scm_service_charge_master   scm,
-             gmr_goods_movement_record   gmr,
-             scd_sub_currency_detail     scd,
-             ak_corporate                akc,
-             pdm_productmaster           pdm,
-             pum_price_unit_master       pum,
-             pum_price_unit_master       pum1
-       where cs.cog_ref_no = cigc.cog_ref_no
-         and cs.is_deleted = 'N'
-         and cigc.is_deleted = 'N'
-         and cigc.process_id = pc_process_id
-         and cs.process_id = pc_process_id
-         and cigc.internal_gmr_ref_no is not null
-         and cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-         and gmr.process_id = pc_process_id
-         and cs.cost_component_id = scm.cost_id
-         and scm.cost_type = 'SECONDARY_COST'
-         and cs.cost_type <> 'Estimate'
-         and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
-         and gmr.corporate_id = akc.corporate_id
-         and gmr.product_id = pdm.product_id
-         and pum.weight_unit_id = pdm.base_quantity_unit
-         and pum.cur_id = akc.base_cur_id
-         and nvl(pum.weight, 1) = 1
-         and pum.is_active = 'Y'
-         and pum.is_deleted = 'N'
-         and pum1.price_unit_id = cs.transaction_price_unit_id
-         and pum1.is_active = 'Y'
-         and pum1.is_deleted = 'N'
-         and cs.income_expense = 'Expense';
-  
-    --
-    -- Check the exchange rate from Transaction Currency to Base Currency
-    --
-    for cur_gsc in (select gsc.transact_main_cur_id,
-                           gsc.base_cur_id,
-                           gsc.payment_due_date,
-                           cm_tran.cur_code transact_main_cur_code,
-                           cm_base.cur_code base_cur_code
-                      from gsc_gmr_sec_cost   gsc,
-                           cm_currency_master cm_tran,
-                           cm_currency_master cm_base
-                     where gsc.process_id = pc_process_id
-                       and gsc.transact_main_cur_id <> gsc.base_cur_id
-                       and gsc.transact_main_cur_id = cm_tran.cur_id
-                       and gsc.base_cur_id = cm_base.cur_id
-                     group by gsc.transact_main_cur_id,
-                              gsc.base_cur_id,
-                              gsc.payment_due_date,
-                              cm_tran.cur_code,
-                              cm_base.cur_code)
-    loop
-    
-      pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                              pd_trade_date,
-                                              cur_gsc.payment_due_date,
-                                              cur_gsc.transact_main_cur_id,
-                                              cur_gsc.base_cur_id,
-                                              30,
-                                              vn_trans_to_base_fw_rate,
-                                              vn_forward_points);
-    
-      if vn_trans_to_base_fw_rate is null or vn_trans_to_base_fw_rate = 0 then
-        vobj_error_log.extend;
-        vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                             'procedure pkg_phy_physical_process-sp_calc_gsc  ',
-                                                             'PHY-005',
-                                                             cur_gsc.base_cur_code ||
-                                                             ' to ' ||
-                                                             cur_gsc.transact_main_cur_code || ' (' ||
-                                                             to_char(cur_gsc.payment_due_date,
-                                                                     'dd-Mon-yyyy') || ') ',
-                                                             '',
-                                                             gvc_process,
-                                                             null, -- pc_user_id,
-                                                             sysdate,
-                                                             pd_trade_date);
-        sp_insert_error_log(vobj_error_log);
-      else
-        update gsc_gmr_sec_cost gsc
-           set gsc.fw_rate_trans_to_base_currency = vn_trans_to_base_fw_rate,
-               gsc.fw_rate_string                 = '1 ' ||
-                                                    cur_gsc.transact_main_cur_code || '=' ||
-                                                    vn_trans_to_base_fw_rate || ' ' ||
-                                                    cur_gsc.base_cur_code
-        
-         where gsc.process_id = pc_process_id
-           and gsc.transact_main_cur_id = cur_gsc.transact_main_cur_id
-           and gsc.base_cur_id = cur_gsc.base_cur_id
-           and gsc.payment_due_date = cur_gsc.payment_due_date;
-      end if;
-    end loop;
-  
-    --
-    -- Update the Quantity Conversion from Base to Transaction
-    --
-    for cur_gsc_qty in (select gsc.product_id,
-                               gsc.price_qty_unit_id,
-                               gsc.base_qty_unit_id
-                          from gsc_gmr_sec_cost gsc
-                         where gsc.process_id = pc_process_id
-                           and gsc.price_qty_unit_id <> gsc.base_qty_unit_id
-                         group by gsc.product_id,
-                                  gsc.price_qty_unit_id,
-                                  gsc.base_qty_unit_id)
-    loop
-      select pkg_general.f_get_converted_quantity(cur_gsc_qty.product_id,
-                                                  cur_gsc_qty.base_qty_unit_id,
-                                                  cur_gsc_qty.price_qty_unit_id,
-                                                  1)
-        into vn_qty_factor
-        from dual;
-      update gsc_gmr_sec_cost gsc
-         set gsc.base_to_price_weight_factor = vn_qty_factor
-       where gsc.price_qty_unit_id = cur_gsc_qty.price_qty_unit_id
-         and gsc.base_qty_unit_id = cur_gsc_qty.base_qty_unit_id
-         and gsc.process_id = pc_process_id;
-    end loop;
-  
-    --
-    -- Average Price in Base Price Unit ID
-    --
-    update gsc_gmr_sec_cost gsc
-       set gsc.avg_cost_fw_rate = gsc.cost_value *
-                                  nvl(gsc.currency_factor, 1) *
-                                  nvl(gsc.base_to_price_weight_factor, 1) *
-                                  nvl(gsc.fw_rate_trans_to_base_currency, 1)
-     where gsc.process_id = pc_process_id;
-    --
-    -- Calcualte GMR Sec Cost Summary for PNL
-    --
-    insert into gscs_gmr_sec_cost_summary
-      (internal_gmr_ref_no,
-       avg_cost,
-       process_id,
-       avg_cost_fw_rate,
-       fw_rate_string)
-      select gsc.internal_gmr_ref_no,
-             sum(gsc.avg_cost),
-             pc_process_id,
-             sum(gsc.avg_cost_fw_rate),
-             f_string_aggregate(gsc.fw_rate_string)
-        from gsc_gmr_sec_cost gsc
-       where gsc.process_id = pc_process_id
-       group by gsc.internal_gmr_ref_no;
+    -- For GMR
+    pkg_phy_calculate_cog.sp_calc_gmr_sec_cost(pc_corporate_id,
+                                               pc_process_id,
+                                               pc_user_id,
+                                               pd_trade_date,
+                                               gvc_process);
   
     --
     -- Calcualte Contract Item Sec Cost Summary for PNL
@@ -2503,33 +2318,43 @@ create or replace package body pkg_phy_physical_process is
          and md.valuation_method <> 'FIXED'
          and md.process_id = pc_process_id;
     
-      vc_err_msg := 'line 7944';
+      vc_err_msg := 'line 2450';
       --
-      -- Update the M2M Location -Icoterm Deviation    
+      -- Update the M2M Location Incoterm Deviation    
       --
-      update md_m2m_daily md
-         set (md.m2m_loc_incoterm_deviation, md.m2m_ld_fw_exch_rate) = --
-              (select tmpc.m2m_loc_incoterm_deviation,
-                      tmpc.m2m_ld_fw_exch_rate
-                 from tmpc_temp_m2m_pre_check tmpc
-                where md.mvpl_id = tmpc.mvpl_id
-                  and md.mvp_id = tmpc.mvp_id
-                  and md.conc_product_id = tmpc.conc_product_id
-                  and md.valuation_incoterm_id = tmpc.valuation_incoterm_id
-                  and md.element_id = tmpc.element_id
-                  and md.product_type = 'CONCENTRATES'
-                  and md.product_type = tmpc.product_type
-                  and md.is_tolling_contract = 'N'
-                  and tmpc.is_tolling_contract = 'N'
-                  and md.is_tolling_extn = 'N'
-                  and tmpc.is_tolling_extn = 'N'
-                  and md.corporate_id = pc_corporate_id
-                  and md.payment_due_date = tmpc.payment_due_date
-                  and md.process_id = pc_process_id)
-       where md.process_id = pc_process_id
-         and md.product_type = 'CONCENTRATES'
-         and md.is_tolling_contract = 'N'
-         and md.is_tolling_extn = 'N';
+      for cur_update in (
+                         
+                         select tmpc.mvpl_id,
+                                 tmpc.mvp_id,
+                                 tmpc.conc_product_id,
+                                 tmpc.valuation_incoterm_id,
+                                 tmpc.element_id,
+                                 tmpc.payment_due_date,
+                                 tmpc.m2m_loc_incoterm_deviation,
+                                 tmpc.m2m_ld_fw_exch_rate
+                           from tmpc_temp_m2m_pre_check tmpc
+                          where tmpc.product_type = 'CONCENTRATES'
+                            and tmpc.is_tolling_contract = 'N'
+                            and tmpc.is_tolling_extn = 'N'
+                            and tmpc.corporate_id = pc_corporate_id)
+      loop
+      
+        update md_m2m_daily md
+           set md.m2m_loc_incoterm_deviation = cur_update.m2m_loc_incoterm_deviation,
+               md.m2m_ld_fw_exch_rate        = cur_update.m2m_ld_fw_exch_rate
+        
+         where md.mvpl_id = cur_update.mvpl_id
+           and md.mvp_id = cur_update.mvp_id
+           and md.conc_product_id = cur_update.conc_product_id
+           and md.valuation_incoterm_id = cur_update.valuation_incoterm_id
+           and md.element_id = cur_update.element_id
+           and md.product_type = 'CONCENTRATES'
+           and md.is_tolling_contract = 'N'
+           and md.is_tolling_extn = 'N'
+           and md.payment_due_date = cur_update.payment_due_date
+           and md.process_id = pc_process_id;
+      
+      end loop;
     
       vc_err_msg := 'line 7972';
       update md_m2m_daily md
@@ -3552,7 +3377,7 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     delete from psu_phy_stock_unrealized where process_id = pc_process_id;
     delete from md_m2m_daily where process_id = pc_process_id;
-    delete from gsc_gmr_sec_cost where process_id = pc_process_id;
+    delete from tgsc_temp_gmr_sec_cost where process_id = pc_process_id;
     delete from gscs_gmr_sec_cost_summary where process_id = pc_process_id;
     delete from cisc_contract_item_sec_cost
      where process_id = pc_process_id;
@@ -3664,7 +3489,6 @@ create or replace package body pkg_phy_physical_process is
   begin
     sp_gather_stats('cipd_contract_item_price_daily');
     sp_gather_stats('cisc_contract_item_sec_cost');
-    sp_gather_stats('gsc_gmr_sec_cost');
     sp_gather_stats('gscs_gmr_sec_cost_summary');
     sp_gather_stats('tmpc_temp_m2m_pre_check');
     sp_gather_stats('md_m2m_daily');

@@ -13,13 +13,13 @@ create or replace package pkg_phy_conc_unrealized_pnl is
                                       pc_user_id             varchar2,
                                       pc_process             varchar2,
                                       pc_previous_process_id varchar2);
-  procedure sp_stock_unreal_inv_in_conc(pc_corporate_id        varchar2,
-                                        pd_trade_date          date,
-                                        pc_process_id          varchar2,
-                                        pc_dbd_id              varchar2,
-                                        pc_user_id             varchar2,
-                                        pc_process             varchar2,
-                                        pc_previous_process_id varchar2);
+  /*procedure sp_stock_unreal_inv_in_conc(pc_corporate_id        varchar2,
+  pd_trade_date          date,
+  pc_process_id          varchar2,
+  pc_dbd_id              varchar2,
+  pc_user_id             varchar2,
+  pc_process             varchar2,
+  pc_previous_process_id varchar2);*/
 end;
 /
 create or replace package body pkg_phy_conc_unrealized_pnl is
@@ -1461,7 +1461,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              tt.base_cur_decimal,
              tt.inventory_status,
              tt.shipment_status,
-             tt.section_name,
+             'Shipped NTT' section_name,
              tt.price_basis,
              tt.shed_id,
              tt.destination_city_id,
@@ -1509,7 +1509,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              m2m_tc_fw_exch_rate,
              m2m_ld_fw_exch_rate,
              sc_in_base_cur,
-             accrual_to_base_fw_rate
+             accrual_to_base_fw_rate,
+             incoterm_id,
+             incoterm
         from (
               ----  Stock non event based GMR price using CIPDE
               select 'Purchase' section_type,
@@ -1641,7 +1643,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       md.m2m_tc_fw_exch_rate,
                       md.m2m_ld_fw_exch_rate,
                       nvl(gscs.avg_cost_fw_rate, 0) sc_in_base_cur,
-                      gscs.fw_rate_string accrual_to_base_fw_rate
+                      gscs.fw_rate_string accrual_to_base_fw_rate,
+                      itm.incoterm_id,
+                      itm.incoterm
                 from gmr_goods_movement_record gmr,
                       grd_goods_record_detail grd,
                       pcm_physical_contract_main pcm,
@@ -1686,9 +1690,10 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       v_ppu_pum rc_ppu_pum,
                       ceqs_contract_ele_qty_status ceqs,
                       sam_stock_assay_mapping sam,
-                      gscs_gmr_sec_cost_summary gscs
+                      gscs_gmr_sec_cost_summary gscs,
+                      itm_incoterm_master itm
                where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and gmr.internal_contract_ref_no =
+                 and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
@@ -1790,6 +1795,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and sam.is_latest_position_assay = 'Y'
                  and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
                  and gmr.process_id = gscs.process_id(+)
+                 and pcdb.inco_term_id = itm.incoterm_id
                  and not exists
                (select gpd.process_id
                         from gpd_gmr_conc_price_daily gpd
@@ -1934,7 +1940,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.m2m_tc_fw_exch_rate,
                      md.m2m_ld_fw_exch_rate,
                      nvl(gscs.avg_cost_fw_rate, 0) sc_in_base_cur,
-                     gscs.fw_rate_string accrual_to_base_fw_rate
+                     gscs.fw_rate_string accrual_to_base_fw_rate,
+                     itm.incoterm_id,
+                     itm.incoterm
                 from gmr_goods_movement_record gmr,
                      grd_goods_record_detail grd,
                      gpd_gmr_conc_price_daily gpd,
@@ -1979,10 +1987,10 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
                      sam_stock_assay_mapping sam,
-                     gscs_gmr_sec_cost_summary gscs
-              
+                     gscs_gmr_sec_cost_summary gscs,
+                     itm_incoterm_master itm
                where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and gmr.internal_contract_ref_no =
+                 and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
@@ -2084,6 +2092,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and sam.is_latest_position_assay = 'Y'
                  and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
                  and gmr.process_id = gscs.process_id(+)
+                 and pcdb.inco_term_id = itm.incoterm_id
               
               union all
               ------  Sales non event based GMR price using CIPDE
@@ -2216,7 +2225,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.m2m_tc_fw_exch_rate,
                      md.m2m_ld_fw_exch_rate,
                      nvl(gscs.avg_cost_fw_rate, 0) sc_in_base_cur,
-                     gscs.fw_rate_string accrual_to_base_fw_rate
+                     gscs.fw_rate_string accrual_to_base_fw_rate,
+                     itm.incoterm_id,
+                     itm.incoterm
                 from gmr_goods_movement_record gmr,
                      dgrd_delivered_grd dgrd,
                      agh_alloc_group_header agh,
@@ -2262,10 +2273,11 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
                      sam_stock_assay_mapping sam,
-                     gscs_gmr_sec_cost_summary gscs
+                     gscs_gmr_sec_cost_summary gscs,
+                     itm_incoterm_master itm
                where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and dgrd.int_alloc_group_id = agh.int_alloc_group_id
-                 and gmr.internal_contract_ref_no =
+                 and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
@@ -2366,6 +2378,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and gmr.is_internal_movement = 'N'
                  and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
                  and sam.is_latest_position_assay = 'Y'
+                 and pcdb.inco_term_id = itm.incoterm_id
                  and not exists
                (select gpd.process_id
                         from gpd_gmr_conc_price_daily gpd
@@ -2513,8 +2526,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.m2m_tc_fw_exch_rate,
                      md.m2m_ld_fw_exch_rate,
                      nvl(gscs.avg_cost_fw_rate, 0) sc_in_base_cur,
-                     gscs.fw_rate_string accrual_to_base_fw_rate
-              
+                     gscs.fw_rate_string accrual_to_base_fw_rate,
+                     itm.incoterm_id,
+                     itm.incoterm
                 from gmr_goods_movement_record gmr,
                      gpd_gmr_conc_price_daily gpd,
                      dgrd_delivered_grd dgrd,
@@ -2560,11 +2574,11 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
                      sam_stock_assay_mapping sam,
-                     gscs_gmr_sec_cost_summary gscs
-              
+                     gscs_gmr_sec_cost_summary gscs,
+                     itm_incoterm_master itm
                where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and dgrd.int_alloc_group_id = agh.int_alloc_group_id
-                 and gmr.internal_contract_ref_no =
+                 and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
@@ -2660,7 +2674,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
                  and sam.is_latest_position_assay = 'Y'
                  and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
-                 and gmr.process_id = gscs.process_id(+)) tt;
+                 and gmr.process_id = gscs.process_id(+)
+                 and pcdb.inco_term_id = itm.incoterm_id) tt;
   
     vn_cont_price                  number;
     vc_cont_price_unit_id          varchar2(15);
@@ -2769,27 +2784,44 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         vn_wet_qty := cur_grd_rows.stock_qty;
       
         -- convert into dry qty to base qty element level
-        vc_error_msg       := '18677';
-        vn_dry_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
-                                                                         cur_grd_rows.qty_unit_id,
-                                                                         cur_grd_rows.base_qty_unit_id,
-                                                                         1) *
-                                    vn_dry_qty,
-                                    cur_grd_rows.base_qty_decimal);
+        vc_error_msg := '18677';
+        if cur_grd_rows.qty_unit_id <> cur_grd_rows.base_qty_unit_id then
+          vn_dry_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
+                                                                           cur_grd_rows.qty_unit_id,
+                                                                           cur_grd_rows.base_qty_unit_id,
+                                                                           1) *
+                                      vn_dry_qty,
+                                      cur_grd_rows.base_qty_decimal);
+        else
+          vn_dry_qty_in_base := round(vn_dry_qty,
+                                      cur_grd_rows.base_qty_decimal);
+        end if;
+        if cur_grd_rows.qty_unit_id <> cur_grd_rows.conc_base_qty_unit_id then
+        
+          vn_qty_in_base := round(cur_grd_rows.stock_qty *
+                                  pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
+                                                                       cur_grd_rows.qty_unit_id,
+                                                                       cur_grd_rows.conc_base_qty_unit_id,
+                                                                       1),
+                                  cur_grd_rows.base_qty_decimal);
+        else
+          vn_qty_in_base := round(cur_grd_rows.stock_qty,
+                                  cur_grd_rows.base_qty_decimal);
+        end if;
       
-        vn_qty_in_base := round(cur_grd_rows.stock_qty *
-                                pkg_general.f_get_converted_quantity(cur_grd_rows.conc_product_id,
-                                                                     cur_grd_rows.qty_unit_id,
-                                                                     cur_grd_rows.conc_base_qty_unit_id,
-                                                                     1),
-                                cur_grd_rows.base_qty_decimal);
+        if cur_grd_rows.payable_qty_unit_id <>
+           cur_grd_rows.base_qty_unit_id then
+          vn_ele_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
+                                                                           cur_grd_rows.payable_qty_unit_id,
+                                                                           cur_grd_rows.base_qty_unit_id,
+                                                                           1) *
+                                      cur_grd_rows.payable_qty,
+                                      cur_grd_rows.base_qty_decimal);
+        else
+          vn_ele_qty_in_base := round(cur_grd_rows.payable_qty,
+                                      cur_grd_rows.base_qty_decimal);
+        end if;
       
-        vn_ele_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
-                                                                         cur_grd_rows.payable_qty_unit_id,
-                                                                         cur_grd_rows.base_qty_unit_id,
-                                                                         1) *
-                                    cur_grd_rows.payable_qty,
-                                    cur_grd_rows.base_qty_decimal);
         if cur_grd_rows.valuation_against_underlying = 'Y' then
           if cur_grd_rows.eval_basis = 'FIXED' then
             vn_m2m_amt               := 0;
@@ -3434,7 +3466,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
            m2m_to_base_fw_exch_rate,
            contract_pc_in_base_cur,
            sc_in_base_cur,
-           accrual_to_base_fw_exch_rate)
+           accrual_to_base_fw_exch_rate,
+           incoterm_id,
+           incoterm)
         values
           (pc_process_id,
            vc_psu_id,
@@ -3521,7 +3555,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
            vc_m2m_to_base_fw_rate,
            vn_base_con_penality_charge,
            vn_sc_in_base_cur,
-           cur_grd_rows.accrual_to_base_fw_rate);
+           cur_grd_rows.accrual_to_base_fw_rate,
+           cur_grd_rows.incoterm_id,
+           cur_grd_rows.incoterm);
       end if;
     end loop;
   
@@ -3566,7 +3602,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                          psue.m2m_refining_charge || ' ' ||
                                          psue.price_unit_cur_code) m2m_rc_tc_pen_string,
                                   stragg(psue.contract_rc_fw_exch_rate) contract_rc_fw_exch_rate,
-                                  stragg(psue.contract_tc_fw_exch_rate) contract_tc_fw_exch_rate
+                                  stragg(psue.contract_tc_fw_exch_rate) contract_tc_fw_exch_rate,
+                                  stragg(psue.pricing_details) pricing_details
+                           
                              from psue_element_details          psue,
                                   psue_phy_stock_unrealized_ele psueh
                             where psue.corporate_id = pc_corporate_id
@@ -3589,10 +3627,12 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              psuee.m2m_rc_tc_string               = cur_update_pnl.m2m_rc_tc_pen_string,
              psuee.contract_qty_string            = cur_update_pnl.contract_qty_string,
              psuee.contract_rc_fw_exch_rate       = cur_update_pnl.contract_rc_fw_exch_rate,
-             psuee.contract_tc_fw_exch_rate       = cur_update_pnl.contract_tc_fw_exch_rate
+             psuee.contract_tc_fw_exch_rate       = cur_update_pnl.contract_tc_fw_exch_rate,
+             psuee.price_description              = cur_update_pnl.pricing_details
        where psuee.psu_id = cur_update_pnl.psu_id
          and psuee.process_id = pc_process_id
-         and psuee.corporate_id = pc_corporate_id;
+         and psuee.corporate_id = pc_corporate_id
+         and psuee.section_name = 'Shipped NTT';
     end loop;
   
     -- Update Contract TC/RC/Material Cost in Header
@@ -3608,6 +3648,19 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
               group by psued.psu_id)
      where psue.process_id = pc_process_id
        and psue.section_name = 'Shipped NTT';
+    -- Update TC/RC/PC String       
+    update psue_phy_stock_unrealized_ele psu
+       set psu.contract_rc_tc_pen_string = 'TC:' ||
+                                           psu.contract_tc_in_base_cur || ' ' ||
+                                           psu.base_cur_code || '  ' ||
+                                           'RC:' ||
+                                           psu.contract_rc_in_base_cur || ' ' ||
+                                           psu.base_cur_code || '  ' ||
+                                           'PC: ' ||
+                                           psu.contract_pc_in_base_cur || ' ' ||
+                                           psu.base_cur_code
+     where psu.process_id = pc_process_id
+       and psu.section_name = 'Shipped NTT';
   
     update psue_phy_stock_unrealized_ele psuee
        set psuee.net_m2m_amount_in_base_cur = (psuee.net_m2m_amount -
@@ -3651,7 +3704,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              psue_today.cont_unr_status              = 'EXISTING_TRADE'
        where psue_today.process_id = pc_process_id
          and psue_today.corporate_id = pc_corporate_id
-         and psue_today.psu_id = cur_update.psu_id;
+         and psue_today.psu_id = cur_update.psu_id
+         and psue_today.section_name = 'Shipped NTT';
     end loop;
   
     begin
@@ -4074,7 +4128,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       gscs_gmr_sec_cost_summary gscs,
                       invm_cog invm
                where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and gmr.internal_contract_ref_no =
+                 and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
@@ -4371,7 +4425,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      gscs_gmr_sec_cost_summary gscs,
                      invm_cog invm
                where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and gmr.internal_contract_ref_no =
+                 and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
