@@ -211,6 +211,7 @@ create or replace package body pkg_phy_calculate_cog is
                where cs_in.cost_ref_no = cs.cost_ref_no
                  and cs_in.cost_type = 'Actual'
                  and cs_in.is_actual_posted_in_cog = 'Y'
+                 and cs_in.is_deleted = 'N'
                  and cs_in.process_id = pc_process_id)
          and cs.is_deleted = 'N'
          and cpm.corporate_id = pc_corporate_id
@@ -1114,6 +1115,7 @@ create or replace package body pkg_phy_calculate_cog is
                where cs_in.cost_ref_no = cs.cost_ref_no
                  and cs_in.cost_type = 'Actual'
                  and cs_in.is_actual_posted_in_cog = 'Y'
+                 and cs_in.is_deleted = 'N'
                  and cs_in.process_id = pc_process_id)
          and cs.is_deleted = 'N'
          and cpm.corporate_id = pc_corporate_id
