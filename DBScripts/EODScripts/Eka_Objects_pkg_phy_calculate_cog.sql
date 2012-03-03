@@ -205,7 +205,13 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.cost_component_id = scms.cost_id
          and scms.cost_type = 'SECONDARY_COST'
          and cs.cost_type = 'Actual' -- Overaccrual case avoid
-         and cs.is_actual_posted_in_cog = 'Y'
+         and cs.cost_ref_no in
+             (select distinct cs_in.cost_ref_no
+                from cs_cost_store cs_in
+               where cs_in.cost_ref_no = cs.cost_ref_no
+                 and cs_in.cost_type = 'Actual'
+                 and cs_in.is_actual_posted_in_cog = 'Y'
+                 and cs_in.process_id = pc_process_id)
          and cs.is_deleted = 'N'
          and cpm.corporate_id = pc_corporate_id
          and cigc.is_deleted = 'N'
@@ -1102,7 +1108,13 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.cost_component_id = scms.cost_id
          and scms.cost_type = 'SECONDARY_COST'
          and cs.cost_type = 'Actual' -- Overaccrual case avoid
-         and cs.is_actual_posted_in_cog = 'Y'
+         and cs.cost_ref_no in
+             (select distinct cs_in.cost_ref_no
+                from cs_cost_store cs_in
+               where cs_in.cost_ref_no = cs.cost_ref_no
+                 and cs_in.cost_type = 'Actual'
+                 and cs_in.is_actual_posted_in_cog = 'Y'
+                 and cs_in.process_id = pc_process_id)
          and cs.is_deleted = 'N'
          and cpm.corporate_id = pc_corporate_id
          and cigc.is_deleted = 'N'
