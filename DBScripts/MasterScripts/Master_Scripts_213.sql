@@ -1,0 +1,1 @@
+update SLV_STATIC_LIST_VALUE set VALUE_TEXT = 'Warehouse Reciept No.' where VALUE_ID = 'WarehouseRefNo'
