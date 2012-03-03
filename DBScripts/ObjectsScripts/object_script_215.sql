@@ -1,0 +1,1 @@
+alter table ASH_ASSAY_HEADER add(QUALITY_ID VARCHAR2(15));
