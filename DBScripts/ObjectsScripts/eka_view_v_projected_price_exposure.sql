@@ -1,17 +1,17 @@
 create or replace view v_projected_price_exposure as
 ---for Base Metals
-with pofh_header_data as( select *
-  from pofh_price_opt_fixation_header pofh
- where pofh.internal_gmr_ref_no is null
-   and pofh.qty_to_be_fixed is not null
-   and pofh.is_active = 'Y'),
-pfd_fixation_data as(
-select pfd.pofh_id, round(sum(nvl(pfd.qty_fixed, 0)), 5) qty_fixed
-  from pfd_price_fixation_details pfd
-where pfd.is_active = 'Y'
--- and nvl(pfd.is_price_request,'N') ='N'
--- and  pfd.as_of_date > trunc(sysdate)
- group by pfd.pofh_id)
+   WITH pofh_header_data AS
+        (SELECT *
+           FROM pofh_price_opt_fixation_header pofh
+          WHERE pofh.internal_gmr_ref_no IS NULL
+            AND pofh.qty_to_be_fixed IS NOT NULL
+            AND pofh.is_active = 'Y'),
+        pfd_fixation_data AS
+        (SELECT   pfd.pofh_id,
+                  ROUND (SUM (NVL (pfd.qty_fixed, 0)), 5) qty_fixed
+             FROM pfd_price_fixation_details pfd
+            WHERE pfd.is_active = 'Y'
+         GROUP BY pfd.pofh_id)
 --Any Day Pricing Base Metal +Contract
 select ak.corporate_id,
        ak.corporate_name,
@@ -72,6 +72,7 @@ select ak.corporate_id,
        vp.premium,
        null price_unit_id,
        null price_unit,
+       
        -----
        decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
        (((case
@@ -173,7 +174,6 @@ select ak.corporate_id,
    and qum.is_active = 'Y'
    and qat.is_active = 'Y'
    and poch.is_active = 'Y'
-      -- and pcm.contract_ref_no in  ('PC-37-EKA','SC-14-EKA')
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
 union all
@@ -282,7 +282,7 @@ select ak.corporate_id,
        pfqpp_phy_formula_qp_pricing pfqpp,
        v_pci_multiple_premium vp,
        qum_quantity_unit_master qum
- where --pcm.internal_contract_ref_no = gmr.internal_contract_ref_no  and 
+ where --pcm.internal_contract_ref_no = gmr.internal_contract_ref_no  and
  ak.corporate_id = pcm.corporate_id
  and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
  and pcdi.pcdi_id = pcdiqd.pcdi_id
@@ -306,6 +306,7 @@ select ak.corporate_id,
  and gmr.internal_gmr_ref_no = pofh.internal_gmr_ref_no
  and pcpd.profit_center_id = cpc.profit_center_id
  and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+ and nvl(vd.status, 'NA') in ('Active', 'NA')
  and ppfh.ppfh_id = pfqpp.ppfh_id
  and ppfh.ppfh_id = ppfd.ppfh_id
 --  and pcm.internal_contract_ref_no = vp.internal_contract_ref_no
@@ -374,6 +375,7 @@ union all
 select ak.corporate_id,
        ak.corporate_name,
        'Average Pricing' section,
+       --  pofh.pofh_id,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm.product_id,
@@ -529,6 +531,7 @@ union all
 select ak.corporate_id,
        ak.corporate_name,
        'Average Pricing' section,
+       -- pofh.pofh_id,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm.product_id,
@@ -648,9 +651,10 @@ select ak.corporate_id,
    and pcbpd.pcbpd_id = ppfh.pcbpd_id
    and pocd.pocd_id = pofh.pocd_id
    and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
-   and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no
+      --  AND pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
+   and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
    and pofh.internal_gmr_ref_no is not null
+   and nvl(vd.status, 'NA') in ('NA', 'Active')
    and pdm.base_quantity_unit = qum.qty_unit_id
    and pcpd.profit_center_id = cpc.profit_center_id
    and ppfh.ppfh_id = pfqpp.ppfh_id
@@ -671,7 +675,7 @@ select ak.corporate_id,
    and gmr.is_deleted = 'N'
 --and ak.corporate_id = '{?CorporateID}'
 union all
-----Fixed by Price Request Base Metal +Contract
+--Fixed by Price Request Base Metal +Contract
 select ak.corporate_id,
        ak.corporate_name,
        'Fixed by Price Request' section,
@@ -996,8 +1000,9 @@ select ak.corporate_id,
    and pofh.pofh_id = pfd.pofh_id
    and pofh.internal_gmr_ref_no is not null
    and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
-   and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no
+      -- AND gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+   and nvl(vd.status, 'NA') in ('NA', 'Active')
    and ppfh.ppfh_id = ppfd.ppfh_id(+)
       -- and pcm.internal_contract_ref_no = vp.internal_contract_ref_no
    and pcpd.profit_center_id = cpc.profit_center_id
