@@ -320,6 +320,7 @@ select ak.corporate_id,
    and pofh.internal_gmr_ref_no is not null
    and pcpd.profit_center_id = cpc.profit_center_id
    and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+   and nvl(vd.status,'NA') in('NA','Active')
    and ppfh.ppfh_id = pfqpp.ppfh_id
    and nvl(pfqpp.is_qp_any_day_basis, 'N') = 'Y'
    and pcm.internal_contract_ref_no = pcqpd.internal_contract_ref_no(+)
@@ -697,8 +698,9 @@ select ak.corporate_id,
    and pcpd.profit_center_id = cpc.profit_center_id
    and ppfh.ppfh_id = pfqpp.ppfh_id
    and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and pcm.internal_contract_ref_no = gmr.internal_gmr_ref_no
-   and vd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+--   and pcm.internal_contract_ref_no = gmr.internal_gmr_ref_no
+   and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+   and nvl(vd.status,'NA') in('NA','Active')
    and pofh.internal_gmr_ref_no is not null
    and nvl(pfqpp.is_qp_any_day_basis, 'N') <> 'Y'
    and pcm.internal_contract_ref_no = pcqpd.internal_contract_ref_no(+)
@@ -1078,7 +1080,8 @@ select ak.corporate_id,
    and pcqpd.premium_disc_unit_id = ppu.internal_price_unit_id(+)
    and ppu.price_unit_id = pum.price_unit_id(+)
    and pcpd.profit_center_id = cpc.profit_center_id
-   and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no
+   and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+      and nvl(vd.status,'NA') in('NA','Active')
    and pfqpp.ppfh_id = ppfh.ppfh_id
    and ppfh.is_active = 'Y'
    and pcdi.pcdi_id = dipq.pcdi_id
@@ -1156,4 +1159,4 @@ select ak.corporate_id,
           pfqpp.qp_date,
           dipq.is_price_optionality_present,
           dipq.price_option_call_off_status,
-          qat.quality_name
+          qat.quality_name 
