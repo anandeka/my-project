@@ -40,6 +40,8 @@ SQL Files:
 ==========
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql (Revision: 88690)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exp_conc.sql (Revision: 88696)
+
 
 
 RPT files: to be copied into eka presentation- folder.
