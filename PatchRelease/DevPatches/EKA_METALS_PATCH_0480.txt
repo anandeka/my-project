@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0480
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  03-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  59436 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 88657
+Author: babulal.meena
+Date: 5:20:03 PM, Saturday, March 03, 2012
+Message:
+to fix 59436 "transshipDetail" option should not be available for below : 
+1. airDetail
+2. railDetail
+3. truckDetail
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_3.sql
