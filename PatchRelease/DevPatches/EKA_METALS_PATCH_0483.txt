@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0483
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  03-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+RPT files: to be copied into eka presentation- folder.
+
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProjectedPriceExposure.rpt	(Revision: 88687)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFXExposureReport.rpt (Revision: 88688)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition.rpt	(Revision: 88656)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricingDerivative.rpt (Revision: 88656)
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CurrencyRealizedPnLReport.rpt	(Revision: 88680)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FXPositionandPnLReport.rpt	(Revision: 88680)
+
+
+
