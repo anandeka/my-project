@@ -175,7 +175,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
              null accrual_to_base_fw_exch_rate,
              gscs.fw_rate_string sales_sc_exch_rate_string,
              null price_to_base_fw_exch_rate_act,
-             null price_to_base_fw_exch_rate
+             null price_to_base_fw_exch_rate,
+             gmr.latest_internal_invoice_ref_no
         from agh_alloc_group_header             agh,
              dgrd_delivered_grd                 dgrd,
              pci_physical_contract_item         pci,
@@ -395,7 +396,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
              invs.accrual_to_base_fw_exch_rate,
              null sales_sc_exch_rate_string,
              invs.price_to_base_fw_exch_rate_act,
-             invs.price_to_base_fw_exch_rate
+             invs.price_to_base_fw_exch_rate,
+             gmr.latest_internal_invoice_ref_no
         from agh_alloc_group_header       agh,
              agd_alloc_group_detail       agd,
              grd_goods_record_detail      grd,
@@ -545,11 +547,90 @@ create or replace package body pkg_phy_bm_realized_pnl is
     vn_price_to_base_fw_exch_rate  number;
     vc_price_to_base_fw_rate       varchar2(100);
     vc_sc_to_base_fw_exch_rate     varchar2(500);
-  
+    --
+    vn_contract_price            number;
+    vc_price_unit_id             varchar2(15);
+    vc_price_unit_cur_id         varchar2(15);
+    vc_price_unit_cur_code       varchar2(15);
+    vc_price_unit_weight_unit_id varchar2(15);
+    vc_price_unit_weight_unit    varchar2(15);
+    vn_price_unit_weight         number;
   begin
     vc_error_msg := '1';
     for cur_realized_rows in cur_realized
     loop
+    
+      if cur_realized_rows.contract_type = 'S' then
+        if cur_realized_rows.latest_internal_invoice_ref_no is null then
+          vc_error_msg                 := '7';
+          vn_contract_price            := cur_realized_rows.contract_price;
+          vc_price_unit_id             := cur_realized_rows.price_unit_id;
+          vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+          vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+          vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+          vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+          vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+          if vn_price_unit_weight is null then
+            vn_price_unit_weight := 1;
+          end if;
+        
+        else
+          -- Invoice Present
+          vc_error_msg := '8';
+          begin
+            select iid.new_invoice_price,
+                   iid.new_invoice_price_unit_id,
+                   ppu.cur_id,
+                   cm.cur_code,
+                   ppu.weight_unit_id,
+                   qum.qty_unit,
+                   nvl(ppu.weight, 1) weight
+              into vn_contract_price,
+                   vc_price_unit_id,
+                   vc_price_unit_cur_id,
+                   vc_price_unit_cur_code,
+                   vc_price_unit_weight_unit_id,
+                   vc_price_unit_weight_unit,
+                   vn_price_unit_weight
+              from iid_invoicable_item_details iid,
+                   v_ppu_pum                   ppu,
+                   cm_currency_master          cm,
+                   qum_quantity_unit_master    qum
+             where iid.internal_invoice_ref_no =
+                   cur_realized_rows.latest_internal_invoice_ref_no
+               and iid.new_invoice_price_unit_id =
+                   ppu.product_price_unit_id
+               and ppu.cur_id = cm.cur_id
+               and ppu.weight_unit_id = qum.qty_unit_id
+               and iid.internal_gmr_ref_no =
+                   cur_realized_rows.internal_gmr_ref_no;
+          
+          exception
+            when others then
+              vc_error_msg := '9';
+              -- REMOVE THIS LATER, NOT SURE HOW INVOICE IS WORKING
+              vn_contract_price            := cur_realized_rows.contract_price;
+              vc_price_unit_id             := cur_realized_rows.price_unit_id;
+              vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+              vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+              vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+              vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+              vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+            
+          end;
+        end if;
+      else
+        -- Purchase We don't need to look at invoice as COG contains latest price 
+        vn_contract_price            := cur_realized_rows.contract_price;
+        vc_price_unit_id             := cur_realized_rows.price_unit_id;
+        vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+        vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+        vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+        vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+        vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+      
+      end if;
+    
       if cur_realized_rows.contract_type = 'S' then
         vc_sc_to_base_fw_exch_rate := cur_realized_rows.accrual_to_base_fw_exch_rate;
       else
@@ -577,7 +658,7 @@ create or replace package body pkg_phy_bm_realized_pnl is
       -- Pricing Main Currency Details
       --
       if cur_realized_rows.contract_type = 'S' then
-        pkg_general.sp_get_main_cur_detail(cur_realized_rows.price_unit_cur_id,
+        pkg_general.sp_get_main_cur_detail(vc_price_unit_cur_id,
                                            vc_price_cur_id,
                                            vc_price_cur_code,
                                            vn_cont_price_cur_id_factor,
@@ -723,23 +804,22 @@ create or replace package body pkg_phy_bm_realized_pnl is
       vc_error_msg := '5.1';
       if cur_realized_rows.contract_type = 'P' then
         vn_contract_value_in_base_cur  := vn_qty_in_base_qty_unit_id *
-                                          cur_realized_rows.contract_price;
+                                          vn_contract_price;
         vn_contract_value_in_price_cur := vn_contract_value_in_base_cur;
         vc_price_to_base_fw_rate       := cur_realized_rows.price_to_base_fw_exch_rate;
         select ppu.product_price_unit_id
           into vc_contract_price_unit_id
           from v_ppu_pum ppu
-         where ppu.product_price_unit_id = cur_realized_rows.price_unit_id
+         where ppu.product_price_unit_id = vc_price_unit_id
            and ppu.product_id = cur_realized_rows.product_id;
       else
         vc_error_msg              := '6';
-        vc_contract_price_unit_id := cur_realized_rows.price_unit_id;
+        vc_contract_price_unit_id := vc_price_unit_id;
         --
         -- Contract Value in Price Currency
         -- 
-        vn_contract_value_in_price_cur := (cur_realized_rows.contract_price /
-                                          nvl(cur_realized_rows.price_unit_weight,
-                                               1)) *
+        vn_contract_value_in_price_cur := (vn_contract_price /
+                                          nvl(vn_price_unit_weight, 1)) *
                                           vn_cont_price_cur_id_factor *
                                           pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
                                                                                cur_realized_rows.qty_unit_id,
@@ -785,9 +865,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
                                       vn_price_to_base_fw_exch_rate || ' ' ||
                                       cur_realized_rows.base_cur_code;
         end if;
-        vn_contract_value_in_base_cur := (cur_realized_rows.contract_price /
-                                         nvl(cur_realized_rows.price_unit_weight,
-                                              1)) *
+        vn_contract_value_in_base_cur := (vn_contract_price /
+                                         nvl(vn_price_unit_weight, 1)) *
                                          vn_cont_price_cur_id_factor *
                                          vn_price_to_base_fw_exch_rate *
                                          pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
@@ -978,13 +1057,13 @@ create or replace package body pkg_phy_bm_realized_pnl is
          cur_realized_rows.item_qty,
          cur_realized_rows.qty_unit_id,
          cur_realized_rows.qty_unit,
-         cur_realized_rows.contract_price,
+         vn_contract_price,
          vc_contract_price_unit_id,
-         cur_realized_rows.price_unit_cur_id,
-         cur_realized_rows.price_unit_cur_code,
-         cur_realized_rows.price_unit_weight_unit_id,
-         cur_realized_rows.price_unit_weight_unit,
-         cur_realized_rows.price_unit_weight,
+         vc_price_unit_cur_id,
+         vc_price_unit_cur_code,
+         vc_price_unit_weight_unit_id,
+         vc_price_unit_weight_unit,
+         vn_price_unit_weight,
          vn_contract_value_in_price_cur,
          vc_price_cur_id,
          vc_price_cur_code,
@@ -2118,8 +2197,67 @@ create or replace package body pkg_phy_bm_realized_pnl is
     loop
     
       -- Contract Price Details  
-      if cur_realized_rows.latest_internal_invoice_ref_no is null then
-        vc_error_msg                 := '7';
+      if cur_realized_rows.contract_type = 'S' then
+        if cur_realized_rows.latest_internal_invoice_ref_no is null then
+          vc_error_msg                 := '7';
+          vn_contract_price            := cur_realized_rows.contract_price;
+          vc_price_unit_id             := cur_realized_rows.price_unit_id;
+          vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+          vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+          vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+          vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+          vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+          if vn_price_unit_weight is null then
+            vn_price_unit_weight := 1;
+          end if;
+        
+        else
+          -- Invoice Present
+          vc_error_msg := '8';
+          begin
+            select iid.new_invoice_price,
+                   iid.new_invoice_price_unit_id,
+                   ppu.cur_id,
+                   cm.cur_code,
+                   ppu.weight_unit_id,
+                   qum.qty_unit,
+                   nvl(ppu.weight, 1) weight
+              into vn_contract_price,
+                   vc_price_unit_id,
+                   vc_price_unit_cur_id,
+                   vc_price_unit_cur_code,
+                   vc_price_unit_weight_unit_id,
+                   vc_price_unit_weight_unit,
+                   vn_price_unit_weight
+              from iid_invoicable_item_details iid,
+                   v_ppu_pum                   ppu,
+                   cm_currency_master          cm,
+                   qum_quantity_unit_master    qum
+             where iid.internal_invoice_ref_no =
+                   cur_realized_rows.latest_internal_invoice_ref_no
+               and iid.new_invoice_price_unit_id =
+                   ppu.product_price_unit_id
+               and ppu.cur_id = cm.cur_id
+               and ppu.weight_unit_id = qum.qty_unit_id
+               and iid.internal_gmr_ref_no =
+                   cur_realized_rows.internal_gmr_ref_no;
+          
+          exception
+            when others then
+              vc_error_msg := '9';
+              -- REMOVE THIS LATER, NOT SURE HOW INVOICE IS WORKING
+              vn_contract_price            := cur_realized_rows.contract_price;
+              vc_price_unit_id             := cur_realized_rows.price_unit_id;
+              vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+              vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+              vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+              vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+              vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+            
+          end;
+        end if;
+      else
+        -- Purchase We don't need to look at invoice as COG contains latest price
         vn_contract_price            := cur_realized_rows.contract_price;
         vc_price_unit_id             := cur_realized_rows.price_unit_id;
         vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
@@ -2127,53 +2265,7 @@ create or replace package body pkg_phy_bm_realized_pnl is
         vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
         vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
         vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
-        if vn_price_unit_weight is null then
-          vn_price_unit_weight := 1;
-        end if;
       
-      else
-        -- Invoice Present
-        vc_error_msg := '8';
-        begin
-          select iid.new_invoice_price,
-                 iid.new_invoice_price_unit_id,
-                 ppu.cur_id,
-                 cm.cur_code,
-                 ppu.weight_unit_id,
-                 qum.qty_unit,
-                 nvl(ppu.weight, 1) weight
-            into vn_contract_price,
-                 vc_price_unit_id,
-                 vc_price_unit_cur_id,
-                 vc_price_unit_cur_code,
-                 vc_price_unit_weight_unit_id,
-                 vc_price_unit_weight_unit,
-                 vn_price_unit_weight
-            from iid_invoicable_item_details iid,
-                 v_ppu_pum                   ppu,
-                 cm_currency_master          cm,
-                 qum_quantity_unit_master    qum
-           where iid.internal_invoice_ref_no =
-                 cur_realized_rows.latest_internal_invoice_ref_no
-             and iid.new_invoice_price_unit_id = ppu.product_price_unit_id
-             and ppu.cur_id = cm.cur_id
-             and ppu.weight_unit_id = qum.qty_unit_id
-             and iid.internal_gmr_ref_no =
-                 cur_realized_rows.internal_gmr_ref_no;
-        
-        exception
-          when others then
-            vc_error_msg := '9';
-            -- REMOVE THIS LATER, NOT SURE HOW INVOICE IS WORKING
-            vn_contract_price            := cur_realized_rows.contract_price;
-            vc_price_unit_id             := cur_realized_rows.price_unit_id;
-            vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
-            vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
-            vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
-            vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
-            vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
-          
-        end;
       end if;
       vc_error_msg := '10';
     
