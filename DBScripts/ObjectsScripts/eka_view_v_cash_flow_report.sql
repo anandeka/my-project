@@ -1,4 +1,5 @@
 create or replace view v_cash_flow_report as
+--used in Online Aging Report
 select iss.corporate_id,
        akc.groupid,
        NVL(cpc.profit_center_id, 'NA') profit_center_id,
