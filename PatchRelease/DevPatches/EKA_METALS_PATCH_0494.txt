@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0494
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  05-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  62370, 62384 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+SQL Files
+
+Not Final Invoice Flag corrections
+Populated Sales GMR Ref No/ Internal Stock Ref No in PRD and POUD
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/31_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+
+
+RPT Files
+
+Minor Changes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyRealizedPNLReport.rpt
