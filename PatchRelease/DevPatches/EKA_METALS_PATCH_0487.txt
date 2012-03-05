@@ -49,3 +49,11 @@ to be copied into eka presentation- folder.
 bug fixes
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricingDerivative.rpt (Revision: 88720)
+Revision: 88733
+Author: elaiyaraja.nallathambi
+Date: 12:15:00 PM, Monday, March 05, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFXExposureReport.rpt
+
