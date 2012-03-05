@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0489
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja 
+ 
+Created on*        		:  05-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 88742
+Author: elaiyaraja.nallathambi
+Date: 2:29:54 PM, Monday, March 05, 2012
+Message:
+Bug Fixes(Service Invoices Not Appearing in Report)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFXExposureReport.rpt
+
+
+
