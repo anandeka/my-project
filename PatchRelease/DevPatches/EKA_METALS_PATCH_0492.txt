@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0492
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  05-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 88782
+Author: suresh.gottipati
+Date: 7:53:09 PM, Monday, March 05, 2012
+Message:
+increase the size of INTERNAL_STOCK_REF_NO
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/30_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+
+
+
+
+
+
+
+
+
