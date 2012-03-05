@@ -176,7 +176,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
              gscs.fw_rate_string sales_sc_exch_rate_string,
              null price_to_base_fw_exch_rate_act,
              null price_to_base_fw_exch_rate,
-             gmr.latest_internal_invoice_ref_no
+             gmr.latest_internal_invoice_ref_no,
+             gmr.gmr_ref_no sales_gmr_ref_no
         from agh_alloc_group_header             agh,
              dgrd_delivered_grd                 dgrd,
              pci_physical_contract_item         pci,
@@ -397,7 +398,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
              null sales_sc_exch_rate_string,
              invs.price_to_base_fw_exch_rate_act,
              invs.price_to_base_fw_exch_rate,
-             gmr.latest_internal_invoice_ref_no
+             gmr.latest_internal_invoice_ref_no,
+             gmr_sales.gmr_ref_no
         from agh_alloc_group_header       agh,
              agd_alloc_group_detail       agd,
              grd_goods_record_detail      grd,
@@ -434,7 +436,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
              pcdi_pc_delivery_item        pcdi_sales,
              pcm_physical_contract_main   pcm_sales,
              pt_price_type                pt,
-             css_corporate_strategy_setup css
+             css_corporate_strategy_setup css,
+             gmr_goods_movement_record    gmr_sales
        where agh.process_id = pc_process_id
          and agh.process_id = agd.process_id
          and agh.int_alloc_group_id = agd.int_alloc_group_id
@@ -499,7 +502,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
          and pcdi_sales.process_id = agh.process_id
          and pcm_sales.process_id = agh.process_id
          and pcdi.item_price_type = pt.price_type_id(+)
-         and grd.strategy_id = css.strategy_id(+);
+         and grd.strategy_id = css.strategy_id(+)
+         and dgrd.internal_gmr_ref_no = gmr_sales.internal_gmr_ref_no;
   
     cursor cur_update_pnl is
       select prd.corporate_id,
@@ -1011,7 +1015,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
          price_to_base_fw_exch_rate,
          contract_qp_fw_exch_rate,
          contract_pp_fw_exch_rate,
-         accrual_to_base_fw_exch_rate)
+         accrual_to_base_fw_exch_rate,
+         sales_gmr_ref_no)
       values
         (pc_process_id,
          pd_trade_date,
@@ -1134,7 +1139,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
          vc_price_to_base_fw_rate,
          vc_contract_qp_fw_exch_rate,
          vc_contract_pp_fw_exch_rate,
-         vc_sc_to_base_fw_exch_rate);
+         vc_sc_to_base_fw_exch_rate,
+         cur_realized_rows.sales_gmr_ref_no);
     end loop;
     vc_error_msg := '10';
     --
@@ -1768,7 +1774,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
              prd.contract_qp_fw_exch_rate p_contract_qp_fw_exch_rate,
              prd.contract_pp_fw_exch_rate p_contract_pp_fw_exch_rate,
              prd.accrual_to_base_fw_exch_rate p_accrual_to_base_fw_exch_rate,
-             rgmrd.latest_internal_invoice_ref_no
+             rgmrd.latest_internal_invoice_ref_no,
+             prd.sales_gmr_ref_no
         from prd_physical_realized_daily    prd,
              rgmr_realized_gmr              rgmr,
              cipd_contract_item_price_daily cipd,
@@ -1931,7 +1938,13 @@ create or replace package body pkg_phy_bm_realized_pnl is
              invs.quality_premium_per_unit,
              null product_premium,
              null product_premium_unit_id,
-             prd.item_qty item_qty,
+             case
+               when rgmr.is_mc_change_for_sales = 'Y' then
+                (nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
+                nvl(grd.title_transfer_out_qty, 0))
+               else
+                prd.item_qty
+             end item_qty,
              prd.qty_unit_id,
              prd.qty_unit,
              prd.delivery_item_no,
@@ -1951,7 +1964,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
              prd.contract_qp_fw_exch_rate p_contract_qp_fw_exch_rate,
              prd.contract_pp_fw_exch_rate p_contract_pp_fw_exch_rate,
              prd.accrual_to_base_fw_exch_rate p_accrual_to_base_fw_exch_rate,
-             rgmrd.latest_internal_invoice_ref_no
+             rgmrd.latest_internal_invoice_ref_no,
+             prd.sales_gmr_ref_no
         from prd_physical_realized_daily prd,
              rgmr_realized_gmr           rgmr,
              invm_cogs                   invs,
@@ -2661,7 +2675,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
          p_price_to_base_fw_exch_rate,
          p_contract_qp_fw_exch_rate,
          p_contract_pp_fw_exch_rate,
-         p_accrual_to_base_fw_exch_rate)
+         p_accrual_to_base_fw_exch_rate,
+         sales_gmr_ref_no)
       values
         (pc_process_id,
          pd_trade_date,
@@ -2811,7 +2826,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
          cur_realized_rows.p_price_to_base_fw_exch_rate,
          cur_realized_rows.p_contract_qp_fw_exch_rate,
          cur_realized_rows.p_contract_pp_fw_exch_rate,
-         cur_realized_rows.p_accrual_to_base_fw_exch_rate);
+         cur_realized_rows.p_accrual_to_base_fw_exch_rate,
+         cur_realized_rows.sales_gmr_ref_no);
     end loop;
     --
     -- Update Realized PNL Value
@@ -2941,12 +2957,13 @@ create or replace package body pkg_phy_bm_realized_pnl is
              prd.strategy_name,
              prd.internal_grd_ref_no as realized_internal_stock_ref_no,
              prd.sales_internal_gmr_ref_no,
-             null sales_gmr_ref_no,
              prd.base_price_unit_id,
              prd.internal_grd_ref_no,
              prd.internal_gmr_ref_no,
              prd.delivery_item_no,
-             prd.contract_invoice_value
+             prd.contract_invoice_value,
+             prd.internal_stock_ref_no,
+             prd.sales_gmr_ref_no
         from prd_physical_realized_daily    prd,
              cipd_contract_item_price_daily cipd,
              agh_alloc_group_header         agh,
@@ -2977,12 +2994,11 @@ create or replace package body pkg_phy_bm_realized_pnl is
          and nvl(gmr.is_final_invoiced, 'N') = 'N' -- As of today FI is not done
          and prd.contract_type = 'S'
          and cipd.price_basis <> 'Fixed'
+         and agh.realized_status = 'Realized'
          and prd.realized_type in
              ('Realized Today', 'Previously Realized PNL Change')
-            -- and prd.realized_type <> 'Reverse Realized'
          and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
          and gmr.process_id = gpd.process_id(+)
-      
       -- For Variable contracts only
       union
       select prd.corporate_id,
@@ -3038,7 +3054,6 @@ create or replace package body pkg_phy_bm_realized_pnl is
                  cipd.price_unit_weight_unit_id) price_unit_weight_unit_id,
              nvl(gpd.price_unit_weight_unit, cipd.price_unit_weight_unit) price_unit_weight_unit,
              nvl(gpd.price_unit_weight, cipd.price_unit_weight) price_unit_weight,
-             
              prd.base_cur_id,
              prd.base_cur_code,
              prd.realized_date,
@@ -3063,13 +3078,13 @@ create or replace package body pkg_phy_bm_realized_pnl is
              prd.strategy_name,
              prd.internal_grd_ref_no as realized_internal_stock_ref_no,
              prd.sales_internal_gmr_ref_no,
-             null sales_gmr_ref_no,
              prd.base_price_unit_id,
              prd.internal_grd_ref_no,
              prd.internal_gmr_ref_no,
              prd.delivery_item_no,
-             prd.contract_invoice_value
-      
+             prd.contract_invoice_value,
+             prd.internal_stock_ref_no,
+             prd.sales_gmr_ref_no
         from prd_physical_realized_daily    prd,
              cipd_contract_item_price_daily cipd,
              agh_alloc_group_header         agh,
@@ -3100,7 +3115,7 @@ create or replace package body pkg_phy_bm_realized_pnl is
          and nvl(gmr.is_final_invoiced, 'N') = 'N' -- As of today FI is not done
          and prd.contract_type = 'P'
          and cipd.price_basis <> 'Fixed'
-            --  and prd.realized_type <> 'Reverse Realized'
+         and agh.realized_status = 'Realized'
          and prd.realized_type in
              ('Realized Today', 'Previously Realized PNL Change')
          and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
@@ -3390,7 +3405,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
          realized_internal_stock_ref_no,
          sales_internal_gmr_ref_no,
          sales_gmr_ref_no,
-         price_to_base_fw_exch_rate)
+         price_to_base_fw_exch_rate,
+         internal_stock_ref_no)
       values
         (pc_corporate_id,
          cur_not_fixed_rows.corporate_name,
@@ -3541,7 +3557,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
          cur_not_fixed_rows.internal_grd_ref_no, --realized_internal_stock_ref_no
          cur_not_fixed_rows.sales_internal_gmr_ref_no,
          cur_not_fixed_rows.sales_gmr_ref_no,
-         vc_price_to_base_fw_rate);
+         vc_price_to_base_fw_rate,
+         cur_not_fixed_rows.internal_stock_ref_no);
     end loop;
   exception
     when others then
