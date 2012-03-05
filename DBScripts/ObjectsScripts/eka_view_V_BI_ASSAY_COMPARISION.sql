@@ -97,7 +97,12 @@ select t.corporate_id,
                asm.sublot_ref_no,
                pqca.assay_winner,
                ash.ash_id,
-               ash.assay_type,
+               (case
+                 when ash.assay_type = 'Shipment Assay' then
+                  'Contractual Assay'
+                 else
+                  ash.assay_type
+               end) assay_type,
                ash.assay_ref_no,
                (case
                  when ash.assay_type = 'Umpire Assay' then

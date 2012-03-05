@@ -310,7 +310,7 @@ select pcdi.pcdi_id,
    and ppm.property_id = qav.attribute_id
    and pcpq.quality_template_id = qav.quality_id
    and qav.is_deleted = 'N'
-   and nvl(pcm.is_tolling_contract, 'N') = 'N'
+  --- and nvl(pcm.is_tolling_contract, 'N') = 'N'
    and qav.comp_quality_id = qav_qat.quality_id(+)
    and pcpq.quality_template_id = qat.quality_id(+)
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)

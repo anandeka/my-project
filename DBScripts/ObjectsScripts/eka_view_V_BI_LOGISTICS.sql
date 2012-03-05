@@ -175,9 +175,11 @@ select gcd.groupid,
    and gmr.discharge_state_id = sm_discharge.state_id(+)
    and gmr.discharge_city_id = cim_discharge.city_id(+)
    and gmr.discharge_country_id = cym_discharge.country_id(+)
-   and grd.internal_grd_ref_no = ash.internal_grd_ref_no(+)
+  -- and grd.internal_grd_ref_no = ash.internal_grd_ref_no(+)
+   and grd.internal_grd_ref_no=sam.internal_grd_ref_no(+)
+   and sam.ash_id=ash.ash_id(+)
    and ash.ash_id = vdc.ash_id(+)
-   and ash.ash_id = sam.ash_id(+)
+  -- and ash.ash_id = sam.ash_id(+)
    and nvl(ash.is_active,'Y') = 'Y'
    and grd.is_afloat = 'N'
    and gmr.is_deleted = 'N'

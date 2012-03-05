@@ -15,7 +15,7 @@ create or replace type "STRING_AGG_TYPE" as object
   member function odciaggregatemerge(self in out string_agg_type,
                                      ctx2 in string_agg_type) return number
 )
-;
+; 
 /
 create or replace type body "STRING_AGG_TYPE" is
   static function odciaggregateinitialize(sctx in out string_agg_type)
@@ -44,7 +44,7 @@ create or replace type body "STRING_AGG_TYPE" is
                                          returnvalue out varchar2,
                                          flags       in number) return number is
   begin
-    returnvalue := ltrim(self.total, ',');
+    returnvalue := rtrim(self.total, ',');
     return odciconst.success;
   end;
 
@@ -54,5 +54,5 @@ create or replace type body "STRING_AGG_TYPE" is
     self.total := self.total || ctx2.total;
     return odciconst.success;
   end;
-end;
+end; 
 /
