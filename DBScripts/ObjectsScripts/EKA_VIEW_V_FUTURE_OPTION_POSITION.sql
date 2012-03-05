@@ -11,7 +11,6 @@ WITH ucm_mfact AS
             AND ucm.is_active = 'Y'
             AND qum_from.is_deleted = 'N'
             AND qum_to.is_deleted = 'N')
-
          SELECT (CASE
                         WHEN dpm.purpose_name = 'EFP'
                            THEN 'Futures'
@@ -177,7 +176,7 @@ WITH ucm_mfact AS
                     dt.trade_price_unit_id,
                       (CASE
                           WHEN dt.trade_type = 'Buy'
-                             THEN -1
+                             THEN 1
                           ELSE 1
                        END)
                     * NVL (dt.open_quantity, 0)
@@ -185,7 +184,7 @@ WITH ucm_mfact AS
                     ucm.qum_to_qty_unit group_qty_unit,
                       (CASE
                           WHEN dt.trade_type = 'Buy'
-                             THEN -1
+                             THEN 1
                           ELSE 1
                        END
                       )
@@ -193,7 +192,7 @@ WITH ucm_mfact AS
                     qum_act.qty_unit ctract_qty_unit,
                       (CASE
                           WHEN dt.trade_type = 'Buy'
-                             THEN -1
+                             THEN 1
                           ELSE 1
                        END
                       )
@@ -383,10 +382,10 @@ WITH ucm_mfact AS
                                 THEN 1
                              WHEN irm.instrument_type = 'Option Put'
                              AND dt.trade_type = 'Sell'
-                                THEN -1
+                                THEN 1--note: - sign removed by siva, to use this view in position/delivery/derivative report
                              WHEN irm.instrument_type = 'Option Call'
                              AND dt.trade_type = 'Buy'
-                                THEN -1
+                                THEN 1 --note: - sign removed by siva, to use this view in position/delivery/derivative report
                              WHEN irm.instrument_type = 'Option Call'
                              AND dt.trade_type = 'Sell'
                                 THEN 1
@@ -404,10 +403,10 @@ WITH ucm_mfact AS
                                 THEN 1
                              WHEN irm.instrument_type = 'Option Put'
                              AND dt.trade_type = 'Sell'
-                                THEN -1
+                                THEN 1
                              WHEN irm.instrument_type = 'Option Call'
                              AND dt.trade_type = 'Buy'
-                                THEN -1
+                                THEN 1
                              WHEN irm.instrument_type = 'Option Call'
                              AND dt.trade_type = 'Sell'
                                 THEN 1
@@ -424,10 +423,10 @@ WITH ucm_mfact AS
                                 THEN 1
                              WHEN irm.instrument_type = 'Option Put'
                              AND dt.trade_type = 'Sell'
-                                THEN -1
+                                THEN 1
                              WHEN irm.instrument_type = 'Option Call'
                              AND dt.trade_type = 'Buy'
-                                THEN -1
+                                THEN 1
                              WHEN irm.instrument_type = 'Option Call'
                              AND dt.trade_type = 'Sell'
                                 THEN 1
@@ -530,3 +529,6 @@ WITH ucm_mfact AS
                 AND dt.strike_price_unit_id = pum_strike.price_unit_id(+)
                 AND dt.dr_id = vlq.dr_id(+)
                 AND dt.corporate_id = vlq.corporate_id(+) 
+ 
+ 
+ 
