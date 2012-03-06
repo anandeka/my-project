@@ -2394,11 +2394,9 @@ create or replace package body pkg_phy_bm_realized_pnl is
                                            nvl(cur_realized_rows.del_premium_weight,
                                                 1)) *
                                            vn_del_premium_cur_main_factor *
-                                           vn_fw_exch_rate_del_to_base *
-                                           vn_qty_in_base_qty_unit_id;
+                                           vn_fw_exch_rate_del_to_base;
           else
-            vn_product_premium_per_unit := cur_realized_rows.product_premium /
-                                           vn_qty_in_base_qty_unit_id;
+            vn_product_premium_per_unit := cur_realized_rows.product_premium;
           end if;
           vn_product_premium := round(vn_product_premium_per_unit *
                                       vn_qty_in_base_qty_unit_id,
