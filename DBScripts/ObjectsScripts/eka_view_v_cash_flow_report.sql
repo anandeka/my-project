@@ -1,4 +1,4 @@
-create or replace view v_cash_flow_report as
+CREATE OR REPLACE VIEW V_CASH_FLOW_REPORT AS
 --used in Online Aging Report
 select iss.corporate_id,
        akc.groupid,
@@ -89,45 +89,47 @@ select iss.corporate_id,
            1
           ELSE
            NVL(iss.fx_to_base, 1)
-        END) * (CASE
-                  WHEN NVL(iss.recieved_raised_type, 'NA') = 'Raised' THEN
-                   1
-                  WHEN NVL(iss.recieved_raised_type, 'NA') = 'Received' THEN
-                   -1
-                  ELSE
-                   (CASE
-                  WHEN NVL(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' THEN
-                   -1
-                  WHEN NVL(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' THEN
-                   1
-                  ELSE
-                   (CASE
-                  WHEN NVL(pcm.purchase_sales, 'NA') = 'P' THEN
-                   -1
-                  WHEN NVL(pcm.purchase_sales, 'NA') = 'S' THEN
-                   1
-                END) END) END) invoice_amount_in_base_cur,
+        END) * (case
+                 when nvl(iss.payable_receivable, 'NA') = 'Payable' then
+                  -1
+                 when nvl(iss.payable_receivable, 'NA') = 'Receivable' then
+                  1
+                 when nvl(iss.payable_receivable, 'NA') = 'NA' then
+                  (case
+                 when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' then
+                  -1
+                 when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' then
+                  1
+                 else
+                  (case
+                 when nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+                  1
+                 when nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+                  -1
+                 else
+                  1
+               end) end) else 1 end) invoice_amount_in_base_cur,
        akc.base_cur_id,
-       (CASE
-         WHEN NVL(iss.recieved_raised_type, 'NA') = 'Raised' THEN
-          'Inflow'
-         WHEN NVL(iss.recieved_raised_type, 'NA') = 'Received' THEN
+        (case
+         when nvl(iss.payable_receivable, 'NA') = 'Payable' then
           'Outflow'
-         ELSE
-          (CASE
-         WHEN NVL(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' THEN
-          'Outflow'
-         WHEN NVL(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' THEN
+         when nvl(iss.payable_receivable, 'NA') = 'Receivable' then
           'Inflow'
-         ELSE
-          (CASE
-         WHEN NVL(pcm.purchase_sales, 'NA') = 'P' THEN
+         when nvl(iss.payable_receivable, 'NA') = 'NA' then
+          (case
+         when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' then
           'Outflow'
-         WHEN NVL(pcm.purchase_sales, 'NA') = 'S' THEN
+         when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' then
           'Inflow'
-         ELSE
-          ''
-       END) END) END) payable_receivable,
+         else
+          (case
+         when nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+          'Inflow'
+         when nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+          'Outflow'
+         else
+          'Inflow'
+       end) end) else 'Inflow' end) payable_receivable,
        cm_p.cur_code pay_in_cur_code
   FROM is_invoice_summary iss,
        cm_currency_master cm_p,
@@ -170,4 +172,4 @@ select iss.corporate_id,
         ELSE(CASE WHEN NVL(iss.invoice_type, 'NA') = 'Commercial' THEN
              'TRUE' WHEN NVL(iss.invoice_type, 'NA') = 'Service' THEN 'TRUE' when
              nvl(iss.invoice_type, 'NA') = 'DebitCredit' then 'TRUE' ELSE
-             'FALSE' END) END)
+             'FALSE' END) END) 
