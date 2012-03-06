@@ -36,13 +36,9 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 
-Revision: 88805
-Author: sivachalabathi.s
-Date: 10:15:21 AM, Tuesday, March 06, 2012
-Message:
-bug fixes for concentrate price fixation details section
+Message: bug fixes for concentrate price fixation details section
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_report_general.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_exchange_details.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_pfc_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_report_general.sql	(Revision: 88805)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_exchange_details.sql	(Revision: 88807)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_pfc_details.sql	(Revision: 88805)
 
