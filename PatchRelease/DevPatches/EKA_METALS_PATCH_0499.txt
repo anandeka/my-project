@@ -36,3 +36,9 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : EOD
 ==================================================================
 
+PNL Change Product Premium Per Unit Corrected
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+
+
+
