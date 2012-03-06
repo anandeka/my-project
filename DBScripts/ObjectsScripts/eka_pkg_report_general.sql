@@ -42,6 +42,9 @@ CREATE OR REPLACE PACKAGE "PKG_REPORT_GENERAL" is
                                     pc_qty_unit_id     varchar2) return number;                                                             
                                 
 end; 
+ 
+ 
+ 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
   function fn_get_item_dry_qty(pc_internal_cont_item_ref_no varchar2,
@@ -451,6 +454,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
     cursor cur_qp_end_date is
       select pcm.contract_ref_no,
              pcdi.pcdi_id,
+             pcbpd.pcbpd_id,
              pcdi.internal_contract_ref_no,
              pci.internal_contract_item_ref_no,
              pcdi.delivery_item_no,
@@ -549,7 +553,24 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
           vd_qp_start_date := cur_rows.qp_start_date;
           vd_qp_end_date   := cur_rows.qp_end_date;
         elsif cur_rows.qp_period_type = 'Event' then
-          if cur_rows.event_name = 'Month After Month Of Shipment' then
+          begin
+                  select dieqp.expected_qp_start_date,
+                         dieqp.expected_qp_end_date
+                    into vd_qp_start_date,
+                         vd_qp_end_date
+                    from di_del_item_exp_qp_details dieqp
+                   where dieqp.pcdi_id = cur_rows.pcdi_id
+                     and dieqp.pcbpd_id = cur_rows.pcbpd_id
+                     and dieqp.is_active = 'Y';
+                exception
+                  when no_data_found then
+                    vd_qp_start_date := cur_rows.qp_start_date;
+                    vd_qp_end_date   := cur_rows.qp_end_date;
+                  when others then
+                    vd_qp_start_date := cur_rows.qp_end_date;
+                    vd_qp_end_date   := cur_rows.qp_end_date;
+                end;
+          /*if cur_rows.event_name = 'Month After Month Of Shipment' then
             vd_evevnt_date   := add_months(vd_shipment_date,
                                            cur_rows.no_of_event_months);
             vd_qp_start_date := to_date('01-' ||
@@ -604,7 +625,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
                                         to_char(vd_arrival_date, 'Mon-yyyy'),
                                         'dd-mon-yyyy');
             vd_qp_end_date   := last_day(vd_qp_start_date);
-          end if;
+          end if;*/
         end if;
       
       end if;
