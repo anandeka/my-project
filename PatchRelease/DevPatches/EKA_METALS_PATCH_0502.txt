@@ -71,6 +71,16 @@ Message:
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_METAL_EFFEINCOMELOSS.sql
 
+Revision: 89009
+Author: sivachalabathi.s
+Date: 7:54:41 PM, Wednesday, March 07, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_list_of_pledge_gmr.sql
+
+
+
 
 
 
