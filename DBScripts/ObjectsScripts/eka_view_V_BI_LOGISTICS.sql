@@ -1,4 +1,36 @@
 create or replace view v_bi_logistics as
+with latest_invoice as
+(select inv.gmr_ref_no,
+        inv.internal_gmr_ref_no,
+        inv.invoice_type_name, 
+        inv.internal_invoice_ref_no, 
+        inv.eff_date
+  from (select iss.internal_invoice_ref_no,
+               axs.eff_date,
+               gmr.gmr_ref_no,
+               gmr.internal_gmr_ref_no,
+               iss.invoice_type_name,
+               rank() over(partition by gmr.gmr_ref_no order by axs.eff_date desc,iss.internal_invoice_ref_no desc) rank_disp
+          from is_invoice_summary         iss,
+               iam_invoice_action_mapping iam,
+               axs_action_summary         axs,
+               gmr_goods_movement_record  gmr
+         where iss.internal_invoice_ref_no = iam.internal_invoice_ref_no
+           and iam.invoice_action_ref_no = axs.internal_action_ref_no
+           and gmr.internal_contract_ref_no = iss.internal_contract_ref_no
+         group by iss.internal_invoice_ref_no, 
+                  axs.eff_date, gmr.gmr_ref_no,
+                  gmr.internal_gmr_ref_no,
+                  iss.invoice_type_name) inv
+ where inv.rank_disp = 1),
+v_ash as(SELECT   ash.ash_id, SUM (NVL (pqca.typical, 0)) typical
+       FROM ash_assay_header ash,
+            asm_assay_sublot_mapping asm,
+            pqca_pq_chemical_attributes pqca
+      WHERE ash.ash_id = asm.ash_id
+        AND asm.asm_id = pqca.asm_id
+        AND pqca.is_active = 'Y'
+   GROUP BY ash.ash_id )
 select gcd.groupid,
        gcd.groupname corporate_group,
        gmr.corporate_id,
@@ -52,48 +84,83 @@ select gcd.groupid,
        ash.assay_type assay_status,
        qum.qty_unit BL_product_base_UoM,
        sum(nvl(grd.shipped_net_qty,0)) BL_Wet_weight,
-       sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN nvl(grd.shipped_net_qty,0)
-             ELSE nvl(grd.shipped_net_qty,0)
-                 *(1 - (nvl(vdc.typical, 1) / 100))
-        END)BL_Dry_weight,
+       sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.shipped_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+              nvl(grd.shipped_net_qty,0)
+          end) BL_Dry_weight,
        qum.qty_unit actual_product_base_UoM,
        sum(nvl(grd.landed_net_qty,0)) actual_Wet_weight,
-       sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN  nvl(grd.landed_net_qty,0)
-             ELSE  nvl(grd.landed_net_qty,0) * (1 - (nvl(vdc.typical, 1) / 100))
-        END)actual_Dry_weight,
-       sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN nvl(grd.shipped_net_qty,0)
-             ELSE nvl(grd.shipped_net_qty,0)
-                 *(1 - (nvl(vdc.typical, 1) / 100))
-        END) - sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN  nvl(grd.landed_net_qty,0)
-             ELSE  nvl(grd.landed_net_qty,0) * (1 - (nvl(vdc.typical, 1) / 100))
-        END)dry_qty_diff,
-        sum(nvl(grd.shipped_net_qty,0)) - sum(nvl(grd.landed_net_qty,0)) wet_qty_diff,
-        (case when sum(nvl(grd.shipped_net_qty,0)) = 0 then 0
+       sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.landed_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+             nvl(grd.landed_net_qty,0)
+          end)actual_Dry_weight,
+      (sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.shipped_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+              nvl(grd.shipped_net_qty,0)
+          end)- sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.landed_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+             nvl(grd.landed_net_qty,0)
+          end))dry_qty_diff,
+       sum(nvl(grd.shipped_net_qty,0)) - sum(nvl(grd.landed_net_qty,0)) wet_qty_diff, 
+        ((case when sum(nvl(grd.shipped_net_qty,0)) = 0 then 0
         else
         ((sum(nvl(grd.shipped_net_qty,0)) - sum(nvl(grd.landed_net_qty,0)))/ sum(nvl(grd.shipped_net_qty,0)))
-        end) wet_ratio ,
-       (case when sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN nvl(grd.shipped_net_qty,0)
-             ELSE nvl(grd.shipped_net_qty,0)
-                 *(1 - (nvl(vdc.typical, 1) / 100))
-        END) = 0 then 0 else
-       (sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN nvl(grd.shipped_net_qty,0)
-             ELSE nvl(grd.shipped_net_qty,0)
-                 *(1 - (nvl(vdc.typical, 1) / 100))
-        END) - sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN  nvl(grd.landed_net_qty,0)
-             ELSE  nvl(grd.landed_net_qty,0) * (1 - (nvl(vdc.typical, 1) / 100))
-        END))/  sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN nvl(grd.shipped_net_qty,0)
-             ELSE nvl(grd.shipped_net_qty,0)
-                 *(1 - (nvl(vdc.typical, 1) / 100))
-        END)
-        end)  dry_ratio
+        end)*100) wet_ratio ,
+       ((case when sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.shipped_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+              nvl(grd.shipped_net_qty,0)
+          end) = 0 then 0 else
+       (sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.shipped_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+              nvl(grd.shipped_net_qty,0)
+          end)- sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.landed_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+             nvl(grd.landed_net_qty,0)
+          end))/  sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.shipped_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+              nvl(grd.shipped_net_qty,0)
+          end)
+        end)*100)  dry_ratio
   from gmr_goods_movement_record    gmr,
        ak_corporate                 akc,
        grd_goods_record_detail      grd,
@@ -122,7 +189,7 @@ select gcd.groupid,
       )gmr_gd,
        agmr_action_gmr              agmr,
        pcm_physical_contract_main   pcm,
-       is_invoice_summary           iis,
+       latest_invoice              iis,
        css_corporate_strategy_setup css,
        pcdi_pc_delivery_item        pcdi,
        pci_physical_contract_item   pci,
@@ -143,7 +210,7 @@ select gcd.groupid,
        cim_citymaster               cim_Discharge,
        cym_countrymaster            cym_Discharge,
        ash_assay_header             ash,
-       v_deductible_value_by_ash_id vdc,
+       v_ash  vdc,
        sam_stock_assay_mapping sam
  where gmr.corporate_id = akc.corporate_id
    and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -154,7 +221,7 @@ select gcd.groupid,
    and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
    and gmr.gmr_latest_action_action_id = agmr.gmr_latest_action_action_id
    and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
-   and pcm.internal_contract_ref_no = iis.internal_contract_ref_no(+)
+   and gmr.internal_gmr_ref_no = iis.internal_gmr_ref_no(+)
    and pcpd.strategy_id = css.strategy_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.pcdi_id = pci.pcdi_id
@@ -175,11 +242,9 @@ select gcd.groupid,
    and gmr.discharge_state_id = sm_discharge.state_id(+)
    and gmr.discharge_city_id = cim_discharge.city_id(+)
    and gmr.discharge_country_id = cym_discharge.country_id(+)
-  -- and grd.internal_grd_ref_no = ash.internal_grd_ref_no(+)
-   and grd.internal_grd_ref_no=sam.internal_grd_ref_no(+)
-   and sam.ash_id=ash.ash_id(+)
-   and ash.ash_id = vdc.ash_id(+)
-  -- and ash.ash_id = sam.ash_id(+)
+   and grd.internal_grd_ref_no=sam.internal_grd_ref_no
+   and sam.ash_id=ash.ash_id
+   and ash.ash_id = vdc.ash_id
    and nvl(ash.is_active,'Y') = 'Y'
    and grd.is_afloat = 'N'
    and gmr.is_deleted = 'N'
@@ -245,5 +310,4 @@ group by
           pcpq.unit_of_measure,
           vdc.typical,
           qum.qty_unit ,
-          gmr.landed_qty
-
+          gmr.landed_qty 

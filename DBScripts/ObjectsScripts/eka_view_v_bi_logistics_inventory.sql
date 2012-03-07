@@ -1,4 +1,12 @@
-create or replace view v_bi_logistics_inventory as
+CREATE OR REPLACE VIEW V_BI_LOGISTICS_INVENTORY AS
+with v_ash as(SELECT   ash.ash_id, SUM (NVL (pqca.typical, 0)) typical
+       FROM ash_assay_header ash,
+            asm_assay_sublot_mapping asm,
+            pqca_pq_chemical_attributes pqca
+      WHERE ash.ash_id = asm.ash_id
+        AND asm.asm_id = pqca.asm_id
+        AND pqca.is_active = 'Y'
+   GROUP BY ash.ash_id )
 select gmr.corporate_id,
        akc.corporate_name,
        grd.product_id,
@@ -38,16 +46,27 @@ select gmr.corporate_id,
        cim_sld.city_name warehouse_city_name,
        qum.qty_unit product_base_UoM,
        sum(nvl(grd.shipped_net_qty,0)) BL_Wet_weight,
-       sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN nvl(grd.shipped_net_qty,0)
-             ELSE nvl(grd.shipped_net_qty,0)
-                 *(1 - (nvl(vdc.typical, 1) / 100))
-        END)BL_Dry_weight,
+       sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.shipped_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+              nvl(grd.shipped_net_qty,0)
+          end) BL_Dry_weight,
+       qum.qty_unit actual_product_base_UoM,
        sum(nvl(grd.landed_net_qty,0)) actual_Wet_weight,
-       sum(CASE WHEN pcpq.unit_of_measure = 'Dry'
-             THEN  nvl(grd.landed_net_qty,0)
-             ELSE  nvl(grd.landed_net_qty,0) * (1 - (nvl(vdc.typical, 1) / 100))
-        END)actual_Dry_weight
+       sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.landed_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+             nvl(grd.landed_net_qty,0)
+          end)actual_Dry_weight
+
   from gmr_goods_movement_record    gmr,
        ak_corporate                 akc,
        grd_goods_record_detail      grd,
@@ -92,7 +111,7 @@ select gmr.corporate_id,
        cim_citymaster               cim_Discharge,
        cym_countrymaster            cym_Discharge,
        ash_assay_header             ash,
-       v_deductible_value_by_ash_id vdc,
+       v_ash  vdc,
        sam_stock_assay_mapping sam
  where gmr.corporate_id = akc.corporate_id
    and gmr.is_deleted = 'N'
@@ -129,10 +148,9 @@ select gmr.corporate_id,
    and gmr.discharge_state_id = sm_discharge.state_id(+)
    and gmr.discharge_city_id = cim_discharge.city_id(+)
    and gmr.discharge_country_id = cym_discharge.country_id(+)
-   and grd.internal_grd_ref_no = ash.internal_grd_ref_no(+)
-   and nvl(ash.is_active,'Y') = 'Y'
-   and ash.ash_id = vdc.ash_id(+)
-   and ash.ash_id = sam.ash_id(+)
+   and grd.internal_grd_ref_no=sam.internal_grd_ref_no
+   and sam.ash_id=ash.ash_id
+   and ash.ash_id = vdc.ash_id
    and nvl(sam.is_latest_pricing_assay,'Y') = 'Y'
 group by
           gmr.corporate_id,

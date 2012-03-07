@@ -7,8 +7,10 @@ select ash.internal_grd_ref_no,
        sum(asm.net_weight) net_weight,
        asm.net_weight_unit,
        pqca.element_id,
+       rm.ratio_id,
        rm.ratio_name,
        pqca.is_deductible,
+       pqca.is_elem_for_pricing,
        round(sum(asm.net_weight * pqca.typical) / sum(asm.net_weight), 3) avg_typical
   from ash_assay_header            ash,
        asm_assay_sublot_mapping    asm,
@@ -27,5 +29,8 @@ select ash.internal_grd_ref_no,
           ash.ash_id,
           ash.assay_type,
           asm.net_weight_unit,
-    rm.ratio_name,
-    pqca.is_deductible 
+          pqca.is_elem_for_pricing,
+          rm.ratio_id,
+           rm.ratio_name,
+           pqca.is_deductible
+

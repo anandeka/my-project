@@ -284,7 +284,8 @@ select 'Composite' product_type,
        qum_quantity_unit_master       qum_gcd,
        ucm_unit_conversion_master     ucm,
        v_ucm_conversion               ucm_base,
-       v_deductible_value_by_ash_id   vsh,
+      -- v_deductible_value_by_ash_id   vsh,
+       ash_assay_header                vsh,
        qum_quantity_unit_master       qum_under,
        pdtm_product_type_master       pdtm,
        asm_assay_sublot_mapping       asm,
@@ -326,7 +327,7 @@ select 'Composite' product_type,
    and akc.base_cur_id = cm_invoice_cur.cur_id
    and pcm.cp_id = phd_contract_cp.profileid
    and qat.product_origin_id = pom.product_origin_id(+)
-   and pcpq.assay_header_id = vsh.ash_id(+)
+   and pcpq.assay_header_id = vsh.ash_id
    and pom.origin_id = orm.origin_id(+)
    and cym_pcdb.country_id = pcdb.country_id
    and cim_pcdb.city_id = pcdb.city_id
@@ -342,8 +343,8 @@ select 'Composite' product_type,
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id
    and pcpq.quality_template_id = qat.quality_id
    and pdm.product_type_id = pdtm.product_type_id
-   and asm.ash_id(+) = vsh.ash_id
-   and asm.asm_id = pqca.asm_id(+)
+   and vsh.ash_id=asm.ash_id
+   and asm.asm_id = pqca.asm_id
    and pcpd.input_output = 'Input'
    and pqca.element_id = aml.attribute_id
    and pqca.is_elem_for_pricing = 'Y'
@@ -601,7 +602,8 @@ SELECT 'Composite' Product_Type,
        pdm_productmaster              pdm_under,
        v_ucm_conversion               ucm_base,
        v_stock_position_assay_id      vsp,
-       v_deductible_value_by_ash_id   vdc,
+      -- v_deductible_value_by_ash_id   vdc,
+       ash_assay_header               vdc,
        ak_corporate_user              aku,
        qat_quality_attributes         qat,
        asm_assay_sublot_mapping       asm,
@@ -665,10 +667,10 @@ SELECT 'Composite' Product_Type,
    AND grd.qty_unit_id = ucm_base.from_qty_unit_id
    AND pdm.base_quantity_unit = ucm_base.to_qty_unit_id
    AND grd.internal_grd_ref_no = vsp.internal_grd_ref_no
-   AND vsp.ash_id = vdc.ash_id(+)
+   AND vsp.ash_id = vdc.ash_id
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id
-   and asm.ash_id(+) = vdc.ash_id
-   and asm.asm_id = pqca.asm_id(+)
+   and vdc.ash_id=asm.ash_id
+   and asm.asm_id =pqca.asm_id
    and pcpd.input_output = 'Input'
    and pqca.element_id = aml.attribute_id
    and pqca.is_elem_for_pricing = 'Y'
@@ -938,7 +940,8 @@ SELECT 'Composite' Product_Type,
        v_ucm_conversion               ucm_base,
        qat_quality_attributes         qat,
        v_stock_position_assay_id      vsp,
-       v_deductible_value_by_ash_id   vdc,
+      -- v_deductible_value_by_ash_id   vdc,
+      ash_assay_header                vdc,
        qum_quantity_unit_master       qum_under,
        asm_assay_sublot_mapping       asm,
        pqca_pq_chemical_attributes    pqca,
@@ -1001,10 +1004,10 @@ SELECT 'Composite' Product_Type,
    AND pdm.base_quantity_unit = ucm_base.to_qty_unit_id
    AND qat.quality_id = dgrd.quality_id
    AND dgrd.internal_dgrd_ref_no = vsp.internal_grd_ref_no
-   AND vsp.ash_id = vdc.ash_id(+)
+   AND vsp.ash_id = vdc.ash_id
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id
-   and asm.ash_id(+) = vdc.ash_id
-   and asm.asm_id = pqca.asm_id(+)
+   and vdc.ash_id=asm.ash_id
+   and asm.asm_id = pqca.asm_id
    and pcpd.input_output = 'Input'
    and pqca.element_id = aml.attribute_id
    and pqca.is_elem_for_pricing = 'Y'
@@ -1228,7 +1231,8 @@ SELECT 'Composite' Product_Type,
        pcdi_pc_delivery_item          pcdi,
        v_ucm_conversion               ucm_base,
        v_stock_position_assay_id      vsp,
-       v_deductible_value_by_ash_id   vdc,
+     --  v_deductible_value_by_ash_id   vdc,
+       ash_assay_header               vdc,
        qum_quantity_unit_master       qum_under,
        asm_assay_sublot_mapping       asm,
        pqca_pq_chemical_attributes    pqca,
@@ -1284,13 +1288,15 @@ SELECT 'Composite' Product_Type,
    AND grd.qty_unit_id = ucm_base.from_qty_unit_id
    AND pdm.base_quantity_unit = ucm_base.to_qty_unit_id
    AND grd.internal_grd_ref_no = vsp.internal_grd_ref_no
-   AND vsp.ash_id = vdc.ash_id(+)
+   AND vsp.ash_id = vdc.ash_id
    and    nvl(gmr.inventory_status,'NA') ='Out'
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id
-   and asm.ash_id(+) = vdc.ash_id
-   and asm.asm_id = pqca.asm_id(+)
+   and vdc.ash_id=asm.ash_id
+   and asm.asm_id = pqca.asm_id
    and pcpd.input_output = 'Input'
    and pqca.element_id = aml.attribute_id
    and pqca.is_elem_for_pricing = 'Y'
-   and pqca.unit_of_measure = rm.ratio_id(+)
-
+   and pqca.unit_of_measure = rm.ratio_id(+) 
+ 
+ 
+ 
