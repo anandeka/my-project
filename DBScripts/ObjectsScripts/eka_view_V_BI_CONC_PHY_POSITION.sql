@@ -1,3 +1,5 @@
+update PLD_PRODUCT_LICENCE_DETAIL SET PRODUCT_VERSION='8.1.11.2';
+
 CREATE OR REPLACE VIEW V_BI_CONC_PHY_POSITION AS
 select 'Composite' product_type,
        'Concentrates Open Contracts' section_name,
