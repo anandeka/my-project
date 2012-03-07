@@ -22,8 +22,7 @@ with costtypewithoutaccrual as
            and cigc.is_deleted = 'N'
            and cs.is_deleted = 'N'
       group by cs.cost_ref_no)
-
-SELECT 'Invoices to extent not paid' section_name,
+select 'Invoices to extent not paid' section_name,
        iss.corporate_id,
        akc.corporate_name,
        blm.business_line_id,
@@ -41,7 +40,7 @@ SELECT 'Invoices to extent not paid' section_name,
        'NA' cost_type_name,
        iss.invoiced_qty weight,
        'MT' weight_unit,
-       nvl(iss.fx_to_base, 1) FX_Base,
+       nvl(iss.fx_to_base, 1) fx_base,
        iss.invoice_created_date effective_date,
        nvl(cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
        nvl(cpc.profit_center_short_name, cpc1.profit_center_short_name) profit_center,
@@ -49,63 +48,85 @@ SELECT 'Invoices to extent not paid' section_name,
        cm_akc_base_cur.cur_code base_cur_code,
        css.strategy_id,
        css.strategy_name,
-       (CASE
-           WHEN nvl(pcm.purchase_sales, 'NA') = 'P' THEN
-            'Purchase'
-           WHEN nvl(pcm.purchase_sales, 'NA') = 'S' THEN
-            'Sales'
-           ELSE
-            'NA'
-       END) contract_type,
+       (case
+         when nvl(pcm.purchase_sales, 'NA') = 'P' then
+          'Purchase'
+         when nvl(pcm.purchase_sales, 'NA') = 'S' then
+          'Sales'
+         else
+          'NA'
+       end) contract_type,
        'Invoices' position_type,
-       CASE
-           WHEN (iss.invoice_type = 'Commercial' OR iss.invoice_type ='DebitCredit') AND
-                sign(iss.total_amount_to_pay) = 1 AND pcm.purchase_sales ='P' THEN    'Outflow'
-                WHEN (iss.invoice_type = 'Commercial' OR iss.invoice_type ='DebitCredit') AND
-                sign(iss.total_amount_to_pay) = 1 AND pcm.purchase_sales ='S' THEN 'Inflow'
-                WHEN (iss.invoice_type = 'Commercial' OR  iss.invoice_type ='DebitCredit') AND
-                sign(iss.total_amount_to_pay) = -1 AND pcm.purchase_sales ='P' THEN    'Inflow'
-                WHEN (iss.invoice_type = 'Commercial' OR iss.invoice_type ='DebitCredit') AND
-                sign(iss.total_amount_to_pay) = -1 AND pcm.purchase_sales ='S' THEN    'Outflow'
-           WHEN nvl(iss.invoice_type, 'NA') = 'Service'  AND nvl(iss.recieved_raised_type ,'NA') ='Recieved' THEN 'Outflow'
-           WHEN nvl(iss.invoice_type, 'NA') = 'Service'  AND nvl(iss.recieved_raised_type ,'NA') ='Raised' THEN 'Inflow'
-           WHEN nvl(iss.invoice_type_name,'NA') = 'AdvancePayment' AND pcm.purchase_sales ='P' THEN  'Outflow'
-           WHEN nvl(iss.invoice_type_name,'NA') = 'AdvancePayment' AND pcm.purchase_sales ='S' THEN  'Inflow'
-         --  WHEN nvl(pcm.purchase_sales, 'NA') = 'P' THEN 'Outflow'
-         --  WHEN nvl(pcm.purchase_sales, 'NA') = 'S' THEN 'Inflow'
-       END payable_receivable,
-       nvl(iss.invoice_ref_no, 'NA') AS contract_ref_no,
-       (CASE
-           WHEN iss.invoice_type_name = 'AdvancePayment' THEN
-            'Commercial'
-           ELSE
-            nvl(iss.invoice_type, 'NA')
-       END) invoice_type,
+       (case
+         when nvl(iss.payable_receivable, 'NA') = 'Payable' then
+          'Outflow'
+         when nvl(iss.payable_receivable, 'NA') = 'Receivable' then
+          'Inflow'
+         when nvl(iss.payable_receivable, 'NA') = 'NA' then
+          (case
+         when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' then
+          'Outflow'
+         when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' then
+          'Inflow'
+         else
+          (case
+         when nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+          'Inflow'
+         when nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+          'Outflow'
+         else
+          'Inflow'
+       end) end) else 'Inflow' end) payable_receivable,
+       nvl(iss.invoice_ref_no, 'NA') as contract_ref_no,
+       (case
+         when iss.invoice_type_name = 'AdvancePayment' then
+          'Commercial'
+         else
+          nvl(iss.invoice_type, 'NA')
+       end) invoice_type,
        iss.invoice_cur_id invoice_cur_id,
        cm_p.cur_code invoice_cur_code,
        round(iss.total_amount_to_pay, 4) * nvl(iss.fx_to_base, 1) *
-       CASE
-       WHEN (iss.invoice_type = 'Commercial' OR iss.invoice_type ='DebitCredit')  THEN    1
-       WHEN nvl(iss.invoice_type, 'NA') = 'Service'  AND nvl(iss.recieved_raised_type ,'NA') ='Recieved' THEN -1
-       WHEN nvl(iss.invoice_type, 'NA') = 'Service'  AND nvl(iss.recieved_raised_type ,'NA') ='Raised' THEN 1
-       WHEN nvl(iss.invoice_type_name,'NA') = 'AdvancePayment' AND pcm.purchase_sales ='P' THEN  -1
-       WHEN nvl(iss.invoice_type_name,'NA') = 'AdvancePayment' AND pcm.purchase_sales ='S' THEN  1
-    --   WHEN nvl(pcm.purchase_sales, 'NA') = 'P' THEN -1
-    --  WHEN nvl(pcm.purchase_sales, 'NA') = 'S' THEN 1
-   END invoice_amount_in_base_cur,
-       round(iss.total_amount_to_pay, 4) *
-       CASE
-       WHEN (iss.invoice_type = 'Commercial' OR iss.invoice_type ='DebitCredit') THEN    1
-       WHEN nvl(iss.invoice_type, 'NA') = 'Service'  AND nvl(iss.recieved_raised_type ,'NA') ='Recieved' THEN -1
-       WHEN nvl(iss.invoice_type, 'NA') = 'Service'  AND nvl(iss.recieved_raised_type ,'NA') ='Raised' THEN 1
-       WHEN nvl(iss.invoice_type_name,'NA') = 'AdvancePayment' AND pcm.purchase_sales ='P' THEN  -1
-       WHEN nvl(iss.invoice_type_name,'NA') = 'AdvancePayment' AND pcm.purchase_sales ='S' THEN  1
-  --       WHEN nvl(pcm.purchase_sales, 'NA') = 'P' THEN -1
-  --     WHEN nvl(pcm.purchase_sales, 'NA') = 'S' THEN 1
-   END invoice_amt,
+       (case
+          when nvl(iss.payable_receivable, 'NA') = 'Payable' then
+           -1
+          when nvl(iss.payable_receivable, 'NA') = 'Receivable' then
+           1
+          when nvl(iss.payable_receivable, 'NA') = 'NA' then
+           (case
+          when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' then
+           -1
+          when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' then
+           1
+          else
+           (case
+          when nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+           1
+          when nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+           -1
+          else
+           1
+        end) end) else 1 end) invoice_amount_in_base_cur,
+       round(iss.total_amount_to_pay, 4) * case
+         when (iss.invoice_type = 'Commercial' or
+              iss.invoice_type = 'DebitCredit') then
+          1
+         when nvl(iss.invoice_type, 'NA') = 'Service' and
+              nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+          -1
+         when nvl(iss.invoice_type, 'NA') = 'Service' and
+              nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+          1
+         when nvl(iss.invoice_type_name, 'NA') = 'AdvancePayment' and
+              pcm.purchase_sales = 'P' then
+          -1
+         when nvl(iss.invoice_type_name, 'NA') = 'AdvancePayment' and
+              pcm.purchase_sales = 'S' then
+          1
+       end invoice_amt,
        iss.invoice_issue_date activity_date,
        iss.payment_due_date cash_flow_date
-FROM   is_invoice_summary            iss,
+  from is_invoice_summary            iss,
        cm_currency_master            cm_p,
        incm_invoice_contract_mapping incm,
        pcm_physical_contract_main    pcm,
@@ -118,33 +139,32 @@ FROM   is_invoice_summary            iss,
        blm_business_line_master      blm,
        pdm_productmaster             pdm,
        pgm_product_group_master      pgm,
-       phd_profileheaderdetails phd_contract_cp,
+       phd_profileheaderdetails      phd_contract_cp,
        ak_corporate_user             akcu,
        gab_globaladdressbook         gab
-
-WHERE  iss.is_active = 'Y'
-AND    iss.corporate_id IS NOT NULL
-AND    iss.internal_invoice_ref_no = incm.internal_invoice_ref_no(+)
-AND    incm.internal_contract_ref_no = pcm.internal_contract_ref_no(+)
-AND    iss.corporate_id = akc.corporate_id
-AND    iss.internal_contract_ref_no = pcpd.internal_contract_ref_no
-AND    iss.profit_center_id = cpc.profit_center_id(+)
-AND    pcpd.profit_center_id = cpc1.profit_center_id(+)
-AND    iss.invoice_cur_id = cm_p.cur_id(+)
-AND    cpc.business_line_id = blm.business_line_id(+)
-AND    pcpd.product_id = pdm.product_id(+)
-and    pdm.product_group_id = pgm.product_group_id
-AND    phd_contract_cp.profileid(+) = pcm.cp_id
-AND    pcm.trader_id = akcu.user_id(+)
-AND    akcu.gabid = gab.gabid(+)
-and    nvl(pgm.is_active,'Y') = 'Y'
-and    nvl(gab.is_active,'Y') = 'Y'
-AND    nvl(pcm.partnership_type, 'Normal') = 'Normal'
-and    iss.is_inv_draft = 'N'
-and    iss.invoice_type_name <> 'Profoma'
-AND    cm_akc_base_cur.cur_id = akc.base_cur_id
-AND    pcpd.strategy_id = css.strategy_id(+)
-AND    iss.total_amount_to_pay <> 0
+ where iss.is_active = 'Y'
+   and iss.corporate_id is not null
+   and iss.internal_invoice_ref_no = incm.internal_invoice_ref_no(+)
+   and incm.internal_contract_ref_no = pcm.internal_contract_ref_no(+)
+   and iss.corporate_id = akc.corporate_id
+   and iss.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and iss.profit_center_id = cpc.profit_center_id(+)
+   and pcpd.profit_center_id = cpc1.profit_center_id(+)
+   and iss.invoice_cur_id = cm_p.cur_id(+)
+   and cpc.business_line_id = blm.business_line_id(+)
+   and pcpd.product_id = pdm.product_id(+)
+   and pdm.product_group_id = pgm.product_group_id
+   and phd_contract_cp.profileid(+) = pcm.cp_id
+   and pcm.trader_id = akcu.user_id(+)
+   and akcu.gabid = gab.gabid(+)
+   and nvl(pgm.is_active, 'Y') = 'Y'
+   and nvl(gab.is_active, 'Y') = 'Y'
+   and nvl(pcm.partnership_type, 'Normal') = 'Normal'
+   and iss.is_inv_draft = 'N'
+   and iss.invoice_type_name <> 'Profoma'
+   and cm_akc_base_cur.cur_id = akc.base_cur_id
+   and pcpd.strategy_id = css.strategy_id(+)
+   and iss.total_amount_to_pay <> 0
 -- 2. OTC invoices
 UNION ALL
 SELECT 'OTC invoices',
@@ -558,7 +578,6 @@ FROM   mv_fact_phy_unreal_fixed_price mvf,
        phd_profileheaderdetails phd_contract_cp,
        ak_corporate_user             akcu,
        gab_globaladdressbook         gab
-
 WHERE  mvf.profit_center_id = cpc.profit_center_id
 AND    mvf.base_cur_id = cm.cur_id(+)
 AND    (mvf.corporate_id, mvf.eod_date) IN
@@ -739,7 +758,7 @@ and    nvl(gab.is_active,'Y') = 'Y'
 -- 7. Open Contracts Fixed Price Basis (Base Metal)
 
 UNION ALL
-SELECT 'Fixed Price Contracts Base Netal' section_name,
+SELECT 'Fixed Price Contracts Base Metal' section_name,
        akc.corporate_id,
        akc.corporate_name,
        blm.business_line_id,
@@ -856,4 +875,5 @@ AND    akcu.gabid = gab.gabid(+)
 and    ciqs.item_qty_unit_id = qum.qty_unit_id(+)
 and    nvl(pgm.is_active,'Y') = 'Y'
 and    nvl(gab.is_active,'Y') = 'Y'
-
+ 
+ 
