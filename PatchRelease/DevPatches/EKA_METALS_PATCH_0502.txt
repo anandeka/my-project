@@ -1,0 +1,76 @@
+Patch No*          		:  EKA_METALS_PATCH_0502
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja
+ 
+Created on*        		:  07-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 89000
+Author: elaiyaraja.nallathambi
+Date: 7:11:00 PM, Wednesday, March 07, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractedVsDeliveredReport.rpt
+
+Revision: 89001
+Author: elaiyaraja.nallathambi
+Date: 7:14:36 PM, Wednesday, March 07, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_CONC_PHY_POSITION.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_LOGISTICS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_logistics_inventory.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_wighted_asssy_details.sql
+
+Revision: 89002
+Author: elaiyaraja.nallathambi
+Date: 7:14:58 PM, Wednesday, March 07, 2012
+Message:
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_METAL_EFFEINCOMELOSS.sql
+
+Revision: 89003
+Author: elaiyaraja.nallathambi
+Date: 7:16:17 PM, Wednesday, March 07, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_METAL_EFFEINCOMELOSS.sql
+
+
+
+
