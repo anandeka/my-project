@@ -506,37 +506,6 @@ create or replace package body pkg_phy_physical_process is
                                                            pc_process,
                                                            pc_process_id,
                                                            pc_user_id);
-    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-       'Cancel' then
-      goto cancel_process;
-    end if;
-    vn_logno := vn_logno + 1;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_logno,
-                          'sp_calc_pnl_summary');
-    pkg_phy_eod_reports.sp_calc_pnl_summary(pc_corporate_id,
-                                            pd_trade_date,
-                                            pc_process_id,
-                                            gvc_process,
-                                            pc_user_id);
-    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-       'Cancel' then
-      goto cancel_process;
-    end if;
-    vn_logno := vn_logno + 1;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_logno,
-                          'sp_calc_daily_trade_pnl');
-    vc_err_msg := 'Before trade pnl ';
-    pkg_phy_eod_reports.sp_calc_daily_trade_pnl(pc_corporate_id,
-                                                pd_trade_date,
-                                                pc_process_id,
-                                                gvc_process,
-                                                pc_user_id);
     vn_logno := vn_logno + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -584,6 +553,7 @@ create or replace package body pkg_phy_physical_process is
                                                           pc_process_id,
                                                           pc_user_id,
                                                           pc_process);
+  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -593,13 +563,31 @@ create or replace package body pkg_phy_physical_process is
                           pd_trade_date,
                           pc_process_id,
                           vn_logno,
-                          'sp_calc_overall_realized_pnl');
-    vc_err_msg := 'Before sp_calc_overall_realized_pnl';
-    pkg_phy_eod_reports.sp_calc_overall_realized_pnl(pc_corporate_id,
-                                                     pd_trade_date,
-                                                     pc_process_id,
-                                                     pc_user_id,
-                                                     pc_process);
+                          ' sp_washout_reverse_realized');
+    vc_err_msg := 'Before  sp_washout_reverse_realized';
+    pkg_phy_bm_washout_pnl. sp_washout_reverse_realized(pc_corporate_id,
+                                                        pd_trade_date,
+                                                        pc_process_id,
+                                                        pc_user_id,
+                                                        pc_dbd_id,
+                                                        pc_process);
+  
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          ' sp_washout_realize_pnl_change');
+    vc_err_msg := 'Before  sp_washout_realize_pnl_change';
+    pkg_phy_bm_washout_pnl.sp_washout_realize_pnl_change(pc_corporate_id,
+                                                         pd_trade_date,
+                                                         pc_process,
+                                                         pc_process_id,
+                                                         pc_user_id);
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -659,6 +647,113 @@ create or replace package body pkg_phy_physical_process is
                                                pd_trade_date,
                                                pc_process_id);
   
+    -- Concentrate PNL Call Start
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_calc_phy_opencon_unreal_pnl');
+    vc_err_msg := 'Before sp_calc_phy_opencon_unreal_pnl';
+  
+    pkg_phy_conc_unrealized_pnl.sp_calc_phy_opencon_unreal_pnl(pc_corporate_id,
+                                                               pd_trade_date,
+                                                               pc_process_id,
+                                                               pc_dbd_id,
+                                                               pc_user_id,
+                                                               pc_process,
+                                                               gvc_previous_process_id);
+  
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_stock_unreal_sntt_conc');
+    vc_err_msg := 'Before sp_stock_unreal_sntt_conc';
+    pkg_phy_conc_unrealized_pnl.sp_stock_unreal_sntt_conc(pc_corporate_id,
+                                                          pd_trade_date,
+                                                          pc_process_id,
+                                                          pc_dbd_id,
+                                                          pc_user_id,
+                                                          pc_process,
+                                                          gvc_previous_process_id);
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_stock_unreal_inv_in_conc');
+    vc_err_msg := 'Before sp_stock_unreal_inv_in_conc';
+  
+    pkg_phy_conc_unrealized_pnl.sp_stock_unreal_inv_in_conc(pc_corporate_id,
+                                                            pd_trade_date,
+                                                            pc_process_id,
+                                                            pc_user_id,
+                                                            pc_process,
+                                                            gvc_previous_process_id);
+  
+    -- Concentrate PNL Call End
+    -- Trade PNL 
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_calc_pnl_summary');
+    pkg_phy_eod_reports.sp_calc_pnl_summary(pc_corporate_id,
+                                            pd_trade_date,
+                                            pc_process_id,
+                                            gvc_process,
+                                            pc_user_id);
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_calc_daily_trade_pnl');
+    vc_err_msg := 'Before trade pnl ';
+    pkg_phy_eod_reports.sp_calc_daily_trade_pnl(pc_corporate_id,
+                                                pd_trade_date,
+                                                pc_process_id,
+                                                gvc_process,
+                                                pc_user_id);
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_calc_overall_realized_pnl');
+    vc_err_msg := 'Before sp_calc_overall_realized_pnl';
+    pkg_phy_eod_reports.sp_calc_overall_realized_pnl(pc_corporate_id,
+                                                     pd_trade_date,
+                                                     pc_process_id,
+                                                     pc_user_id,
+                                                     pc_process);
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -2248,7 +2343,7 @@ create or replace package body pkg_phy_physical_process is
                                 tmpc.m2m_tc_fw_exch_rate,
                                 tmpc.m2m_refining_charge,
                                 tmpc.m2m_rc_fw_exch_rate,
-                                tmpc.base_price_unit_id_in_ppu
+                                tmpc.conc_base_price_unit_id_ppu
                            from tmpc_temp_m2m_pre_check tmpc
                           where tmpc.corporate_id = pc_corporate_id
                             and tmpc.product_type = 'CONCENTRATES'
@@ -2265,14 +2360,14 @@ create or replace package body pkg_phy_physical_process is
                                    tmpc.m2m_tc_fw_exch_rate,
                                    tmpc.m2m_refining_charge,
                                    tmpc.m2m_rc_fw_exch_rate,
-                                   tmpc.base_price_unit_id_in_ppu)
+                                   tmpc.conc_base_price_unit_id_ppu)
       loop
         update md_m2m_daily md
            set md.treatment_charge    = cur_update.m2m_treatment_charge,
-               md.tc_price_unit_id    = cur_update.base_price_unit_id_in_ppu,
+               md.tc_price_unit_id    = cur_update.conc_base_price_unit_id_ppu,
                md.m2m_tc_fw_exch_rate = cur_update.m2m_tc_fw_exch_rate,
                md.refine_charge       = cur_update.m2m_refining_charge,
-               md.rc_price_unit_id    = cur_update.base_price_unit_id_in_ppu,
+               md.rc_price_unit_id    = cur_update.conc_base_price_unit_id_ppu,
                md.m2m_rc_fw_exch_rate = cur_update.m2m_rc_fw_exch_rate
          where md.process_id = pc_process_id
            and md.product_type = 'CONCENTRATES'
@@ -3456,9 +3551,11 @@ create or replace package body pkg_phy_physical_process is
     delete from sswd_spe_settle_washout_detail where dbd_id = vc_dbd_id;
   
     update sswh_spe_settle_washout_header
-       set process_id = null, is_cancelled_process_id = null
+       set process_id = null
      where process_id = pc_process_id;
-  
+    update sswh_spe_settle_washout_header
+       set cancelled_process_id = null
+     where cancelled_process_id = pc_process_id;
     update sswd_spe_settle_washout_detail
        set process_id = null
      where process_id = pc_process_id;

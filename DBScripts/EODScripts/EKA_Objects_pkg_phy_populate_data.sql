@@ -2116,8 +2116,49 @@ insert into cs_cost_store
              and csul.dbd_id = dbd_ul.dbd_id
              and dbd_ul.corporate_id = pc_corporate_id
              and dbd_ul.process = gvc_process
-           group by csul.internal_cost_id) t;
-  
+           group by csul.internal_cost_id) t;           
+          insert into ecs_element_cost_store
+            (element_cost_id,
+             internal_cost_id,
+             element_id,
+             payable_qty,
+             payable_qty_in_base_qty_unit,
+             qty_unit_id,
+             cost_value,
+             rate_price_unit_id,
+             transaction_amt,
+             transaction_amt_cur_id,
+             fx_to_base,
+             base_amt,
+             base_amt_cur_id,
+             cost_in_base_price_unit_id,
+             cost_in_transact_price_unit_id,
+             version,
+             is_deleted,
+             dbd_id)
+            select element_cost_id,
+                   internal_cost_id,
+                   element_id,
+                   payable_qty,
+                   payable_qty_in_base_qty_unit,
+                   qty_unit_id,
+                   cost_value,
+                   rate_price_unit_id,
+                   transaction_amt,
+                   transaction_amt_cur_id,
+                   fx_to_base,
+                   base_amt,
+                   base_amt_cur_id,
+                   cost_in_base_price_unit_id,
+                   cost_in_transact_price_unit_id,
+                   version,
+                   is_deleted,
+                   gvc_dbd_id
+              from ecs_element_cost_store@eka_appdb ecs
+             where ecs.internal_cost_id in
+                   (select internal_cost_id
+                      from cs_cost_store cs
+                     where cs.dbd_id = gvc_dbd_id);
   exception
     when others then
       vobj_error_log.extend;

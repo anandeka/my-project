@@ -88,6 +88,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_payment_due_date      date,
                                     pc_process               varchar2,
                                     pc_premium_price_unit_id varchar2,
+                                    pc_valuation_point_id    varchar2,
                                     pn_pp_amt                out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2);
@@ -1339,7 +1340,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                       tmpc.base_price_unit_id_in_ppu,
                       tmpc.shipment_month,
                       tmpc.shipment_year,
-                      tmpc.payment_due_date
+                      tmpc.payment_due_date,
+                      tmpc.mvp_id,
+                      tmpc.valuation_point
                  from tmpc_temp_m2m_pre_check tmpc,
                       pdm_productmaster       pdm
                 where tmpc.corporate_id = pc_corporate_id
@@ -1351,7 +1354,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          tmpc.base_price_unit_id_in_ppu,
                          tmpc.shipment_month,
                          tmpc.shipment_year,
-                         tmpc.payment_due_date)
+                         tmpc.payment_due_date,
+                         tmpc.mvp_id,
+                         tmpc.valuation_point)
     loop
       vn_pp_amt := 0;
       sp_m2m_product_premimum(cc.corporate_id,
@@ -1363,6 +1368,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                               cc.payment_due_date,
                               pc_process,
                               cc.base_price_unit_id_in_ppu,
+                              cc.mvp_id,
                               vn_pp_amt,
                               vc_product_exch_rate_string,
                               vc_exch_rate_missing);
@@ -1387,7 +1393,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
            'Physicals M2M Pre-Check',
            'PHY-100',
            cc.product_desc || ',' || cc.shipment_month || '-' ||
-           cc.shipment_year,
+           cc.shipment_year || ', ' || cc.valuation_point,
            null,
            pc_process,
            sysdate,
@@ -1401,7 +1407,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
            and tmpc.product_id = cc.product_id
            and tmpc.shipment_month = cc.shipment_month
            and tmpc.shipment_year = cc.shipment_year
-           and tmpc.payment_due_date = cc.payment_due_date;
+           and tmpc.payment_due_date = cc.payment_due_date
+           and tmpc.mvp_id = cc.mvp_id;
       end if;
     end loop;
     vc_error_loc := 12;
@@ -6508,6 +6515,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_payment_due_date      date,
                                     pc_process               varchar2,
                                     pc_premium_price_unit_id varchar2,
+                                    pc_valuation_point_id    varchar2,
                                     pn_pp_amt                out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2) is
@@ -6526,6 +6534,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                where pp.pp_id = ppbm.pp_id
                  and pp.corporate_id = pc_corporate_id
                  and pp.product_id = pc_product_id
+                 and pp.valuation_point_id = pc_valuation_point_id
                  and ppbm.calendar_month = pc_calendar_month
                  and ppbm.calendar_year = pc_calendar_year
                  and nvl(ppbm.is_beyond, 'N') = 'N'
@@ -6543,6 +6552,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      ppbm_product_premium_by_month ppbm
                where pp.pp_id = ppbm.pp_id
                  and pp.corporate_id = pc_corporate_id
+                 and pp.valuation_point_id = pc_valuation_point_id
                  and pp.product_id = pc_product_id --
                  and to_date('01-' || ppbm.beyond_month || '-' ||
                              ppbm.beyond_year,

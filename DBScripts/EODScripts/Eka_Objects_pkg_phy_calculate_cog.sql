@@ -709,6 +709,9 @@ create or replace package body pkg_phy_calculate_cog is
        secondary_cost_per_unit,
        product_premium_per_unit,
        quality_premium_per_unit,
+tc_charges_per_unit,
+rc_charges_per_unit,
+pc_charges_per_unit,
        total_mc_charges,
        total_tc_charges,
        total_rc_charges,
@@ -734,6 +737,9 @@ create or replace package body pkg_phy_calculate_cog is
              nvl(sum(secondary_cost_per_unit), 0),
              nvl(sum(product_premium_per_unit), 0),
              nvl(sum(quality_premium_per_unit), 0),
+             nvl(sum(tc_charges_per_unit), 0),
+             nvl(sum(rc_charges_per_unit), 0),
+             nvl(sum(pc_charges_per_unit), 0),
              nvl(sum(total_mc_charges), 0),
              nvl(sum(total_tc_charges), 0),
              nvl(sum(total_rc_charges), 0),
@@ -829,6 +835,24 @@ create or replace package body pkg_phy_calculate_cog is
                        else
                         0
                      end as total_tc_charges,
+                     case
+                       when t.cost_type = 'Treatment Charges' then
+                        t.avg_cost
+                       else
+                        0
+                     end as tc_charges_per_unit,
+                     case
+                       when t.cost_type = 'Refining Charges' then
+                        t.avg_cost
+                       else
+                        0
+                     end as rc_charges_per_unit,
+                     case
+                       when t.cost_type = 'Penalties' then
+                        t.avg_cost
+                       else
+                        0
+                     end as pc_charges_per_unit,
                      case
                        when t.cost_type = 'Treatment Charges' then
                         t.trans_to_base_fw_exch_rate
@@ -1637,6 +1661,11 @@ create or replace package body pkg_phy_calculate_cog is
        secondary_cost_per_unit,
        product_premium_per_unit,
        quality_premium_per_unit,
+       tc_charges_per_unit,
+rc_charges_per_unit,
+pc_charges_per_unit,
+
+
        total_mc_charges,
        total_tc_charges,
        total_rc_charges,
@@ -1663,6 +1692,9 @@ create or replace package body pkg_phy_calculate_cog is
              nvl(sum(secondary_cost_per_unit), 0),
              nvl(sum(product_premium_per_unit), 0),
              nvl(sum(quality_premium_per_unit), 0),
+             nvl(sum(tc_charges_per_unit), 0),
+             nvl(sum(rc_charges_per_unit), 0),
+             nvl(sum(pc_charges_per_unit), 0),
              nvl(sum(total_mc_charges), 0),
              nvl(sum(total_tc_charges), 0),
              nvl(sum(total_rc_charges), 0),
@@ -1682,7 +1714,6 @@ create or replace package body pkg_phy_calculate_cog is
              price_unit_weight_unit_id,
              price_unit_weight_unit,
              weight
-      
         from (select t.internal_grd_ref_no,
                      sales_internal_gmr_ref_no,
                      case
@@ -1797,7 +1828,26 @@ create or replace package body pkg_phy_calculate_cog is
                      base_cur_code price_unit_cur_code,
                      base_qty_unit_id price_unit_weight_unit_id,
                      base_qty_unit price_unit_weight_unit,
-                     1 weight
+                     1 weight,
+                     case
+                       when t.cost_type = 'Treatment Charges' then
+                        t.avg_cost
+                       else
+                        0
+                     end as tc_charges_per_unit,
+                     case
+                       when t.cost_type = 'Refining Charges' then
+                        t.avg_cost
+                       else
+                        0
+                     end as rc_charges_per_unit,
+                     case
+                       when t.cost_type = 'Penalties' then
+                        t.avg_cost
+                       else
+                        0
+                     end as pc_charges_per_unit
+
                 from tinvs_temp_invm_cogs t
                where t.process_id = pc_process_id)
        group by internal_grd_ref_no,

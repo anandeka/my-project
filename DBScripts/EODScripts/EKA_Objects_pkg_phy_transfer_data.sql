@@ -3703,8 +3703,10 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        remarks,
        is_active,
        internal_gmr_ref_no,
-       dbd_id)
-    
+       dbd_id,
+       activity_ref_no,
+       activity_type,
+       cancellation_date)
       select sswh_id,
              sswh.internal_action_ref_no,
              settlement_qty,
@@ -3716,19 +3718,18 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              remarks,
              is_active,
              internal_gmr_ref_no,
-             pc_dbd_id
-      
+             pc_dbd_id,
+             activity_ref_no,
+             activity_type,
+             cancellation_date
         from sswh_spe_settle_washout_header@eka_appdb sswh,
              axs_action_summary@eka_appdb             axs
        where sswh.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
-  
     insert into sswd_spe_settle_washout_detail
-      (
-       
-       sswd_id,
+      (sswd_id,
        sswh_id,
        contract_type,
        internal_contract_item_ref_no,
@@ -3740,8 +3741,10 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        qty,
        qty_unit_id,
        is_active,
-       dbd_id)
-    
+       dbd_id,
+       price_fixed,
+       price_type,
+       price_desc)
       select sswd_id,
              sswh_id,
              contract_type,
@@ -3754,17 +3757,16 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              qty,
              qty_unit_id,
              is_active,
-             pc_dbd_id
-      
+             pc_dbd_id,
+             price_fixed,
+             price_type,
+             price_desc
         from sswd_spe_settle_washout_detail@eka_appdb sswd
-      
        where sswd.sswh_id in
              (select sswh_id
                 from sswh_spe_settle_washout_header sswh
                where sswh.dbd_id = pc_dbd_id);
-  
     commit;
-  
   exception
     when others then
       vobj_error_log.extend;

@@ -11,6 +11,11 @@ create or replace package pkg_phy_bm_washout_pnl is
                                         pc_user_id      varchar2,
                                         pc_dbd_id       varchar2,
                                         pc_process      varchar2);
+  procedure sp_washout_realize_pnl_change(pc_corporate_id varchar2,
+                                          pd_trade_date   date,
+                                          pc_process      varchar2,
+                                          pc_process_id   varchar2,
+                                          pc_user_id      varchar2);
 
 end;
 /
@@ -387,6 +392,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
              null price_to_base_fw_exch_rate
         from sswh_spe_settle_washout_header sswh,
              sswd_spe_settle_washout_detail sswd,
+             sswd_spe_settle_washout_detail sswd_sales,
              grd_goods_record_detail        grd,
              pci_physical_contract_item     pci,
              pcdi_pc_delivery_item          pcdi,
@@ -426,7 +432,11 @@ create or replace package body pkg_phy_bm_washout_pnl is
              css_corporate_strategy_setup   css
        where sswd.process_id = pc_process_id
          and sswh.process_id = sswd.process_id
+         and sswd_sales.process_id = sswh.process_id
          and sswd.sswh_id = sswh.sswh_id
+         and sswd_sales.sswh_id = sswh.sswh_id
+         and sswd.contract_type = 'P'
+         and sswd_sales.contract_type = 'S'
          and sswh.is_active = 'Y'
          and sswh.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and sswd.process_id = grd.process_id
@@ -479,7 +489,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
          and sswh.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and dgrd.process_id = sswh.process_id
          and dgrd.status = 'Active'
-         and case when sswd.contract_type = 'S' then sswd.internal_contract_item_ref_no end = pci_sales.internal_contract_item_ref_no and pci_sales.process_id = sswh.process_id and pci_sales.pcdi_id = pcdi_sales.pcdi_id and pcdi_sales.internal_contract_ref_no = pcm_sales.internal_contract_ref_no and pcdi_sales.process_id = sswd.process_id and pcm_sales.process_id = sswd.process_id and pcdi.item_price_type = pt.price_type_id(+) and grd.strategy_id = css.strategy_id(+);
+         and case when sswd_sales.contract_type = 'S' then sswd_sales.internal_contract_item_ref_no end = pci_sales.internal_contract_item_ref_no and pci_sales.process_id = sswd_sales.process_id and pci_sales.pcdi_id = pcdi_sales.pcdi_id and pcdi_sales.internal_contract_ref_no = pcm_sales.internal_contract_ref_no and pcdi_sales.process_id = sswd_sales.process_id and pcm_sales.process_id = sswd_sales.process_id and pcdi.item_price_type = pt.price_type_id(+) and grd.strategy_id = css.strategy_id(+);
   
     ---------
   
@@ -980,12 +990,28 @@ create or replace package body pkg_phy_bm_washout_pnl is
     vc_error_msg       varchar2(10);
   begin
   
-    update sswh_spe_settle_washout_header sswh
-       set sswh.is_cancelled_process_id = 'Y'
-     where sswh.is_active = 'N'
-       and sswh.process_id = pc_process_id
-       and trunc(sswh.cancellation_date) <= pd_trade_date
-       and sswh.is_cancelled_process_id is null;
+    --  get it from dbd for trade date
+    /*select
+    dbd.start_date, dbd.end_date
+     from dbd_database_dump dbd
+    where dbd.trade_date = pd_trade_date
+    and dbd.corporate_id = pc_corporate_id;
+    */
+  
+    for cur_update in (select sswh.cancellation_date,
+                              sswh.sswh_id
+                         from sswh_spe_settle_washout_header@eka_appdb sswh,
+                              dbd_database_dump                        dbd
+                        where sswh.cancellation_date > dbd.start_date
+                          and sswh.cancellation_date <= dbd.end_date
+                          and dbd.dbd_id = pc_dbd_id)
+    loop
+      update sswh_spe_settle_washout_header sswh_in
+         set sswh_in.cancelled_process_id = pc_process_id,
+             sswh_in.cancellation_date    = cur_update.cancellation_date
+       where sswh_in.sswh_id = cur_update.sswh_id;
+    end loop;
+  
     insert into prd_physical_realized_daily
       (process_id,
        trade_date,
@@ -1278,15 +1304,12 @@ create or replace package body pkg_phy_bm_washout_pnl is
                  and tdc.process = pc_process
                group by prd.sales_internal_gmr_ref_no) max_eod -- PRD Realized Date and Allocated Sales
        where (prd.int_alloc_group_id, prd.sales_internal_gmr_ref_no) in
-             (select axs.action_ref_no,
+             (select sswh.activity_ref_no,
                      sswh.internal_gmr_ref_no
-                from sswh_spe_settle_washout_header sswh,
-                     axs_action_summary             axs
-               where sswh.is_cancelled_process_id = 'Y'
-                 and sswh.process_id = pc_process_id
-                 and sswh.internal_action_ref_no =
-                     axs.internal_action_ref_no
-                 and axs.dbd_id = pc_dbd_id) -- Records to be considered for Reverse Realization
+                from sswh_spe_settle_washout_header sswh
+               where sswh.cancelled_process_id = pc_process_id
+              
+              ) -- Records to be considered for Reverse Realization
          and prd.trade_date = tdc.trade_date
          and tdc.trade_date = max_eod.trade_date
          and prd.sales_internal_gmr_ref_no =
@@ -1316,7 +1339,687 @@ create or replace package body pkg_phy_bm_washout_pnl is
       sp_insert_error_log(vobj_error_log);
   end;
 
--------------------
+  -------------------
+
+  ------------------------------------------
+  --_realized PNL_Change
+  procedure sp_washout_realize_pnl_change(pc_corporate_id varchar2,
+                                          pd_trade_date   date,
+                                          pc_process      varchar2,
+                                          pc_process_id   varchar2,
+                                          pc_user_id      varchar2) is
+    vobj_error_log                 tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count             number := 1;
+    vc_error_msg                   varchar2(10);
+    vc_price_cur_id                varchar2(15);
+    vc_price_cur_code              varchar2(15);
+    vn_cont_price_cur_id_factor    number;
+    vn_cont_price_cur_decimals     number;
+    vn_contract_value_in_price_cur number;
+    vn_contract_value_in_base_cur  number;
+    vn_cog_net_sale_value          number;
+    vn_forward_points              number;
+    vn_price_to_base_fw_exch_rate  number;
+    vc_price_to_base_fw_rate       varchar2(100);
+    vn_contract_price              number;
+    vc_price_unit_id               varchar2(15);
+    vc_price_unit_cur_id           varchar2(15);
+    vc_price_unit_cur_code         varchar2(15);
+    vc_price_unit_weight_unit_id   varchar2(15);
+    vc_price_unit_weight_unit      varchar2(15);
+    vn_price_unit_weight           number;
+  
+    cursor cur_realized is
+      select pd_trade_date trade_date,
+             prd.corporate_id,
+             prd.corporate_name,
+             prd.internal_contract_ref_no,
+             prd.contract_ref_no,
+             prd.internal_contract_item_ref_no,
+             prd.del_distribution_item_no,
+             prd.contract_issue_date,
+             prd.contract_type,
+             prd.contract_status,
+             prd.int_alloc_group_id,
+             prd.alloc_group_name,
+             prd.internal_gmr_ref_no,
+             prd.gmr_ref_no,
+             prd.internal_grd_ref_no,
+             prd.internal_stock_ref_no,
+             prd.product_id,
+             prd.product_name,
+             prd.origin_id,
+             prd.origin_name,
+             prd.quality_id,
+             prd.quality_name,
+             prd.profit_center_id,
+             prd.profit_center_name,
+             prd.profit_center_short_name,
+             prd.cp_profile_id,
+             prd.cp_name,
+             prd.trade_user_id,
+             prd.trade_user_name,
+             prd.price_type_id,
+             prd.price_type_name,
+             prd.incoterm_id,
+             prd.incoterm,
+             prd.payment_term_id,
+             prd.payment_term,
+             prd.price_fixation_details,
+             prd.price_fixation_status,
+             'Previously Realized PNL Change' as realized_type,
+             prd.realized_date,
+             prd.container_no,
+             iid.new_invoice_price contract_price,
+             iid.new_invoice_price_unit_id price_unit_id,
+             ppu.cur_id price_unit_cur_id,
+             cm_ppu.cur_code price_unit_cur_code,
+             ppu.weight_unit_id price_unit_weight_unit_id,
+             qum.qty_unit price_unit_weight_unit,
+             ppu.weight price_unit_weight,
+             prd.contract_invoice_value,
+             prd.contract_price as prev_real_price,
+             prd.price_unit_id prev_real_price_id,
+             prd.price_unit_cur_id prev_real_price_cur_id,
+             prd.price_unit_cur_code prev_real_price_cur_code,
+             prd.price_unit_weight_unit_id prev_real_price_weight_unit_id,
+             prd.price_unit_weight_unit prev_real_price_weight_unit,
+             prd.price_unit_weight prev_real_price_weight,
+             prd.item_qty prev_real_qty,
+             prd.qty_unit_id prev_real_qty_id,
+             prd.qty_unit prev_real_qty_unit,
+             prd.contract_value_in_price_cur prev_cont_value_in_price_cur,
+             prd.contract_price_cur_id prev_contract_price_cur_id,
+             prd.contract_price_cur_code prev_contract_price_cur_code,
+             prd.contract_invoice_value as prev_real_contract_value,
+             prd.secondary_cost_value prev_real_secondary_cost,
+             prd.cog_net_sale_value prev_real_cog_net_sale_value,
+             prd.realized_pnl prev_real_pnl,
+             prd.product_premium_per_unit prev_product_premium_per_unit,
+             prd.product_premium prev_product_premium,
+             prd.quality_premium_per_unit prev_quality_premium_per_unit,
+             prd.quality_premium prev_quality_premium,
+             prd.secondary_cost_per_unit prev_secondary_cost_per_unit,
+             prd.warehouse_id,
+             prd.warehouse_name,
+             prd.shed_id,
+             prd.shed_name,
+             prd.group_id,
+             prd.group_name,
+             prd.group_cur_id,
+             prd.group_cur_code,
+             prd.group_qty_unit_id,
+             prd.group_qty_unit,
+             prd.base_qty_unit_id,
+             prd.base_qty_unit,
+             prd.base_cur_id,
+             prd.base_cur_code,
+             prd.base_price_unit_id,
+             prd.base_price_unit_name,
+             prd.sales_profit_center_id,
+             prd.sales_profit_center_name,
+             prd.sales_profit_center_short_name,
+             prd.sales_strategy_id,
+             prd.sales_strategy_name,
+             prd.sales_business_line_id,
+             prd.sales_business_line_name,
+             prd.sales_internal_gmr_ref_no,
+             prd.sales_contract_ref_no,
+             prd.origination_city_id,
+             prd.origination_city_name,
+             prd.origination_country_id,
+             prd.origination_country_name,
+             prd.destination_city_id,
+             prd.destination_city_name,
+             prd.destination_country_id,
+             prd.destination_country_name,
+             prd.pool_id,
+             prd.strategy_id,
+             prd.strategy_name,
+             prd.business_line_id,
+             prd.business_line_name,
+             prd.bl_number,
+             prd.bl_date,
+             prd.seal_no,
+             prd.mark_no,
+             prd.warehouse_ref_no,
+             prd.warehouse_receipt_no,
+             prd.warehouse_receipt_date,
+             prd.is_warrant,
+             prd.warrant_no,
+             prd.pcdi_id,
+             prd.supp_contract_item_ref_no,
+             prd.supplier_pcdi_id,
+             prd.payable_returnable_type,
+             prd.price_description,
+             null avg_secondary_cost,
+             null product_premium_per_unit,
+             null quality_premium_per_unit,
+             prd.product_premium product_premium,
+             null product_premium_unit_id,
+             prd.item_qty,
+             prd.qty_unit qty_unit,
+             prd.qty_unit_id,
+             prd.delivery_item_no,
+             prd.item_qty_in_base_qty_unit,
+             null del_premium_cur_id,
+             null del_premium_cur_code,
+             ppu.weight del_premium_weight,
+             ppu.weight_unit_id del_premium_weight_unit_id,
+             pd_trade_date payment_due_date,
+             null as price_to_base_fw_exch_rate_act,
+             null as price_to_base_fw_exch_rate,
+             null as contract_qp_fw_exch_rate,
+             null as contract_pp_fw_exch_rate,
+             null accrual_to_base_fw_exch_rate,
+             prd.price_to_base_fw_exch_rate p_price_to_base_fw_exch_rate,
+             prd.contract_qp_fw_exch_rate p_contract_qp_fw_exch_rate,
+             prd.contract_pp_fw_exch_rate p_contract_pp_fw_exch_rate,
+             prd.accrual_to_base_fw_exch_rate p_accrual_to_base_fw_exch_rate,
+             iis.internal_invoice_ref_no latest_internal_invoice_ref_no,
+             prd.sales_gmr_ref_no,
+             prd.realized_sub_type,
+             iis.is_cancelled_today,
+             iis.is_invoice_new
+        from prd_physical_realized_daily prd,
+             iid_invoicable_item_details iid,
+             is_invoice_summary          iis,
+             v_ppu_pum                   ppu,
+             cm_currency_master          cm_ppu,
+             qum_quantity_unit_master    qum
+       where iis.process_id = pc_process_id
+         and prd.internal_gmr_ref_no = iid.internal_gmr_ref_no
+         and iid.internal_contract_ref_no = iis.internal_contract_ref_no
+         and prd.process_id <= pc_process_id
+         and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
+         and (iis.is_invoice_new = 'Y' or iis.is_cancelled_today = 'Y')
+         and iid.new_invoice_price_unit_id = ppu.product_price_unit_id
+         and ppu.cur_id = cm_ppu.cur_id(+)
+         and ppu.weight_unit_id = qum.qty_unit_id(+)
+         and 'TRUE' =
+             (case
+              when(iis.is_cancelled_today = 'Y' and
+                   prd.realized_type = 'Previously Realized PNL Change') then
+              'TRUE' when(iis.is_invoice_new = 'Y' and
+                          prd.realized_type = 'Realized Today') then 'TRUE' else
+              'FALSE' end);
+  
+    cursor cur_update_pnl is
+      select prd.corporate_id,
+             prd.int_alloc_group_id,
+             prd.sales_internal_gmr_ref_no,
+             prd.process_id,
+             sum(prd.cog_net_sale_value) net_value
+        from prd_physical_realized_daily prd
+       where prd.process_id = pc_process_id
+         and prd.corporate_id = pc_corporate_id
+         and prd.realized_type = 'Previously Realized PNL Change'
+       group by prd.corporate_id,
+                prd.int_alloc_group_id,
+                prd.sales_internal_gmr_ref_no,
+                prd.process_id;
+  begin
+  
+    for cur_realized_rows in cur_realized
+    loop
+    
+      -- Contract Price Details
+    
+      vc_error_msg := '7';
+      if (cur_realized_rows.is_invoice_new = 'Y' and
+         cur_realized_rows.contract_type = 'P') then
+        vn_contract_price            := cur_realized_rows.contract_price;
+        vc_price_unit_id             := cur_realized_rows.price_unit_id;
+        vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+        vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+        vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+        vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+        vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+        if vn_price_unit_weight is null then
+          vn_price_unit_weight := 1;
+        end if;
+      else
+        if (cur_realized_rows.is_cancelled_today = 'Y' or
+           cur_realized_rows.contract_type = 'S') then
+          vn_contract_price            := cur_realized_rows.prev_real_price;
+          vc_price_unit_id             := cur_realized_rows.prev_real_price_id;
+          vc_price_unit_cur_id         := cur_realized_rows.prev_real_price_cur_id;
+          vc_price_unit_cur_code       := cur_realized_rows.prev_real_price_cur_code;
+          vc_price_unit_weight_unit_id := cur_realized_rows.prev_real_price_weight_unit_id;
+          vc_price_unit_weight_unit    := cur_realized_rows.prev_real_price_weight_unit;
+          vn_price_unit_weight         := nvl(cur_realized_rows.prev_real_price_weight,
+                                              1);
+        end if;
+      end if;
+      -- Pricing Main Currency Details
+      --
+      pkg_general.sp_get_main_cur_detail(vc_price_unit_cur_id,
+                                         vc_price_cur_id,
+                                         vc_price_cur_code,
+                                         vn_cont_price_cur_id_factor,
+                                         vn_cont_price_cur_decimals);
+    
+      -- Contratc value in base cur = Price Per Unit in Base * Qty in Base
+      -- 
+    
+      -- Contract Value in Price Currency
+      -- 
+      vn_contract_value_in_price_cur := (vn_contract_price /
+                                        nvl(vn_price_unit_weight, 1)) *
+                                        vn_cont_price_cur_id_factor *
+                                        cur_realized_rows.item_qty_in_base_qty_unit;
+      --
+      -- Get the Contract Value in Base Currency
+      --
+    
+      pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+                                              pd_trade_date,
+                                              cur_realized_rows.payment_due_date,
+                                              vc_price_cur_id,
+                                              cur_realized_rows.base_cur_id,
+                                              30,
+                                              vn_price_to_base_fw_exch_rate,
+                                              vn_forward_points);
+    
+      if vc_price_cur_id <> cur_realized_rows.base_cur_id then
+        if vn_price_to_base_fw_exch_rate is null or
+           vn_price_to_base_fw_exch_rate = 0 then
+          vobj_error_log.extend;
+          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                               'procedure pkg_phy_physical_process-sp_ realized_pnl_change ',
+                                                               'PHY-005',
+                                                               cur_realized_rows.base_cur_code ||
+                                                               ' to ' ||
+                                                               vc_price_cur_code || ' (' ||
+                                                               to_char(pd_trade_date,
+                                                                       'dd-Mon-yyyy') || ') ',
+                                                               '',
+                                                               pc_process,
+                                                               pc_user_id,
+                                                               sysdate,
+                                                               pd_trade_date);
+          sp_insert_error_log(vobj_error_log);
+        end if;
+      end if;
+    
+      if vn_price_to_base_fw_exch_rate is not null and
+         vn_price_to_base_fw_exch_rate <> 1 then
+        vc_price_to_base_fw_rate := '1 ' || cur_realized_rows.base_cur_code || '=' ||
+                                    vn_price_to_base_fw_exch_rate || ' ' ||
+                                    vc_price_cur_code;
+      end if;
+    
+      vc_error_msg := '18';
+    
+      vn_contract_value_in_base_cur := (vn_contract_price /
+                                       nvl(vn_price_unit_weight, 1)) *
+                                       vn_cont_price_cur_id_factor *
+                                       vn_price_to_base_fw_exch_rate *
+                                       cur_realized_rows.item_qty_in_base_qty_unit;
+    
+      --
+      -- Total COG/Sale Value = Contract Value 
+    
+      --invoice only create corresponding to purchase side
+      if cur_realized_rows.contract_type = 'P' then
+        vn_cog_net_sale_value := (-1) * vn_contract_value_in_base_cur;
+      else
+        vn_contract_value_in_base_cur := cur_realized_rows.contract_invoice_value;
+        vn_cog_net_sale_value         := cur_realized_rows.prev_real_cog_net_sale_value;
+      end if;
+    
+      vc_error_msg := '20';
+      insert into prd_physical_realized_daily
+        (process_id,
+         trade_date,
+         corporate_id,
+         corporate_name,
+         internal_contract_ref_no,
+         contract_ref_no,
+         internal_contract_item_ref_no,
+         del_distribution_item_no,
+         contract_issue_date,
+         contract_type,
+         contract_status,
+         int_alloc_group_id,
+         alloc_group_name,
+         internal_gmr_ref_no,
+         gmr_ref_no,
+         internal_grd_ref_no,
+         internal_stock_ref_no,
+         product_id,
+         product_name,
+         origin_id,
+         origin_name,
+         quality_id,
+         quality_name,
+         profit_center_id,
+         profit_center_name,
+         profit_center_short_name,
+         cp_profile_id,
+         cp_name,
+         trade_user_id,
+         trade_user_name,
+         price_type_id,
+         price_type_name,
+         incoterm_id,
+         incoterm,
+         payment_term_id,
+         payment_term,
+         price_fixation_details,
+         price_fixation_status,
+         realized_type,
+         realized_date,
+         container_no,
+         item_qty,
+         qty_unit_id,
+         qty_unit,
+         contract_price,
+         price_unit_id,
+         price_unit_cur_id,
+         price_unit_cur_code,
+         price_unit_weight_unit_id,
+         price_unit_weight_unit,
+         price_unit_weight,
+         contract_value_in_price_cur,
+         contract_price_cur_id,
+         contract_price_cur_code,
+         contract_invoice_value,
+         secondary_cost_per_unit,
+         product_premium_per_unit,
+         product_premium,
+         quality_premium_per_unit,
+         quality_premium,
+         secondary_cost_value,
+         cog_net_sale_value,
+         realized_pnl,
+         prev_real_price,
+         prev_real_price_id,
+         prev_real_price_cur_id,
+         prev_real_price_cur_code,
+         prev_real_price_weight_unit_id,
+         prev_real_price_weight_unit,
+         prev_real_price_weight,
+         prev_real_qty,
+         prev_real_qty_id,
+         prev_real_qty_unit,
+         prev_cont_value_in_price_cur,
+         prev_contract_price_cur_id,
+         prev_contract_price_cur_code,
+         prev_real_contract_value,
+         prev_real_secondary_cost,
+         prev_real_cog_net_sale_value,
+         prev_real_pnl,
+         prev_product_premium_per_unit,
+         prev_product_premium,
+         prev_quality_premium_per_unit,
+         prev_quality_premium,
+         prev_secondary_cost_per_unit,
+         change_in_pnl,
+         cfx_price_cur_to_base_cur,
+         warehouse_id,
+         warehouse_name,
+         shed_id,
+         shed_name,
+         group_id,
+         group_name,
+         group_cur_id,
+         group_cur_code,
+         group_qty_unit_id,
+         group_qty_unit,
+         item_qty_in_base_qty_unit,
+         base_qty_unit_id,
+         base_qty_unit,
+         base_cur_id,
+         base_cur_code,
+         base_price_unit_id,
+         base_price_unit_name,
+         sales_profit_center_id,
+         sales_profit_center_name,
+         sales_profit_center_short_name,
+         sales_strategy_id,
+         sales_strategy_name,
+         sales_business_line_id,
+         sales_business_line_name,
+         sales_internal_gmr_ref_no,
+         sales_contract_ref_no,
+         origination_city_id,
+         origination_city_name,
+         origination_country_id,
+         origination_country_name,
+         destination_city_id,
+         destination_city_name,
+         destination_country_id,
+         destination_country_name,
+         pool_id,
+         strategy_id,
+         strategy_name,
+         business_line_id,
+         business_line_name,
+         bl_number,
+         bl_date,
+         seal_no,
+         mark_no,
+         warehouse_ref_no,
+         warehouse_receipt_no,
+         warehouse_receipt_date,
+         is_warrant,
+         warrant_no,
+         pcdi_id,
+         supp_contract_item_ref_no,
+         supplier_pcdi_id,
+         payable_returnable_type,
+         price_description,
+         delivery_item_no,
+         price_to_base_fw_exch_rate,
+         contract_qp_fw_exch_rate,
+         contract_pp_fw_exch_rate,
+         accrual_to_base_fw_exch_rate,
+         p_price_to_base_fw_exch_rate,
+         p_contract_qp_fw_exch_rate,
+         p_contract_pp_fw_exch_rate,
+         p_accrual_to_base_fw_exch_rate,
+         sales_gmr_ref_no,
+         realized_sub_type)
+      values
+        (pc_process_id,
+         pd_trade_date,
+         cur_realized_rows.corporate_id,
+         cur_realized_rows.corporate_name,
+         cur_realized_rows.internal_contract_ref_no,
+         cur_realized_rows.contract_ref_no,
+         cur_realized_rows.internal_contract_item_ref_no,
+         cur_realized_rows.del_distribution_item_no,
+         cur_realized_rows.contract_issue_date,
+         cur_realized_rows.contract_type,
+         cur_realized_rows.contract_status,
+         cur_realized_rows.int_alloc_group_id,
+         cur_realized_rows.alloc_group_name,
+         cur_realized_rows.internal_gmr_ref_no,
+         cur_realized_rows.gmr_ref_no,
+         cur_realized_rows.internal_grd_ref_no,
+         cur_realized_rows.internal_stock_ref_no,
+         cur_realized_rows.product_id,
+         cur_realized_rows.product_name,
+         cur_realized_rows.origin_id,
+         cur_realized_rows.origin_name,
+         cur_realized_rows.quality_id,
+         cur_realized_rows.quality_name,
+         cur_realized_rows.profit_center_id,
+         cur_realized_rows.profit_center_name,
+         cur_realized_rows.profit_center_short_name,
+         cur_realized_rows.cp_profile_id,
+         cur_realized_rows.cp_name,
+         cur_realized_rows.trade_user_id,
+         cur_realized_rows.trade_user_name,
+         cur_realized_rows.price_type_id,
+         cur_realized_rows.price_type_name,
+         cur_realized_rows.incoterm_id,
+         cur_realized_rows.incoterm,
+         cur_realized_rows.payment_term_id,
+         cur_realized_rows.payment_term,
+         cur_realized_rows.price_fixation_details,
+         cur_realized_rows.price_fixation_status,
+         cur_realized_rows.realized_type,
+         cur_realized_rows.realized_date,
+         cur_realized_rows.container_no,
+         cur_realized_rows.item_qty,
+         cur_realized_rows.qty_unit_id,
+         cur_realized_rows.qty_unit,
+         vn_contract_price,
+         vc_price_unit_id,
+         vc_price_unit_cur_id,
+         vc_price_unit_cur_code,
+         vc_price_unit_weight_unit_id,
+         vc_price_unit_weight_unit,
+         vn_price_unit_weight,
+         vn_contract_value_in_price_cur,
+         vc_price_cur_id,
+         vc_price_cur_code,
+         vn_contract_value_in_base_cur,
+         null,
+         null,
+         null,
+         null,
+         null,
+         null,
+         vn_cog_net_sale_value,
+         null, --realized_pnl,
+         cur_realized_rows.prev_real_price,
+         cur_realized_rows.prev_real_price_id,
+         cur_realized_rows.prev_real_price_cur_id,
+         cur_realized_rows.prev_real_price_cur_code,
+         cur_realized_rows.prev_real_price_weight_unit_id,
+         cur_realized_rows.prev_real_price_weight_unit,
+         cur_realized_rows.prev_real_price_weight,
+         cur_realized_rows.prev_real_qty,
+         cur_realized_rows.prev_real_qty_id,
+         cur_realized_rows.prev_real_qty_unit,
+         cur_realized_rows.prev_cont_value_in_price_cur,
+         cur_realized_rows.prev_contract_price_cur_id,
+         cur_realized_rows.prev_contract_price_cur_code,
+         cur_realized_rows.prev_real_contract_value,
+         cur_realized_rows.prev_real_secondary_cost,
+         cur_realized_rows.prev_real_cog_net_sale_value,
+         cur_realized_rows.prev_real_pnl,
+         cur_realized_rows.prev_product_premium_per_unit,
+         cur_realized_rows.prev_product_premium,
+         cur_realized_rows.prev_quality_premium_per_unit,
+         cur_realized_rows.prev_quality_premium,
+         cur_realized_rows.prev_secondary_cost_per_unit,
+         null, -- change_in_pnl,
+         null, -- cfx_price_cur_to_base_cur,
+         cur_realized_rows.warehouse_id,
+         cur_realized_rows.warehouse_name,
+         cur_realized_rows.shed_id,
+         cur_realized_rows.shed_name,
+         cur_realized_rows.group_id,
+         cur_realized_rows.group_name,
+         cur_realized_rows.group_cur_id,
+         cur_realized_rows.group_cur_code,
+         cur_realized_rows.group_qty_unit_id,
+         cur_realized_rows.group_qty_unit,
+         cur_realized_rows.item_qty_in_base_qty_unit,
+         cur_realized_rows.base_qty_unit_id,
+         cur_realized_rows.base_qty_unit,
+         cur_realized_rows.base_cur_id,
+         cur_realized_rows.base_cur_code,
+         cur_realized_rows.base_price_unit_id,
+         cur_realized_rows.base_price_unit_name,
+         cur_realized_rows.sales_profit_center_id,
+         cur_realized_rows.sales_profit_center_name,
+         cur_realized_rows.sales_profit_center_short_name,
+         cur_realized_rows.sales_strategy_id,
+         cur_realized_rows.sales_strategy_name,
+         cur_realized_rows.sales_business_line_id,
+         cur_realized_rows.sales_business_line_name,
+         cur_realized_rows.sales_internal_gmr_ref_no,
+         cur_realized_rows.sales_contract_ref_no,
+         cur_realized_rows.origination_city_id,
+         cur_realized_rows.origination_city_name,
+         cur_realized_rows.origination_country_id,
+         cur_realized_rows.origination_country_name,
+         cur_realized_rows.destination_city_id,
+         cur_realized_rows.destination_city_name,
+         cur_realized_rows.destination_country_id,
+         cur_realized_rows.destination_country_name,
+         cur_realized_rows.pool_id,
+         cur_realized_rows.strategy_id,
+         cur_realized_rows.strategy_name,
+         cur_realized_rows.business_line_id,
+         cur_realized_rows.business_line_name,
+         cur_realized_rows.bl_number,
+         cur_realized_rows.bl_date,
+         cur_realized_rows.seal_no,
+         cur_realized_rows.mark_no,
+         cur_realized_rows.warehouse_ref_no,
+         cur_realized_rows.warehouse_receipt_no,
+         cur_realized_rows.warehouse_receipt_date,
+         cur_realized_rows.is_warrant,
+         cur_realized_rows.warrant_no,
+         cur_realized_rows.pcdi_id,
+         cur_realized_rows.supp_contract_item_ref_no,
+         cur_realized_rows.supplier_pcdi_id,
+         cur_realized_rows.payable_returnable_type,
+         cur_realized_rows.price_description,
+         cur_realized_rows.delivery_item_no,
+         vc_price_to_base_fw_rate,
+         null,
+         null,
+         null,
+         cur_realized_rows.p_price_to_base_fw_exch_rate,
+         cur_realized_rows.p_contract_qp_fw_exch_rate,
+         cur_realized_rows.p_contract_pp_fw_exch_rate,
+         cur_realized_rows.p_accrual_to_base_fw_exch_rate,
+         cur_realized_rows.sales_gmr_ref_no,
+         cur_realized_rows.realized_sub_type);
+    end loop;
+    --
+    -- Update Realized PNL Value
+    --
+    vc_error_msg := '21';
+    for cur_update_pnl_rows in cur_update_pnl
+    loop
+      update prd_physical_realized_daily prd
+         set prd.realized_pnl  = cur_update_pnl_rows.net_value,
+             prd.change_in_pnl = cur_update_pnl_rows.net_value -
+                                 prd.prev_real_pnl
+       where prd.corporate_id = cur_update_pnl_rows.corporate_id
+         and prd.contract_type = 'S'
+         and prd.int_alloc_group_id =
+             cur_update_pnl_rows.int_alloc_group_id
+         and prd.sales_internal_gmr_ref_no =
+             cur_update_pnl_rows.sales_internal_gmr_ref_no
+         and prd.process_id = pc_process_id
+         and prd.prev_real_pnl is not null;
+      --
+    -- Let it update the same row where Realized Today was updated 
+    -- In Case Sales GMR has more than one record
+    --
+    end loop;
+    vc_error_msg := '22';
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_calc_phy_realize_pnl_change',
+                                                           'M2M-013',
+                                                           ' Code:' ||
+                                                           sqlcode ||
+                                                           ' Message:' ||
+                                                           sqlerrm ||
+                                                           dbms_utility.format_error_backtrace ||
+                                                           'No:' ||
+                                                           vc_error_msg,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
 
 end;
+
+------------------------------------------------------------------
 /
