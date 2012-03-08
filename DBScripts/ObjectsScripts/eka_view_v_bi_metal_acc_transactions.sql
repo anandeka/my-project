@@ -1,4 +1,4 @@
-create or replace view v_bi_metal_acc_transactions as
+CREATE OR REPLACE VIEW V_BI_METAL_ACC_TRANSACTIONS AS
 select mat_temp.unique_id,
        mat_temp.corporate,
        mat_temp.internal_contract_ref_no,
@@ -22,8 +22,8 @@ select mat_temp.unique_id,
        mat_temp.product_name,
        mat_temp.attribute_name,
        mat_temp.debt_qty,
-       mat_temp.debt_qty_unit_id debt_qty_unit,  
-       qum.qty_unit  debt_qty_unit_id,
+       qum.qty_unit debt_qty_unit,  
+       mat_temp.debt_qty_unit_id debt_qty_unit_id,
        mat_temp.internal_action_ref_no,
        to_char(mat_temp.activity_date, 'dd-Mon-yyyy') activity_date,
        (CASE
@@ -215,9 +215,10 @@ select mat_temp.unique_id,
             FROM ash_assay_header ash
            WHERE ash.assay_type = 'Final Assay' AND ash.is_active = 'Y') ash_temp
  WHERE axm.action_id = mat_temp.activity_action_id
-   AND phd.profileid = mat_temp.supplier_id
-   AND phd_debt.profileid(+) = mat_temp.debt_supplier_id
-   AND qum.qty_unit_id = mat_temp.debt_qty_unit_id
-   AND ash_temp.internal_grd_ref_no(+) = mat_temp.stock_id;
-/
-
+   AND mat_temp.supplier_id = phd.profileid
+   AND mat_temp.debt_supplier_id =phd_debt.profileid(+) 
+   AND mat_temp.debt_qty_unit_id = qum.qty_unit_id
+   AND mat_temp.stock_id = ash_temp.internal_grd_ref_no(+) 
+ 
+ 
+ 
