@@ -1,9 +1,9 @@
-create or replace view v_bi_logistics as
+CREATE OR REPLACE VIEW V_BI_LOGISTICS AS
 with latest_invoice as
 (select inv.gmr_ref_no,
         inv.internal_gmr_ref_no,
-        inv.invoice_type_name, 
-        inv.internal_invoice_ref_no, 
+        inv.invoice_type_name,
+        inv.internal_invoice_ref_no,
         inv.eff_date
   from (select iss.internal_invoice_ref_no,
                axs.eff_date,
@@ -18,7 +18,7 @@ with latest_invoice as
          where iss.internal_invoice_ref_no = iam.internal_invoice_ref_no
            and iam.invoice_action_ref_no = axs.internal_action_ref_no
            and gmr.internal_contract_ref_no = iss.internal_contract_ref_no
-         group by iss.internal_invoice_ref_no, 
+         group by iss.internal_invoice_ref_no,
                   axs.eff_date, gmr.gmr_ref_no,
                   gmr.internal_gmr_ref_no,
                   iss.invoice_type_name) inv
@@ -121,7 +121,7 @@ select gcd.groupid,
             else
              nvl(grd.landed_net_qty,0)
           end))dry_qty_diff,
-       sum(nvl(grd.shipped_net_qty,0)) - sum(nvl(grd.landed_net_qty,0)) wet_qty_diff, 
+       sum(nvl(grd.shipped_net_qty,0)) - sum(nvl(grd.landed_net_qty,0)) wet_qty_diff,
         ((case when sum(nvl(grd.shipped_net_qty,0)) = 0 then 0
         else
         ((sum(nvl(grd.shipped_net_qty,0)) - sum(nvl(grd.landed_net_qty,0)))/ sum(nvl(grd.shipped_net_qty,0)))
@@ -258,6 +258,7 @@ select gcd.groupid,
    and qat.is_active = 'Y'
    and gcd.is_active = 'Y'
    and sam.is_latest_pricing_assay = 'Y'
+   and pcpd.input_output = 'Input'
 group by
          gcd.groupid,
          gcd.groupname ,
@@ -310,4 +311,5 @@ group by
           pcpq.unit_of_measure,
           vdc.typical,
           qum.qty_unit ,
-          gmr.landed_qty 
+          gmr.landed_qty
+

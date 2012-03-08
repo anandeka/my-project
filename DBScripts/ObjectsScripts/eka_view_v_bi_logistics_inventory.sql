@@ -126,6 +126,7 @@ select gmr.corporate_id,
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no(+)
    and pcm.is_active = 'Y'
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.input_output = 'Input'
    and pcpd.pcpd_id = pcpq.pcpd_id(+)
    and pcpd.pcpd_id = pcpq.pcpd_id(+)
    and pcpq.is_active = 'Y'
