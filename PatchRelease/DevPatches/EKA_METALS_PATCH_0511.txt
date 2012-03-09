@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0511
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manoranjan
+ 
+Created on*        		:  09-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Washout/Tolling Input/Output
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 89190
+Author: manoranjan.kumar
+Date: 3:52:00 PM, Friday, March 09, 2012
+Message:
+cancel Washout and Tolling Input/Output GMR GMC entry for Price Allocation & Finalization
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_219.sql
