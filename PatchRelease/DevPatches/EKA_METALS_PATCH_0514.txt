@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0514
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  09-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Reports
+
+Sub-Module  		 `	 :  
+ 
+Section   		 	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 89238
+Author: suresh.gottipati
+Date: 7:21:23 PM, Friday, March 09, 2012
+Message:
+APF_NOT_APPLIED_SHIPMENT 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_apf_not_applied_shipment.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_MV_BI_APF_NOT_APPLIED_SHIPMENT.sql
+
+
+
+
