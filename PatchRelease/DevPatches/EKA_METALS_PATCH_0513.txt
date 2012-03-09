@@ -42,4 +42,12 @@ Message:
 --Update AXM scripts
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_220.sql
+Revision: 89213
+Author: pradeep.kumar
+Date: 6:39:52 PM, Friday, March 09, 2012
+Message:
+-- SLV/SLS Entries for IIOperationsActivity dropdown
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_221.sql
+
 
