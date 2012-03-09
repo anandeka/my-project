@@ -35,22 +35,6 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
-Revision: 89251
-Author: elaiyaraja.nallathambi
-Date: 8:08:38 PM, Friday, March 09, 2012
-Message:
-
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_51_DML_RPC_RFC_Scripts.sql
-
-Revision: 89253
-Author: elaiyaraja.nallathambi
-Date: 8:11:57 PM, Friday, March 09, 2012
-Message:
-
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_cr_delta_pricing_report.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_sac_qty.sql
 
 Revision: 89255
 Author: elaiyaraja.nallathambi
@@ -59,6 +43,24 @@ Message:
 
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_223.sql
+
+Revision: 89251
+Author: elaiyaraja.nallathambi
+Date: 8:08:38 PM, Friday, March 09, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_51_DML_RPC_RFC_Scripts.sql
+
+
+Revision: 89253
+Author: elaiyaraja.nallathambi
+Date: 8:11:57 PM, Friday, March 09, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_sac_qty.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_cr_delta_pricing_report.sql
 
 Revision: 89256
 Author: elaiyaraja.nallathambi
