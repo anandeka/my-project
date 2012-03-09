@@ -14,7 +14,7 @@ create or replace package pkg_phy_calculate_cog is
                                  pc_user_id      varchar2,
                                  pd_trade_date   date,
                                  pc_process      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_calculate_cog is
   procedure sp_calc_invm_cog(pc_corporate_id varchar2,
@@ -29,7 +29,7 @@ create or replace package body pkg_phy_calculate_cog is
     vn_qty_conv_stock_to_base     number;
     vn_fw_exch_rate_trans_to_base number;
     vn_forward_points             number;
-    vc_exch_rate_string           varchar2(25);
+    vc_exch_rate_string           varchar2(100);
   begin
   
     insert into tinvp_temp_invm_cog
@@ -675,8 +675,7 @@ create or replace package body pkg_phy_calculate_cog is
                                vn_fw_exch_rate_trans_to_base || ' ' ||
                                cur_exch_rate.base_cur_code;
         update tinvp_temp_invm_cog t
-           set t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base,
-               trans_to_base_fw_exch_rate      = vc_exch_rate_string
+           set t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base--,trans_to_base_fw_exch_rate      = vc_exch_rate_string
          where t.transaction_amt_main_cur_id =
                cur_exch_rate.transaction_amt_main_cur_id
            and t.base_cur_id = cur_exch_rate.base_cur_id
@@ -709,9 +708,6 @@ create or replace package body pkg_phy_calculate_cog is
        secondary_cost_per_unit,
        product_premium_per_unit,
        quality_premium_per_unit,
-       tc_charges_per_unit,
-       rc_charges_per_unit,
-       pc_charges_per_unit,
        total_mc_charges,
        total_tc_charges,
        total_rc_charges,
@@ -737,9 +733,6 @@ create or replace package body pkg_phy_calculate_cog is
              nvl(sum(secondary_cost_per_unit), 0),
              nvl(sum(product_premium_per_unit), 0),
              nvl(sum(quality_premium_per_unit), 0),
-             nvl(sum(tc_charges_per_unit), 0),
-             nvl(sum(rc_charges_per_unit), 0),
-             nvl(sum(pc_charges_per_unit), 0),
              nvl(sum(total_mc_charges), 0),
              nvl(sum(total_tc_charges), 0),
              nvl(sum(total_rc_charges), 0),
@@ -837,24 +830,6 @@ create or replace package body pkg_phy_calculate_cog is
                      end as total_tc_charges,
                      case
                        when t.cost_type = 'Treatment Charges' then
-                        t.avg_cost
-                       else
-                        0
-                     end as tc_charges_per_unit,
-                     case
-                       when t.cost_type = 'Refining Charges' then
-                        t.avg_cost
-                       else
-                        0
-                     end as rc_charges_per_unit,
-                     case
-                       when t.cost_type = 'Penalties' then
-                        t.avg_cost
-                       else
-                        0
-                     end as pc_charges_per_unit,
-                     case
-                       when t.cost_type = 'Treatment Charges' then
                         t.trans_to_base_fw_exch_rate
                        else
                         null
@@ -900,91 +875,6 @@ create or replace package body pkg_phy_calculate_cog is
                 price_unit_weight_unit_id,
                 price_unit_weight_unit,
                 weight;
-    -- Insert Element Price/TC/RC Details
-    insert into invme_cog_element
-      (process_id,
-       internal_grd_ref_no,
-       element_id,
-       mc_per_unit,
-       mc_price_unit_id,
-       tc_per_unit,
-       tc_price_unit_id,
-       rc_per_unit,
-       rc_price_unit_id)
-      select pc_process_id,
-             t.internal_grd_ref_no,
-             t.element_id,
-             sum(mc_per_unit),
-             max(mc_price_unit_id),
-             nvl(sum(tc_per_unit), 0),
-             max(tc_price_unit_id),
-             nvl(sum(rc_per_unit), 0),
-             max(rc_price_unit_id)
-        from (select pc_process_id,
-                     t.internal_grd_ref_no,
-                     ecs.element_id,
-                     case
-                       when t.cost_type = 'Price' then
-                        ecs.cost_value
-                       else
-                        0
-                     end mc_per_unit,
-                     case
-                       when t.cost_type = 'Price' then
-                        ecs.rate_price_unit_id
-                       else
-                        null
-                     end mc_price_unit_id,
-                     case
-                       when t.cost_type = 'Treatment Charges' then
-                        ecs.cost_value
-                       else
-                        null
-                     end tc_per_unit,
-                     case
-                       when t.cost_type = 'Treatment Charges' then
-                        ecs.rate_price_unit_id
-                       else
-                        null
-                     end tc_price_unit_id,
-                     case
-                       when t.cost_type = 'Refining Charges' then
-                        ecs.cost_value
-                       else
-                        null
-                     end rc_per_unit,
-                     case
-                       when t.cost_type = 'Refining Charges' then
-                        ecs.rate_price_unit_id
-                       else
-                        null
-                     end rc_price_unit_id
-                from tinvp_temp_invm_cog    t,
-                     ecs_element_cost_store ecs
-               where t.process_id = pc_process_id
-                 and ecs.process_id = pc_process_id
-                 and t.internal_cost_id = ecs.internal_cost_id
-                 and t.cost_type <> 'Secondary Cost') t
-       group by t.internal_grd_ref_no,
-                t.element_id;
-    update invme_cog_element t
-       set t.mc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.mc_price_unit_id);
-  
-    update invme_cog_element t
-       set t.tc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.tc_price_unit_id);
-  
-    update invme_cog_element t
-       set t.rc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.rc_price_unit_id);
-  
   exception
     when others then
       vobj_error_log.extend;
@@ -1746,10 +1636,6 @@ create or replace package body pkg_phy_calculate_cog is
        secondary_cost_per_unit,
        product_premium_per_unit,
        quality_premium_per_unit,
-       tc_charges_per_unit,
-       rc_charges_per_unit,
-       pc_charges_per_unit,
-       
        total_mc_charges,
        total_tc_charges,
        total_rc_charges,
@@ -1776,9 +1662,6 @@ create or replace package body pkg_phy_calculate_cog is
              nvl(sum(secondary_cost_per_unit), 0),
              nvl(sum(product_premium_per_unit), 0),
              nvl(sum(quality_premium_per_unit), 0),
-             nvl(sum(tc_charges_per_unit), 0),
-             nvl(sum(rc_charges_per_unit), 0),
-             nvl(sum(pc_charges_per_unit), 0),
              nvl(sum(total_mc_charges), 0),
              nvl(sum(total_tc_charges), 0),
              nvl(sum(total_rc_charges), 0),
@@ -1798,6 +1681,7 @@ create or replace package body pkg_phy_calculate_cog is
              price_unit_weight_unit_id,
              price_unit_weight_unit,
              weight
+      
         from (select t.internal_grd_ref_no,
                      sales_internal_gmr_ref_no,
                      case
@@ -1912,26 +1796,7 @@ create or replace package body pkg_phy_calculate_cog is
                      base_cur_code price_unit_cur_code,
                      base_qty_unit_id price_unit_weight_unit_id,
                      base_qty_unit price_unit_weight_unit,
-                     1 weight,
-                     case
-                       when t.cost_type = 'Treatment Charges' then
-                        t.avg_cost
-                       else
-                        0
-                     end as tc_charges_per_unit,
-                     case
-                       when t.cost_type = 'Refining Charges' then
-                        t.avg_cost
-                       else
-                        0
-                     end as rc_charges_per_unit,
-                     case
-                       when t.cost_type = 'Penalties' then
-                        t.avg_cost
-                       else
-                        0
-                     end as pc_charges_per_unit
-              
+                     1 weight
                 from tinvs_temp_invm_cogs t
                where t.process_id = pc_process_id)
        group by internal_grd_ref_no,
@@ -1942,95 +1807,6 @@ create or replace package body pkg_phy_calculate_cog is
                 price_unit_weight_unit_id,
                 price_unit_weight_unit,
                 weight;
-  
-    -- Insert Element Price/TC/RC Details
-    insert into invme_cogs_element
-      (process_id,
-       internal_grd_ref_no,
-       sales_internal_gmr_ref_no,
-       element_id,
-       mc_per_unit,
-       mc_price_unit_id,
-       tc_per_unit,
-       tc_price_unit_id,
-       rc_per_unit,
-       rc_price_unit_id)
-      select pc_process_id,
-             t.internal_grd_ref_no,
-             t.sales_internal_gmr_ref_no,
-             t.element_id,
-             sum(mc_per_unit),
-             max(mc_price_unit_id),
-             nvl(sum(tc_per_unit), 0),
-             max(tc_price_unit_id),
-             nvl(sum(rc_per_unit), 0),
-             max(rc_price_unit_id)
-        from (select pc_process_id,
-                     t.internal_grd_ref_no,
-                     ecs.element_id,
-                     case
-                       when t.cost_type = 'Price' then
-                        ecs.cost_value
-                       else
-                        0
-                     end mc_per_unit,
-                     case
-                       when t.cost_type = 'Price' then
-                        ecs.rate_price_unit_id
-                       else
-                        null
-                     end mc_price_unit_id,
-                     case
-                       when t.cost_type = 'Treatment Charges' then
-                        ecs.cost_value
-                       else
-                        null
-                     end tc_per_unit,
-                     case
-                       when t.cost_type = 'Treatment Charges' then
-                        ecs.rate_price_unit_id
-                       else
-                        null
-                     end tc_price_unit_id,
-                     case
-                       when t.cost_type = 'Refining Charges' then
-                        ecs.cost_value
-                       else
-                        null
-                     end rc_per_unit,
-                     case
-                       when t.cost_type = 'Refining Charges' then
-                        ecs.rate_price_unit_id
-                       else
-                        null
-                     end rc_price_unit_id,
-                     t.sales_internal_gmr_ref_no
-                from tinvs_temp_invm_cogs   t,
-                     ecs_element_cost_store ecs
-               where t.process_id = pc_process_id
-                 and ecs.process_id = pc_process_id
-                 and t.internal_cost_id = ecs.internal_cost_id
-                 and t.cost_type <> 'Secondary Cost') t
-       group by t.internal_grd_ref_no,
-                t.element_id,
-                t.sales_internal_gmr_ref_no;
-    update invme_cog_element t
-       set t.mc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.mc_price_unit_id);
-  
-    update invme_cog_element t
-       set t.tc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.tc_price_unit_id);
-  
-    update invme_cog_element t
-       set t.rc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.rc_price_unit_id);
   exception
     when others then
       vobj_error_log.extend;
@@ -2097,7 +1873,7 @@ create or replace package body pkg_phy_calculate_cog is
        base_price_unit_id_in_ppu,
        transact_amt_sign,
        payment_due_date)
-    -- 
+      -- 
     -- Section 1
     -- Purchase GMR Shipped But Not TT Query Start
     --
@@ -2435,7 +2211,7 @@ create or replace package body pkg_phy_calculate_cog is
       --
       -- Purchase GMR Shipped But Not TT Query End
       --
-      -- Section 2
+    -- Section 2
       -- Sales GMR Shipped But Not TT Starts Here
       --
       union all
@@ -2773,7 +2549,7 @@ create or replace package body pkg_phy_calculate_cog is
       
       -- Sales GMR Shipped But Not TT Ends Here
       -- 
-      -- Section 3
+    -- Section 3
       -- Sales GMR Inventory Out Starts Here
       union all
       select pc_corporate_id,
@@ -2818,7 +2594,7 @@ create or replace package body pkg_phy_calculate_cog is
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping    scmt
+             v_scm_stock_cost_mapping      scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -2907,7 +2683,7 @@ create or replace package body pkg_phy_calculate_cog is
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping    scmt
+             v_scm_stock_cost_mapping      scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -2997,7 +2773,7 @@ create or replace package body pkg_phy_calculate_cog is
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping    scmt
+             v_scm_stock_cost_mapping      scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -3085,7 +2861,7 @@ create or replace package body pkg_phy_calculate_cog is
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping    scmt
+             v_scm_stock_cost_mapping      scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -3124,8 +2900,8 @@ create or replace package body pkg_phy_calculate_cog is
          and scmt.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and scmt.cog_ref_no = cigc.cog_ref_no
          and scmt.is_deleted = 'N';
-    -- Sales GMR Inventory Out Ends Here
-  
+      -- Sales GMR Inventory Out Ends Here
+      
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -3319,5 +3095,5 @@ create or replace package body pkg_phy_calculate_cog is
       sp_insert_error_log(vobj_error_log);
     
   end;
-end;
+end; 
 /
