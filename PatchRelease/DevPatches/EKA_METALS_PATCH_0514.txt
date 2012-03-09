@@ -15,7 +15,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 : Reports
+Module  		   	 : Domain
 
 Sub-Module  		 `	 :  
  
