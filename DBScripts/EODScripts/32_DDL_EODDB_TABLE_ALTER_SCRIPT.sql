@@ -98,3 +98,5 @@ where eem.exception_code ='PHY-100';
 
 alter table SSWH_SPE_SETTLE_WASHOUT_HEADER drop(IS_CANCELLED_PROCESS_ID);
 alter table SSWH_SPE_SETTLE_WASHOUT_HEADER add(CANCELLED_PROCESS_ID varchar2(15));
+
+ALTER TABLE psue_phy_stock_unrealized_ele ADD DELIVERY_MONTH VARCHAR2(15);
