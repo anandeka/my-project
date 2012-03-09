@@ -1,0 +1,1 @@
+create or replace view mv_bi_apf_not_applied_shipment as select * from  v_bi_apf_not_applied_shipment;
