@@ -1,4 +1,4 @@
-create or replace package pkg_phy_eod_price is
+CREATE OR REPLACE PACKAGE "PKG_PHY_EOD_PRICE" is
   procedure sp_calc_contract_price(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_process_id   varchar2,
@@ -27,9 +27,9 @@ create or replace package pkg_phy_eod_price is
                                         pc_dbd_id       varchar2,
                                         pc_process      varchar2);
 
-end;
+end; 
 /
-create or replace package body pkg_phy_eod_price is
+CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
 
   procedure sp_calc_contract_price(pc_corporate_id varchar2,
                                    pd_trade_date   date,
@@ -3067,6 +3067,7 @@ create or replace package body pkg_phy_eod_price is
          and pcbpd.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
+         and pofh.qty_to_be_fixed <> 0
          and pofh.is_active = 'Y'
          and pocd.is_active = 'Y'
          and pcbpd.is_active = 'Y'
@@ -3400,6 +3401,7 @@ create or replace package body pkg_phy_eod_price is
                                  and poch.is_active = 'Y'
                                  and pocd.is_active = 'Y'
                                  and pofh.is_active = 'Y'
+                                 and pofh.qty_to_be_fixed <> 0
                                  and nvl(pfd.is_delta_pricing, 'N') = 'N'
                                  and pfd.is_active = 'Y')
             loop
@@ -3434,6 +3436,7 @@ create or replace package body pkg_phy_eod_price is
                  where pfd.pofh_id = cur_gmr_ele_rows.pofh_id
                    and pofh.pofh_id = pfd.pofh_id
                    and pfd.is_delta_pricing = 'Y'
+                   and pofh.qty_to_be_fixed <> 0
                    and pofh.is_active = 'Y'
                    and pfd.is_active = 'Y';
               exception
@@ -3506,6 +3509,7 @@ create or replace package body pkg_phy_eod_price is
                         and pofh.pofh_id = pfd.pofh_id
                         and pfd.as_of_date >= vd_dur_qp_start_date
                         and pfd.as_of_date <= pd_trade_date
+                        and pofh.qty_to_be_fixed <> 0
                         and poch.is_active = 'Y'
                         and pocd.is_active = 'Y'
                         and pofh.is_active = 'Y'
@@ -4199,7 +4203,8 @@ create or replace package body pkg_phy_eod_price is
                                (select *
                                   from pofh_price_opt_fixation_header pfh
                                  where pfh.internal_gmr_ref_no is null
-                                   and pfh.is_active = 'Y') pofh,
+                                   and pfh.is_active = 'Y'
+                                   and pfh.qty_to_be_fixed <> 0) pofh,
                                v_ppu_pum ppu
                          where poch.poch_id = pocd.poch_id
                            and pocd.pcbpd_id = pcbpd.pcbpd_id
@@ -4218,7 +4223,8 @@ create or replace package body pkg_phy_eod_price is
                               -- and pofh.is_active(+) = 'Y'
                            and pcbpd.process_id = pc_process_id
                            and pfqpp.process_id = pc_process_id
-                           and ppfh.process_id = pc_process_id)
+                           and ppfh.process_id = pc_process_id
+                           and pofh.qty_to_be_fixed <> 0)
             
             loop
               if cur_pcdi_rows.basis_type = 'Shipment' then
@@ -4474,6 +4480,7 @@ create or replace package body pkg_phy_eod_price is
                                        and poch.is_active = 'Y'
                                        and pocd.is_active = 'Y'
                                        and pofh.is_active = 'Y'
+                                       and pofh.qty_to_be_fixed <> 0
                                        and nvl(pfd.is_delta_pricing, 'N') = 'N'
                                        and pfd.is_active = 'Y')
                   loop
@@ -4515,7 +4522,8 @@ create or replace package body pkg_phy_eod_price is
                          and pofh.pofh_id = pfd.pofh_id
                          and pfd.is_delta_pricing = 'Y'
                          and pofh.is_active = 'Y'
-                         and pfd.is_active = 'Y';
+                         and pfd.is_active = 'Y'
+                         and pofh.qty_to_be_fixed <> 0;
                     exception
                       when no_data_found then
                         vn_delta_price        := null;
@@ -4589,7 +4597,8 @@ create or replace package body pkg_phy_eod_price is
                               and poch.is_active = 'Y'
                               and pocd.is_active = 'Y'
                               and pofh.is_active = 'Y'
-                              and pfd.is_active = 'Y')
+                              and pfd.is_active = 'Y'
+                              and pofh.qty_to_be_fixed <> 0)
                 loop
                   vn_during_total_set_price     := vn_during_total_set_price +
                                                    cc.user_price;
@@ -5614,5 +5623,5 @@ create or replace package body pkg_phy_eod_price is
     end loop;
     commit;
   end;
-end;
+end; 
 /
