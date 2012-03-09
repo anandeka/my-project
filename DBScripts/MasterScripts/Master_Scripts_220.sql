@@ -14,3 +14,5 @@ update axm_action_master
 update axm_action_master
    set action_name = 'Cancel Return Material',ACTION_DESC = 'Cancel Return Material'
  where action_id = 'RETURN_MATERIAL_CANCEL';
+
+ update PLD_PRODUCT_LICENCE_DETAIL SET PRODUCT_VERSION='8.1.11.3';
