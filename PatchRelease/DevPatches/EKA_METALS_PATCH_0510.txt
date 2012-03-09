@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0510
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit
+ 
+Created on*        		:  09-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  COG
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 89188
+Author: mohitkumar.gupta
+Date: 3:46:31 PM, Friday, March 09, 2012
+Message:
+For Rearrangement.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_221.sql
