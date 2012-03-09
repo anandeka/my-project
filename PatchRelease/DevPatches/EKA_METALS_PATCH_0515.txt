@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0515
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit Gupta
+ 
+Created on*        		:  09-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  62035
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Contract
+
+Sub-Module  		 `	 :  
+ 
+Section   		 	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 89243
+Author: mohitkumar.gupta
+Date: 7:42:24 PM, Friday, March 09, 2012
+Message:
+For bug 62035.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_222.sql
+
+
+
