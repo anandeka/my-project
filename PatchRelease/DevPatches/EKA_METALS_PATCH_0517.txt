@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0517
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  09-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : EOD
+
+Sub-Module  		 `	 : EOD 
+ 
+Section   		 	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 89264
+Author: sivachalabathi.s
+Date: 8:51:18 PM, Friday, March 09, 2012
+Message:
+bug fixes for boliden
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
