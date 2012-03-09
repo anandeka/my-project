@@ -1433,7 +1433,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
              pum.price_unit_name || ',' || apm.available_price_name ||
              ' Price,Prompt Date:' || drm.dr_id_name,
-             null,
+             f_string_aggregate(tmpc.contract_ref_no),
              pc_process,
              systimestamp,
              pc_user_id,
@@ -3580,6 +3580,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  and ppu.is_active = 'Y'
                  and ppu.is_deleted = 'N');
   
+    vc_error_loc := 13;
+  
     insert into eel_eod_eom_exception_log
       (corporate_id,
        submodule_name,
@@ -3597,7 +3599,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
              pum.price_unit_name || ',' || apm.available_price_name ||
              ' Price,Prompt Date:' || drm.dr_id_name,
-             null,
+             f_string_aggregate(tmpc.contract_ref_no),
              pc_process,
              systimestamp,
              pc_user_id,
@@ -3658,6 +3660,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  'Precheck M2M',
                  gvc_process || ' - M2M-010 @' || systimestamp);
     --Location Differential
+    vc_error_loc := 14;
+  
     insert into eel_eod_eom_exception_log
       (corporate_id,
        submodule_name,
@@ -3714,12 +3718,16 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
   
     vn_no_loc_diff_error_count := sql%rowcount;
     commit;
+  
+    vc_error_loc := 15;
+  
     if vn_no_loc_diff_error_count = 0 then
       sp_update_ld_concentrates(pc_corporate_id,
                                 pd_trade_date,
                                 pc_user_id,
                                 pc_process);
     end if;
+    vc_error_loc := 16;
   
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
@@ -5311,7 +5319,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      akc.base_cur_id,
                      pdm.base_quantity_unit,
                      pum.price_unit_id,
-                     pum.price_unit_name
+                     pum.price_unit_name,
+                     tmpc.contract_ref_no
                 from tmpc_temp_m2m_pre_check tmpc,
                      ak_corporate            akc,
                      pdm_productmaster       pdm,
@@ -5334,7 +5343,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                         pdm.base_quantity_unit,
                         pum.price_unit_name,
                         pdm.product_desc,
-                        pum.price_unit_id
+                        pum.price_unit_id,
+                        tmpc.contract_ref_no
               union all
               select tmpc.corporate_id,
                      tmpc.conc_product_id product_id,
@@ -5342,7 +5352,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      akc.base_cur_id,
                      pdm_conc.base_quantity_unit,
                      pum.price_unit_id,
-                     pum.price_unit_name
+                     pum.price_unit_name,
+                     tmpc.contract_ref_no
                 from tmpc_temp_m2m_pre_check tmpc,
                      ak_corporate            akc,
                      pdm_productmaster       pdm,
@@ -5365,7 +5376,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                         akc.base_cur_id,
                         pdm_conc.product_desc,
                         pdm_conc.base_quantity_unit,
-                        pum.price_unit_id) t
+                        pum.price_unit_id,
+                        tmpc.contract_ref_no) t
        where not exists (select 1
                 from ppu_product_price_units ppu
                where ppu.product_id = t.product_id
@@ -5390,7 +5402,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
              pum.price_unit_name || ',' || apm.available_price_name ||
              ' Price,Prompt Date:' || drm.dr_id_name,
-             null,
+             f_string_aggregate(tmpc.contract_ref_no),
              pc_process,
              systimestamp,
              pc_user_id,
@@ -5641,7 +5653,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                    'is it here ????');
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_pre_check_m2m_conc_values',
+                                                           'procedure sp_pre_check_m2m_tolling_extn',
                                                            'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||

@@ -856,6 +856,11 @@ create or replace package body pkg_phy_physical_process is
      where process_id is null
        and dbd_id = vc_dbd_id;
   
+    update ecs_element_cost_store
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;
+  
     update dgrd_delivered_grd
        set process_id = pc_process_id
      where process_id is null
@@ -3435,6 +3440,7 @@ create or replace package body pkg_phy_physical_process is
     delete from agh_alloc_group_header where dbd_id = vc_dbd_id;
     delete from cigc_contract_item_gmr_cost where dbd_id = vc_dbd_id;
     delete from cs_cost_store where dbd_id = vc_dbd_id;
+    delete from ecs_element_cost_store where dbd_id = vc_dbd_id;
     delete from dgrd_delivered_grd where dbd_id = vc_dbd_id;
     delete from gmr_goods_movement_record where dbd_id = vc_dbd_id;
     delete from mogrd_moved_out_grd where dbd_id = vc_dbd_id;
@@ -3523,6 +3529,8 @@ create or replace package body pkg_phy_physical_process is
     delete from tinvs_temp_invm_cogs where process_id = pc_process_id;
     delete from invm_cog where process_id = pc_process_id;
     delete from invm_cogs where process_id = pc_process_id;
+    delete from invme_cog_element where process_id = pc_process_id;
+    delete from invme_cogs_element where process_id = pc_process_id;
     delete from pa_purchase_accural where process_id = pc_process_id;
     delete from pa_purchase_accural_gmr where process_id = pc_process_id;
     delete from isr_intrastat_grd where process_id = pc_process_id;

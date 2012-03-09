@@ -111,6 +111,17 @@ create or replace package pkg_general is
                                          pc_density_mass_qty_unit_id   in varchar2,
                                          pc_density_volume_qty_unit_id in varchar2)
     return number;
+  procedure sp_bank_fx_rate(pc_corporate_id         in varchar2,
+                            pd_trade_date           in date,
+                            pd_maturity_date        in date,
+                            pc_from_cur_id          in varchar2,
+                            pc_to_cur_id            in varchar2,
+                            pc_max_deviation        in number,
+                            pc_from_where           in varchar2,
+                            pc_process              in varchar2,
+                            pc_settlement_price     out number,
+                            pc_sum_of_forward_point out number);
+
 end;
 /
 create or replace package body pkg_general is
@@ -858,16 +869,16 @@ create or replace package body pkg_general is
    pc_max_deviation        in number,
    pc_settlement_price     out number,
    pc_sum_of_forward_point out number) is
-    vd_lower_date                date;
-    vd_upper_date                date;
-    vd_maturity_date             date;
-    vn_lower_date_diff           number;
-    vn_upper_date_diff           number;
-    vc_base_cur_id               varchar2(30);
-    pc_settlement_price_from     number;
-    pc_sum_of_forward_point_from number;
-    pc_settlement_price_to       number;
-    pc_sum_of_forward_point_to   number;
+    vd_lower_date      date;
+    vd_upper_date      date;
+    vd_maturity_date   date;
+    vn_lower_date_diff number;
+    vn_upper_date_diff number;
+    --vc_base_cur_id               varchar2(30);
+    --pc_settlement_price_from     number;
+    --pc_sum_of_forward_point_from number;
+    --pc_settlement_price_to number;
+    --pc_sum_of_forward_point_to   number;
   begin
   
     if pc_from_cur_id <> pc_to_cur_id then
@@ -1639,5 +1650,256 @@ create or replace package body pkg_general is
       return - 1;
     
   end;
+
+  procedure sp_bank_fx_rate
+  /**************************************************************************************************
+    Function Name                       : sp_bank_fx_rate
+    Author                              : Suresh Gottipati
+    Created Date                        : 03rd Feb 2012
+    Purpose                             : To get forward exchange rates
+    
+    Parameters                          :
+    
+    Returns                             :
+    
+    Number                              : Converted Qty
+    
+    Modification History
+    
+    Modified Date  :
+    Modified By  :
+    Modify Description :
+    ***************************************************************************************************/
+  (pc_corporate_id         in varchar2,
+   pd_trade_date           in date,
+   pd_maturity_date        in date,
+   pc_from_cur_id          in varchar2,
+   pc_to_cur_id            in varchar2,
+   pc_max_deviation        in number,
+   pc_from_where           in varchar2,
+   pc_process              in varchar2,
+   pc_settlement_price     out number,
+   pc_sum_of_forward_point out number) is
+    vd_lower_date      date;
+    vd_upper_date      date;
+    vd_maturity_date   date;
+    vn_lower_date_diff number;
+    vn_upper_date_diff number;
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+    vc_from_cur_code   varchar2(15);
+    vc_to_cur_code     varchar2(15);
+  begin
+    begin
+      select cm.cur_code
+        into vc_from_cur_code
+        from cm_currency_master cm
+       where cm.cur_id = pc_from_cur_id;
+      select cm.cur_code
+        into vc_to_cur_code
+        from cm_currency_master cm
+       where cm.cur_id = pc_to_cur_id;
+    
+      if pc_from_cur_id <> pc_to_cur_id then
+        begin
+          select max(cfq.prompt_date)
+            into vd_maturity_date
+            from mv_cfq_cci_cur_forward_quotes cfq
+           where cfq.corporate_id = pc_corporate_id
+             and cfq.trade_date = pd_trade_date
+             and cfq.prompt_date = pd_maturity_date
+             and cfq.base_cur_id = pc_from_cur_id
+             and cfq.quote_cur_id = pc_to_cur_id;
+        exception
+          when no_data_found then
+            vd_maturity_date := null;
+        end;
+        if vd_maturity_date is null then
+          begin
+            select max(cfq.prompt_date)
+              into vd_lower_date
+              from mv_cfq_cci_cur_forward_quotes cfq
+             where cfq.corporate_id = pc_corporate_id
+               and cfq.trade_date = pd_trade_date
+               and cfq.prompt_date <= pd_maturity_date
+               and abs(pd_maturity_date - cfq.prompt_date) <=
+                   pc_max_deviation --lalit
+               and cfq.base_cur_id = pc_from_cur_id
+               and cfq.quote_cur_id = pc_to_cur_id;
+          exception
+            when no_data_found then
+              vd_lower_date := null;
+          end;
+          begin
+            select min(cfq.prompt_date)
+              into vd_upper_date
+              from mv_cfq_cci_cur_forward_quotes cfq
+             where cfq.corporate_id = pc_corporate_id
+               and cfq.trade_date = pd_trade_date
+               and cfq.prompt_date >= pd_maturity_date
+               and abs(pd_maturity_date - cfq.prompt_date) <=
+                   pc_max_deviation --Lalit
+               and cfq.base_cur_id = pc_from_cur_id
+               and cfq.quote_cur_id = pc_to_cur_id;
+          exception
+            when no_data_found then
+              vd_upper_date := null;
+          end;
+          vn_lower_date_diff := nvl(abs(pd_maturity_date - vd_lower_date),
+                                    999);
+          vn_upper_date_diff := nvl(abs(pd_maturity_date - vd_upper_date),
+                                    999);
+          if vd_lower_date is null and vd_upper_date is null then
+            vd_maturity_date    := null;
+            pc_settlement_price := 0;
+          else
+            if vn_lower_date_diff <= vn_upper_date_diff then
+              vd_maturity_date := vd_lower_date;
+            else
+              vd_maturity_date := vd_upper_date;
+            end if;
+          end if;
+        end if;
+        --If the maturity date is configured for the currency pair get the exchange rate
+        if vd_maturity_date is not null then
+          begin
+            select t.settlement_price,
+                   t.sum_forward_point
+              into pc_settlement_price,
+                   pc_sum_of_forward_point
+              from (select cfq.rate settlement_price,
+                           nvl(cfq.forward_point, 0) sum_forward_point
+                      from mv_cfq_cci_cur_forward_quotes cfq
+                     where cfq.corporate_id = pc_corporate_id
+                       and cfq.trade_date = pd_trade_date
+                       and cfq.prompt_date = vd_maturity_date
+                       and cfq.base_cur_id = pc_from_cur_id
+                       and cfq.quote_cur_id = pc_to_cur_id) t;
+          exception
+            when no_data_found then
+              pc_settlement_price     := 0;
+              pc_sum_of_forward_point := 0;
+          end;
+        else
+          pc_settlement_price     := 0;
+          pc_sum_of_forward_point := 0;
+        end if;
+        if pc_settlement_price = 0 then
+          -- its likely that the pair is not configured.
+          --try reverse pair 
+          begin
+            select max(cfq.prompt_date)
+              into vd_maturity_date
+              from mv_cfq_currency_forward_quotes cfq
+             where cfq.corporate_id = pc_corporate_id
+               and cfq.trade_date = pd_trade_date
+               and cfq.prompt_date = pd_maturity_date
+               and cfq.base_cur_id = pc_to_cur_id
+               and cfq.quote_cur_id = pc_from_cur_id;
+          exception
+            when no_data_found then
+              vd_maturity_date := null;
+          end;
+        
+          if vd_maturity_date is null then
+            begin
+              select max(cfq.prompt_date)
+                into vd_lower_date
+                from mv_cfq_cci_cur_forward_quotes cfq
+               where cfq.corporate_id = pc_corporate_id
+                 and cfq.trade_date = pd_trade_date
+                 and cfq.prompt_date <= pd_maturity_date
+                 and abs(pd_maturity_date - cfq.prompt_date) <=
+                     pc_max_deviation --lalit
+                 and cfq.base_cur_id = pc_to_cur_id
+                 and cfq.quote_cur_id = pc_from_cur_id;
+            exception
+              when no_data_found then
+                vd_lower_date := null;
+            end;
+            begin
+              select min(cfq.prompt_date)
+                into vd_upper_date
+                from mv_cfq_cci_cur_forward_quotes cfq
+               where cfq.corporate_id = pc_corporate_id
+                 and cfq.trade_date = pd_trade_date
+                 and cfq.prompt_date >= pd_maturity_date
+                 and abs(pd_maturity_date - cfq.prompt_date) <=
+                     pc_max_deviation --Lalit
+                 and cfq.base_cur_id = pc_to_cur_id
+                 and cfq.quote_cur_id = pc_from_cur_id;
+            exception
+              when no_data_found then
+                vd_upper_date := null;
+            end;
+            vn_lower_date_diff := nvl(abs(pd_maturity_date - vd_lower_date),
+                                      999);
+            vn_upper_date_diff := nvl(abs(pd_maturity_date - vd_upper_date),
+                                      999);
+            if vd_lower_date is null and vd_upper_date is null then
+              vd_maturity_date    := null;
+              pc_settlement_price := 0;
+            else
+              if vn_lower_date_diff <= vn_upper_date_diff then
+                vd_maturity_date := vd_lower_date;
+              else
+                vd_maturity_date := vd_upper_date;
+              end if;
+            end if;
+          end if;
+        
+          if vd_maturity_date is not null then
+            begin
+              select 1 / t.settlement_price,
+                     t.sum_forward_point
+                into pc_settlement_price,
+                     pc_sum_of_forward_point
+                from (select cfq.rate settlement_price,
+                             nvl(cfq.forward_point, 0) sum_forward_point
+                        from mv_cfq_cci_cur_forward_quotes cfq
+                       where cfq.corporate_id = pc_corporate_id
+                         and cfq.trade_date = pd_trade_date
+                         and cfq.prompt_date = vd_maturity_date
+                         and cfq.base_cur_id = pc_to_cur_id
+                         and cfq.quote_cur_id = pc_from_cur_id) t;
+            exception
+              when no_data_found then
+                pc_settlement_price     := 0;
+                pc_sum_of_forward_point := 0;
+            end;
+          else
+            pc_settlement_price     := 0;
+            pc_sum_of_forward_point := 0;
+          end if;
+        end if;
+      else
+        pc_settlement_price     := 1;
+        pc_sum_of_forward_point := 0;
+      end if;
+    exception
+      when others then
+        pc_settlement_price     := 0;
+        pc_sum_of_forward_point := 0;
+    end;
+    if pc_settlement_price = 0 or pc_settlement_price is null then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           pc_from_where,
+                                                           'PHY-005',
+                                                           vc_from_cur_code ||
+                                                           ' to ' ||
+                                                           vc_to_cur_code || ' (' ||
+                                                           to_char(pd_maturity_date,
+                                                                   'dd-Mon-yyyy') || ') ',
+                                                           '', -- trade_ref_no
+                                                           pc_process,
+                                                           null, -- pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    end if;
+  
+  end;
+
 end;
 /

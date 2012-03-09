@@ -412,7 +412,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
     vc_m2m_rc_main_cur_code   varchar2(15);
     vc_m2m_rc_main_cur_factor number;
     vn_m2m_rc_to_base_fw_rate number;
-  
   begin
     vc_error_msg := '10269';
     for cur_unrealized_rows in cur_unrealized
@@ -431,9 +430,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
       end if;
     
       vn_wet_qty := cur_unrealized_rows.item_qty;
-    
       -- convert into dry qty to base qty element level
-    
       vn_dry_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_unrealized_rows.conc_product_id,
                                                                        cur_unrealized_rows.qty_unit_id,
                                                                        cur_unrealized_rows.base_qty_unit_id,
@@ -458,7 +455,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         vn_con_treatment_charge := 0;
       end if;
       -- Converted treatment charges to base currency
-    
       if (vc_con_treatment_cur_id <> cur_unrealized_rows.base_cur_id) and
          vn_con_treatment_charge <> 0 then
         -- Bank FX Rate from TC to Base Currency
@@ -468,14 +464,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                            vc_con_tc_main_cur_code,
                                            vc_con_tc_main_cur_factor);
         vc_error_msg := '10316';
-        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                pd_trade_date,
-                                                cur_unrealized_rows.payment_due_date,
-                                                vc_con_tc_main_cur_id,
-                                                cur_unrealized_rows.base_cur_id,
-                                                30,
-                                                vn_con_tc_to_base_fw_rate,
-                                                vn_forward_points);
+        pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                    pd_trade_date,
+                                    cur_unrealized_rows.payment_due_date,
+                                    vc_con_tc_main_cur_id,
+                                    cur_unrealized_rows.base_cur_id,
+                                    30,
+                                    'sp_calc_phy_opencon_unreal_pnl TC to Base Currency',
+                                    pc_process,
+                                    vn_con_tc_to_base_fw_rate,
+                                    vn_forward_points);
         vc_error_msg                 := '10325';
         vn_base_con_treatment_charge := round((vn_con_treatment_charge *
                                               vn_con_tc_to_base_fw_rate *
@@ -514,14 +512,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                            vc_con_rc_main_cur_code,
                                            vc_con_rc_main_cur_factor);
       
-        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                pd_trade_date,
-                                                cur_unrealized_rows.payment_due_date,
-                                                vc_con_refine_cur_id,
-                                                cur_unrealized_rows.base_cur_id,
-                                                30,
-                                                vn_con_rc_to_base_fw_rate,
-                                                vn_forward_points);
+        pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                    pd_trade_date,
+                                    cur_unrealized_rows.payment_due_date,
+                                    vc_con_refine_cur_id,
+                                    cur_unrealized_rows.base_cur_id,
+                                    30,
+                                    'sp_calc_phy_opencon_unreal_pnl RC to Base Currency',
+                                    pc_process,
+                                    vn_con_rc_to_base_fw_rate,
+                                    vn_forward_points);
         vc_error_msg              := '10366';
         vn_base_con_refine_charge := round((vn_con_refine_charge *
                                            vn_con_rc_to_base_fw_rate *
@@ -556,14 +556,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                              vc_con_pc_main_cur_factor);
           if vc_con_pc_main_cur_id <> cur_unrealized_rows.base_cur_id then
           
-            pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                    pd_trade_date,
-                                                    cur_unrealized_rows.payment_due_date,
-                                                    vc_con_pc_main_cur_id,
-                                                    cur_unrealized_rows.base_cur_id,
-                                                    30,
-                                                    vn_con_pc_to_base_fw_rate,
-                                                    vn_forward_points);
+            pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                        pd_trade_date,
+                                        cur_unrealized_rows.payment_due_date,
+                                        vc_con_pc_main_cur_id,
+                                        cur_unrealized_rows.base_cur_id,
+                                        30,
+                                        'sp_calc_phy_opencon_unreal_pnl Contract Penalty to Base Currency',
+                                        pc_process,
+                                        vn_con_pc_to_base_fw_rate,
+                                        vn_forward_points);
             vc_error_msg                := '10406';
             vn_base_con_penality_charge := round((vn_con_penality_charge *
                                                  vn_con_pc_to_base_fw_rate *
@@ -615,32 +617,19 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         vn_ele_m2m_amt := round(vn_ele_m2m_amt * vn_m2m_sub_cur_id_factor,
                                 vn_m2m_cur_decimals);
         vc_error_msg   := '10453';
-        pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
-                                                pd_trade_date,
-                                                cur_unrealized_rows.payment_due_date,
-                                                vc_m2m_cur_id,
-                                                cur_unrealized_rows.base_cur_id,
-                                                30,
-                                                vn_m2m_base_fx_rate,
-                                                vn_m2m_base_deviation);
+        pkg_general.sp_bank_fx_rate(cur_unrealized_rows.corporate_id,
+                                    pd_trade_date,
+                                    cur_unrealized_rows.payment_due_date,
+                                    vc_m2m_cur_id,
+                                    cur_unrealized_rows.base_cur_id,
+                                    30,
+                                    'sp_calc_phy_opencon_unreal_pnl M2M to Base Currency',
+                                    pc_process,
+                                    vn_m2m_base_fx_rate,
+                                    vn_m2m_base_deviation);
         if vc_m2m_cur_id <> cur_unrealized_rows.base_cur_id then
           if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 cur_unrealized_rows.base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_m2m_cur_code || ' (' ||
-                                                                 to_char(cur_unrealized_rows.payment_due_date,
-                                                                         'dd-Mon-yyyy') || ') ',
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
-          
+            null;
           else
             vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
                                       vn_m2m_base_fx_rate || ' ' ||
@@ -668,32 +657,20 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         vn_ele_m2m_amt := round(vn_ele_m2m_amt * vn_m2m_sub_cur_id_factor,
                                 vn_m2m_cur_decimals);
       
-        pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
-                                                pd_trade_date,
-                                                cur_unrealized_rows.payment_due_date,
-                                                vc_m2m_cur_id,
-                                                cur_unrealized_rows.base_cur_id,
-                                                30,
-                                                vn_m2m_base_fx_rate,
-                                                vn_m2m_base_deviation);
+        pkg_general.sp_bank_fx_rate(cur_unrealized_rows.corporate_id,
+                                    pd_trade_date,
+                                    cur_unrealized_rows.payment_due_date,
+                                    vc_m2m_cur_id,
+                                    cur_unrealized_rows.base_cur_id,
+                                    30,
+                                    'sp_calc_phy_opencon_unreal_pnl M2M to Base Currency',
+                                    pc_process,
+                                    vn_m2m_base_fx_rate,
+                                    vn_m2m_base_deviation);
         vc_error_msg := '10513';
         if vc_m2m_cur_id <> cur_unrealized_rows.base_cur_id then
           if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 cur_unrealized_rows.base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_m2m_cur_code || ' (' ||
-                                                                 to_char(cur_unrealized_rows.payment_due_date,
-                                                                         'dd-Mon-yyyy') || ') ',
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
+            null;
           else
             vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
                                       vn_m2m_base_fx_rate || ' ' ||
@@ -715,34 +692,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                          vc_m2m_tc_main_cur_code,
                                          vc_m2m_tc_main_cur_factor);
       if vc_m2m_tc_main_cur_id <> cur_unrealized_rows.base_cur_id then
-        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                pd_trade_date,
-                                                cur_unrealized_rows.payment_due_date,
-                                                cur_unrealized_rows.m2m_tc_cur_id,
-                                                cur_unrealized_rows.base_cur_id,
-                                                30,
-                                                vn_m2m_tc_to_base_fw_rate,
-                                                vn_forward_points);
-      
-        if vn_m2m_tc_to_base_fw_rate is null or
-           vn_m2m_tc_to_base_fw_rate = 0 then
-          vobj_error_log.extend;
-          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                               'PHY-005',
-                                                               cur_unrealized_rows.base_cur_code ||
-                                                               ' to ' ||
-                                                               vc_m2m_tc_main_cur_code || ' (' ||
-                                                               to_char(cur_unrealized_rows.payment_due_date,
-                                                                       'dd-Mon-yyyy') || ') ',
-                                                               '',
-                                                               pc_process,
-                                                               pc_user_id,
-                                                               sysdate,
-                                                               pd_trade_date);
-          sp_insert_error_log(vobj_error_log);
-        end if;
-      
+        pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                    pd_trade_date,
+                                    cur_unrealized_rows.payment_due_date,
+                                    cur_unrealized_rows.m2m_tc_cur_id,
+                                    cur_unrealized_rows.base_cur_id,
+                                    30,
+                                    'sp_calc_phy_opencon_unreal_pnl M2M TC to Base Currency',
+                                    pc_process,
+                                    vn_m2m_tc_to_base_fw_rate,
+                                    vn_forward_points);
       else
         vn_m2m_tc_to_base_fw_rate := 1;
       end if;
@@ -764,34 +723,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                          vc_m2m_rc_main_cur_code,
                                          vc_m2m_rc_main_cur_factor);
       if vc_m2m_rc_main_cur_id <> cur_unrealized_rows.base_cur_id then
-        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                pd_trade_date,
-                                                cur_unrealized_rows.payment_due_date,
-                                                cur_unrealized_rows.m2m_rc_cur_id,
-                                                cur_unrealized_rows.base_cur_id,
-                                                30,
-                                                vn_m2m_rc_to_base_fw_rate,
-                                                vn_forward_points);
-      
-        if vn_m2m_rc_to_base_fw_rate is null or
-           vn_m2m_rc_to_base_fw_rate = 0 then
-          vobj_error_log.extend;
-          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                               'PHY-005',
-                                                               cur_unrealized_rows.base_cur_code ||
-                                                               ' to ' ||
-                                                               vc_m2m_rc_main_cur_code || ' (' ||
-                                                               to_char(cur_unrealized_rows.payment_due_date,
-                                                                       'dd-Mon-yyyy') || ') ',
-                                                               '',
-                                                               pc_process,
-                                                               pc_user_id,
-                                                               sysdate,
-                                                               pd_trade_date);
-          sp_insert_error_log(vobj_error_log);
-        end if;
-      
+        pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                    pd_trade_date,
+                                    cur_unrealized_rows.payment_due_date,
+                                    cur_unrealized_rows.m2m_rc_cur_id,
+                                    cur_unrealized_rows.base_cur_id,
+                                    30,
+                                    'sp_calc_phy_opencon_unreal_pnl M2M RC to Base Currency',
+                                    pc_process,
+                                    vn_m2m_rc_to_base_fw_rate,
+                                    vn_forward_points);
       else
         vn_m2m_rc_to_base_fw_rate := 1;
       end if;
@@ -915,30 +856,20 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                                                               cur_unrealized_rows.payable_qty)) *
                                         vn_cont_price_cur_id_factor;
     
-      pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
-                                              pd_trade_date,
-                                              cur_unrealized_rows.payment_due_date,
-                                              vc_price_cur_id,
-                                              cur_unrealized_rows.base_cur_id,
-                                              30,
-                                              vn_fx_price_to_base,
-                                              vn_forward_exch_rate);
+      pkg_general.sp_bank_fx_rate(cur_unrealized_rows.corporate_id,
+                                  pd_trade_date,
+                                  cur_unrealized_rows.payment_due_date,
+                                  vc_price_cur_id,
+                                  cur_unrealized_rows.base_cur_id,
+                                  30,
+                                  'sp_calc_phy_opencon_unreal_pnl Price to Base Currency',
+                                  pc_process,
+                                  vn_fx_price_to_base,
+                                  vn_forward_exch_rate);
       vc_error_msg := '10680';
       if vc_price_cur_id <> cur_unrealized_rows.base_cur_id then
         if vn_fx_price_to_base is null or vn_fx_price_to_base = 0 then
-          vobj_error_log.extend;
-          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure sp_calc_phy_opencon_unreal_pnl',
-                                                               'PHY-005',
-                                                               cur_unrealized_rows.base_cur_code ||
-                                                               ' to ' ||
-                                                               vc_price_cur_code,
-                                                               '',
-                                                               pc_process,
-                                                               pc_user_id,
-                                                               sysdate,
-                                                               pd_trade_date);
-          sp_insert_error_log(vobj_error_log);
+          null;
         else
           vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
                                       vn_fx_price_to_base || ' ' ||
@@ -1447,17 +1378,11 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
     end;
   
     -- mark the trades came as new in this eod/eom
-  
-    begin
-      update poue_phy_open_unreal_element poue
-         set poue.cont_unr_status = 'NEW_TRADE'
-       where poue.cont_unr_status is null
-         and poue.process_id = pc_process_id
-         and poue.corporate_id = pc_corporate_id;
-    exception
-      when others then
-        dbms_output.put_line('SQLERRM-2' || sqlerrm);
-    end;
+    update poue_phy_open_unreal_element poue
+       set poue.cont_unr_status = 'NEW_TRADE'
+     where poue.cont_unr_status is null
+       and poue.process_id = pc_process_id
+       and poue.corporate_id = pc_corporate_id;
   
     update poue_phy_open_unreal_element poue
        set poue.trade_day_pnl_in_base_cur = round(nvl(poue.unrealized_pnl_in_base_cur,
@@ -3010,33 +2935,22 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           vn_m2m_amt := round(vn_m2m_amt * vn_m2m_sub_cur_id_factor,
                               cur_grd_rows.base_cur_decimal);
         
-          pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  nvl(vc_m2m_cur_id,
-                                                      cur_grd_rows.base_cur_id),
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_base_fx_rate,
-                                                  vn_m2m_base_deviation);
+          pkg_general.sp_bank_fx_rate(cur_grd_rows.corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      nvl(vc_m2m_cur_id,
+                                          cur_grd_rows.base_cur_id),
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      
+                                      'sp_stock_unreal_sntt_conc M2M to Base Currency',
+                                      pc_process,
+                                      vn_m2m_base_fx_rate,
+                                      vn_m2m_base_deviation);
           vc_error_msg := '18734';
           if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
             if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
-              vobj_error_log.extend;
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                   'PHY-005',
-                                                                   cur_grd_rows.base_cur_code ||
-                                                                   ' to ' ||
-                                                                   vc_m2m_cur_code || ' (' ||
-                                                                   to_char(cur_grd_rows.payment_due_date,
-                                                                           'dd-Mon-yyyy') || ') ',
-                                                                   '',
-                                                                   pc_process,
-                                                                   pc_user_id,
-                                                                   sysdate,
-                                                                   pd_trade_date);
-              sp_insert_error_log(vobj_error_log);
+              null;
             else
               vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
                                         vn_m2m_base_fx_rate || ' ' ||
@@ -3073,33 +2987,22 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           vn_m2m_amt := round(vn_m2m_amt * vn_m2m_sub_cur_id_factor,
                               cur_grd_rows.base_cur_decimal);
         
-          pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  nvl(vc_m2m_cur_id,
-                                                      cur_grd_rows.base_cur_id),
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_base_fx_rate,
-                                                  vn_m2m_base_deviation);
+          pkg_general.sp_bank_fx_rate(cur_grd_rows.corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      nvl(vc_m2m_cur_id,
+                                          cur_grd_rows.base_cur_id),
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      
+                                      'sp_stock_unreal_sntt_conc M2M to Base Currency',
+                                      pc_process,
+                                      vn_m2m_base_fx_rate,
+                                      vn_m2m_base_deviation);
         
           if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
             if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
-              vobj_error_log.extend;
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                   'PHY-005',
-                                                                   cur_grd_rows.base_cur_code ||
-                                                                   ' to ' ||
-                                                                   vc_m2m_cur_code || ' (' ||
-                                                                   to_char(cur_grd_rows.payment_due_date,
-                                                                           'dd-Mon-yyyy') || ') ',
-                                                                   '',
-                                                                   pc_process,
-                                                                   pc_user_id,
-                                                                   sysdate,
-                                                                   pd_trade_date);
-              sp_insert_error_log(vobj_error_log);
+              null;
             else
               vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
                                         vn_m2m_base_fx_rate || ' ' ||
@@ -3125,34 +3028,17 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                            vc_m2m_tc_main_cur_code,
                                            vc_m2m_tc_main_cur_factor);
         if vc_m2m_tc_main_cur_id <> cur_grd_rows.base_cur_id then
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  cur_grd_rows.m2m_tc_cur_id,
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_tc_to_base_fw_rate,
-                                                  vn_forward_points);
-        
-          if vn_m2m_tc_to_base_fw_rate is null or
-             vn_m2m_tc_to_base_fw_rate = 0 then
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 cur_grd_rows.base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_m2m_tc_main_cur_code || ' (' ||
-                                                                 to_char(cur_grd_rows.payment_due_date,
-                                                                         'dd-Mon-yyyy') || ') ',
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
-          end if;
-        
+          pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      cur_grd_rows.m2m_tc_cur_id,
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      
+                                      'sp_stock_unreal_sntt_conc M2M TC to Base Currency',
+                                      pc_process,
+                                      vn_m2m_tc_to_base_fw_rate,
+                                      vn_forward_points);
         else
           vn_m2m_tc_to_base_fw_rate := 1;
         end if;
@@ -3171,34 +3057,17 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                            vc_m2m_rc_main_cur_code,
                                            vc_m2m_rc_main_cur_factor);
         if vc_m2m_rc_main_cur_id <> cur_grd_rows.base_cur_id then
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  cur_grd_rows.m2m_rc_cur_id,
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_rc_to_base_fw_rate,
-                                                  vn_forward_points);
-        
-          if vn_m2m_rc_to_base_fw_rate is null or
-             vn_m2m_rc_to_base_fw_rate = 0 then
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 cur_grd_rows.base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_m2m_rc_main_cur_code || ' (' ||
-                                                                 to_char(cur_grd_rows.payment_due_date,
-                                                                         'dd-Mon-yyyy') || ') ',
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
-          end if;
-        
+          pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      cur_grd_rows.m2m_rc_cur_id,
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      
+                                      'sp_stock_unreal_sntt_conc M2M RC to Base Currency',
+                                      pc_process,
+                                      vn_m2m_rc_to_base_fw_rate,
+                                      vn_forward_points);
         else
           vn_m2m_rc_to_base_fw_rate := 1;
         end if;
@@ -3238,14 +3107,17 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                                vc_con_pc_main_cur_factor);
             if vc_conc_pc_main_cur_id <> cur_grd_rows.base_cur_id then
             
-              pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                      pd_trade_date,
-                                                      cur_grd_rows.payment_due_date,
-                                                      vc_conc_pc_main_cur_id,
-                                                      cur_grd_rows.base_cur_id,
-                                                      30,
-                                                      vn_con_pc_to_base_fw_rate,
-                                                      vn_forward_points);
+              pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                          pd_trade_date,
+                                          cur_grd_rows.payment_due_date,
+                                          vc_conc_pc_main_cur_id,
+                                          cur_grd_rows.base_cur_id,
+                                          30,
+                                          
+                                          'sp_stock_unreal_sntt_conc Contract PC to Base Currency',
+                                          pc_process,
+                                          vn_con_pc_to_base_fw_rate,
+                                          vn_forward_points);
               vn_base_con_penality_charge := round((vn_con_penality_charge *
                                                    vn_con_pc_to_base_fw_rate *
                                                    vc_con_pc_main_cur_factor),
@@ -3375,14 +3247,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         end if;
       
         if vc_price_cur_id <> cur_grd_rows.base_cur_id then
-          pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  vc_price_cur_id,
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_fx_price_to_base,
-                                                  vn_fx_price_deviation);
+          pkg_general.sp_bank_fx_rate(cur_grd_rows.corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      vc_price_cur_id,
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      'sp_stock_unreal_sntt_conc Price to Base Currency',
+                                      pc_process,
+                                      vn_fx_price_to_base,
+                                      vn_fx_price_deviation);
         else
           vn_fx_price_to_base := 1;
         end if;
@@ -3423,14 +3297,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                              vc_con_tc_main_cur_code,
                                              vc_con_tc_main_cur_factor);
         
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  vc_con_tc_main_cur_id,
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_con_tc_to_base_fw_rate,
-                                                  vn_forward_points);
+          pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      vc_con_tc_main_cur_id,
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      'sp_stock_unreal_sntt_conc Contract TC to Base Currency',
+                                      pc_process,
+                                      vn_con_tc_to_base_fw_rate,
+                                      vn_forward_points);
         
           vn_base_con_treatment_charge := round((vn_con_treatment_charge *
                                                 vn_con_tc_to_base_fw_rate *
@@ -3464,14 +3340,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                              vc_con_rc_main_cur_code,
                                              vc_con_rc_main_cur_factor);
         
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  vc_con_refine_cur_id,
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_con_rc_to_base_fw_rate,
-                                                  vn_forward_points);
+          pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      vc_con_refine_cur_id,
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      'sp_stock_unreal_sntt_conc Contract RC to Base Currency',
+                                      pc_process,
+                                      vn_con_rc_to_base_fw_rate,
+                                      vn_forward_points);
         
           vn_base_con_refine_charge := round((vn_con_refine_charge *
                                              vn_con_rc_to_base_fw_rate *
@@ -4025,7 +3903,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
        and psue.section_name = 'Shipped NTT';
   exception
     when others then
-      dbms_output.put_line('failed with ' || sqlerrm);
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_stock_unreal_sntt_conc ',
@@ -4120,7 +3997,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              tt.inventory_status,
              tt.shipment_status,
              'Stock In' section_name,
-             tt.price_basis,
              tt.shed_id,
              tt.destination_city_id,
              tt.price_fixation_status,
@@ -4134,7 +4010,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              tt.derivative_def_id,
              tt.is_voyage_gmr,
              tt.gmr_contract_type,
-             tt.int_alloc_group_id,
              tt.internal_grd_dgrd_ref_no,
              tt.stock_ref_no,
              tt.trader_id,
@@ -4180,7 +4055,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              tt.incoterm,
              tt.cp_id,
              tt.cp_name,
-             tt.delivery_month
+             tt.delivery_month,
+             tt.mc_per_unit,
+             tt.mc_price_unit_id,
+             tt.mc_price_unit_name,
+             tt.tc_per_unit,
+             tt.tc_price_unit_id,
+             tt.tc_price_unit_name,
+             tt.rc_per_unit,
+             tt.rc_price_unit_id,
+             tt.rc_price_unit_name
         from (select 'Purchase' section_type,
                      pcpd.profit_center_id profit_center,
                      cpc.profit_center_name,
@@ -4255,7 +4139,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      grd.inventory_status,
                      gsm.status shipment_status,
                      'STOCK IN' section_name,
-                     null price_basis,
                      gmr.shed_id,
                      gmr.destination_city_id,
                      null price_fixation_status,
@@ -4269,7 +4152,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.derivative_def_id,
                      nvl(gmr.is_voyage_gmr, 'N') is_voyage_gmr,
                      gmr.contract_type gmr_contract_type,
-                     null int_alloc_group_id,
                      grd.internal_grd_ref_no internal_grd_dgrd_ref_no,
                      grd.internal_stock_ref_no stock_ref_no,
                      pcm.trader_id,
@@ -4329,7 +4211,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                         pcdi.delivery_to_year
                        else
                         to_char(pcdi.delivery_to_date, 'Mon-YYYY')
-                     end) delivery_month
+                     end) delivery_month,
+                     invme.mc_per_unit,
+                     invme.mc_price_unit_id,
+                     invme.mc_price_unit_name,
+                     invme.tc_per_unit,
+                     invme.tc_price_unit_id,
+                     invme.tc_price_unit_name,
+                     invme.rc_per_unit,
+                     invme.rc_price_unit_id,
+                     invme.rc_price_unit_name
                 from gmr_goods_movement_record gmr,
                      grd_goods_record_detail grd,
                      pcm_physical_contract_main pcm,
@@ -4376,7 +4267,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      gscs_gmr_sec_cost_summary gscs,
                      invm_cog invm,
                      itm_incoterm_master itm,
-                     phd_profileheaderdetails phd_cp
+                     phd_profileheaderdetails phd_cp,
+                     invme_cog_element invme
                where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
@@ -4476,7 +4368,11 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and grd.internal_grd_ref_no = invm.internal_grd_ref_no
                  and grd.process_id = invm.process_id
                  and pcdb.inco_term_id = itm.incoterm_id
-                 and pcm.cp_id = phd_cp.profileid(+)) tt;
+                 and pcm.cp_id = phd_cp.profileid(+)
+                 and tmpc.element_id = ceqs.element_id
+                 and invme.process_id = pc_process_id
+                 and invme.internal_grd_ref_no = grd.internal_grd_ref_no
+                 and invme.element_id = ceqs.element_id) tt;
   
     vn_cont_price                  number;
     vc_cont_price_unit_id          varchar2(15);
@@ -4635,33 +4531,21 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           vn_m2m_amt := round(vn_m2m_amt * vn_m2m_sub_cur_id_factor,
                               cur_grd_rows.base_cur_decimal);
         
-          pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  nvl(vc_m2m_cur_id,
-                                                      cur_grd_rows.base_cur_id),
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_base_fx_rate,
-                                                  vn_m2m_base_deviation);
+          pkg_general.sp_bank_fx_rate(cur_grd_rows.corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      nvl(vc_m2m_cur_id,
+                                          cur_grd_rows.base_cur_id),
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      'sp_stock_unreal_inv_in_conc M2M to Base',
+                                      pc_process,
+                                      vn_m2m_base_fx_rate,
+                                      vn_m2m_base_deviation);
           vc_error_msg := '18734';
           if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
             if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
-              vobj_error_log.extend;
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                   'PHY-005',
-                                                                   cur_grd_rows.base_cur_code ||
-                                                                   ' to ' ||
-                                                                   vc_m2m_cur_code || ' (' ||
-                                                                   to_char(cur_grd_rows.payment_due_date,
-                                                                           'dd-Mon-yyyy') || ') ',
-                                                                   '',
-                                                                   pc_process,
-                                                                   pc_user_id,
-                                                                   sysdate,
-                                                                   pd_trade_date);
-              sp_insert_error_log(vobj_error_log);
+              null;
             else
               vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
                                         vn_m2m_base_fx_rate || ' ' ||
@@ -4698,33 +4582,21 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           vn_m2m_amt := round(vn_m2m_amt * vn_m2m_sub_cur_id_factor,
                               cur_grd_rows.base_cur_decimal);
         
-          pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  nvl(vc_m2m_cur_id,
-                                                      cur_grd_rows.base_cur_id),
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_base_fx_rate,
-                                                  vn_m2m_base_deviation);
+          pkg_general.sp_bank_fx_rate(cur_grd_rows.corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      nvl(vc_m2m_cur_id,
+                                          cur_grd_rows.base_cur_id),
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      'sp_stock_unreal_inv_in_conc M2M to Base',
+                                      pc_process,
+                                      vn_m2m_base_fx_rate,
+                                      vn_m2m_base_deviation);
         
           if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
             if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
-              vobj_error_log.extend;
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                   'PHY-005',
-                                                                   cur_grd_rows.base_cur_code ||
-                                                                   ' to ' ||
-                                                                   vc_m2m_cur_code || ' (' ||
-                                                                   to_char(cur_grd_rows.payment_due_date,
-                                                                           'dd-Mon-yyyy') || ') ',
-                                                                   '',
-                                                                   pc_process,
-                                                                   pc_user_id,
-                                                                   sysdate,
-                                                                   pd_trade_date);
-              sp_insert_error_log(vobj_error_log);
+              null;
             else
               vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
                                         vn_m2m_base_fx_rate || ' ' ||
@@ -4750,34 +4622,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                            vc_m2m_tc_main_cur_code,
                                            vc_m2m_tc_main_cur_factor);
         if vc_m2m_tc_main_cur_id <> cur_grd_rows.base_cur_id then
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  cur_grd_rows.m2m_tc_cur_id,
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_tc_to_base_fw_rate,
-                                                  vn_forward_points);
-        
-          if vn_m2m_tc_to_base_fw_rate is null or
-             vn_m2m_tc_to_base_fw_rate = 0 then
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 cur_grd_rows.base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_m2m_tc_main_cur_code || ' (' ||
-                                                                 to_char(cur_grd_rows.payment_due_date,
-                                                                         'dd-Mon-yyyy') || ') ',
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
-          end if;
-        
+          pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      cur_grd_rows.m2m_tc_cur_id,
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      'sp_stock_unreal_inv_in_conc M2M TC to Base',
+                                      pc_process,
+                                      vn_m2m_tc_to_base_fw_rate,
+                                      vn_forward_points);
         else
           vn_m2m_tc_to_base_fw_rate := 1;
         end if;
@@ -4804,34 +4658,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                            vc_m2m_rc_main_cur_code,
                                            vc_m2m_rc_main_cur_factor);
         if vc_m2m_rc_main_cur_id <> cur_grd_rows.base_cur_id then
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  cur_grd_rows.m2m_rc_cur_id,
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_rc_to_base_fw_rate,
-                                                  vn_forward_points);
-        
-          if vn_m2m_rc_to_base_fw_rate is null or
-             vn_m2m_rc_to_base_fw_rate = 0 then
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 cur_grd_rows.base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_m2m_rc_main_cur_code || ' (' ||
-                                                                 to_char(cur_grd_rows.payment_due_date,
-                                                                         'dd-Mon-yyyy') || ') ',
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
-          end if;
-        
+          pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                      pd_trade_date,
+                                      cur_grd_rows.payment_due_date,
+                                      cur_grd_rows.m2m_rc_cur_id,
+                                      cur_grd_rows.base_cur_id,
+                                      30,
+                                      'sp_stock_unreal_inv_in_conc M2M RC to Base',
+                                      pc_process,
+                                      vn_m2m_rc_to_base_fw_rate,
+                                      vn_forward_points);
         else
           vn_m2m_rc_to_base_fw_rate := 1;
         end if;
@@ -4992,6 +4828,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
          payable_qty_unit,
          contract_price,
          price_unit_id,
+         price_unit_name,
          price_unit_cur_id,
          price_unit_cur_code,
          price_unit_weight_unit_id,
@@ -5048,13 +4885,14 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
          cur_grd_rows.payable_qty,
          cur_grd_rows.payable_qty_unit_id,
          cur_grd_rows.payable_qty_unit,
-         vn_cont_price,
-         vc_cont_price_unit_id,
-         vc_cont_price_unit_cur_id,
-         vc_cont_price_unit_cur_code,
-         vc_cont_price_wt_unit_id,
-         vn_cont_price_wt,
-         vc_cont_price_wt_unit,
+         cur_grd_rows.mc_per_unit, -- vn_cont_price
+         cur_grd_rows.mc_price_unit_id, --vc_cont_price_unit_id,
+         cur_grd_rows.mc_price_unit_name,
+         null, --vc_cont_price_unit_cur_id,
+         null, --vc_cont_price_unit_cur_code,
+         null, --vc_cont_price_wt_unit_id,
+         null, --vn_cont_price_wt,
+         null, --vc_cont_price_wt_unit,
          cur_grd_rows.md_id,
          cur_grd_rows.net_m2m_price,
          cur_grd_rows.m2m_price_unit_cur_id,
@@ -5070,7 +4908,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
          cur_grd_rows.price_description,
          cur_grd_rows.m2m_price_unit_id,
          cur_grd_rows.m2m_price_unit_str,
-         vn_m2m_amt, --m2m_amt
+         vn_m2m_amt,
          cur_grd_rows.base_cur_id,
          cur_grd_rows.base_cur_code,
          vn_contract_value_in_price_cur,
@@ -5078,12 +4916,12 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
          vc_price_cur_code,
          0, -- contract_value_in_base_cur ,
          vn_ele_qty_in_base,
-         vn_ele_m2m_total_amount, --total_m2m_amount,
-         vn_ele_m2m_amt_per_unit, --m2m_amt_per_unit,
-         vn_fx_price_to_base, --price_cur_to_base_cur_fx_rate,   
-         vn_m2m_base_fx_rate, --m2m_cur_to_base_cur_fx_rate,
-         cur_grd_rows.base_price_unit_id_in_ppu, --base_price_unit_id_in_ppu,
-         cur_grd_rows.base_price_unit_id_in_pum, --base_price_unit_id_in_pum)*/
+         vn_ele_m2m_total_amount,
+         vn_ele_m2m_amt_per_unit,
+         vn_fx_price_to_base,
+         vn_m2m_base_fx_rate,
+         cur_grd_rows.base_price_unit_id_in_ppu,
+         cur_grd_rows.base_price_unit_id_in_pum,
          cur_grd_rows.valuation_against_underlying,
          cur_grd_rows.internal_grd_dgrd_ref_no,
          vc_price_to_base_fw_rate,
@@ -5144,9 +4982,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
            warehouse_name,
            shed_id,
            shed_name,
-           int_alloc_group_id,
            internal_grd_dgrd_ref_no,
-           price_type_id,
            fixation_method,
            price_fixation_details,
            stock_ref_no,
@@ -5242,9 +5078,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
            null, --warehouse_name,
            null, --shed_id,
            null, --shed_name
-           cur_grd_rows.int_alloc_group_id,
            cur_grd_rows.internal_grd_dgrd_ref_no,
-           cur_grd_rows.price_basis,
            vc_price_fixation_status,
            cur_grd_rows.price_fixation_details,
            cur_grd_rows.stock_ref_no,
@@ -5254,7 +5088,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
            null, --contract_price_string,  
            null, --m2m_price_string,   
            null, --m2m_rc_tc_string,
-           vn_m2m_total_penality, --m2m_penalty_charge,--Not sure why this is pushed here
+           vn_m2m_total_penality,
            null, --m2m_treatment_charge,
            null, --m2m_refining_charge,
            vn_loc_total_amount, --m2m_loc_diff_premium,
@@ -5308,9 +5142,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                          psue.payable_qty_unit) contract_qty_string,
                                   stragg(psue.element_name || '-' ||
                                          psue.contract_price || ' ' ||
-                                         psue.price_unit_cur_code || '/' ||
-                                         psue.price_unit_weight ||
-                                         psue.price_unit_weight_unit) contract_price_string,
+                                         psue.price_unit_name) contract_price_string,
                                   (case
                                      when psue.valuation_against_underlying = 'N' then
                                       max((case
@@ -5346,7 +5178,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                               and psue.process_id = pc_process_id
                               and psueh.process_id = pc_process_id
                               and psueh.psu_id = psue.psu_id
-                              and psueh.section_name = 'STOCK IN'
+                              and psueh.section_name = 'Stock In'
                             group by psue.psu_id,
                                      psue.valuation_against_underlying)
     loop
@@ -5361,7 +5193,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              psuee.contract_qty_string   = cur_update_pnl.contract_qty_string
        where psuee.psu_id = cur_update_pnl.psu_id
          and psuee.process_id = pc_process_id
-         and psuee.corporate_id = pc_corporate_id;
+         and psuee.corporate_id = pc_corporate_id
+         and psuee.section_name = 'Stock In';
     end loop;
   
     update psue_phy_stock_unrealized_ele psuee
@@ -5443,8 +5276,12 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
        and psue.section_name = 'Stock In';
     -- Calculate PNL in Base Currency = MC - TC - RC - PC + SC ( +- M2M)
     update psue_phy_stock_unrealized_ele psue
-       set psue.pnl_in_base_cur      = case when psue.contract_type = 'P' then psue.net_m2m_amount_in_base_cur - (psue.material_cost_in_base_cur - psue.contract_tc_in_base_cur - psue.contract_rc_in_base_cur - psue.contract_pc_in_base_cur + psue.sc_in_base_cur) else(psue.material_cost_in_base_cur - psue.contract_tc_in_base_cur - psue.contract_rc_in_base_cur - psue.contract_pc_in_base_cur + psue.sc_in_base_cur) - psue.net_m2m_amount_in_base_cur end,
-           psue.pnl_in_per_base_unit = (case when psue.contract_type = 'P' then psue.net_m2m_amount_in_base_cur - (psue.material_cost_in_base_cur - psue.contract_tc_in_base_cur - psue.contract_rc_in_base_cur - psue.contract_pc_in_base_cur + psue.sc_in_base_cur) else(psue.material_cost_in_base_cur - psue.contract_tc_in_base_cur - psue.contract_rc_in_base_cur - psue.contract_pc_in_base_cur + psue.sc_in_base_cur) - psue.net_m2m_amount_in_base_cur end) / psue.qty_in_base_unit
+       set psue.net_contract_value_in_base_cur = psue.contract_tc_in_base_cur -
+                                                 psue.contract_rc_in_base_cur -
+                                                 psue.contract_pc_in_base_cur +
+                                                 psue.sc_in_base_cur,
+           psue.pnl_in_base_cur                = case when psue.contract_type = 'P' then psue.net_m2m_amount_in_base_cur - (psue.material_cost_in_base_cur - psue.contract_tc_in_base_cur - psue.contract_rc_in_base_cur - psue.contract_pc_in_base_cur + psue.sc_in_base_cur) else(psue.material_cost_in_base_cur - psue.contract_tc_in_base_cur - psue.contract_rc_in_base_cur - psue.contract_pc_in_base_cur + psue.sc_in_base_cur) - psue.net_m2m_amount_in_base_cur end,
+           psue.pnl_in_per_base_unit           = (case when psue.contract_type = 'P' then psue.net_m2m_amount_in_base_cur - (psue.material_cost_in_base_cur - psue.contract_tc_in_base_cur - psue.contract_rc_in_base_cur - psue.contract_pc_in_base_cur + psue.sc_in_base_cur) else(psue.material_cost_in_base_cur - psue.contract_tc_in_base_cur - psue.contract_rc_in_base_cur - psue.contract_pc_in_base_cur + psue.sc_in_base_cur) - psue.net_m2m_amount_in_base_cur end) / psue.qty_in_base_unit
      where psue.process_id = pc_process_id
        and psue.corporate_id = pc_corporate_id
        and psue.section_name = 'Stock In';
@@ -5490,9 +5327,25 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                 and psue.process_id = pc_process_id)
      where psue.process_id = pc_process_id
        and psue.section_name = 'Stock In';
+    --
+    -- Update Price String from CIPDE
+    --   
+    for cur_price_string in (select cipde.internal_contract_item_ref_no,
+                                    stragg(cipde.price_description) price_description,
+                                    stragg(cipde.price_fixation_details) price_fixation_details
+                               from cipde_cipd_element_price cipde
+                              where cipde.process_id = pc_process_id
+                              group by cipde.internal_contract_item_ref_no)
+    loop
+      update psue_phy_stock_unrealized_ele psu
+         set psu.price_description      = cur_price_string.price_description,
+             psu.price_fixation_details = cur_price_string.price_fixation_details
+       where psu.process_id = pc_process_id
+         and psu.internal_contract_item_ref_no =
+             cur_price_string.internal_contract_item_ref_no;
+    end loop;
   exception
     when others then
-      dbms_output.put_line('failed with ' || sqlerrm);
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_stock_unreal_inv_in_conc ',
