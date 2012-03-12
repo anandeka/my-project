@@ -1,0 +1,1 @@
+alter table SCM_STOCK_COST_MAPPING add (PARENT_SCM_ID varchar2(15));
