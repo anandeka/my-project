@@ -58,7 +58,7 @@ select 'Event Based Pricing based on Shipment' section_name,
    and pcm.corporate_id = akc.corporate_id
    and pofh.internal_gmr_ref_no = sac.internal_gmr_ref_no
    and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and pofh.final_price is not null
+   and pofh.final_price is null
    and sac.grd_qty_unit_id = qum.qty_unit_id
    and pocd.qty_to_be_fixed_unit_id = qum_aml.qty_unit_id
    and gmr.internal_gmr_ref_no = v_gmr.internal_gmr_ref_no
@@ -87,8 +87,8 @@ select 'Pricing based Pre-defined QP' section_name,
        akc.corporate_name,
        pcm.contract_ref_no,
        pcm.contract_ref_no || '-' || pcdi.delivery_item_no contract_item_ref_no,
-       gmr.internal_gmr_ref_no,
-       gmr.gmr_ref_no,
+       null internal_gmr_ref_no,
+       null gmr_ref_no,
        pcdi.pcdi_id,
        pofh.pofh_id,
        pocd.pocd_id,
@@ -122,7 +122,6 @@ select 'Pricing based Pre-defined QP' section_name,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
        v_gmr_assay_finalized_status   v_gmr,
-       gmr_goods_movement_record      gmr,
        diqs_delivery_item_qty_status diqs,
        qum_quantity_unit_master       qum,
        phd_profileheaderdetails       phd,
@@ -139,12 +138,11 @@ select 'Pricing based Pre-defined QP' section_name,
    and poch.pcdi_id = pcdi.pcdi_id
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.corporate_id = akc.corporate_id
-   and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and pofh.final_price is not null
+   and pofh.internal_gmr_ref_no = v_gmr.internal_gmr_ref_no
+   and pofh.final_price is null
    and pcdi.pcdi_id = diqs.pcdi_id
    and diqs.item_qty_unit_id = qum.qty_unit_id
    and pocd.qty_to_be_fixed_unit_id = qum_aml.qty_unit_id
-   and gmr.internal_gmr_ref_no = v_gmr.internal_gmr_ref_no
    and pcm.cp_id = phd.profileid
    and poch.element_id = aml.attribute_id
    and pcdi.pcdi_id = dipch.pcdi_id
