@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_0523
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  12-Mar-2012
+
+Bug / Enhancement*      :  Bug
+ 
+Bug ID*            		:  62192,60694
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 	:  Logistics
+
+Sub-Module  			:  Tolling
+ 
+Section   		   	 	:  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 89338
+Author: babulal.meena
+Date: 5:28:02 PM, Monday, March 12, 2012
+Message:
+List of Tolling GMR query made as View...Still need to do Query tuning
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_TOLLING_GMR.sql
