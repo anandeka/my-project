@@ -49,7 +49,7 @@ select mat_temp.unique_id,
                retn_temp.activity_date,
                retn_temp.assay_content
           from (select spq.spq_id unique_id,
-                       axs.corporate_id,
+                       spq.corporate_id,
                        pci.internal_contract_ref_no,
                        pci.contract_ref_no,
                        pci.internal_contract_item_ref_no,
@@ -63,61 +63,36 @@ select mat_temp.unique_id,
                        spq.activity_action_id,
                        spq.supplier_id,
                        '' to_supplier_id,
-                       product_temp.underlying_product_id product_id,
-                       product_temp.product_desc product_name,
+                       bvc_product.base_product_id product_id,
+                       bvc_product.base_product_name product_name,
                        spq.payable_qty qty,
                        spq.qty_unit_id qty_unit_id,
                        axs.internal_action_ref_no,
                        axs.eff_date activity_date,
                        spq.assay_content
-                  from spq_stock_payable_qty spq,
-                       grd_goods_record_detail grd,
-                       v_pci pci,
-                       gmr_goods_movement_record gmr,
-                       axs_action_summary axs,
-                       (select aml.attribute_id,
-                               aml.attribute_name,
-                               qav.quality_id quality_id,
-                               qat.long_desc,
-                               qav.comp_quality_id comp_quality_id,
-                               aml.underlying_product_id underlying_product_id,
-                               pdm.product_desc,
-                               ppm.product_id
-                          from aml_attribute_master_list      aml,
-                               ppm_product_properties_mapping ppm,
-                               qav_quality_attribute_values   qav,
-                               qat_quality_attributes         qat,
-                               pdm_productmaster              pdm
-                         where aml.attribute_id = ppm.attribute_id
-                           and aml.is_active = 'Y'
-                           and aml.is_deleted = 'N'
-                           and ppm.is_active = 'Y'
-                           and ppm.is_deleted = 'N'
-                           and qav.attribute_id = ppm.property_id
-                           and qav.is_deleted = 'N'
-                           and qat.quality_id = qav.quality_id
-                           and qat.product_id = ppm.product_id
-                           and qat.is_active = 'Y'
-                           and qat.is_deleted = 'N'
-                           and aml.underlying_product_id is not null
-                           and qav.comp_quality_id is not null
-                           and pdm.product_id = aml.underlying_product_id) product_temp
+                  from spq_stock_payable_qty       spq,
+                       grd_goods_record_detail     grd,
+                       v_pci                       pci,
+                       gmr_goods_movement_record   gmr,
+                       axs_action_summary          axs,
+                       v_list_base_vs_conc_product bvc_product
                  where spq.internal_action_ref_no =
                        axs.internal_action_ref_no
                    and spq.smelter_id is null
                    and spq.is_active = 'Y'
                    and spq.is_stock_split = 'N'
                    and spq.qty_type = 'Returnable'
-                   and product_temp.attribute_id = spq.element_id
-                   and product_temp.product_id = grd.product_id
-                   and product_temp.quality_id = grd.quality_id
+                   and bvc_product.element_id = spq.element_id
+                   and bvc_product.product_id = grd.product_id
+                   and bvc_product.quality_id = grd.quality_id
                    and grd.internal_grd_ref_no = spq.internal_grd_ref_no
                    and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
                    and pci.internal_contract_item_ref_no =
                        grd.internal_contract_item_ref_no
+                
                 union
                 select prrqs.prrqs_id unique_id,
-                       axs.corporate_id,
+                       prrqs.corporate_id,
                        pci.internal_contract_ref_no internal_contract_ref_no,
                        pci.contract_ref_no contract_ref_no,
                        grd.internal_contract_item_ref_no internal_contract_item_ref_no,
@@ -157,9 +132,10 @@ select mat_temp.unique_id,
                    and pdm.product_id = prrqs.product_id
                    and prrqs.activity_action_id in
                        ('pledgeTransfer', 'financialSettlement')
+                
                 union
                 select prrqs.prrqs_id unique_id,
-                       axs.corporate_id,
+                       prrqs.corporate_id,
                        pci.internal_contract_ref_no internal_contract_ref_no,
                        pci.contract_ref_no contract_ref_no,
                        dgrd.internal_contract_item_ref_no internal_contract_item_ref_no,
@@ -198,10 +174,10 @@ select mat_temp.unique_id,
                    and prrqs.qty_type = 'Returnable'
                    and pdm.product_id = prrqs.product_id
                    and prrqs.activity_action_id = 'financialSettlement'
-
+                
                 union
                 select prrqs.prrqs_id unique_id,
-                       axs.corporate_id,
+                       prrqs.corporate_id,
                        '' internal_contract_ref_no,
                        '' contract_ref_no,
                        '' internal_contract_item_ref_no,
@@ -234,7 +210,7 @@ select mat_temp.unique_id,
                    and prrqs.activity_action_id = 'metalBalanceTransfer') retn_temp
         union
         select prrqs.prrqs_id unique_id,
-               axs.corporate_id,
+               prrqs.corporate_id,
                '' internal_contract_ref_no,
                '' contract_ref_no,
                '' internal_contract_item_ref_no,
@@ -282,4 +258,3 @@ select mat_temp.unique_id,
    and qum.qty_unit_id = mat_temp.debt_qty_unit_id
    and ash_temp.internal_grd_ref_no(+) = mat_temp.stock_id
  order by mat_temp.activity_date desc
-
