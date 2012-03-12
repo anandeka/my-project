@@ -359,10 +359,10 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_calc_m2m_conc_cost');
     vc_err_msg := 'Before calc m2m conc  cost ';
-    sp_calc_m2m_conc_cost(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          pc_user_id);
+    /*sp_calc_m2m_conc_cost(pc_corporate_id,
+    pd_trade_date,
+    pc_process_id,
+    pc_user_id);*/
     ----
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -376,10 +376,10 @@ create or replace package body pkg_phy_physical_process is
                           'sp_calc_m2m_tolling_extn_cost');
     vc_err_msg := 'Before call of sp_calc_m2m_tolling_extn_cost';
   
-    sp_calc_m2m_tolling_extn_cost(pc_corporate_id,
-                                  pd_trade_date,
-                                  pc_process_id,
-                                  pc_user_id);
+    /*sp_calc_m2m_tolling_extn_cost(pc_corporate_id,
+    pd_trade_date,
+    pc_process_id,
+    pc_user_id);*/
     ---
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -648,7 +648,7 @@ create or replace package body pkg_phy_physical_process is
                                                pc_process_id);
   
     -- Concentrate PNL Call Start
-    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+    /*if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
     end if;
@@ -659,7 +659,7 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_calc_phy_opencon_unreal_pnl');
     vc_err_msg := 'Before sp_calc_phy_opencon_unreal_pnl';
-  
+    
     pkg_phy_conc_unrealized_pnl.sp_calc_phy_opencon_unreal_pnl(pc_corporate_id,
                                                                pd_trade_date,
                                                                pc_process_id,
@@ -667,7 +667,7 @@ create or replace package body pkg_phy_physical_process is
                                                                pc_user_id,
                                                                pc_process,
                                                                gvc_previous_process_id);
-  
+    
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -697,13 +697,13 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_stock_unreal_inv_in_conc');
     vc_err_msg := 'Before sp_stock_unreal_inv_in_conc';
-  
+    
     pkg_phy_conc_unrealized_pnl.sp_stock_unreal_inv_in_conc(pc_corporate_id,
                                                             pd_trade_date,
                                                             pc_process_id,
                                                             pc_user_id,
                                                             pc_process,
-                                                            gvc_previous_process_id);
+                                                            gvc_previous_process_id);*/
   
     -- Concentrate PNL Call End
     -- Trade PNL 

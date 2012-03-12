@@ -14,7 +14,7 @@ create or replace package pkg_phy_calculate_cog is
                                  pc_user_id      varchar2,
                                  pd_trade_date   date,
                                  pc_process      varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_calculate_cog is
   procedure sp_calc_invm_cog(pc_corporate_id varchar2,
@@ -29,7 +29,7 @@ create or replace package body pkg_phy_calculate_cog is
     vn_qty_conv_stock_to_base     number;
     vn_fw_exch_rate_trans_to_base number;
     vn_forward_points             number;
-    vc_exch_rate_string           varchar2(100);
+    vc_exch_rate_string           varchar2(25);
   begin
   
     insert into tinvp_temp_invm_cog
@@ -161,6 +161,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.reversal_type = 'CONTRACT'
          and cs.acc_original_accrual = 'Y'
          and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -248,6 +249,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_original_accrual = 'Y'
          and cs.acc_under_accrual = 'Y'
          and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -355,6 +357,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_original_accrual = 'Y'
          and cs.acc_under_accrual = 'Y'
          and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -458,6 +461,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.reversal_type = 'CONTRACT'
          and cs.acc_direct_actual = 'Y'
          and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -554,7 +558,17 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.reversal_type = 'CONTRACT'
          and cs.acc_original_accrual = 'Y'
          and cs.acc_over_accrual = 'Y'
-         and cs.income_expense = 'Expense';
+         and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling';
+
+-- Delete Concentrate contracts
+delete from tinvp_temp_invm_cog t
+ where t.process_id = pc_process_id
+   and t.product_id in
+       (select pdm.product_id
+          from pdm_productmaster pdm
+         where pdm.product_type_id = 'Composite');
+
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -640,48 +654,16 @@ create or replace package body pkg_phy_calculate_cog is
                                     cm_base.cur_code,
                                     cm_trans.cur_code)
     loop
-      pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                              pd_trade_date,
-                                              pd_trade_date,
-                                              cur_exch_rate.transaction_amt_main_cur_id,
-                                              cur_exch_rate.base_cur_id,
-                                              30,
-                                              vn_fw_exch_rate_trans_to_base,
-                                              vn_forward_points);
-    
-      if vn_fw_exch_rate_trans_to_base is null or
-         vn_fw_exch_rate_trans_to_base = 0 then
-        vc_error_msg := '3';
-        vobj_error_log.extend;
-        vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                             'procedure pkg_phy_physical_process-sp cog',
-                                                             'PHY-005',
-                                                             cur_exch_rate.base_cur_code ||
-                                                             ' to ' ||
-                                                             cur_exch_rate.transaction_amt_main_cur_code || ' (' ||
-                                                             to_char(pd_trade_date,
-                                                                     'dd-Mon-yyyy') || ') ',
-                                                             '',
-                                                             pc_process,
-                                                             pc_user_id,
-                                                             sysdate,
-                                                             pd_trade_date);
-        sp_insert_error_log(vobj_error_log);
-      
-      else
-        vc_error_msg        := '4';
-        vc_exch_rate_string := '1 ' ||
-                               cur_exch_rate.transaction_amt_main_cur_code || '=' ||
-                               vn_fw_exch_rate_trans_to_base || ' ' ||
-                               cur_exch_rate.base_cur_code;
-        update tinvp_temp_invm_cog t
-           set t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base--,trans_to_base_fw_exch_rate      = vc_exch_rate_string
-         where t.transaction_amt_main_cur_id =
-               cur_exch_rate.transaction_amt_main_cur_id
-           and t.base_cur_id = cur_exch_rate.base_cur_id
-           and t.process_id = pc_process_id;
-      end if;
-    
+      pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                  pd_trade_date,
+                                  pd_trade_date,
+                                  cur_exch_rate.transaction_amt_main_cur_id,
+                                  cur_exch_rate.base_cur_id,
+                                  30,
+                                  'procedure pkg_phy_calculate_cog.sp_calc_invm_cog',
+                                  pc_process,
+                                  vn_fw_exch_rate_trans_to_base,
+                                  vn_forward_points);
     end loop;
   
     --
@@ -708,6 +690,9 @@ create or replace package body pkg_phy_calculate_cog is
        secondary_cost_per_unit,
        product_premium_per_unit,
        quality_premium_per_unit,
+       tc_charges_per_unit,
+       rc_charges_per_unit,
+       pc_charges_per_unit,
        total_mc_charges,
        total_tc_charges,
        total_rc_charges,
@@ -733,6 +718,9 @@ create or replace package body pkg_phy_calculate_cog is
              nvl(sum(secondary_cost_per_unit), 0),
              nvl(sum(product_premium_per_unit), 0),
              nvl(sum(quality_premium_per_unit), 0),
+             nvl(sum(tc_charges_per_unit), 0),
+             nvl(sum(rc_charges_per_unit), 0),
+             nvl(sum(pc_charges_per_unit), 0),
              nvl(sum(total_mc_charges), 0),
              nvl(sum(total_tc_charges), 0),
              nvl(sum(total_rc_charges), 0),
@@ -830,6 +818,24 @@ create or replace package body pkg_phy_calculate_cog is
                      end as total_tc_charges,
                      case
                        when t.cost_type = 'Treatment Charges' then
+                        t.avg_cost
+                       else
+                        0
+                     end as tc_charges_per_unit,
+                     case
+                       when t.cost_type = 'Refining Charges' then
+                        t.avg_cost
+                       else
+                        0
+                     end as rc_charges_per_unit,
+                     case
+                       when t.cost_type = 'Penalties' then
+                        t.avg_cost
+                       else
+                        0
+                     end as pc_charges_per_unit,
+                     case
+                       when t.cost_type = 'Treatment Charges' then
                         t.trans_to_base_fw_exch_rate
                        else
                         null
@@ -875,6 +881,91 @@ create or replace package body pkg_phy_calculate_cog is
                 price_unit_weight_unit_id,
                 price_unit_weight_unit,
                 weight;
+    -- Insert Element Price/TC/RC Details
+    insert into invme_cog_element
+      (process_id,
+       internal_grd_ref_no,
+       element_id,
+       mc_per_unit,
+       mc_price_unit_id,
+       tc_per_unit,
+       tc_price_unit_id,
+       rc_per_unit,
+       rc_price_unit_id)
+      select pc_process_id,
+             t.internal_grd_ref_no,
+             t.element_id,
+             sum(mc_per_unit),
+             max(mc_price_unit_id),
+             nvl(sum(tc_per_unit), 0),
+             max(tc_price_unit_id),
+             nvl(sum(rc_per_unit), 0),
+             max(rc_price_unit_id)
+        from (select pc_process_id,
+                     t.internal_grd_ref_no,
+                     ecs.element_id,
+                     case
+                       when t.cost_type = 'Price' then
+                        ecs.cost_value
+                       else
+                        0
+                     end mc_per_unit,
+                     case
+                       when t.cost_type = 'Price' then
+                        ecs.rate_price_unit_id
+                       else
+                        null
+                     end mc_price_unit_id,
+                     case
+                       when t.cost_type = 'Treatment Charges' then
+                        ecs.cost_value
+                       else
+                        null
+                     end tc_per_unit,
+                     case
+                       when t.cost_type = 'Treatment Charges' then
+                        ecs.rate_price_unit_id
+                       else
+                        null
+                     end tc_price_unit_id,
+                     case
+                       when t.cost_type = 'Refining Charges' then
+                        ecs.cost_value
+                       else
+                        null
+                     end rc_per_unit,
+                     case
+                       when t.cost_type = 'Refining Charges' then
+                        ecs.rate_price_unit_id
+                       else
+                        null
+                     end rc_price_unit_id
+                from tinvp_temp_invm_cog    t,
+                     ecs_element_cost_store ecs
+               where t.process_id = pc_process_id
+                 and ecs.process_id = pc_process_id
+                 and t.internal_cost_id = ecs.internal_cost_id
+                 and t.cost_type <> 'Secondary Cost') t
+       group by t.internal_grd_ref_no,
+                t.element_id;
+    update invme_cog_element t
+       set t.mc_price_unit_name = (select ppu.price_unit_name
+                                     from v_ppu_pum ppu
+                                    where ppu.product_price_unit_id =
+                                          t.mc_price_unit_id);
+  
+    update invme_cog_element t
+       set t.tc_price_unit_name = (select ppu.price_unit_name
+                                     from v_ppu_pum ppu
+                                    where ppu.product_price_unit_id =
+                                          t.tc_price_unit_id);
+  
+    update invme_cog_element t
+       set t.rc_price_unit_name = (select ppu.price_unit_name
+                                     from v_ppu_pum ppu
+                                    where ppu.product_price_unit_id =
+                                          t.rc_price_unit_id);
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -1051,6 +1142,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.reversal_type = 'CONTRACT'
          and cs.acc_original_accrual = 'Y'
          and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -1148,6 +1240,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_original_accrual = 'Y'
          and cs.acc_under_accrual = 'Y'
          and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -1265,6 +1358,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_original_accrual = 'Y'
          and cs.acc_under_accrual = 'Y'
          and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -1377,6 +1471,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.reversal_type = 'CONTRACT'
          and cs.acc_direct_actual = 'Y'
          and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -1482,7 +1577,16 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.reversal_type = 'CONTRACT'
          and cs.acc_original_accrual = 'Y'
          and cs.acc_over_accrual = 'Y'
-         and cs.income_expense = 'Expense';
+         and cs.income_expense = 'Expense'
+         and grd.tolling_stock_type = 'None Tolling';
+-- Delete Concentrate contracts
+delete from tinvs_temp_invm_cogs t
+ where t.process_id = pc_process_id
+   and t.product_id in
+       (select pdm.product_id
+          from pdm_productmaster pdm
+         where pdm.product_type_id = 'Composite');
+                  
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -1568,49 +1672,16 @@ create or replace package body pkg_phy_calculate_cog is
                                     cm_base.cur_code,
                                     cm_trans.cur_code)
     loop
-      pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                              pd_trade_date,
-                                              pd_trade_date,
-                                              cur_exch_rate.transaction_amt_main_cur_id,
-                                              cur_exch_rate.base_cur_id,
-                                              30,
-                                              vn_fw_exch_rate_trans_to_base,
-                                              vn_forward_points);
-    
-      if vn_fw_exch_rate_trans_to_base is null or
-         vn_fw_exch_rate_trans_to_base = 0 then
-        vc_error_msg := '3';
-        vobj_error_log.extend;
-        vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                             'procedure pkg_phy_physical_process-sp cog',
-                                                             'PHY-005',
-                                                             cur_exch_rate.base_cur_code ||
-                                                             ' to ' ||
-                                                             cur_exch_rate.transaction_amt_main_cur_code || ' (' ||
-                                                             to_char(pd_trade_date,
-                                                                     'dd-Mon-yyyy') || ') ',
-                                                             '',
-                                                             pc_process,
-                                                             pc_user_id,
-                                                             sysdate,
-                                                             pd_trade_date);
-        sp_insert_error_log(vobj_error_log);
-      
-      else
-        vc_error_msg        := '4';
-        vc_exch_rate_string := '1 ' ||
-                               cur_exch_rate.transaction_amt_main_cur_code || '=' ||
-                               vn_fw_exch_rate_trans_to_base || ' ' ||
-                               cur_exch_rate.base_cur_code;
-      
-        update tinvs_temp_invm_cogs t
-           set t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base,
-               trans_to_base_fw_exch_rate      = vc_exch_rate_string
-         where t.transaction_amt_main_cur_id =
-               cur_exch_rate.transaction_amt_main_cur_id
-           and t.base_cur_id = cur_exch_rate.base_cur_id
-           and t.process_id = pc_process_id;
-      end if;
+      pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                  pd_trade_date,
+                                  pd_trade_date,
+                                  cur_exch_rate.transaction_amt_main_cur_id,
+                                  cur_exch_rate.base_cur_id,
+                                  30,
+                                  'procedure pkg_phy_calculate_cog.sp_calc_invm_cogs',
+                                  pc_process,
+                                  vn_fw_exch_rate_trans_to_base,
+                                  vn_forward_points);
     end loop;
   
     --
@@ -1636,6 +1707,10 @@ create or replace package body pkg_phy_calculate_cog is
        secondary_cost_per_unit,
        product_premium_per_unit,
        quality_premium_per_unit,
+       tc_charges_per_unit,
+       rc_charges_per_unit,
+       pc_charges_per_unit,
+       
        total_mc_charges,
        total_tc_charges,
        total_rc_charges,
@@ -1662,6 +1737,9 @@ create or replace package body pkg_phy_calculate_cog is
              nvl(sum(secondary_cost_per_unit), 0),
              nvl(sum(product_premium_per_unit), 0),
              nvl(sum(quality_premium_per_unit), 0),
+             nvl(sum(tc_charges_per_unit), 0),
+             nvl(sum(rc_charges_per_unit), 0),
+             nvl(sum(pc_charges_per_unit), 0),
              nvl(sum(total_mc_charges), 0),
              nvl(sum(total_tc_charges), 0),
              nvl(sum(total_rc_charges), 0),
@@ -1681,7 +1759,6 @@ create or replace package body pkg_phy_calculate_cog is
              price_unit_weight_unit_id,
              price_unit_weight_unit,
              weight
-      
         from (select t.internal_grd_ref_no,
                      sales_internal_gmr_ref_no,
                      case
@@ -1796,7 +1873,26 @@ create or replace package body pkg_phy_calculate_cog is
                      base_cur_code price_unit_cur_code,
                      base_qty_unit_id price_unit_weight_unit_id,
                      base_qty_unit price_unit_weight_unit,
-                     1 weight
+                     1 weight,
+                     case
+                       when t.cost_type = 'Treatment Charges' then
+                        t.avg_cost
+                       else
+                        0
+                     end as tc_charges_per_unit,
+                     case
+                       when t.cost_type = 'Refining Charges' then
+                        t.avg_cost
+                       else
+                        0
+                     end as rc_charges_per_unit,
+                     case
+                       when t.cost_type = 'Penalties' then
+                        t.avg_cost
+                       else
+                        0
+                     end as pc_charges_per_unit
+              
                 from tinvs_temp_invm_cogs t
                where t.process_id = pc_process_id)
        group by internal_grd_ref_no,
@@ -1807,6 +1903,95 @@ create or replace package body pkg_phy_calculate_cog is
                 price_unit_weight_unit_id,
                 price_unit_weight_unit,
                 weight;
+  
+    -- Insert Element Price/TC/RC Details
+    insert into invme_cogs_element
+      (process_id,
+       internal_grd_ref_no,
+       sales_internal_gmr_ref_no,
+       element_id,
+       mc_per_unit,
+       mc_price_unit_id,
+       tc_per_unit,
+       tc_price_unit_id,
+       rc_per_unit,
+       rc_price_unit_id)
+      select pc_process_id,
+             t.internal_grd_ref_no,
+             t.sales_internal_gmr_ref_no,
+             t.element_id,
+             sum(mc_per_unit),
+             max(mc_price_unit_id),
+             nvl(sum(tc_per_unit), 0),
+             max(tc_price_unit_id),
+             nvl(sum(rc_per_unit), 0),
+             max(rc_price_unit_id)
+        from (select pc_process_id,
+                     t.internal_grd_ref_no,
+                     ecs.element_id,
+                     case
+                       when t.cost_type = 'Price' then
+                        ecs.cost_value
+                       else
+                        0
+                     end mc_per_unit,
+                     case
+                       when t.cost_type = 'Price' then
+                        ecs.rate_price_unit_id
+                       else
+                        null
+                     end mc_price_unit_id,
+                     case
+                       when t.cost_type = 'Treatment Charges' then
+                        ecs.cost_value
+                       else
+                        null
+                     end tc_per_unit,
+                     case
+                       when t.cost_type = 'Treatment Charges' then
+                        ecs.rate_price_unit_id
+                       else
+                        null
+                     end tc_price_unit_id,
+                     case
+                       when t.cost_type = 'Refining Charges' then
+                        ecs.cost_value
+                       else
+                        null
+                     end rc_per_unit,
+                     case
+                       when t.cost_type = 'Refining Charges' then
+                        ecs.rate_price_unit_id
+                       else
+                        null
+                     end rc_price_unit_id,
+                     t.sales_internal_gmr_ref_no
+                from tinvs_temp_invm_cogs   t,
+                     ecs_element_cost_store ecs
+               where t.process_id = pc_process_id
+                 and ecs.process_id = pc_process_id
+                 and t.internal_cost_id = ecs.internal_cost_id
+                 and t.cost_type <> 'Secondary Cost') t
+       group by t.internal_grd_ref_no,
+                t.element_id,
+                t.sales_internal_gmr_ref_no;
+    update invme_cog_element t
+       set t.mc_price_unit_name = (select ppu.price_unit_name
+                                     from v_ppu_pum ppu
+                                    where ppu.product_price_unit_id =
+                                          t.mc_price_unit_id);
+  
+    update invme_cog_element t
+       set t.tc_price_unit_name = (select ppu.price_unit_name
+                                     from v_ppu_pum ppu
+                                    where ppu.product_price_unit_id =
+                                          t.tc_price_unit_id);
+  
+    update invme_cog_element t
+       set t.rc_price_unit_name = (select ppu.price_unit_name
+                                     from v_ppu_pum ppu
+                                    where ppu.product_price_unit_id =
+                                          t.rc_price_unit_id);
   exception
     when others then
       vobj_error_log.extend;
@@ -1873,7 +2058,7 @@ create or replace package body pkg_phy_calculate_cog is
        base_price_unit_id_in_ppu,
        transact_amt_sign,
        payment_due_date)
-      -- 
+    -- 
     -- Section 1
     -- Purchase GMR Shipped But Not TT Query Start
     --
@@ -1960,6 +2145,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_original_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and nvl(grd.inventory_status, 'NA') = 'NA'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -2046,6 +2232,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_under_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and nvl(grd.inventory_status, 'NA') = 'NA'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -2130,6 +2317,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_direct_actual = 'Y'
          and cs.income_expense = 'Expense'
          and nvl(grd.inventory_status, 'NA') = 'NA'
+         and grd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -2208,10 +2396,11 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_over_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and nvl(grd.inventory_status, 'NA') = 'NA'
+         and grd.tolling_stock_type = 'None Tolling'
       --
       -- Purchase GMR Shipped But Not TT Query End
       --
-    -- Section 2
+      -- Section 2
       -- Sales GMR Shipped But Not TT Starts Here
       --
       union all
@@ -2298,6 +2487,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_original_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and nvl(dgrd.inventory_status, 'NA') in ('NA', 'None')
+         and dgrd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -2384,6 +2574,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_under_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and nvl(dgrd.inventory_status, 'NA') in ('NA', 'None')
+         and dgrd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -2468,6 +2659,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_direct_actual = 'Y'
          and cs.income_expense = 'Expense'
          and nvl(dgrd.inventory_status, 'NA') in ('NA', 'None')
+         and dgrd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -2546,10 +2738,11 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_over_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and nvl(dgrd.inventory_status, 'NA') in ('NA', 'None')
+         and dgrd.tolling_stock_type = 'None Tolling'
       
       -- Sales GMR Shipped But Not TT Ends Here
       -- 
-    -- Section 3
+      -- Section 3
       -- Sales GMR Inventory Out Starts Here
       union all
       select pc_corporate_id,
@@ -2594,7 +2787,7 @@ create or replace package body pkg_phy_calculate_cog is
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping      scmt
+             v_scm_stock_cost_mapping    scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -2639,6 +2832,7 @@ create or replace package body pkg_phy_calculate_cog is
          and scmt.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and scmt.cog_ref_no = cigc.cog_ref_no
          and scmt.is_deleted = 'N'
+         and dgrd.tolling_stock_type = 'None Tolling'
       
       union all
       select pc_corporate_id,
@@ -2683,7 +2877,7 @@ create or replace package body pkg_phy_calculate_cog is
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping      scmt
+             v_scm_stock_cost_mapping    scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -2730,6 +2924,7 @@ create or replace package body pkg_phy_calculate_cog is
          and scmt.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and scmt.cog_ref_no = cigc.cog_ref_no
          and scmt.is_deleted = 'N'
+         and dgrd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -2773,7 +2968,7 @@ create or replace package body pkg_phy_calculate_cog is
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping      scmt
+             v_scm_stock_cost_mapping    scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -2818,6 +3013,7 @@ create or replace package body pkg_phy_calculate_cog is
          and scmt.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and scmt.cog_ref_no = cigc.cog_ref_no
          and scmt.is_deleted = 'N'
+         and dgrd.tolling_stock_type = 'None Tolling'
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -2861,7 +3057,7 @@ create or replace package body pkg_phy_calculate_cog is
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping      scmt
+             v_scm_stock_cost_mapping    scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -2899,9 +3095,17 @@ create or replace package body pkg_phy_calculate_cog is
          and dgrd.inventory_status = 'Out'
          and scmt.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and scmt.cog_ref_no = cigc.cog_ref_no
-         and scmt.is_deleted = 'N';
-      -- Sales GMR Inventory Out Ends Here
-      
+         and scmt.is_deleted = 'N'
+         and dgrd.tolling_stock_type = 'None Tolling';
+    -- Sales GMR Inventory Out Ends Here
+  
+  -- Delete Concentrate contracts
+delete from tgsc_temp_gmr_sec_cost t
+ where t.process_id = pc_process_id
+   and t.product_id in
+       (select pdm.product_id
+          from pdm_productmaster pdm
+         where pdm.product_type_id = 'Composite');
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -2989,49 +3193,16 @@ create or replace package body pkg_phy_calculate_cog is
                                     cm_trans.cur_code,
                                     t.payment_due_date)
     loop
-      pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                              pd_trade_date,
-                                              cur_exch_rate.payment_due_date,
-                                              cur_exch_rate.transaction_amt_main_cur_id,
-                                              cur_exch_rate.base_cur_id,
-                                              30,
-                                              vn_fw_exch_rate_trans_to_base,
-                                              vn_forward_points);
-    
-      if vn_fw_exch_rate_trans_to_base is null or
-         vn_fw_exch_rate_trans_to_base = 0 then
-        vc_error_msg := '3';
-        vobj_error_log.extend;
-        vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                             'procedure pkg_phy_physical_process-sp cog',
-                                                             'PHY-005',
-                                                             cur_exch_rate.base_cur_code ||
-                                                             ' to ' ||
-                                                             cur_exch_rate.transaction_amt_main_cur_code || ' (' ||
-                                                             to_char(pd_trade_date,
-                                                                     'dd-Mon-yyyy') || ') ',
-                                                             '',
-                                                             pc_process,
-                                                             pc_user_id,
-                                                             sysdate,
-                                                             pd_trade_date);
-        sp_insert_error_log(vobj_error_log);
-      
-      else
-        vc_error_msg        := '4';
-        vc_exch_rate_string := '1 ' ||
-                               cur_exch_rate.transaction_amt_main_cur_code || '=' ||
-                               vn_fw_exch_rate_trans_to_base || ' ' ||
-                               cur_exch_rate.base_cur_code;
-        update tgsc_temp_gmr_sec_cost t
-           set t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base,
-               trans_to_base_fw_exch_rate      = vc_exch_rate_string
-         where t.transaction_amt_main_cur_id =
-               cur_exch_rate.transaction_amt_main_cur_id
-           and t.base_cur_id = cur_exch_rate.base_cur_id
-           and t.process_id = pc_process_id;
-      end if;
-    
+      pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                  pd_trade_date,
+                                  cur_exch_rate.payment_due_date,
+                                  cur_exch_rate.transaction_amt_main_cur_id,
+                                  cur_exch_rate.base_cur_id,
+                                  30,
+                                  'procedure pkg_phy_calculate_cog.sp_calc_gms_sec_cost',
+                                  pc_process,
+                                  vn_fw_exch_rate_trans_to_base,
+                                  vn_forward_points);
     end loop;
   
     --

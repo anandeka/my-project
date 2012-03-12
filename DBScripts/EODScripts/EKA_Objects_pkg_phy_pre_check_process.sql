@@ -201,11 +201,11 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        'Cancel' then
       goto cancel_process;
     end if;
-    sp_pre_check_m2m_conc_values(pc_corporate_id,
-                                 pd_trade_date,
-                                 gvc_dbd_id,
-                                 pc_user_id,
-                                 pc_process);
+    /*sp_pre_check_m2m_conc_values(pc_corporate_id,
+    pd_trade_date,
+    gvc_dbd_id,
+    pc_user_id,
+    pc_process);*/
   
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
@@ -218,11 +218,11 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        'Cancel' then
       goto cancel_process;
     end if;
-    sp_pre_check_m2m_tolling_extn(pc_corporate_id,
-                                  pd_trade_date,
-                                  gvc_dbd_id,
-                                  pc_user_id,
-                                  pc_process);
+    /*sp_pre_check_m2m_tolling_extn(pc_corporate_id,
+    pd_trade_date,
+    gvc_dbd_id,
+    pc_user_id,
+    pc_process);*/
   
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,

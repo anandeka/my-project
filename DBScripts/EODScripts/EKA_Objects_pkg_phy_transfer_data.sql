@@ -955,7 +955,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        strategy_id,
        is_warrant,
        warrant_no,
-       dbd_id)
+       dbd_id,
+       tolling_stock_type)
       select ul.internal_action_ref_no,
              ul.internal_dgrd_ref_no,
              ul.entry_type,
@@ -1038,7 +1039,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.strategy_id,
              ul.is_warrant,
              ul.warrant_no,
-             pc_dbd_id
+             pc_dbd_id,
+             ul.tolling_stock_type
         from dgrdul_delivered_grd_ul@eka_appdb ul,
              axs_action_summary@eka_appdb      axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no

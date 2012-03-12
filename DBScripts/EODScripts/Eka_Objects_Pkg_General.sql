@@ -1053,6 +1053,7 @@ create or replace package body pkg_general is
           pc_sum_of_forward_point := 0;
         end if;
       end if;
+      pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
     else
       pc_settlement_price     := 1;
       pc_sum_of_forward_point := 0;
@@ -1881,6 +1882,8 @@ create or replace package body pkg_general is
         pc_settlement_price     := 0;
         pc_sum_of_forward_point := 0;
     end;
+    pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
+  
     if pc_settlement_price = 0 or pc_settlement_price is null then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
