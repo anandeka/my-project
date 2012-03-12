@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0524
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  31-Jan-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  COG
+	
+Sub-Module  			 :  Landing Rearrangement
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+Revision: 89348
+Author: sriveenam
+Date: Monday, March 12, 2012 6:01:58 PM
+Message:
+column added for internal shipment from rearranged stocks
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_222.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
