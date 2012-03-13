@@ -122,7 +122,7 @@ create or replace package pkg_general is
                             pc_settlement_price     out number,
                             pc_sum_of_forward_point out number);
 
-end;
+end; 
 /
 create or replace package body pkg_general is
 
@@ -885,9 +885,13 @@ create or replace package body pkg_general is
       begin
         select max(cfq.prompt_date)
           into vd_maturity_date
-          from mv_cfq_cci_cur_forward_quotes cfq
+          from mv_cfq_cci_cur_forward_quotes cfq,
+               div_der_instrument_valuation  div
          where cfq.corporate_id = pc_corporate_id
            and cfq.trade_date = pd_trade_date
+           and cfq.instrument_id=div.instrument_id
+           and cfq.price_source_id=div.price_source_id
+           and div.is_deleted='N'
            and cfq.prompt_date = pc_maturity_date
            and cfq.base_cur_id = pc_from_cur_id
            and cfq.quote_cur_id = pc_to_cur_id;
@@ -899,9 +903,13 @@ create or replace package body pkg_general is
         begin
           select max(cfq.prompt_date)
             into vd_lower_date
-            from mv_cfq_cci_cur_forward_quotes cfq
+            from mv_cfq_cci_cur_forward_quotes cfq,
+                 div_der_instrument_valuation  div
            where cfq.corporate_id = pc_corporate_id
              and cfq.trade_date = pd_trade_date
+             and cfq.instrument_id=div.instrument_id
+             and cfq.price_source_id=div.price_source_id
+             and div.is_deleted='N'
              and cfq.prompt_date <= pc_maturity_date
              and abs(pc_maturity_date - cfq.prompt_date) <=
                  pc_max_deviation --lalit
@@ -914,9 +922,13 @@ create or replace package body pkg_general is
         begin
           select min(cfq.prompt_date)
             into vd_upper_date
-            from mv_cfq_cci_cur_forward_quotes cfq
+            from mv_cfq_cci_cur_forward_quotes cfq,
+                 div_der_instrument_valuation  div
            where cfq.corporate_id = pc_corporate_id
              and cfq.trade_date = pd_trade_date
+             and cfq.instrument_id=div.instrument_id
+             and cfq.price_source_id=div.price_source_id
+             and div.is_deleted='N'
              and cfq.prompt_date >= pc_maturity_date
              and abs(pc_maturity_date - cfq.prompt_date) <=
                  pc_max_deviation --Lalit
@@ -950,9 +962,13 @@ create or replace package body pkg_general is
                  pc_sum_of_forward_point
             from (select cfq.rate settlement_price,
                          nvl(cfq.forward_point, 0) sum_forward_point
-                    from mv_cfq_cci_cur_forward_quotes cfq
+                    from mv_cfq_cci_cur_forward_quotes cfq,
+                         div_der_instrument_valuation  div                    
                    where cfq.corporate_id = pc_corporate_id
                      and cfq.trade_date = pd_trade_date
+                     and cfq.instrument_id=div.instrument_id
+                     and cfq.price_source_id=div.price_source_id
+                     and div.is_deleted='N'
                      and cfq.prompt_date = vd_maturity_date
                      and cfq.base_cur_id = pc_from_cur_id
                      and cfq.quote_cur_id = pc_to_cur_id) t;
@@ -971,10 +987,14 @@ create or replace package body pkg_general is
         begin
           select max(cfq.prompt_date)
             into vd_maturity_date
-            from mv_cfq_currency_forward_quotes cfq
+            from mv_cfq_cci_cur_forward_quotes cfq,
+                 div_der_instrument_valuation  div
            where cfq.corporate_id = pc_corporate_id
              and cfq.trade_date = pd_trade_date
              and cfq.prompt_date = pc_maturity_date
+             and cfq.instrument_id=div.instrument_id
+             and cfq.price_source_id=div.price_source_id
+             and div.is_deleted='N'
              and cfq.base_cur_id = pc_to_cur_id
              and cfq.quote_cur_id = pc_from_cur_id;
         exception
@@ -986,10 +1006,14 @@ create or replace package body pkg_general is
           begin
             select max(cfq.prompt_date)
               into vd_lower_date
-              from mv_cfq_cci_cur_forward_quotes cfq
+              from mv_cfq_cci_cur_forward_quotes cfq,
+                   div_der_instrument_valuation  div
              where cfq.corporate_id = pc_corporate_id
                and cfq.trade_date = pd_trade_date
                and cfq.prompt_date <= pc_maturity_date
+               and cfq.instrument_id=div.instrument_id
+               and cfq.price_source_id=div.price_source_id
+               and div.is_deleted='N'
                and abs(pc_maturity_date - cfq.prompt_date) <=
                    pc_max_deviation --lalit
                and cfq.base_cur_id = pc_to_cur_id
@@ -1001,9 +1025,13 @@ create or replace package body pkg_general is
           begin
             select min(cfq.prompt_date)
               into vd_upper_date
-              from mv_cfq_cci_cur_forward_quotes cfq
+              from mv_cfq_cci_cur_forward_quotes cfq,
+                   div_der_instrument_valuation  div
              where cfq.corporate_id = pc_corporate_id
                and cfq.trade_date = pd_trade_date
+               and cfq.instrument_id=div.instrument_id
+               and cfq.price_source_id=div.price_source_id
+               and div.is_deleted='N'
                and cfq.prompt_date >= pc_maturity_date
                and abs(pc_maturity_date - cfq.prompt_date) <=
                    pc_max_deviation --Lalit
@@ -1037,9 +1065,13 @@ create or replace package body pkg_general is
                    pc_sum_of_forward_point
               from (select cfq.rate settlement_price,
                            nvl(cfq.forward_point, 0) sum_forward_point
-                      from mv_cfq_cci_cur_forward_quotes cfq
+                      from mv_cfq_cci_cur_forward_quotes cfq,
+                           div_der_instrument_valuation  div
                      where cfq.corporate_id = pc_corporate_id
                        and cfq.trade_date = pd_trade_date
+                       and cfq.instrument_id=div.instrument_id
+                       and cfq.price_source_id=div.price_source_id
+                       and div.is_deleted='N'
                        and cfq.prompt_date = vd_maturity_date
                        and cfq.base_cur_id = pc_to_cur_id
                        and cfq.quote_cur_id = pc_from_cur_id) t;
@@ -1904,5 +1936,5 @@ create or replace package body pkg_general is
   
   end;
 
-end;
+end; 
 /
