@@ -220,7 +220,7 @@ WITH ucm_mfact AS
                     cm_base.cur_code base_cur_code,
                     (CASE
                         WHEN pm.period_type_name IN ('Day', 'Week')
-                           THEN TO_CHAR (drm.period_date, 'Mon-yyyy')
+                           THEN TO_CHAR (nvl(drm.period_date,drm.prompt_date), 'Mon-yyyy')
                         ELSE drm.period_month || '-' || drm.period_year
                      END
                     ) delivery_month
