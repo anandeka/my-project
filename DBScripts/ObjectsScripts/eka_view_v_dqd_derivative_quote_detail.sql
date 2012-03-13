@@ -19,6 +19,8 @@ select dqd_id,
        spot_rate,
        is_manual
   from dqd_derivative_quote_detail dqd
+ where dqd.dr_id not in(select drm.dr_id
+          from v_drm_multiple_prompt drm)
 
 union
 select dqd.dqd_id || new_drm.dr_id dqd_id,
@@ -48,4 +50,4 @@ select dqd.dqd_id || new_drm.dr_id dqd_id,
    and dqd.dr_id = drm.dr_id
    and drm.instrument_id = new_drm.instrument_id
    and drm.prompt_date = new_drm.prompt_date
-   and drm.dr_id <> new_drm.dr_id;
+   and drm.dr_id <> new_drm.dr_id
