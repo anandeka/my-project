@@ -1,0 +1,75 @@
+Patch No*          		:  EKA_METALS_PATCH_0525
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  13-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Price
+	
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 89365
+Author: sivachalabathi.s
+Date: 8:44:48 PM, Monday, March 12, 2012
+Message:
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_dim_holiday_list_by_year.sql
+
+
+
+Revision: 89415
+Author: suresh.gottipati
+Date: 3:27:42 PM, Tuesday, March 13, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_dqd_derivative_quote_detail.sql
+
+
+Revision: 89418
+Author: suresh.gottipati
+Date: 3:33:48 PM, Tuesday, March 13, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_224.sql
+
+
+
+
+
+
+
+
+
+
+
+
