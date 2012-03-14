@@ -1432,7 +1432,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              'Settlement Price missing for ' || dim.instrument_name ||
              ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
              pum.price_unit_name || ',' || apm.available_price_name ||
-             ' Price,Prompt Date:' || drm.dr_id_name,
+             ' Price,Prompt Date:' || drm.dr_id_name || ' Trade Date(' ||
+             to_char(cdim.valid_quote_date, 'dd-Mon-yyyy') || ')',
              f_string_aggregate(tmpc.contract_ref_no),
              pc_process,
              systimestamp,
@@ -1445,7 +1446,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              drm_derivative_master        drm,
              ps_price_source              ps,
              apm_available_price_master   apm,
-             pum_price_unit_master        pum
+             pum_price_unit_master        pum,
+             cdim_corporate_dim           cdim
        where tmpc.instrument_id = div.instrument_id
          and tmpc.product_id = pdd.product_id
          and div.instrument_id = drm.instrument_id
@@ -1458,23 +1460,31 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and div.price_unit_id = pum.price_unit_id
          and tmpc.value_type <> 'FIXED'
          and div.is_deleted = 'N'
+         and cdim.corporate_id = pc_corporate_id
+         and cdim.instrument_id = dim.instrument_id
          and not exists
        (select 1
-                from eodeom_derivative_quote_detail dqd
+                from eodeom_derivative_quote_detail dqd,
+                     cdim_corporate_dim             cdim
                where tmpc.valuation_dr_id = dqd.dr_id
                  and tmpc.product_type = 'BASEMETAL'
                  and div.available_price_id = dqd.available_price_id
                  and div.price_source_id = dqd.price_source_id
                  and div.price_unit_id = dqd.price_unit_id
-                 and dqd.dq_trade_date = pd_trade_date
+                 and dqd.dq_trade_date = cdim.valid_quote_date
                  and dqd.corporate_id = pc_corporate_id
                  and dqd.dbd_id = gvc_dbd_id
-                 and dqd.price is not null)
+                 and dqd.price is not null
+                 and cdim.corporate_id = pc_corporate_id
+                 and cdim.instrument_id = dqd.instrument_id
+              
+              )
        group by tmpc.corporate_id,
                 'Settlement Price missing for ' || dim.instrument_name ||
                 ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
                 pum.price_unit_name || ',' || apm.available_price_name ||
-                ' Price,Prompt Date:' || drm.dr_id_name;
+                ' Price,Prompt Date:' || drm.dr_id_name || ' Trade Date(' ||
+                to_char(cdim.valid_quote_date, 'dd-Mon-yyyy') || ')';
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -3598,7 +3608,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              'Settlement Price missing for ' || dim.instrument_name ||
              ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
              pum.price_unit_name || ',' || apm.available_price_name ||
-             ' Price,Prompt Date:' || drm.dr_id_name,
+             ' Price,Prompt Date:' || drm.dr_id_name || ' Trade Date(' ||
+             to_char(cdim.valid_quote_date, 'dd-Mon-yyyy') || ')',
              f_string_aggregate(tmpc.contract_ref_no),
              pc_process,
              systimestamp,
@@ -3611,7 +3622,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              drm_derivative_master        drm,
              ps_price_source              ps,
              apm_available_price_master   apm,
-             pum_price_unit_master        pum
+             pum_price_unit_master        pum,
+             cdim_corporate_dim           cdim
        where tmpc.instrument_id = div.instrument_id
          and tmpc.product_id = pdd.product_id
          and div.instrument_id = drm.instrument_id
@@ -3626,9 +3638,12 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.is_tolling_contract = 'N'
          and tmpc.is_tolling_extn = 'N'
          and div.is_deleted = 'N'
+         and cdim.corporate_id = pc_corporate_id
+         and cdim.instrument_id = dim.instrument_id
          and not exists
        (select 1
-                from eodeom_derivative_quote_detail dqd
+                from eodeom_derivative_quote_detail dqd,
+                     cdim_corporate_dim             cdim
                where tmpc.valuation_dr_id = dqd.dr_id
                  and tmpc.product_type = 'CONCENTRATES'
                  and tmpc.is_tolling_contract = 'N'
@@ -3636,15 +3651,18 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  and div.available_price_id = dqd.available_price_id
                  and div.price_source_id = dqd.price_source_id
                  and div.price_unit_id = dqd.price_unit_id
-                 and dqd.dq_trade_date = pd_trade_date
+                 and dqd.dq_trade_date = cdim.valid_quote_date
                  and dqd.corporate_id = pc_corporate_id
                  and dqd.dbd_id = gvc_dbd_id
-                 and dqd.price is not null)
+                 and dqd.price is not null
+                 and cdim.corporate_id = pc_corporate_id
+                 and cdim.instrument_id = dqd.instrument_id)
        group by tmpc.corporate_id,
                 'Settlement Price missing for ' || dim.instrument_name ||
                 ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
                 pum.price_unit_name || ',' || apm.available_price_name ||
-                ' Price,Prompt Date:' || drm.dr_id_name;
+                ' Price,Prompt Date:' || drm.dr_id_name || ' Trade Date(' ||
+                to_char(cdim.valid_quote_date, 'dd-Mon-yyyy') || ')';
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -5401,7 +5419,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              'Settlement Price missing for ' || dim.instrument_name ||
              ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
              pum.price_unit_name || ',' || apm.available_price_name ||
-             ' Price,Prompt Date:' || drm.dr_id_name,
+             ' Price,Prompt Date:' || drm.dr_id_name || ' Trade Date(' ||
+             to_char(cdim.valid_quote_date, 'dd-Mon-yyyy') || ')',
              f_string_aggregate(tmpc.contract_ref_no),
              pc_process,
              systimestamp,
@@ -5414,7 +5433,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              drm_derivative_master        drm,
              ps_price_source              ps,
              apm_available_price_master   apm,
-             pum_price_unit_master        pum
+             pum_price_unit_master        pum,
+             cdim_corporate_dim           cdim
        where tmpc.instrument_id = div.instrument_id
          and tmpc.product_id = pdd.product_id
          and div.instrument_id = drm.instrument_id
@@ -5429,9 +5449,12 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.is_tolling_contract = 'Y'
          and tmpc.is_tolling_extn = 'Y'
          and div.is_deleted = 'N'
+         and cdim.corporate_id = pc_corporate_id
+         and cdim.instrument_id = dim.instrument_id
          and not exists
        (select 1
-                from eodeom_derivative_quote_detail dqd
+                from eodeom_derivative_quote_detail dqd,
+                     cdim_corporate_dim             cdim
                where tmpc.valuation_dr_id = dqd.dr_id
                  and tmpc.product_type = 'CONCENTRATES'
                  and tmpc.is_tolling_contract = 'Y'
@@ -5439,15 +5462,18 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  and div.available_price_id = dqd.available_price_id
                  and div.price_source_id = dqd.price_source_id
                  and div.price_unit_id = dqd.price_unit_id
-                 and dqd.dq_trade_date = pd_trade_date
+                 and dqd.dq_trade_date = cdim.valid_quote_date
                  and dqd.corporate_id = pc_corporate_id
                  and dqd.dbd_id = gvc_dbd_id
-                 and dqd.price is not null)
+                 and dqd.price is not null
+                 and cdim.corporate_id = pc_corporate_id
+                 and cdim.instrument_id = dqd.instrument_id)
        group by tmpc.corporate_id,
                 'Settlement Price missing for ' || dim.instrument_name ||
                 ',Price Source:' || ps.price_source_name || ',Price Unit:' ||
                 pum.price_unit_name || ',' || apm.available_price_name ||
-                ' Price,Prompt Date:' || drm.dr_id_name;
+                ' Price,Prompt Date:' || drm.dr_id_name || ' Trade Date(' ||
+                to_char(cdim.valid_quote_date, 'dd-Mon-yyyy') || ')';
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',

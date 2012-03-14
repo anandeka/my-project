@@ -260,12 +260,12 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_contract_conc_price');
-    pkg_phy_eod_price.sp_calc_contract_conc_price(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  pc_process_id,
-                                                  pc_user_id,
-                                                  pc_dbd_id,
-                                                  pc_process);
+    /*pkg_phy_eod_price.sp_calc_contract_conc_price(pc_corporate_id,
+    pd_trade_date,
+    pc_process_id,
+    pc_user_id,
+    pc_dbd_id,
+    pc_process);*/
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -277,12 +277,12 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_conc_gmr_price');
-    pkg_phy_eod_price.sp_calc_conc_gmr_price(pc_corporate_id,
-                                             pd_trade_date,
-                                             pc_process_id,
-                                             pc_user_id,
-                                             pc_dbd_id,
-                                             pc_process);
+    /*pkg_phy_eod_price.sp_calc_conc_gmr_price(pc_corporate_id,
+    pd_trade_date,
+    pc_process_id,
+    pc_user_id,
+    pc_dbd_id,
+    pc_process);*/
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -1843,7 +1843,8 @@ create or replace package body pkg_phy_physical_process is
                       pum_price_unit_master          pum,
                       dim_der_instrument_master      dim,
                       div_der_instrument_valuation   div,
-                      pdd_product_derivative_def     pdd
+                      pdd_product_derivative_def     pdd,
+                      cdim_corporate_dim             cdim
                 where edq.dr_id = md.valuation_dr_id
                   and edq.corporate_id = pc_corporate_id
                   and dim.instrument_id = md.instrument_id
@@ -1856,7 +1857,9 @@ create or replace package body pkg_phy_physical_process is
                   and edq.price_unit_id = div.price_unit_id
                   and edq.price is not null
                   and edq.process_id = pc_process_id
-                  and edq.dq_trade_date = pd_trade_date)
+                  and edq.dq_trade_date = cdim.valid_quote_date
+                  and cdim.corporate_id = pc_corporate_id
+                  and cdim.instrument_id = edq.instrument_id)
       
        where md.corporate_id = pc_corporate_id
          and md.valuation_method <> 'FIXED'
@@ -2397,7 +2400,8 @@ create or replace package body pkg_phy_physical_process is
                       pum_price_unit_master          pum,
                       dim_der_instrument_master      dim,
                       div_der_instrument_valuation   div,
-                      pdd_product_derivative_def     pdd
+                      pdd_product_derivative_def     pdd,
+                      cdim_corporate_dim             cdim
                 where edq.dr_id = md.valuation_dr_id
                   and edq.corporate_id = pc_corporate_id
                   and dim.instrument_id = md.instrument_id
@@ -2410,7 +2414,9 @@ create or replace package body pkg_phy_physical_process is
                   and edq.price_unit_id = pum.price_unit_id
                   and edq.price is not null
                   and edq.process_id = pc_process_id
-                  and edq.dq_trade_date = pd_trade_date)
+                  and edq.dq_trade_date = cdim.valid_quote_date
+                  and cdim.corporate_id = pc_corporate_id
+                  and cdim.instrument_id = edq.instrument_id)
        where md.corporate_id = pc_corporate_id
          and md.product_type = 'CONCENTRATES'
          and md.is_tolling_contract = 'N'
@@ -3016,7 +3022,8 @@ create or replace package body pkg_phy_physical_process is
                       pum_price_unit_master          pum,
                       dim_der_instrument_master      dim,
                       div_der_instrument_valuation   div,
-                      pdd_product_derivative_def     pdd
+                      pdd_product_derivative_def     pdd,
+                      cdim_corporate_dim             cdim
                 where edq.dr_id = md.valuation_dr_id
                   and edq.corporate_id = pc_corporate_id
                   and dim.instrument_id = md.instrument_id
@@ -3029,7 +3036,9 @@ create or replace package body pkg_phy_physical_process is
                   and edq.price_unit_id = pum.price_unit_id
                   and edq.price is not null
                   and edq.process_id = pc_process_id
-                  and edq.dq_trade_date = pd_trade_date)
+                  and edq.dq_trade_date = cdim.valid_quote_date
+                  and cdim.corporate_id = pc_corporate_id
+                  and cdim.instrument_id = edq.instrument_id)
        where md.corporate_id = pc_corporate_id
          and md.product_type = 'CONCENTRATES'
          and md.is_tolling_contract = 'Y'

@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_PHY_EOD_PRICE" is
+create or replace package "PKG_PHY_EOD_PRICE" is
   procedure sp_calc_contract_price(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_process_id   varchar2,
@@ -27,9 +27,9 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_EOD_PRICE" is
                                         pc_dbd_id       varchar2,
                                         pc_process      varchar2);
 
-end; 
+end;
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
+create or replace package body "PKG_PHY_EOD_PRICE" is
 
   procedure sp_calc_contract_price(pc_corporate_id varchar2,
                                    pd_trade_date   date,
@@ -38,8 +38,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                                    pc_dbd_id       varchar2,
                                    pc_process      varchar2) is
   
-    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count number := 1;
+    vobj_error_log      tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count  number := 1;
+    vd_valid_quote_date date;
   
     cursor cur_pcdi is
       select pcdi.pcdi_id,
@@ -533,7 +534,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
                      and dq.process_id = pc_process_id
@@ -543,13 +545,20 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
                 vn_total_quantity       := cur_pcdi_rows.item_qty;
@@ -688,7 +697,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                       into vn_after_qp_price,
                            vc_after_qp_price_unit_id
                       from dq_derivative_quotes        dq,
-                           dqd_derivative_quote_detail dqd
+                           dqd_derivative_quote_detail dqd,
+                           cdim_corporate_dim          cdim
                      where dq.dq_id = dqd.dq_id
                        and dqd.dr_id = vc_after_price_dr_id
                        and dq.process_id = pc_process_id
@@ -699,13 +709,22 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                        and dq.price_source_id =
                            cur_pcdi_rows.price_source_id
                        and dqd.price_unit_id = cc1.price_unit_id
-                       and dq.trade_date = pd_trade_date
+                       and dq.trade_date = cdim.valid_quote_date
                        and dq.is_deleted = 'N'
-                       and dqd.is_deleted = 'N';
+                       and dqd.is_deleted = 'N'
+                       and cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = dq.instrument_id;
                   exception
                     when no_data_found then
+                      select cdim.valid_quote_date
+                        into vd_valid_quote_date
+                        from cdim_corporate_dim cdim
+                       where cdim.corporate_id = pc_corporate_id
+                         and cdim.instrument_id =
+                             cur_pcdi_rows.instrument_id;
+                    
                       vobj_error_log.extend;
-                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                       sp_insert_error_log(vobj_error_log);
                   end;
                   vn_total_quantity       := cur_pcdi_rows.item_qty;
@@ -946,7 +965,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_during_val_price,
                          vc_during_val_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -956,13 +976,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                  
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
               
@@ -1290,7 +1318,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
                      and dq.process_id = pc_process_id
@@ -1300,13 +1329,20 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
                 vn_total_quantity       := cur_pcdi_rows.item_qty;
@@ -1442,7 +1478,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_after_qp_price,
                          vc_after_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_after_price_dr_id
                      and dq.process_id = pc_process_id
@@ -1452,13 +1489,20 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
                 vn_total_quantity       := cur_pcdi_rows.item_qty;
@@ -1594,7 +1638,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_during_qp_price,
                          vc_during_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
                      and dq.process_id = pc_process_id
@@ -1604,13 +1649,20 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
                 vn_total_quantity       := cur_pcdi_rows.item_qty;
@@ -2043,6 +2095,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
     vc_exch_rate_string            varchar2(300);
     vn_price_in_base_price_unit_id number;
     vc_fixed_price_unit_id         varchar2(15);
+    vd_valid_quote_date            date;
   begin
     for cur_gmr_rows in cur_gmr
     loop
@@ -2241,7 +2294,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
             into vn_before_qp_price,
                  vc_before_qp_price_unit_id
             from dq_derivative_quotes        dq,
-                 dqd_derivative_quote_detail dqd
+                 dqd_derivative_quote_detail dqd,
+                 cdim_corporate_dim          cdim
            where dq.dq_id = dqd.dq_id
              and dqd.dr_id = vc_before_price_dr_id
              and dq.process_id = pc_process_id
@@ -2250,13 +2304,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
              and dqd.available_price_id = cur_gmr_rows.available_price_id
              and dq.price_source_id = cur_gmr_rows.price_source_id
              and dqd.price_unit_id = vc_price_unit_id
-             and dq.trade_date = pd_trade_date
+             and dq.trade_date = cdim.valid_quote_date
              and dq.is_deleted = 'N'
-             and dqd.is_deleted = 'N';
+             and dqd.is_deleted = 'N'
+             and cdim.corporate_id = pc_corporate_id
+             and cdim.instrument_id = dq.instrument_id;
         exception
           when no_data_found then
+          
+            select cdim.valid_quote_date
+              into vd_valid_quote_date
+              from cdim_corporate_dim cdim
+             where cdim.corporate_id = pc_corporate_id
+               and cdim.instrument_id = cur_gmr_rows.instrument_id;
             vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
         vn_total_contract_value := vn_total_contract_value +
@@ -2475,7 +2537,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
             into vn_during_val_price,
                  vc_during_val_price_unit_id
             from dq_derivative_quotes        dq,
-                 dqd_derivative_quote_detail dqd
+                 dqd_derivative_quote_detail dqd,
+                 cdim_corporate_dim          cdim
            where dq.dq_id = dqd.dq_id
              and dqd.dr_id = vc_during_price_dr_id
              and dq.instrument_id = cur_gmr_rows.instrument_id
@@ -2483,14 +2546,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
              and dq.dbd_id = pc_dbd_id
              and dqd.available_price_id = cur_gmr_rows.available_price_id
              and dq.price_source_id = cur_gmr_rows.price_source_id
-             and dq.trade_date = pd_trade_date
+             and dq.trade_date = cdim.valid_quote_date
              and dqd.price_unit_id = vc_price_unit_id
              and dq.is_deleted = 'N'
-             and dqd.is_deleted = 'N';
+             and dqd.is_deleted = 'N'
+             and cdim.corporate_id = pc_corporate_id
+             and cdim.instrument_id = dq.instrument_id;
         exception
           when no_data_found then
+            select cdim.valid_quote_date
+              into vd_valid_quote_date
+              from cdim_corporate_dim cdim
+             where cdim.corporate_id = pc_corporate_id
+               and cdim.instrument_id = cur_gmr_rows.instrument_id;
             vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
             sp_insert_error_log(vobj_error_log);
         end;
         vn_during_total_val_price := 0;
@@ -3142,7 +3212,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
     vn_forward_points              number;
     vc_gmr_ele_product_id          varchar2(15);
     vc_gmr_ele_base_qty_unit_id    varchar2(15);
-  
+    vd_valid_quote_date            date;
   begin
     select cm.cur_id,
            cm.cur_code
@@ -3340,7 +3410,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
               into vn_before_qp_price,
                    vc_before_qp_price_unit_id
               from dq_derivative_quotes        dq,
-                   dqd_derivative_quote_detail dqd
+                   dqd_derivative_quote_detail dqd,
+                   cdim_corporate_dim          cdim
              where dq.dq_id = dqd.dq_id
                and dqd.dr_id = vc_before_price_dr_id
                and dq.process_id = pc_process_id
@@ -3349,13 +3420,20 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                and dqd.available_price_id = cur_gmr_rows.available_price_id
                and dq.price_source_id = cur_gmr_rows.price_source_id
                and dqd.price_unit_id = vc_price_unit_id
-               and dq.trade_date = pd_trade_date
+               and dq.trade_date = cdim.valid_quote_date
                and dq.is_deleted = 'N'
-               and dqd.is_deleted = 'N';
+               and dqd.is_deleted = 'N'
+               and cdim.corporate_id = pc_corporate_id
+               and cdim.instrument_id = dq.instrument_id;
           exception
             when no_data_found then
+              select cdim.valid_quote_date
+                into vd_valid_quote_date
+                from cdim_corporate_dim cdim
+               where cdim.corporate_id = pc_corporate_id
+                 and cdim.instrument_id = cur_gmr_rows.instrument_id;
               vobj_error_log.extend;
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_conc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_conc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
               sp_insert_error_log(vobj_error_log);
           end;
           vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
@@ -3659,7 +3737,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
               into vn_during_val_price,
                    vc_during_val_price_unit_id
               from dq_derivative_quotes        dq,
-                   dqd_derivative_quote_detail dqd
+                   dqd_derivative_quote_detail dqd,
+                   cdim_corporate_dim          cdim
              where dq.dq_id = dqd.dq_id
                and dqd.dr_id = vc_during_price_dr_id
                and dq.instrument_id = cur_gmr_rows.instrument_id
@@ -3667,14 +3746,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                and dq.dbd_id = pc_dbd_id
                and dqd.available_price_id = cur_gmr_rows.available_price_id
                and dq.price_source_id = cur_gmr_rows.price_source_id
-               and dq.trade_date = pd_trade_date
+               and dq.trade_date = cdim.valid_quote_date
                and dqd.price_unit_id = vc_price_unit_id
                and dq.is_deleted = 'N'
-               and dqd.is_deleted = 'N';
+               and dqd.is_deleted = 'N'
+               and cdim.corporate_id = pc_corporate_id
+               and cdim.instrument_id = dq.instrument_id;
           exception
             when no_data_found then
+              select cdim.valid_quote_date
+                into vd_valid_quote_date
+                from cdim_corporate_dim cdim
+               where cdim.corporate_id = pc_corporate_id
+                 and cdim.instrument_id = cur_gmr_rows.instrument_id;
               vobj_error_log.extend;
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_conc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_conc_gmr_price','PHY-002','Price missing for ' || cur_gmr_rows.instrument_name ||',Price Source:' || cur_gmr_rows.price_source_name ||' GMR No: ' || cur_gmr_rows.gmr_ref_no ||',Price Unit:' || vc_price_name ||',' || cur_gmr_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_gmr_rows.is_daily_cal_applicable = 'N' and cur_gmr_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
               sp_insert_error_log(vobj_error_log);
           end;
         
@@ -4132,6 +4218,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
     vn_total_delta_priced_qty      number;
     vc_exch_rate_string            varchar2(300);
     vn_price_in_base_price_unit_id number;
+    vd_valid_quote_date            date;
   begin
   
     for cur_pcdi_rows in cur_pcdi
@@ -4419,7 +4506,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
                      and dq.process_id = pc_process_id
@@ -4429,13 +4517,20 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
                 vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
@@ -4756,7 +4851,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_during_val_price,
                          vc_during_val_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
                      and dq.instrument_id = cur_pcdi_rows.instrument_id
@@ -4766,13 +4862,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
+                  
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
               
@@ -5104,7 +5208,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
                      and dq.process_id = pc_process_id
@@ -5114,13 +5219,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
+                  
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
                 vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
@@ -5262,7 +5375,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_after_qp_price,
                          vc_after_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_after_price_dr_id
                      and dq.process_id = pc_process_id
@@ -5272,13 +5386,20 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
                 vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
@@ -5419,7 +5540,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                     into vn_during_qp_price,
                          vc_during_qp_price_unit_id
                     from dq_derivative_quotes        dq,
-                         dqd_derivative_quote_detail dqd
+                         dqd_derivative_quote_detail dqd,
+                         cdim_corporate_dim          cdim
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
                      and dq.process_id = pc_process_id
@@ -5429,13 +5551,20 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.trade_date = pd_trade_date
+                     and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N';
+                     and dqd.is_deleted = 'N'
+                     and cdim.corporate_id = pc_corporate_id
+                     and cdim.instrument_id = dq.instrument_id;
                 exception
                   when no_data_found then
+                    select cdim.valid_quote_date
+                      into vd_valid_quote_date
+                      from cdim_corporate_dim cdim
+                     where cdim.corporate_id = pc_corporate_id
+                       and cdim.instrument_id = cur_pcdi_rows.instrument_id;
                     vobj_error_log.extend;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end), '', pc_process, pc_user_id, sysdate, pd_trade_date);
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,'procedure sp_calc_contract_conc_price','PHY-002','Price missing for ' || cur_pcdi_rows.instrument_name ||',Price Source:' || cur_pcdi_rows.price_source_name ||' Contract Ref No: ' || cur_pcdi_rows.contract_ref_no ||',Price Unit:' || cc1.price_unit_name ||',' || cur_pcdi_rows.available_price_name ||' Price,Prompt Date:' || (case when cur_pcdi_rows.is_daily_cal_applicable = 'N' and cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then to_char(vc_prompt_date, 'Mon-yyyy') else to_char(vd_3rd_wed_of_qp, 'dd-Mon-yyyy') end) || ' Trade Date(' || to_char(vd_valid_quote_date, 'dd-Mon-yyyy') || ')', '', pc_process, pc_user_id, sysdate, pd_trade_date);
                     sp_insert_error_log(vobj_error_log);
                 end;
                 vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
@@ -5623,5 +5752,5 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_EOD_PRICE" is
     end loop;
     commit;
   end;
-end; 
+end;
 /
