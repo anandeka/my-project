@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0527
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manoranjan
+ 
+Created on*        		:  14-Mar-2012
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Physical
+
+Sub-Module  		 `	 : Washout
+ 
+Section   		 	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 89633
+Author: manoranjan.kumar
+Date: 8:19:08 PM, Wednesday, March 14, 2012
+Message:
+Washout bug.62685
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_224.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
+
