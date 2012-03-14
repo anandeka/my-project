@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0527
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manoranjan
+ 
+Created on*        		:  14-Mar-2012
+
+Bug / Enhancement*              :  NA
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Invoice
+
+Sub-Module  		 `	 : Service Invoice
+ 
+Section   		 	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 89514
+Author: manoranjan.kumar
+Date: 12:58:54 PM, Wednesday, March 14, 2012
+Message:
+59183 bug fixed..
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_225.sql
