@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0530
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  14-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 89630
+Author: suresh.gottipati
+Date: 8:01:29 PM, Wednesday, March 14, 2012
+Message:
+TC_RC_DISTRIBUTION_REPORT
+------------------------
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_LATEST_GMR_INVOICE.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_TC_RC_DISTRIBUTION_REPORT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_TC_RC_DISTRIBUTION_REPORT.sql
+
+
+
