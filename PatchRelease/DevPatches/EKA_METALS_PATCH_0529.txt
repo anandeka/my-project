@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0529
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sachin
+ 
+Created on*        		:  14-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 89625
+Author: sachin
+Date: 7:44:23 PM, Wednesday, March 14, 2012
+Message:
+patch for sac update
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/SP_UPDATEGRDASSAYYCONTENT.sql.txt
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_223.sql
+
