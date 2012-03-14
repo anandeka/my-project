@@ -1,0 +1,76 @@
+CREATE OR REPLACE PROCEDURE "SP_UPDATEGRDASSAYYCONTENT" 
+(
+  P_GRDID IN varchar2,
+  P_ASHID IN varchar2
+ ) 
+ is
+ CURSOR CR_GRD_RECORD IS 
+        Select SAM.INTERNAL_GRD_REF_NO INTERNAL_GRD_REF_NO,GRD.INTERNAL_GMR_REF_NO INTERNAL_GMR_REF_NO, 
+        AML.ATTRIBUTE_ID ATTRIBUTE_ID ,AML.ATTRIBUTE_NAME, PQCA.UNIT_OF_MEASURE UNIT_OF_MEASURE,
+        rm.ratio_name ratio_name ,rm.qty_unit_id_numerator qty_unit_id_numerator,
+        rm.qty_unit_id_denominator qty_unit_id_denominator,pqca.typical typical,
+        ppm.product_id product_id,GRD.QTY_UNIT_ID as item_qty_unit_id,
+        GRD.QTY TOTAL_QTY,GRD.CURRENT_QTY CURRENT_QTY, fn_get_grd_dry_qty(GRD.INTERNAL_GRD_REF_NO, GRD.QTY) TOTAL_DRY_QTY,
+        fn_get_grd_dry_qty(GRD.INTERNAL_GRD_REF_NO, GRD.CURRENT_QTY) CURRRENT_DRY_QTY,
+         (case rm.ratio_name 
+            WHEN '%' then                
+                 (pqca.typical / 100)             
+            ELSE
+                pqca.typical * pkg_general.f_get_converted_quantity(AML.UNDERLYING_PRODUCT_ID,
+                                                             GRD.QTY_UNIT_ID,
+                                                             rm.qty_unit_id_denominator,
+                                                             1)             		  
+         END  )  as Mul_factor
+        From 
+        SAM_STOCK_ASSAY_MAPPING SAM,
+        ASM_ASSAY_SUBLOT_MAPPING ASM,
+        PQCA_PQ_CHEMICAL_ATTRIBUTES PQCA,
+        GRD_GOODS_RECORD_DETAIL GRD,
+        ppm_product_properties_mapping ppm,
+        aml_attribute_master_list      aml,                                  
+        rm_ratio_master                rm,
+        ASH_ASSAY_HEADER		ASH
+        Where 
+        ASM.ASH_ID = SAM.ASH_ID
+        and SAM.IS_LATEST_POSITION_ASSAY ='Y' 
+        and PQCA.ASM_ID = ASM.ASM_ID
+        and ppm.attribute_id = aml.attribute_id
+        and aml.attribute_id = pqca.element_id
+        and pqca.unit_of_measure = rm.ratio_id
+        and asm.ash_id = ash.ash_id
+        and GRD.INTERNAL_GRD_REF_NO = SAM.INTERNAL_GRD_REF_NO
+        and PPM.PRODUCT_ID = GRD.PRODUCT_ID
+        and GRD.INTERNAL_GRD_REF_NO =P_GRDID
+        and ash.ash_id = P_ASHID;   
+  
+  qty_unit_id varchar2(15);
+      
+                  
+begin
+	FOR cur_record_rows IN CR_GRD_RECORD 
+        
+    LOOP  
+    
+    delete from SAC_STOCK_ASSAY_CONTENT WHERE INTERNAL_GRD_REF_NO =cur_record_rows.INTERNAL_GRD_REF_NO and   ELEMENT_ID =  cur_record_rows.ATTRIBUTE_ID;  
+    if (cur_record_rows.ratio_name ='%') then
+    	qty_unit_id :=cur_record_rows.item_qty_unit_id;
+    else
+    	qty_unit_id := cur_record_rows.qty_unit_id_numerator;
+    end if;
+    
+    Insert into SAC_STOCK_ASSAY_CONTENT (
+    SAC_ID,INTERNAL_GMR_REF_NO,STOCK_TYPE,INTERNAL_GRD_REF_NO,ELEMENT_ID,
+    CURRENT_QTY_WET,CURRENT_QTY_DRY,TOTAL_QTY_IN_WET,TOTAL_QTY_IN_DRY,GRD_QTY_UNIT_ID,    
+  	ELEMENT_CURRENT_QTY,ELEMENT_TOTAL_QTY,ELEMENT_QTY_UNIT_ID,
+    LATEST_ASSAY_ID,WTDAVGPOSTION_ASH_ID,PARENT_ASH_ID,GMR_ACTION_ID)     
+    VALUES  
+    (SEQ_SAC.nextval,cur_record_rows.INTERNAL_GMR_REF_NO,'P',cur_record_rows.INTERNAL_GRD_REF_NO,cur_record_rows.ATTRIBUTE_ID,
+    cur_record_rows.CURRENT_QTY,cur_record_rows.CURRRENT_DRY_QTY,cur_record_rows.TOTAL_QTY,  cur_record_rows.TOTAL_DRY_QTY,cur_record_rows.item_qty_unit_id,
+    (cur_record_rows.CURRRENT_DRY_QTY*cur_record_rows.Mul_factor) ,(cur_record_rows.TOTAL_DRY_QTY*cur_record_rows.Mul_factor), qty_unit_id,   
+    P_ASHID,P_ASHID,P_ASHID,'ToChange');
+        
+    end loop;
+
+
+end;
+/
