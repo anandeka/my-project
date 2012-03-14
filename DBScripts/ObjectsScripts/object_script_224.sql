@@ -1,0 +1,3 @@
+
+alter table PCI_PHYSICAL_CONTRACT_ITEM add (SPE_SETTLEMENT_STATUS varchar2(15));
+
