@@ -52,6 +52,14 @@ Bug Fixes
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UnpricedQuantityReport.rpt
 
+Revision: 89754
+Author: sivachalabathi.s
+Date: 5:39:51 PM, Thursday, March 15, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_227.sql
+
 
 
 
