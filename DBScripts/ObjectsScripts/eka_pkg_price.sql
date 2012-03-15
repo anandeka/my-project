@@ -35,7 +35,7 @@ create or replace package pkg_price is
   function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                         pd_trade_date       date) return date;
 
-end; 
+end;
 /
 create or replace package body pkg_price is
 
@@ -68,7 +68,8 @@ create or replace package body pkg_price is
              div.price_unit_id,
              dim.delivery_calender_id,
              pdc.is_daily_cal_applicable,
-             pdc.is_monthly_cal_applicable
+             pdc.is_monthly_cal_applicable,
+             akc.corporate_id
         from pcdi_pc_delivery_item        pcdi,
              pci_physical_contract_item   pci,
              pcm_physical_contract_main   pcm,
@@ -323,7 +324,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -391,6 +392,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                     and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -406,6 +408,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                             and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -510,7 +513,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -578,6 +581,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                     and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -593,6 +597,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                              and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -631,14 +636,14 @@ create or replace package body pkg_price is
                   vn_no_of_trading_days:=pkg_general.f_get_instrument_trading_days(cur_pcdi_rows.instrument_id,
                                                                                    vd_qp_start_date,
                                                                                    vd_qp_end_date);
-                                                                                          
-                                                                                   
+
+
                   vn_count_val_qp           := vn_no_of_trading_days -
                                                vn_count_set_qp;
                   vn_during_total_val_price := vn_during_total_val_price +
                                                vn_during_val_price *
                                                vn_count_val_qp;
-                
+
                 end if;
                 if (vn_count_val_qp + vn_count_set_qp) <> 0 then
                   if vn_market_flag = 'N' then
@@ -781,7 +786,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -849,6 +854,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                     and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -864,6 +870,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                             and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -893,7 +900,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -961,6 +968,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                     and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -976,6 +984,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                             and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -1005,7 +1014,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -1073,6 +1082,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                      and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -1088,6 +1098,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                             and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -1335,7 +1346,7 @@ create or replace package body pkg_price is
               exit;
             end if;
           end loop;
-          --- get 3rd wednesday  before QP period 
+          --- get 3rd wednesday  before QP period
           -- Get the quotation date = Trade Date +2 working Days
           if vd_3rd_wed_of_qp <= pd_trade_date then
             workings_days  := 0;
@@ -1401,6 +1412,7 @@ create or replace package body pkg_price is
              and dqd.available_price_id = cur_gmr_rows.available_price_id
              and dq.price_source_id = cur_gmr_rows.price_source_id
              and dqd.price_unit_id = vc_price_unit_id
+             and dq.corporate_id=cur_gmr_rows.corporate_id
              and dq.is_deleted = 'N'
              and dqd.is_deleted = 'N'
              and dq.trade_date =
@@ -1414,6 +1426,7 @@ create or replace package body pkg_price is
                          cur_gmr_rows.available_price_id
                      and dq.price_source_id = cur_gmr_rows.price_source_id
                      and dqd.price_unit_id = vc_price_unit_id
+                     and dq.corporate_id=cur_gmr_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date <= pd_trade_date);
@@ -1501,7 +1514,7 @@ create or replace package body pkg_price is
               exit;
             end if;
           end loop;
-          --- get 3rd wednesday  before QP period 
+          --- get 3rd wednesday  before QP period
           -- Get the quotation date = Trade Date +2 working Days
           if vd_3rd_wed_of_qp <= pd_trade_date then
             workings_days  := 0;
@@ -1567,6 +1580,7 @@ create or replace package body pkg_price is
              and dqd.available_price_id = cur_gmr_rows.available_price_id
              and dq.price_source_id = cur_gmr_rows.price_source_id
              and dqd.price_unit_id = vc_price_unit_id
+             and dq.corporate_id=cur_gmr_rows.corporate_id
              and dq.is_deleted = 'N'
              and dqd.is_deleted = 'N'
              and dq.trade_date =
@@ -1580,6 +1594,7 @@ create or replace package body pkg_price is
                          cur_gmr_rows.available_price_id
                      and dq.price_source_id = cur_gmr_rows.price_source_id
                      and dqd.price_unit_id = vc_price_unit_id
+                      and dq.corporate_id=cur_gmr_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date <= pd_trade_date);
@@ -1619,7 +1634,7 @@ create or replace package body pkg_price is
           vn_during_total_val_price := vn_during_total_val_price +
                                        vn_during_val_price *
                                        vn_count_val_qp;
-        
+
         end if;
         if (vn_count_val_qp + vn_count_set_qp) <> 0 then
           if vn_market_flag = 'N' then
@@ -1993,7 +2008,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -2061,6 +2076,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                     and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -2076,6 +2092,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                              and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -2191,7 +2208,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -2259,6 +2276,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                     and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -2274,6 +2292,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                             and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -2317,7 +2336,7 @@ create or replace package body pkg_price is
                   vn_during_total_val_price := vn_during_total_val_price +
                                                vn_during_val_price *
                                                vn_count_val_qp;
-                
+
                 end if;
                 if (vn_count_val_qp + vn_count_set_qp) <> 0 then
                   if vn_market_flag = 'N' then
@@ -2471,7 +2490,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -2539,6 +2558,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                     and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -2554,6 +2574,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                              and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -2586,7 +2607,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -2654,6 +2675,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                     and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -2669,6 +2691,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                             and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -2701,7 +2724,7 @@ create or replace package body pkg_price is
                       exit;
                     end if;
                   end loop;
-                  --- get 3rd wednesday  before QP period 
+                  --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
                   if vd_3rd_wed_of_qp <= pd_trade_date then
                     vn_workings_days := 0;
@@ -2769,6 +2792,7 @@ create or replace package body pkg_price is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
+                      and dq.corporate_id=cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
@@ -2784,6 +2808,7 @@ create or replace package body pkg_price is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
+                             and dq.corporate_id=cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -3102,7 +3127,7 @@ create or replace package body pkg_price is
                 exit;
               end if;
             end loop;
-            --- get 3rd wednesday  before QP period 
+            --- get 3rd wednesday  before QP period
             -- Get the quotation date = Trade Date +2 working Days
             if vd_3rd_wed_of_qp <= pd_trade_date then
               vn_workings_days := 0;
@@ -3121,7 +3146,7 @@ create or replace package body pkg_price is
               end loop;
               vd_3rd_wed_of_qp := vd_quotes_date;
             end if;
-            ---- get the dr_id             
+            ---- get the dr_id
             begin
               select drm.dr_id
                 into vc_before_price_dr_id
@@ -3141,7 +3166,7 @@ create or replace package body pkg_price is
                                                             vd_qp_end_date);
             vc_prompt_month := to_char(vc_prompt_date, 'Mon');
             vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
-            ---- get the dr_id             
+            ---- get the dr_id
             begin
               select drm.dr_id
                 into vc_before_price_dr_id
@@ -3170,6 +3195,7 @@ create or replace package body pkg_price is
                and dqd.available_price_id = cur_gmr_rows.available_price_id
                and dq.price_source_id = cur_gmr_rows.price_source_id
                and dqd.price_unit_id = vc_price_unit_id
+               and dq.corporate_id=cur_gmr_rows.corporate_id
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
                and dq.trade_date =
@@ -3183,6 +3209,7 @@ create or replace package body pkg_price is
                            cur_gmr_rows.available_price_id
                        and dq.price_source_id = cur_gmr_rows.price_source_id
                        and dqd.price_unit_id = vc_price_unit_id
+                       and dq.corporate_id=cur_gmr_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
                        and dq.trade_date <= pd_trade_date);
@@ -3290,7 +3317,7 @@ create or replace package body pkg_price is
                 exit;
               end if;
             end loop;
-            --- get 3rd wednesday  before QP period 
+            --- get 3rd wednesday  before QP period
             -- Get the quotation date = Trade Date +2 working Days
             if vd_3rd_wed_of_qp <= pd_trade_date then
               vn_workings_days := 0;
@@ -3328,7 +3355,7 @@ create or replace package body pkg_price is
                                                             vd_qp_end_date);
             vc_prompt_month := to_char(vc_prompt_date, 'Mon');
             vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
-            ---- get the dr_id             
+            ---- get the dr_id
             begin
               select drm.dr_id
                 into vc_during_price_dr_id
@@ -3357,6 +3384,7 @@ create or replace package body pkg_price is
                and dqd.available_price_id = cur_gmr_rows.available_price_id
                and dq.price_source_id = cur_gmr_rows.price_source_id
                and dqd.price_unit_id = vc_price_unit_id
+               and dq.corporate_id=cur_gmr_rows.corporate_id
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
                and dq.trade_date =
@@ -3370,6 +3398,7 @@ create or replace package body pkg_price is
                            cur_gmr_rows.available_price_id
                        and dq.price_source_id = cur_gmr_rows.price_source_id
                        and dqd.price_unit_id = vc_price_unit_id
+                       and dq.corporate_id=cur_gmr_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
                        and dq.trade_date <= pd_trade_date);
@@ -3409,7 +3438,7 @@ create or replace package body pkg_price is
             vn_during_total_val_price := vn_during_total_val_price +
                                          vn_during_val_price *
                                          vn_count_val_qp;
-          
+
           end if;
           if (vn_count_val_qp + vn_count_set_qp) <> 0 then
             if vn_market_flag = 'N' then
@@ -3580,5 +3609,5 @@ create or replace package body pkg_price is
     return vd_prompt_date;
   end;
 
-end; 
+end;
 /
