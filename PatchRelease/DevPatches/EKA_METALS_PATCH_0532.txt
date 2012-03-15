@@ -1,0 +1,77 @@
+Patch No*          		:  EKA_METALS_PATCH_0524
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  31-Jan-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pledge Letter 
+	
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Trnsaction
+==================================================================
+Revision: 89671
+Author: sriveenam
+Date: Thursday, March 15, 2012 12:09:14 PM
+Message:
+Pledge document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_225.sql
+
+Revision: 89675
+Author: sriveenam
+Date: Thursday, March 15, 2012 12:18:29 PM
+Message:
+Pledge document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_226.sql
+
+Revision: 89673
+Author: sriveenam
+Date: Thursday, March 15, 2012 12:10:49 PM
+Message:
+Pledge document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_52.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
