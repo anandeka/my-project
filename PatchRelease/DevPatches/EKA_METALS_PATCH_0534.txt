@@ -1,0 +1,72 @@
+Patch No*          		:  EKA_METALS_PATCH_0534
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok
+ 
+Created on*        		:  15-Mar-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+	
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 89749
+Author: sivachalabathi.s
+Date: 5:03:26 PM, Thursday, March 15, 2012
+Message:
+Newly Designed Excel
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UnpricedQuantityReport_Excel.rpt
+
+Revision: 89748
+Author: sivachalabathi.s
+Date: 5:01:41 PM, Thursday, March 15, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UnpricedQuantityReport.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
