@@ -1,0 +1,68 @@
+Patch No*          		:  EKA_METALS_PATCH_0546
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok
+ 
+Created on*        		:  16-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 89997
+Author: sivachalabathi.s
+Date: 8:00:43 PM, Friday, March 16, 2012
+Message:
+New Release
+----
+Added : /7.3/Engg/Metals/Code/Reports/FreeMetalInvoice.rpt
+Added : /7.3/Engg/Metals/Code/Reports/PledgeInvoice.rpt
+Added : /7.3/Engg/Metals/Code/Reports/PledgeLetterFormat.rpt
+
+Revision: 89998
+Author: sivachalabathi.s
+Date: 8:01:55 PM, Friday, March 16, 2012
+Message:
+Boliden Enhancement From Traxys
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AdvancePaymentDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ProfomaDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/VatDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighingandSampling.rpt
+
+Revision: 90001
+Author: sivachalabathi.s
+Date: 8:06:37 PM, Friday, March 16, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
+
