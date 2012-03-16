@@ -11,13 +11,14 @@ select debt_temp.corporate_id,
                returnable_temp.smelter_id smelter_id,
                returnable_temp.product_id,
                returnable_temp.product_name,
-               -1 * sum(returnable_temp.total_qty) total_qty,
+               sum(returnable_temp.total_qty) total_qty,
                returnable_temp.qty_unit_id,
                returnable_temp.qty_type
           from (select prrqs.corporate_id,
                        prrqs.cp_id smelter_id,
                        prrqs.product_id product_id,
                        pdm.product_desc product_name,
+                       -1 *
                        sum(prrqs.qty_sign *
                            pkg_general.f_get_converted_quantity(cpm.product_id,
                                                                 prrqs.qty_unit_id,
@@ -31,6 +32,7 @@ select debt_temp.corporate_id,
                  where prrqs.cp_type = 'Smelter'
                    and prrqs.is_active = 'Y'
                    and prrqs.qty_type = 'Returnable'
+                   and prrqs.activity_action_id = 'financialSettlement'
                    and pdm.product_id = prrqs.product_id
                    and cpm.is_active = 'Y'
                    and cpm.is_deleted = 'N'
@@ -79,18 +81,18 @@ select debt_temp.corporate_id,
                 /* UNION
                 --Smelter Base Stock as Returnable(Debt)
                 SELECT sbs.corporate_id,
-                       sbs.smelter_cp_id smelter_id,
-                       sbs.product_id product_id,
-                       pdm.product_desc product_name,
-                       SUM(pkg_general.f_get_converted_quantity(cpm.product_id,
-                                                                sbs.qty_unit_id,
-                                                                cpm.inventory_qty_unit,
-                                                                sbs.qty)) total_qty,
-                       cpm.inventory_qty_unit qty_unit_id,
-                       'Returnable' qty_type
+                sbs.smelter_cp_id smelter_id,
+                sbs.product_id product_id,
+                pdm.product_desc product_name,
+                SUM(pkg_general.f_get_converted_quantity(cpm.product_id,
+                sbs.qty_unit_id,
+                cpm.inventory_qty_unit,
+                sbs.qty)) total_qty,
+                cpm.inventory_qty_unit qty_unit_id,
+                'Returnable' qty_type
                 FROM   sbs_smelter_base_stock     sbs,
-                       pdm_productmaster          pdm,
-                       cpm_corporateproductmaster cpm
+                pdm_productmaster          pdm,
+                cpm_corporateproductmaster cpm
                 WHERE  pdm.product_id = sbs.product_id
                 AND    sbs.is_active = 'Y'
                 AND    cpm.corporate_id = sbs.corporate_id
@@ -98,10 +100,10 @@ select debt_temp.corporate_id,
                 AND    cpm.is_active = 'Y'
                 AND    cpm.is_deleted = 'N'
                 GROUP  BY sbs.corporate_id,
-                          sbs.smelter_cp_id,
-                          sbs.product_id,
-                          pdm.product_desc,
-                          cpm.inventory_qty_unit*/
+                sbs.smelter_cp_id,
+                sbs.product_id,
+                pdm.product_desc,
+                cpm.inventory_qty_unit*/
                 ) returnable_temp
          group by returnable_temp.corporate_id,
                   returnable_temp.smelter_id,
@@ -114,6 +116,7 @@ select debt_temp.corporate_id,
                prrqs.cp_id smelter_id,
                prrqs.product_id product_id,
                pdm.product_desc product_name,
+               -1 *
                sum(prrqs.qty_sign *
                    pkg_general.f_get_converted_quantity(cpm.product_id,
                                                         prrqs.qty_unit_id,
