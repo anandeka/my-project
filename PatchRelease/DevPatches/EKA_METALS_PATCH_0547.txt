@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0547
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit Gupta
+ 
+Created on*        		:  16-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Invoice Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90009
+Author: mohitkumar.gupta
+Date: 8:41:59 PM, Friday, March 16, 2012
+Message:
+For API,PFI,VAT invoices o/p doc.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_228.sql
+
+Revision: 90010
+Author: mohitkumar.gupta
+Date: 8:44:04 PM, Friday, March 16, 2012
+Message:
+For API,PFI,VAT invoices o/p doc.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_233.sql
