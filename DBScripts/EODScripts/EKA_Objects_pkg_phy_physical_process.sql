@@ -738,6 +738,22 @@ create or replace package body pkg_phy_physical_process is
                                                 pc_process_id,
                                                 gvc_process,
                                                 pc_user_id);
+     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_calc_risk_limits');
+    vc_err_msg := 'Before sp_calc_risk_limits';
+    pkg_phy_eod_reports.sp_calc_risk_limits(pc_corporate_id,
+                                            pd_trade_date,
+                                            pc_process_id,
+                                            pc_user_id,
+                                            pc_process);                                            
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;

@@ -35,10 +35,17 @@ create or replace package pkg_phy_eod_reports is
   procedure sp_stock_monthly_yeild(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_process_id   varchar2);
+  procedure sp_calc_risk_limits(pc_corporate_id varchar2,
+                                pd_trade_date   date,
+                                pc_process_id   varchar2,
+                                pc_user_id      varchar2,
+                                pc_process      varchar2
+                                
+                                );
 end;
 /
 create or replace package body pkg_phy_eod_reports is
-    procedure sp_calc_daily_trade_pnl
+  procedure sp_calc_daily_trade_pnl
   --------------------------------------------------------------------------------------------------------------------------
     --        procedure name                            : sp_calc_daily_trade_pnl
     --        author                                    : 
@@ -178,7 +185,9 @@ create or replace package body pkg_phy_eod_reports is
        group_qty_unit_id,
        group_qty_unit,
        unrealized_section,
-       is_pending_approval)
+       is_pending_approval,
+       instrument_id,
+       instrument_name)
       select t.corporate_id,
              t.corporate_name,
              pc_process_id,
@@ -209,7 +218,9 @@ create or replace package body pkg_phy_eod_reports is
              gcd.group_qty_unit_id,
              qum_gcd.qty_unit,
              unrealized_section,
-             is_pending_approval
+             is_pending_approval,
+             t.product_id,
+             t.product_name
         from (select poud.corporate_id,
                      poud.corporate_name,
                      poud.profit_center_id,
@@ -234,7 +245,9 @@ create or replace package body pkg_phy_eod_reports is
                      poud.pnl_cur_id base_cur_id,
                      poud.pnl_cur_code base_cur_code,
                      entity unrealized_section,
-                     poud.approval_status is_pending_approval
+                     poud.approval_status is_pending_approval,
+                     poud.product_id,
+                     poud.product_name
                 from pps_physical_pnl_summary poud
                where poud.corporate_id = pc_corporate_id
                  and poud.process_id in (vc_prev_process_id, pc_process_id)
@@ -251,7 +264,9 @@ create or replace package body pkg_phy_eod_reports is
                         poud.approval_status,
                         poud.main_section,
                         poud.sub_section,
-                        poud.entity
+                        poud.entity,
+                        poud.product_id,
+                        poud.product_name
               union all
               select poum.corporate_id,
                      poum.corporate_name,
@@ -267,7 +282,9 @@ create or replace package body pkg_phy_eod_reports is
                      poum.pnl_cur_id base_cur_id,
                      poum.pnl_cur_code base_cur_code,
                      poum.entity unrealized_section,
-                     poum.approval_status is_pending_approval
+                     poum.approval_status is_pending_approval,
+                     poum.product_id,
+                     poum.product_name
                 from pps_physical_pnl_summary poum,
                      (select mec1.corporate_id,
                              max(mec1.trade_date) prev_year_month_end,
@@ -302,7 +319,9 @@ create or replace package body pkg_phy_eod_reports is
                         poum.approval_status,
                         poum.main_section,
                         poum.sub_section,
-                        poum.entity
+                        poum.entity,
+                        poum.product_id,
+                        poum.product_name
               union all
               select poum.corporate_id,
                      poum.corporate_name,
@@ -318,7 +337,9 @@ create or replace package body pkg_phy_eod_reports is
                      poum.pnl_cur_id base_cur_id,
                      poum.pnl_cur_code base_cur_code,
                      poum.entity unrealized_section,
-                     poum.approval_status is_pending_approval
+                     poum.approval_status is_pending_approval,
+                     poum.product_id,
+                     poum.product_name
                 from pps_physical_pnl_summary poum
                where poum.corporate_id = pc_corporate_id
                  and poum.main_section = 'Physical'
@@ -335,6 +356,8 @@ create or replace package body pkg_phy_eod_reports is
                         poum.approval_status,
                         poum.main_section,
                         poum.sub_section,
+                        poum.product_id,
+                        poum.product_name,
                         poum.entity
               union all
               select psud.corporate_id,
@@ -361,7 +384,9 @@ create or replace package body pkg_phy_eod_reports is
                      psud.pnl_cur_id,
                      psud.pnl_cur_code,
                      psud.entity unrealized_section,
-                     'N' is_pending_approval
+                     'N' is_pending_approval,
+                     psud.product_id,
+                     psud.product_name
                 from pps_physical_pnl_summary psud
                where psud.corporate_id = pc_corporate_id
                  and psud.process_id in (vc_prev_process_id, pc_process_id)
@@ -377,6 +402,8 @@ create or replace package body pkg_phy_eod_reports is
                         psud.pnl_cur_code,
                         psud.main_section,
                         psud.sub_section,
+                        psud.product_id,
+                        psud.product_name,
                         psud.entity
               union all
               select psum.corporate_id,
@@ -393,7 +420,9 @@ create or replace package body pkg_phy_eod_reports is
                      psum.pnl_cur_id,
                      psum.pnl_cur_code,
                      psum.entity unrealized_section,
-                     psum.approval_status is_pending_approval
+                     psum.approval_status is_pending_approval,
+                     psum.product_id,
+                     psum.product_name
                 from pps_physical_pnl_summary psum,
                      (select mec1.corporate_id,
                              max(mec1.trade_date) prev_year_month_end,
@@ -428,6 +457,8 @@ create or replace package body pkg_phy_eod_reports is
                         psum.approval_status,
                         psum.main_section,
                         psum.sub_section,
+                        psum.product_id,
+                        psum.product_name,
                         psum.entity
               union all
               select psum.corporate_id,
@@ -444,7 +475,9 @@ create or replace package body pkg_phy_eod_reports is
                      psum.pnl_cur_id,
                      psum.pnl_cur_code,
                      psum.entity unrealized_section,
-                     psum.approval_status is_pending_approval
+                     psum.approval_status is_pending_approval,
+                     psum.product_id,
+                     psum.product_name
                 from pps_physical_pnl_summary psum
                where psum.corporate_id = pc_corporate_id
                  and psum.main_section = 'Physical'
@@ -461,6 +494,8 @@ create or replace package body pkg_phy_eod_reports is
                         psum.pnl_cur_code,
                         psum.main_section,
                         psum.sub_section,
+                        psum.product_id,
+                        psum.product_name,
                         psum.entity) t,
              gcd_groupcorporatedetails@eka_appdb gcd,
              ak_corporate akc,
@@ -486,7 +521,9 @@ create or replace package body pkg_phy_eod_reports is
                 gcd.group_qty_unit_id,
                 qum_gcd.qty_unit,
                 unrealized_section,
-                is_pending_approval;
+                is_pending_approval,
+                t.product_id,
+                t.product_name;
     -----------------------------------------------------------------------------------------
     ------------------record realized physical contracts details----------------------------------
     -----------------------------------------------------------------------------------------
@@ -512,7 +549,9 @@ create or replace package body pkg_phy_eod_reports is
        group_qty_unit_id,
        group_qty_unit,
        unrealized_section,
-       is_pending_approval)
+       is_pending_approval,
+       instrument_id,
+       instrument_name)
       select t.corporate_id,
              t.corporate_name,
              pc_process_id,
@@ -537,7 +576,9 @@ create or replace package body pkg_phy_eod_reports is
              gcd.group_qty_unit_id,
              qum_gcd.qty_unit,
              unrealized_section,
-             is_pending_approval
+             is_pending_approval,
+             t.product_id,
+             t.product_name
         from (select prd.corporate_id,
                      prd.corporate_name,
                      prd.profit_center_id,
@@ -556,7 +597,9 @@ create or replace package body pkg_phy_eod_reports is
                      prd.pnl_cur_id base_cur_id,
                      prd.pnl_cur_code base_cur_code,
                      'Physical' unrealized_section,
-                     'N' is_pending_approval
+                     'N' is_pending_approval,
+                     prd.product_id,
+                     prd.product_name
                 from pps_physical_pnl_summary prd,
                      tdc_trade_date_closure   tdc
                where prd.corporate_id = pc_corporate_id
@@ -573,6 +616,8 @@ create or replace package body pkg_phy_eod_reports is
                         profit_center_name,
                         prd.profit_center_short_name,
                         prd.pnl_cur_id,
+                        prd.product_id,
+                        prd.product_name,
                         prd.pnl_cur_code
               union all
               select prm.corporate_id,
@@ -588,7 +633,9 @@ create or replace package body pkg_phy_eod_reports is
                      prm.pnl_cur_id,
                      prm.pnl_cur_code,
                      'Physical' unrealized_section,
-                     'N' is_pending_approval
+                     'N' is_pending_approval,
+                     prm.product_id,
+                     prm.product_name
                 from pps_physical_pnl_summary prm,
                      tdc_trade_date_closure   mec
                where prm.corporate_id = mec.corporate_id
@@ -606,7 +653,9 @@ create or replace package body pkg_phy_eod_reports is
                         prm.profit_center_name,
                         prm.profit_center_short_name,
                         prm.pnl_cur_id,
-                        prm.pnl_cur_code) t,
+                        prm.pnl_cur_code,
+                        prm.product_id,
+                        prm.product_name) t,
              gcd_groupcorporatedetails@eka_appdb gcd,
              ak_corporate akc,
              qum_quantity_unit_master qum_gcd,
@@ -629,7 +678,9 @@ create or replace package body pkg_phy_eod_reports is
                 gcd.group_cur_id,
                 cm_gcd.cur_code,
                 gcd.group_qty_unit_id,
-                qum_gcd.qty_unit;
+                qum_gcd.qty_unit,
+                t.product_id,
+                t.product_name;
     --------------------------------------------------------------------------------------
     ------------------record direct to realized costs details----------------------------------
     --------------------------------------------------------------------------------------
@@ -1173,7 +1224,7 @@ create or replace package body pkg_phy_eod_reports is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
+  procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                                 pd_trade_date   date,
                                 pc_process_id   varchar2,
                                 pc_process      varchar2,
@@ -1200,7 +1251,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
        pnl,
        pnl_cur_id,
        pnl_cur_code,
-       approval_status)
+       approval_status,
+       product_id,
+       product_name)
       select poud.corporate_id,
              poud.corporate_name,
              pc_process_id,
@@ -1218,7 +1271,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                 'Y'
                else
                 'N'
-             end) is_pending_approval
+             end) is_pending_approval,
+             poud.product_id,
+             poud.product_name
         from poud_phy_open_unreal_daily poud
        where poud.corporate_id = pc_corporate_id
          and poud.process_id = pc_process_id
@@ -1230,7 +1285,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                 poud.profit_center_short_name,
                 poud.base_cur_id,
                 poud.base_cur_code,
-                poud.approval_status
+                poud.approval_status,
+                poud.product_id,
+                poud.product_name
       union all
       select psu.corporate_id,
              akc.corporate_name,
@@ -1244,7 +1301,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
              sum(psu.pnl_in_base_cur),
              psu.base_cur_id,
              psu.base_cur_code,
-             'N'
+             'N',
+             psu.product_id,
+             psu.product_name
         from psu_phy_stock_unrealized psu,
              ak_corporate             akc,
              ---psci_phy_stock_contract_item psci
@@ -1260,8 +1319,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                 cpc.profit_center_name,
                 cpc.profit_center_short_name,
                 psu.base_cur_id,
-                psu.base_cur_code
-      
+                psu.base_cur_code,
+                psu.product_id,
+                psu.product_name
       union all
       ---- record physical open unrealized for element
       select poue.corporate_id,
@@ -1281,7 +1341,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                 'Y'
                else
                 'N'
-             end) is_pending_approval
+             end) is_pending_approval,
+             poue.product_id,
+             poue.product_name
         from poue_phy_open_unreal_element poue
        where poue.corporate_id = pc_corporate_id
          and poue.process_id = pc_process_id
@@ -1293,7 +1355,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                 poue.profit_center_short_name,
                 poue.base_cur_id,
                 poue.base_cur_code,
-                poue.approval_status
+                poue.approval_status,
+                poue.product_id,
+                poue.product_name
       -----
       union all
       ---------- record physical stock unrealized for element
@@ -1309,7 +1373,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
              sum(psue.pnl_in_base_cur),
              psue.base_cur_id,
              psue.base_cur_code,
-             'N'
+             'N',
+             psue.product_id,
+             psue.product_name
         from psue_phy_stock_unrealized_ele psue,
              ak_corporate                  akc,
              -- psci_phy_stock_contract_item  psci
@@ -1325,7 +1391,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                 cpc.profit_center_name,
                 cpc.profit_center_short_name,
                 psue.base_cur_id,
-                psue.base_cur_code;
+                psue.base_cur_code,
+                psue.product_id,
+                psue.product_name;
     ---------- 
     --
     -- record physical realized pnl
@@ -1343,7 +1411,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
        pnl,
        pnl_cur_id,
        pnl_cur_code,
-       approval_status)
+       approval_status,
+       product_id,
+       product_name)
       select prd.corporate_id,
              prd.corporate_name,
              pc_process_id,
@@ -1366,7 +1436,9 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                  end),
              prd.base_cur_id,
              prd.base_cur_code,
-             'N' is_pending_approval
+             'N' is_pending_approval,
+             prd.product_id,
+             prd.product_name
         from prd_physical_realized_daily prd
        where prd.corporate_id = pc_corporate_id
          and prd.process_id = pc_process_id
@@ -1376,535 +1448,10 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                 prd.profit_center_short_name,
                 prd.profit_center_name,
                 prd.base_cur_id,
-                prd.base_cur_code;
+                prd.base_cur_code,
+                prd.product_id,
+                prd.product_name;
     commit;
-  
-    --
-    -- record currency - unrealized pnl
-    --
-    --    insert into cps_curremcy_pnl_summary
-    --      (corporate_id,
-    --       corporate_name,
-    --       process_id,
-    --       profit_center_id,
-    --       profit_center_name,
-    --       profit_center_short_name,
-    --       main_section,
-    --       sub_section,
-    --       pnl,
-    --       pnl_cur_id,
-    --       pnl_cur_code)
-    --      select cpd.corporate_id,
-    --             cpd.corporate_name,
-    --             cpd.process_id,
-    --             cpd.profit_center_id,
-    --             cpd.profit_center_name,
-    --             cpc.profit_center_short_name,
-    --             'Currency' main_section,
-    --             'Unrealized' sub_section,
-    --             sum(cpd.pnl_value_in_home_currency) pnl,
-    --             cpd.home_cur_id,
-    --             cpd.home_currency
-    --        from cpd_currency_pnl_daily      cpd,
-    --             cpc_corporate_profit_center cpc
-    --       where cpd.profit_center_id = cpc.profit_center_id
-    --         and upper(cpd.pnl_type) = 'UNREALIZED'
-    --         and cpd.process_id = pc_process_id
-    --         and cpd.corporate_id = pc_corporate_id
-    --       group by cpd.corporate_id,
-    --                cpd.corporate_name,
-    --                cpd.process_id,
-    --                cpd.profit_center_id,
-    --                cpd.profit_center_name,
-    --                cpc.profit_center_short_name,
-    --                cpd.home_cur_id,
-    --                cpd.home_currency;
-    --    --
-    --    -- record currency - realized pnl
-    --    --
-    --    insert into cps_curremcy_pnl_summary
-    --      (corporate_id,
-    --       corporate_name,
-    --       process_id,
-    --       profit_center_id,
-    --       profit_center_name,
-    --       profit_center_short_name,
-    --       main_section,
-    --       sub_section,
-    --       pnl,
-    --       pnl_cur_id,
-    --       pnl_cur_code)
-    --      select cpd.corporate_id,
-    --             cpd.corporate_name,
-    --             cpd.process_id,
-    --             cpd.profit_center_id,
-    --             cpd.profit_center_name,
-    --             cpc.profit_center_short_name,
-    --             'Currency' main_section,
-    --             'Realized' sub_section,
-    --             sum(cpd.pnl_value_in_home_currency) pnl,
-    --             cpd.home_cur_id,
-    --             cpd.home_currency
-    --        from cpd_currency_pnl_daily      cpd,
-    --             cpc_corporate_profit_center cpc
-    --       where cpd.profit_center_id = cpc.profit_center_id
-    --         and upper(cpd.pnl_type) = 'REALIZED'
-    --         and cpd.process_id = pc_process_id
-    --         and cpd.corporate_id = pc_corporate_id
-    --       group by cpd.corporate_id,
-    --                cpd.corporate_name,
-    --                cpd.process_id,
-    --                cpd.profit_center_id,
-    --                cpd.profit_center_name,
-    --                cpc.profit_center_short_name,
-    --                cpd.home_cur_id,
-    --                cpd.home_currency;
-    --    --
-    --    -- record currency - bank fees pnl
-    --    --
-    --    insert into cps_curremcy_pnl_summary
-    --      (corporate_id,
-    --       corporate_name,
-    --       process_id,
-    --       profit_center_id,
-    --       profit_center_name,
-    --       profit_center_short_name,
-    --       main_section,
-    --       sub_section,
-    --       pnl,
-    --       pnl_cur_id,
-    --       pnl_cur_code)
-    --      select cpd.corporate_id,
-    --             cpd.corporate_name,
-    --             cpd.process_id,
-    --             cpd.profit_center_id,
-    --             cpd.profit_center_name,
-    --             cpc.profit_center_short_name,
-    --             'Currency' main_section,
-    --             'Bank Fees' sub_section,
-    --             sum(cpd.bank_charges_in_home_currency) pnl,
-    --             cpd.home_cur_id,
-    --             cpd.home_currency
-    --        from cpd_currency_pnl_daily      cpd,
-    --             cpc_corporate_profit_center cpc
-    --       where cpd.profit_center_id = cpc.profit_center_id
-    --         and cpd.process_id = pc_process_id
-    --         and cpd.corporate_id = pc_corporate_id
-    --       group by cpd.corporate_id,
-    --                cpd.corporate_name,
-    --                cpd.process_id,
-    --                cpd.profit_center_id,
-    --                cpd.profit_center_name,
-    --                cpc.profit_center_short_name,
-    --                cpd.home_cur_id,
-    --                cpd.home_currency;
-    --    --
-    --    -- record derivatives - unrealized pnl
-    --    --
-    --    insert into dps_derivative_pnl_summary
-    --      (corporate_id,
-    --       corporate_name,
-    --       process_id,
-    --       profit_center_id,
-    --       profit_center_short_name,
-    --       profit_center_name,
-    --       main_section,
-    --       sub_section,
-    --       entity,
-    --       pnl,
-    --       pnl_cur_id,
-    --       pnl_cur_code,
-    --       exchange_id,
-    --       exchange_name)
-    --      select dpd.corporate_id,
-    --             dpd.corporate_name,
-    --             pc_process_id,
-    --             dpd.profit_center_id,
-    --             dpd.profit_center_short_name,
-    --             dpd.profit_center_name,
-    --             decode(dpd.deal_type_id,
-    --                    'Internal Swap',
-    --                    'Internal Swap',
-    --                    'Futures') as main_section,
-    --             'Unrealized' as sub_section,
-    --             'Futures' entity,
-    --             sum(dpd.pnl_in_base_cur),
-    --             dpd.base_cur_id,
-    --             dpd.base_cur_code,
-    --             dpd.exchange_id,
-    --             dpd.exchange_name
-    --        from dpd_derivative_pnl_daily dpd
-    --       where dpd.corporate_id = pc_corporate_id
-    --         and dpd.process_id = pc_process_id
-    --         and dpd.instrument_type_id = 'IRMF'
-    --         and dpd.pnl_type = 'Unrealized'
-    --       group by dpd.corporate_id,
-    --                dpd.corporate_name,
-    --                pc_process_id,
-    --                dpd.profit_center_id,
-    --                profit_center_short_name,
-    --                dpd.profit_center_name,
-    --                decode(deal_type_id,
-    --                       'Internal Swap',
-    --                       'Internal Swap',
-    --                       'Futures'),
-    --                dpd.base_cur_id,
-    --                dpd.base_cur_code,
-    --                dpd.exchange_id,
-    --                dpd.exchange_name
-    --      union all
-    --      select dpd.corporate_id,
-    --             dpd.corporate_name,
-    --             pc_process_id,
-    --             dpd.profit_center_id,
-    --             dpd.profit_center_short_name,
-    --             dpd.profit_center_name,
-    --             decode(dpd.deal_type_id,
-    --                    'Internal Swap',
-    --                    'Internal Swap',
-    --                    'Options') as main_section,
-    --             'Unrealized' as sub_section,
-    --             'Options' entity,
-    --             sum(dpd.pnl_in_base_cur),
-    --             dpd.base_cur_id,
-    --             dpd.base_cur_code,
-    --             dpd.exchange_id exchange_id,
-    --             dpd.exchange_name exchange_name
-    --        from dpd_derivative_pnl_daily dpd
-    --       where dpd.corporate_id = pc_corporate_id
-    --         and dpd.process_id = pc_process_id
-    --         and dpd.instrument_type_id in
-    --             ('IRMCO', 'IRMPO', 'IRMOTCO', 'IRMOTPO')
-    --         and dpd.pnl_type = 'Unrealized'
-    --       group by dpd.corporate_id,
-    --                dpd.corporate_name,
-    --                pc_process_id,
-    --                dpd.profit_center_id,
-    --                dpd.profit_center_short_name,
-    --                dpd.profit_center_name,
-    --                decode(dpd.deal_type_id,
-    --                       'Internal Swap',
-    --                       'Internal Swap',
-    --                       'Options'),
-    --                dpd.base_cur_id,
-    --                dpd.base_cur_code,
-    --                dpd.exchange_id,
-    --                dpd.exchange_name;
-    --    --
-    --    -- record derivatives - realized pnl
-    --    --
-    --    insert into dps_derivative_pnl_summary
-    --      (corporate_id,
-    --       corporate_name,
-    --       process_id,
-    --       profit_center_id,
-    --       profit_center_short_name,
-    --       profit_center_name,
-    --       main_section,
-    --       sub_section,
-    --       entity,
-    --       pnl,
-    --       pnl_cur_id,
-    --       pnl_cur_code,
-    --       exchange_id,
-    --       exchange_name)
-    --      select dpd.corporate_id,
-    --             dpd.corporate_name,
-    --             pc_process_id,
-    --             dpd.profit_center_id,
-    --             profit_center_short_name,
-    --             dpd.profit_center_name,
-    --             decode(deal_type_id,
-    --                    'Internal Swap',
-    --                    'Internal Swap',
-    --                    'Futures') as main_section,
-    --             'Realized' as sub_section,
-    --             'Futures' entiry,
-    --             sum(dpd.pnl_in_base_cur),
-    --             dpd.base_cur_id,
-    --             dpd.base_cur_code,
-    --             dpd.exchange_id,
-    --             dpd.exchange_name
-    --        from dpd_derivative_pnl_daily dpd
-    --       where dpd.process_id = pc_process_id
-    --         and dpd.instrument_type_id = 'IRMF'
-    --         and dpd.pnl_type = 'Realized'
-    --       group by dpd.corporate_id,
-    --                dpd.corporate_name,
-    --                pc_process_id,
-    --                dpd.profit_center_id,
-    --                profit_center_short_name,
-    --                dpd.profit_center_name,
-    --                decode(deal_type_id,
-    --                       'Internal Swap',
-    --                       'Internal Swap',
-    --                       'Futures'),
-    --                dpd.base_cur_id,
-    --                dpd.base_cur_code,
-    --                dpd.exchange_id,
-    --                dpd.exchange_name
-    --      union all
-    --      select dpd.corporate_id,
-    --             dpd.corporate_name,
-    --             pc_process_id,
-    --             dpd.profit_center_id,
-    --             profit_center_short_name,
-    --             dpd.profit_center_name,
-    --             decode(deal_type_id,
-    --                    'Internal Swap',
-    --                    'Internal Swap',
-    --                    'Options') as main_section,
-    --             'Realized' as sub_section,
-    --             'Options' entity,
-    --             sum(dpd.pnl_in_base_cur),
-    --             dpd.base_cur_id,
-    --             dpd.base_cur_code,
-    --             dpd.exchange_id,
-    --             dpd.exchange_name
-    --        from dpd_derivative_pnl_daily dpd
-    --       where dpd.corporate_id = pc_corporate_id
-    --         and dpd.process_id = pc_process_id
-    --         and dpd.instrument_type_id in
-    --             ('IRMCO', 'IRMPO', 'IRMOTCO', 'IRMOTPO')
-    --         and dpd.pnl_type = 'Realized'
-    --       group by dpd.corporate_id,
-    --                dpd.corporate_name,
-    --                pc_process_id,
-    --                dpd.profit_center_id,
-    --                profit_center_short_name,
-    --                dpd.profit_center_name,
-    --                decode(deal_type_id,
-    --                       'Internal Swap',
-    --                       'Internal Swap',
-    --                       'Options'),
-    --                dpd.base_cur_id,
-    --                dpd.base_cur_code,
-    --                dpd.exchange_id,
-    --                dpd.exchange_name;
-    --    --
-    --    -- record realized cost details
-    --    --
-    --    insert into cps_cost_pnl_summary
-    --      (corporate_id,
-    --       corporate_name,
-    --       process_id,
-    --       profit_center_id,
-    --       profit_center_name,
-    --       profit_center_short_name,
-    --       main_section,
-    --       sub_section,
-    --       entity,
-    --       cost_amt,
-    --       cost_cur_id,
-    --       cost_cur_code)
-    --      select cpc.corporateid,
-    --             akc.corporate_name,
-    --             pc_process_id,
-    --             mc.profit_center_id,
-    --             cpc.profit_center_name,
-    --             cpc.profit_center_short_name,
-    --             'Carrying Costs' as main_section,
-    --             scm.cost_component_name as sub_section,
-    --             'Cost' entity,
-    --             sum(mc.base_amt),
-    --             mc.base_cur_id,
-    --             cm_mc.cur_code
-    --        from mc_monthly_costing                  mc,
-    --             scm_service_charge_master@eka_appdb scm,
-    --             ak_corporate                        akc,
-    --             cpc_corporate_profit_center         cpc,
-    --             cm_currency_master                  cm_akc,
-    --             cm_currency_master                  cm_mc
-    --       where mc.cost_component_id = scm.cost_id
-    --         and mc.profit_center_id = cpc.profit_center_id
-    --         and cpc.corporateid = akc.corporate_id
-    --         and akc.base_currency_name = cm_akc.cur_code
-    --         and mc.is_deleted = 'N'
-    --         and cm_mc.cur_id = mc.base_cur_id
-    --         and mc.process_id = pc_process_id
-    --         and cpc.corporateid = pc_corporate_id
-    --       group by cpc.corporateid,
-    --                akc.corporate_name,
-    --                pc_process_id,
-    --                mc.profit_center_id,
-    --                cpc.profit_center_short_name,
-    --                cpc.profit_center_name,
-    --                scm.cost_component_name,
-    --                mc.base_cur_id,
-    --                cm_mc.cur_code
-    --      union all
-    --      select dpd.corporate_id,
-    --             dpd.corporate_name,
-    --             pc_process_id,
-    --             dpd.profit_center_id,
-    --             dpd.profit_center_name,
-    --             dpd.profit_center_short_name,
-    --             'Commissions' main_section,
-    --             'Broker Commission' sub_section,
-    --             'Commissions' entity,
-    --             sum(nvl(dpd.broker_comm_amt, 0) * nvl(dpd.broker_exch_rate, 1)),
-    --             dpd.base_cur_id,
-    --             dpd.base_cur_code
-    --        from dpd_derivative_pnl_daily dpd
-    --       where dpd.process_id = pc_process_id
-    --         and nvl(dpd.broker_comm_amt, 0) <> 0
-    --         and dpd.pnl_type = 'Realized'
-    --       group by dpd.corporate_id,
-    --                dpd.corporate_name,
-    --                pc_process_id,
-    --                dpd.profit_center_id,
-    --                dpd.profit_center_short_name,
-    --                dpd.profit_center_name,
-    --                dpd.base_cur_id,
-    --                dpd.base_cur_code
-    --      union all
-    --      select dpd.corporate_id,
-    --             dpd.corporate_name,
-    --             pc_process_id,
-    --             dpd.profit_center_id,
-    --             dpd.profit_center_name,
-    --             dpd.profit_center_short_name,
-    --             'Commissions' main_section,
-    --             'Clearer Commission' sub_section,
-    --             'Commissions' entity,
-    --             sum(nvl(dpd.clearer_comm_amt, 0) *
-    --                 nvl(dpd.clearer_exch_rate, 1)),
-    --             dpd.base_cur_id,
-    --             dpd.base_cur_code
-    --        from dpd_derivative_pnl_daily dpd
-    --       where dpd.process_id = pc_process_id
-    --         and nvl(dpd.clearer_comm_amt, 0) <> 0
-    --         and dpd.pnl_type = 'Realized'
-    --       group by dpd.corporate_id,
-    --                dpd.corporate_name,
-    --                pc_process_id,
-    --                dpd.profit_center_id,
-    --                dpd.profit_center_short_name,
-    --                dpd.profit_center_name,
-    --                dpd.base_cur_id,
-    --                dpd.base_cur_code
-    --      union all
-    --      select drt.corporate_id,
-    --             akc.corporate_name,
-    --             tdc.process_id,
-    --             cpc.profit_center_id,
-    --             cpc.profit_center_name,
-    --             cpc.profit_center_short_name,
-    --             'Commissions' main_section,
-    --             'Broker Commission' sub_section,
-    --             'Commissions' entity,
-    --             sum(nvl(nvl(drt.broker_comm_amt, 0) *
-    --                     pkg_general.f_get_converted_currency_amt(drt.corporate_id,
-    --                                                              drt.broker_comm_cur_id,
-    --                                                              cm.cur_id,
-    --                                                              tdc.trade_date,
-    --                                                              1),
-    --                     0)) pnl,
-    --             cm.cur_id base_cur_id,
-    --             cm.cur_code base_cur_code
-    --        from dt_derivative_trade         drt,
-    --             tdc_trade_date_closure      tdc,
-    --             cpc_corporate_profit_center cpc,
-    --             ak_corporate                akc,
-    --             cm_currency_master          cm
-    --       where drt.corporate_id = tdc.corporate_id
-    --         and drt.corporate_id = akc.corporate_id
-    --         and tdc.corporate_id = pc_corporate_id
-    --         and drt.process_id = tdc.process_id
-    --         and drt.profit_center_id = cpc.profit_center_id
-    --         and akc.base_currency_name = cm.cur_code
-    --         and tdc.process_id = pc_process_id
-    --         and exists
-    --       (select 1
-    --                from dpd_derivative_pnl_daily dpd
-    --               where dpd.process_id = pc_process_id
-    --                 and dpd.derivative_ref_no = drt.derivative_ref_no
-    --                 and dpd.is_new_trade = 'Y')
-    --         and nvl(drt.broker_comm_amt, 0) <> 0
-    --       group by drt.corporate_id,
-    --                akc.corporate_name,
-    --                tdc.process_id,
-    --                cpc.profit_center_id,
-    --                cpc.profit_center_name,
-    --                cpc.profit_center_short_name,
-    --                cm.cur_id,
-    --                cm.cur_code
-    --      union all
-    --      select drt.corporate_id,
-    --             akc.corporate_name,
-    --             tdc.process_id,
-    --             cpc.profit_center_id,
-    --             cpc.profit_center_name,
-    --             cpc.profit_center_short_name,
-    --             'Commissions' main_section,
-    --             'Clearer Commission' sub_section,
-    --             'Commissions' entity,
-    --             sum(nvl(nvl(drt.clearer_comm_amt, 0) *
-    --                     pkg_general.f_get_converted_currency_amt(drt.corporate_id,
-    --                                                              drt.clearer_comm_cur_id,
-    --                                                              cm.cur_id,
-    --                                                              tdc.trade_date,
-    --                                                              1),
-    --                     0)) pnl,
-    --             cm.cur_id base_cur_id,
-    --             cm.cur_code base_cur_code
-    --        from dt_derivative_trade         drt,
-    --             tdc_trade_date_closure      tdc,
-    --             cpc_corporate_profit_center cpc,
-    --             ak_corporate                akc,
-    --             cm_currency_master          cm
-    --       where drt.corporate_id = tdc.corporate_id
-    --         and drt.corporate_id = akc.corporate_id
-    --         and tdc.corporate_id = pc_corporate_id
-    --         and drt.process_id = tdc.process_id
-    --         and drt.profit_center_id = cpc.profit_center_id
-    --         and akc.base_currency_name = cm.cur_code
-    --         and tdc.process_id = pc_process_id
-    --         and exists
-    --       (select 1
-    --                from dpd_derivative_pnl_daily dpd
-    --               where dpd.process_id = pc_process_id
-    --                 and dpd.derivative_ref_no = drt.derivative_ref_no
-    --                 and dpd.is_new_trade = 'Y')
-    --         and nvl(drt.clearer_comm_amt, 0) <> 0
-    --       group by drt.corporate_id,
-    --                akc.corporate_name,
-    --                tdc.process_id,
-    --                cpc.profit_center_id,
-    --                cpc.profit_center_name,
-    --                cpc.profit_center_short_name,
-    --                cm.cur_id,
-    --                cm.cur_code;
-    --    --Added by Siddharth 23-Jul-2011
-    --    insert into cps_cost_pnl_summary
-    --      (corporate_id,
-    --       corporate_name,
-    --       process_id,
-    --       profit_center_id,
-    --       profit_center_name,
-    --       profit_center_short_name,
-    --       main_section,
-    --       sub_section,
-    --       entity,
-    --       cost_amt,
-    --       cost_cur_id,
-    --       cost_cur_code)
-    --      select ord.corporate_id,
-    --             ord.corporate_name,
-    --             pc_process_id,
-    --             ord.profit_center_id,
-    --             ord.profit_center_name,
-    --             ord.profit_center_short_name,
-    --             'General Cost',
-    --             ord.sectionname,
-    --             'General Cost' entity,
-    --             ord.realized_pnl,
-    --             ord.base_cur_id,
-    --             ord.base_cur_code
-    --        from ored_overall_realized_daily ord
-    --       where ord.process_id = pc_process_id
-    --         and ord.cost_component = 'Write Off';
-    --Ends here  
   exception
     when others then
       vobj_error_log.extend;
@@ -5414,5 +4961,446 @@ procedure sp_calc_pnl_summary(pc_corporate_id varchar2,
                 pc_process_id;
     commit;
   end;
-end; 
+
+  procedure sp_calc_risk_limits(pc_corporate_id varchar2,
+                                pd_trade_date   date,
+                                pc_process_id   varchar2,
+                                pc_user_id      varchar2,
+                                pc_process      varchar2) is
+    --vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+   -- vn_eel_error_count number := 1;
+  begin
+    insert into cre_cp_risk_exposure
+      (process_id,
+       process_date,
+       process,
+       corporate_id,
+       group_id,
+       group_name,
+       product_id,
+       product_name,
+       profit_center_id,
+       profit_center_name,
+       profit_center_short_name,
+       contract_type,
+       cp_profile_id,
+       cp_name,
+       qty_exposure,
+       qty_exp_unit_id,
+       qty_exp_unit,
+       value_exposure,
+       value_exp_cur_id,
+       value_exp_cur_code,
+       m2m_exposure,
+       m2m_exp_cur_id,
+       m2m_exp_cur_code,
+       credit_exposure,
+       credit_exp_cur_id,
+       credit_exp_cur_code)
+      select t.process_id,
+             t.process_date,
+             t.process,
+             t.corporate_id,
+             t.group_id,
+             t.group_name,
+             t.product_id,
+             t.product_name,
+             t.profit_center_id,
+             t.profit_center_name,
+             t.profit_center_short_name,
+             t.contract_type,
+             t.cp_profile_id,
+             t.cp_name,
+             sum(t.qty_exposure) qty_exposure,
+             t.qty_exp_unit_id,
+             t.qty_exp_unit,
+             sum(t.value_exposure) value_exposure,
+             t.value_exp_cur_id,
+             t.value_exp_cur_code,
+             sum(t.m2m_exposure) m2m_exposure,
+             t.m2m_exp_cur_id,
+             t.m2m_exp_cur_code,
+             sum(t.credit_exposure) credit_exposure,
+             t.credit_exp_cur_id,
+             t.credit_exp_cur_code
+        from (select poud.process_id process_id,
+                     poud.eod_trade_date process_date,
+                     tdc.process process,
+                     poud.corporate_id corporate_id,
+                     poud.group_id group_id,
+                     poud.group_name group_name,
+                     poud.product_id product_id,
+                     poud.product_name product_name,
+                     poud.profit_center_id profit_center_id,
+                     poud.profit_center_name profit_center_name,
+                     poud.profit_center_short_name profit_center_short_name,
+                     poud.contract_type contract_type,
+                     poud.cp_profile_id cp_profile_id,
+                     poud.cp_name cp_name,
+                     sum(poud.qty_in_base_unit) qty_exposure,
+                     poud.base_qty_unit_id qty_exp_unit_id,
+                     poud.base_qty_unit qty_exp_unit,
+                     sum(poud.contract_value_in_price_cur *
+                         pkg_general.f_get_converted_currency_amt(poud.corporate_id,
+                                                                  poud.price_main_cur_id,
+                                                                  poud.base_cur_id,
+                                                                  poud.eod_trade_date,
+                                                                  1)) value_exposure,
+                     poud.base_cur_id value_exp_cur_id,
+                     poud.base_cur_code value_exp_cur_code,
+                     sum(poud.m2m_amt *
+                         pkg_general.f_get_converted_currency_amt(poud.corporate_id,
+                                                                  poud.m2m_amt_cur_id,
+                                                                  poud.base_cur_id,
+                                                                  poud.eod_trade_date,
+                                                                  1)) m2m_exposure,
+                     poud.base_cur_id m2m_exp_cur_id,
+                     poud.base_cur_code m2m_exp_cur_code,
+                     0 credit_exposure,
+                     poud.base_cur_id credit_exp_cur_id,
+                     poud.base_cur_code credit_exp_cur_code
+                from poud_phy_open_unreal_daily poud,
+                     tdc_trade_date_closure     tdc
+               where poud.corporate_id = pc_corporate_id
+                 and poud.process_id = pc_process_id
+                 and poud.process_id = tdc.process_id
+               group by poud.process_id,
+                        poud.eod_trade_date,
+                        tdc.process,
+                        poud.corporate_id,
+                        poud.group_id,
+                        poud.group_name,
+                        poud.product_id,
+                        poud.product_name,
+                        poud.profit_center_id,
+                        poud.profit_center_name,
+                        poud.profit_center_short_name,
+                        poud.contract_type,
+                        poud.cp_profile_id,
+                        poud.cp_name,
+                        poud.base_qty_unit_id,
+                        poud.base_qty_unit,
+                        poud.base_cur_id,
+                        poud.base_cur_code
+              union all
+              select poud.process_id,
+                     tdc.trade_date process_date,
+                     tdc.process,
+                     poud.corporate_id,
+                     akc.groupid group_id,
+                     gcd.groupname group_name,
+                     poud.product_id,
+                     poud.product_name,
+                     cpc.profit_center_id,
+                     cpc.profit_center_name,
+                     cpc.profit_center_short_name,
+                     poud.contract_type,
+                     poud.cp_profile_id,
+                     poud.cp_name,
+                     sum(poud.qty_in_base_unit) qty_exposure,
+                     pdm.base_quantity_unit qty_exp_unit_id,
+                     qum.qty_unit qty_exp_unit,
+                     sum(poud.contract_value_in_price_cur *
+                         pkg_general.f_get_converted_currency_amt(poud.corporate_id,
+                                                                  poud.contract_price_cur_id,
+                                                                  poud.base_cur_id,
+                                                                  tdc.trade_date,
+                                                                  1)) value_exposure,
+                     poud.base_cur_id value_exp_cur_id,
+                     poud.base_cur_code value_exp_cur_code,
+                     sum(poud.m2m_amt *
+                         pkg_general.f_get_converted_currency_amt(poud.corporate_id,
+                                                                  poud.m2m_amt_cur_id,
+                                                                  poud.base_cur_id,
+                                                                  tdc.trade_date,
+                                                                  1)) m2m_exposure,
+                     poud.base_cur_id m2m_exp_cur_id,
+                     poud.base_cur_code m2m_exp_cur_code,
+                     0 credit_exposure,
+                     poud.base_cur_id credit_exp_cur_id,
+                     poud.base_cur_code credit_exp_cur_code
+                from psu_phy_stock_unrealized    poud,
+                     cpc_corporate_profit_center cpc,
+                     tdc_trade_date_closure      tdc,
+                     pdm_productmaster           pdm,
+                     qum_quantity_unit_master    qum,
+                     ak_corporate                akc,
+                     gcd_groupcorporatedetails   gcd
+               where poud.corporate_id = pc_corporate_id
+                 and poud.process_id = pc_process_id
+                 and poud.profit_center_id = cpc.profit_center_id
+                 and poud.process_id = tdc.process_id
+                 and poud.product_id = pdm.product_id
+                 and pdm.base_quantity_unit = qum.qty_unit_id
+                 and poud.corporate_id = akc.corporate_id
+                 and akc.groupid = gcd.groupid
+               group by poud.process_id,
+                        tdc.trade_date,
+                        tdc.process,
+                        poud.corporate_id,
+                        akc.groupid,
+                        gcd.groupname,
+                        poud.product_id,
+                        poud.product_name,
+                        cpc.profit_center_id,
+                        cpc.profit_center_name,
+                        cpc.profit_center_short_name,
+                        poud.contract_type,
+                        poud.cp_profile_id,
+                        poud.cp_name,
+                        pdm.base_quantity_unit,
+                        qum.qty_unit,
+                        poud.base_cur_id,
+                        poud.base_cur_code) t
+       group by t.process_id,
+                t.process_date,
+                t.process,
+                t.corporate_id,
+                t.group_id,
+                t.group_name,
+                t.product_id,
+                t.product_name,
+                t.profit_center_id,
+                t.profit_center_name,
+                t.profit_center_short_name,
+                t.contract_type,
+                t.cp_profile_id,
+                t.cp_name,
+                t.qty_exp_unit_id,
+                t.qty_exp_unit,
+                t.value_exp_cur_id,
+                t.value_exp_cur_code,
+                t.m2m_exp_cur_id,
+                t.m2m_exp_cur_code,
+                t.credit_exp_cur_id,
+                t.credit_exp_cur_code;
+    ----
+    insert into tre_trader_risk_exposure
+      (process_id,
+       process_date,
+       process,
+       corporate_id,
+       group_id,
+       group_name,
+       product_id,
+       product_name,
+       profit_center_id,
+       profit_center_name,
+       profit_center_short_name,
+       contract_type,
+       trader_user_id,
+       trader_user_name,
+       qty_exposure,
+       qty_exp_unit_id,
+       qty_exp_unit,
+       value_exposure,
+       value_exp_cur_id,
+       value_exp_cur_code,
+       m2m_exposure,
+       m2m_exp_cur_id,
+       m2m_exp_cur_code,
+       credit_exposure,
+       credit_exp_cur_id,
+       credit_exp_cur_code)
+      select t.process_id,
+             t.process_date,
+             t.process,
+             t.corporate_id,
+             t.group_id,
+             t.group_name,
+             t.product_id,
+             t.product_name,
+             t.profit_center_id,
+             t.profit_center_name,
+             t.profit_center_short_name,
+             t.contract_type,
+             t.trade_user_id trader_user_id,
+             gab.firstname || ' ' || gab.lastname trader_user_name,
+             sum(t.qty_exposure) qty_exposure,
+             t.qty_exp_unit_id,
+             t.qty_exp_unit,
+             sum(t.value_exposure) value_exposure,
+             t.value_exp_cur_id,
+             t.value_exp_cur_code,
+             sum(t.m2m_exposure) m2m_exposure,
+             t.m2m_exp_cur_id,
+             t.m2m_exp_cur_code,
+             sum(t.credit_exposure) credit_exposure,
+             t.credit_exp_cur_id,
+             t.credit_exp_cur_code
+        from (select poud.process_id process_id,
+                     poud.eod_trade_date process_date,
+                     tdc.process process,
+                     poud.corporate_id corporate_id,
+                     poud.group_id group_id,
+                     poud.group_name group_name,
+                     poud.product_id product_id,
+                     poud.product_name product_name,
+                     poud.profit_center_id profit_center_id,
+                     poud.profit_center_name profit_center_name,
+                     poud.profit_center_short_name profit_center_short_name,
+                     poud.contract_type contract_type,
+                     poud.trade_user_id,
+                     poud.trade_user_name,
+                     sum(poud.qty_in_base_unit) qty_exposure,
+                     poud.base_qty_unit_id qty_exp_unit_id,
+                     poud.base_qty_unit qty_exp_unit,
+                     sum(poud.contract_value_in_price_cur *
+                         pkg_general.f_get_converted_currency_amt(poud.corporate_id,
+                                                                  poud.price_main_cur_id,
+                                                                  poud.base_cur_id,
+                                                                  poud.eod_trade_date,
+                                                                  1)) value_exposure,
+                     poud.base_cur_id value_exp_cur_id,
+                     poud.base_cur_code value_exp_cur_code,
+                     sum(poud.m2m_amt *
+                         pkg_general.f_get_converted_currency_amt(poud.corporate_id,
+                                                                  poud.m2m_amt_cur_id,
+                                                                  poud.base_cur_id,
+                                                                  poud.eod_trade_date,
+                                                                  1)) m2m_exposure,
+                     poud.base_cur_id m2m_exp_cur_id,
+                     poud.base_cur_code m2m_exp_cur_code,
+                     0 credit_exposure,
+                     poud.base_cur_id credit_exp_cur_id,
+                     poud.base_cur_code credit_exp_cur_code
+                from poud_phy_open_unreal_daily poud,
+                     tdc_trade_date_closure     tdc
+               where poud.corporate_id = pc_corporate_id
+                 and poud.process_id = pc_process_id
+                 and poud.process_id = tdc.process_id
+               group by poud.process_id,
+                        poud.eod_trade_date,
+                        tdc.process,
+                        poud.corporate_id,
+                        poud.group_id,
+                        poud.group_name,
+                        poud.product_id,
+                        poud.product_name,
+                        poud.profit_center_id,
+                        poud.profit_center_name,
+                        poud.profit_center_short_name,
+                        poud.contract_type,
+                        poud.trade_user_id,
+                        poud.trade_user_name,
+                        poud.base_qty_unit_id,
+                        poud.base_qty_unit,
+                        poud.base_cur_id,
+                        poud.base_cur_code
+              union all
+              select poud.process_id,
+                     tdc.trade_date process_date,
+                     tdc.process,
+                     poud.corporate_id,
+                     akc.groupid group_id,
+                     gcd.groupname group_name,
+                     poud.product_id,
+                     poud.product_name,
+                     cpc.profit_center_id,
+                     cpc.profit_center_name,
+                     cpc.profit_center_short_name,
+                     poud.contract_type,
+                     poud.trader_id trade_user_id,
+                     poud.trader_name trade_user_name,
+                     sum(poud.qty_in_base_unit) qty_exposure,
+                     pdm.base_quantity_unit qty_exp_unit_id,
+                     qum.qty_unit qty_exp_unit,
+                     sum(poud.contract_value_in_price_cur *
+                         pkg_general.f_get_converted_currency_amt(poud.corporate_id,
+                                                                  poud.contract_price_cur_id,
+                                                                  poud.base_cur_id,
+                                                                  tdc.trade_date,
+                                                                  1)) value_exposure,
+                     poud.base_cur_id value_exp_cur_id,
+                     poud.base_cur_code value_exp_cur_code,
+                     sum(poud.m2m_amt *
+                         pkg_general.f_get_converted_currency_amt(poud.corporate_id,
+                                                                  poud.m2m_amt_cur_id,
+                                                                  poud.base_cur_id,
+                                                                  tdc.trade_date,
+                                                                  1)) m2m_exposure,
+                     poud.base_cur_id m2m_exp_cur_id,
+                     poud.base_cur_code m2m_exp_cur_code,
+                     0 credit_exposure,
+                     poud.base_cur_id credit_exp_cur_id,
+                     poud.base_cur_code credit_exp_cur_code
+                from psu_phy_stock_unrealized    poud,
+                     cpc_corporate_profit_center cpc,
+                     tdc_trade_date_closure      tdc,
+                     pdm_productmaster           pdm,
+                     qum_quantity_unit_master    qum,
+                     ak_corporate                akc,
+                     gcd_groupcorporatedetails   gcd
+               where poud.corporate_id = pc_corporate_id
+                 and poud.process_id = pc_process_id
+                 and poud.profit_center_id = cpc.profit_center_id
+                 and poud.process_id = tdc.process_id
+                 and poud.product_id = pdm.product_id
+                 and pdm.base_quantity_unit = qum.qty_unit_id
+                 and poud.corporate_id = akc.corporate_id
+                 and akc.groupid = gcd.groupid
+               group by poud.process_id,
+                        tdc.trade_date,
+                        tdc.process,
+                        poud.corporate_id,
+                        akc.groupid,
+                        gcd.groupname,
+                        poud.product_id,
+                        poud.product_name,
+                        cpc.profit_center_id,
+                        cpc.profit_center_name,
+                        cpc.profit_center_short_name,
+                        poud.contract_type,
+                        poud.trader_id,
+                        poud.trader_name,
+                        pdm.base_quantity_unit,
+                        qum.qty_unit,
+                        poud.base_cur_id,
+                        poud.base_cur_code) t,
+             gab_globaladdressbook gab,
+             ak_corporate_user aku
+       where t.trade_user_id = aku.user_id(+)
+         and aku.gabid = gab.gabid(+)
+       group by t.process_id,
+                t.process_date,
+                t.process,
+                t.corporate_id,
+                t.group_id,
+                t.group_name,
+                t.product_id,
+                t.product_name,
+                t.profit_center_id,
+                t.profit_center_name,
+                t.profit_center_short_name,
+                t.contract_type,
+                t.trade_user_id,
+                gab.firstname || ' ' || gab.lastname,
+                t.qty_exp_unit_id,
+                t.qty_exp_unit,
+                t.value_exp_cur_id,
+                t.value_exp_cur_code,
+                t.m2m_exp_cur_id,
+                t.m2m_exp_cur_code,
+                t.credit_exp_cur_id,
+                t.credit_exp_cur_code;
+  exception
+    when others then
+    dbms_output.put_line('Error in CRC calculation');
+    null;
+      /*vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'sp_calc_risk_limits',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);*/
+  end;
+end;
 /

@@ -1182,7 +1182,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
              md.m2m_pp_fw_exch_rate,
              md.m2m_ld_fw_exch_rate,
              md.m2m_qp_fw_exch_rate,
-             gscs.fw_rate_string accrual_to_base_fw_exch_rate
+             gscs.fw_rate_string accrual_to_base_fw_exch_rate,
+             pcm.cp_id,
+             phd_cp.companyname cp_name
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
              gpd_gmr_price_daily gpd,
@@ -1212,6 +1214,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
              ciqs_contract_item_qty_status ciqs,
              css_corporate_strategy_setup css,
              gscs_gmr_sec_cost_summary gscs,
+             phd_profileheaderdetails phd_cp,
              spd_stock_price_daily spd
        where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
@@ -1261,6 +1264,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          and pcm.purchase_sales = 'P'
          and nvl(grd.current_qty, 0) > 0
          and gmr.is_internal_movement = 'N'
+         and pcm.cp_id = phd_cp.profileid
          and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
          and gmr.process_id = gscs.process_id(+)
          and grd.internal_contract_item_ref_no =
@@ -1388,7 +1392,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
              md.m2m_pp_fw_exch_rate,
              md.m2m_ld_fw_exch_rate,
              md.m2m_qp_fw_exch_rate,
-             gscs.fw_rate_string accrual_to_base_fw_exch_rate
+             gscs.fw_rate_string accrual_to_base_fw_exch_rate,
+             pcm.cp_id,
+             phd_cp.companyname cp_name
         from gmr_goods_movement_record gmr,
              gpd_gmr_price_daily gpd,
              dgrd_delivered_grd dgrd,
@@ -1419,6 +1425,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
              cm_currency_master cm,
              css_corporate_strategy_setup css,
              spd_stock_price_daily spd,
+             phd_profileheaderdetails phd_cp,
              gscs_gmr_sec_cost_summary gscs
        where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
@@ -1451,6 +1458,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          and pci.pcdb_id = pcdb.pcdb_id
          and pci.process_id = pcdb.process_id
          and pcm.purchase_sales = 'S'
+          and pcm.cp_id = phd_cp.profileid
          and gsm.is_required_for_m2m = 'Y'
          and pcm.contract_status = 'In Position'
          and pcm.contract_type = 'BASEMETAL'
@@ -1609,7 +1617,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
              md.m2m_pp_fw_exch_rate,
              md.m2m_ld_fw_exch_rate,
              md.m2m_qp_fw_exch_rate,
-             gscs.fw_rate_string accrual_to_base_fw_exch_rate
+             gscs.fw_rate_string accrual_to_base_fw_exch_rate,
+             null cp_id,
+             null cp_name
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
              gpd_gmr_price_daily gpd,
@@ -2203,7 +2213,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          m2m_pp_fw_exch_rate,
          contract_qp_fw_exch_rate,
          contract_pp_fw_exch_rate,
-         accrual_to_base_fw_exch_rate)
+         accrual_to_base_fw_exch_rate,
+         cp_profile_id,
+         cp_name)
       values
         (pc_process_id,
          vc_psu_id,
@@ -2324,7 +2336,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          vc_m2m_pp_fw_exch_rate,
          vc_contract_qp_fw_exch_rate,
          vc_contract_pp_fw_exch_rate,
-         cur_grd_rows.accrual_to_base_fw_exch_rate);
+         cur_grd_rows.accrual_to_base_fw_exch_rate,
+         cur_grd_rows.cp_id,
+         cur_grd_rows.cp_name );
     end loop;
     -----------
     vc_error_msg := '19';
@@ -2681,7 +2695,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
              invm.contract_qp_fw_exch_rate,
              invm.contract_pp_fw_exch_rate,
              invm.accrual_to_base_fw_exch_rate,
-             invm.price_to_base_fw_exch_rate_act
+             invm.price_to_base_fw_exch_rate_act,
+             pcm.cp_id,
+             phd_cp.companyname cp_name
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
              pcm_physical_contract_main pcm,
@@ -2702,6 +2718,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
                  and tmp.product_type = 'BASEMETAL'
                  and tmp.section_name <> 'OPEN') tmpc,
              ak_corporate akc,
+             phd_profileheaderdetails phd_cp,
              cm_currency_master cm,
              gsm_gmr_stauts_master gsm,
              pci_physical_contract_item pci,
@@ -2735,6 +2752,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          and akc.base_cur_id = cm.cur_id
          and gmr.status_id = gsm.status_id(+)
          and pcpd.strategy_id = css.strategy_id
+          and pcm.cp_id = phd_cp.profileid
          and grd.process_id = pc_process_id
          and gmr.process_id = pc_process_id
          and pcpd.process_id = pc_process_id
@@ -2879,7 +2897,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
              invm.contract_qp_fw_exch_rate,
              invm.contract_pp_fw_exch_rate,
              invm.accrual_to_base_fw_exch_rate,
-             invm.price_to_base_fw_exch_rate_act
+             invm.price_to_base_fw_exch_rate_act,
+             null cp_id,
+             null cp_name
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
              pdm_productmaster pdm,
@@ -3328,7 +3348,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          m2m_pp_fw_exch_rate,
          contract_qp_fw_exch_rate,
          contract_pp_fw_exch_rate,
-         accrual_to_base_fw_exch_rate)
+         accrual_to_base_fw_exch_rate,
+         cp_profile_id,
+         cp_name)
       values
         (pc_process_id,
          vc_psu_id,
@@ -3449,7 +3471,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          vc_m2m_pp_fw_exch_rate,
          vc_contract_qp_fw_exch_rate,
          vc_contract_pp_fw_exch_rate,
-         cur_grd_rows.accrual_to_base_fw_exch_rate);
+         cur_grd_rows.accrual_to_base_fw_exch_rate,
+         cur_grd_rows.cp_id,
+         cur_grd_rows.cp_name);
     end loop;
     -----------
     vc_error_msg := '17';
