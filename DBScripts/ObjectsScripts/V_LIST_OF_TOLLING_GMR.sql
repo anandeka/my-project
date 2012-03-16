@@ -112,7 +112,8 @@ select gmr.corporate_id as corporate_id,
           'Y'
          else
           'N'
-       end) is_free_material
+       end) is_free_material,
+       cp.deliveryitemrefno AS delivery_item_ref_no
   from gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
@@ -127,7 +128,8 @@ select gmr.corporate_id as corporate_id,
                f_string_aggregate(pci.quality_id) quality_id,
                f_string_aggregate(pci.quality_name) quality_name,
                f_string_aggregate(gcim.internal_gmr_ref_no) internal_gmr_ref_no,
-               pci.price_allocation_method as price_allocation_method
+               pci.price_allocation_method as price_allocation_method,
+	       f_string_aggregate (pci.pcdi_id) deliveryitemrefno
           from v_pci                          pci,
                gcim_gmr_contract_item_mapping gcim
          where pci.internal_contract_item_ref_no =
