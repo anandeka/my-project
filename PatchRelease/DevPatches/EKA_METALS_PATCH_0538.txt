@@ -1,0 +1,100 @@
+Patch No*          		:  EKA_METALS_PATCH_0538
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  ELaiyaraja
+ 
+Created on*        		:  16-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+	
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 89858
+Author: elaiyaraja.nallathambi
+Date: 9:38:22 AM, Friday, March 16, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_228.sql
+
+Revision: 89859
+Author: elaiyaraja.nallathambi
+Date: 9:39:05 AM, Friday, March 16, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_53_DML_RPC_RFC_Scripts.sql
+
+Revision: 89860
+Author: elaiyaraja.nallathambi
+Date: 9:40:13 AM, Friday, March 16, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_rpt_dim_pricing_days.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_rpt_yearly_price_exp_bm.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_rpt_yearly_price_exp_conc.sql
+
+Revision: 89861
+Author: elaiyaraja.nallathambi
+Date: 9:41:06 AM, Friday, March 16, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YearlyProjectionReport.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
