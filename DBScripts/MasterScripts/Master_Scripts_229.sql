@@ -1,0 +1,1 @@
+update GMC_GRID_MENU_CONFIGURATION gmc set GMC.MENU_DISPLAY_NAME = 'Delete Weighing And Sampling Assay' where GMC.MENU_ID = 'LOAS-DAM'
