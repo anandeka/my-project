@@ -1,0 +1,64 @@
+Patch No*          		:  EKA_METALS_PATCH_DEMO_001
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  17-Mar-2012
+
+Bug / Enhancement*              : Enhancement 
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Following Fetaure for Demo released
+1) Premium report
+2) Spread report
+3) QP End Date plus 2 days quote for Invenory M2M
+
+
+Revision: 90085
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/DDL_SCRIPTS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_POPULATE_DATA.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_PRE_CHECK_PROCESS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_TRANSFER_DATA.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_next_day_working.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_3rd_wed.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_cash_3m.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_working_day.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_cdc_instrument_days.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_spread_report.sql
+
+
+Revision: 90088
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_premium_report.sql
+
+
+
