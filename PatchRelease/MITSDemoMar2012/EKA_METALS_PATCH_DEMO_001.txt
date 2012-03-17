@@ -62,3 +62,10 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_pr
 
 
 
+Revision: 90093
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/pkg_phy_calculate_cog.sql
+
+
+
