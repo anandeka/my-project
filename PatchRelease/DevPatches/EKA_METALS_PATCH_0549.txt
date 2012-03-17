@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0549
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  17-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Contract Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90077
+Author: abhishek.vijay
+Date: 3:11:15 PM, Saturday, March 17, 2012
+Message:
+add speed pricing link in input/output tolling and adding one new drop down in pricing tab
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_235.sql
+
+
