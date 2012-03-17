@@ -1,0 +1,72 @@
+Patch No*          		:  EKA_METALS_PATCH_0552
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok
+ 
+Created on*        		:  17-Mar-2012
+
+Bug / Enhancement*              :  Enhancement/Bug
+ 
+Bug ID*            		:  62867
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report/Documents
+
+Sub-Module  			 :  Report/Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90122
+Author: sivachalabathi.s
+Date: 7:21:25 PM, Saturday, March 17, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_VIEW_V_DER_FUTURES_BROKER_ACCOUNT.sql
+
+Revision: 90123
+Author: sivachalabathi.s
+Date: 7:48:51 PM, Saturday, March 17, 2012
+Message:
+New Release
+----
+Added : /7.3/Engg/Metals/Code/Reports/PurchaseDebitCreditNote.rpt
+
+Revision: 90124
+Author: sivachalabathi.s
+Date: 7:50:37 PM, Saturday, March 17, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UnpricedQuantityReport.rpt
+
+Revision: 90125
+Author: sivachalabathi.s
+Date: 7:51:53 PM, Saturday, March 17, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_236.sql
+
+
+
