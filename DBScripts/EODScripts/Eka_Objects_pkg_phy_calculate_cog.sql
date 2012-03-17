@@ -901,8 +901,7 @@ delete from tinvp_temp_invm_cog t
              max(tc_price_unit_id),
              nvl(sum(rc_per_unit), 0),
              max(rc_price_unit_id)
-        from (select pc_process_id,
-                     t.internal_grd_ref_no,
+        from (select t.internal_grd_ref_no,
                      ecs.element_id,
                      case
                        when t.cost_type = 'Price' then
@@ -1926,8 +1925,7 @@ delete from tinvs_temp_invm_cogs t
              max(tc_price_unit_id),
              nvl(sum(rc_per_unit), 0),
              max(rc_price_unit_id)
-        from (select pc_process_id,
-                     t.internal_grd_ref_no,
+        from (select t.internal_grd_ref_no,
                      ecs.element_id,
                      case
                        when t.cost_type = 'Price' then
