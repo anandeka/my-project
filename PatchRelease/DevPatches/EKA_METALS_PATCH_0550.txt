@@ -1,11 +1,11 @@
 Patch No*          		:  EKA_METALS_PATCH_0550
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Janna
+Created by *        		:  Janna
  
-Created on*        		:  17-Mar-2012
+Created on *        		:  17-Mar-2012
 
-Bug / Enhancement*              :  Bug
+Bug / Enhancement *              :  Enhancement
  
 Bug ID*            		:  
 
@@ -15,7 +15,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  EOD
+Module  		   	 :  Position Manager
 
 Sub-Module  			 :  
  
@@ -32,6 +32,11 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* : EOD
+Schema type (Transaction / EOD)* : Transaction
 ==================================================================
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_CONC_PHY_POSITION.sql(Revision: 90092)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PHY_POSITION_MGR.sql(Revision: 90092)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_PHY_POSITION_MGR.sql(Revision: 87532)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_ASSAY_COMPARISION.sql( Revision: 90102)
 
