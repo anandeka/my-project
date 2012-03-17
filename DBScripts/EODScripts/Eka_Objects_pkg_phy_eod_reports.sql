@@ -42,7 +42,7 @@ create or replace package pkg_phy_eod_reports is
                                 pc_process      varchar2
                                 
                                 );
-end;
+end; 
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -1482,7 +1482,7 @@ create or replace package body pkg_phy_eod_reports is
              spq.element_id,
              spq.payable_qty,
              spq.qty_unit_id payable_qty_unit_id,
-             sac.element_total_qty assay_qty,
+             sac.element_current_qty assay_qty,
              sac.element_qty_unit_id assay_qty_unit_id,
              gmr.corporate_id,
              akc.corporate_name,
@@ -4084,16 +4084,16 @@ create or replace package body pkg_phy_eod_reports is
                else
                 nvl(pfc_data.priced_qty, 0)
              end) priced_arrived_qty,
-             
-             nvl(stock_table.landed_qty, 0) -
+                          
+             nvl(pfc_data.priced_qty, 0) -
              (case
                 when nvl(stock_table.landed_qty, 0) <
                      nvl(pfc_data.priced_qty, 0) then
                  nvl(stock_table.landed_qty, 0)
                 else
                  nvl(pfc_data.priced_qty, 0)
-              end) price_not_arrived_qty,
-             nvl(pfc_data.priced_qty, 0) -
+              end) price_not_arrived_qty,             
+             nvl(stock_table.landed_qty, 0) -
              (case
                 when nvl(stock_table.landed_qty, 0) <
                      nvl(pfc_data.priced_qty, 0) then
@@ -5402,5 +5402,5 @@ create or replace package body pkg_phy_eod_reports is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);*/
   end;
-end;
+end; 
 /
