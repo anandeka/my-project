@@ -1,9 +1,5 @@
-DROP VIEW V_DER_FUTURES_BROKER_ACCOUNT
-/
-
-CREATE OR REPLACE VIEW v_der_futures_broker_account 
-AS
-   select ak.corporate_id,
+create or replace view v_der_futures_broker_account as
+select ak.corporate_id,
        ak.corporate_name,
        cpc.profit_center_id,
        cpc.profit_center_name,
@@ -16,28 +12,49 @@ AS
        dt.trade_date deal_date,
        drm.prompt_date prompt_date,
        drm.period_type_id,
-       pm.period_type_name Delivery_Period_Type,
+       pm.period_type_name delivery_period_type,
        nvl(phd_broker.company_long_name1, phd_broker.companyname) broker,
-       nvl(phd_clr.company_long_name1,phd_clr.companyname)clearer,
+       nvl(phd_clr.company_long_name1, phd_clr.companyname) clearer,
        pdm.product_desc commodity,
        dim.instrument_name instrument,
        dt.trade_type deal_type,
-       dt.total_quantity deal_quantity,
+       (case
+         when dt.trade_type = 'Sell' then
+          -1
+         else
+          1
+       end) * dt.total_quantity deal_quantity,
        qum.qty_unit deal_quantity_unit,
-       dt.total_lots deal_qunatity_in_lots,
-       round((dt.total_quantity * nvl(pkg_general.f_get_converted_quantity(pdm.product_id,
-                                                                           dt.quantity_unit_id,
-                                                                           pdm.base_quantity_unit,
-                                                                           1),
-                                      1)),
-             pdm_qum.decimals) deal_quantity_in_base_unit,
+       (case
+         when dt.trade_type = 'Sell' then
+          -1
+         else
+          1
+       end) * dt.total_lots deal_qunatity_in_lots,
+       (case
+         when dt.trade_type = 'Sell' then
+          -1
+         else
+          1
+       end) * round((dt.total_quantity * nvl(pkg_general.f_get_converted_quantity(pdm.product_id,
+                                                                                  dt.quantity_unit_id,
+                                                                                  pdm.base_quantity_unit,
+                                                                                  1),
+                                             1)),
+                    pdm_qum.decimals) deal_quantity_in_base_unit,
        pdm_qum.qty_unit base_quantity_unit,
        dt.trade_price deal_price,
        pum.price_unit_name deal_price_units,
        dt.clearer_comm_amt clearer_commission,
        dt.broker_comm_amt broker_commission,
        cm_comm.cur_code broker_commission_ccy,
-       case
+       cm_cl_comm.cur_code clearer_commission_ccy,
+       ((case
+         when dt.trade_type = 'Sell' then
+          -1
+         else
+          1
+       end) * (case
          when (cm_val.is_sub_cur = 'Y') then
           round((dt.trade_price * dt.total_quantity * scd.factor *
                 nvl(pkg_general.f_get_converted_quantity(pdm.product_id,
@@ -54,7 +71,7 @@ AS
                                                           1),
                      1)),
                 cm_val.decimals)
-       end contract_value,
+       end)) contract_value,
        (case
          when cm_val.is_sub_cur = 'Y' then
           scd.main_cur_code
@@ -69,7 +86,7 @@ AS
        ak_corporate ak,
        drm_derivative_master drm,
        phd_profileheaderdetails phd_broker,
-       phd_profileheaderdetails phd_clr,       
+       phd_profileheaderdetails phd_clr,
        dim_der_instrument_master dim,
        qum_quantity_unit_master qum,
        qum_quantity_unit_master pdm_qum,
@@ -79,6 +96,7 @@ AS
        pdm_productmaster pdm,
        pum_price_unit_master pum,
        cm_currency_master cm_comm,
+       cm_currency_master cm_cl_comm,
        cm_currency_master cm_val,
        (select cm.cur_code main_cur_code,
                cm.decimals main_cur_decimal,
@@ -100,6 +118,7 @@ AS
    and pdd.product_id = pdm.product_id
    and dt.trade_price_unit_id = pum.price_unit_id(+)
    and dt.broker_comm_cur_id = cm_comm.cur_id(+)
+   and dt.clearer_comm_cur_id = cm_cl_comm.cur_id(+)
    and dt.quantity_unit_id = qum.qty_unit_id
    and pdm.base_quantity_unit = pdm_qum.qty_unit_id
    and pum.cur_id = cm_val.cur_id
@@ -108,36 +127,18 @@ AS
    and cpc.business_line_id = blm.business_line_id(+)
    and cm_val.cur_id = scd.sub_cur_id(+)
    and dt.strategy_id = css.strategy_id(+)
-   and drm.is_deleted = 'N'
+  /* and drm.is_deleted = 'N'
    and drm.is_expired = 'N'
    and dim.is_active = 'Y'
-   and dim.is_deleted = 'N'
+   and dim.is_deleted = 'N'*/
    and irmf.is_active = 'Y'
    and irmf.is_deleted = 'N'
-   and pdd.is_active = 'Y'
+  /* and pdd.is_active = 'Y'
    and pdd.is_deleted = 'N'
    and pdm.is_active = 'Y'
    and pdm.is_deleted = 'N'
    and pdd.is_active = 'Y'
-   and pdd.is_deleted = 'N'
-   and cm_val.is_active = 'Y'
-   and cm_val.is_deleted = 'N'
+   and pdd.is_deleted = 'N'*/
+ --  and cm_val.is_active = 'Y'
+ --  and cm_val.is_deleted = 'N'
    and dt.status = 'Verified'
-
-/
-
-DROP MATERIALIZED VIEW MV_FUTURES_DIFFERANCE_ACCOUNT
-/
-CREATE MATERIALIZED VIEW MV_FUTURES_DIFFERANCE_ACCOUNT
-NOCACHE
-LOGGING
-NOCOMPRESS
-NOPARALLEL
-BUILD IMMEDIATE
-REFRESH FORCE
-START WITH TO_DATE('02-Feb-2012 18:43:22','dd-mon-yyyy hh24:mi:ss')
-NEXT SYSDATE+20/1440   
-WITH PRIMARY KEY
-AS 
-select * from v_der_futures_broker_account
-/
