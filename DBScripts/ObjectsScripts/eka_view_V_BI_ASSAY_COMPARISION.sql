@@ -94,7 +94,7 @@ select t.corporate_id,
                gmr.eff_date,
                grd.internal_stock_ref_no,
                gmr.is_final_weight,
-               asm.sublot_ref_no,
+               asm.sub_lot_no sublot_ref_no,
                pqca.assay_winner,
                ash.ash_id,
                (case
@@ -103,13 +103,13 @@ select t.corporate_id,
                  else
                   ash.assay_type
                end) assay_type,
-               ash.assay_ref_no,
-               (case
-                 when ash.assay_type = 'Umpire Assay' then
-                  ash.assayer
+               ash.assay_ref_no, 
+	       (case
+                 when ash.assay_type ='Umpire Assay' then
+                  bgm.bp_group_name
                  else
                   null
-               end) umpirename,
+               end) umpirename,               
                asm.net_weight wet_qty,
                asm.dry_weight dry_qty,
                asm.net_weight_unit,
@@ -142,7 +142,8 @@ select t.corporate_id,
                blm_business_line_master    blm,
                ak_corporate                akc,
                ak_corporate_user           aku,
-               phd_profileheaderdetails    phd
+               phd_profileheaderdetails    phd,
+               bgm_bp_group_master         bgm
          where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
            and grd.status = 'Active'
@@ -167,6 +168,7 @@ select t.corporate_id,
            and asm.asm_id = pqca.asm_id
            and pqca.unit_of_measure = ratio_id
            and pqca.element_id = aml.attribute_id
+           and ash.assayer=bgm.bp_group_id(+)
            and pci.is_active = 'Y'
            and pcm.is_active = 'Y'
            and pcdi.is_active = 'Y'
