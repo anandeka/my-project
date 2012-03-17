@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0548
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  17-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Contract Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90059
+Author: sishir.pagada
+Date: 1:48:35 PM, Saturday, March 17, 2012
+Message:
+Mining contract output document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETCCDETAILS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETOCDETAILS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETSLCDETAILS.sql
+
+
+
+Revision: 90060
+Author: sishir.pagada
+Date: 1:53:03 PM, Saturday, March 17, 2012
+Message:
+Mining contract output document.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+
+
