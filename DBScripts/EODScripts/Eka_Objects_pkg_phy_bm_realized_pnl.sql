@@ -265,7 +265,7 @@ create or replace package body pkg_phy_bm_realized_pnl is
          and pcdb.country_id = cym_pcdb.country_id
          and pcdb.city_id = cim_pcdb.city_id
          and pcpd.strategy_id = css.strategy_id
-         and cpc.business_line_id = blm.business_line_id
+         and cpc.business_line_id = blm.business_line_id(+)
          and dgrd.shed_id = sld.storage_loc_id(+)
          and sld.city_id = cim_sld.city_id(+)
          and agh.realized_status = 'Realized'
