@@ -4286,7 +4286,7 @@ create or replace package body pkg_phy_eod_reports is
              sum(temp.tcharges_amount) tcharges_amount,
              sum(temp.rcharges_amount) rcharges_amount,
              sum(temp.penalty_amount) penalty_amount,
-             sum(temp.other_charges) other_charges,
+             oth_chagres.other_charges other_charges,
              temp.invoice_currency_id,
              cm_invoice.cur_code,
              akc.base_cur_id,
@@ -4630,92 +4630,6 @@ create or replace package body pkg_phy_eod_reports is
                      pcpd.internal_contract_ref_no
                  and pcpd.process_id = pc_process_id
                  and pcpd.input_output = 'Input'
-                 and grd.tolling_stock_type = 'Clone Stock'
-              union all
-              -- other chrges 
-              select gmr.gmr_ref_no,
-                     grd.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     gmr.internal_contract_ref_no,
-                     gmr.corporate_id,
-                     grd.product_id,
-                     grd.quality_id,
-                     grd.profit_center_id,
-                     null element_id,
-                     (case
-                       when pcpd.unit_of_measure = 'Wet' then
-                        pkg_metals_general.fn_get_assay_dry_qty(gmr.product_id,
-                                                                iam.ash_id,
-                                                                gmr.current_qty,
-                                                                gmr.qty_unit_id)
-                       else
-                        gmr.current_qty
-                     end) gmr_qty,
-                     gmr.qty_unit_id,
-                     0 assay_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) assay_qty_unit,
-                     0 payble_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) payable_qty_unit,
-                     0 tcharges_amount,
-                     0 rcharges_amount,
-                     0 penalty_amount,
-                     ioc.amount_in_inv_cur other_charges,
-                     iid.invoice_currency_id,
-                     iss.invoice_issue_date
-                from gmr_goods_movement_record gmr,
-                     grd_goods_record_detail grd,
-                     iid_invoicable_item_details iid,
-                     is_invoice_summary iss,
-                     ioc_invoice_other_charge ioc,
-                     iam_invoice_assay_mapping iam,
-                     ash_assay_header ash,
-                     asm_assay_sublot_mapping asm,
-                     pqca_pq_chemical_attributes pqca,
-                     rm_ratio_master rm,
-                     pcpd_pc_product_definition pcpd,
-                     (select gmr.internal_gmr_ref_no,
-                             gmr.latest_internal_invoice_ref_no
-                        from gmr_goods_movement_record gmr
-                       where gmr.process_id = pc_process_id) lastest_gmr
-               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = iid.stock_id
-                 and iss.internal_invoice_ref_no =
-                     iid.internal_invoice_ref_no
-                 and iss.is_active = 'Y'
-                 and iss.process_id = pc_process_id
-                 and iid.internal_invoice_ref_no =
-                     ioc.internal_invoice_ref_no
-                 and iid.internal_invoice_ref_no =
-                     iam.internal_invoice_ref_no
-                 and iid.stock_id = iam.internal_grd_ref_no
-                 and iam.ash_id = ash.ash_id
-                 and ash.ash_id = asm.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.internal_gmr_ref_no =
-                     lastest_gmr.internal_gmr_ref_no(+)
-                 and gmr.latest_internal_invoice_ref_no =
-                     lastest_gmr.latest_internal_invoice_ref_no(+)
-                 and gmr.is_deleted = 'N'
-                 and gmr.corporate_id = pc_corporate_id
-                 and gmr.process_id = pc_process_id
-                 and grd.process_id = pc_process_id
-                 and gmr.internal_contract_ref_no =
-                     pcpd.internal_contract_ref_no
-                 and pcpd.process_id = pc_process_id
-                 and pcpd.input_output = 'Input'
-                 and gmr.is_pass_through = 'Y'
                  and grd.tolling_stock_type = 'Clone Stock') temp,
              ak_corporate akc,
              pdm_productmaster pdm,
@@ -4727,7 +4641,19 @@ create or replace package body pkg_phy_eod_reports is
              phd_profileheaderdetails phd,
              qum_quantity_unit_master qum_gmr,
              qum_quantity_unit_master qum_assay,
-             qum_quantity_unit_master qum_paybale
+             qum_quantity_unit_master qum_paybale,
+              (select iss.internal_invoice_ref_no,
+                      gmr.internal_gmr_ref_no,
+                      iss.total_other_charge_amount other_charges
+                      from gmr_goods_movement_record   gmr,
+                      iid_invoicable_item_details iid,
+                      is_invoice_summary          iss
+                      where gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+                      and iid.internal_invoice_ref_no = iss.internal_invoice_ref_no
+                      and gmr.latest_internal_invoice_ref_no=iss.internal_invoice_ref_no
+                      and iss.is_active = 'Y'
+                      and iss.process_id = pc_process_id
+                      and gmr.process_id = pc_process_id)oth_chagres
        where temp.corporate_id = akc.corporate_id
          and temp.product_id = pdm.product_id
          and temp.quality_id = qat.quality_id
@@ -4740,6 +4666,7 @@ create or replace package body pkg_phy_eod_reports is
          and temp.qty_unit_id = qum_gmr.qty_unit_id
          and temp.assay_qty_unit = qum_assay.qty_unit_id
          and temp.payable_qty_unit = qum_paybale.qty_unit_id
+         and temp.internal_gmr_ref_no=oth_chagres.internal_gmr_ref_no(+)
        group by temp.invoice_issue_date,
                 pc_process_id,
                 temp.corporate_id,
@@ -4763,7 +4690,8 @@ create or replace package body pkg_phy_eod_reports is
                 temp.qty_unit_id,
                 qum_gmr.qty_unit,
                 qum_assay.qty_unit,
-                qum_paybale.qty_unit;
+                qum_paybale.qty_unit,
+                oth_chagres.other_charges;
     commit;
   end;
   procedure sp_stock_monthly_yeild(pc_corporate_id varchar2,

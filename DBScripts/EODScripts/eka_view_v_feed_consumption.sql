@@ -39,7 +39,7 @@ select fcr.corporate_name,
        sum(fcr.payable_element7) payable_element7,
        sum(fcr.rc_element7) rc_element7,
        sum(fcr.tc_amount) tc_amount,
-       sum(fcr.lv_amount) lv_amount,
+       max(fcr.lv_amount) lv_amount,
        fcr.currency_code,
        max(fcr.pen_element_name1) pen_element_name1,
        sum(fcr.penalty_amount1) penalty_amount1,
@@ -234,7 +234,7 @@ select fcr.corporate_name,
               0
            end) rc_element7,
        sum(fcr.tc_amount) tc_amount,
-       sum(fcr.inv_add_charges) lv_amount,
+       fcr.inv_add_charges lv_amount,
        fcr.invoice_cur_code currency_code,
        null pen_element_name1,
        null penalty_amount1,
@@ -274,7 +274,8 @@ select fcr.corporate_name,
           fcr.cp_name,
           fcr.invoice_cur_code,
           fcr.eod_trade_date,
-          fcr.corporate_name
+          fcr.corporate_name,
+          fcr.inv_add_charges
 union all
 
 select fcr.corporate_name,

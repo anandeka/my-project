@@ -27,7 +27,7 @@ create or replace package "PKG_PHY_EOD_PRICE" is
                                         pc_dbd_id       varchar2,
                                         pc_process      varchar2);
 
-end;
+end; 
 /
 create or replace package body "PKG_PHY_EOD_PRICE" is
 
@@ -1905,6 +1905,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
               
                 from grd_goods_record_detail grd
                where grd.process_id = pc_process_id
+                 and grd.tolling_stock_type ='None Tolling'
                  and grd.status = 'Active'
                  and grd.is_deleted = 'N'
                group by grd.internal_gmr_ref_no,
@@ -1993,6 +1994,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                 from dgrd_delivered_grd grd
                where grd.process_id = pc_process_id
                  and grd.status = 'Active'
+                 and grd.tolling_stock_type ='None Tolling'
               --and grd.is_deleted = 'N'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
@@ -2975,6 +2977,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                 from grd_goods_record_detail grd
                where grd.process_id = pc_process_id
                  and grd.status = 'Active'
+                 and grd.tolling_stock_type in('None Tolling','Clone Stock')
                  and grd.is_deleted = 'N'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
@@ -3055,6 +3058,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                 from dgrd_delivered_grd grd
                where grd.process_id = pc_process_id
                  and grd.status = 'Active'
+                 and grd.tolling_stock_type in('None Tolling','Clone Stock')
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id) grd,
@@ -5752,5 +5756,5 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     end loop;
     commit;
   end;
-end;
+end; 
 /
