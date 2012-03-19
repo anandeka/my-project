@@ -1,8 +1,8 @@
-Patch No*          		:  EKA_METALS_PATCH_0556
+Patch No*          		:  EKA_METALS_PATCH_0554
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Suresh Gottipati
+Created by*        		:  Sachin Talwar
  
 Created on*        		:  19-Mar-2012
 
@@ -11,14 +11,14 @@ Bug / Enhancement*              :  Enhancement
 Bug ID*            		:  
 
 ==================================================================
-Branch (DEV / REL)*		:  DEV
+Branch (DEV / REL)*		:  Dev
 ==================================================================
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  EOD
+Module  		   	 :  Pricing
 
-Sub-Module  		 	 : N/A
+Sub-Module  			 : Pricing
  
 Section   		   	 :  N/A
  
@@ -33,17 +33,16 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* : EOD
+Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 90243
-Author: suresh.gottipati
-Date: 8:56:33 PM, Monday, March 19, 2012
+Revision: 90240
+Author: sachin
+Date: 8:39:10 PM, Monday, March 19, 2012
 Message:
-Bug Fixes
+
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_feed_consumption.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_229.sql
+
 
 
 
