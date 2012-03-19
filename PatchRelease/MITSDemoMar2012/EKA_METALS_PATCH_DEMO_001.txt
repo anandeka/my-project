@@ -15,7 +15,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  EOD
+Module  		   	 :  EOD and APP
 
 Sub-Module  			 :  
  
@@ -32,7 +32,7 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* : EOD
+Schema type (Transaction / EOD)* : EOD and APP
 ==================================================================
 
 Following Fetaure for Demo released
@@ -44,28 +44,28 @@ Following Fetaure for Demo released
 Revision: 90085
 
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/DDL_SCRIPTS.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_POPULATE_DATA.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_PRE_CHECK_PROCESS.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_TRANSFER_DATA.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_next_day_working.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_3rd_wed.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_cash_3m.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_working_day.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_cdc_instrument_days.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_spread_report.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/DDL_SCRIPTS.sql)(EOD)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_POPULATE_DATA.sql(EOD)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_PRE_CHECK_PROCESS.sql(EOD)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_TRANSFER_DATA.sql(EOD)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_next_day_working.sql)(APP)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_3rd_wed.sql(APP)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_cash_3m.sql(APP)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_working_day.sql(APP)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_cdc_instrument_days.sql(APP)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_spread_report.sql(APP)
 
 
 Revision: 90088
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_premium_report.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_premium_report.sql(APP)
 
 
 
 Revision: 90093
 
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/pkg_phy_calculate_cog.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/pkg_phy_calculate_cog.sql(APP)
 
 
 
