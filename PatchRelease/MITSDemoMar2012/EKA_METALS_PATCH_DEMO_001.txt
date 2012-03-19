@@ -40,6 +40,7 @@ Following Fetaure for Demo released
 2) Spread report
 3) QP End Date plus 2 days quote for Invenory M2M
 
+EOD
 
 Revision: 90085
 
@@ -48,24 +49,26 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/DDL_
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_POPULATE_DATA.sql(EOD)
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_PRE_CHECK_PROCESS.sql(EOD)
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_TRANSFER_DATA.sql(EOD)
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_next_day_working.sql)(APP)
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_3rd_wed.sql(APP)
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_cash_3m.sql(APP)
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_working_day.sql(APP)
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_cdc_instrument_days.sql(APP)
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_spread_report.sql(APP)
+
+Transaction
+
+Revision: 90085
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_next_day_working.sql)(Transaction)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_3rd_wed.sql(Transaction)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_quote_cash_3m.sql(Transaction)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/f_get_working_day.sql(Transaction)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_cdc_instrument_days.sql(Transaction)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_spread_report.sql(Transaction)
 
 
 Revision: 90088
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_premium_report.sql(APP)
-
-
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_premium_report.sql(Transaction)
 
 Revision: 90093
 
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/pkg_phy_calculate_cog.sql(APP)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/pkg_phy_calculate_cog.sql(Transaction)
 
 
 
