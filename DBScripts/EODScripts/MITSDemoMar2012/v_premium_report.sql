@@ -111,35 +111,59 @@ select corporate_id,
            decode(s_month_6_qty, 0, null, s_month_6_qty),
            0) s_month_6_premium,
        p_month_1_qty - s_month_1_qty net_month_1_qty,
-       p_month_2_qty - s_month_1_qty net_month_2_qty,
-       p_month_3_qty - s_month_1_qty net_month_3_qty,
-       p_month_4_qty - s_month_1_qty net_month_4_qty,
-       p_month_5_qty - s_month_1_qty net_month_5_qty,
-       p_month_6_qty - s_month_1_qty net_month_6_qty,
+       p_month_2_qty - s_month_2_qty net_month_2_qty,
+       p_month_3_qty - s_month_3_qty net_month_3_qty,
+       p_month_4_qty - s_month_4_qty net_month_4_qty,
+       p_month_5_qty - s_month_5_qty net_month_5_qty,
+       p_month_6_qty - s_month_6_qty net_month_6_qty,
        decode(sign(p_month_1_qty - s_month_1_qty),
               -1,
-              s_month_1_qty,
-              p_month_1_qty) net_month_1_premium,
+              nvl(s_month_1_premium_value /
+                  decode(s_month_1_qty, 0, null, s_month_1_qty),
+                  0),
+              nvl(p_month_1_premium_value /
+                  decode(p_month_1_qty, 0, null, p_month_1_qty),
+                  0)) net_month_1_premium,
        decode(sign(p_month_2_qty - s_month_2_qty),
               -1,
-              s_month_2_qty,
-              p_month_2_qty) net_month_2_premium,
+              nvl(s_month_2_premium_value /
+                  decode(s_month_2_qty, 0, null, s_month_2_qty),
+                  0),
+              nvl(p_month_2_premium_value /
+                  decode(p_month_2_qty, 0, null, p_month_2_qty),
+                  0)) net_month_2_premium,
        decode(sign(p_month_3_qty - s_month_3_qty),
               -1,
-              s_month_3_qty,
-              p_month_3_qty) net_month_3_premium,
+              nvl(s_month_3_premium_value /
+                  decode(s_month_3_qty, 0, null, s_month_3_qty),
+                  0),
+              nvl(p_month_3_premium_value /
+                  decode(p_month_3_qty, 0, null, p_month_3_qty),
+                  0)) net_month_3_premium,
        decode(sign(p_month_4_qty - s_month_4_qty),
               -1,
-              s_month_4_qty,
-              p_month_4_qty) net_month_4_premium,
+              nvl(s_month_4_premium_value /
+                  decode(s_month_4_qty, 0, null, s_month_4_qty),
+                  0),
+              nvl(p_month_4_premium_value /
+                  decode(p_month_4_qty, 0, null, p_month_4_qty),
+                  0)) net_month_4_premium,
        decode(sign(p_month_5_qty - s_month_5_qty),
               -1,
-              s_month_5_qty,
-              p_month_5_qty) net_month_5_premium,
+              nvl(s_month_5_premium_value /
+                  decode(s_month_5_qty, 0, null, s_month_5_qty),
+                  0),
+              nvl(p_month_5_premium_value /
+                  decode(p_month_5_qty, 0, null, p_month_5_qty),
+                  0)) net_month_5_premium,
        decode(sign(p_month_6_qty - s_month_6_qty),
               -1,
-              s_month_6_qty,
-              p_month_6_qty) net_month_6_premium
+              nvl(s_month_6_premium_value /
+                  decode(s_month_6_qty, 0, null, s_month_6_qty),
+                  0),
+              nvl(p_month_6_premium_value /
+                  decode(p_month_6_qty, 0, null, p_month_6_qty),
+                  0)) net_month_6_premium
   from (select t.corporate_id,
                t.product_id,
                t.product_name,
@@ -177,7 +201,6 @@ select corporate_id,
                      else
                       0
                    end) s_month_2_qty,
-               
                sum(case
                      when t.no_of_months = 2 and t.purchase_sales = 'P' then
                       qty
@@ -202,7 +225,6 @@ select corporate_id,
                      else
                       0
                    end) s_month_4_qty,
-               
                sum(case
                      when t.no_of_months = 4 and t.purchase_sales = 'P' then
                       qty
@@ -215,7 +237,6 @@ select corporate_id,
                      else
                       0
                    end) s_month_5_qty,
-               
                sum(case
                      when t.no_of_months = 5 and t.purchase_sales = 'P' then
                       qty
@@ -321,7 +342,6 @@ select corporate_id,
                                             end),
                                             'mm'),
                                       trunc(sysdate, 'mm')) no_of_months
-                
                   from pci_physical_contract_item pci,
                        pcm_physical_contract_main pcm,
                        pcdi_pc_delivery_item pcdi,
@@ -472,4 +492,4 @@ select corporate_id,
                   t.base_qty_unit,
                   t.base_cur_id,
                   t.base_cur_code,
-                  t.corporate_id) tt
+                  t.corporate_id) tt;
