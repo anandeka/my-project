@@ -1,8 +1,8 @@
-Patch No*          		:  EKA_METALS_PATCH_0554
+Patch No*          		:  EKA_METALS_PATCH_0555
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Sachin Talwar
+Created by*        		:  Ashok Kumar
  
 Created on*        		:  19-Mar-2012
 
@@ -16,9 +16,9 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Pricing
+Module  		   	 :  Report
 
-Sub-Module  			 : Pricing
+Sub-Module  		 : Report
  
 Section   		   	 :  N/A
  
@@ -35,14 +35,27 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 90240
-Author: sachin
-Date: 8:39:10 PM, Monday, March 19, 2012
+Revision: 90237
+Author: sivachalabathi.s
+Date: 8:22:36 PM, Monday, March 19, 2012
 Message:
-
+Newly Added Report
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_229.sql
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PremiumPositionReport.rpt
 
+Revision: 90238
+Author: sivachalabathi.s
+Date: 8:30:26 PM, Monday, March 19, 2012
+Message:
+Premium Report View added.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_premium_report.sql
 
-
+Revision: 90239
+Author: sivachalabathi.s
+Date: 8:35:37 PM, Monday, March 19, 2012
+Message:
+RML,RFC,PRC entry for Premium Report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_239.sql
 
