@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0564
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Ashok
+ 
+Created on *        		:  20-Mar-2012
+
+Bug / Enhancement *              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI Report
+ 
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90374
+Author: sivachalabathi.s
+Date: 7:03:13 PM, Tuesday, March 20, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_hedged_unhedged_position.sql
