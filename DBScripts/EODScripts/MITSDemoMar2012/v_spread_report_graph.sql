@@ -346,7 +346,6 @@ select vsp.corporate_id,
           null end)day_9_name           
   from vsp_data vsp,
        (select rownum ss from user_objects where rownum <= 12) temp)
-       WHERE corporate_id = 'EKA' and instrument_id = 'DIM-10'
 group by corporate_id,
        instrument_id,
        instrument_name,
