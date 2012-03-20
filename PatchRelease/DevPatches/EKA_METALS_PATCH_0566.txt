@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_0566
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Siva
+ 
+Created on *        		:  20-Mar-2012
+
+Bug / Enhancement *              :  Enhancement
+ 
+Bug ID*            		:  Metal Balance Dashboard
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Dashboard
+ 
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90407
+Author: sivachalabathi.s
+Date: 9:46:27 PM, Tuesday, March 20, 2012
+Message:
+metal_balance_dashboard
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_INVENTORY_BY_PRODUCT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_INVENTORY_BY_SMELTERS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_TOP5_BY_SUP_ACCOUNT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_YIELD_BY_SMELTERS.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_debt.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_feed.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_stock.sql
+
+------
+Revision: 90408
+Author: sivachalabathi.s
+Date: 9:51:18 PM, Tuesday, March 20, 2012
+Message:
+metal_balance_dashboard
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_241.sql
+
+
+-----------
