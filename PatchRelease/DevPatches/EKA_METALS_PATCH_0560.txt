@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0560
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Ashok
+ 
+Created on *        		:  20-Mar-2012
+
+Bug / Enhancement *              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90259
+Author: sivachalabathi.s
+Date: 11:11:23 AM, Tuesday, March 20, 2012
+Message:
+Modification to PremiumPositionReport.rpt
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PremiumPositionReport.rpt
