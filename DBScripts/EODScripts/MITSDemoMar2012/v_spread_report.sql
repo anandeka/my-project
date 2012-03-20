@@ -13,6 +13,9 @@ select corporate_id,
        month_7_quote - date_3m spread_month_7_quote,
        month_8_quote - date_3m spread_month_8_quote,
        month_9_quote - date_3m spread_month_9_quote,
+       month_10_quote - date_3m spread_month_10_quote,
+       month_11_quote - date_3m spread_month_11_quote,
+       month_12_quote - date_3m spread_month_12_quote,
        date_cash - date_3m date_cash,
        date_3m date_3m,
        month_1_name,
@@ -163,4 +166,4 @@ select corporate_id,
                   and akc.corporate_id <> 'EKA-SYS'
                    ) third_wed,
                v_cdc_instrument_days nine_days
-         where third_wed.instrument_id = nine_days.instrument_id) ttt
+         where third_wed.instrument_id = nine_days.instrument_id) ttt;
