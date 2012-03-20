@@ -544,3 +544,160 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
     WHERE invs.internal_invoice_ref_no = oipi.internal_invoice_ref_no
       AND oipi.bank_id = phd.profileid
       AND invs.internal_invoice_ref_no = ?', 'N');
+
+--For concentrate
+Insert into DGM_DOCUMENT_GENERATION_MASTER
+   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
+    FETCH_QUERY, IS_CONCENTRATE)
+ Values
+   ('DGM-SIC', 'CREATE_SI', 'Service Invoice', 'CREATE_SI', 1, 
+    'INSERT INTO IS_D(
+INTERNAL_INVOICE_REF_NO,
+INVOICE_REF_NO,
+CP_NAME,
+SUPPLIRE_INVOICE_NO,
+CP_ADDRESS,
+INVOICE_CREATION_DATE,
+DUE_DATE,
+PAYMENT_TERM,
+CONTRACT_TYPE,
+INTERNAL_DOC_REF_NO
+)
+select
+INVS.INTERNAL_INVOICE_REF_NO as INTERNAL_INVOICE_REF_NO,
+INVS.INVOICE_REF_NO as INVOICE_REF_NO,
+PHD.COMPANYNAME as CP_NAME,
+INVS.CP_REF_NO as SUPPLIRE_INVOICE_NO,
+INVS.BILL_TO_ADDRESS as CP_ADDRESS,
+INVS.INVOICE_ISSUE_DATE as INVOICE_CREATION_DATE,
+INVS.PAYMENT_DUE_DATE as DUE_DATE,
+PYM.PAYMENT_TERM as PAYMENT_TERM,
+INVS.RECIEVED_RAISED_TYPE as CONTRACT_TYPE,
+?
+from
+IS_INVOICE_SUMMARY invs,
+PHD_PROFILEHEADERDETAILS phd,
+PYM_PAYMENT_TERMS_MASTER pym
+where
+INVS.CP_ID = PHD.PROFILEID
+and INVS.CREDIT_TERM = PYM.PAYMENT_TERM_ID
+and INVS.INTERNAL_INVOICE_REF_NO = ?', 'Y');
+
+--
+Insert into DGM_DOCUMENT_GENERATION_MASTER
+   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
+    FETCH_QUERY, IS_CONCENTRATE)
+ Values
+   ('DGM-SIC-1', 'CREATE_SI', 'Service Invoice', 'CREATE_SI', 2, 
+    'INSERT INTO IS_CHILD_SI_D(
+INTERNAL_INVOICE_REF_NO,
+GMR_REF_NO,
+COST_COMPONENT_NAME,
+INVOICE_AMOUNT,
+INVOICE_AMOUNT_UNIT,
+INTERNAL_DOC_REF_NO
+)
+select
+INVS.INTERNAL_INVOICE_REF_NO as INTERNAL_INVOICE_REF_NO,
+GMR.GMR_REF_NO as GMR_REF_NO,
+SCM.COST_COMPONENT_NAME as COST_COMPONENT_NAME,
+CS.BASE_AMT as INVOICE_AMOUNT,
+CM.CUR_CODE as INVOICE_AMOUNT_UNIT,
+?
+from
+IS_INVOICE_SUMMARY invs,
+IAM_INVOICE_ACTION_MAPPING iam,
+CS_COST_STORE cs,
+CIGC_CONTRACT_ITEM_GMR_COST cigc,
+GMR_GOODS_MOVEMENT_RECORD gmr,
+SCM_SERVICE_CHARGE_MASTER scm,
+CM_CURRENCY_MASTER cm
+where
+INVS.INTERNAL_INVOICE_REF_NO = IAM.INTERNAL_INVOICE_REF_NO
+and IAM.INVOICE_ACTION_REF_NO = CS.INTERNAL_ACTION_REF_NO
+and CS.COG_REF_NO = CIGC.COG_REF_NO
+and CIGC.INTERNAL_GMR_REF_NO = GMR.INTERNAL_GMR_REF_NO
+and CS.COST_COMPONENT_ID = SCM.COST_ID
+and CS.BASE_AMT_CUR_ID = CM.CUR_ID
+and INVS.INVOICE_TYPE = ''Service''
+and INVS.INTERNAL_INVOICE_REF_NO = ?', 'Y');
+--
+
+Insert into DGM_DOCUMENT_GENERATION_MASTER
+   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
+    FETCH_QUERY, IS_CONCENTRATE)
+ Values
+   ('DGM-ITD_BM', 'CREATE_SI', 'Service Invoice', 'CREATE_SI', 3, 
+    'INSERT INTO ITD_D (
+INTERNAL_INVOICE_REF_NO,
+OTHER_CHARGE_COST_NAME,
+TAX_RATE,
+INVOICE_CURRENCY,
+FX_RATE,
+AMOUNT,
+TAX_CURRENCY,
+INVOICE_AMOUNT,
+INTERNAL_DOC_REF_NO
+)
+select
+INVS.INTERNAL_INVOICE_REF_NO as INTERNAL_INVOICE_REF_NO,
+TM.TAX_CODE as OTHER_CHARGE_COST_NAME,
+ITD.TAX_RATE as TAX_RATE,
+CM.CUR_CODE as INVOICE_CURRENCY,
+ITD.TAX_AMOUNT_FX_RATE as FX_RATE,
+ITD.TAX_AMOUNT as AMOUNT,
+CM_TAX.CUR_CODE as TAX_CURRENCY,
+ITD.TAX_AMOUNT_IN_INV_CUR as INVOICE_AMOUNT,
+?
+from
+IS_INVOICE_SUMMARY invs,
+ITD_INVOICE_TAX_DETAILS itd,
+TM_TAX_MASTER tm,
+CM_CURRENCY_MASTER cm,
+CM_CURRENCY_MASTER cm_tax
+where
+INVS.INTERNAL_INVOICE_REF_NO = ITD.INTERNAL_INVOICE_REF_NO
+and ITD.TAX_CODE_ID = TM.TAX_ID
+and ITD.INVOICE_CUR_ID = CM.CUR_ID
+and ITD.TAX_AMOUNT_CUR_ID = CM_TAX.CUR_ID
+and ITD.INTERNAL_INVOICE_REF_NO = ?', 'Y');
+
+
+Insert into DGM_DOCUMENT_GENERATION_MASTER
+   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
+    FETCH_QUERY, IS_CONCENTRATE)
+ Values
+   ('DGM-SIC-2', 'CREATE_SI', 'Service Invoice', 'CREATE_SI', 4, 
+    'INSERT INTO is_bdp_child_d
+            (internal_invoice_ref_no, beneficiary_name, bank_name, account_no,
+             aba_rtn, instruction, internal_doc_ref_no)
+   SELECT invs.internal_invoice_ref_no AS internal_invoice_ref_no,
+          cpipi.beneficiary_name AS beneficiary_name,
+          phd.companyname AS bank_name, cpipi.bank_account AS account_no,
+          cpipi.aba_no AS aba_rtn, cpipi.instructions AS instruction, ?
+     FROM phd_profileheaderdetails phd,
+          is_invoice_summary invs,
+          cpipi_cp_inv_pay_instruction cpipi
+    WHERE invs.internal_invoice_ref_no = cpipi.internal_invoice_ref_no
+      AND cpipi.bank_id = phd.profileid
+      AND invs.internal_invoice_ref_no = ?', 'Y');
+
+
+Insert into DGM_DOCUMENT_GENERATION_MASTER
+   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
+    FETCH_QUERY, IS_CONCENTRATE)
+ Values
+   ('DGM-SIC-3', 'CREATE_SI', 'Service Invoice', 'CREATE_SI', 5, 
+    'INSERT INTO is_bds_child_d
+            (internal_invoice_ref_no, beneficiary_name, bank_name, account_no,
+             aba_rtn, instruction, internal_doc_ref_no)
+   SELECT invs.internal_invoice_ref_no AS internal_invoice_ref_no,
+          oipi.beneficiary_name AS beneficiary_name,
+          phd.companyname AS bank_name, oipi.bank_account AS account_no,
+          oipi.aba_no AS aba_rtn, oipi.instructions AS instruction, ?
+     FROM phd_profileheaderdetails phd,
+          is_invoice_summary invs,
+          oipi_our_inv_pay_instruction oipi
+    WHERE invs.internal_invoice_ref_no = oipi.internal_invoice_ref_no
+      AND oipi.bank_id = phd.profileid
+      AND invs.internal_invoice_ref_no = ?', 'Y');
