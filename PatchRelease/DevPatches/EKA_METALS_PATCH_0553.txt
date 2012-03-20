@@ -36,21 +36,24 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 
-Revision: 90131
+Revision: 90289
 Author: anandp
-Date: 8:27:59 PM, Saturday, March 17, 2012
+Date: 2:44:42 PM, Tuesday, March 20, 2012
 Message:
-For debitcredit and service invoice output document, Updated
+For DC and SI output document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_231.sql
+
+Revision: 90288
+Author: anandp
+Date: 2:44:07 PM, Tuesday, March 20, 2012
+Message:
+For DC and SI output document.
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_237.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_240.sql
 
-Revision: 90130
-Author: anandp
-Date: 8:24:05 PM, Saturday, March 17, 2012
-Message:
-For debitcredit and service invoice output document
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_54.sql
+
 
 
 
