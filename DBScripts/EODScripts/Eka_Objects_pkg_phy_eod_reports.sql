@@ -39,9 +39,13 @@ create or replace package pkg_phy_eod_reports is
                                 pd_trade_date   date,
                                 pc_process_id   varchar2,
                                 pc_user_id      varchar2,
-                                pc_process      varchar2
-                                
-                                );
+                                pc_process      varchar2);
+  procedure sp_calc_phy_unreal_pnl_attr(pc_corporate_id        varchar2,
+                                        pd_trade_date          date,
+                                        pd_prev_trade_date     date,
+                                        pc_process_id          varchar2,
+                                        pc_previous_process_id varchar2,
+                                        pc_user_id             varchar2);
 end; 
 /
 create or replace package body pkg_phy_eod_reports is
@@ -4084,7 +4088,7 @@ create or replace package body pkg_phy_eod_reports is
                else
                 nvl(pfc_data.priced_qty, 0)
              end) priced_arrived_qty,
-                          
+             
              nvl(pfc_data.priced_qty, 0) -
              (case
                 when nvl(stock_table.landed_qty, 0) <
@@ -4092,7 +4096,7 @@ create or replace package body pkg_phy_eod_reports is
                  nvl(stock_table.landed_qty, 0)
                 else
                  nvl(pfc_data.priced_qty, 0)
-              end) price_not_arrived_qty,             
+              end) price_not_arrived_qty,
              nvl(stock_table.landed_qty, 0) -
              (case
                 when nvl(stock_table.landed_qty, 0) <
@@ -4642,18 +4646,20 @@ create or replace package body pkg_phy_eod_reports is
              qum_quantity_unit_master qum_gmr,
              qum_quantity_unit_master qum_assay,
              qum_quantity_unit_master qum_paybale,
-              (select iss.internal_invoice_ref_no,
-                      gmr.internal_gmr_ref_no,
-                      iss.total_other_charge_amount other_charges
-                      from gmr_goods_movement_record   gmr,
-                      iid_invoicable_item_details iid,
-                      is_invoice_summary          iss
-                      where gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                      and iid.internal_invoice_ref_no = iss.internal_invoice_ref_no
-                      and gmr.latest_internal_invoice_ref_no=iss.internal_invoice_ref_no
-                      and iss.is_active = 'Y'
-                      and iss.process_id = pc_process_id
-                      and gmr.process_id = pc_process_id)oth_chagres
+             (select iss.internal_invoice_ref_no,
+                     gmr.internal_gmr_ref_no,
+                     iss.total_other_charge_amount other_charges
+                from gmr_goods_movement_record   gmr,
+                     iid_invoicable_item_details iid,
+                     is_invoice_summary          iss
+               where gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+                 and iid.internal_invoice_ref_no =
+                     iss.internal_invoice_ref_no
+                 and gmr.latest_internal_invoice_ref_no =
+                     iss.internal_invoice_ref_no
+                 and iss.is_active = 'Y'
+                 and iss.process_id = pc_process_id
+                 and gmr.process_id = pc_process_id) oth_chagres
        where temp.corporate_id = akc.corporate_id
          and temp.product_id = pdm.product_id
          and temp.quality_id = qat.quality_id
@@ -4666,7 +4672,7 @@ create or replace package body pkg_phy_eod_reports is
          and temp.qty_unit_id = qum_gmr.qty_unit_id
          and temp.assay_qty_unit = qum_assay.qty_unit_id
          and temp.payable_qty_unit = qum_paybale.qty_unit_id
-         and temp.internal_gmr_ref_no=oth_chagres.internal_gmr_ref_no(+)
+         and temp.internal_gmr_ref_no = oth_chagres.internal_gmr_ref_no(+)
        group by temp.invoice_issue_date,
                 pc_process_id,
                 temp.corporate_id,
@@ -4896,7 +4902,7 @@ create or replace package body pkg_phy_eod_reports is
                                 pc_user_id      varchar2,
                                 pc_process      varchar2) is
     --vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-   -- vn_eel_error_count number := 1;
+    -- vn_eel_error_count number := 1;
   begin
     insert into cre_cp_risk_exposure
       (process_id,
@@ -5313,8 +5319,8 @@ create or replace package body pkg_phy_eod_reports is
                 t.credit_exp_cur_code;
   exception
     when others then
-    dbms_output.put_line('Error in CRC calculation');
-    null;
+      dbms_output.put_line('Error in CRC calculation');
+      null;
       /*vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'sp_calc_risk_limits',
@@ -5330,5 +5336,1230 @@ create or replace package body pkg_phy_eod_reports is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);*/
   end;
+  procedure sp_calc_phy_unreal_pnl_attr(pc_corporate_id        varchar2,
+                                        pd_trade_date          date,
+                                        pd_prev_trade_date     date,
+                                        pc_process_id          varchar2,
+                                        pc_previous_process_id varchar2,
+                                        pc_user_id             varchar2
+--------------------------------------------------------------------------------------------------------------------------
+--        procedure name                            : sp_calc_phy_unreal_pnl_attr
+--        author                                    : AGS REPORTS TEAM
+--        created date                              : 11th Jan 2011
+--        purpose                                   : populate physical open unrealized pnl
+--        parameters
+--        pc_corporate_id                           : corporate id
+--        pd_trade_date                             : eod date id
+--        pc_user_id                                : user id
+--        pc_process                                : process
+--        modification history
+--        modified date                             :
+--        modified by                               :
+--        modify description                        :
+--------------------------------------------------------------------------------------------------------------------------
+                                                        ) is
+  vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+  vn_eel_error_count number := 1;
+  --
+  -- New Contract
+  --
+  cursor unreal_pnl_attr is
+    select poud.process_id,
+           poud.corporate_id,
+           poud.corporate_name,
+           'Physical Contract' attribution_type,
+           'New Contract' attribution_main_type,
+           (case
+             when poud.contract_type = 'P' then
+              'Purchase'
+             when poud.contract_type = 'S' then
+              'Sales'
+           end) attribution_sub_type,
+           (case
+             when poud.contract_type = 'P' then
+              1.1
+             when poud.contract_type = 'S' then
+              1.2
+           end) attribution_order,
+           poud.internal_contract_ref_no,
+           poud.internal_contract_item_ref_no,
+           poud.contract_ref_no,
+           poud.delivery_item_no delivery_item_no,
+           pci.del_distribution_item_no,
+           poud.contract_type contract_type,
+           poud.item_qty item_qty,
+           poud.qty_unit_id qty_unit_id,
+           poud.qty_unit qty_unit,
+           poud.qty_in_base_unit curr_eod_qty,
+           poud.qty_unit_id curr_eod_qty_unit_id,
+           poud.qty_unit curr_eod_qty_unit,
+           poud.contract_price curr_eod_contract_price,
+           poud.price_unit_id curr_eod_price_unit_id,
+           poud.price_unit_cur_code || '/' || poud.price_unit_weight_unit curr_eod_price_unit,
+           poud.unrealized_pnl_in_base_cur net_pnlc_in_base,
+           poud.product_id,
+           poud.product_name,
+           poud.profit_center_id,
+           poud.profit_center_name,
+           poud.profit_center_short_name,
+           poud.base_qty_unit_id,
+           poud.base_qty_unit,
+           poud.base_cur_id,
+           poud.base_cur_code,
+           pd_trade_date trade_date,
+           pc_previous_process_id prev_process_id,
+           pd_prev_trade_date as prev_trade_date
+      from poud_phy_open_unreal_daily poud,
+           pci_physical_contract_item pci
+     where poud.cont_unr_status = 'NEW_TRADE'
+       and poud.process_id = pc_process_id
+       and poud.internal_contract_item_ref_no =
+           pci.internal_contract_item_ref_no
+       and pci.process_id = poud.process_id;
+  --        
+  --- Quantity Modification on Contract
+  --
+  cursor unreal_pnl_attr_mcq is
+    select poud.process_id,
+           poud.corporate_id,
+           poud.corporate_name,
+           'Physical Contract' attribution_type,
+           'Quantity' attribution_main_type,
+           (case
+             when poud.contract_type = 'P' then
+              'Purchase'
+             when poud.contract_type = 'S' then
+              'Sales'
+             else
+              'Others'
+           end) attribution_sub_type,
+           (case
+             when poud.contract_type = 'P' then
+              2.1
+             when poud.contract_type = 'S' then
+              2.2
+           end) attribution_order,
+           poud.internal_contract_ref_no,
+           poud.internal_contract_item_ref_no,
+           poud.contract_ref_no,
+           poud.delivery_item_no delivery_item_no,
+           pci.del_distribution_item_no,
+           poud.contract_type contract_type,
+           poud.item_qty item_qty,
+           poud.qty_unit_id qty_unit_id,
+           poud.qty_unit qty_unit,
+           poud.qty_in_base_unit curr_eod_qty,
+           poud.qty_unit_id curr_eod_qty_unit_id,
+           poud.qty_unit curr_eod_qty_unit,
+           poud_prev.qty_in_base_unit prev_eod_qty,
+           poud.prev_qty_unit_id prev_eod_qty_unit_id,
+           poud.contract_price curr_eod_contract_price,
+           poud.price_unit_id curr_eod_price_unit_id,
+           poud.price_unit_cur_code || '/' || poud.price_unit_weight_unit curr_eod_price_unit,
+           poud_prev.contract_price prev_eod_contract_price,
+           poud_prev.price_unit_id prev_eod_price_unit_id,
+           poud.md_id,
+           poud_prev.md_id prev_md_id,
+           poud.net_m2m_price,
+           poud.m2m_price_unit_id,
+           poud_prev.net_m2m_price prev_net_m2m_price,
+           poud_prev.m2m_price_unit_id prev_m2m_price_unit_id,
+           poud.unrealized_pnl_in_base_cur net_pnlc_in_base,
+           poud.product_id,
+           poud.product_name,
+           poud.profit_center_id,
+           poud.profit_center_name,
+           poud.profit_center_short_name,
+           poud.base_qty_unit_id,
+           poud.base_qty_unit,
+           poud.base_cur_id,
+           poud.base_cur_code,
+           pd_trade_date trade_date,
+           pc_previous_process_id prev_process_id,
+           pd_prev_trade_date as prev_trade_date
+      from poud_phy_open_unreal_daily poud,
+           pci_physical_contract_item pci,
+           (select *
+              from poud_phy_open_unreal_daily poud
+             where poud.process_id = pc_previous_process_id) poud_prev
+     where poud.cont_unr_status = 'EXISTING_TRADE'
+       and poud.qty_in_base_unit <> poud_prev.qty_in_base_unit
+       and poud.process_id = pc_process_id
+       and poud.internal_contract_item_ref_no =
+           poud_prev.internal_contract_item_ref_no
+       and poud.pcdi_id = poud_prev.pcdi_id
+       and pci.process_id = pc_process_id
+       and pci.internal_contract_item_ref_no =
+           poud.internal_contract_item_ref_no;
+  --           
+  ---Change in Price
+  --
+  cursor unreal_pnl_attr_price is
+    select poud.process_id,
+           poud.corporate_id,
+           poud.corporate_name,
+           'Physical Contract' attribution_type,
+           'Pricing' attribution_main_type,
+           (case
+             when poud.contract_type = 'P' then
+              'Purchase'
+             when poud.contract_type = 'S' then
+              'Sales'
+             else
+              'Others'
+           end) attribution_sub_type,
+           (case
+             when poud.contract_type = 'P' then
+              3.1
+             when poud.contract_type = 'S' then
+              3.2
+           end) attribution_order,
+           poud.internal_contract_ref_no,
+           poud.internal_contract_item_ref_no,
+           poud.contract_ref_no,
+           poud.delivery_item_no delivery_item_no,
+           pci.del_distribution_item_no,
+           poud.contract_type contract_type,
+           poud.item_qty item_qty,
+           poud.qty_unit_id qty_unit_id,
+           poud.qty_unit qty_unit,
+           poud.qty_in_base_unit curr_eod_qty,
+           poud.qty_unit_id curr_eod_qty_unit_id,
+           poud.qty_unit curr_eod_qty_unit,
+           poud_prev.qty_in_base_unit prev_eod_qty,
+           poud_prev.qty_unit_id prev_eod_qty_unit_id,
+           poud.contract_price curr_eod_contract_price,
+           poud.price_unit_id curr_eod_price_unit_id,
+           poud.price_unit_cur_code || '/' || poud.price_unit_weight_unit curr_eod_price_unit,
+           poud_prev.contract_price prev_eod_contract_price,
+           poud_prev.price_unit_id prev_eod_price_unit_id,
+           poud.md_id,
+           poud_prev.md_id prev_md_id,
+           poud.net_m2m_price,
+           poud.m2m_price_unit_id,
+           poud_prev.net_m2m_price prev_net_m2m_price,
+           poud_prev.m2m_price_unit_id prev_m2m_price_unit_id,
+           poud.unrealized_pnl_in_base_cur net_pnlc_in_base,
+           poud.product_id,
+           poud.product_name,
+           poud.profit_center_id,
+           poud.profit_center_name,
+           poud.profit_center_short_name,
+           poud.base_qty_unit_id,
+           poud.base_qty_unit,
+           poud.base_cur_id,
+           poud.base_cur_code,
+           pd_trade_date trade_date,
+           pc_previous_process_id prev_process_id,
+           pd_prev_trade_date as prev_trade_date
+      from poud_phy_open_unreal_daily poud,
+           pci_physical_contract_item pci,
+           (select *
+              from poud_phy_open_unreal_daily poud
+             where poud.process_id = pc_previous_process_id) poud_prev
+     where poud.cont_unr_status = 'EXISTING_TRADE'
+       and poud.contract_price <> poud_prev.contract_price
+       and poud.process_id = pc_process_id
+       and pci.process_id = pc_process_id
+       and pci.internal_contract_item_ref_no =
+           poud.internal_contract_item_ref_no
+       and poud.internal_contract_item_ref_no =
+           poud_prev.internal_contract_item_ref_no
+       and poud.pcdi_id = poud_prev.pcdi_id;
+  --
+  ---Change in Estimates
+  --
+  cursor unreal_pnl_attr_estimates is
+    select poud.process_id,
+           poud.corporate_id,
+           poud.corporate_name,
+           'Physical Contract' attribution_type,
+           'Estimates' attribution_main_type,
+           (case
+             when poud.contract_type = 'P' then
+              'Purchase'
+             when poud.contract_type = 'S' then
+              'Sales'
+             else
+              'Others'
+           end) attribution_sub_type,
+           (case
+             when poud.contract_type = 'P' then
+              4.1
+             when poud.contract_type = 'S' then
+              4.2
+           end) attribution_order,
+           poud.internal_contract_ref_no,
+           poud.internal_contract_item_ref_no,
+           poud.contract_ref_no,
+           poud.delivery_item_no delivery_item_no,
+           pci.del_distribution_item_no,
+           poud.contract_type contract_type,
+           poud.item_qty item_qty,
+           poud.qty_unit_id qty_unit_id,
+           poud.qty_unit qty_unit,
+           poud.qty_in_base_unit curr_eod_qty,
+           poud.qty_unit_id curr_eod_qty_unit_id,
+           poud.qty_unit curr_eod_qty_unit,
+           poud_prev.qty_in_base_unit prev_eod_qty,
+           poud_prev.qty_unit_id prev_eod_qty_unit_id,
+           poud.contract_price curr_eod_contract_price,
+           poud.price_unit_id curr_eod_price_unit_id,
+           poud.price_unit_cur_code || '/' || poud.price_unit_weight_unit curr_eod_price_unit,
+           poud_prev.contract_price prev_eod_contract_price,
+           poud_prev.price_unit_id prev_eod_price_unit_id,
+           poud.md_id,
+           poud_prev.md_id prev_md_id,
+           poud.net_m2m_price,
+           poud.m2m_price_unit_id,
+           poud_prev.net_m2m_price prev_net_m2m_price,
+           poud_prev.m2m_price_unit_id prev_m2m_price_unit_id,
+           poud.sc_in_base_cur,
+           poud_prev.sc_in_base_cur prev_sc_in_base_cur,
+           poud.unrealized_pnl_in_base_cur net_pnlc_in_base,
+           poud.product_id,
+           poud.product_name,
+           poud.profit_center_id,
+           poud.profit_center_name,
+           poud.profit_center_short_name,
+           poud.base_qty_unit_id,
+           poud.base_qty_unit,
+           poud.base_cur_id,
+           poud.base_cur_code,
+           pd_trade_date trade_date,
+           pc_previous_process_id prev_process_id,
+           pd_prev_trade_date as prev_trade_date
+      from poud_phy_open_unreal_daily poud,
+           pci_physical_contract_item pci,
+           (select *
+              from poud_phy_open_unreal_daily poud
+             where poud.process_id = pc_previous_process_id) poud_prev
+     where poud.cont_unr_status = 'EXISTING_TRADE'
+       and poud.sc_in_base_cur <> poud_prev.sc_in_base_cur
+       and poud.process_id = pc_process_id
+       and pci.process_id = pc_process_id
+       and pci.internal_contract_item_ref_no =
+           poud.internal_contract_item_ref_no
+       and poud.internal_contract_item_ref_no =
+           poud_prev.internal_contract_item_ref_no
+       and poud.pcdi_id = poud_prev.pcdi_id;
+  --
+  ---Change in Location differentials
+  --
+  cursor unreal_pnl_attr_ldc is
+    select poud.process_id,
+           poud.corporate_id,
+           poud.corporate_name,
+           'Physical Contract' attribution_type,
+           'Location differentials' attribution_main_type,
+           (case
+             when poud.contract_type = 'P' then
+              'Purchase'
+             when poud.contract_type = 'S' then
+              'Sales'
+             else
+              'Others'
+           end) attribution_sub_type,
+           (case
+             when poud.contract_type = 'P' then
+              5.1
+             when poud.contract_type = 'S' then
+              5.2
+           end) attribution_order,
+           poud.internal_contract_ref_no,
+           poud.internal_contract_item_ref_no,
+           poud.contract_ref_no,
+           poud.delivery_item_no delivery_item_no,
+           pci.del_distribution_item_no,
+           poud.contract_type contract_type,
+           poud.item_qty item_qty,
+           poud.qty_unit_id qty_unit_id,
+           poud.qty_unit qty_unit,
+           poud.qty_in_base_unit curr_eod_qty,
+           poud.qty_unit_id curr_eod_qty_unit_id,
+           poud.qty_unit curr_eod_qty_unit,
+           poud_prev.qty_in_base_unit prev_eod_qty,
+           poud_prev.qty_unit_id prev_eod_qty_unit_id,
+           poud.contract_price curr_eod_contract_price,
+           poud.price_unit_id curr_eod_price_unit_id,
+           poud.price_unit_cur_code || '/' || poud.price_unit_weight_unit curr_eod_price_unit,
+           poud_prev.contract_price prev_eod_contract_price,
+           poud_prev.price_unit_id prev_eod_price_unit_id,
+           poud.md_id,
+           poud_prev.md_id prev_md_id,
+           poud.net_m2m_price,
+           poud.m2m_price_unit_id,
+           poud_prev.net_m2m_price prev_net_m2m_price,
+           poud_prev.m2m_price_unit_id prev_m2m_price_unit_id,
+           poud.sc_in_base_cur,
+           poud_prev.sc_in_base_cur prev_sc_in_base_cur,
+           poud.net_m2m_price m_to_m_settlement_price,
+           0 m_to_m_diff,
+           md.m2m_loc_incoterm_deviation m_to_m_loc_inco_deviation,
+           0 m_to_m_loc_deviation,
+           0 m_to_m_inco_deviation,
+           poud_prev.net_m2m_price prev_m_to_m_settlement_price,
+           0 prev_m_to_m_diff,
+           md_prev.m2m_loc_incoterm_deviation prev_m_to_m_loc_inco_deviation,
+           0 prev_m_to_m_loc_deviation,
+           0 prev_m_to_m_inco_deviation,
+           poud.unrealized_pnl_in_base_cur net_pnlc_in_base,
+           poud.product_id,
+           poud.product_name,
+           poud.profit_center_id,
+           poud.profit_center_name,
+           poud.profit_center_short_name,
+           poud.base_qty_unit_id,
+           poud.base_qty_unit,
+           poud.base_cur_id,
+           poud.base_cur_code,
+           pd_trade_date trade_date,
+           pc_previous_process_id prev_process_id,
+           pd_prev_trade_date as prev_trade_date
+      from poud_phy_open_unreal_daily poud,
+           md_m2m_daily md,
+           md_m2m_daily md_prev,
+           pci_physical_contract_item pci,
+           (select *
+              from poud_phy_open_unreal_daily poud
+             where poud.process_id = pc_previous_process_id) poud_prev
+     where poud.cont_unr_status = 'EXISTING_TRADE'
+       and md.m2m_loc_incoterm_deviation <>
+           md_prev.m2m_loc_incoterm_deviation
+       and poud.process_id = pc_process_id
+       and pci.process_id = pc_process_id
+       and pci.internal_contract_item_ref_no =
+           poud.internal_contract_item_ref_no
+       and poud.internal_contract_item_ref_no =
+           poud_prev.internal_contract_item_ref_no
+       and poud.pcdi_id = poud_prev.pcdi_id
+       and poud.md_id = md.md_id
+       and md.process_id = pc_process_id
+       and poud_prev.md_id = md_prev.md_id
+       and md_prev.process_id = pc_previous_process_id;
+  --
+  --- Derivative Prices 
+  --
+  cursor unreal_pnl_attr_m2m_sp is
+    select poud.process_id,
+           poud.corporate_id,
+           poud.corporate_name,
+           'Physical Contract' attribution_type,
+           'Derivative Prices' attribution_main_type,
+           (case
+             when poud.contract_type = 'P' then
+              'Purchase'
+             when poud.contract_type = 'S' then
+              'Sales'
+             else
+              'Others'
+           end) attribution_sub_type,
+           (case
+             when poud.contract_type = 'P' then
+              6.1
+             when poud.contract_type = 'S' then
+              6.2
+           end) attribution_order,
+           poud.internal_contract_ref_no,
+           poud.internal_contract_item_ref_no,
+           poud.contract_ref_no,
+           poud.delivery_item_no delivery_item_no,
+           pci.del_distribution_item_no,
+           poud.contract_type contract_type,
+           poud.item_qty item_qty,
+           poud.qty_unit_id qty_unit_id,
+           poud.qty_unit qty_unit,
+           poud.qty_in_base_unit curr_eod_qty,
+           poud.qty_unit_id curr_eod_qty_unit_id,
+           poud.qty_unit curr_eod_qty_unit,
+           poud_prev.qty_in_base_unit prev_eod_qty,
+           poud_prev.qty_unit_id prev_eod_qty_unit_id,
+           poud.contract_price curr_eod_contract_price,
+           poud.price_unit_id curr_eod_price_unit_id,
+           poud.price_unit_cur_code || '/' || poud.price_unit_weight_unit curr_eod_price_unit,
+           poud_prev.contract_price prev_eod_contract_price,
+           poud_prev.price_unit_id prev_eod_price_unit_id,
+           poud.md_id,
+           poud_prev.md_id prev_md_id,
+           poud.net_m2m_price,
+           poud.m2m_price_unit_id,
+           poud.net_m2m_price prev_net_m2m_price,
+           poud_prev.m2m_price_unit_id prev_m2m_price_unit_id,
+           poud.sc_in_base_cur,
+           poud_prev.sc_in_base_cur prev_sc_in_base_cur,
+           poud.net_m2m_price m_to_m_settlement_price,
+           0 m_to_m_diff,
+           md.m2m_loc_incoterm_deviation m_to_m_loc_inco_deviation,
+           0 m_to_m_loc_deviation,
+           0 m_to_m_inco_deviation,
+           poud_prev.net_m2m_price prev_m_to_m_settlement_price,
+           0 prev_m_to_m_diff,
+           md_prev.m2m_loc_incoterm_deviation prev_m_to_m_loc_inco_deviation,
+           0 prev_m_to_m_loc_deviation,
+           0 prev_m_to_m_inco_deviation,
+           poud.unrealized_pnl_in_base_cur net_pnlc_in_base,
+           poud.product_id,
+           poud.product_name,
+           poud.profit_center_id,
+           poud.profit_center_name,
+           poud.profit_center_short_name,
+           poud.base_qty_unit_id,
+           poud.base_qty_unit,
+           poud.base_cur_id,
+           poud.base_cur_code,
+           pd_trade_date trade_date,
+           pc_previous_process_id prev_process_id,
+           pd_prev_trade_date as prev_trade_date
+      from poud_phy_open_unreal_daily poud,
+           pci_physical_contract_item pci,
+           md_m2m_daily md,
+           md_m2m_daily md_prev,
+           (select *
+              from poud_phy_open_unreal_daily poud
+             where poud.process_id = pc_previous_process_id) poud_prev
+     where poud.cont_unr_status = 'EXISTING_TRADE'
+       and poud.net_m2m_price <> poud_prev.net_m2m_price
+       and poud.process_id = pc_process_id
+       and pci.process_id = pc_process_id
+       and pci.internal_contract_item_ref_no =
+           poud.internal_contract_item_ref_no
+       and poud.internal_contract_item_ref_no =
+           poud_prev.internal_contract_item_ref_no
+       and poud.pcdi_id = poud_prev.pcdi_id
+       and poud.md_id = md.md_id
+       and md.process_id = pc_process_id
+       and poud_prev.md_id = md_prev.md_id
+       and md_prev.process_id = pc_process_id;
+  vn_pnlc_due_to_attr   number := 0;
+  vn_other_pnlc_in_base number := 0;
+begin
+  --
+  -- New Contracts
+  --
+  for unreal_pnl_attr_rows in unreal_pnl_attr
+  loop
+    insert into upad_unreal_pnl_attr_detail
+      (process_id,
+       corporate_id,
+       corporate_name,
+       attribution_type,
+       attribution_main_type,
+       attribution_sub_type,
+       attribution_order,
+       internal_contract_ref_no,
+       internal_contract_item_ref_no,
+       contract_ref_no,
+       delivery_item_no,
+       del_distribution_item_no,
+       contract_type,
+       item_qty,
+       qty_unit_id,
+       curr_eod_qty,
+       curr_eod_qty_unit_id,
+       curr_eod_contract_price,
+       curr_eod_price_unit_id,
+       net_pnlc_in_base,
+       product_id,
+       product_name,
+       profit_center_id,
+       profit_center_name,
+       profit_center_short_name,
+       base_qty_unit_id,
+       base_qty_unit,
+       base_cur_id,
+       base_cur_code,
+       trade_date,
+       prev_process_id,
+       prev_trade_date)
+    values
+      (pc_process_id,
+       unreal_pnl_attr_rows.corporate_id,
+       unreal_pnl_attr_rows.corporate_name,
+       unreal_pnl_attr_rows.attribution_type,
+       unreal_pnl_attr_rows.attribution_main_type,
+       unreal_pnl_attr_rows.attribution_sub_type,
+       unreal_pnl_attr_rows.attribution_order,
+       unreal_pnl_attr_rows.internal_contract_ref_no,
+       unreal_pnl_attr_rows.internal_contract_item_ref_no,
+       unreal_pnl_attr_rows.contract_ref_no,
+       unreal_pnl_attr_rows.delivery_item_no,
+       unreal_pnl_attr_rows.del_distribution_item_no,
+       unreal_pnl_attr_rows.contract_type,
+       unreal_pnl_attr_rows.item_qty,
+       unreal_pnl_attr_rows.qty_unit_id,
+       unreal_pnl_attr_rows.curr_eod_qty,
+       unreal_pnl_attr_rows.curr_eod_qty_unit_id,
+       unreal_pnl_attr_rows.curr_eod_contract_price,
+       unreal_pnl_attr_rows.curr_eod_price_unit_id,
+       unreal_pnl_attr_rows.net_pnlc_in_base,
+       unreal_pnl_attr_rows.product_id,
+       unreal_pnl_attr_rows.product_name,
+       unreal_pnl_attr_rows.profit_center_id,
+       unreal_pnl_attr_rows.profit_center_name,
+       unreal_pnl_attr_rows.profit_center_short_name,
+       unreal_pnl_attr_rows.base_qty_unit_id,
+       unreal_pnl_attr_rows.base_qty_unit,
+       unreal_pnl_attr_rows.base_cur_id,
+       unreal_pnl_attr_rows.base_cur_code,
+       unreal_pnl_attr_rows.trade_date,
+       unreal_pnl_attr_rows.prev_process_id,
+       unreal_pnl_attr_rows.prev_trade_date);
+  end loop;
+  --
+  --- Quantity Modification on Contract
+  --
+  for unreal_pnl_attr_mcq_rows in unreal_pnl_attr_mcq
+  loop
+    if unreal_pnl_attr_mcq_rows.contract_type = 'P' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_mcq_rows.curr_eod_qty -
+                             nvl(unreal_pnl_attr_mcq_rows.prev_eod_qty, 0)) *
+                             (unreal_pnl_attr_mcq_rows.prev_net_m2m_price -
+                             unreal_pnl_attr_mcq_rows.prev_eod_contract_price));
+    elsif unreal_pnl_attr_mcq_rows.contract_type = 'S' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_mcq_rows.curr_eod_qty -
+                             nvl(unreal_pnl_attr_mcq_rows.prev_eod_qty, 0)) *
+                             (unreal_pnl_attr_mcq_rows.prev_eod_contract_price -
+                             unreal_pnl_attr_mcq_rows.prev_net_m2m_price));
+    end if;
+    vn_other_pnlc_in_base := unreal_pnl_attr_mcq_rows.net_pnlc_in_base -
+                             vn_pnlc_due_to_attr;
+    insert into upad_unreal_pnl_attr_detail
+      (process_id,
+       corporate_id,
+       corporate_name,
+       attribution_type,
+       attribution_main_type,
+       attribution_sub_type,
+       attribution_order,
+       internal_contract_ref_no,
+       internal_contract_item_ref_no,
+       contract_ref_no,
+       delivery_item_no,
+       del_distribution_item_no,
+       contract_type,
+       item_qty,
+       qty_unit_id,
+       curr_eod_qty,
+       curr_eod_qty_unit_id,
+       prev_eod_qty,
+       prev_eod_qty_unit_id,
+       curr_eod_contract_price,
+       curr_eod_price_unit_id,
+       prev_eod_contract_price,
+       prev_eod_price_unit_id,
+       md_id,
+       prev_md_id,
+       net_m2m_price,
+       m2m_price_unit_id,
+       prev_net_m2m_price,
+       prev_m2m_price_unit_id,
+       pnlc_due_to_attr,
+       delta_pnlc_in_base,
+       net_pnlc_in_base,
+       product_id,
+       product_name,
+       profit_center_id,
+       profit_center_name,
+       profit_center_short_name,
+       base_qty_unit_id,
+       base_qty_unit,
+       base_cur_id,
+       base_cur_code,
+       trade_date,
+       prev_process_id,
+       prev_trade_date)
+    values
+      (pc_process_id,
+       unreal_pnl_attr_mcq_rows.corporate_id,
+       unreal_pnl_attr_mcq_rows.corporate_name,
+       unreal_pnl_attr_mcq_rows.attribution_type,
+       unreal_pnl_attr_mcq_rows.attribution_main_type,
+       unreal_pnl_attr_mcq_rows.attribution_sub_type,
+       unreal_pnl_attr_mcq_rows.attribution_order,
+       unreal_pnl_attr_mcq_rows.internal_contract_ref_no,
+       unreal_pnl_attr_mcq_rows.internal_contract_item_ref_no,
+       unreal_pnl_attr_mcq_rows.contract_ref_no,
+       unreal_pnl_attr_mcq_rows.delivery_item_no,
+       unreal_pnl_attr_mcq_rows.del_distribution_item_no,
+       unreal_pnl_attr_mcq_rows.contract_type,
+       unreal_pnl_attr_mcq_rows.item_qty,
+       unreal_pnl_attr_mcq_rows.qty_unit_id,
+       unreal_pnl_attr_mcq_rows.curr_eod_qty,
+       unreal_pnl_attr_mcq_rows.curr_eod_qty_unit_id,
+       unreal_pnl_attr_mcq_rows.prev_eod_qty,
+       unreal_pnl_attr_mcq_rows.prev_eod_qty_unit_id,
+       unreal_pnl_attr_mcq_rows.curr_eod_contract_price,
+       unreal_pnl_attr_mcq_rows.curr_eod_price_unit_id,
+       unreal_pnl_attr_mcq_rows.prev_eod_contract_price,
+       unreal_pnl_attr_mcq_rows.prev_eod_price_unit_id,
+       unreal_pnl_attr_mcq_rows.md_id,
+       unreal_pnl_attr_mcq_rows.prev_md_id,
+       unreal_pnl_attr_mcq_rows.net_m2m_price,
+       unreal_pnl_attr_mcq_rows.m2m_price_unit_id,
+       unreal_pnl_attr_mcq_rows.prev_net_m2m_price,
+       unreal_pnl_attr_mcq_rows.prev_m2m_price_unit_id,
+       vn_pnlc_due_to_attr,
+       vn_other_pnlc_in_base,
+       unreal_pnl_attr_mcq_rows.net_pnlc_in_base,
+       unreal_pnl_attr_mcq_rows.product_id,
+       unreal_pnl_attr_mcq_rows.product_name,
+       unreal_pnl_attr_mcq_rows.profit_center_id,
+       unreal_pnl_attr_mcq_rows.profit_center_name,
+       unreal_pnl_attr_mcq_rows.profit_center_short_name,
+       unreal_pnl_attr_mcq_rows.base_qty_unit_id,
+       unreal_pnl_attr_mcq_rows.base_qty_unit,
+       unreal_pnl_attr_mcq_rows.base_cur_id,
+       unreal_pnl_attr_mcq_rows.base_cur_code,
+       unreal_pnl_attr_mcq_rows.trade_date,
+       unreal_pnl_attr_mcq_rows.prev_process_id,
+       unreal_pnl_attr_mcq_rows.prev_trade_date);
+  end loop;
+  --
+  -- Change in Price
+  --
+  for unreal_pnl_attr_price_rows in unreal_pnl_attr_price
+  loop
+    if unreal_pnl_attr_price_rows.contract_type = 'P' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_price_rows.prev_eod_contract_price -
+                             nvl(unreal_pnl_attr_price_rows.curr_eod_contract_price,
+                                   0)) * (nvl(unreal_pnl_attr_price_rows.prev_eod_qty,
+                                               0)));
+    elsif unreal_pnl_attr_price_rows.contract_type = 'S' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_price_rows.curr_eod_contract_price -
+                             nvl(unreal_pnl_attr_price_rows.prev_eod_contract_price,
+                                   0)) * (nvl(unreal_pnl_attr_price_rows.prev_eod_qty,
+                                               0)));
+    end if;
+    vn_other_pnlc_in_base := unreal_pnl_attr_price_rows.net_pnlc_in_base -
+                             vn_pnlc_due_to_attr;
+    insert into upad_unreal_pnl_attr_detail
+      (process_id,
+       corporate_id,
+       corporate_name,
+       attribution_type,
+       attribution_main_type,
+       attribution_sub_type,
+       attribution_order,
+       internal_contract_ref_no,
+       internal_contract_item_ref_no,
+       contract_ref_no,
+       delivery_item_no,
+       del_distribution_item_no,
+       contract_type,
+       item_qty,
+       qty_unit_id,
+       curr_eod_qty,
+       curr_eod_qty_unit_id,
+       prev_eod_qty,
+       prev_eod_qty_unit_id,
+       curr_eod_contract_price,
+       curr_eod_price_unit_id,
+       prev_eod_contract_price,
+       prev_eod_price_unit_id,
+       md_id,
+       prev_md_id,
+       net_m2m_price,
+       m2m_price_unit_id,
+       prev_net_m2m_price,
+       prev_m2m_price_unit_id,
+       pnlc_due_to_attr,
+       delta_pnlc_in_base,
+       net_pnlc_in_base,
+       product_id,
+       product_name,
+       profit_center_id,
+       profit_center_name,
+       profit_center_short_name,
+       base_qty_unit_id,
+       base_qty_unit,
+       base_cur_id,
+       base_cur_code,
+       trade_date,
+       prev_process_id,
+       prev_trade_date)
+    values
+      (pc_process_id,
+       unreal_pnl_attr_price_rows.corporate_id,
+       unreal_pnl_attr_price_rows.corporate_name,
+       unreal_pnl_attr_price_rows.attribution_type,
+       unreal_pnl_attr_price_rows.attribution_main_type,
+       unreal_pnl_attr_price_rows.attribution_sub_type,
+       unreal_pnl_attr_price_rows.attribution_order,
+       unreal_pnl_attr_price_rows.internal_contract_ref_no,
+       unreal_pnl_attr_price_rows.internal_contract_item_ref_no,
+       unreal_pnl_attr_price_rows.contract_ref_no,
+       unreal_pnl_attr_price_rows.delivery_item_no,
+       unreal_pnl_attr_price_rows.del_distribution_item_no,
+       unreal_pnl_attr_price_rows.contract_type,
+       unreal_pnl_attr_price_rows.item_qty,
+       unreal_pnl_attr_price_rows.qty_unit_id,
+       unreal_pnl_attr_price_rows.curr_eod_qty,
+       unreal_pnl_attr_price_rows.curr_eod_qty_unit_id,
+       unreal_pnl_attr_price_rows.prev_eod_qty,
+       unreal_pnl_attr_price_rows.prev_eod_qty_unit_id,
+       unreal_pnl_attr_price_rows.curr_eod_contract_price,
+       unreal_pnl_attr_price_rows.curr_eod_price_unit_id,
+       unreal_pnl_attr_price_rows.prev_eod_contract_price,
+       unreal_pnl_attr_price_rows.prev_eod_price_unit_id,
+       unreal_pnl_attr_price_rows.md_id,
+       unreal_pnl_attr_price_rows.prev_md_id,
+       unreal_pnl_attr_price_rows.net_m2m_price,
+       unreal_pnl_attr_price_rows.m2m_price_unit_id,
+       unreal_pnl_attr_price_rows.prev_net_m2m_price,
+       unreal_pnl_attr_price_rows.prev_m2m_price_unit_id,
+       vn_pnlc_due_to_attr,
+       vn_other_pnlc_in_base,
+       unreal_pnl_attr_price_rows.net_pnlc_in_base,
+       unreal_pnl_attr_price_rows.product_id,
+       unreal_pnl_attr_price_rows.product_name,
+       unreal_pnl_attr_price_rows.profit_center_id,
+       unreal_pnl_attr_price_rows.profit_center_name,
+       unreal_pnl_attr_price_rows.profit_center_short_name,
+       unreal_pnl_attr_price_rows.base_qty_unit_id,
+       unreal_pnl_attr_price_rows.base_qty_unit,
+       unreal_pnl_attr_price_rows.base_cur_id,
+       unreal_pnl_attr_price_rows.base_cur_code,
+       unreal_pnl_attr_price_rows.trade_date,
+       unreal_pnl_attr_price_rows.prev_process_id,
+       unreal_pnl_attr_price_rows.prev_trade_date);
+  end loop;
+  --
+  --Change in Estimates
+  --
+  for unreal_pnl_attr_estimates_rows in unreal_pnl_attr_estimates
+  loop
+    if unreal_pnl_attr_estimates_rows.contract_type = 'P' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_estimates_rows.prev_sc_in_base_cur -
+                             nvl(unreal_pnl_attr_estimates_rows.sc_in_base_cur,
+                                   0)));
+    elsif unreal_pnl_attr_estimates_rows.contract_type = 'S' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_estimates_rows.sc_in_base_cur -
+                             nvl(unreal_pnl_attr_estimates_rows.prev_sc_in_base_cur,
+                                   0)));
+    end if;
+    vn_other_pnlc_in_base := unreal_pnl_attr_estimates_rows.net_pnlc_in_base -
+                             vn_pnlc_due_to_attr;
+    insert into upad_unreal_pnl_attr_detail
+      (process_id,
+       corporate_id,
+       corporate_name,
+       attribution_type,
+       attribution_main_type,
+       attribution_sub_type,
+       attribution_order,
+       internal_contract_ref_no,
+       internal_contract_item_ref_no,
+       contract_ref_no,
+       delivery_item_no,
+       del_distribution_item_no,
+       contract_type,
+       item_qty,
+       qty_unit_id,
+       curr_eod_qty,
+       curr_eod_qty_unit_id,
+       prev_eod_qty,
+       prev_eod_qty_unit_id,
+       curr_eod_contract_price,
+       curr_eod_price_unit_id,
+       prev_eod_contract_price,
+       prev_eod_price_unit_id,
+       md_id,
+       prev_md_id,
+       net_m2m_price,
+       m2m_price_unit_id,
+       prev_net_m2m_price,
+       prev_m2m_price_unit_id,
+       pnlc_due_to_attr,
+       delta_pnlc_in_base,
+       net_pnlc_in_base,
+       product_id,
+       product_name,
+       profit_center_id,
+       profit_center_name,
+       profit_center_short_name,
+       base_qty_unit_id,
+       base_qty_unit,
+       base_cur_id,
+       base_cur_code,
+       trade_date,
+       prev_process_id,
+       prev_trade_date)
+    values
+      (pc_process_id,
+       unreal_pnl_attr_estimates_rows.corporate_id,
+       unreal_pnl_attr_estimates_rows.corporate_name,
+       unreal_pnl_attr_estimates_rows.attribution_type,
+       unreal_pnl_attr_estimates_rows.attribution_main_type,
+       unreal_pnl_attr_estimates_rows.attribution_sub_type,
+       unreal_pnl_attr_estimates_rows.attribution_order,
+       unreal_pnl_attr_estimates_rows.internal_contract_ref_no,
+       unreal_pnl_attr_estimates_rows.internal_contract_item_ref_no,
+       unreal_pnl_attr_estimates_rows.contract_ref_no,
+       unreal_pnl_attr_estimates_rows.delivery_item_no,
+       unreal_pnl_attr_estimates_rows.del_distribution_item_no,
+       unreal_pnl_attr_estimates_rows.contract_type,
+       unreal_pnl_attr_estimates_rows.item_qty,
+       unreal_pnl_attr_estimates_rows.qty_unit_id,
+       unreal_pnl_attr_estimates_rows.curr_eod_qty,
+       unreal_pnl_attr_estimates_rows.curr_eod_qty_unit_id,
+       unreal_pnl_attr_estimates_rows.prev_eod_qty,
+       unreal_pnl_attr_estimates_rows.prev_eod_qty_unit_id,
+       unreal_pnl_attr_estimates_rows.curr_eod_contract_price,
+       unreal_pnl_attr_estimates_rows.curr_eod_price_unit_id,
+       unreal_pnl_attr_estimates_rows.prev_eod_contract_price,
+       unreal_pnl_attr_estimates_rows.prev_eod_price_unit_id,
+       unreal_pnl_attr_estimates_rows.md_id,
+       unreal_pnl_attr_estimates_rows.prev_md_id,
+       unreal_pnl_attr_estimates_rows.net_m2m_price,
+       unreal_pnl_attr_estimates_rows.m2m_price_unit_id,
+       unreal_pnl_attr_estimates_rows.prev_net_m2m_price,
+       unreal_pnl_attr_estimates_rows.prev_m2m_price_unit_id,
+       vn_pnlc_due_to_attr,
+       vn_other_pnlc_in_base,
+       unreal_pnl_attr_estimates_rows.net_pnlc_in_base,
+       unreal_pnl_attr_estimates_rows.product_id,
+       unreal_pnl_attr_estimates_rows.product_name,
+       unreal_pnl_attr_estimates_rows.profit_center_id,
+       unreal_pnl_attr_estimates_rows.profit_center_name,
+       unreal_pnl_attr_estimates_rows.profit_center_short_name,
+       unreal_pnl_attr_estimates_rows.base_qty_unit_id,
+       unreal_pnl_attr_estimates_rows.base_qty_unit,
+       unreal_pnl_attr_estimates_rows.base_cur_id,
+       unreal_pnl_attr_estimates_rows.base_cur_code,
+       unreal_pnl_attr_estimates_rows.trade_date,
+       unreal_pnl_attr_estimates_rows.prev_process_id,
+       unreal_pnl_attr_estimates_rows.prev_trade_date);
+  end loop;
+  --
+  -- Change in Location differentials
+  --
+  for unreal_pnl_attr_ldc_rows in unreal_pnl_attr_ldc
+  loop
+    if unreal_pnl_attr_ldc_rows.contract_type = 'P' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_ldc_rows.m_to_m_loc_inco_deviation -
+                             nvl(unreal_pnl_attr_ldc_rows.prev_m_to_m_loc_inco_deviation,
+                                   0)) *
+                             (nvl(unreal_pnl_attr_ldc_rows.prev_eod_qty, 0)));
+    elsif unreal_pnl_attr_ldc_rows.contract_type = 'S' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_ldc_rows.prev_m_to_m_loc_inco_deviation -
+                             nvl(unreal_pnl_attr_ldc_rows.m_to_m_loc_inco_deviation,
+                                   0)) *
+                             (nvl(unreal_pnl_attr_ldc_rows.prev_eod_qty, 0)));
+    end if;
+    vn_other_pnlc_in_base := unreal_pnl_attr_ldc_rows.net_pnlc_in_base -
+                             vn_pnlc_due_to_attr;
+    insert into upad_unreal_pnl_attr_detail
+      (process_id,
+       corporate_id,
+       corporate_name,
+       attribution_type,
+       attribution_main_type,
+       attribution_sub_type,
+       attribution_order,
+       internal_contract_ref_no,
+       internal_contract_item_ref_no,
+       contract_ref_no,
+       delivery_item_no,
+       del_distribution_item_no,
+       contract_type,
+       item_qty,
+       qty_unit_id,
+       curr_eod_qty,
+       curr_eod_qty_unit_id,
+       prev_eod_qty,
+       prev_eod_qty_unit_id,
+       curr_eod_contract_price,
+       curr_eod_price_unit_id,
+       prev_eod_contract_price,
+       prev_eod_price_unit_id,
+       md_id,
+       prev_md_id,
+       net_m2m_price,
+       m2m_price_unit_id,
+       prev_net_m2m_price,
+       prev_m2m_price_unit_id,
+       m_to_m_loc_inco_deviation,
+       prev_m_to_m_loc_inco_deviation,
+       pnlc_due_to_attr,
+       delta_pnlc_in_base,
+       net_pnlc_in_base,
+       product_id,
+       product_name,
+       profit_center_id,
+       profit_center_name,
+       profit_center_short_name,
+       base_qty_unit_id,
+       base_qty_unit,
+       base_cur_id,
+       base_cur_code,
+       trade_date,
+       prev_process_id,
+       prev_trade_date)
+    values
+      (pc_process_id,
+       unreal_pnl_attr_ldc_rows.corporate_id,
+       unreal_pnl_attr_ldc_rows.corporate_name,
+       unreal_pnl_attr_ldc_rows.attribution_type,
+       unreal_pnl_attr_ldc_rows.attribution_main_type,
+       unreal_pnl_attr_ldc_rows.attribution_sub_type,
+       unreal_pnl_attr_ldc_rows.attribution_order,
+       unreal_pnl_attr_ldc_rows.internal_contract_ref_no,
+       unreal_pnl_attr_ldc_rows.internal_contract_item_ref_no,
+       unreal_pnl_attr_ldc_rows.contract_ref_no,
+       unreal_pnl_attr_ldc_rows.delivery_item_no,
+       unreal_pnl_attr_ldc_rows.del_distribution_item_no,
+       unreal_pnl_attr_ldc_rows.contract_type,
+       unreal_pnl_attr_ldc_rows.item_qty,
+       unreal_pnl_attr_ldc_rows.qty_unit_id,
+       unreal_pnl_attr_ldc_rows.curr_eod_qty,
+       unreal_pnl_attr_ldc_rows.curr_eod_qty_unit_id,
+       unreal_pnl_attr_ldc_rows.prev_eod_qty,
+       unreal_pnl_attr_ldc_rows.prev_eod_qty_unit_id,
+       unreal_pnl_attr_ldc_rows.curr_eod_contract_price,
+       unreal_pnl_attr_ldc_rows.curr_eod_price_unit_id,
+       unreal_pnl_attr_ldc_rows.prev_eod_contract_price,
+       unreal_pnl_attr_ldc_rows.prev_eod_price_unit_id,
+       unreal_pnl_attr_ldc_rows.md_id,
+       unreal_pnl_attr_ldc_rows.prev_md_id,
+       unreal_pnl_attr_ldc_rows.net_m2m_price,
+       unreal_pnl_attr_ldc_rows.m2m_price_unit_id,
+       unreal_pnl_attr_ldc_rows.prev_net_m2m_price,
+       unreal_pnl_attr_ldc_rows.prev_m2m_price_unit_id,
+       unreal_pnl_attr_ldc_rows.m_to_m_loc_inco_deviation,
+       unreal_pnl_attr_ldc_rows.prev_m_to_m_loc_inco_deviation,
+       vn_pnlc_due_to_attr,
+       vn_other_pnlc_in_base,
+       unreal_pnl_attr_ldc_rows.net_pnlc_in_base,
+       unreal_pnl_attr_ldc_rows.product_id,
+       unreal_pnl_attr_ldc_rows.product_name,
+       unreal_pnl_attr_ldc_rows.profit_center_id,
+       unreal_pnl_attr_ldc_rows.profit_center_name,
+       unreal_pnl_attr_ldc_rows.profit_center_short_name,
+       unreal_pnl_attr_ldc_rows.base_qty_unit_id,
+       unreal_pnl_attr_ldc_rows.base_qty_unit,
+       unreal_pnl_attr_ldc_rows.base_cur_id,
+       unreal_pnl_attr_ldc_rows.base_cur_code,
+       unreal_pnl_attr_ldc_rows.trade_date,
+       unreal_pnl_attr_ldc_rows.prev_process_id,
+       unreal_pnl_attr_ldc_rows.prev_trade_date);
+  end loop;
+  --
+  -- M2M Price Change
+  --
+  for unreal_pnl_attr_m2m_sp_rows in unreal_pnl_attr_m2m_sp
+  loop
+    if unreal_pnl_attr_m2m_sp_rows.contract_type = 'P' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_m2m_sp_rows.m_to_m_settlement_price -
+                             nvl(unreal_pnl_attr_m2m_sp_rows.prev_m_to_m_settlement_price,
+                                   0)) * (nvl(unreal_pnl_attr_m2m_sp_rows.prev_eod_qty,
+                                               0)));
+    elsif unreal_pnl_attr_m2m_sp_rows.contract_type = 'S' then
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_m2m_sp_rows.prev_m_to_m_settlement_price -
+                             nvl(unreal_pnl_attr_m2m_sp_rows.m_to_m_settlement_price,
+                                   0)) * (nvl(unreal_pnl_attr_m2m_sp_rows.prev_eod_qty,
+                                               0)));
+    end if;
+    vn_other_pnlc_in_base := unreal_pnl_attr_m2m_sp_rows.net_pnlc_in_base -
+                             vn_pnlc_due_to_attr;
+    insert into upad_unreal_pnl_attr_detail
+      (process_id,
+       corporate_id,
+       corporate_name,
+       attribution_type,
+       attribution_main_type,
+       attribution_sub_type,
+       attribution_order,
+       internal_contract_ref_no,
+       internal_contract_item_ref_no,
+       contract_ref_no,
+       delivery_item_no,
+       del_distribution_item_no,
+       contract_type,
+       item_qty,
+       qty_unit_id,
+       curr_eod_qty,
+       curr_eod_qty_unit_id,
+       prev_eod_qty,
+       prev_eod_qty_unit_id,
+       curr_eod_contract_price,
+       curr_eod_price_unit_id,
+       prev_eod_contract_price,
+       prev_eod_price_unit_id,
+       md_id,
+       prev_md_id,
+       net_m2m_price,
+       m2m_price_unit_id,
+       prev_net_m2m_price,
+       prev_m2m_price_unit_id,
+       m_to_m_settlement_price,
+       prev_m_to_m_settlement_price,
+       pnlc_due_to_attr,
+       delta_pnlc_in_base,
+       net_pnlc_in_base,
+       product_id,
+       product_name,
+       profit_center_id,
+       profit_center_name,
+       profit_center_short_name,
+       base_qty_unit_id,
+       base_qty_unit,
+       base_cur_id,
+       base_cur_code,
+       trade_date,
+       prev_process_id,
+       prev_trade_date)
+    values
+      (pc_process_id,
+       unreal_pnl_attr_m2m_sp_rows.corporate_id,
+       unreal_pnl_attr_m2m_sp_rows.corporate_name,
+       unreal_pnl_attr_m2m_sp_rows.attribution_type,
+       unreal_pnl_attr_m2m_sp_rows.attribution_main_type,
+       unreal_pnl_attr_m2m_sp_rows.attribution_sub_type,
+       unreal_pnl_attr_m2m_sp_rows.attribution_order,
+       unreal_pnl_attr_m2m_sp_rows.internal_contract_ref_no,
+       unreal_pnl_attr_m2m_sp_rows.internal_contract_item_ref_no,
+       unreal_pnl_attr_m2m_sp_rows.contract_ref_no,
+       unreal_pnl_attr_m2m_sp_rows.delivery_item_no,
+       unreal_pnl_attr_m2m_sp_rows.del_distribution_item_no,
+       unreal_pnl_attr_m2m_sp_rows.contract_type,
+       unreal_pnl_attr_m2m_sp_rows.item_qty,
+       unreal_pnl_attr_m2m_sp_rows.qty_unit_id,
+       unreal_pnl_attr_m2m_sp_rows.curr_eod_qty,
+       unreal_pnl_attr_m2m_sp_rows.curr_eod_qty_unit_id,
+       unreal_pnl_attr_m2m_sp_rows.prev_eod_qty,
+       unreal_pnl_attr_m2m_sp_rows.prev_eod_qty_unit_id,
+       unreal_pnl_attr_m2m_sp_rows.curr_eod_contract_price,
+       unreal_pnl_attr_m2m_sp_rows.curr_eod_price_unit_id,
+       unreal_pnl_attr_m2m_sp_rows.prev_eod_contract_price,
+       unreal_pnl_attr_m2m_sp_rows.prev_eod_price_unit_id,
+       unreal_pnl_attr_m2m_sp_rows.md_id,
+       unreal_pnl_attr_m2m_sp_rows.prev_md_id,
+       unreal_pnl_attr_m2m_sp_rows.net_m2m_price,
+       unreal_pnl_attr_m2m_sp_rows.m2m_price_unit_id,
+       unreal_pnl_attr_m2m_sp_rows.prev_net_m2m_price,
+       unreal_pnl_attr_m2m_sp_rows.prev_m2m_price_unit_id,
+       unreal_pnl_attr_m2m_sp_rows.m_to_m_settlement_price,
+       unreal_pnl_attr_m2m_sp_rows.prev_m_to_m_settlement_price,
+       vn_pnlc_due_to_attr,
+       vn_other_pnlc_in_base,
+       unreal_pnl_attr_m2m_sp_rows.net_pnlc_in_base,
+       unreal_pnl_attr_m2m_sp_rows.product_id,
+       unreal_pnl_attr_m2m_sp_rows.product_name,
+       unreal_pnl_attr_m2m_sp_rows.profit_center_id,
+       unreal_pnl_attr_m2m_sp_rows.profit_center_name,
+       unreal_pnl_attr_m2m_sp_rows.profit_center_short_name,
+       unreal_pnl_attr_m2m_sp_rows.base_qty_unit_id,
+       unreal_pnl_attr_m2m_sp_rows.base_qty_unit,
+       unreal_pnl_attr_m2m_sp_rows.base_cur_id,
+       unreal_pnl_attr_m2m_sp_rows.base_cur_code,
+       unreal_pnl_attr_m2m_sp_rows.trade_date,
+       unreal_pnl_attr_m2m_sp_rows.prev_process_id,
+       unreal_pnl_attr_m2m_sp_rows.prev_trade_date);
+  end loop;
+  commit;
+  insert into upad_unreal_pnl_attr_detail
+  (process_id,
+   corporate_id,
+   corporate_name,
+   attribution_type,
+   attribution_main_type,
+   attribution_sub_type,
+   attribution_order,
+   internal_contract_ref_no,
+   internal_contract_item_ref_no,
+   contract_ref_no,
+   delivery_item_no,
+   del_distribution_item_no,
+   contract_type,
+   pnlc_due_to_attr,
+   product_id,
+   product_name,
+   profit_center_id,
+   profit_center_name,
+   profit_center_short_name,
+   base_qty_unit_id,
+   base_qty_unit,
+   base_cur_id,
+   base_cur_code,
+   trade_date,
+   prev_process_id,
+   prev_trade_date)
+  select pc_process_id, poud.corporate_id,
+         poud.corporate_name,
+         'Physical Contract' attribution_type,
+         'Others' attribution_main_type,
+         (case
+           when poud.contract_type = 'P' then
+            'Purchase'
+           when poud.contract_type = 'S' then
+            'Sales'
+           else
+            'NA'
+         end) attribution_sub_type,
+         (case
+           when poud.contract_type = 'P' then
+            10.1
+           when poud.contract_type = 'S' then
+            10.2
+           else
+            10.3
+         end) attribution_order,
+         poud.internal_contract_ref_no,
+         poud.internal_contract_item_ref_no,
+         poud.contract_ref_no,
+         poud.delivery_item_no,
+         t.del_distribution_item_no,
+         poud.contract_type,
+         nvl(poud.trade_day_pnl_in_val_cur, 0) - nvl(t.pnlc_due_to_attr, 0) pnlc_due_to_attr,
+         
+         poud.product_id,
+         poud.product_name,
+         poud.profit_center_id,
+         poud.profit_center_name,
+         poud.profit_center_short_name,
+         poud.base_qty_unit_id,
+         poud.base_qty_unit,
+         poud.base_cur_id,
+         poud.base_cur_code,
+         pd_trade_date,
+         pc_previous_process_id,
+         pd_prev_trade_date
+    from poud_phy_open_unreal_daily poud,
+         (select upad.internal_contract_item_ref_no,
+                 upad.delivery_item_no,
+                 upad.del_distribution_item_no,
+                 upad.process_id,
+                 tdc.trade_date,
+                 sum(upad.pnlc_due_to_attr) pnlc_due_to_attr
+            from upad_unreal_pnl_attr_detail upad,
+                 tdc_trade_date_closure      tdc
+           where upad.process_id = tdc.process_id
+             and upad.attribution_main_type <> 'New Contract'
+           group by upad.internal_contract_item_ref_no,
+                            upad.delivery_item_no,
+                            upad.del_distribution_item_no,
+
+                    upad.process_id,
+                    tdc.trade_date) t
+   where poud.internal_contract_item_ref_no =
+         t.internal_contract_item_ref_no
+     and poud.process_id = t.process_id;
+
+exception
+  when others then
+    vobj_error_log.extend;
+    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                         'procedure sp_calc_phy_unreal_pnl_attr',
+                                                         'M2M-013',
+                                                         'Code:' || sqlcode ||
+                                                         'Message:' ||
+                                                         sqlerrm,
+                                                         '',
+                                                         '',
+                                                         pc_user_id,
+                                                         sysdate,
+                                                         pd_trade_date);
+    sp_insert_error_log(vobj_error_log);
+end;
 end; 
 /

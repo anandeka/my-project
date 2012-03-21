@@ -738,7 +738,7 @@ create or replace package body pkg_phy_physical_process is
                                                 pc_process_id,
                                                 gvc_process,
                                                 pc_user_id);
-     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
     end if;
@@ -753,7 +753,7 @@ create or replace package body pkg_phy_physical_process is
                                             pd_trade_date,
                                             pc_process_id,
                                             pc_user_id,
-                                            pc_process);                                            
+                                            pc_process);
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -765,11 +765,31 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_calc_overall_realized_pnl');
     vc_err_msg := 'Before sp_calc_overall_realized_pnl';
+  
     pkg_phy_eod_reports.sp_calc_overall_realized_pnl(pc_corporate_id,
                                                      pd_trade_date,
                                                      pc_process_id,
                                                      pc_user_id,
                                                      pc_process);
+  
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_calc_phy_unreal_pnl_attr');
+    vc_err_msg := 'Before sp_calc_phy_unreal_pnl_attr';
+    pkg_phy_eod_reports.sp_calc_phy_unreal_pnl_attr(pc_corporate_id,
+                                                    pd_trade_date,
+                                                    gvc_previous_process_date,
+                                                    pc_process_id,
+                                                    gvc_previous_process_id,
+                                                    pc_user_id);
+  
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -3564,6 +3584,8 @@ create or replace package body pkg_phy_physical_process is
     delete from fcr_feed_consumption_report
      where process_id = pc_process_id;
     delete from stock_monthly_yeild_data where process_id = pc_process_id;
+    delete from upad_unreal_pnl_attr_detail
+     where process_id = pc_process_id;
     --
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
