@@ -12,7 +12,10 @@ select t.corporate_id,
        sum(t.net_derivative_quantity) net_derivative_quantity,
        sum(t.net_risk_quantity) net_risk_quantity,
        t.base_qty_unit_id,
-       t.base_qty_unit
+       t.base_qty_unit,
+       cm.cur_code || '/' || t.base_qty_unit quotes_unit,
+       cm.cur_id base_cur_id,
+       cm.cur_code base_cur_code
   from (select vph.corporate_id,
                vph.product_id,
                vph.productname product_name,
@@ -90,11 +93,17 @@ select t.corporate_id,
                   drt.qty_unit_id,
                   drt.qty_unit,
                   drt.instrument_id,
-                  drt.instrument_name) t
+                  drt.instrument_name) t,
+       ak_corporate akc,
+       cm_currency_master cm
+ where t.corporate_id = akc.corporate_id
+   and akc.base_cur_id = cm.cur_id
  group by t.corporate_id,
           t.product_id,
           t.product_name,
           t.instrument_id,
           t.instrument_name,
           t.base_qty_unit_id,
-          t.base_qty_unit
+          t.base_qty_unit,
+          cm.cur_id,
+          cm.cur_code
