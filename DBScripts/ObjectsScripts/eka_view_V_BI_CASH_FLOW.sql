@@ -1,3 +1,4 @@
+-- This is used only for Cash Flow Doamin
 CREATE OR REPLACE VIEW V_BI_CASH_FLOW AS
 with costtypewithoutaccrual as
      (select   cs.cost_ref_no,
@@ -125,7 +126,8 @@ select 'Invoices to extent not paid' section_name,
           1
        end invoice_amt,
        iss.invoice_issue_date activity_date,
-       iss.payment_due_date cash_flow_date
+       iss.payment_due_date cash_flow_date,
+       iss.invoice_type_name invoice_name
   from is_invoice_summary            iss,
        cm_currency_master            cm_p,
        incm_invoice_contract_mapping incm,
@@ -241,7 +243,8 @@ SELECT 'OTC invoices',
                                         1
                                    END),
        dis.issue_date activity_date,
-       dis.payment_due_date cash_flow_date
+       dis.payment_due_date cash_flow_date,
+       nvl(dis.invoice_type_name,'NA') invoice_name
 FROM   dt_derivative_trade            dt,
        ak_corporate                   ak,
        cpc_corporate_profit_center    cpc,
@@ -333,7 +336,8 @@ SELECT 'Currency Trades',
                                      -1
                                 END),
        ct.trade_date activity_date,
-       ct.payment_due_date cash_flow_date
+       ct.payment_due_date cash_flow_date,
+       'NA' invoice_name
 FROM   ct_currency_trade            ct,
        ak_corporate                 ak,
        cm_currency_master           akc_cm,
@@ -451,7 +455,8 @@ SELECT 'Accruals ',
              1
         END) invoice_amount,
        cs.effective_date activity_date,
-       cs.effective_date cash_flow_date
+       cs.effective_date cash_flow_date,
+       'NA' invoice_name
 FROM   cigc_contract_item_gmr_cost  cigc,
        cs_cost_store                cs,
        gmr_goods_movement_record    gmr,
@@ -568,7 +573,8 @@ SELECT 'Open Contracts',
              1
         END),
        mvf.issue_trade_date activity_date,
-       mvf.eod_date cash_flow_date
+       mvf.eod_date cash_flow_date,
+       'NA' invoice_name
 FROM   mv_fact_phy_unreal_fixed_price mvf,
        cpc_corporate_profit_center cpc,
        cm_currency_master          cm,
@@ -698,7 +704,8 @@ SELECT 'Fixed Price GMRs Base Metal' section_name,
                         1
                    END) invoice_amt,
        pcm.issue_date activity_date,
-       gmr.eff_date cashflow_date
+       gmr.eff_date cashflow_date,
+       'NA' invoice_name
 FROM   gmr_goods_movement_record    gmr,
        pcm_physical_contract_main   pcm,
        pcdi_pc_delivery_item        pcdi,
@@ -833,7 +840,8 @@ SELECT 'Fixed Price Contracts Base Metal' section_name,
                         1
                    END)  invoice_amt,
        pcm.issue_date activity_date,
-       pcm.issue_date cashflow_date
+       pcm.issue_date cashflow_date,
+       'NA' invoice_name
 FROM   pcm_physical_contract_main    pcm,
        pcdi_pc_delivery_item         pcdi,
        pci_physical_contract_item    pci,
@@ -874,6 +882,4 @@ AND    pcm.trader_id = akcu.user_id(+)
 AND    akcu.gabid = gab.gabid(+)
 and    ciqs.item_qty_unit_id = qum.qty_unit_id(+)
 and    nvl(pgm.is_active,'Y') = 'Y'
-and    nvl(gab.is_active,'Y') = 'Y'
- 
- 
+and    nvl(gab.is_active,'Y') = 'Y';
