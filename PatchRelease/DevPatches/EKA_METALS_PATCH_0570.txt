@@ -1,0 +1,90 @@
+Patch No*          		:  EKA_METALS_PATCH_0570
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Suresh Gottipati
+ 
+Created on *        		:  21-Mar-2012
+
+Bug / Enhancement *              : Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 : Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+
+Revision: 90449
+Author: suresh.gottipati
+Date: 12:51:52 PM, Wednesday, March 21, 2012
+Message:
+YTDMTDYIELD_Excel report released
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YTDMTDYIELD_Excel.rpt
+
+
+
+Revision: 90448
+Author: suresh.gottipati
+Date: 12:51:14 PM, Wednesday, March 21, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YTDMTDYIELD.rpt
+
+
+
+Revision: 90452
+Author: elaiyaraja.nallathambi
+Date: 12:54:23 PM, Wednesday, March 21, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/Reports/ContractPreview.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+
+
+Revision: 90453
+Author: suresh.gottipati
+Date: 12:55:03 PM, Wednesday, March 21, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_243.sql
+
+
+
+Revision: 90451
+Author: elaiyaraja.nallathambi
+Date: 12:53:32 PM, Wednesday, March 21, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_242.sql
+
+
+
+
