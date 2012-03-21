@@ -1,0 +1,2 @@
+alter table PA_PURCHASE_ACCURAL_GMR modify COUNTERPARTY_NAME varchar2(65);
+alter table PA_PURCHASE_ACCURAL  modify COUNTERPARTY_NAME varchar2(65);
