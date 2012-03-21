@@ -197,7 +197,7 @@ create or replace package "PKG_PHY_POPULATE_DATA" is
                                pd_trade_date   date,
                                pc_user_id      varchar2);
 
-end pkg_phy_populate_data;
+end pkg_phy_populate_data; 
 /
 create or replace package body "PKG_PHY_POPULATE_DATA" is
 
@@ -12700,6 +12700,12 @@ end loop;
        in_process_stock_id,
        free_metal_stock_id,
        free_metal_qty,
+       assay_content,
+       pledge_stock_id,
+       gepd_id,
+       assay_header_id,
+       is_final_assay,
+       corporate_id,
        internal_action_ref_no,
        dbd_id)
       select spqul.spq_id,
@@ -12805,13 +12811,49 @@ end loop;
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                            spqul.free_metal_qty
                         end),
-                    24) free_metal_qty,
+                    24) free_metal_qty,             
+             substr(max(case
+                          when spqul.assay_content is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.assay_content
+                        end),
+                    24) assay_content,   
+             substr(max(case
+                          when spqul.pledge_stock_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.pledge_stock_id
+                        end),
+                    24) pledge_stock_id, 
+             substr(max(case
+                          when spqul.gepd_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.gepd_id
+                        end),
+                    24) gepd_id, 
+            substr(max(case
+                          when spqul.assay_header_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.assay_header_id
+                        end),
+                    24) assay_header_id,  
+            substr(max(case
+                          when spqul.is_final_assay is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.is_final_assay
+                        end),
+                    24) is_final_assay, 
+            substr(max(case
+                          when spqul.corporate_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.corporate_id
+                        end),
+                    24) corporate_id,  
              substr(max(case
                           when spqul.internal_action_ref_no is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                            spqul.internal_action_ref_no
                         end),
-                    24) internal_action_ref_no,
+                    24) internal_action_ref_no,                                     
              gvc_dbd_id
         from spql_stock_payable_qty_log spqul,
              axs_action_summary         axs,

@@ -39,7 +39,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -3634,6 +3634,12 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        in_process_stock_id,
        free_metal_stock_id,
        free_metal_qty,
+       assay_content,
+       pledge_stock_id,
+       gepd_id,
+       assay_header_id,
+       is_final_assay,
+       corporate_id,
        dbd_id)
       select ul.spq_id,
              ul.internal_action_ref_no,
@@ -3656,6 +3662,12 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              null, -- ul.in_process_stock_id,
              ul.free_metal_stock_id,
              ul.free_metal_qty,
+             ul.assay_content,
+             ul.pledge_stock_id,
+             ul.gepd_id,
+             ul.assay_header_id,
+             ul.is_final_assay,
+             ul.corporate_id,
              pc_dbd_id
         from spql_stock_payable_qty_log@eka_appdb ul,
              axs_action_summary@eka_appdb         axs
@@ -4153,5 +4165,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /

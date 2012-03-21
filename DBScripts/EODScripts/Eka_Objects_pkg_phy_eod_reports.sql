@@ -3990,10 +3990,10 @@ create or replace package body pkg_phy_eod_reports is
          and cym_load.region_id = rem_load.region_id
          and cym_discharge.region_id = rem_discharge.region_id
          and gmr.internal_gmr_ref_no = gmr_gd.internal_gmr_ref_no
-         and grd.internal_grd_ref_no = invm.internal_grd_ref_no
+         and grd.internal_grd_ref_no = invm.internal_grd_ref_no(+)
          and grd.internal_grd_ref_no = iid.stock_id(+)
-         and cym_load.national_currency = cm_cym_load.cur_id
-         and cym_discharge.national_currency = cm_cym_discharge.cur_id
+         and cym_load.national_currency = cm_cym_load.cur_id(+)
+         and cym_discharge.national_currency = cm_cym_discharge.cur_id(+)
          and gmr.internal_gmr_ref_no = lastest_gmr.internal_gmr_ref_no(+)
          and gmr.latest_internal_invoice_ref_no =
              lastest_gmr.latest_internal_invoice_ref_no(+)
@@ -4020,7 +4020,7 @@ create or replace package body pkg_phy_eod_reports is
          and pcpq.is_active = 'Y'
          and pdm.is_active = 'Y'
          and qat.is_active = 'Y'
-         and invm.process_id = pc_process_id
+         and invm.process_id(+) = pc_process_id
          and pcm.process_id = pc_process_id
          and pci.process_id = pc_process_id
          and pcdi.process_id = pc_process_id
@@ -4311,7 +4311,7 @@ create or replace package body pkg_phy_eod_reports is
                          gmr.current_qty
                       end) gmr_qty,
                       gmr.qty_unit_id,
-                      0 assay_qty,
+                      spq.assay_content assay_qty,
                       spq.qty_unit_id assay_qty_unit,
                       spq.payable_qty payable_qty,
                       spq.qty_unit_id payable_qty_unit,
