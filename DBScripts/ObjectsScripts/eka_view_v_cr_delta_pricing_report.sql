@@ -121,7 +121,6 @@ select 'Pricing based Pre-defined QP' section_name,
        pcdi_pc_delivery_item          pcdi,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       v_gmr_assay_finalized_status   v_gmr,
        diqs_delivery_item_qty_status diqs,
        qum_quantity_unit_master       qum,
        phd_profileheaderdetails       phd,
@@ -132,13 +131,26 @@ select 'Pricing based Pre-defined QP' section_name,
        pcpq_pc_product_quality        pcpq,
        pdm_productmaster              pdm,
        qat_quality_attributes         qat,
-       qum_quantity_unit_master       qum_aml
+       qum_quantity_unit_master       qum_aml,
+      ( select grd.pcdi_id,
+       sum((case
+             when gmr.assay_finalized = 'Y' then
+              1
+             else
+              0
+           end)) FA_count
+  from v_gmr_assay_finalized_status gmr, grd_goods_record_detail grd
+ where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+   and grd.pcdi_id is not null
+ group by grd.pcdi_id)pcdi_fa
  where pofh.pocd_id = pocd.pocd_id
    and pocd.poch_id = poch.poch_id
    and poch.pcdi_id = pcdi.pcdi_id
+   and poch.pcdi_id = pcdi_fa.pcdi_id
+   and pcdi_fa.pcdi_id >0
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.corporate_id = akc.corporate_id
-   and pofh.internal_gmr_ref_no = v_gmr.internal_gmr_ref_no
+   --and pofh.internal_gmr_ref_no = v_gmr.internal_gmr_ref_no
    and pofh.final_price is null
    and pcdi.pcdi_id = diqs.pcdi_id
    and diqs.item_qty_unit_id = qum.qty_unit_id
@@ -155,11 +167,10 @@ select 'Pricing based Pre-defined QP' section_name,
    and pcpd.pcpd_id = pcpq.pcpd_id
    and pcpq.quality_template_id = qat.quality_id
    and nvl(pcpch.payable_type, 'Payable') = 'Payable'
-   and pofh.internal_gmr_ref_no is not null
+   --and pofh.internal_gmr_ref_no is not null
    and pofh.is_active = 'Y'
    and pocd.is_active = 'Y'
    and pocd.qp_period_type <> 'Event'
    and phd.is_active = 'Y'
    and phd.is_deleted = 'N'
-   and v_gmr.assay_finalized = 'Y'
-
+   --and v_gmr.assay_finalized = 'Y' 
