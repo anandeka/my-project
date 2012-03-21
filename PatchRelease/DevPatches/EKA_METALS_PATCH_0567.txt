@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0567
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Janna
+ 
+Created on *        		:  21-Mar-2012
+
+Bug / Enhancement *              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Cash Flow Domain
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+
+Cash Flow Domain Added Invoice Name
+
+Revision: 90415
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_CASH_FLOW.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_CASH_FLOW.sql
+
+
+
