@@ -1,0 +1,1 @@
+IVURL=http://192.168.1.220:7008/ekaJasper/flow.html?_flowId=adhocFlow&resource=%2Fpublic%2FMetals8X%2FAnalysis_Components%2FAnalysis_Reports%2FPNL_Manager_Report&PrentFolderUri=%2Fpublic%2FMetals8X%2FAnalysis_Components%2FAnalysis_Reports&j_username=jasperadmin&j_password=jasperadmin&pm=yes
