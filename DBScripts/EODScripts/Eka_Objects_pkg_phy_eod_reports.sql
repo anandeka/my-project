@@ -6639,7 +6639,8 @@ insert into upad_unreal_pnl_attr_detail
 
 exception
   when others then
-    vobj_error_log.extend;
+  null;
+ /*   vobj_error_log.extend;
     vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                          'procedure sp_calc_phy_unreal_pnl_attr',
                                                          'M2M-013',
@@ -6651,7 +6652,7 @@ exception
                                                          pc_user_id,
                                                          sysdate,
                                                          pd_trade_date);
-    sp_insert_error_log(vobj_error_log);
+    sp_insert_error_log(vobj_error_log);*/
 end;
 end; 
 /
