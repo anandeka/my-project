@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_0575
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Elaiyaraja Nallathambi
+ 
+Created on *        		:  21-Mar-2012
+
+Bug / Enhancement *              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI Reports
+
+Sub-Module  			 :  BI Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Application
+==================================================================
+
+Note:  Not to execute the below File Script instead it needs to be replaced under the below the path:
+
+Path: \\ekaEar\APP-INF\lib\eka-bi-conf-1.0.jar
+
+Revision: 90644
+Author: elaiyaraja.nallathambi
+Date: 2:36:49 PM, Thursday, March 22, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_245.sql
+
