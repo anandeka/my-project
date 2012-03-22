@@ -42,48 +42,6 @@ select pcm.corporate_id,
    and poch.poch_id = pocd.poch_id
    and pocd.price_type = 'Fixed'
 union all
-select pcm.corporate_id,
-       pcm.contract_ref_no,
-       pcm.internal_contract_ref_no,
-       pcm.issue_date price_date,
-       pcdi.pcdi_id,
-       pcpd.product_id,
-       pdm.product_desc productname,
-       dim.instrument_id,
-       dim.instrument_name,
-       0 price_fixed_qty,
-       0 unpriced_qty,
-       diqs.item_qty_unit_id qty_unit_id,
-       qum.qty_unit
-  from pcm_physical_contract_main     pcm,
-       pcdi_pc_delivery_item          pcdi,
-       pcpd_pc_product_definition     pcpd,
-       pcpq_pc_product_quality        pcpq,
-       v_bi_qat_quality_valuation     qat,
-       dim_der_instrument_master      dim,
-       pdm_productmaster              pdm,
-       diqs_delivery_item_qty_status  diqs,
-       poch_price_opt_call_off_header poch,
-       pocd_price_option_calloff_dtls pocd,
-       qum_quantity_unit_master       qum
- where pcm.contract_type = 'BASEMETAL'
-   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcpq.quality_template_id = qat.quality_id
-   and pcpd.input_output = 'Input'
-   and qat.instrument_id = dim.instrument_id
-   and pcpd.product_id = pdm.product_id
-   and pcm.is_active = 'Y'
-   and pcdi.is_active = 'Y'
-   and poch.is_active = 'Y'
-   and pocd.is_active = 'Y'
-   and pcdi.pcdi_id = diqs.pcdi_id
-   and diqs.item_qty_unit_id = qum.qty_unit_id
-   and pcdi.pcdi_id = poch.pcdi_id
-   and poch.poch_id = pocd.poch_id
-   and pocd.price_type = 'Fixed'
-union all
 -- varibale contracts with out event based
 select pcm.corporate_id,
        pcm.contract_ref_no,
@@ -185,11 +143,11 @@ select pcm.corporate_id,
    and pocd.price_type not in ('Fixed')
    and pocd.qp_period_type not in ('Event')
 union all
---event based  with out GMR creation 
+/*--event based  with out GMR creation 
 select pcm.corporate_id,
        pcm.contract_ref_no,
        pcm.internal_contract_ref_no,
-       pcm.issue_date price_date,
+       di.expected_qp_end_date price_date,
        pcdi.pcdi_id,
        pcpd.product_id,
        pdm.product_desc productname,
@@ -238,8 +196,9 @@ select pcm.corporate_id,
    and di.is_active = 'Y'
    and pocd.price_type not in ('Fixed')
    and pocd.qp_period_type = 'Event'
-   and pofh.internal_gmr_ref_no is null
-union all
+   and pofh.internal_gmr_ref_no is null*/
+--union all
+-- event based contract unfixed qty for qty not deliveryed 
 select pcm.corporate_id,
        pcm.contract_ref_no,
        pcm.internal_contract_ref_no,
@@ -292,7 +251,7 @@ select pcm.corporate_id,
    and di.is_active = 'Y'
    and pocd.price_type not in ('Fixed')
    and pocd.qp_period_type = 'Event'
-   and pofh.internal_gmr_ref_no is null
+  -- and pofh.internal_gmr_ref_no is null
 union all
 -- event based  with GMR created
 select pcm.corporate_id,
@@ -396,3 +355,353 @@ select pcm.corporate_id,
    and pocd.price_type not in ('Fixed')
    and pocd.qp_period_type = 'Event'
    and pofh.internal_gmr_ref_no is not null
+   union all  
+-- Fixed Conc contracts
+select pcm.corporate_id,
+       pcm.contract_ref_no,
+       pcm.internal_contract_ref_no,
+       pcm.issue_date price_date,
+       pcdi.pcdi_id,
+       qat.product_id,
+       pdm.product_desc productname,
+       dim.instrument_id,
+       dim.instrument_name,
+       ((case when dipq.qty_type='Payable' then
+             nvl(dipq.payable_qty,0)
+             else
+             nvl(dipq.returnable_qty,0)
+           end) * pkg_general.f_get_converted_quantity(qat.product_id,
+                                            dipq.qty_unit_id,
+                                            pdm.base_quantity_unit,
+                                            1)) price_fixed_qty,
+       0 unpriced_qty,
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit
+  from pcm_physical_contract_main     pcm,
+       pcdi_pc_delivery_item          pcdi,
+       pcpd_pc_product_definition     pcpd,
+       pcpq_pc_product_quality        pcpq,
+       v_bi_conc_qat_valuation        qat,
+       dim_der_instrument_master      dim,
+       pdm_productmaster              pdm,
+       dipq_delivery_item_payable_qty dipq,
+       poch_price_opt_call_off_header poch,
+       pocd_price_option_calloff_dtls pocd,
+       qum_quantity_unit_master       qum
+ where pcm.contract_type = 'CONCENTRATES'
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcpq.quality_template_id = qat.conc_quality_id
+   and pcpd.input_output = 'Input'
+   and qat.instrument_id = dim.instrument_id
+   and qat.product_id = pdm.product_id
+   and pcm.is_active = 'Y'
+   and pcdi.is_active = 'Y'
+   and dipq.is_active = 'Y'
+   and poch.is_active = 'Y'
+   and pocd.is_active = 'Y'
+   and pcdi.pcdi_id = dipq.pcdi_id
+   and qat.attribute_id = dipq.element_id
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.poch_id = pocd.poch_id
+   and poch.element_id = dipq.element_id
+   and pocd.price_type = 'Fixed'
+   union all
+   --- Variable contracts with out event based
+   select pcm.corporate_id,
+       pcm.contract_ref_no,
+       pcm.internal_contract_ref_no,
+       pcm.issue_date price_date,
+       pcdi.pcdi_id,
+       qat.product_id,
+       pdm.product_desc productname,
+       ppfd.instrument_id,
+       dim.instrument_name,
+       pkg_general.f_get_converted_quantity(qat.product_id,
+                                            pocd.qty_to_be_fixed_unit_id,
+                                            pdm.base_quantity_unit,
+                                            nvl(pofh.priced_qty,0)) price_fixed_qty,
+       0 unpriced_qty,
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit
+  from pcm_physical_contract_main     pcm,
+       pcdi_pc_delivery_item          pcdi,
+       pcpd_pc_product_definition     pcpd,
+       pcpq_pc_product_quality        pcpq,
+       v_bi_conc_qat_valuation        qat,
+       dim_der_instrument_master      dim,
+       pdm_productmaster              pdm,     
+       poch_price_opt_call_off_header poch,
+       pocd_price_option_calloff_dtls pocd,
+       pofh_price_opt_fixation_header pofh,
+       pcbpd_pc_base_price_detail     pcbpd,
+       ppfh_phy_price_formula_header  ppfh,
+       ppfd_phy_price_formula_details ppfd,
+       qum_quantity_unit_master       qum
+ where pcm.contract_type = 'CONCENTRATES'
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcpq.quality_template_id = qat.conc_quality_id
+   and pcpd.input_output = 'Input'
+   and ppfd.instrument_id = dim.instrument_id
+   and qat.product_id = pdm.product_id
+   and pcm.is_active = 'Y'
+   and pcdi.is_active = 'Y'   
+   and poch.is_active = 'Y'
+   and pocd.is_active = 'Y'  
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.poch_id = pocd.poch_id
+   and qat.attribute_id=poch.element_id
+   and pocd.pocd_id=pofh.pocd_id  
+    and pocd.pcbpd_id = pcbpd.pcbpd_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and ppfh.ppfh_id = ppfd.ppfh_id
+   and ppfd.instrument_id = dim.instrument_id
+   and pocd.price_type not in ('Fixed')
+   and pocd.qp_period_type not in ('Event')
+union all
+select pcm.corporate_id,
+       pcm.contract_ref_no,
+       pcm.internal_contract_ref_no,
+       pofh.qp_end_date price_date,
+       pcdi.pcdi_id,
+       qat.product_id,
+       pdm.product_desc productname,
+       ppfd.instrument_id,
+       dim.instrument_name,
+       0 price_fixed_qty,      
+       pkg_general.f_get_converted_quantity(qat.product_id,
+                                            pocd.qty_to_be_fixed_unit_id,
+                                            pdm.base_quantity_unit,
+                                            pofh.qty_to_be_fixed - nvl(pofh.priced_qty, 0)) unpriced_qty,       
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit
+  from pcm_physical_contract_main     pcm,
+       pcdi_pc_delivery_item          pcdi,
+       pcpd_pc_product_definition     pcpd,
+       pcpq_pc_product_quality        pcpq,
+       v_bi_conc_qat_valuation        qat,
+       dim_der_instrument_master      dim,
+       pdm_productmaster              pdm,     
+       poch_price_opt_call_off_header poch,
+       pocd_price_option_calloff_dtls pocd,
+       pofh_price_opt_fixation_header pofh,
+       pcbpd_pc_base_price_detail     pcbpd,
+       ppfh_phy_price_formula_header  ppfh,
+       ppfd_phy_price_formula_details ppfd,
+       qum_quantity_unit_master       qum
+ where pcm.contract_type = 'CONCENTRATES'
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcpq.quality_template_id = qat.conc_quality_id
+   and pcpd.input_output = 'Input'
+   and ppfd.instrument_id = dim.instrument_id
+   and qat.product_id = pdm.product_id
+   and pcm.is_active = 'Y'
+   and pcdi.is_active = 'Y'   
+   and poch.is_active = 'Y'
+   and pocd.is_active = 'Y'  
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.poch_id = pocd.poch_id
+   and qat.attribute_id=poch.element_id
+   and pocd.pocd_id=pofh.pocd_id  
+    and pocd.pcbpd_id = pcbpd.pcbpd_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and ppfh.ppfh_id = ppfd.ppfh_id
+   and ppfd.instrument_id = dim.instrument_id
+   and pocd.price_type not in ('Fixed')
+   and pocd.qp_period_type not in ('Event')   
+union all
+--- variable contract event based with GMR created
+select pcm.corporate_id,
+       pcm.contract_ref_no,
+       pcm.internal_contract_ref_no,
+       pcm.issue_date price_date,
+       pcdi.pcdi_id,
+       qat.product_id,
+       pdm.product_desc productname,
+       ppfd.instrument_id,
+       dim.instrument_name,
+       pkg_general.f_get_converted_quantity(qat.product_id,
+                                            pocd.qty_to_be_fixed_unit_id,
+                                            pdm.base_quantity_unit,
+                                            nvl(pofh.priced_qty,0)) price_fixed_qty,     
+       0 unpriced_qty,     
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit
+  from pcm_physical_contract_main     pcm,
+       pcdi_pc_delivery_item          pcdi,
+       pcpd_pc_product_definition     pcpd,
+       pcpq_pc_product_quality        pcpq,
+       v_bi_conc_qat_valuation        qat,
+       dim_der_instrument_master      dim,
+       pdm_productmaster              pdm,     
+       poch_price_opt_call_off_header poch,
+       pocd_price_option_calloff_dtls pocd,
+       pofh_price_opt_fixation_header pofh,
+       pcbpd_pc_base_price_detail     pcbpd,
+       ppfh_phy_price_formula_header  ppfh,
+       ppfd_phy_price_formula_details ppfd,
+       qum_quantity_unit_master       qum
+ where pcm.contract_type = 'CONCENTRATES'
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcpq.quality_template_id = qat.conc_quality_id
+   and pcpd.input_output = 'Input'
+   and ppfd.instrument_id = dim.instrument_id
+   and qat.product_id = pdm.product_id
+   and pcm.is_active = 'Y'
+   and pcdi.is_active = 'Y'   
+   and poch.is_active = 'Y'
+   and pocd.is_active = 'Y'  
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.poch_id = pocd.poch_id
+   and qat.attribute_id=poch.element_id
+   and pocd.pocd_id=pofh.pocd_id  
+    and pocd.pcbpd_id = pcbpd.pcbpd_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and ppfh.ppfh_id = ppfd.ppfh_id
+   and ppfd.instrument_id = dim.instrument_id
+   and pocd.price_type not in ('Fixed')
+   and pocd.qp_period_type = 'Event'
+   and pofh.internal_gmr_ref_no is not null
+   union all
+   select pcm.corporate_id,
+       pcm.contract_ref_no,
+       pcm.internal_contract_ref_no,
+       pofh.qp_end_date price_date,
+       pcdi.pcdi_id,
+       qat.product_id,
+       pdm.product_desc productname,
+       ppfd.instrument_id,
+       dim.instrument_name,
+       0 price_fixed_qty,      
+       (pofh.qty_to_be_fixed - nvl(pofh.priced_qty, 0))*pkg_general.f_get_converted_quantity(qat.product_id,
+                                            pocd.qty_to_be_fixed_unit_id,
+                                            pdm.base_quantity_unit,
+                                            1) unpriced_qty, 
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit
+  from pcm_physical_contract_main     pcm,
+       pcdi_pc_delivery_item          pcdi,
+       pcpd_pc_product_definition     pcpd,
+       pcpq_pc_product_quality        pcpq,
+       v_bi_conc_qat_valuation        qat,
+       dim_der_instrument_master      dim,
+       pdm_productmaster              pdm,     
+       poch_price_opt_call_off_header poch,
+       pocd_price_option_calloff_dtls pocd,
+       pofh_price_opt_fixation_header pofh,
+       pcbpd_pc_base_price_detail     pcbpd,
+       ppfh_phy_price_formula_header  ppfh,
+       ppfd_phy_price_formula_details ppfd,
+       qum_quantity_unit_master       qum
+ where pcm.contract_type = 'CONCENTRATES'
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcpq.quality_template_id = qat.conc_quality_id
+   and pcpd.input_output = 'Input'
+   and ppfd.instrument_id = dim.instrument_id
+   and qat.product_id = pdm.product_id
+   and pcm.is_active = 'Y'
+   and pcdi.is_active = 'Y'   
+   and poch.is_active = 'Y'
+   and pocd.is_active = 'Y'  
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.poch_id = pocd.poch_id
+   and qat.attribute_id=poch.element_id
+   and pocd.pocd_id=pofh.pocd_id  
+    and pocd.pcbpd_id = pcbpd.pcbpd_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and ppfh.ppfh_id = ppfd.ppfh_id
+   and ppfd.instrument_id = dim.instrument_id
+   and pocd.price_type not in ('Fixed')
+   and pocd.qp_period_type = 'Event'
+   and pofh.internal_gmr_ref_no is not null
+   union all
+   --- Event based with Out GMR created
+   select pcm.corporate_id,
+       pcm.contract_ref_no,
+       pcm.internal_contract_ref_no,
+       di.expected_qp_end_date price_date,
+       pcdi.pcdi_id,
+       qat.product_id,
+       pdm.product_desc productname,
+       ppfd.instrument_id,
+       dim.instrument_name,
+       0 price_fixed_qty,
+       pcdi_qty.priced_qty unpriced_qty,
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit
+  from pcm_physical_contract_main pcm,
+       pcdi_pc_delivery_item pcdi,
+       pcpd_pc_product_definition pcpd,
+       pcpq_pc_product_quality pcpq,
+       v_bi_conc_qat_valuation qat,
+       dim_der_instrument_master dim,
+       pdm_productmaster pdm,
+       poch_price_opt_call_off_header poch,
+       pocd_price_option_calloff_dtls pocd,
+       pofh_price_opt_fixation_header pofh,
+       pcbpd_pc_base_price_detail pcbpd,
+       ppfh_phy_price_formula_header ppfh,
+       ppfd_phy_price_formula_details ppfd,
+       qum_quantity_unit_master qum,
+       di_del_item_exp_qp_details di,
+       (select pcdi.pcdi_id,
+               pci_ele.element_id,
+               sum(pci_ele.open_payable_qty) priced_qty
+          from pcm_physical_contract_main pcm,
+               pcdi_pc_delivery_item      pcdi,
+               pci_physical_contract_item pci,
+               v_pci_element_qty          pci_ele
+         where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+           and pcdi.pcdi_id = pci.pcdi_id
+           and pci.internal_contract_item_ref_no =
+               pci_ele.internal_contract_item_ref_no
+         group by pcdi.pcdi_id,
+                  pci_ele.element_id) pcdi_qty
+ where pcm.contract_type = 'CONCENTRATES'
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcpq.quality_template_id = qat.conc_quality_id
+   and pcpd.input_output = 'Input'
+   and ppfd.instrument_id = dim.instrument_id
+   and qat.product_id = pdm.product_id
+   and pcm.is_active = 'Y'
+   and pcdi.is_active = 'Y'
+   and poch.is_active = 'Y'
+   and pocd.is_active = 'Y'
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.poch_id = pocd.poch_id
+   and qat.attribute_id = poch.element_id
+   and pocd.pocd_id = pofh.pocd_id(+)
+   and pocd.pcbpd_id = pcbpd.pcbpd_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and ppfh.ppfh_id = ppfd.ppfh_id
+   and ppfd.instrument_id = dim.instrument_id
+   and di.pcdi_id = pcdi.pcdi_id
+   and di.pcbpd_id = pcbpd.pcbpd_id
+   and pcdi.pcdi_id = pcdi_qty.pcdi_id
+   and poch.element_id = pcdi_qty.element_id
+   and pocd.price_type not in ('Fixed')
+   and pocd.qp_period_type = 'Event'
+  -- and pofh.internal_gmr_ref_no is null
+--   union all
+ 
+
+
+  
+

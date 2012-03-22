@@ -63,15 +63,15 @@ select t.corporate_id,
                  when pcm.purchase_sales = 'S' and
                       pcm.is_tolling_contract = 'N' then
                   'Sales Contract'
-                 when pcm.purchase_sales = 'P' and
+                 when pcmte.tolling_service_type='P' and
                       pcm.is_tolling_contract = 'Y' and
                       pcmte.is_pass_through = 'Y' then
                   'Internal Buy Tolling Service Contract'
-                 when pcm.purchase_sales = 'P' and
+                 when pcmte.tolling_service_type='P' and
                       pcm.is_tolling_contract = 'Y' and
                       pcmte.is_pass_through = 'N' then
                   'Buy Tolling Service Contract'
-                 when pcm.purchase_sales = 'S' and
+                 when pcmte.tolling_service_type='S' and
                       pcm.is_tolling_contract = 'Y' then
                   'Sell Tolling Service Contract'
                  when pcm.purchase_sales = 'P' and
@@ -104,7 +104,7 @@ select t.corporate_id,
                   ash.assay_type
                end) assay_type,
                ash.assay_ref_no, 
-	       (case
+         (case
                  when ash.assay_type ='Umpire Assay' then
                   bgm.bp_group_name
                  else
@@ -149,7 +149,7 @@ select t.corporate_id,
            and grd.status = 'Active'
            and gmr.corporate_id = akc.corporate_id
            and grd.profit_center_id = cpc.profit_center_id
-           and cpc.business_line_id = blm.business_line_id
+           and cpc.business_line_id = blm.business_line_id(+)
            and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
            and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no(+)
            and pcm.cp_id = phd.profileid
