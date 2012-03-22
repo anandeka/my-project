@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0576
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Ashok
+ 
+Created on *        		:  21-Mar-2012
+
+Bug / Enhancement *              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  SP_SPOT_CUR_EXCHANGE_RATE
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90645
+Author: sivachalabathi.s
+Date: 2:41:17 PM, Thursday, March 22, 2012
+Message:
+Modification to Sp_spot_cur_exchange for the first and last working day(H.day).
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/SP_SPOT_CUR_EXCHANGE_RATE.sql
+
+
