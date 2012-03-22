@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0582
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Ashok
+ 
+Created on *        		:  22-Mar-2012
+
+Bug / Enhancement *              : BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  Report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90721
+Author: sivachalabathi.s
+Date: 6:33:49 PM, Thursday, March 22, 2012
+Message:
+Bug Fixes 62939
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UnpricedQuantityReport.rpt
+
+
+
+
+
+
+
+
