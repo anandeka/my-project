@@ -435,6 +435,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('MV_UNPNL_NET_BY_PROFITCENTER', 'c');
     dbms_mview.refresh('MV_UNPNL_PHY_BY_PRODUCT', 'c');
     dbms_mview.refresh('MV_UNPNL_PHY_CHANGE_BY_TRADE', 'c');
+    dbms_mview.refresh('MV_BI_UPAD', 'c');    
 ------------------------------------------------------------
   
     commit;
