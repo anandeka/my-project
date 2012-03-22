@@ -35,10 +35,8 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : EOD
 ==================================================================
 
-Revision: 90537
-
 Unrealized PNL Attribution Report Released
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/39_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/39_DDL_EODDB_TABLE_ALTER_SCRIPT.sql Revision: 90597
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql Revision: 90597
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql  Revision: 90537
