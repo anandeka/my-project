@@ -35,6 +35,15 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
+Revision: 90758
+Author: sivachalabathi.s
+Date: 9:04:40 PM, Thursday, March 22, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_CPRISK_CRC_LIMITS.sql
+
+
 Revision: 90754
 Author: sivachalabathi.s
 Date: 8:58:23 PM, Thursday, March 22, 2012
