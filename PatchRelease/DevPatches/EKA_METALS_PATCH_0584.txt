@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0584
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Abhishek Vijay
+ 
+Created on *        		:  22-Mar-2012
+
+Bug / Enhancement *              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Contract
+
+Sub-Module  			 : Contract
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90749
+Author: abhishek.vijay
+Date: 8:45:52 PM, Thursday, March 22, 2012
+Message:
+amend contract
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_248.sql
