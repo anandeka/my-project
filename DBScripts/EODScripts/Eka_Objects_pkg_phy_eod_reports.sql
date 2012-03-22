@@ -3712,6 +3712,7 @@ create or replace package body pkg_phy_eod_reports is
                  and qat.is_active = 'Y'
                  and ppm.is_active = 'Y'
                  and aml.is_active = 'Y'
+                 and qav.is_deleted='N'
                  and aml.attribute_name = 'CNCode'
                  and aml.attribute_type_id = 'OTHERS'
                  and qat.quality_id = qav.quality_id
@@ -3968,6 +3969,7 @@ create or replace package body pkg_phy_eod_reports is
                  and qat.is_active = 'Y'
                  and ppm.is_active = 'Y'
                  and aml.is_active = 'Y'
+                  and qav.is_deleted='N'
                  and aml.attribute_name = 'CNCode'
                  and aml.attribute_type_id = 'OTHERS'
                  and qat.quality_id = qav.quality_id

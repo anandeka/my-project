@@ -12806,18 +12806,8 @@ end loop;
                            spqul.free_metal_stock_id
                         end),
                     24) free_metal_stock_id,
-             substr(max(case
-                          when spqul.free_metal_qty is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.free_metal_qty
-                        end),
-                    24) free_metal_qty,             
-             substr(max(case
-                          when spqul.assay_content is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.assay_content
-                        end),
-                    24) assay_content,   
+             round(sum(nvl(spqul.free_metal_qty, 0)), 10) free_metal_qty,
+             round(sum(nvl(spqul.assay_content, 0)), 10) assay_content, 
              substr(max(case
                           when spqul.pledge_stock_id is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
