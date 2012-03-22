@@ -5476,9 +5476,13 @@ create or replace package body pkg_phy_eod_reports is
            poud.base_cur_code,
            pd_trade_date trade_date,
            pc_previous_process_id prev_process_id,
-           pd_prev_trade_date as prev_trade_date
+           pd_prev_trade_date as prev_trade_date,
+           ppu.price_unit_id price_unit_id_in_pum,
+           md.base_price_unit_id_in_pum m2m_base_price_unit_id_in_pum
       from poud_phy_open_unreal_daily poud,
            pci_physical_contract_item pci,
+           v_ppu_pum ppu,
+           md_m2m_daily md,
            (select *
               from poud_phy_open_unreal_daily poud
              where poud.process_id = pc_previous_process_id) poud_prev
@@ -5490,7 +5494,10 @@ create or replace package body pkg_phy_eod_reports is
        and poud.pcdi_id = poud_prev.pcdi_id
        and pci.process_id = pc_process_id
        and pci.internal_contract_item_ref_no =
-           poud.internal_contract_item_ref_no;
+           poud.internal_contract_item_ref_no
+           and poud.price_unit_id = ppu.product_price_unit_id
+           and poud.md_id = md.md_id
+           and md.process_id = pc_process_id;
   --           
   ---Change in Price
   --
@@ -5551,9 +5558,11 @@ create or replace package body pkg_phy_eod_reports is
            poud.base_cur_code,
            pd_trade_date trade_date,
            pc_previous_process_id prev_process_id,
-           pd_prev_trade_date as prev_trade_date
+           pd_prev_trade_date as prev_trade_date,
+           ppu.product_price_unit_id price_unit_id_in_base
       from poud_phy_open_unreal_daily poud,
            pci_physical_contract_item pci,
+           v_ppu_pum ppu,
            (select *
               from poud_phy_open_unreal_daily poud
              where poud.process_id = pc_previous_process_id) poud_prev
@@ -5565,7 +5574,11 @@ create or replace package body pkg_phy_eod_reports is
            poud.internal_contract_item_ref_no
        and poud.internal_contract_item_ref_no =
            poud_prev.internal_contract_item_ref_no
-       and poud.pcdi_id = poud_prev.pcdi_id;
+       and poud.pcdi_id = poud_prev.pcdi_id
+       and ppu.product_id = poud.product_id
+       and ppu.cur_id = poud.base_cur_id
+       and ppu.weight_unit_id = poud.base_qty_unit_id
+       and nvl(ppu.weight,1) = 1 ;
   --
   ---Change in Estimates
   --
@@ -5693,16 +5706,10 @@ create or replace package body pkg_phy_eod_reports is
            poud_prev.m2m_price_unit_id prev_m2m_price_unit_id,
            poud.sc_in_base_cur,
            poud_prev.sc_in_base_cur prev_sc_in_base_cur,
-           poud.net_m2m_price m_to_m_settlement_price,
-           0 m_to_m_diff,
-           md.m2m_loc_incoterm_deviation m_to_m_loc_inco_deviation,
-           0 m_to_m_loc_deviation,
-           0 m_to_m_inco_deviation,
-           poud_prev.net_m2m_price prev_m_to_m_settlement_price,
-           0 prev_m_to_m_diff,
-           md_prev.m2m_loc_incoterm_deviation prev_m_to_m_loc_inco_deviation,
-           0 prev_m_to_m_loc_deviation,
-           0 prev_m_to_m_inco_deviation,
+           poud.net_m2m_price M2M_settlement_price,
+           md.m2m_loc_incoterm_deviation M2M_loc_inco_deviation,
+           poud_prev.net_m2m_price prev_M2M_settlement_price,
+           md_prev.m2m_loc_incoterm_deviation prev_M2M_loc_inco_deviation,
            poud.unrealized_pnl_in_base_cur net_pnlc_in_base,
            poud.product_id,
            poud.product_name,
@@ -5787,16 +5794,10 @@ create or replace package body pkg_phy_eod_reports is
            poud_prev.m2m_price_unit_id prev_m2m_price_unit_id,
            poud.sc_in_base_cur,
            poud_prev.sc_in_base_cur prev_sc_in_base_cur,
-           poud.net_m2m_price m_to_m_settlement_price,
-           0 m_to_m_diff,
-           md.m2m_loc_incoterm_deviation m_to_m_loc_inco_deviation,
-           0 m_to_m_loc_deviation,
-           0 m_to_m_inco_deviation,
-           poud_prev.net_m2m_price prev_m_to_m_settlement_price,
-           0 prev_m_to_m_diff,
-           md_prev.m2m_loc_incoterm_deviation prev_m_to_m_loc_inco_deviation,
-           0 prev_m_to_m_loc_deviation,
-           0 prev_m_to_m_inco_deviation,
+           poud.net_m2m_price M2M_settlement_price,
+           md.m2m_loc_incoterm_deviation M2M_loc_inco_deviation,
+           poud_prev.net_m2m_price prev_M2M_settlement_price,
+           md_prev.m2m_loc_incoterm_deviation prev_M2M_loc_inco_deviation,
            poud.unrealized_pnl_in_base_cur net_pnlc_in_base,
            poud.product_id,
            poud.product_name,
@@ -5809,7 +5810,8 @@ create or replace package body pkg_phy_eod_reports is
            poud.base_cur_code,
            pd_trade_date trade_date,
            pc_previous_process_id prev_process_id,
-           pd_prev_trade_date as prev_trade_date
+           pd_prev_trade_date as prev_trade_date,
+           md.base_price_unit_id_in_pum m2m_base_price_unit_id_in_pum
       from poud_phy_open_unreal_daily poud,
            pci_physical_contract_item pci,
            md_m2m_daily md,
@@ -5910,17 +5912,29 @@ begin
   --
   for unreal_pnl_attr_mcq_rows in unreal_pnl_attr_mcq
   loop
+  
+  
     if unreal_pnl_attr_mcq_rows.contract_type = 'P' then
       vn_pnlc_due_to_attr := ((unreal_pnl_attr_mcq_rows.curr_eod_qty -
                              nvl(unreal_pnl_attr_mcq_rows.prev_eod_qty, 0)) *
-                             (unreal_pnl_attr_mcq_rows.prev_net_m2m_price -
-                             unreal_pnl_attr_mcq_rows.prev_eod_contract_price));
+                             (
+                             (pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                             unreal_pnl_attr_mcq_rows.prev_net_m2m_price,unreal_pnl_attr_mcq_rows.m2m_price_unit_id, unreal_pnl_attr_mcq_rows.m2m_base_price_unit_id_in_pum,pd_trade_date,unreal_pnl_attr_mcq_rows.product_id))
+                              -
+(pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                             unreal_pnl_attr_mcq_rows.prev_eod_contract_price,unreal_pnl_attr_mcq_rows.price_unit_id_in_pum,unreal_pnl_attr_mcq_rows.m2m_base_price_unit_id_in_pum,pd_trade_date,unreal_pnl_attr_mcq_rows.product_id))
+                             ));
     elsif unreal_pnl_attr_mcq_rows.contract_type = 'S' then
       vn_pnlc_due_to_attr := ((unreal_pnl_attr_mcq_rows.curr_eod_qty -
                              nvl(unreal_pnl_attr_mcq_rows.prev_eod_qty, 0)) *
-                             (unreal_pnl_attr_mcq_rows.prev_eod_contract_price -
-                             unreal_pnl_attr_mcq_rows.prev_net_m2m_price));
+                             ((pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                             unreal_pnl_attr_mcq_rows.prev_eod_contract_price,unreal_pnl_attr_mcq_rows.price_unit_id_in_pum,unreal_pnl_attr_mcq_rows.m2m_base_price_unit_id_in_pum,pd_trade_date,unreal_pnl_attr_mcq_rows.product_id))
+ -
+                             (pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                             unreal_pnl_attr_mcq_rows.prev_net_m2m_price,unreal_pnl_attr_mcq_rows.m2m_price_unit_id, unreal_pnl_attr_mcq_rows.m2m_base_price_unit_id_in_pum,pd_trade_date,unreal_pnl_attr_mcq_rows.product_id))));
     end if;
+    
+    
     vn_other_pnlc_in_base := unreal_pnl_attr_mcq_rows.net_pnlc_in_base -
                              vn_pnlc_due_to_attr;
     insert into upad_unreal_pnl_attr_detail
@@ -6020,16 +6034,29 @@ begin
   for unreal_pnl_attr_price_rows in unreal_pnl_attr_price
   loop
     if unreal_pnl_attr_price_rows.contract_type = 'P' then
-      vn_pnlc_due_to_attr := ((unreal_pnl_attr_price_rows.prev_eod_contract_price -
-                             nvl(unreal_pnl_attr_price_rows.curr_eod_contract_price,
-                                   0)) * (nvl(unreal_pnl_attr_price_rows.prev_eod_qty,
+      vn_pnlc_due_to_attr := ((
+            (pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+            unreal_pnl_attr_price_rows.prev_eod_contract_price,unreal_pnl_attr_price_rows.prev_eod_price_unit_id,
+            unreal_pnl_attr_price_rows.price_unit_id_in_base,pd_trade_date))
+             -
+            (pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+            nvl(unreal_pnl_attr_price_rows.curr_eod_contract_price,0),unreal_pnl_attr_price_rows.curr_eod_price_unit_id,
+            unreal_pnl_attr_price_rows.price_unit_id_in_base,pd_trade_date))
+                                   ) * (nvl(unreal_pnl_attr_price_rows.prev_eod_qty,
                                                0)));
     elsif unreal_pnl_attr_price_rows.contract_type = 'S' then
-      vn_pnlc_due_to_attr := ((unreal_pnl_attr_price_rows.curr_eod_contract_price -
-                             nvl(unreal_pnl_attr_price_rows.prev_eod_contract_price,
-                                   0)) * (nvl(unreal_pnl_attr_price_rows.prev_eod_qty,
-                                               0)));
+      vn_pnlc_due_to_attr := ((
+      (pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+            nvl(unreal_pnl_attr_price_rows.curr_eod_contract_price,0),unreal_pnl_attr_price_rows.curr_eod_price_unit_id,
+            unreal_pnl_attr_price_rows.price_unit_id_in_base,pd_trade_date))
+                             -
+                             (pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
+            unreal_pnl_attr_price_rows.prev_eod_contract_price,unreal_pnl_attr_price_rows.prev_eod_price_unit_id,
+            unreal_pnl_attr_price_rows.price_unit_id_in_base,pd_trade_date)) 
+                                   * (nvl(unreal_pnl_attr_price_rows.prev_eod_qty,
+                                               0))));
     end if;
+    
     vn_other_pnlc_in_base := unreal_pnl_attr_price_rows.net_pnlc_in_base -
                              vn_pnlc_due_to_attr;
     insert into upad_unreal_pnl_attr_detail
@@ -6163,6 +6190,8 @@ begin
        curr_eod_price_unit_id,
        prev_eod_contract_price,
        prev_eod_price_unit_id,
+       curr_sc_in_base_cur,
+       prev_sc_in_base_cur,
        md_id,
        prev_md_id,
        net_m2m_price,
@@ -6208,6 +6237,8 @@ begin
        unreal_pnl_attr_estimates_rows.curr_eod_price_unit_id,
        unreal_pnl_attr_estimates_rows.prev_eod_contract_price,
        unreal_pnl_attr_estimates_rows.prev_eod_price_unit_id,
+       unreal_pnl_attr_estimates_rows.sc_in_base_cur,
+       unreal_pnl_attr_estimates_rows.Prev_Sc_In_Base_Cur,
        unreal_pnl_attr_estimates_rows.md_id,
        unreal_pnl_attr_estimates_rows.prev_md_id,
        unreal_pnl_attr_estimates_rows.net_m2m_price,
@@ -6236,13 +6267,13 @@ begin
   for unreal_pnl_attr_ldc_rows in unreal_pnl_attr_ldc
   loop
     if unreal_pnl_attr_ldc_rows.contract_type = 'P' then
-      vn_pnlc_due_to_attr := ((unreal_pnl_attr_ldc_rows.m_to_m_loc_inco_deviation -
-                             nvl(unreal_pnl_attr_ldc_rows.prev_m_to_m_loc_inco_deviation,
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_ldc_rows.M2M_loc_inco_deviation -
+                             nvl(unreal_pnl_attr_ldc_rows.prev_M2M_loc_inco_deviation,
                                    0)) *
                              (nvl(unreal_pnl_attr_ldc_rows.prev_eod_qty, 0)));
     elsif unreal_pnl_attr_ldc_rows.contract_type = 'S' then
-      vn_pnlc_due_to_attr := ((unreal_pnl_attr_ldc_rows.prev_m_to_m_loc_inco_deviation -
-                             nvl(unreal_pnl_attr_ldc_rows.m_to_m_loc_inco_deviation,
+      vn_pnlc_due_to_attr := ((unreal_pnl_attr_ldc_rows.prev_M2M_loc_inco_deviation -
+                             nvl(unreal_pnl_attr_ldc_rows.M2M_loc_inco_deviation,
                                    0)) *
                              (nvl(unreal_pnl_attr_ldc_rows.prev_eod_qty, 0)));
     end if;
@@ -6278,8 +6309,8 @@ begin
        m2m_price_unit_id,
        prev_net_m2m_price,
        prev_m2m_price_unit_id,
-       m_to_m_loc_inco_deviation,
-       prev_m_to_m_loc_inco_deviation,
+       M2M_loc_inco_deviation,
+       prev_M2M_loc_inco_deviation,
        pnlc_due_to_attr,
        delta_pnlc_in_base,
        net_pnlc_in_base,
@@ -6325,8 +6356,8 @@ begin
        unreal_pnl_attr_ldc_rows.m2m_price_unit_id,
        unreal_pnl_attr_ldc_rows.prev_net_m2m_price,
        unreal_pnl_attr_ldc_rows.prev_m2m_price_unit_id,
-       unreal_pnl_attr_ldc_rows.m_to_m_loc_inco_deviation,
-       unreal_pnl_attr_ldc_rows.prev_m_to_m_loc_inco_deviation,
+       unreal_pnl_attr_ldc_rows.M2M_loc_inco_deviation,
+       unreal_pnl_attr_ldc_rows.prev_M2M_loc_inco_deviation,
        vn_pnlc_due_to_attr,
        vn_other_pnlc_in_base,
        unreal_pnl_attr_ldc_rows.net_pnlc_in_base,
@@ -6349,14 +6380,27 @@ begin
   for unreal_pnl_attr_m2m_sp_rows in unreal_pnl_attr_m2m_sp
   loop
     if unreal_pnl_attr_m2m_sp_rows.contract_type = 'P' then
-      vn_pnlc_due_to_attr := ((unreal_pnl_attr_m2m_sp_rows.m_to_m_settlement_price -
-                             nvl(unreal_pnl_attr_m2m_sp_rows.prev_m_to_m_settlement_price,
-                                   0)) * (nvl(unreal_pnl_attr_m2m_sp_rows.prev_eod_qty,
+      vn_pnlc_due_to_attr := ((
+      (pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+      unreal_pnl_attr_m2m_sp_rows.M2M_settlement_price,unreal_pnl_attr_m2m_sp_rows.m2m_price_unit_id,
+      unreal_pnl_attr_m2m_sp_rows.m2m_base_price_unit_id_in_pum,pd_trade_date, unreal_pnl_attr_m2m_sp_rows.product_id))
+       -
+      (pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+      nvl(unreal_pnl_attr_m2m_sp_rows.prev_M2M_settlement_price,0),unreal_pnl_attr_m2m_sp_rows.m2m_price_unit_id,
+      unreal_pnl_attr_m2m_sp_rows.m2m_base_price_unit_id_in_pum,pd_trade_date, unreal_pnl_attr_m2m_sp_rows.product_id))
+                             ) * (nvl(unreal_pnl_attr_m2m_sp_rows.prev_eod_qty,
                                                0)));
     elsif unreal_pnl_attr_m2m_sp_rows.contract_type = 'S' then
-      vn_pnlc_due_to_attr := ((unreal_pnl_attr_m2m_sp_rows.prev_m_to_m_settlement_price -
-                             nvl(unreal_pnl_attr_m2m_sp_rows.m_to_m_settlement_price,
-                                   0)) * (nvl(unreal_pnl_attr_m2m_sp_rows.prev_eod_qty,
+      vn_pnlc_due_to_attr := ((
+      (pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+      nvl(unreal_pnl_attr_m2m_sp_rows.prev_M2M_settlement_price,0),unreal_pnl_attr_m2m_sp_rows.m2m_price_unit_id,
+      unreal_pnl_attr_m2m_sp_rows.m2m_base_price_unit_id_in_pum,pd_trade_date, unreal_pnl_attr_m2m_sp_rows.product_id))
+       -
+(pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+      nvl(unreal_pnl_attr_m2m_sp_rows.M2M_settlement_price,0),unreal_pnl_attr_m2m_sp_rows.m2m_price_unit_id,
+      unreal_pnl_attr_m2m_sp_rows.m2m_base_price_unit_id_in_pum,pd_trade_date, unreal_pnl_attr_m2m_sp_rows.product_id))
+                             
+                                   ) * (nvl(unreal_pnl_attr_m2m_sp_rows.prev_eod_qty,
                                                0)));
     end if;
     vn_other_pnlc_in_base := unreal_pnl_attr_m2m_sp_rows.net_pnlc_in_base -
@@ -6391,8 +6435,8 @@ begin
        m2m_price_unit_id,
        prev_net_m2m_price,
        prev_m2m_price_unit_id,
-       m_to_m_settlement_price,
-       prev_m_to_m_settlement_price,
+       M2M_settlement_price,
+       prev_M2M_settlement_price,
        pnlc_due_to_attr,
        delta_pnlc_in_base,
        net_pnlc_in_base,
@@ -6438,8 +6482,8 @@ begin
        unreal_pnl_attr_m2m_sp_rows.m2m_price_unit_id,
        unreal_pnl_attr_m2m_sp_rows.prev_net_m2m_price,
        unreal_pnl_attr_m2m_sp_rows.prev_m2m_price_unit_id,
-       unreal_pnl_attr_m2m_sp_rows.m_to_m_settlement_price,
-       unreal_pnl_attr_m2m_sp_rows.prev_m_to_m_settlement_price,
+       unreal_pnl_attr_m2m_sp_rows.M2M_settlement_price,
+       unreal_pnl_attr_m2m_sp_rows.prev_M2M_settlement_price,
        vn_pnlc_due_to_attr,
        vn_other_pnlc_in_base,
        unreal_pnl_attr_m2m_sp_rows.net_pnlc_in_base,
@@ -6457,7 +6501,7 @@ begin
        unreal_pnl_attr_m2m_sp_rows.prev_trade_date);
   end loop;
   commit;
-  insert into upad_unreal_pnl_attr_detail
+insert into upad_unreal_pnl_attr_detail
   (process_id,
    corporate_id,
    corporate_name,
@@ -6471,6 +6515,26 @@ begin
    delivery_item_no,
    del_distribution_item_no,
    contract_type,
+   item_qty,
+   qty_unit_id,
+   curr_eod_qty,
+   curr_eod_qty_unit_id,
+   prev_eod_qty,
+   prev_eod_qty_unit_id,
+   curr_eod_contract_price,
+   curr_eod_price_unit_id,
+   prev_eod_contract_price,
+   prev_eod_price_unit_id,
+   md_id,
+   M2M_price_unit_id,
+   M2M_settlement_price,
+   M2M_loc_inco_deviation,
+   net_m2m_price,
+   prev_md_id,
+   prev_M2M_price_unit_id,
+   prev_M2M_settlement_price,
+   prev_M2M_loc_inco_deviation,
+   prev_net_m2m_price,
    pnlc_due_to_attr,
    product_id,
    product_name,
@@ -6484,7 +6548,8 @@ begin
    trade_date,
    prev_process_id,
    prev_trade_date)
-  select pc_process_id, poud.corporate_id,
+  select pc_process_id,
+         poud.corporate_id,
          poud.corporate_name,
          'Physical Contract' attribution_type,
          'Others' attribution_main_type,
@@ -6511,7 +6576,26 @@ begin
          t.del_distribution_item_no,
          poud.contract_type,
          nvl(poud.trade_day_pnl_in_val_cur, 0) - nvl(t.pnlc_due_to_attr, 0) pnlc_due_to_attr,
-         
+         poud.item_qty,
+         poud.qty_unit_id,
+         poud.qty_in_base_unit curr_eod_qty,
+         poud.qty_unit_id curr_eod_qty_unit_id,
+         poud_prev.item_qty prev_eod_qty,
+         poud_prev.qty_unit_id prev_eod_qty_unit_id,
+         poud.contract_price curr_eod_contract_price,
+         poud.price_unit_id curr_eod_price_unit_id,
+         poud_prev.contract_price prev_eod_contract_price,
+         poud_prev.price_unit_id prev_eod_price_unit_id,
+         poud.md_id,
+         poud.m2m_price_unit_id M2M_price_unit_id,
+         poud.net_m2m_price M2M_settlement_price,
+         0 M2M_loc_inco_deviation,
+         poud.net_m2m_price,
+         poud_prev.md_id prev_md_id,
+         poud_prev.m2m_price_unit_id prev_M2M_price_unit_id,
+         poud_prev.net_m2m_price prev_M2M_settlement_price,
+         md.m2m_loc_incoterm_deviation prev_M2M_loc_inco_deviation,
+         poud_prev.net_m2m_price prev_net_m2m_price,
          poud.product_id,
          poud.product_name,
          poud.profit_center_id,
@@ -6525,6 +6609,10 @@ begin
          pc_previous_process_id,
          pd_prev_trade_date
     from poud_phy_open_unreal_daily poud,
+    md_m2m_daily md,
+         (select *
+            from poud_phy_open_unreal_daily poud
+           where poud.process_id = pc_previous_process_id) poud_prev,
          (select upad.internal_contract_item_ref_no,
                  upad.delivery_item_no,
                  upad.del_distribution_item_no,
@@ -6536,14 +6624,18 @@ begin
            where upad.process_id = tdc.process_id
              and upad.attribution_main_type <> 'New Contract'
            group by upad.internal_contract_item_ref_no,
-                            upad.delivery_item_no,
-                            upad.del_distribution_item_no,
-
+                    upad.delivery_item_no,
+                    upad.del_distribution_item_no,
                     upad.process_id,
                     tdc.trade_date) t
    where poud.internal_contract_item_ref_no =
          t.internal_contract_item_ref_no
-     and poud.process_id = t.process_id;
+     and poud.process_id = t.process_id
+     and poud.internal_contract_ref_no =
+         poud_prev.internal_contract_item_ref_no
+     and poud.pcdi_id = poud_prev.pcdi_id
+     and poud_prev.md_id = md.md_id
+     and md.process_id = pc_previous_process_id;
 
 exception
   when others then
