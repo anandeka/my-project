@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0581
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Anand P H
+ 
+Created on *        		:  22-Mar-2012
+
+Bug / Enhancement *              : BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice Output doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90715
+Author: anandp
+Date: 6:11:20 PM, Thursday, March 22, 2012
+Message:
+For output document issue.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_247.sql
+
+
+
+
+
+
+
+
+
