@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0578
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Anup kumar Agarwal
+ 
+Created on *        		:  22-Mar-2012
+
+Bug / Enhancement *              : BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics 
+
+Sub-Module  			 :  Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 90696
+Author: anupkumar.agarwal
+Date: 4:57:36 PM, Thursday, March 22, 2012
+Message:
+Only For All Purchase Side Detail Doc 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_246.sql
+
+
+
+
+
