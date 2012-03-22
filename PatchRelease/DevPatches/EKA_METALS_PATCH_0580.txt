@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0580
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Suresh Gottipati
+ 
+Created on *        		:  22-Mar-2012
+
+Bug / Enhancement *              : BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports 
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Reports
+==================================================================
+Revision: 90704
+Author: suresh.gottipati
+Date: 5:19:05 PM, Thursday, March 22, 2012
+Message:
+BugBug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt
+
+
+
+
+
+
+
