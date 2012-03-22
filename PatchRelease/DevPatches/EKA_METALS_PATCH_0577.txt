@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_0577
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Suresh Gottipati
+ 
+Created on *        		:  22-Mar-2012
+
+Bug / Enhancement *              : BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay Comaprision,Exposure
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90657
+Author: suresh.gottipati
+Date: 3:18:43 PM, Thursday, March 22, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_CONC_QAT_VALUATION.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_EXPOSURE_BY_TRADE.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_ASSAY_COMPARISION.sql
+
+
+
+
