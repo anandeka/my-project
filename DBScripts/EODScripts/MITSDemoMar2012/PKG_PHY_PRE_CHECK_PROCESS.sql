@@ -133,7 +133,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
-end;
+end; 
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -7155,7 +7155,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     v_trade_date            date;
     vobj_error_log          tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count      number := 1;
-    v_dr_id                 varchar2(10);
+    v_dr_id                 varchar2(15);
     workings_days           number(2);
     msg_display             varchar2(500);
     is_daily_app            varchar2(10);
@@ -7563,5 +7563,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end;
+end; 
 /
