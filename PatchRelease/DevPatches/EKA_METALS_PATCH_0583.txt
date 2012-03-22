@@ -35,6 +35,17 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
+Revision: 90754
+Author: sivachalabathi.s
+Date: 8:58:23 PM, Thursday, March 22, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_premium_report.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_spread_report.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_spread_report_graph.sql
+
+
 Revision: 90747
 Author: sivachalabathi.s
 Date: 8:33:40 PM, Thursday, March 22, 2012
