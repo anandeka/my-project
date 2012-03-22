@@ -1,0 +1,67 @@
+Patch No*          		:  EKA_METALS_PATCH_0583
+
+Project / Product* 		:  METALS
+==================================================================
+Created by *        		:  Siva
+ 
+Created on *        		:  22-Mar-2012
+
+Bug / Enhancement *              : Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Dashboard
+
+Sub-Module  			 :  Dashboard
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90747
+Author: sivachalabathi.s
+Date: 8:33:40 PM, Thursday, March 22, 2012
+Message:
+risk limit dashboard
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_CPRISK_CREDIT_LIMIT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_CPRISK_M2M_LIMIT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_CPRISK_ONHOLD.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_CPRISK_OPEN_CV_LIMIT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_CPRISK_QUANTITY_LIMIT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_CPRISK_RECENT5_ADDED.sql
+
+Revision: 90699
+Author: sivachalabathi.s
+Date: 5:02:45 PM, Thursday, March 22, 2012
+Message:
+
+----
+1) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_UPAD.sql
+2) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_CHANGES_IN_TRADE_PNL.sql
+3) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_EXECUTE_EOD.sql
+4) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_PNL_ATTB_BY_TRADE.sql
+5) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_PNL_ATTB_BY_PRODUCT.sql
+6) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_PNL_ATTB_BY_PROFITCENTER.sql
+
+
+
+
+
