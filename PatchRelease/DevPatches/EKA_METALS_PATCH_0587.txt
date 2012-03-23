@@ -40,3 +40,8 @@ Message:
 smelters name taken from contract cp
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_INVENTORY_BY_SMELTERS.sql
+
+Revision: 90776
+Consider Only Final Invoice for Both Sides(Smelter and Supplier)
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_TC_RC_DISTRIBUTION_REPORT .sql
