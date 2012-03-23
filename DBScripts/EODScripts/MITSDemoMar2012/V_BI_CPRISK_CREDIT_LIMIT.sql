@@ -20,9 +20,10 @@ select tt.corporate_id,
                        pcm.cp_id profileid,
                        phd_contract_cp.companyname companyname,
                        0 alloted_credit_limit,
-                       round(iss.total_amount_to_pay, 4) *
-                       nvl(iss.fx_to_base, 1) *
-                       (case
+                       case
+                          when ivd.internal_invoice_ref_no is null then
+                           round(iss.total_amount_to_pay, 4) *
+                           nvl(iss.fx_to_base, 1) * (case
                           when nvl(iss.payable_receivable, 'NA') = 'Payable' then
                            -1
                           when nvl(iss.payable_receivable, 'NA') = 'Receivable' then
@@ -43,25 +44,60 @@ select tt.corporate_id,
                            -1
                           else
                            1
-                        end) end) else 1 end) current_credit_usage,
+                        end) end) else 1 end) else ivd.vat_amount_in_vat_cur * (case
+                         when nvl(iss.payable_receivable,
+                                  'NA') =
+                              'Payable' then
+                          -1
+                         when nvl(iss.payable_receivable,
+                                  'NA') =
+                              'Receivable' then
+                          1
+                         when nvl(iss.payable_receivable,
+                                  'NA') = 'NA' then
+                          (case
+                         when nvl(iss.invoice_type_name,
+                                  'NA') =
+                              'ServiceInvoiceReceived' then
+                          -1
+                         when nvl(iss.invoice_type_name,
+                                  'NA') =
+                              'ServiceInvoiceRaised' then
+                          1
+                         else
+                          (case
+                         when nvl(iss.recieved_raised_type,
+                                  'NA') =
+                              'Raised' then
+                          1
+                         when nvl(iss.recieved_raised_type,
+                                  'NA') =
+                              'Received' then
+                          -1
+                         else
+                          1
+                       end) end) else 1 end) end current_credit_usage,
                        cm_akc_base_cur.cur_id base_cur_id,
                        cm_akc_base_cur.cur_code base_cur_code
-                  from is_invoice_summary            iss,
-                       cm_currency_master            cm_p,
+                  from is_invoice_summary iss,
+                       cm_currency_master cm_p,
                        incm_invoice_contract_mapping incm,
-                       pcm_physical_contract_main    pcm,
-                       ak_corporate                  akc,
-                       cpc_corporate_profit_center   cpc,
-                       cpc_corporate_profit_center   cpc1,
-                       pcpd_pc_product_definition    pcpd,
-                       cm_currency_master            cm_akc_base_cur,
-                       css_corporate_strategy_setup  css,
-                       blm_business_line_master      blm,
-                       pdm_productmaster             pdm,
-                       pgm_product_group_master      pgm,
-                       phd_profileheaderdetails      phd_contract_cp,
-                       ak_corporate_user             akcu,
-                       gab_globaladdressbook         gab
+                       pcm_physical_contract_main pcm,
+                       ak_corporate akc,
+                       cpc_corporate_profit_center cpc,
+                       cpc_corporate_profit_center cpc1,
+                       pcpd_pc_product_definition pcpd,
+                       cm_currency_master cm_akc_base_cur,
+                       css_corporate_strategy_setup css,
+                       blm_business_line_master blm,
+                       pdm_productmaster pdm,
+                       pgm_product_group_master pgm,
+                       phd_profileheaderdetails phd_contract_cp,
+                       ak_corporate_user akcu,
+                       gab_globaladdressbook gab,
+                       (select *
+                          from ivd_invoice_vat_details ivd
+                         where ivd.is_separate_invoice = 'Y') ivd
                  where iss.is_active = 'Y'
                    and iss.corporate_id is not null
                    and iss.internal_invoice_ref_no =
@@ -88,6 +124,8 @@ select tt.corporate_id,
                    and cm_akc_base_cur.cur_id = akc.base_cur_id
                    and pcpd.strategy_id = css.strategy_id(+)
                    and iss.total_amount_to_pay <> 0
+                   and iss.internal_invoice_ref_no =
+                       ivd.internal_invoice_ref_no(+)
                 union all
                 -- Taken from Cash Flow 'Fixed Price GMRs Base Metal' section,
                 select akc.corporate_id,
@@ -146,7 +184,7 @@ select tt.corporate_id,
                                iid_invoicable_item_details iid
                          where iss.internal_invoice_ref_no =
                                iid.internal_invoice_ref_no
-                           and iss.is_active='Y'
+                           and iss.is_active = 'Y'
                            and iid.internal_gmr_ref_no =
                                gmr.internal_gmr_ref_no)
                    and grd.internal_contract_item_ref_no =
@@ -212,7 +250,7 @@ select tt.corporate_id,
                                gmr_goods_movement_record   gmr
                          where iss.internal_invoice_ref_no =
                                iid.internal_invoice_ref_no
-                           and iss.is_active='Y'
+                           and iss.is_active = 'Y'
                            and iid.internal_gmr_ref_no =
                                gmr.internal_gmr_ref_no
                            and iss.corporate_id = mvf.corporate_id
@@ -233,4 +271,4 @@ select tt.corporate_id,
  where tt.profileid = cpr.profile_id(+)
    and tt.corporate_id = cpr.corporate_id(+)
    and tt.order_id <= 5
- order by tt.order_id
+ order by tt.order_id;
