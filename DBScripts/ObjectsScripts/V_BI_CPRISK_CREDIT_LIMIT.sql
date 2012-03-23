@@ -146,7 +146,7 @@ select tt.corporate_id,
                                iid_invoicable_item_details iid
                          where iss.internal_invoice_ref_no =
                                iid.internal_invoice_ref_no
-                           and iss.invoice_status = 'Active'
+                           and iss.is_active='Y'
                            and iid.internal_gmr_ref_no =
                                gmr.internal_gmr_ref_no)
                    and grd.internal_contract_item_ref_no =
@@ -212,7 +212,7 @@ select tt.corporate_id,
                                gmr_goods_movement_record   gmr
                          where iss.internal_invoice_ref_no =
                                iid.internal_invoice_ref_no
-                           and iss.invoice_status = 'Active'
+                           and iss.is_active='Y'
                            and iid.internal_gmr_ref_no =
                                gmr.internal_gmr_ref_no
                            and iss.corporate_id = mvf.corporate_id

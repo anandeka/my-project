@@ -603,7 +603,7 @@ AND    NOT EXISTS -- Not Invoiced Check
                iid_invoicable_item_details iid,
                gmr_goods_movement_record   gmr
         WHERE  iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
-        AND    iss.invoice_status = 'Active'
+        AND    iss.is_active ='Y'
         AND    iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
         AND    iss.corporate_id = mvf.corporate_id
         and    iss.is_inv_draft = 'N'
@@ -734,7 +734,7 @@ WHERE  NOT EXISTS -- Not Invoiced Check
         FROM   is_invoice_summary          iss,
                iid_invoicable_item_details iid
         WHERE  iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
-        AND    iss.invoice_status = 'Active'
+        AND    iss.is_active ='Y'
         AND    iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no)
 AND    grd.internal_contract_item_ref_no = pci.internal_contract_item_ref_no
 AND    pci.pcdi_id = pcdi.pcdi_id
