@@ -14,7 +14,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Physical Position Call off Excldue Cancelled Contracts
+Module  		   	 :  Physical Position Call off Due Exclude Cancelled Contracts
 
 Sub-Module  			 :  
  
