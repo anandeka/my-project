@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW  V_BI_PHYSICAL_CALL_OFF_DUE AS
+CREATE OR REPLACE VIEW V_BI_PHYSICAL_CALL_OFF_DUE AS
 select t.corporate_id,
        t.product_id,
        t.product_name,
@@ -46,4 +46,5 @@ select t.corporate_id,
            and diqs.is_active = 'Y'
            and qum.is_active = 'Y'
            and pcdi.is_phy_optionality_present = 'Y'
-           and nvl(diqs.total_qty, 0) - nvl(diqs.called_off_qty, 0) > 0) t
+           and nvl(diqs.total_qty, 0) - nvl(diqs.called_off_qty, 0) > 0
+           and pcm.contract_status <> 'Cancelled') t;

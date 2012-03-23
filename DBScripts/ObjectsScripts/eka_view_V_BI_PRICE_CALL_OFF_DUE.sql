@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW  V_BI_PRICE_CALL_OFF_DUE AS
+CREATE OR REPLACE VIEW V_BI_PRICE_CALL_OFF_DUE AS
 select t.corporate_id,
        t.product_id,
        t.product_name,
@@ -48,6 +48,7 @@ select t.corporate_id,
            and qum.is_active = 'Y'
            and pcdi.qp_declaration_date <= sysdate
            and pcdi.price_option_call_off_status = 'Not Called Off'
+           and pcm.contract_status <> 'Cancelled'
         union all
         select pcdi.pcdi_id,
                pcdi.delivery_item_no,
@@ -102,5 +103,5 @@ select t.corporate_id,
            and pdm.is_active = 'Y'
            and pcdi.qp_declaration_date <= sysdate
            and diqs.is_active = 'Y'
-           and qum.is_active = 'Y') t
---where t.qp_declaration_date
+           and qum.is_active = 'Y'
+           and pcm.contract_status <> 'Cancelled') t
