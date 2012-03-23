@@ -197,7 +197,7 @@ create or replace package "PKG_PHY_POPULATE_DATA" is
                                pd_trade_date   date,
                                pc_user_id      varchar2);
 
-end pkg_phy_populate_data;
+end pkg_phy_populate_data; 
 /
 create or replace package body "PKG_PHY_POPULATE_DATA" is
 
@@ -1024,6 +1024,7 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
                             'sp_phy_create_invs');
     sp_phy_create_invs(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
+begin    
 -- MITS Demo Mar 2012    
 -- Update Call of Status
 Update pci_physical_contract_item pci
@@ -1080,8 +1081,7 @@ update pci_physical_contract_item pci
        pfqpp.qp_period_to_date,
        pfqpp.qp_pricing_period_type,
        pcbpd.pcbpd_id
-  from pci_physical_contract_item    pci,
-       pcipf_pci_pricing_formula     pcipf,
+  from pcipf_pci_pricing_formula     pcipf,
        pcbph_pc_base_price_header    pcbph,
        pcbpd_pc_base_price_detail    pcbpd,
        (select * from ppfh_phy_price_formula_header t
@@ -1121,6 +1121,10 @@ update pci_physical_contract_item pci
            and pci.dbd_id = gvc_dbd_id)
  where pci.dbd_id = gvc_dbd_id
    and pci.qp_period_type = 'Event';
+ exception
+   when others then
+        null;--- this is added to handle for demo
+end;   
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
