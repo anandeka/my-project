@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_LIST_OF_TOLLING_GMR AS
+create or replace view v_list_of_tolling_gmr as
 select gmr.corporate_id as corporate_id,
        gmr.internal_gmr_ref_no as internal_gmr_ref_no,
        gmr.qty || ' ' || pkg_general.f_get_quantity_unit(gmr.qty_unit_id) as gmr_qty_string,
@@ -113,11 +113,21 @@ select gmr.corporate_id as corporate_id,
          else
           'N'
        end) is_free_material,
-       cp.deliveryitemrefno AS delivery_item_ref_no
+       cp.pcdi_id pcdi_id,
+       cp.deliveryitemrefno as delivery_item_ref_no,
+       axs.created_date,
+       (select aku_sub.login_name
+          from ak_corporate_user aku_sub
+         where aku_sub.user_id = axs.created_by) created_by,
+       axs_last.updated_date,
+       (select aku_sub.login_name
+          from ak_corporate_user aku_sub
+         where aku_sub.user_id = axs_last.created_by) updated_by
   from gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
        axm_action_master axm,
+       axs_action_summary axs_last,
        v_shm_shed_master shm,
        (select f_string_aggregate(pci.internal_contract_ref_no) internal_contract_ref_no,
                f_string_aggregate(pci.contract_ref_no) contract_ref_no,
@@ -129,7 +139,8 @@ select gmr.corporate_id as corporate_id,
                f_string_aggregate(pci.quality_name) quality_name,
                f_string_aggregate(gcim.internal_gmr_ref_no) internal_gmr_ref_no,
                pci.price_allocation_method as price_allocation_method,
-	       f_string_aggregate (pci.pcdi_id) deliveryitemrefno
+               f_string_aggregate(pci.pcdi_id) pcdi_id,
+               f_string_aggregate(pci.delivery_item_ref_no) deliveryitemrefno
           from v_pci                          pci,
                gcim_gmr_contract_item_mapping gcim
          where pci.internal_contract_item_ref_no =
@@ -151,3 +162,4 @@ select gmr.corporate_id as corporate_id,
    and gmr.internal_gmr_ref_no = cp.internal_gmr_ref_no(+)
    and nvl(gmr.tolling_gmr_type, 'None Tolling') in
        ('Mark For Tolling', 'Received Materials', 'Return Material')
+   and axs_last.internal_action_ref_no = gmr.internal_action_ref_no
