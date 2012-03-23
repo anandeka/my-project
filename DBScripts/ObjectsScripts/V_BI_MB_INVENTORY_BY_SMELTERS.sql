@@ -1,4 +1,5 @@
-CREATE OR REPLACE VIEW V_BI_MB_INVENTORY_BY_SMELTERS AS
+CREATE OR REPLACE VIEW V_BI_MB_INVENTORY_BY_SMELTERS
+AS 
 select t.corporate_id,
        t.product_id,
        t.product_name,
@@ -43,6 +44,9 @@ select t.corporate_id,
             end) debt_qty
    from grd_goods_record_detail   grd,
         gmr_goods_movement_record gmr,
+        pci_physical_contract_item pci,
+        pcdi_pc_delivery_item pcdi,
+        pcm_physical_contract_main pcm,
         ak_corporate              akc,
         spq_stock_payable_qty     spq,
         aml_attribute_master_list aml,
@@ -56,10 +60,13 @@ select t.corporate_id,
     and aml.underlying_product_id = pdm.product_id
     and pdm.base_quantity_unit = qum.qty_unit_id
     and grd.tolling_stock_type = 'Clone Stock'
+    and grd.internal_contract_item_ref_no = pci.internal_contract_item_ref_no
+    and pci.pcdi_id = pcdi.pcdi_id
+    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
     and grd.is_deleted = 'N'
     and gmr.is_deleted = 'N'
     and spq.is_active = 'Y'
-    and grd.warehouse_profile_id = phd_smelter.profileid
+    and pcm.cp_id = phd_smelter.profileid
     and grd.inventory_status = 'In'
   group by akc.corporate_id,
            akc.corporate_name,
@@ -88,6 +95,9 @@ select t.corporate_id,
         0 debt_qty
    from grd_goods_record_detail   grd,
         gmr_goods_movement_record gmr,
+        PCI_PHYSICAL_CONTRACT_ITEM pci,
+        PCDI_PC_DELIVERY_ITEM pcdi,
+        PCM_PHYSICAL_CONTRACT_MAIN pcm,
         ak_corporate              akc,
         spq_stock_payable_qty     spq,
         aml_attribute_master_list aml,
@@ -97,11 +107,14 @@ select t.corporate_id,
   where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
     and gmr.corporate_id = akc.corporate_id
     and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+     and grd.internal_contract_item_ref_no = pci.internal_contract_item_ref_no
+    and pci.pcdi_id = pcdi.pcdi_id
+    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+    and pcm.cp_id = phd_smelter.profileid
     and spq.element_id = aml.attribute_id
     and aml.underlying_product_id = pdm.product_id
     and pdm.base_quantity_unit = qum.qty_unit_id
     and grd.tolling_stock_type = 'MFT In Process Stock'
-    and grd.warehouse_profile_id = phd_smelter.profileid
     and grd.is_deleted = 'N'
     and gmr.is_deleted = 'N'
     and spq.is_active = 'Y'
@@ -132,6 +145,9 @@ select t.corporate_id,
         0
    from grd_goods_record_detail   grd,
         gmr_goods_movement_record gmr,
+        PCI_PHYSICAL_CONTRACT_ITEM pci,
+        PCDI_PC_DELIVERY_ITEM pcdi,
+        PCM_PHYSICAL_CONTRACT_MAIN pcm,
         ak_corporate              akc,
         pdm_productmaster         pdm,
         qum_quantity_unit_master  qum,
@@ -140,7 +156,10 @@ select t.corporate_id,
     and gmr.corporate_id = akc.corporate_id
     and grd.product_id = pdm.product_id
     and pdm.base_quantity_unit = qum.qty_unit_id
-    and grd.warehouse_profile_id = phd_smelter.profileid
+    and grd.internal_contract_item_ref_no = pci.internal_contract_item_ref_no
+    and pci.pcdi_id = pcdi.pcdi_id
+    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+    and pcm.cp_id = phd_smelter.profileid
     and grd.is_deleted = 'N'
     and gmr.is_deleted = 'N'
     and grd.tolling_stock_type = 'None Tolling'
@@ -173,6 +192,9 @@ select t.corporate_id,
         0 debt_qty
    from grd_goods_record_detail   grd,
         gmr_goods_movement_record gmr,
+        pci_physical_contract_item pci,
+        pcdi_pc_delivery_item pcdi,
+        pcm_physical_contract_main pcm,
         ak_corporate              akc,
         pdm_productmaster         pdm,
         qum_quantity_unit_master  qum,
@@ -180,9 +202,12 @@ select t.corporate_id,
   where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
     and gmr.corporate_id = akc.corporate_id
     and grd.tolling_stock_type = 'RM In Process Stock'
+     and grd.internal_contract_item_ref_no = pci.internal_contract_item_ref_no
+    and pci.pcdi_id = pcdi.pcdi_id
+    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+    and pcm.cp_id = phd_smelter.profileid
     and grd.product_id = pdm.product_id
     and pdm.base_quantity_unit = qum.qty_unit_id
-    and grd.warehouse_profile_id = phd_smelter.profileid
     and grd.is_deleted = 'N'
     and gmr.is_deleted = 'N'
   group by akc.corporate_id,
@@ -200,5 +225,5 @@ select t.corporate_id,
            t.qty_unit_id,
            t.qty_unit,
            t.smelter_id,
-           t.smelter_name
+           t.smelter_name;
 
