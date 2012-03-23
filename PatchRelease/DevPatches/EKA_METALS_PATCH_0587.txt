@@ -1,0 +1,42 @@
+Patch No*          		:  EKA_METALS_PATCH_0587
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  23-Mar-2012
+
+Bug / Enhancement*              :  Bug fixes
+ 
+Bug ID*            		:  N.A.
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Dashboard
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90786
+Author: sivachalabathi.s
+Date: 7:50:32 PM, Friday, March 23, 2012
+Message:
+smelters name taken from contract cp
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_INVENTORY_BY_SMELTERS.sql
