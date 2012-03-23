@@ -87,8 +87,9 @@ select 'Invoices to extent not paid' section_name,
        end) invoice_type,
        iss.invoice_cur_id invoice_cur_id,
        cm_p.cur_code invoice_cur_code,
-       round(iss.total_amount_to_pay, 4) * nvl(iss.fx_to_base, 1) *
-       (case
+       case
+          when ivd.internal_invoice_ref_no is null then
+           round(iss.total_amount_to_pay, 4) * nvl(iss.fx_to_base, 1) * (case
           when nvl(iss.payable_receivable, 'NA') = 'Payable' then
            -1
           when nvl(iss.payable_receivable, 'NA') = 'Receivable' then
@@ -107,7 +108,39 @@ select 'Invoices to extent not paid' section_name,
            -1
           else
            1
-        end) end) else 1 end) invoice_amount_in_base_cur,
+        end) end) else 1 end) else ivd.vat_amount_in_vat_cur * (case
+         when nvl(iss.payable_receivable,
+                  'NA') =
+              'Payable' then
+          -1
+         when nvl(iss.payable_receivable,
+                  'NA') =
+              'Receivable' then
+          1
+         when nvl(iss.payable_receivable,
+                  'NA') = 'NA' then
+          (case
+         when nvl(iss.invoice_type_name,
+                  'NA') =
+              'ServiceInvoiceReceived' then
+          -1
+         when nvl(iss.invoice_type_name,
+                  'NA') =
+              'ServiceInvoiceRaised' then
+          1
+         else
+          (case
+         when nvl(iss.recieved_raised_type,
+                  'NA') =
+              'Raised' then
+          1
+         when nvl(iss.recieved_raised_type,
+                  'NA') =
+              'Received' then
+          -1
+         else
+          1
+       end) end) else 1 end) end invoice_amount_in_base_cur,
        round(iss.total_amount_to_pay, 4) * case
          when (iss.invoice_type = 'Commercial' or
               iss.invoice_type = 'DebitCredit') then
@@ -128,22 +161,25 @@ select 'Invoices to extent not paid' section_name,
        iss.invoice_issue_date activity_date,
        iss.payment_due_date cash_flow_date,
        iss.invoice_type_name invoice_name
-  from is_invoice_summary            iss,
-       cm_currency_master            cm_p,
+  from is_invoice_summary iss,
+       cm_currency_master cm_p,
        incm_invoice_contract_mapping incm,
-       pcm_physical_contract_main    pcm,
-       ak_corporate                  akc,
-       cpc_corporate_profit_center   cpc,
-       cpc_corporate_profit_center   cpc1,
-       pcpd_pc_product_definition    pcpd,
-       cm_currency_master            cm_akc_base_cur,
-       css_corporate_strategy_setup  css,
-       blm_business_line_master      blm,
-       pdm_productmaster             pdm,
-       pgm_product_group_master      pgm,
-       phd_profileheaderdetails      phd_contract_cp,
-       ak_corporate_user             akcu,
-       gab_globaladdressbook         gab
+       pcm_physical_contract_main pcm,
+       ak_corporate akc,
+       cpc_corporate_profit_center cpc,
+       cpc_corporate_profit_center cpc1,
+       pcpd_pc_product_definition pcpd,
+       cm_currency_master cm_akc_base_cur,
+       css_corporate_strategy_setup css,
+       blm_business_line_master blm,
+       pdm_productmaster pdm,
+       pgm_product_group_master pgm,
+       phd_profileheaderdetails phd_contract_cp,
+       ak_corporate_user akcu,
+       gab_globaladdressbook gab,
+       (select *
+          from ivd_invoice_vat_details ivd
+         where ivd.is_separate_invoice = 'Y') ivd
  where iss.is_active = 'Y'
    and iss.corporate_id is not null
    and iss.internal_invoice_ref_no = incm.internal_invoice_ref_no(+)
@@ -167,6 +203,7 @@ select 'Invoices to extent not paid' section_name,
    and cm_akc_base_cur.cur_id = akc.base_cur_id
    and pcpd.strategy_id = css.strategy_id(+)
    and iss.total_amount_to_pay <> 0
+   and iss.internal_invoice_ref_no = ivd.internal_invoice_ref_no(+)
 -- 2. OTC invoices
 UNION ALL
 SELECT 'OTC invoices',
