@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_DEMO_003
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  23-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  62992,63143
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Online Reports / BI
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90764
+
+Cash Flow : Changed Invoice Status Check to Is Active Check
+Exposure By Trade : Qty Conversion plus Date from PFD As of Date where applicable
+CP Risk By Credit Limit  : Changed Invoice Status Check to Is Active Check
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_CPRISK_CREDIT_LIMIT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_EXPOSURE_BY_TRADE.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_CASH_FLOW.sql
+
+
