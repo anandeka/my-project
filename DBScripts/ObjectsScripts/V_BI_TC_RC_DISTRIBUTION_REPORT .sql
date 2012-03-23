@@ -71,7 +71,8 @@ select supplier.supplier_invoive_no,
                    and iss.internal_invoice_ref_no =
                        invoice.internal_invoice_ref_no
                    and iid.invoice_currency_id = cm.cur_id
-                   and pcm.cp_id = phd.profileid) test
+                   and pcm.cp_id = phd.profileid
+                   and iss.invoice_type_name ='Final') test
          group by test.supplier_invoive_no,
                   test.supplier_invoice_date,
                   test.supplier_contract_ref_no,
@@ -139,7 +140,8 @@ select supplier.supplier_invoive_no,
                    and iss.internal_invoice_ref_no =
                        invoice.internal_invoice_ref_no
                    and iid.invoice_currency_id = cm.cur_id
-                   and pcm.cp_id = phd.profileid) test
+                   and pcm.cp_id = phd.profileid
+                   and iss.invoice_type_name ='Final') test
          group by test.smelter_invoive_no,
                   test.smelter_invoice_date,
                   test.smelter_contract_ref_no,
