@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0590
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  24-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  N.A.
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Minining Contract
+Sub-Module  			 :  Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90821
+Author: sishir.pagada
+Date: 4:28:12 PM, Saturday, March 24, 2012
+Message:
+Buy/Sell service change...
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+
+
+
+
