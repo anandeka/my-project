@@ -1,0 +1,41 @@
+Patch No*          		:  EKA_METALS_PATCH_DEMO_010
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  24-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  IM valuation Incoterm hard coded as CIF
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 90830
+Internal Movement Incoterm is absent hard coded as ITM-38(CIF)
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_PRE_CHECK_PROCESS.sql
+
+
