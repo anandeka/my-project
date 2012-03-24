@@ -128,7 +128,8 @@ SELECT gmr.corporate_id,
        gmr.tolling_qty tolling_qty,
        cp.price_allocation_method,
        to_char(vd.eta,'dd-Mon-yyyy') eta,
-       gmr.mode_of_transport 
+       gmr.mode_of_transport ,
+       GMR.WNS_STATUS WNS_STATUS 
 FROM   gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
