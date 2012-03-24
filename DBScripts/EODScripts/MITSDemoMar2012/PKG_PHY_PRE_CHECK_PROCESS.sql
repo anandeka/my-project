@@ -133,7 +133,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
-end; 
+end;
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -1545,6 +1545,11 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  pd_trade_date,
                  'Precheck M2M',
                  gvc_process || ' - M2M-010 @' || systimestamp);
+    -- MITS Demo if incoterm is null then consider as CIF
+    update tmpc_temp_m2m_pre_check tmpc
+       set tmpc.valuation_incoterm_id = 'ITM-38'
+     where tmpc.valuation_incoterm_id is null
+       and tmpc.corporate_id = pc_corporate_id;
   
     insert into eel_eod_eom_exception_log
       (corporate_id,
@@ -7563,5 +7568,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end; 
+end;
 /
