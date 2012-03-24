@@ -426,9 +426,9 @@ BEGIN
      THEN
       IF (contracttype = 'P')
         THEN
-            contractservicetype :='Buy Tolling Services';
-        ELSE
             contractservicetype :='Sell Tolling Services';
+        ELSE
+            contractservicetype :='Buy Tolling Services';
         END IF;
 
     display_order := display_order + 1;
