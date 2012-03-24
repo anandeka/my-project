@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_DEMO_009
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  24-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : APP
+==================================================================
+APP DB SQL Files:
+=================
+Revision: 90805
+Author: sivachalabathi.s
+Date: 12:52:44 PM, Saturday, March 24, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_spread_report_graph.sql
+
+JS Files:
+-----------
+risk-exposure-store.js file Attached in Mail
+
