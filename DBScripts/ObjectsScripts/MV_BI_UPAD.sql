@@ -1,5 +1,4 @@
-DROP table MV_BI_UPAD;
-DROP materialized view MV_BI_UPAD;
+drop materialized view MV_BI_UPAD;
 create materialized view MV_BI_UPAD
 refresh force on demand
 as
@@ -10,7 +9,7 @@ select tdc.corporate_id,
        product_name,
        attribution_main_type attribution_type,
        attribution_order,
-       contract_ref_no,
+       contract_ref_no ||'-' ||del_distribution_item_no contract_ref_no ,
        contract_type,
        base_cur_code,
        base_cur_id,
@@ -30,10 +29,10 @@ select tdc.corporate_id,
        end) delta_pnlc_in_base,
        nvl(net_pnlc_in_base, 0) net_pnlc_in_base
   from upad_unreal_pnl_attr_detail@eka_eoddb upad,
-       tdc_trade_date_closure@eka_eoddb tdc
-    where tdc.process = 'EOD'
-    and tdc.corporate_id = upad.corporate_id
-    and tdc.process_id = upad.process_id
+       tdc_trade_date_closure@eka_eoddb      tdc
+ where tdc.process = 'EOD'
+   and tdc.corporate_id = upad.corporate_id
+   and tdc.process_id = upad.process_id
 /*where (upad.corporate_id, upad.trade_date) =
        (select tdc.corporate_id,
                max(tdc.trade_date)
