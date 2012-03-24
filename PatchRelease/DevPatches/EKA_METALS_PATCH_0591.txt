@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0590
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  24-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  N.A.
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90833
+Author: anandp
+Date: 6:18:42 PM, Saturday, March 24, 2012
+Message:
+For container charges.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_235.sql
+
+
+
+
+
+
