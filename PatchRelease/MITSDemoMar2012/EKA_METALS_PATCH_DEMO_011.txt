@@ -1,0 +1,42 @@
+Patch No*          		:  EKA_METALS_PATCH_DEMO_011
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  25-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 90837
+Author: sivachalabathi.s
+Date: 9:02:50 AM, Sunday, March 25, 2012
+Message:
+spot price for qp end date older than the eod date
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/PKG_PHY_PRE_CHECK_PROCESS.sql
