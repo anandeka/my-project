@@ -133,7 +133,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
-end;
+end; 
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -1146,6 +1146,12 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          set tmpc.qp_end_date = cur_pofh.qp_end_date
        where tmpc.internal_gmr_ref_no = cur_pofh.internal_gmr_ref_no;
     end loop;
+  -- MITS Demo Mar 2012
+    update tmpc_temp_m2m_pre_check tmpc
+       set tmpc.qp_end_date = pd_trade_date
+     where tmpc.corporate_id = pc_corporate_id
+       and tmpc.qp_end_date <= pd_trade_date;
+commit;           
     --Updating the tmpc table
     --By setting the valuatin_dr_id
     --It is checking for not Fixed contract
@@ -7568,5 +7574,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end;
+end; 
 /
