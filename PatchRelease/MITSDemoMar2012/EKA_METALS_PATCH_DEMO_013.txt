@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_DEMO_013
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  27-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  On line Reports
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90932
+Author: sivachalabathi.s
+Date: 12:28:34 AM, Tuesday, March 27, 2012
+Message:
+trades card report
+----
+1) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_traders_card_calender.sql
+2) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_traders_card_expected_qp.sql
+3) Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_trades_card_report.sql
