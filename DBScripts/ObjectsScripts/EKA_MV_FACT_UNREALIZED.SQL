@@ -1,26 +1,10 @@
 DROP  MATERIALIZED VIEW MV_FACT_UNREALIZED;
 CREATE MATERIALIZED VIEW MV_FACT_UNREALIZED 
 TABLESPACE EKA_DATA
-PCTUSED    0
-PCTFREE    10
-INITRANS   2
-MAXTRANS   255
-STORAGE    (
-            INITIAL          64K
-            MINEXTENTS       1
-            MAXEXTENTS       UNLIMITED
-            PCTINCREASE      0
-            BUFFER_POOL      DEFAULT
-           )
-NOCACHE
-LOGGING
-NOCOMPRESS
-NOPARALLEL
-BUILD IMMEDIATE
+BUILD IMMEDIATE 
 REFRESH FORCE ON DEMAND
 WITH PRIMARY KEY
 AS 
-/* Formatted on 2012/03/26 12:57 (Formatter Plus v4.8.8) */
 SELECT mvp.corporate_id, mvp.corporate_name, mvp.product_type,
        mvp.profit_center_id, mvp.profit_center, mvp.strategy_id,
        mvp.strategy_name, mvp.product_id, mvp.product_name, mvp.quality_id,
@@ -115,5 +99,3 @@ SELECT mvd.corporate_id, mvd.corporate_name, mvd.product_type,
        mvd.base_cur_id, mvd.base_cur_code,
        to_number(TO_CHAR (mvd.eod_date, 'yyyymmdd')) DATE_TO_NUMBER
   FROM mv_fact_derivative_unrealized mvd;
-
-
