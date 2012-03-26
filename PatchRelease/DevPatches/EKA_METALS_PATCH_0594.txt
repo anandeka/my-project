@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0594
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja
+ 
+Created on*        		:  26-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  63006
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90910
+Author: elaiyaraja.nallathambi
+Date: 6:50:46 PM, Monday, March 26, 2012
+Message:
+Bug Fixes: 63006
+----
+Modified : /7.3/Engg/Metals/Code/Reports/PriceFixationDocument.rpt
+
