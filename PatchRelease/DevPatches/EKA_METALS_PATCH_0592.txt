@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_0592
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir
+ 
+Created on*        		:  26-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  N.A.
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Mining
+Sub-Module  			 :  Output Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90883
+Author: sishir.pagada
+Date: 4:13:10 PM, Monday, March 26, 2012
+Message:
+delivery details with commercial fee and premium.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETDELIVERYDETAILSWITHCOMFEE.sql
+=================================
+
+Revision: 90886
+Author: sishir.pagada
+Date: 4:22:28 PM, Monday, March 26, 2012
+Message:
+delivery details with commercial fee and premium.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+
+
+
+
+
+
