@@ -41,6 +41,7 @@ IS
    passthroughdetails         VARCHAR2 (10);
    inputoutputproduct         VARCHAR2 (50);
    inputoutputquality         VARCHAR2 (50);
+   iscommercialfeeapplied     VARCHAR2 (1);
 
 
 
@@ -63,11 +64,11 @@ BEGIN
       SELECT TO_CHAR (pcm.issue_date, 'dd-Mon-YYYY'), pcm.contract_ref_no,
              NVL (pcm.cp_contract_ref_no, 'NA'), ak.corporate_name,
              ak.corporate_id, pcm.purchase_sales, phd.companyname,
-             pcm.cp_id, pcm.product_group_type, pcm.partnership_type, pcm.is_tolling_contract
+             pcm.cp_id, pcm.product_group_type, pcm.partnership_type, pcm.is_tolling_contract,pcm.is_commercial_fee_applied
         INTO issuedate, contractrefno,
              cpcontractrefno, corporatename,
              corporateid, contracttype, counterparty,
-             cpid, product_group_type, executiontype, istollingcontract
+             cpid, product_group_type, executiontype, istollingcontract,iscommercialfeeapplied
         FROM pcm_physical_contract_main pcm,
              ak_corporate ak,
              phd_profileheaderdetails phd
@@ -87,6 +88,7 @@ BEGIN
          cpid := '';
          product_group_type := '';
          istollingcontract :='';
+         iscommercialfeeapplied :='';
    END;
 
    IF (contracttype = 'P')
@@ -604,9 +606,40 @@ BEGIN
                 'N', 'FULL', 'N'
                );
    END IF;
+   
+   IF (iscommercialfeeapplied = 'Y')
+    THEN
+        FOR delivery_rec IN cr_delivery
+       LOOP
+          display_order := display_order + 1;
 
-   FOR delivery_rec IN cr_delivery
-   LOOP
+      INSERT INTO cod_contract_output_detail
+                  (doc_id, display_order, field_layout_id, section_name,
+                   field_name,
+                   is_print_reqd, pre_content_text_id, post_content_text_id,
+                   contract_content,
+                   pre_content_text, post_content_text, is_custom_section,
+                   is_footer_section, is_amend_section, print_type,
+                   is_changed
+                  )
+           VALUES (docid, display_order, NULL, 'Time of Shipment',
+                   'Delivery Item:' || delivery_rec.delivery_item_ref_no,
+                   'Y', NULL, NULL,
+                   getdeliverydetailswithcomfee (p_contractno,
+                                             delivery_rec.pcdi_id,
+                                             cpid
+                                            ),
+                   NULL, NULL, 'N',
+                   'N', 'N', 'FULL',
+                   'N'
+                  );
+    END LOOP;
+   
+   ELSE
+
+    FOR delivery_rec IN cr_delivery
+        LOOP
+         
       display_order := display_order + 1;
 
       INSERT INTO cod_contract_output_detail
@@ -628,7 +661,9 @@ BEGIN
                    'N', 'N', 'FULL',
                    'N'
                   );
-   END LOOP;
+    END LOOP;
+   
+   END IF;
 
    BEGIN
       SELECT pcm.del_schedule_comments
