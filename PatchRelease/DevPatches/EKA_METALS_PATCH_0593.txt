@@ -35,13 +35,8 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 
-Revision: 90891
-Message:
 Physical Position Manager Order Delivery Month Column
 PNL manager Order EOD Date
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_236.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_MV_FACT_UNREALIZED.SQL
-
-
-
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_236.sql (Revision: 90891)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_MV_FACT_UNREALIZED.SQL(Revision: 90898)
