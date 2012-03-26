@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_DEMO_012
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  26-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  On line Reports
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 90851
+Updated views for Position Manager, Exposure and CRC 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/V_BI_RECENT_TRADES_BY_PRODUCT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/V_BI_EXPOSURE_BY_MONTHLY.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/V_BI_PHY_POSITION_MGR.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_bi_cprisk_crc_limits.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/MITSDemoMar2012/v_bi_exposure_by_product.sql
+
+
