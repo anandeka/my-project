@@ -1,6 +1,7 @@
-CREATE OR REPLACE PROCEDURE generatePriceFixationDocument(p_pfd_id      VARCHAR2,
-                                                          p_docrefno    VARCHAR2,
-                                                          p_activity_id VARCHAR2) IS
+CREATE OR REPLACE PROCEDURE "GENERATEPRICEFIXATIONDOCUMENT"(p_pfd_id      VARCHAR2,
+                                                            p_docrefno    VARCHAR2,
+                                                            p_activity_id VARCHAR2,
+                                                            p_doc_issue_date VARCHAR2) IS
 
   corporate_name       VARCHAR2(100);
   cp_address           VARCHAR2(100);
@@ -25,6 +26,7 @@ CREATE OR REPLACE PROCEDURE generatePriceFixationDocument(p_pfd_id      VARCHAR2
   quantity_unit        VARCHAR2(30);
   price_type           VARCHAR2(20);
   p_pofh_id            VARCHAR2(20);
+  is_delta_pricing     VARCHAR2(10);
 
 BEGIN
 
@@ -234,7 +236,8 @@ BEGIN
      GMR_REF_NO,
      QP,
      CURRENCY_PRODUCT,
-     QUANTITY_UNIT)
+     QUANTITY_UNIT,
+     DOC_ISSUE_DATE)
   VALUES
     (p_docrefno,
      corporate_name,
@@ -257,7 +260,14 @@ BEGIN
      gmr_ref_no,
      qp,
      currency_product,
-     quantity_unit);
+     quantity_unit,
+     p_doc_issue_date);
+
+  /** Check if delta pricing exist for that pfd  */
+  select nvl(pfd.is_delta_pricing,'N')
+    into is_delta_pricing
+    from pfd_price_fixation_details pfd
+   where pfd.pfd_id = p_pfd_id;
 
   /** Get the price type and based on that insert into child  */
   select (case
@@ -286,7 +296,7 @@ BEGIN
      and ppfh.ppfh_id = pfqpp.ppfh_id
      and pfd.pfd_id = p_pfd_id;
 
-  if (price_type = 'Average') then
+  if (price_type = 'Average' and is_delta_pricing = 'N') then
   
     Insert into PFD_CHILD_D
       (PFD_ID,
@@ -307,12 +317,12 @@ BEGIN
               PFD.QTY_FIXED as PRICED_QUANTITY,
               PFD.FX_RATE as FX_RATE,
               price_type
-         from pfd_price_fixation_details    pfd,
+         from pfd_price_fixation_details     pfd,
               pofh_price_opt_fixation_header pofh,
-              PPU_PRODUCT_PRICE_UNITS       ppu,
-              PUM_PRICE_UNIT_MASTER         pum,
-              pfam_price_fix_action_mapping pfam,
-              axs_action_summary            axs
+              PPU_PRODUCT_PRICE_UNITS        ppu,
+              PUM_PRICE_UNIT_MASTER          pum,
+              pfam_price_fix_action_mapping  pfam,
+              axs_action_summary             axs
         where pfd.pofh_id = pofh.pofh_id
           and pfam.internal_action_ref_no = axs.internal_action_ref_no
           AND pfd.pfd_id = pfam.pfd_id
@@ -320,6 +330,7 @@ BEGIN
           and PPU.PRICE_UNIT_ID = PUM.PRICE_UNIT_ID
           AND pfd.is_active = 'Y'
           and pfam.is_active = 'Y'
+          and (pfd.is_delta_pricing is null or pfd.is_delta_pricing != 'Y')
           AND pofh.pofh_id = p_pofh_id);
   
   else
@@ -358,3 +369,4 @@ BEGIN
   end if;
 
 END;
+/
