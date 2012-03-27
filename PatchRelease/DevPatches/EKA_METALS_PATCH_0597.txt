@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_0597
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  24-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  N.A.
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Price fixation
+Sub-Module  			 :  Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 90973
+Author: sriveenam
+Date: Tuesday, March 27, 2012 4:58:22 PM
+Message:
+added for delta pricing and doc issue date
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_251.sql
+
+Revision: 90971
+Author: sriveenam
+Date: Tuesday, March 27, 2012 4:56:46 PM
+Message:
+added for delta pricing and dos issue date
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_237.sql
+
+Revision: 90970
+Author: sriveenam
+Date: Tuesday, March 27, 2012 4:54:44 PM
+Message:
+added for delta pricing
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+
+
+
+
