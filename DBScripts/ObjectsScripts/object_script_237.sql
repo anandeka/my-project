@@ -1,0 +1,1 @@
+alter table pfd_d add doc_issue_date varchar2(50);
