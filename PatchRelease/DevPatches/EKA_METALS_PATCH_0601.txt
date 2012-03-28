@@ -1,0 +1,66 @@
+Patch No*          		:  EKA_METALS_PATCH_0601
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Venu/Saurab Raj
+ 
+Created on*        		:  28-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  N.A.
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91063
+Author: sivachalabathi.s
+Date: 3:35:05 PM, Wednesday, March 28, 2012
+Message:
+bug fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_CDC_FORMULA_BUILDER.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exp_conc.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_YIELD_BY_SMELTERS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_exposure_by_product.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_feed.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_stock.sql
+
+RPT Files:
+---------
+Author: sivachalabathi.s
+Date: 3:37:11 PM, Wednesday, March 28, 2012
+Message:
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt	(Revision: 91064)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt	(Revision: 91067)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AgingReport_Excel.rpt		(Revision: 90959)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt	(Revision: 90959)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition_Excel.rpt		(Revision: 90959)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricingDerivative_Excel.rpt	(Revision: 90959)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing_Excel.rpt			(Revision: 90959)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativesRealizedPnLReport_Excel.rpt	(Revision: 90922)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyDerivativesRealizedPnLReport_Excel.rpt	(Revision: 90922)
