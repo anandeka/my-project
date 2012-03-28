@@ -2,7 +2,7 @@ Patch No*          		:  EKA_METALS_PATCH_0601
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Venu/Saurab Raj
+Created by*        		:  Venu/Saurab Raj/Ashok
  
 Created on*        		:  28-Mar-2012
 
@@ -64,3 +64,6 @@ Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/Pos
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing_Excel.rpt			(Revision: 90959)
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativesRealizedPnLReport_Excel.rpt	(Revision: 90922)
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyDerivativesRealizedPnLReport_Excel.rpt	(Revision: 90922)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YTDMTDYIELD.rpt		(Revision: 91071)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YTDMTDYIELD_Excel.rpt	(Revision: 91071)
+
