@@ -1,10 +1,10 @@
-CREATE OR REPLACE VIEW V_BI_MB_YIELD_BY_SMELTERS AS
+create or replace view v_bi_mb_yield_by_smelters as
 with free_metal_stock as
 (select grd.internal_gmr_ref_no,
        round(sum(grd.total_qty * ucm.multiplication_factor), 5) free_metal_qty,
        grd.element_id,
        pdm.product_id,
-       pdm.product_desc,
+       pdm.product_desc product_name,--Bug 63266 Fix added alias name
        qum.qty_unit_id,
        qum.qty_unit,
        pcm.cp_id smelter_id,
@@ -37,9 +37,9 @@ with free_metal_stock as
           pcm.cp_id,
           phd.companyname
 )
-select gmr.corporate_id corporate_id, 
+select gmr.corporate_id corporate_id,
        pdm.product_id,
-       pdm.product_desc,
+       pdm.product_desc product_name,--Bug 63266 Fix added alias name
        grd.smelter_id,
        grd.smelter_name,
        ypd.yield_pct yield_percentage,
@@ -62,7 +62,7 @@ select gmr.corporate_id corporate_id,
    and ypd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
    and ypd.element_id = aml.attribute_id
    and aml.underlying_product_id = pdm.product_id(+)
-   and to_char(agmr.eff_date, 'Mon-yyyy') = to_char(sysdate, 'Mon-yyyy')
+  -- and to_char(agmr.eff_date, 'Mon-yyyy') = to_char(sysdate, 'Mon-yyyy')
    and gmr.is_deleted = 'N'
    and agmr.qty_unit_id = qum.qty_unit_id
    and ypd.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -70,7 +70,7 @@ select gmr.corporate_id corporate_id,
    and aml.is_active = 'Y'
    and pdm.is_active = 'Y'
    and agmr.action_no = '1'
-  group by gmr.corporate_id, 
+  group by gmr.corporate_id,
        pdm.product_id,
        pdm.product_desc,
        grd.smelter_id,
@@ -80,3 +80,4 @@ select gmr.corporate_id corporate_id,
        grd.qty_unit,
        to_char(agmr.eff_date, 'yyyy'),
        to_char(agmr.eff_date, 'Mon')
+/

@@ -5,7 +5,7 @@ select tt.corporate_id,
        tt.reference_no,
        tt.activity,
        tt.cp_id,
-       tt.cpname,
+       tt.cpname cp_name,--Bug 63266 Fix added alias name
        tt.quantity,
        tt.base_qty_unit_id,
        tt.base_qty_unit,
@@ -97,4 +97,5 @@ select tt.corporate_id,
            and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
            and pcm.cp_id = phd.profileid
            and t.qty_unit_id = qum.qty_unit_id) tt
- where tt.order_id <= 5
+ where tt.order_id <= 5 
+/

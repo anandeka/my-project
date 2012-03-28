@@ -5,10 +5,11 @@ select t2.corporate_id,
        t2.action_ref_no reference_no,
        t2.activity,
        t2.cp_id,
-       t2.cpname,
+       t2.cpname cp_name,--Bug 63266 Fix added alias name
        t2.qty quantity,
        t2.qty_unit_id base_qty_unit_id,
-       t2.qty_unit base_qty_unit
+       t2.qty_unit base_qty_unit,
+       t2.order_seq order_id--Bug 63266 Fix added column
   from (select t1.product_id,
                t1.corporate_id,
                t1.internal_grd_ref_no,
@@ -212,4 +213,5 @@ select t2.corporate_id,
                        pcm.internal_contract_ref_no
                    and pcm.cp_id = phd.profileid
                    and t.qty_unit_id = qum.qty_unit_id) t1) t2
- where t2.order_seq < 6;
+ where t2.order_seq < 6 
+/

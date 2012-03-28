@@ -10,12 +10,12 @@ select t.corporate_id,
        sum(t.hedge_quantity) hedge_quantity,
        sum(t.strategic_quantity) strategic_quantity,
        sum(t.net_derivative_quantity) net_derivative_quantity,
-       sum(t.net_risk_quantity) net_risk_quantity,
+       --Bug 63346 fix start
+       --sum(t.net_risk_quantity) net_risk_quantity,
+       sum(t.price_fixed_quantity)+sum(t.net_derivative_quantity) net_risk_quantity,
+       --Bug 63346 fix end
        t.base_qty_unit_id,
-       t.base_qty_unit,
-       cm.cur_code || '/' || t.base_qty_unit quotes_unit,
-       cm.cur_id base_cur_id,
-       cm.cur_code base_cur_code
+       t.base_qty_unit
   from (select vph.corporate_id,
                vph.product_id,
                vph.productname product_name,
@@ -93,17 +93,12 @@ select t.corporate_id,
                   drt.qty_unit_id,
                   drt.qty_unit,
                   drt.instrument_id,
-                  drt.instrument_name) t,
-       ak_corporate akc,
-       cm_currency_master cm
- where t.corporate_id = akc.corporate_id
-   and akc.base_cur_id = cm.cur_id
+                  drt.instrument_name) t
  group by t.corporate_id,
           t.product_id,
           t.product_name,
           t.instrument_id,
           t.instrument_name,
           t.base_qty_unit_id,
-          t.base_qty_unit,
-          cm.cur_id,
-          cm.cur_code
+          t.base_qty_unit 
+/

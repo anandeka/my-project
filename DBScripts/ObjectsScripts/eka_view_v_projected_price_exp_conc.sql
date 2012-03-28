@@ -1,4 +1,5 @@
-create or replace view v_projected_price_exp_conc as
+CREATE OR REPLACE VIEW V_PROJECTED_PRICE_EXP_CONC
+AS 
 --For Concentrates
 with pofh_header_data as( select *
   from pofh_price_opt_fixation_header pofh
@@ -171,7 +172,7 @@ select ak.corporate_id,
    and ppu.price_unit_id = pum.price_unit_id(+)
    and pcm.is_active = 'Y'
    and pcm.contract_type = 'CONCENTRATES'
-   and pcm.approval_status = 'Approved'
+   and (case when pcm.is_tolling_contract ='Y' then 'Approved' else   pcm.approval_status end) = 'Approved'
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
@@ -333,7 +334,7 @@ select ak.corporate_id,
    and pcdi.pcdi_id = dipq.pcdi_id
    and poch.element_id = dipq.element_id
    and pcm.contract_type = 'CONCENTRATES'
-   and pcm.approval_status = 'Approved'
+   and (case when pcm.is_tolling_contract ='Y' then 'Approved' else   pcm.approval_status end) = 'Approved'
    and pcdi.is_active = 'Y'
    and nvl(gmr.is_deleted, 'N') = 'N'
    and pdm.is_active = 'Y'
@@ -550,7 +551,7 @@ select ak.corporate_id,
    and pcdi.pcdi_id = dipq.pcdi_id
    and poch.element_id = dipq.element_id   
    and pcm.contract_type = 'CONCENTRATES'
-   and pcm.approval_status = 'Approved'
+   and (case when pcm.is_tolling_contract ='Y' then 'Approved' else   pcm.approval_status end) = 'Approved'
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
@@ -710,7 +711,7 @@ select ak.corporate_id,
    and pcdi.pcdi_id = dipq.pcdi_id
    and poch.element_id = dipq.element_id   
    and pcm.contract_type = 'CONCENTRATES'
-   and pcm.approval_status = 'Approved'
+   and (case when pcm.is_tolling_contract ='Y' then 'Approved' else   pcm.approval_status end) = 'Approved'
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
@@ -884,7 +885,7 @@ select ak.corporate_id,
    and poch.element_id = dipq.element_id   
    and pfqpp.is_qp_any_day_basis = 'Y'
    and pcm.contract_type = 'CONCENTRATES'
-   and pcm.approval_status = 'Approved'
+   and (case when pcm.is_tolling_contract ='Y' then 'Approved' else   pcm.approval_status end) = 'Approved'
    and pcm.contract_status <> 'Cancelled'
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and cipq.element_id = poch.element_id
@@ -1087,7 +1088,7 @@ select ak.corporate_id,
    and pcdi.pcdi_id = dipq.pcdi_id
    and pfqpp.is_qp_any_day_basis = 'Y'
    and pcm.contract_type = 'CONCENTRATES'
-   and pcm.approval_status = 'Approved'
+   and (case when pcm.is_tolling_contract ='Y' then 'Approved' else   pcm.approval_status end) = 'Approved'
    and pcm.contract_status <> 'Cancelled'
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N' --added to handle spot as separate
    and cipq.element_id = poch.element_id
@@ -1159,4 +1160,5 @@ select ak.corporate_id,
           pfqpp.qp_date,
           dipq.is_price_optionality_present,
           dipq.price_option_call_off_status,
-          qat.quality_name 
+          qat.quality_name;
+
