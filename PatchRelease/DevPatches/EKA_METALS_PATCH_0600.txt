@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0600
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  28-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  N.A.
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91058
+Author: girishkv
+Date: 2:44:42 PM, Wednesday, March 28, 2012
+Message:
+Bug Fixing,Updated fetch query in DGM table.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_252.sql
+
+
+
