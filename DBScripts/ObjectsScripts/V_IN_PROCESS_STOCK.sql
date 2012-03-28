@@ -1,4 +1,4 @@
-create or replace view v_in_process_stock as
+CREATE OR REPLACE VIEW V_IN_PROCESS_STOCK AS
 select ips_temp.corporate_id,
        ips_temp.internal_grd_ref_no,
        ips_temp.stock_ref_no,
@@ -136,7 +136,6 @@ select ips_temp.corporate_id,
            and grd_cloned.is_deleted = 'N'
            and grd_cloned.status = 'Active'
            and pdm_consc.product_id = grd_cloned.product_id
-        
         union
         select gmr.corporate_id,
                grd.internal_grd_ref_no,
@@ -175,6 +174,7 @@ select ips_temp.corporate_id,
                gmr.is_pass_through is_pass_through,
                (aml.attribute_name || '/' || pdm_parent.product_desc) element_by_product,
                grd_parent.internal_stock_ref_no input_stock_ref_no
+        
           from grd_goods_record_detail      grd,
                grd_goods_record_detail      grd_parent,
                pdm_productmaster            pdm_parent,
@@ -209,13 +209,13 @@ select ips_temp.corporate_id,
            and axs.internal_action_ref_no(+) = gam.internal_action_ref_no
            and axs.status(+) = 'Active'
            and axm.action_id(+) = axs.action_id
-           and grd_parent.internal_grd_ref_no = grd.internal_grd_ref_no
-           and grd_parent.is_deleted = 'N'
-           and grd_parent.status = 'Active'
-           and pdm_parent.product_id = grd_parent.product_id
+           and grd_parent.internal_grd_ref_no(+) =
+               grd.parent_internal_grd_ref_no
+           and grd_parent.is_deleted(+) = 'N'
+           and grd_parent.status(+) = 'Active'
+           and pdm_parent.product_id(+) = grd_parent.product_id
         
         union
-        
         select agmr.corporate_id,
                agrd.internal_grd_ref_no,
                agrd.internal_stock_ref_no stock_ref_no,
@@ -298,57 +298,56 @@ select ips_temp.corporate_id,
            and agrd_cloned.is_deleted = 'N'
            and agrd_cloned.status = 'Active'
            and pdm_consc.product_id = agrd_cloned.product_id
-        
         /* union
-                                                
+                      
         select sbs.corporate_id,
-             sbs.sbs_id internal_grd_ref_no,
-             '' stock_ref_no,
-             '' internal_gmr_ref_no,
-             '' gmr_ref_no,
-             '' action_id,
-             '' action_name,
-             '' internal_action_ref_no,
-             sbs.activity_date,
-             '' action_ref_no,
-             '' internal_contract_item_ref_no,
-             '' contract_item_ref_no,
-             '' pcdi_id,
-             '' delivery_item_ref_no,
-             '' internal_contract_ref_no,
-             '' contract_ref_no,
-             sbs.smelter_cp_id smelter_cp_id,
-             phd.companyname smelter_cp_name,
-             sbs.product_id,
-             pdm.product_desc product_name,
-             sbs.quality_id,
-             qat.quality_name,
-             sbs.element_id,
-             aml.attribute_name element_name,
-             sbs.warehouse_profile_id,
-             shm.companyname as warehouse,
-             sbs.shed_id,
-             shm.shed_name,
-             nvl(sbs.qty, 0) as stock_qty,
-             pkg_general.f_get_quantity_unit(sbs.qty_unit_id) as qty_unit,
-             sbs.qty_unit_id as qty_unit_id,
-             'Returnable' payable_returnable_type,
-             'Base Stock' tolling_stock_type,
-             '' assay_content_qty,
-             '' is_pass_through,
-             '' element_by_product,
-             '' input_stock_ref_no
+        sbs.sbs_id internal_grd_ref_no,
+        '' stock_ref_no,
+        '' internal_gmr_ref_no,
+        '' gmr_ref_no,
+        '' action_id,
+        '' action_name,
+        '' internal_action_ref_no,
+        sbs.activity_date,
+        '' action_ref_no,
+        '' internal_contract_item_ref_no,
+        '' contract_item_ref_no,
+        '' pcdi_id,
+        '' delivery_item_ref_no,
+        '' internal_contract_ref_no,
+        '' contract_ref_no,
+        sbs.smelter_cp_id smelter_cp_id,
+        phd.companyname smelter_cp_name,
+        sbs.product_id,
+        pdm.product_desc product_name,
+        sbs.quality_id,
+        qat.quality_name,
+        sbs.element_id,
+        aml.attribute_name element_name,
+        sbs.warehouse_profile_id,
+        shm.companyname as warehouse,
+        sbs.shed_id,
+        shm.shed_name,
+        nvl(sbs.qty, 0) as stock_qty,
+        pkg_general.f_get_quantity_unit(sbs.qty_unit_id) as qty_unit,
+        sbs.qty_unit_id as qty_unit_id,
+        'Returnable' payable_returnable_type,
+        'Base Stock' tolling_stock_type,
+        '' assay_content_qty,
+        '' is_pass_through,
+        '' element_by_product,
+        '' input_stock_ref_no
         from sbs_smelter_base_stock    sbs,
-             pdm_productmaster         pdm,
-             qat_quality_attributes    qat,
-             aml_attribute_master_list aml,
-             phd_profileheaderdetails  phd,
-             v_shm_shed_master         shm
+        pdm_productmaster         pdm,
+        qat_quality_attributes    qat,
+        aml_attribute_master_list aml,
+        phd_profileheaderdetails  phd,
+        v_shm_shed_master         shm
         where pdm.product_id = sbs.product_id
-         and qat.quality_id = sbs.quality_id
-         and phd.profileid = sbs.smelter_cp_id
-         and aml.attribute_id(+) = sbs.element_id
-         and sbs.is_active = 'Y'
-         and shm.profile_id = sbs.warehouse_profile_id
-         and shm.shed_id = sbs.shed_id*/
+        and qat.quality_id = sbs.quality_id
+        and phd.profileid = sbs.smelter_cp_id
+        and aml.attribute_id(+) = sbs.element_id
+        and sbs.is_active = 'Y'
+        and shm.profile_id = sbs.warehouse_profile_id
+        and shm.shed_id = sbs.shed_id*/
         ) ips_temp
