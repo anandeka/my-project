@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0602
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  28-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  N.A.
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91110
+Author: babulal.meena
+Date: 7:23:17 PM, Wednesday, March 28, 2012
+Message:
+1. Changed the listing Screen name in GM table for Tolling Input/OutPut Issue
+2. Changed The List Of In-process Stock view(Input Stock Ref No was coming wrong for receive Material Stock)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_253.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_IN_PROCESS_STOCK.sql
