@@ -90,3 +90,6 @@ BEGIN
  	commit;
   
 END; 
+/
+DELETE CGAR_CORPORATE_GMR_ACTION_RULE WHERE ACTION_ID in ('weightNote','salesWeightNote');
+/
