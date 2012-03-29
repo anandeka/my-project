@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0613
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok
+ 
+Created on*        		:  29-Mar-2012 
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Report
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91259
+Author: ashokkumar.l
+Date: 9:17:46 PM, Thursday, March 29, 2012
+Message:
+Bug Fixes 62388,63268,63271
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FeedConsumptionReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UnpricedQuantityReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YTDMTDYIELD.rpt
