@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0609
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  vENU
+ 
+Created on*        		:  29-Mar-2012 
+
+Bug / Enhancement*                  :  Bug
+ 
+Bug ID*            		:  63179
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : bi
+
+Sub-Module  		 :  bi
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91211
+Author: venugopal.ravindra
+Date: 18:43:41, 29 March 2012
+Message:
+AS PER THE BUG ID:Bug_63179
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_LOGISTICS.sql
+
