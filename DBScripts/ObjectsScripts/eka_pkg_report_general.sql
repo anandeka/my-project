@@ -42,9 +42,6 @@ CREATE OR REPLACE PACKAGE "PKG_REPORT_GENERAL" is
                                     pc_qty_unit_id     varchar2) return number;                                                             
                                 
 end; 
- 
- 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
   function fn_get_item_dry_qty(pc_internal_cont_item_ref_no varchar2,
@@ -642,10 +639,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
     vn_item_qty         number;
     vn_converted_qty    number;
   begin
-    vn_item_qty         := pn_qty;
     vn_deduct_qty       := 0;
     vn_deduct_total_qty := 0;
     for cur_deduct_qty in (select ash.ash_id,
+                                  asm.net_weight,
                                   pqca.element_id,
                                   pqca.is_elem_for_pricing,
                                   pqca.unit_of_measure,
@@ -673,6 +670,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
                               and ppm.product_id = pc_product_id
                               and nvl(ppm.deduct_for_wet_to_dry, 'N') = 'Y')
     loop
+      vn_item_qty         := cur_deduct_qty.net_weight;  
       if cur_deduct_qty.ratio_name = '%' then
         vn_deduct_qty := vn_item_qty * (cur_deduct_qty.typical / 100);
       else
@@ -688,7 +686,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
       end if;
       vn_deduct_total_qty := vn_deduct_total_qty + vn_deduct_qty;
     end loop;
-    return(vn_item_qty - vn_deduct_total_qty);
+    return(pn_qty - vn_deduct_total_qty);
   end;
   
 function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
