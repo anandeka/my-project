@@ -18,22 +18,23 @@ select pcm.contract_ref_no,
        dipq.qty_unit_id payable_qty_unit_id,
        dipq_qum.qty_unit payable_qty_unit,
        pcbph.price_description,
-       pofh.qp_start_date||' to '||pofh.qp_end_date QPperiod,      
+       pofh.qp_start_date || ' to ' || pofh.qp_end_date qpperiod,
        pofh.pofh_id,
-       pfd.pfd_id price_fixation_no,
+       axs.action_ref_no price_fixation_no,
        pfd.qty_fixed price_fixed_qty,
        pfd.as_of_date price_fixation_date,
-       pfd.user_price,
+       nvl(pfd.user_price, 0) user_price,
        pfd.price_unit_id,
        ppu.price_unit_name,
-       gpad.allocated_qty quantity_applied_gmr,
+       nvl(gpad.allocated_qty, 0) quantity_applied_gmr,
        (pfd.qty_fixed - nvl(gpad.allocated_qty, 0)) quantity_not_applied_gmr,
        sum(pfd.qty_fixed) over(partition by dipq.element_id order by dipq.element_id) total_price_fixed_qty,
        sum(pfd.qty_fixed - nvl(gpad.allocated_qty, 0)) over(partition by dipq.element_id order by dipq.element_id) qty_not_applied_for_shipment,
-       (sum(pfd.qty_fixed * pfd.user_price)
-        over(partition by dipq.element_id order by dipq.element_id) /
-        sum(pfd.qty_fixed)
-        over(partition by dipq.element_id order by dipq.element_id)) weighted_avg_price
+       nvl((sum(pfd.qty_fixed * pfd.user_price)
+            over(partition by dipq.element_id order by dipq.element_id) /
+            sum(pfd.qty_fixed)
+            over(partition by dipq.element_id order by dipq.element_id)),
+           0) weighted_avg_price
   from pcm_physical_contract_main pcm,
        pcmte_pcm_tolling_ext pcmte,
        phd_profileheaderdetails phd,
@@ -52,6 +53,8 @@ select pcm.contract_ref_no,
        pcbph_pc_base_price_header pcbph,
        pofh_price_opt_fixation_header pofh,
        pfd_price_fixation_details pfd,
+       pfam_price_fix_action_mapping pfam,
+       axs_action_summary axs,
        (select gpad.pfd_id,
                sum(gpad.allocated_qty) allocated_qty
           from gpad_gmr_price_alloc_dtls gpad
@@ -65,6 +68,8 @@ select pcm.contract_ref_no,
    and pcpd.input_output = 'Input'
    and pcpd.product_id = pdm.product_id
    and pcpd.pcpd_id = pcpq.pcpd_id
+   and pfd.pfd_id = pfam.pfd_id
+   and pfam.internal_action_ref_no = axs.internal_action_ref_no
    and pcpq.quality_template_id = qat.quality_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.pcdi_id = diqs.pcdi_id
