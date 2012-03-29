@@ -122,11 +122,19 @@ select gcd.groupid,
              nvl(grd.landed_net_qty,0)
           end))dry_qty_diff,
        sum(nvl(grd.shipped_net_qty,0)) - sum(nvl(grd.landed_net_qty,0)) wet_qty_diff,
-        ((case when sum(nvl(grd.shipped_net_qty,0)) = 0 then 0
+       --Bug 63179 fix start
+        /*((case when sum(nvl(grd.shipped_net_qty,0)) = 0 then 0
         else
         ((sum(nvl(grd.shipped_net_qty,0)) - sum(nvl(grd.landed_net_qty,0)))/ sum(nvl(grd.shipped_net_qty,0)))
-        end)*100) wet_ratio ,
-       ((case when sum(case
+        end)*100)*/ 
+        ((case when sum(nvl(grd.landed_net_qty,0)) = 0 then 0
+        else
+        ((sum(nvl(grd.shipped_net_qty,0)) - sum(nvl(grd.landed_net_qty,0)))/ sum(nvl(grd.landed_net_qty,0)))
+        end)*100)
+        --Bug 63179 fix end
+        wet_ratio ,
+        --Bug 63179 fix start
+       /*((case when sum(case
             when pcpq.unit_of_measure = 'Wet' then
              pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
                                                      sam.ash_id,
@@ -160,7 +168,44 @@ select gcd.groupid,
             else
               nvl(grd.shipped_net_qty,0)
           end)
-        end)*100)  dry_ratio
+        end)*100)*/
+        ((case when sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.landed_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+             nvl(grd.landed_net_qty,0)
+          end) = 0 then 0 else
+       (sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.shipped_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+              nvl(grd.shipped_net_qty,0)
+          end)- sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.landed_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+             nvl(grd.landed_net_qty,0)
+          end))/  sum(case
+            when pcpq.unit_of_measure = 'Wet' then
+             pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+                                                     sam.ash_id,
+                                                     nvl(grd.landed_net_qty,0),
+                                                     grd.qty_unit_id)
+            else
+             nvl(grd.landed_net_qty,0)
+          end)
+        end)*100)    
+        --Bug 63179 fix end
+        dry_ratio
   from gmr_goods_movement_record    gmr,
        ak_corporate                 akc,
        grd_goods_record_detail      grd,
@@ -311,5 +356,5 @@ group by
           pcpq.unit_of_measure,
           vdc.typical,
           qum.qty_unit ,
-          gmr.landed_qty
-
+          gmr.landed_qty 
+/
