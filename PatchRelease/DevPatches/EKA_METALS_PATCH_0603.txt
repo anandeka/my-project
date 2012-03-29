@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0603
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  29-Mar-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  N/A
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 91150
+Author: suresh.gottipati
+Date: 11:22:23 AM, Thursday, March 29, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+
