@@ -35,11 +35,12 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 91154
-Author: Ramachandran R
-Date: 12:01:29 PM, Thursday, March 29, 2012
+Revision: 91159
+Author: ramachandran.r
+Date: 12:18:37 PM, Thursday, March 29, 2012
 Message:
--- modified menu display name
+Changed name Assay Comparison in Analytics link
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_255.sql
+
 
