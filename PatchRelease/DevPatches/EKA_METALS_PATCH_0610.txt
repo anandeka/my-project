@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0610
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  29-Mar-2012 
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : bi
+
+Sub-Module  			 :  bi
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91227
+Author: sivachalabathi.s
+Date: 7:33:06 PM, Thursday, March 29, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_CASH_FLOW.sql
+
+Revision: 91218
+Author: sivachalabathi.s
+Date: 7:17:38 PM, Thursday, March 29, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_apf_not_applied_shipment.sql
