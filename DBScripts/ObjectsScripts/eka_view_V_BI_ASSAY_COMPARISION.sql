@@ -1,5 +1,5 @@
-CREATE OR REPLACE FORCE VIEW V_BI_ASSAY_COMPARISION AS
-select t.corporate_id,
+create or replace view v_bi_assay_comparision as 
+SELECT t.corporate_id,
        t.corporate_name,
        t.business_line_name,
        t.profit_center_id,
@@ -37,48 +37,47 @@ select t.corporate_id,
        t.assayratio,
        t.assay_content,
        t.assayvalue weighted_avg_sublot,
-       (sum(t.assay_content * t.assayvalue)
-        over(partition by t.internal_grd_ref_no,
-             t.element_id order by t.internal_grd_ref_no,
-             t.element_id) / sum(decode(t.assay_content, null, 1, 0, 1))
-        over(partition by t.internal_grd_ref_no,
-             t.element_id order by t.internal_grd_ref_no,
+       (SUM(t.assay_content * t.assayvalue)
+        OVER(PARTITION BY t.internal_grd_ref_no,
+             t.element_id ORDER BY t.internal_grd_ref_no,
+             t.element_id) / SUM(DECODE(t.assay_content, NULL, 1, 0, 1))
+        OVER(PARTITION BY t.internal_grd_ref_no,
+             t.element_id ORDER BY t.internal_grd_ref_no,
              t.element_id)) weighted_avg_stock,
-       (sum(t.assay_content * t.assayvalue)
-        over(partition by t.gmr_ref_no, t.element_id order by t.gmr_ref_no) /
-        sum(decode(t.assay_content, null, 1, 0, 1))
-        over(partition by t.gmr_ref_no, t.element_id order by t.gmr_ref_no)) weighted_avg_gmr
-
-  from (select gmr.corporate_id,
+       (SUM(t.assay_content * t.assayvalue)
+        OVER(PARTITION BY t.gmr_ref_no, t.element_id ORDER BY t.gmr_ref_no) /
+        SUM(DECODE(t.assay_content, NULL, 1, 0, 1))
+        OVER(PARTITION BY t.gmr_ref_no, t.element_id ORDER BY t.gmr_ref_no)) weighted_avg_gmr
+  FROM (SELECT gmr.corporate_id,
                akc.corporate_name,
                blm.business_line_name,
                grd.profit_center_id,
                cpc.profit_center_name,
                cpc.profit_center_short_name,
                grd.strategy_id,
-               (case
-                 when pcm.purchase_sales = 'P' and
-                      pcm.is_tolling_contract = 'N' then
+               (CASE
+                 WHEN pcm.purchase_sales = 'P' AND
+                      pcm.is_tolling_contract = 'N' THEN
                   'Purchase Contract'
-                 when pcm.purchase_sales = 'S' and
-                      pcm.is_tolling_contract = 'N' then
+                 WHEN pcm.purchase_sales = 'S' AND
+                      pcm.is_tolling_contract = 'N' THEN
                   'Sales Contract'
-                 when pcmte.tolling_service_type='P' and
-                      pcm.is_tolling_contract = 'Y' and
-                      pcmte.is_pass_through = 'Y' then
+                 WHEN pcmte.tolling_service_type = 'P' AND
+                      pcm.is_tolling_contract = 'Y' AND
+                      pcmte.is_pass_through = 'Y' THEN
                   'Internal Buy Tolling Service Contract'
-                 when pcmte.tolling_service_type='P' and
-                      pcm.is_tolling_contract = 'Y' and
-                      pcmte.is_pass_through = 'N' then
+                 WHEN pcmte.tolling_service_type = 'P' AND
+                      pcm.is_tolling_contract = 'Y' AND
+                      pcmte.is_pass_through = 'N' THEN
                   'Buy Tolling Service Contract'
-                 when pcmte.tolling_service_type='S' and
-                      pcm.is_tolling_contract = 'Y' then
+                 WHEN pcmte.tolling_service_type = 'S' AND
+                      pcm.is_tolling_contract = 'Y' THEN
                   'Sell Tolling Service Contract'
-                 when pcm.purchase_sales = 'P' and
-                      pcm.is_tolling_contract = 'Y' and
-                      pcmte.is_pass_through is null then
+                 WHEN pcm.purchase_sales = 'P' AND
+                      pcm.is_tolling_contract = 'Y' AND
+                      pcmte.is_pass_through IS NULL THEN
                   'Tolling Service Contract'
-               end) contract_type,
+               END) contract_type,
                pdm.product_type_id producttype,
                pdm.product_desc,
                qat.quality_name,
@@ -97,19 +96,19 @@ select t.corporate_id,
                asm.sub_lot_no sublot_ref_no,
                pqca.assay_winner,
                ash.ash_id,
-               (case
-                 when ash.assay_type = 'Shipment Assay' then
+               (CASE
+                 WHEN ash.assay_type = 'Shipment Assay' THEN
                   'Contractual Assay'
-                 else
+                 ELSE
                   ash.assay_type
-               end) assay_type,
-               ash.assay_ref_no, 
-         (case
-                 when ash.assay_type ='Umpire Assay' then
+               END) assay_type,
+               ash.assay_ref_no,
+               (CASE
+                 WHEN ash.assay_type IN ('Umpire Assay', 'Final Assay') THEN
                   bgm.bp_group_name
-                 else
-                  null
-               end) umpirename,               
+                 ELSE
+                  NULL
+               END) umpirename,
                asm.net_weight wet_qty,
                asm.dry_weight dry_qty,
                asm.net_weight_unit,
@@ -122,8 +121,7 @@ select t.corporate_id,
                                                                 ash.ash_id,
                                                                 asm.dry_weight,
                                                                 asm.net_weight_unit) assay_content
-        
-          from gmr_goods_movement_record   gmr,
+          FROM gmr_goods_movement_record   gmr,
                grd_goods_record_detail     grd,
                pci_physical_contract_item  pci,
                pcm_physical_contract_main  pcm,
@@ -144,42 +142,42 @@ select t.corporate_id,
                ak_corporate_user           aku,
                phd_profileheaderdetails    phd,
                bgm_bp_group_master         bgm
-         where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-           and gmr.is_deleted = 'N'
-           and grd.status = 'Active'
-           and gmr.corporate_id = akc.corporate_id
-           and grd.profit_center_id = cpc.profit_center_id
-           and cpc.business_line_id = blm.business_line_id(+)
-           and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
-           and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no(+)
-           and pcm.cp_id = phd.profileid
-           and pcm.trader_id = aku.user_id
-           and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-           and pcdi.pcdi_id = pci.pcdi_id
-           and pci.pcpq_id = pcpq.pcpq_id
-           and grd.internal_contract_item_ref_no =
+         WHERE gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+           AND gmr.is_deleted = 'N'
+           AND grd.status = 'Active'
+           AND gmr.corporate_id = akc.corporate_id
+           AND grd.profit_center_id = cpc.profit_center_id
+           AND cpc.business_line_id = blm.business_line_id(+)
+           AND gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+           AND pcm.internal_contract_ref_no = pcmte.int_contract_ref_no(+)
+           AND pcm.cp_id = phd.profileid
+           AND pcm.trader_id = aku.user_id
+           AND pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+           AND pcdi.pcdi_id = pci.pcdi_id
+           AND pci.pcpq_id = pcpq.pcpq_id
+           AND grd.internal_contract_item_ref_no =
                pci.internal_contract_item_ref_no
-           and grd.product_id = pdm.product_id
-           and grd.quality_id = qat.quality_id
-           and asm.net_weight_unit = qum.qty_unit_id
-           and grd.internal_grd_ref_no = ash.internal_grd_ref_no
-           and gmr.internal_gmr_ref_no = ash.internal_gmr_ref_no
-           and ash.ash_id = asm.ash_id
-           and asm.asm_id = pqca.asm_id
-           and pqca.unit_of_measure = ratio_id
-           and pqca.element_id = aml.attribute_id
-           and ash.assayer=bgm.bp_group_id(+)
-           and pci.is_active = 'Y'
-           and pcm.is_active = 'Y'
-           and pcdi.is_active = 'Y'
-           and ash.is_active = 'Y'
-           and asm.is_active = 'Y'
-           and pqca.is_active = 'Y'
-           and rm.is_active = 'Y'
-           and pdm.is_active = 'Y'
-           and qat.is_active = 'Y'
-           and qum.is_active = 'Y'
-           and aml.is_active = 'Y'
-           and ash.assay_type not in
+           AND grd.product_id = pdm.product_id
+           AND grd.quality_id = qat.quality_id
+           AND asm.net_weight_unit = qum.qty_unit_id
+           AND grd.internal_grd_ref_no = ash.internal_grd_ref_no
+           AND gmr.internal_gmr_ref_no = ash.internal_gmr_ref_no
+           AND ash.ash_id = asm.ash_id
+           AND asm.asm_id = pqca.asm_id
+           AND pqca.unit_of_measure = ratio_id
+           AND pqca.element_id = aml.attribute_id
+           AND ash.assayer = bgm.bp_group_id(+)
+           AND pci.is_active = 'Y'
+           AND pcm.is_active = 'Y'
+           AND pcdi.is_active = 'Y'
+           AND ash.is_active = 'Y'
+           AND asm.is_active = 'Y'
+           AND pqca.is_active = 'Y'
+           AND rm.is_active = 'Y'
+           AND pdm.is_active = 'Y'
+           AND qat.is_active = 'Y'
+           AND qum.is_active = 'Y'
+           AND aml.is_active = 'Y'           
+           AND ash.assay_type NOT IN
                ('Pricing Assay', 'Position Assay',
-                'Weighted Avg Position Assay', 'Weighted Avg Pricing Assay')) t
+                'Weighted Avg Position Assay', 'Weighted Avg Pricing Assay')) t;
