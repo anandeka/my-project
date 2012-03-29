@@ -83,11 +83,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
         into gvc_previous_dbd_id
         from dbd_database_dump dbd
        where dbd.corporate_id = pc_corporate_id
+         and dbd.process=pc_process
          and dbd.trade_date =
              (select max(dbd.trade_date)
                 from dbd_database_dump dbd
                where dbd.corporate_id = pc_corporate_id
-                 and dbd.trade_date < pd_trade_date);
+                 and dbd.trade_date < pd_trade_date
+                 and dbd.process=pc_process);
     exception
       when no_data_found then
         gvc_previous_dbd_id := null;
