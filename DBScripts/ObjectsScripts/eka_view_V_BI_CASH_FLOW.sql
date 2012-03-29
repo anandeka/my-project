@@ -165,6 +165,7 @@ select 'Invoices to extent not paid' section_name,
    and iss.is_inv_draft = 'N'
    and iss.invoice_type_name <> 'Profoma'
    and cm_akc_base_cur.cur_id = akc.base_cur_id
+   and pcpd.input_output = 'Input'
    and pcpd.strategy_id = css.strategy_id(+)
    and iss.total_amount_to_pay <> 0
 -- 2. OTC invoices
