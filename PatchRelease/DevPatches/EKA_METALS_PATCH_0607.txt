@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0607
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok
+ 
+Created on*        		:  29-Mar-2012 
+
+Bug / Enhancement*                  :  Bug
+ 
+Bug ID*            		:  N/A
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : BI
+
+Sub-Module  		 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91176
+Author: sivachalabathi.s
+Date: 2:29:27 PM, Thursday, March 29, 2012
+Message:
+Bug Fixes 62798
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_ASSAY_COMPARISION.sql
+Revision: 91179
+Author: ashokkumar.l
+Date: 2:51:07 PM, Thursday, March 29, 2012
+Message:
+Bug Fixes 63130
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_list_of_pledge_gmr.sql
+
