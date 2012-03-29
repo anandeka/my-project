@@ -198,7 +198,7 @@ SELECT '''',
        vd.shippers_instructions shippersinstructions,
        vd.carriers_agents_endorsements carrieragentsendorsements,
        '''',
-       (SELECT f_string_aggregate(agrd.no_of_containers)
+       (SELECT f_string_aggregate(AGRD.CONTAINER_NO)
         FROM   agrd_action_grd agrd
         WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
