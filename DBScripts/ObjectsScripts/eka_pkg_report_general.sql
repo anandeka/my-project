@@ -670,7 +670,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
                               and ppm.product_id = pc_product_id
                               and nvl(ppm.deduct_for_wet_to_dry, 'N') = 'Y')
     loop
-      vn_item_qty         := cur_deduct_qty.net_weight;  
+      vn_item_qty         := nvl(cur_deduct_qty.net_weight,pn_qty);  
       if cur_deduct_qty.ratio_name = '%' then
         vn_deduct_qty := vn_item_qty * (cur_deduct_qty.typical / 100);
       else
