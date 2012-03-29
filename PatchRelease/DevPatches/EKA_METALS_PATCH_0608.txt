@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0608
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  29-Mar-2012 
+
+Bug / Enhancement*                  :  Bug
+ 
+Bug ID*            		:  N/A
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics 
+
+Sub-Module  		 :  Document 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91193
+Author: anupkumar.agarwal
+Date: 3:50:06 PM, Thursday, March 29, 2012
+Message:
+Changes in Document Query Of All Details 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_256.sql
+
