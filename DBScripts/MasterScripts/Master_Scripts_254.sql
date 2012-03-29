@@ -1,0 +1,5 @@
+update GMC_GRID_MENU_CONFIGURATION set MENU_DISPLAY_NAME = 'Airway Bill' where MENU_ID = 'MLOCI_1_3' and  GRID_ID = 'MLOCI'
+
+update GMC_GRID_MENU_CONFIGURATION set MENU_DISPLAY_NAME = 'Rail Details' where MENU_ID = 'MLOCI_1_5' and  GRID_ID = 'MLOCI'
+
+update GMC_GRID_MENU_CONFIGURATION set MENU_DISPLAY_NAME = 'Airway Bill' where MENU_ID = 'LOCI_2_5' and  GRID_ID = 'LOCI'
