@@ -49,7 +49,7 @@ SELECT axs.action_ref_no AS pricefixationrefno, pfd.pfd_id,
           TO_CHAR (drm.prompt_date, 'dd-Mon-YYYY') prompt_date,
           dt.trade_price, pum_dt.price_unit_name trade_price_unit,
           base_cur_tab.base_price_unit,
-          f_get_converted_price
+          PKG_GENERAL.f_get_converted_price --function changed
              (base_cur_tab.corporate_id,
               dt.trade_price,
               dt.trade_price_unit_id,
@@ -143,3 +143,4 @@ SELECT axs.action_ref_no AS pricefixationrefno, pfd.pfd_id,
       AND pum.is_active = 'Y'
       AND drm.is_deleted = 'N'
       AND dim.is_active = 'Y' 
+/
