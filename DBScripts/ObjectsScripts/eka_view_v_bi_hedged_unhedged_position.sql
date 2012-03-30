@@ -1,4 +1,4 @@
-create or replace  view  v_bi_hedged_unhedged_position AS
+CREATE OR REPLACE VIEW V_BI_HEDGED_UNHEDGED_POSITION AS
 with tad_data as(select t.internal_derivative_ref_no,
        sum(t.allocated_qty) allocated_qty,
        t.allocated_qty_unit_id
@@ -15,8 +15,8 @@ select 'Price Fixations' section_type,
        cpc.profit_center_name,
        pcm.internal_contract_ref_no,
        axs.action_ref_no derivative_ref_no,
-       pfd.qty_fixed fixation_qty,
-       (case
+       round(pfd.qty_fixed * ucm.multiplication_factor,5)  fixation_qty,
+     round( ( (case
          when (nvl(pfd.qty_fixed, 0) - NVL(tad.allocated_qty, 0)) < 0 then
           0
          else
@@ -24,16 +24,16 @@ select 'Price Fixations' section_type,
        end) * (pkg_general.f_get_converted_quantity(pdm.product_id,
                                                     nvl(tad.allocated_qty_unit_id,
                                                         pdm.base_quantity_unit),
-                                                    pdm.base_quantity_unit,
-                                                    1)) un_allocated_qty,
-       nvl(tad.allocated_qty, 0) *
+                                                    pocd.Qty_To_Be_Fixed_Unit_Id,
+                                                    1))) * ucm.multiplication_factor,5) un_allocated_qty,
+     round( nvl(tad.allocated_qty, 0) *
        pkg_general.f_get_converted_quantity(pdm.product_id,
                                             nvl(tad.allocated_qty_unit_id,
                                                 pdm.base_quantity_unit),
-                                            pdm.base_quantity_unit,
-                                            1) allocated_qty,
-       pdm.base_quantity_unit,
-       qum_qty_unit.qty_unit allocated_qty_unit,
+                                            pocd.Qty_To_Be_Fixed_Unit_Id,
+                                            1) * ucm.multiplication_factor,5) allocated_qty,
+       qum_ucm.qty_unit_id base_quantity_unit,
+       qum_ucm.qty_unit allocated_qty_unit,
        '' instrument_name,
        pcm.purchase_sales trade_type,
        to_char(pfd.as_of_date, 'dd-Mon-yyyy') prompt_date,
@@ -41,7 +41,7 @@ select 'Price Fixations' section_type,
        nvl(pdm.product_desc, pdm_under.product_desc) product_desc,
        css.strategy_id,
        css.strategy_name,
-       '' prompt_month
+       to_char(pfd.as_of_date, 'Mon-yyyy') prompt_month
   FROM pcm_physical_contract_main     pcm,
        pcdi_pc_delivery_item          pcdi,
        poch_price_opt_call_off_header poch,
@@ -63,6 +63,8 @@ select 'Price Fixations' section_type,
        css_corporate_strategy_setup   css,
        aml_attribute_master_list      aml,
        pdm_productmaster              pdm_under,
+       ucm_unit_conversion_master ucm,
+       qum_quantity_unit_master qum_ucm,
        qum_quantity_unit_master       qum_qty_unit
  WHERE pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    AND poch.pcdi_id = pcdi.pcdi_id
@@ -79,8 +81,13 @@ select 'Price Fixations' section_type,
    AND pcpd.strategy_id = css.strategy_id
    AND poch.element_id = aml.attribute_id(+)
    AND aml.underlying_product_id = pdm_under.product_id(+)
-   AND pdm.base_quantity_unit = qum_qty_unit.qty_unit_id
-   AND pfd.qty_fixed <> nvl(tad.allocated_qty, 0)
+   AND pocd.Qty_To_Be_Fixed_Unit_Id = qum_qty_unit.qty_unit_id
+   and pocd.qty_to_be_fixed_unit_id = ucm.from_qty_unit_id
+   and pdm_under.base_quantity_unit = ucm.to_qty_unit_id
+   and ucm.to_qty_unit_id = qum_ucm.qty_unit_id
+   AND pfd.qty_fixed - nvl(tad.allocated_qty, 0)<>0
+   and pcpd.input_output = 'Input'
+  -- and pcm.internal_contract_ref_no = '137'
    AND pofh.is_active = 'Y'
    AND pocd.is_active = 'Y'
 UNION ALL
@@ -207,4 +214,4 @@ SELECT 'Derivative' section_type,
    AND dt.strategy_id = css.strategy_id
    AND pdm.base_quantity_unit = qum.qty_unit_id
    AND dt.total_quantity <> NVL(tad.allocated_qty, 0)
-   AND dt.status = 'Verified'
+   AND dt.status = 'Verified' 
