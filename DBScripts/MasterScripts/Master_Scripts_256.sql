@@ -254,7 +254,11 @@ SELECT '''',
          WHERE agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
            AND agrd.status = ''Active''
            AND agrd.action_no = agmr.action_no),4) gross_weight,
-       '''',
+       (SELECT f_string_aggregate(AGRD.REMARKS)
+        FROM   agrd_action_grd agrd
+        WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+        AND    agrd.action_no = agmr.action_no
+        AND    agrd.is_deleted = ''N'') COMMODITY_DESCRIPTION,
        VD.COMMENTS comments,
        '''',
        '''',
