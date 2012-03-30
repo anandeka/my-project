@@ -147,7 +147,7 @@ select 'Pricing based Pre-defined QP' section_name,
    and pocd.poch_id = poch.poch_id
    and poch.pcdi_id = pcdi.pcdi_id
    and poch.pcdi_id = pcdi_fa.pcdi_id
-   and pcdi_fa.pcdi_id >0
+   and pcdi_fa.FA_count >0
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.corporate_id = akc.corporate_id
    --and pofh.internal_gmr_ref_no = v_gmr.internal_gmr_ref_no
@@ -173,4 +173,5 @@ select 'Pricing based Pre-defined QP' section_name,
    and pocd.qp_period_type <> 'Event'
    and phd.is_active = 'Y'
    and phd.is_deleted = 'N'
-   --and v_gmr.assay_finalized = 'Y' 
+   --and v_gmr.assay_finalized = 'Y'
+
