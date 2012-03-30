@@ -12,7 +12,10 @@ select t.corporate_id,
        sum(t.hedge_quantity) hedge_quantity,
        sum(t.strategic_quantity) strategic_quantity,
        sum(t.net_derivative_quantity) net_derivative_quantity,
-       sum(t.net_risk_quantity) net_risk_quantity,
+       --Bug 63405 fix start
+       sum(t.price_fixed_quantity)-sum(t.net_derivative_quantity) net_risk_quantity,
+       --sum(t.net_risk_quantity) net_risk_quantity,
+       --Bug 63405 fix end
        t.base_qty_unit_id,
        t.base_qty_unit
   from (select vph.corporate_id,
@@ -105,3 +108,4 @@ select t.corporate_id,
           t.instrument_name,
           t.base_qty_unit_id,
           t.base_qty_unit
+/
