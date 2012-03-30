@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0619
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok
+ 
+Created on*        		:  30-Mar-2012 
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI
+
+Sub-Module  			 : 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91343
+Author: ashokkumar.l
+Date: 6:54:12 PM, Friday, March 30, 2012
+Message:
+Bug Fixes 62726
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_MV_BI_HEDGED_UNHEDGED_POSITION.sql
