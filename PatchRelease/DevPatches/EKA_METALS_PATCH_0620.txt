@@ -35,10 +35,10 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 91343
+Revision: 91350
 Author: ashokkumar.l
-Date: 6:54:12 PM, Friday, March 30, 2012
+Date: 7:10:02 PM, Friday, March 30, 2012
 Message:
 Bug Fixes 62726
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_MV_BI_HEDGED_UNHEDGED_POSITION.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_hedged_unhedged_position.sql
