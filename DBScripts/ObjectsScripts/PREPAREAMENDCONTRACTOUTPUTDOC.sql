@@ -254,7 +254,7 @@ BEGIN
                )
         VALUES (docid, display_order, NULL, contractsection,
                 'Amendment Date', 'Y', NULL,
-                NULL, issuedate, NULL,
+                NULL, amendmentdate, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
