@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_0615
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  SAURABH
+ 
+Created on*        		:  30-Mar-2012 
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Document
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91298
+Author: saurabh.raj
+Date: 1:04:29 PM, Friday, March 30, 2012
+Message:
+Bug fixes
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AirWayDetails.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ArrivalNote.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ShipmentDetail.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TrainDetails.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TruckDetail.rpt
+
+
