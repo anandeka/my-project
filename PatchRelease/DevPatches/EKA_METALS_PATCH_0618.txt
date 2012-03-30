@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0618
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Venu
+ 
+Created on*        		:  30-Mar-2012 
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI
+
+Sub-Module  			 : 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91321
+Author: venugopal.ravindra
+Date: 16:29:57, 30 March 2012
+Message:
+fixed Bug 63405
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_exposure_by_monthly.sql
+
+
+Revision: 91323
+Author: venugopal.ravindra
+Date: 16:30:56, 30 March 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_METAL_EFFEINCOMELOSS.sql
+
+
+
+
+
+
