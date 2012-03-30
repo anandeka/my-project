@@ -1,4 +1,4 @@
-CREATE OR REPLACE function f_get_quote_3rd_wed(pc_corporate_id varchar2,
+create or replace function f_get_quote_3rd_wed(pc_corporate_id  varchar2,
                                                pd_prompt_date   date,
                                                pd_trade_date    date,
                                                pc_instrument_id varchar2)
@@ -17,6 +17,7 @@ begin
        and dq.instrument_id = pc_instrument_id
        and dq.price_source_id = 'PS-17'
        and dq.corporate_id = pc_corporate_id
+       and rownum <= 1
        and dq.trade_date =
            (select max(dq.trade_date)
               from dqd_derivative_quote_detail dqd,
@@ -41,8 +42,9 @@ begin
            and dqd.dr_id = drm.dr_id
            and drm.period_month = to_char(pd_prompt_date, 'Mon')
            and drm.period_year = to_char(pd_prompt_date, 'YYYY')
-           and dq.corporate_id = pc_corporate_id              
+           and dq.corporate_id = pc_corporate_id
            and dq.instrument_id = pc_instrument_id
+           and rownum <= 1
            and dq.price_source_id = 'PS-17'
            and dq.trade_date =
                (select max(dq.trade_date)
