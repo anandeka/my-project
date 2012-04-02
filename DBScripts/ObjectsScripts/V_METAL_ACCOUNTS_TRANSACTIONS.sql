@@ -20,10 +20,7 @@ select mat_temp.unique_id,
        mat_temp.product_id,
        mat_temp.product_name,
        mat_temp.debt_qty,
-       --Bug Fix start
-       --mat_temp.debt_qty_unit_id,
-       qum.qty_unit debt_qty_unit_id,
-       --Bug Fix end
+       mat_temp.debt_qty_unit_id,
        qum.qty_unit debt_qty_unit,
        mat_temp.internal_action_ref_no,
        to_char(mat_temp.activity_date, 'dd-Mon-yyyy') activity_date,
@@ -260,5 +257,4 @@ select mat_temp.unique_id,
    and phd_debt.profileid(+) = mat_temp.debt_supplier_id
    and qum.qty_unit_id = mat_temp.debt_qty_unit_id
    and ash_temp.internal_grd_ref_no(+) = mat_temp.stock_id
- order by mat_temp.activity_date desc 
-/
+ order by mat_temp.activity_date desc
