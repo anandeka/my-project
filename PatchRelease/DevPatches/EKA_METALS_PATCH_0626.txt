@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0623
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  venu
+ 
+Created on*        		:  02-Apr-2012 
+
+Bug / Enhancement*            :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*	:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI
+
+Sub-Module  		 :  
+ 
+Section   		 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 	 :  N/A
+ 
+FS Amendment details   	 :  N/A
+
+Dependent patches:	 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91489
+Author: venugopal.ravindra
+Date: 20:17:31, 02 April 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_metal_acc_transactions.sql
+
+
+
+
+
+
+
