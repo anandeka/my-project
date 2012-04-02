@@ -1,9 +1,10 @@
-create or replace view v_list_of_pledge_gmr as
+CREATE OR REPLACE VIEW V_LIST_OF_PLEDGE_GMR AS
 select gmr.corporate_id,
        gmr.internal_gmr_ref_no,
        gmr.gmr_ref_no,
        gmr.internal_contract_ref_no,
        pcm.contract_ref_no contract_ref_no,
+       pcm.middle_no middle_no,
        gepd.pledge_input_gmr,
        pledge_input_gmr.gmr_ref_no pledge_input_gmr_ref_no,
        gepd.supplier_cp_id supplier_cp_id,
@@ -119,7 +120,7 @@ select gmr.corporate_id,
    and gmr.is_deleted = 'N'
    and gmr.qty_unit_id = qum.qty_unit_id
    and nvl(gmr.is_settlement_gmr, 'N') = 'N'
-   and nvl(gmr.tolling_gmr_type, 'None Tolling') in ('Pledge')
+   and nvl(gmr.tolling_gmr_type, 'None Tolling') = 'Pledge'
    and gmr.is_internal_movement = 'N'
    and gepd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and gepd.is_active = 'Y'
