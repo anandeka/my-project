@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0623
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  venu
+ 
+Created on*        		:  02-Apr-2012 
+
+Bug / Enhancement*            :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*	:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI
+
+Sub-Module  		 :  
+ 
+Section   		 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 	 :  N/A
+ 
+FS Amendment details   	 :  N/A
+
+Dependent patches:	 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91477
+Author: venugopal.ravindra
+Date: 19:10:12, 02 April 2012
+Message:
+Fix for Bug 61800 and Bug 63062
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_VIEW_V_DER_FUTURES_BROKER_ACCOUNT.sql
+
+
+
+
+
