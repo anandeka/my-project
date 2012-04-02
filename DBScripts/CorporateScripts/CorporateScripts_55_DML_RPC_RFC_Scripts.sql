@@ -1,5 +1,5 @@
-delete from RPC_RF_PARAMETER_CONFIG rpc where RpC.REPORT_ID = '239';
-delete from RFC_REPORT_FILTER_CONFIG rfc where RFC.REPORT_ID = '239';
+delete from RPC_RF_PARAMETER_CONFIG rpc where RpC.REPORT_ID in ('239','248');
+delete from RFC_REPORT_FILTER_CONFIG rfc where RFC.REPORT_ID in ('239','248');
 commit;
 SET DEFINE OFF;
 declare
