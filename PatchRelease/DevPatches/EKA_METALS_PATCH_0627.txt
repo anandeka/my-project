@@ -1,0 +1,64 @@
+Patch No*          		:  EKA_METALS_PATCH_0627
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja
+ 
+Created on*        		:  02-Apr-2012 
+
+Bug / Enhancement*            :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*	:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI
+
+Sub-Module  		 :  
+ 
+Section   		 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 	 :  N/A
+ 
+FS Amendment details   	 :  N/A
+
+Dependent patches:	 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91491
+Author: elaiyaraja.nallathambi
+Date: 8:36:38 PM, Monday, April 02, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AdvancePaymentDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/VatDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighingandSampling.rpt
+
+Revision: 91492
+Author: elaiyaraja.nallathambi
+Date: 8:37:17 PM, Monday, April 02, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
+
+
+
+
+
+
+
+
+
