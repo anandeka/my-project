@@ -78,7 +78,14 @@ select ak.corporate_id,
          else
           cm_val.cur_code
        end) contract_value_currency,
-       irmf.instrument_type
+       irmf.instrument_type,
+       --Bug 61800 Fix starts
+       emt.exchange_name,
+       akcu.login_name,
+       bca.account_name,
+       dpm.purpose_name,
+       cmak.cur_code
+       --Bug 61800 Fix ends
   from dt_derivative_trade dt,
        cpc_corporate_profit_center cpc,
        blm_business_line_master blm,
@@ -105,7 +112,14 @@ select ak.corporate_id,
                scd.factor
           from scd_sub_currency_detail scd,
                cm_currency_master      cm
-         where scd.cur_id = cm.cur_id) scd
+         where scd.cur_id = cm.cur_id) scd,       
+       --Bug 61800 Fix starts  
+       EMT_EXCHANGEMASTER emt,
+       AK_CORPORATE_USER akcu,
+       bca_broker_clearer_account bca,
+       dpm_derivative_purpose_master dpm, 
+       cm_currency_master cmak     
+       --Bug 61800 Fix ends
  where dt.dr_id = drm.dr_id
    and dt.broker_profile_id = phd_broker.profileid(+)
    and dt.clearer_profile_id = phd_clr.profileid(+)
@@ -141,4 +155,13 @@ select ak.corporate_id,
    and pdd.is_deleted = 'N'*/
  --  and cm_val.is_active = 'Y'
  --  and cm_val.is_deleted = 'N'
-   and dt.status = 'Verified'
+   and dt.status = 'Verified' 
+   --Bug 61800 Fix starts
+   and emt.exchange_code='LME' --Bug 63062 Fix   
+   and pdd.exchange_id=emt.exchange_id
+   and akcu.user_id=dt.trader_id
+   and bca.account_id=dt.CLEARER_ACCOUNT_ID
+   and dpm.purpose_id=dt.purpose_id
+   and cmak.cur_id=ak.base_cur_id
+   --Bug 61800 Fix ends
+/
