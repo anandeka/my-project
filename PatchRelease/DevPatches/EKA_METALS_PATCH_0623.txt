@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0623
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  02-Apr-2012 
+
+Bug / Enhancement*            :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*	:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  		 :  Pledge & Invoicing
+ 
+Section   		 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 	 :  N/A
+ 
+FS Amendment details   	 :  N/A
+
+Dependent patches:	 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91470
+Author: pradeep.kumar
+Date: 6:42:52 PM, Monday, April 02, 2012
+Message:
+-- view changed...
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_PLEDGE_GMR.sql
+
+
+
