@@ -23,7 +23,10 @@ select mat_temp.unique_id,
        mat_temp.attribute_name,
        mat_temp.debt_qty,
        qum.qty_unit debt_qty_unit,  
-       mat_temp.debt_qty_unit_id debt_qty_unit_id,
+       --Bug Fix start
+       --mat_temp.debt_qty_unit_id debt_qty_unit_id,
+       qum.qty_unit debt_qty_unit_id,
+       --Bug Fix end
        mat_temp.internal_action_ref_no,
        to_char(mat_temp.activity_date, 'dd-Mon-yyyy') activity_date,
        (CASE
@@ -219,6 +222,4 @@ select mat_temp.unique_id,
    AND mat_temp.debt_supplier_id =phd_debt.profileid(+) 
    AND mat_temp.debt_qty_unit_id = qum.qty_unit_id
    AND mat_temp.stock_id = ash_temp.internal_grd_ref_no(+) 
- 
- 
- 
+/
