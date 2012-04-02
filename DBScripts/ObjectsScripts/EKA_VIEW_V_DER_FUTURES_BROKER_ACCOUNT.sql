@@ -163,5 +163,5 @@ select ak.corporate_id,
    and bca.account_id=dt.CLEARER_ACCOUNT_ID
    and dpm.purpose_id=dt.purpose_id
    and cmak.cur_id=ak.base_cur_id
-   --Bug 61800 Fix ends
+   --Bug 61800 Fix end
 /
