@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0619
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok
+ 
+Created on*        		:  04-Apr-2012 
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91441
+Author: ashokkumar.l
+Date: 3:48:03 PM, Monday, April 02, 2012
+Message:
+Bug Fixes.
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighingandSampling.rpt
