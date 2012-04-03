@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0632
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manoranjan
+ 
+Created on*        		:  03-Apr-2012 
+
+Bug / Enhancement*            :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*	:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  		 :  Assay
+ 
+Section   		 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 	 :  N/A
+ 
+FS Amendment details   	 :  N/A
+
+Dependent patches:	 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91578
+Author: manoranjan.kumar
+Date: 4:09:47 PM, Tuesday, April 03, 2012
+Message:
+update pricing assay and use for invoice check box..
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_260.sql
+
+
+
+
+
+
+
+
+
+
