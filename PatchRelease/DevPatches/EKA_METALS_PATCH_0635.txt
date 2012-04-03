@@ -1,4 +1,4 @@
-Patch No*          		:  EKA_METALS_PATCH_0633
+Patch No*          		:  EKA_METALS_PATCH_0635
 
 Project / Product* 		:  METALS
 ==================================================================
@@ -16,9 +16,9 @@ Branch (DEV / REL)*	:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  MV
+Module  		   	 :  Reports
 
-Sub-Module  		 : MV
+Sub-Module  		         : 
  
 Section   		 :  N/A
  
@@ -36,10 +36,22 @@ Dependent patches:	 :  N/A
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 
-Revision: 91558
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_259.sql(Revision: 91459)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_262.sql(Revision: 91610)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_55_DML_RPC_RFC_Scripts.sql (Revision: 91460)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_56_DML_RPC_RFC_Scripts.sql (Revision: 91607)
 
-MV for Metal Balance Report
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_239.sql
+RPT Files:
+
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MetalBalanceSummaryReport.rpt(Revision: 91606)
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyCustomsReport.rpt(Revision: 91582)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CustomsReport.rpt(Revision: 91581)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt(Revision: 91581)
+
+
+
+
+
+
 
 
