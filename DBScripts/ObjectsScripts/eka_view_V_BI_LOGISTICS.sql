@@ -1,29 +1,5 @@
-CREATE OR REPLACE VIEW V_BI_LOGISTICS AS
-with latest_invoice as
-(select inv.gmr_ref_no,
-        inv.internal_gmr_ref_no,
-        inv.invoice_type_name,
-        inv.internal_invoice_ref_no,
-        inv.eff_date
-  from (select iss.internal_invoice_ref_no,
-               axs.eff_date,
-               gmr.gmr_ref_no,
-               gmr.internal_gmr_ref_no,
-               iss.invoice_type_name,
-               rank() over(partition by gmr.gmr_ref_no order by axs.eff_date desc,iss.internal_invoice_ref_no desc) rank_disp
-          from is_invoice_summary         iss,
-               iam_invoice_action_mapping iam,
-               axs_action_summary         axs,
-               gmr_goods_movement_record  gmr
-         where iss.internal_invoice_ref_no = iam.internal_invoice_ref_no
-           and iam.invoice_action_ref_no = axs.internal_action_ref_no
-           and gmr.internal_contract_ref_no = iss.internal_contract_ref_no
-         group by iss.internal_invoice_ref_no,
-                  axs.eff_date, gmr.gmr_ref_no,
-                  gmr.internal_gmr_ref_no,
-                  iss.invoice_type_name) inv
- where inv.rank_disp = 1),
-v_ash as(SELECT   ash.ash_id, SUM (NVL (pqca.typical, 0)) typical
+CREATE OR REPLACE VIEW V_BI_LOGISTICS as
+with v_ash as(SELECT   ash.ash_id, SUM (NVL (pqca.typical, 0)) typical
        FROM ash_assay_header ash,
             asm_assay_sublot_mapping asm,
             pqca_pq_chemical_attributes pqca
@@ -54,11 +30,11 @@ select gcd.groupid,
              when gmr.gmr_latest_action_action_id = 'shipmentDetail' then 'Shipped'
        else ''
        end) gmr_type,
-       gmr.bl_date shipment_activity_date,
+       axs.eff_date  shipment_activity_date,
        agmr.eff_date landing_activity_date,
        wrd.activity_ref_no arrival_no,
-       iis.invoice_type_name invoice_status,
-       gmr_gd.mode_of_transport,
+       iss.invoice_type_name invoice_status,      
+       gmr.mode_of_transport,
        agmr.bl_no trip_vehicle,
        gmr.vessel_name,
        cim_load.city_id loading_city_id,
@@ -211,36 +187,32 @@ select gcd.groupid,
        grd_goods_record_detail      grd,
        gcd_groupcorporatedetails    gcd,
        pcpd_pc_product_definition   pcpd,
-       cpc_corporate_profit_center  cpc,
-       ( select gmr.internal_gmr_ref_no,
-                agmr.current_qty,
-                agmr.released_qty release_shipped_qty,
-                agmr.tt_out_qty title_transfer_out_qty,
-                (case when agmr.gmr_latest_action_action_id = 'shipmentDetail'
-                      then 'Ship'
-                      when agmr.gmr_latest_action_action_id = 'railDetail'
-                      then 'Rail'
-                      when agmr.gmr_latest_action_action_id = 'truckDetail'
-                      then 'Truck'
-                      when agmr.gmr_latest_action_action_id = 'airDetail'
-                      then 'Air'
-                      else ''
-                end
-                )mode_of_transport
-                 from  gmr_goods_movement_record gmr,
-                       agmr_action_gmr agmr
-                 where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-                   and agmr.action_no = 1
-      )gmr_gd,
-       agmr_action_gmr              agmr,
+       cpc_corporate_profit_center  cpc,       
+        (select gmr.internal_gmr_ref_no,
+               agmr.eff_date,
+                agmr.bl_no
+          from gmr_goods_movement_record gmr,
+               agmr_action_gmr           agmr
+         where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+           and agmr.gmr_latest_action_action_id = 'landingDetail'
+           and agmr.is_deleted = 'N') agmr,
        pcm_physical_contract_main   pcm,
-       latest_invoice              iis,
+       v_bi_latest_gmr_invoice      iis,
+       is_invoice_summary           iss,
        css_corporate_strategy_setup css,
        pcdi_pc_delivery_item        pcdi,
        pci_physical_contract_item   pci,
        pcpq_pc_product_quality      pcpq,
        phd_profileheaderdetails     phd,
-       wrd_warehouse_receipt_detail wrd,
+      (select wrd.internal_gmr_ref_no,
+       wrd.activity_ref_no,
+       wrd.shed_id
+  from wrd_warehouse_receipt_detail wrd
+ where (wrd.internal_gmr_ref_no, wrd.action_no) in
+       (select wrd.internal_gmr_ref_no,
+               max(action_no)
+          from wrd_warehouse_receipt_detail wrd
+         group by wrd.internal_gmr_ref_no)) wrd,
        sld_storage_location_detail  sld,
        sm_state_master              sm_sld,
        cim_citymaster               cim_sld,
@@ -256,19 +228,24 @@ select gcd.groupid,
        cym_countrymaster            cym_Discharge,
        ash_assay_header             ash,
        v_ash  vdc,
-       sam_stock_assay_mapping sam
+       sam_stock_assay_mapping sam,
+       axs_action_summary axs
  where gmr.corporate_id = akc.corporate_id
    and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
    and akc.groupid = gcd.groupid
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pcpd.profit_center_id = cpc.profit_center_id
-   and gmr.internal_gmr_ref_no = gmr_gd.internal_gmr_ref_no
-   and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-   and gmr.gmr_latest_action_action_id = agmr.gmr_latest_action_action_id
+   and gmr.gmr_first_int_action_ref_no = axs.internal_action_ref_no
+  -- and gmr.internal_gmr_ref_no = gmr_gd.internal_gmr_ref_no
+   --and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+   --and gmr.gmr_latest_action_action_id = agmr.gmr_latest_action_action_id
+   and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
    and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
    and gmr.internal_gmr_ref_no = iis.internal_gmr_ref_no(+)
+   and iis.internal_invoice_ref_no=iss.internal_invoice_ref_no(+)
    and pcpd.strategy_id = css.strategy_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+    and grd.internal_contract_item_ref_no=pci.internal_contract_item_ref_no
    and pcdi.pcdi_id = pci.pcdi_id
    and pcpd.pcpd_id = pcpq.pcpd_id
    and pci.pcpq_id = pcpq.pcpq_id
@@ -304,6 +281,8 @@ select gcd.groupid,
    and gcd.is_active = 'Y'
    and sam.is_latest_pricing_assay = 'Y'
    and pcpd.input_output = 'Input'
+   and grd.status='Active'  
+   and grd.tolling_stock_type='None Tolling'
 group by
          gcd.groupid,
          gcd.groupname ,
@@ -324,11 +303,11 @@ group by
           pci.del_distribution_item_no,
           gmr.gmr_ref_no,
           gmr.gmr_latest_action_action_id,
-          gmr.bl_date ,
+          axs.eff_date,
           agmr.eff_date ,
           wrd.activity_ref_no ,
-          iis.invoice_type_name ,
-           gmr_gd.mode_of_transport,
+          iss.invoice_type_name,        
+          gmr.mode_of_transport,
           agmr.bl_no ,
           gmr.vessel_name,
           cim_load.city_id ,
