@@ -192,6 +192,7 @@ BEGIN
      AND pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
      AND pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
      AND pcpd.product_id = pdm.product_id
+     AND PCPD.INPUT_OUTPUT = 'Input'
      AND pcm.corporate_id = ak.corporate_id
      AND pcm.invoice_currency_id = cm.cur_id
      AND pcm.cp_id = phd.profileid
