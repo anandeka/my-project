@@ -27,6 +27,7 @@ select t.internal_contract_item_ref_no,
                grd_goods_record_detail grd
          where spq.internal_grd_ref_no = grd.internal_grd_ref_no
            and spq.is_active = 'Y'
+           and spq.is_stock_split='N'
          group by grd.internal_contract_item_ref_no,
                   spq.element_id,
                   spq.qty_unit_id
@@ -41,13 +42,10 @@ select t.internal_contract_item_ref_no,
                dgrd_delivered_grd    grd
          where spq.internal_dgrd_ref_no = grd.internal_dgrd_ref_no
            and spq.is_active = 'Y'
+           and spq.is_stock_split='N'
          group by grd.internal_contract_item_ref_no,
                   spq.element_id,
                   spq.qty_unit_id) t
  group by t.internal_contract_item_ref_no,
           t.element_id,
-          t.qty_unit_id 
- 
- 
- 
- 
+          t.qty_unit_id;

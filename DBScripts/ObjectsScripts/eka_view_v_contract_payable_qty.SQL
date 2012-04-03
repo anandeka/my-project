@@ -1,9 +1,4 @@
-CREATE OR REPLACE VIEW v_contract_payable_qty (internal_contract_item_ref_no,
-                                                     element_id,
-                                                     payable_qty,
-                                                     payable_qty_unit_id
-                                                    )
-AS
+CREATE OR REPLACE VIEW v_contract_payable_qty AS
    SELECT   t.internal_contract_item_ref_no, t.element_id,
             SUM (t.payable_qty) payable_qty,
             t.qty_unit_id payable_qty_unit_id
@@ -31,8 +26,8 @@ AS
                 AND spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
                 AND pci.is_active = 'Y'
                 AND pcdi.is_active = 'Y'
+                AND spq.is_stock_split='N'
                 AND spq.is_active = 'Y') t
    GROUP BY t.internal_contract_item_ref_no,
             t.element_id,
             t.qty_unit_id;
-
