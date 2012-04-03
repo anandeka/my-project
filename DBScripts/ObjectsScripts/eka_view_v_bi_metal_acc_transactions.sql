@@ -1,5 +1,6 @@
 CREATE OR REPLACE VIEW V_BI_METAL_ACC_TRANSACTIONS AS
-select mat_temp.unique_id,
+select mat_temp.ACTION_REF_NO unique_id,
+       mat_temp.unique_id unique_id_internal,
        mat_temp.corporate,
        mat_temp.internal_contract_ref_no,
        mat_temp.contract_ref_no,
@@ -25,9 +26,10 @@ select mat_temp.unique_id,
        qum.qty_unit debt_qty_unit,  
        --Bug Fix start
        --mat_temp.debt_qty_unit_id debt_qty_unit_id,
-       qum.qty_unit debt_qty_unit_id,
+       qum.qty_unit debt_qty_unit_id, -- this is done due to the BI Manager schema refered ID as UOM, now we can't change this in jasper.
        --Bug Fix end
        mat_temp.internal_action_ref_no,
+       mat_temp.ACTION_REF_NO,
        to_char(mat_temp.activity_date, 'dd-Mon-yyyy') activity_date,
        (CASE
          WHEN ash_temp.assay_type IS NOT NULL THEN
@@ -58,7 +60,8 @@ select mat_temp.unique_id,
                (-1 * retn_temp.qty) debt_qty,
                retn_temp.qty_unit_id debt_qty_unit_id,
                retn_temp.internal_action_ref_no,
-               retn_temp.activity_date
+               retn_temp.activity_date,
+               retn_temp.ACTION_REF_NO
           FROM (SELECT spq.spq_id unique_id,
                        axs.corporate_id,
                        pci.internal_contract_ref_no,
@@ -81,7 +84,8 @@ select mat_temp.unique_id,
                        spq.payable_qty qty,
                        spq.qty_unit_id qty_unit_id,
                        axs.internal_action_ref_no,
-                       axs.eff_date activity_date
+                       axs.eff_date activity_date,
+                       AXS.ACTION_REF_NO
                   FROM spq_stock_payable_qty spq,
                        grd_goods_record_detail grd,
                        v_pci pci,
@@ -151,7 +155,8 @@ select mat_temp.unique_id,
                        (prrqs.qty_sign * prrqs.qty) qty,
                        prrqs.qty_unit_id qty_unit_id,
                        axs.internal_action_ref_no,
-                       axs.eff_date activity_date
+                       axs.eff_date activity_date,
+                       AXS.ACTION_REF_NO
                   FROM prrqs_prr_qty_status      prrqs,
                        axs_action_summary        axs,
                        pdm_productmaster         pdm,
@@ -195,7 +200,8 @@ select mat_temp.unique_id,
                (prrqs.qty_sign * prrqs.qty) debt_qty,
                prrqs.qty_unit_id debt_qty_unit_id,
                axs.internal_action_ref_no,
-               axs.eff_date activity_date
+               axs.eff_date activity_date,
+               AXS.ACTION_REF_NO
           FROM prrqs_prr_qty_status      prrqs,
                axs_action_summary        axs,
                pdm_productmaster         pdm,
