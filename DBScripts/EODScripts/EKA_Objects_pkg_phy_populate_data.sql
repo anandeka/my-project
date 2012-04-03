@@ -1,4 +1,4 @@
-create or replace package "PKG_PHY_POPULATE_DATA" is
+create or replace package pkg_phy_populate_data is
 
   -- Author  : SURESHGOTTIPATI
   -- Created : 5/2/2011 5:33:53 PM
@@ -197,9 +197,9 @@ create or replace package "PKG_PHY_POPULATE_DATA" is
                                pd_trade_date   date,
                                pc_user_id      varchar2);
 
-end pkg_phy_populate_data; 
+end pkg_phy_populate_data;
 /
-create or replace package body "PKG_PHY_POPULATE_DATA" is
+create or replace package body PKG_PHY_POPULATE_DATA is
 
   procedure sp_phy_populate_table_data
   /*******************************************************************************************************************************************
@@ -1024,6 +1024,32 @@ create or replace package body "PKG_PHY_POPULATE_DATA" is
                             'sp_phy_create_invs');
     sp_phy_create_invs(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
+    
+    -- For Internal movement records update Latest Invoice Number
+for cur_update_inv in (
+select grd_parent.internal_gmr_ref_no parent_internal_gmr_ref_no,
+       grd.internal_gmr_ref_no child_internal_gmr_ref_no,
+       gmr.latest_internal_invoice_ref_no,
+       gmr.is_final_invoiced,
+       gmr.is_provisional_invoiced
+  from grd_goods_record_detail   grd,
+       grd_goods_record_detail   grd_parent,
+       gmr_goods_movement_record gmr
+ where grd.parent_internal_grd_ref_no is not null
+   and grd_parent.internal_grd_ref_no = grd.parent_internal_grd_ref_no
+   and gmr.internal_gmr_ref_no = grd_parent.internal_gmr_ref_no
+   and gmr.dbd_id = gvc_dbd_id
+   and grd.dbd_id = gvc_dbd_id
+   and grd_parent.dbd_id = gvc_dbd_id) loop
+   Update gmr_goods_movement_record gmr
+   set gmr.latest_internal_invoice_ref_no = cur_update_inv.latest_internal_invoice_ref_no,
+   gmr.is_provisional_invoiced = cur_update_inv.is_provisional_invoiced,
+   gmr.is_final_invoiced = cur_update_inv.is_final_invoiced
+   where gmr.dbd_id = gvc_dbd_id
+   and gmr.internal_gmr_ref_no = cur_update_inv.child_internal_gmr_ref_no;
+   end loop;
+
+
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -2993,883 +3019,852 @@ insert into cs_cost_store
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   begin
-    insert into gmr_goods_movement_record
-      (internal_gmr_ref_no,
-       gmr_ref_no,
-       gmr_first_int_action_ref_no,
-       internal_contract_ref_no,
-       gmr_latest_action_action_id,
-       corporate_id,
-       created_by,
-       created_date,
-       contract_type,
-       status_id,
-       qty,
-       current_qty,
-       qty_unit_id,
-       no_of_units,
-       current_no_of_units,
-       shipped_qty,
-       landed_qty,
-       weighed_qty,
-       plan_ship_qty,
-       released_qty,
-       bl_no,
-       trucking_receipt_no,
-       rail_receipt_no,
-       bl_date,
-       trucking_receipt_date,
-       rail_receipt_date,
-       warehouse_receipt_no,
-       origin_city_id,
-       origin_country_id,
-       destination_city_id,
-       destination_country_id,
-       loading_country_id,
-       loading_port_id,
-       discharge_country_id,
-       discharge_port_id,
-       trans_port_id,
-       trans_country_id,
-       warehouse_profile_id,
-       shed_id,
-       shipping_line_profile_id,
-       controller_profile_id,
-       vessel_name,
-       eff_date,
-       inventory_no,
-       inventory_status,
-       inventory_in_date,
-       inventory_out_date,
-       is_final_weight,
-       final_weight,
-       sales_int_alloc_group_id,
-       is_internal_movement,
-       is_deleted,
-       is_voyage_gmr,
-       loaded_qty,
-       discharged_qty,
-       voyage_alloc_qty,
-       fulfilled_qty,
-       voyage_status,
-       tt_in_qty,
-       tt_out_qty,
-       tt_under_cma_qty,
-       tt_none_qty,
-       moved_out_qty,
-       is_settlement_gmr,
-       write_off_qty,
-       internal_action_ref_no,
-       gravity_type_id,
-       gravity,
-       density_mass_qty_unit_id,
-       density_volume_qty_unit_id,
-       gravity_type,
-       loading_state_id,
-       loading_city_id,
-       trans_state_id,
-       trans_city_id,
-       discharge_state_id,
-       discharge_city_id,
-       place_of_receipt_country_id,
-       place_of_receipt_state_id,
-       place_of_receipt_city_id,
-       place_of_delivery_country_id,
-       place_of_delivery_state_id,
-       place_of_delivery_city_id,
-       --total_gross_weight,
-       -- total_tare_weight,
-       tolling_qty,
-       tolling_gmr_type,
-       pool_id,
-       is_warrant,
-       is_pass_through,
-       pledge_input_gmr,
-       is_apply_freight_allowance,
-       dbd_id)
-      select decode(internal_gmr_ref_no,
-                    'Empty_String',
-                    null,
-                    internal_gmr_ref_no),
-             decode(gmr_ref_no, 'Empty_String', null, gmr_ref_no),
-             decode(gmr_first_int_action_ref_no,
-                    'Empty_String',
-                    null,
-                    gmr_first_int_action_ref_no),
-             decode(internal_contract_ref_no,
-                    'Empty_String',
-                    null,
-                    internal_contract_ref_no),
-             decode(gmr_latest_action_action_id,
-                    'Empty_String',
-                    null,
-                    gmr_latest_action_action_id),
-             decode(corporate_id, 'Empty_String', null, corporate_id),
-             decode(created_by, 'Empty_String', null, created_by),
-             decode(created_date, 'Empty_String', null, created_date),
-             decode(contract_type, 'Empty_String', null, contract_type),
-             decode(status_id, 'Empty_String', null, status_id),
-             decode(qty, 'Empty_String', null, qty),
-             decode(current_qty, 'Empty_String', null, current_qty),
-             decode(qty_unit_id, 'Empty_String', null, qty_unit_id),
-             decode(no_of_units, 'Empty_String', null, no_of_units),
-             decode(current_no_of_units,
-                    'Empty_String',
-                    null,
-                    current_no_of_units),
-             decode(shipped_qty, 'Empty_String', null, shipped_qty),
-             decode(landed_qty, 'Empty_String', null, landed_qty),
-             decode(weighed_qty, 'Empty_String', null, weighed_qty),
-             decode(plan_ship_qty, 'Empty_String', null, plan_ship_qty),
-             decode(released_qty, 'Empty_String', null, released_qty),
-             decode(bl_no, 'Empty_String', null, bl_no),
-             decode(trucking_receipt_no,
-                    'Empty_String',
-                    null,
-                    trucking_receipt_no),
-             decode(rail_receipt_no, 'Empty_String', null, rail_receipt_no),
-             decode(bl_date, 'Empty_String', null, bl_date),
-             decode(trucking_receipt_date,
-                    'Empty_String',
-                    null,
-                    trucking_receipt_date),
-             decode(rail_receipt_date,
-                    'Empty_String',
-                    null,
-                    rail_receipt_date),
-             decode(warehouse_receipt_no,
-                    'Empty_String',
-                    null,
-                    warehouse_receipt_no),
-             decode(origin_city_id, 'Empty_String', null, origin_city_id),
-             decode(origin_country_id,
-                    'Empty_String',
-                    null,
-                    origin_country_id),
-             decode(destination_city_id,
-                    'Empty_String',
-                    null,
-                    destination_city_id),
-             decode(destination_country_id,
-                    'Empty_String',
-                    null,
-                    destination_country_id),
-             decode(loading_country_id,
-                    'Empty_String',
-                    null,
-                    loading_country_id),
-             decode(loading_port_id, 'Empty_String', null, loading_port_id),
-             decode(discharge_country_id,
-                    'Empty_String',
-                    null,
-                    discharge_country_id),
-             decode(discharge_port_id,
-                    'Empty_String',
-                    null,
-                    discharge_port_id),
-             decode(trans_port_id, 'Empty_String', null, trans_port_id),
-             decode(trans_country_id,
-                    'Empty_String',
-                    null,
-                    trans_country_id),
-             decode(warehouse_profile_id,
-                    'Empty_String',
-                    null,
-                    warehouse_profile_id),
-             decode(shed_id, 'Empty_String', null, shed_id),
-             decode(shipping_line_profile_id,
-                    'Empty_String',
-                    null,
-                    shipping_line_profile_id),
-             decode(controller_profile_id,
-                    'Empty_String',
-                    null,
-                    controller_profile_id),
-             decode(vessel_name, 'Empty_String', null, vessel_name),
-             decode(eff_date, 'Empty_String', null, eff_date),
-             decode(inventory_no, 'Empty_String', null, inventory_no),
-             decode(inventory_status,
-                    'Empty_String',
-                    null,
-                    inventory_status),
-             decode(inventory_in_date,
-                    'Empty_String',
-                    null,
-                    inventory_in_date),
-             decode(inventory_out_date,
-                    'Empty_String',
-                    null,
-                    inventory_out_date),
-             decode(is_final_weight, 'Empty_String', null, is_final_weight),
-             decode(final_weight, 'Empty_String', null, final_weight),
-             decode(sales_int_alloc_group_id,
-                    'Empty_String',
-                    null,
-                    sales_int_alloc_group_id),
-             decode(is_internal_movement,
-                    'Empty_String',
-                    null,
-                    is_internal_movement),
-             decode(is_deleted, 'Empty_String', null, is_deleted),
-             decode(is_voyage_gmr, 'Empty_String', null, is_voyage_gmr),
-             decode(loaded_qty, 'Empty_String', null, loaded_qty),
-             decode(discharged_qty, 'Empty_String', null, discharged_qty),
-             decode(voyage_alloc_qty,
-                    'Empty_String',
-                    null,
-                    voyage_alloc_qty),
-             decode(fulfilled_qty, 'Empty_String', null, fulfilled_qty),
-             decode(voyage_status, 'Empty_String', null, voyage_status),
-             decode(tt_in_qty, 'Empty_String', null, tt_in_qty),
-             decode(tt_out_qty, 'Empty_String', null, tt_out_qty),
-             decode(tt_under_cma_qty,
-                    'Empty_String',
-                    null,
-                    tt_under_cma_qty),
-             decode(tt_none_qty, 'Empty_String', null, tt_none_qty),
-             decode(moved_out_qty, 'Empty_String', null, moved_out_qty),
-             decode(is_settlement_gmr,
-                    'Empty_String',
-                    null,
-                    is_settlement_gmr),
-             decode(write_off_qty, 'Empty_String', null, write_off_qty),
-             decode(internal_action_ref_no,
-                    'Empty_String',
-                    null,
-                    internal_action_ref_no),
-             decode(gravity_type_id, 'Empty_String', null, gravity_type_id),
-             decode(gravity, 'Empty_String', null, gravity),
-             decode(density_mass_qty_unit_id,
-                    'Empty_String',
-                    null,
-                    density_mass_qty_unit_id),
-             decode(density_volume_qty_unit_id,
-                    'Empty_String',
-                    null,
-                    density_volume_qty_unit_id),
-             decode(gravity_type, 'Empty_String', null, gravity_type),
-             decode(loading_state_id,
-                    'Empty_String',
-                    null,
-                    loading_state_id),
-             decode(loading_city_id, 'Empty_String', null, loading_city_id),
-             decode(trans_state_id, 'Empty_String', null, trans_state_id),
-             decode(trans_city_id, 'Empty_String', null, trans_city_id),
-             decode(discharge_state_id,
-                    'Empty_String',
-                    null,
-                    discharge_state_id),
-             decode(discharge_city_id,
-                    'Empty_String',
-                    null,
-                    discharge_city_id),
-             decode(place_of_receipt_country_id,
-                    'Empty_String',
-                    null,
-                    place_of_receipt_country_id),
-             decode(place_of_receipt_state_id,
-                    'Empty_String',
-                    null,
-                    place_of_receipt_state_id),
-             decode(place_of_receipt_city_id,
-                    'Empty_String',
-                    null,
-                    place_of_receipt_city_id),
-             decode(place_of_delivery_country_id,
-                    'Empty_String',
-                    null,
-                    place_of_delivery_country_id),
-             decode(place_of_delivery_state_id,
-                    'Empty_String',
-                    null,
-                    place_of_delivery_state_id),
-             decode(place_of_delivery_city_id,
-                    'Empty_String',
-                    null,
-                    place_of_delivery_city_id),
-             /* decode(total_gross_weight,
-                                                                                                                                                                                                                                                                                                                                                         'Empty_String',
-                                                                                                                                                                                                                                                                                                                                                         null,
-                                                                                                                                                                                                                                                                                                                                                         total_gross_weight),
-                                                                                                                                                                                                                                                                                                                                                  decode(total_tare_weight,
-                                                                                                                                                                                                                                                                                                                                                         'Empty_String',
-                                                                                                                                                                                                                                                                                                                                                         null,
-                                                                                                                                                                                                                                                                                                                                                         total_tare_weight), */
-             decode(tolling_qty, 'Empty_String', null, tolling_qty),
-             decode(tolling_gmr_type,
-                    'Empty_String',
-                    null,
-                    tolling_gmr_type),
-             decode(pool_id, 'Empty_String', null, pool_id),
-             decode(is_warrant, 'Empty_String', null, is_warrant),
-             decode(is_pass_through, 'Empty_String', null, is_pass_through),
-             decode(pledge_input_gmr,
-                    'Empty_String',
-                    null,
-                    pledge_input_gmr),
-             decode(is_apply_freight_allowance,
-                    'Empty_String',
-                    null,
-                    is_apply_freight_allowance),
-             gvc_dbd_id
-        from (select gmrul.internal_gmr_ref_no,
-                     substr(max(case
-                                  when gmrul.gmr_ref_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.gmr_ref_no
-                                end),
-                            24) gmr_ref_no,
-                     substr(max(case
-                                  when gmrul.gmr_first_int_action_ref_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.gmr_first_int_action_ref_no
-                                end),
-                            24) gmr_first_int_action_ref_no,
-                     substr(max(case
-                                  when gmrul.internal_contract_ref_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.internal_contract_ref_no
-                                end),
-                            24) internal_contract_ref_no,
-                     substr(max(case
-                                  when gmrul.gmr_latest_action_action_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.gmr_latest_action_action_id
-                                end),
-                            24) gmr_latest_action_action_id,
-                     substr(max(case
-                                  when gmrul.corporate_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.corporate_id
-                                end),
-                            24) corporate_id,
-                     substr(max(case
-                                  when gmrul.created_by is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.created_by
-                                end),
-                            24) created_by,
-                     
-                     pd_trade_date created_date,
-                     substr(max(case
-                                  when gmrul.contract_type is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.contract_type
-                                end),
-                            24) contract_type,
-                     substr(max(case
-                                  when gmrul.status_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.status_id
-                                end),
-                            24) status_id,
-                     substr(max(case
-                                  when gmrul.qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.qty
-                                end),
-                            24) qty,
-                     substr(max(case
-                                  when gmrul.current_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.current_qty
-                                end),
-                            24) current_qty,
-                     substr(max(case
-                                  when gmrul.qty_unit_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.qty_unit_id
-                                end),
-                            24) qty_unit_id,
-                     substr(max(case
-                                  when gmrul.no_of_units is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.no_of_units
-                                end),
-                            24) no_of_units,
-                     substr(max(case
-                                  when gmrul.current_no_of_units is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.current_no_of_units
-                                end),
-                            24) current_no_of_units,
-                     substr(max(case
-                                  when gmrul.shipped_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.shipped_qty
-                                end),
-                            24) shipped_qty,
-                     substr(max(case
-                                  when gmrul.landed_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.landed_qty
-                                end),
-                            24) landed_qty,
-                     substr(max(case
-                                  when gmrul.weighed_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.weighed_qty
-                                end),
-                            24) weighed_qty,
-                     substr(max(case
-                                  when gmrul.plan_ship_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.plan_ship_qty
-                                end),
-                            24) plan_ship_qty,
-                     substr(max(case
-                                  when gmrul.released_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.released_qty
-                                end),
-                            24) released_qty,
-                     substr(max(case
-                                  when gmrul.bl_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.bl_no
-                                end),
-                            24) bl_no,
-                     substr(max(case
-                                  when gmrul.trucking_receipt_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.trucking_receipt_no
-                                end),
-                            24) trucking_receipt_no,
-                     substr(max(case
-                                  when gmrul.rail_receipt_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.rail_receipt_no
-                                end),
-                            24) rail_receipt_no,
-                     substr(max(case
-                                  when gmrul.bl_date is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.bl_date
-                                end),
-                            24) bl_date,
-                     substr(max(case
-                                  when gmrul.trucking_receipt_date is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.trucking_receipt_date
-                                end),
-                            24) trucking_receipt_date,
-                     substr(max(case
-                                  when gmrul.rail_receipt_date is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.rail_receipt_date
-                                end),
-                            24) rail_receipt_date,
-                     substr(max(case
-                                  when gmrul.warehouse_receipt_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.warehouse_receipt_no
-                                end),
-                            24) warehouse_receipt_no,
-                     substr(max(case
-                                  when gmrul.origin_city_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.origin_city_id
-                                end),
-                            24) origin_city_id,
-                     substr(max(case
-                                  when gmrul.origin_country_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.origin_country_id
-                                end),
-                            24) origin_country_id,
-                     substr(max(case
-                                  when gmrul.destination_city_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.destination_city_id
-                                end),
-                            24) destination_city_id,
-                     substr(max(case
-                                  when gmrul.destination_country_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.destination_country_id
-                                end),
-                            24) destination_country_id,
-                     substr(max(case
-                                  when gmrul.loading_country_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.loading_country_id
-                                end),
-                            24) loading_country_id,
-                     substr(max(case
-                                  when gmrul.loading_port_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.loading_port_id
-                                end),
-                            24) loading_port_id,
-                     substr(max(case
-                                  when gmrul.discharge_country_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.discharge_country_id
-                                end),
-                            24) discharge_country_id,
-                     substr(max(case
-                                  when gmrul.discharge_port_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.discharge_port_id
-                                end),
-                            24) discharge_port_id,
-                     substr(max(case
-                                  when gmrul.trans_port_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.trans_port_id
-                                end),
-                            24) trans_port_id,
-                     substr(max(case
-                                  when gmrul.trans_country_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.trans_country_id
-                                end),
-                            24) trans_country_id,
-                     substr(max(case
-                                  when gmrul.warehouse_profile_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.warehouse_profile_id
-                                end),
-                            24) warehouse_profile_id,
-                     substr(max(case
-                                  when gmrul.shed_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.shed_id
-                                end),
-                            24) shed_id,
-                     substr(max(case
-                                  when gmrul.shipping_line_profile_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.shipping_line_profile_id
-                                end),
-                            24) shipping_line_profile_id,
-                     substr(max(case
-                                  when gmrul.controller_profile_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.controller_profile_id
-                                end),
-                            24) controller_profile_id,
-                     substr(max(case
-                                  when gmrul.vessel_name is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.vessel_name
-                                end),
-                            24) vessel_name,
-                     substr(max(case
-                                  when gmrul.eff_date is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.eff_date
-                                end),
-                            24) eff_date,
-                     substr(max(case
-                                  when gmrul.inventory_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.inventory_no
-                                end),
-                            24) inventory_no,
-                     substr(max(case
-                                  when gmrul.inventory_status is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.inventory_status
-                                end),
-                            24) inventory_status,
-                     substr(max(case
-                                  when gmrul.inventory_in_date is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.inventory_in_date
-                                end),
-                            24) inventory_in_date,
-                     substr(max(case
-                                  when gmrul.inventory_out_date is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.inventory_out_date
-                                end),
-                            24) inventory_out_date,
-                     substr(max(case
-                                  when gmrul.is_final_weight is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.is_final_weight
-                                end),
-                            24) is_final_weight,
-                     substr(max(case
-                                  when gmrul.final_weight is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.final_weight
-                                end),
-                            24) final_weight,
-                     substr(max(case
-                                  when gmrul.sales_int_alloc_group_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.sales_int_alloc_group_id
-                                end),
-                            24) sales_int_alloc_group_id,
-                     substr(max(case
-                                  when gmrul.is_internal_movement is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.is_internal_movement
-                                end),
-                            24) is_internal_movement,
-                     substr(max(case
-                                  when gmrul.is_deleted is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.is_deleted
-                                end),
-                            24) is_deleted,
-                     substr(max(case
-                                  when gmrul.is_voyage_gmr is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.is_voyage_gmr
-                                end),
-                            24) is_voyage_gmr,
-                     substr(max(case
-                                  when gmrul.loaded_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.loaded_qty
-                                end),
-                            24) loaded_qty,
-                     substr(max(case
-                                  when gmrul.discharged_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.discharged_qty
-                                end),
-                            24) discharged_qty,
-                     substr(max(case
-                                  when gmrul.voyage_alloc_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.voyage_alloc_qty
-                                end),
-                            24) voyage_alloc_qty,
-                     substr(max(case
-                                  when gmrul.fulfilled_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.fulfilled_qty
-                                end),
-                            24) fulfilled_qty,
-                     substr(max(case
-                                  when gmrul.voyage_status is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.voyage_status
-                                end),
-                            24) voyage_status,
-                     substr(max(case
-                                  when gmrul.tt_in_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.tt_in_qty
-                                end),
-                            24) tt_in_qty,
-                     substr(max(case
-                                  when gmrul.tt_out_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.tt_out_qty
-                                end),
-                            24) tt_out_qty,
-                     substr(max(case
-                                  when gmrul.tt_under_cma_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.tt_under_cma_qty
-                                end),
-                            24) tt_under_cma_qty,
-                     substr(max(case
-                                  when gmrul.tt_none_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.tt_none_qty
-                                end),
-                            24) tt_none_qty,
-                     substr(max(case
-                                  when gmrul.moved_out_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.moved_out_qty
-                                end),
-                            24) moved_out_qty,
-                     substr(max(case
-                                  when gmrul.is_settlement_gmr is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.is_settlement_gmr
-                                end),
-                            24) is_settlement_gmr,
-                     substr(max(case
-                                  when gmrul.write_off_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.write_off_qty
-                                end),
-                            24) write_off_qty,
-                     substr(max(case
-                                  when gmrul.internal_action_ref_no is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.internal_action_ref_no
-                                end),
-                            24) internal_action_ref_no,
-                     substr(max(case
-                                  when gmrul.gravity_type_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.gravity_type_id
-                                end),
-                            24) gravity_type_id,
-                     substr(max(case
-                                  when gmrul.gravity is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.gravity
-                                end),
-                            24) gravity,
-                     substr(max(case
-                                  when gmrul.density_mass_qty_unit_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.density_mass_qty_unit_id
-                                end),
-                            24) density_mass_qty_unit_id,
-                     substr(max(case
-                                  when gmrul.density_volume_qty_unit_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.density_volume_qty_unit_id
-                                end),
-                            24) density_volume_qty_unit_id,
-                     substr(max(case
-                                  when gmrul.gravity_type is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.gravity_type
-                                end),
-                            24) gravity_type,
-                     substr(max(case
-                                  when gmrul.loading_state_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.loading_state_id
-                                end),
-                            24) loading_state_id,
-                     substr(max(case
-                                  when gmrul.loading_city_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.loading_city_id
-                                end),
-                            24) loading_city_id,
-                     substr(max(case
-                                  when gmrul.trans_state_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.trans_state_id
-                                end),
-                            24) trans_state_id,
-                     substr(max(case
-                                  when gmrul.trans_city_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.trans_city_id
-                                end),
-                            24) trans_city_id,
-                     substr(max(case
-                                  when gmrul.discharge_state_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.discharge_state_id
-                                end),
-                            24) discharge_state_id,
-                     substr(max(case
-                                  when gmrul.discharge_city_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.discharge_city_id
-                                end),
-                            24) discharge_city_id,
-                     substr(max(case
-                                  when gmrul.place_of_receipt_country_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.place_of_receipt_country_id
-                                end),
-                            24) place_of_receipt_country_id,
-                     substr(max(case
-                                  when gmrul.place_of_receipt_state_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.place_of_receipt_state_id
-                                end),
-                            24) place_of_receipt_state_id,
-                     substr(max(case
-                                  when gmrul.place_of_receipt_city_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.place_of_receipt_city_id
-                                end),
-                            24) place_of_receipt_city_id,
-                     substr(max(case
-                                  when gmrul.place_of_delivery_country_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.place_of_delivery_country_id
-                                end),
-                            24) place_of_delivery_country_id,
-                     substr(max(case
-                                  when gmrul.place_of_delivery_state_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.place_of_delivery_state_id
-                                end),
-                            24) place_of_delivery_state_id,
-                     substr(max(case
-                                  when gmrul.place_of_delivery_city_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.place_of_delivery_city_id
-                                end),
-                            24) place_of_delivery_city_id,
-                     /* substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               when gmrul.total_gross_weight is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                gmrul.total_gross_weight
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         24) total_gross_weight,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               when gmrul.total_tare_weight is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                gmrul.total_tare_weight
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         24) total_tare_weight,*/
-                     substr(max(case
-                                  when gmrul.tolling_qty is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.tolling_qty
-                                end),
-                            24) tolling_qty,
-                     substr(max(case
-                                  when gmrul.tolling_gmr_type is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.tolling_gmr_type
-                                end),
-                            24) tolling_gmr_type,
-                     substr(max(case
-                                  when gmrul.pool_id is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.pool_id
-                                end),
-                            24) pool_id,
-                     substr(max(case
-                                  when gmrul.is_warrant is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.is_warrant
-                                end),
-                            24) is_warrant,
-                     substr(max(case
-                                  when gmrul.is_pass_through is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.is_pass_through
-                                end),
-                            24) is_pass_through,
-                     substr(max(case
-                                  when gmrul.pledge_input_gmr is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.pledge_input_gmr
-                                end),
-                            24) pledge_input_gmr,
-                     substr(max(case
-                                  when gmrul.is_apply_freight_allowance is not null then
-                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                   gmrul.is_apply_freight_allowance
-                                end),
-                            24) is_apply_freight_allowance,
-                     gvc_dbd_id
-                from gmrul_gmr_ul       gmrul,
-                     axs_action_summary axs,
-                     dbd_database_dump  dbd,
-                     dbd_database_dump  dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
-                 and gmrul.internal_action_ref_no =
-                     axs.internal_action_ref_no
-                 and axs.eff_date <= pd_trade_date
-                 and axs.corporate_id = pc_corporate_id
-                 and gmrul.dbd_id = dbd_ul.dbd_id
-                 and dbd_ul.corporate_id = pc_corporate_id
-                 and dbd_ul.process = gvc_process
-               group by gmrul.internal_gmr_ref_no) t;
+insert into gmr_goods_movement_record
+  (internal_gmr_ref_no,
+   gmr_ref_no,
+   gmr_first_int_action_ref_no,
+   internal_contract_ref_no,
+   gmr_latest_action_action_id,
+   corporate_id,
+   created_by,
+   created_date,
+   contract_type,
+   status_id,
+   qty,
+   current_qty,
+   qty_unit_id,
+   no_of_units,
+   current_no_of_units,
+   shipped_qty,
+   landed_qty,
+   weighed_qty,
+   plan_ship_qty,
+   released_qty,
+   bl_no,
+   trucking_receipt_no,
+   rail_receipt_no,
+   bl_date,
+   trucking_receipt_date,
+   rail_receipt_date,
+   warehouse_receipt_no,
+   origin_city_id,
+   origin_country_id,
+   destination_city_id,
+   destination_country_id,
+   loading_country_id,
+   loading_port_id,
+   discharge_country_id,
+   discharge_port_id,
+   trans_port_id,
+   trans_country_id,
+   warehouse_profile_id,
+   shed_id,
+   shipping_line_profile_id,
+   controller_profile_id,
+   vessel_name,
+   eff_date,
+   inventory_no,
+   inventory_status,
+   inventory_in_date,
+   inventory_out_date,
+   is_final_weight,
+   final_weight,
+   sales_int_alloc_group_id,
+   is_internal_movement,
+   is_deleted,
+   is_voyage_gmr,
+   loaded_qty,
+   discharged_qty,
+   voyage_alloc_qty,
+   fulfilled_qty,
+   voyage_status,
+   tt_in_qty,
+   tt_out_qty,
+   tt_under_cma_qty,
+   tt_none_qty,
+   moved_out_qty,
+   is_settlement_gmr,
+   write_off_qty,
+   internal_action_ref_no,
+   gravity_type_id,
+   gravity,
+   density_mass_qty_unit_id,
+   density_volume_qty_unit_id,
+   gravity_type,
+   loading_state_id,
+   loading_city_id,
+   trans_state_id,
+   trans_city_id,
+   discharge_state_id,
+   discharge_city_id,
+   place_of_receipt_country_id,
+   place_of_receipt_state_id,
+   place_of_receipt_city_id,
+   place_of_delivery_country_id,
+   place_of_delivery_state_id,
+   place_of_delivery_city_id,
+   --total_gross_weight,
+   -- total_tare_weight,
+   tolling_qty,
+   tolling_gmr_type,
+   pool_id,
+   is_warrant,
+   is_pass_through,
+   pledge_input_gmr,
+   is_apply_freight_allowance,
+   mode_of_transport,
+   wns_status,
+   dbd_id)
+  select decode(internal_gmr_ref_no,
+                'Empty_String',
+                null,
+                internal_gmr_ref_no),
+         decode(gmr_ref_no, 'Empty_String', null, gmr_ref_no),
+         decode(gmr_first_int_action_ref_no,
+                'Empty_String',
+                null,
+                gmr_first_int_action_ref_no),
+         decode(internal_contract_ref_no,
+                'Empty_String',
+                null,
+                internal_contract_ref_no),
+         decode(gmr_latest_action_action_id,
+                'Empty_String',
+                null,
+                gmr_latest_action_action_id),
+         decode(corporate_id, 'Empty_String', null, corporate_id),
+         decode(created_by, 'Empty_String', null, created_by),
+         decode(created_date, 'Empty_String', null, created_date),
+         decode(contract_type, 'Empty_String', null, contract_type),
+         decode(status_id, 'Empty_String', null, status_id),
+         decode(qty, 'Empty_String', null, qty),
+         decode(current_qty, 'Empty_String', null, current_qty),
+         decode(qty_unit_id, 'Empty_String', null, qty_unit_id),
+         decode(no_of_units, 'Empty_String', null, no_of_units),
+         decode(current_no_of_units,
+                'Empty_String',
+                null,
+                current_no_of_units),
+         decode(shipped_qty, 'Empty_String', null, shipped_qty),
+         decode(landed_qty, 'Empty_String', null, landed_qty),
+         decode(weighed_qty, 'Empty_String', null, weighed_qty),
+         decode(plan_ship_qty, 'Empty_String', null, plan_ship_qty),
+         decode(released_qty, 'Empty_String', null, released_qty),
+         decode(bl_no, 'Empty_String', null, bl_no),
+         decode(trucking_receipt_no,
+                'Empty_String',
+                null,
+                trucking_receipt_no),
+         decode(rail_receipt_no, 'Empty_String', null, rail_receipt_no),
+         decode(bl_date, 'Empty_String', null, bl_date),
+         decode(trucking_receipt_date,
+                'Empty_String',
+                null,
+                trucking_receipt_date),
+         decode(rail_receipt_date, 'Empty_String', null, rail_receipt_date),
+         decode(warehouse_receipt_no,
+                'Empty_String',
+                null,
+                warehouse_receipt_no),
+         decode(origin_city_id, 'Empty_String', null, origin_city_id),
+         decode(origin_country_id, 'Empty_String', null, origin_country_id),
+         decode(destination_city_id,
+                'Empty_String',
+                null,
+                destination_city_id),
+         decode(destination_country_id,
+                'Empty_String',
+                null,
+                destination_country_id),
+         decode(loading_country_id,
+                'Empty_String',
+                null,
+                loading_country_id),
+         decode(loading_port_id, 'Empty_String', null, loading_port_id),
+         decode(discharge_country_id,
+                'Empty_String',
+                null,
+                discharge_country_id),
+         decode(discharge_port_id, 'Empty_String', null, discharge_port_id),
+         decode(trans_port_id, 'Empty_String', null, trans_port_id),
+         decode(trans_country_id, 'Empty_String', null, trans_country_id),
+         decode(warehouse_profile_id,
+                'Empty_String',
+                null,
+                warehouse_profile_id),
+         decode(shed_id, 'Empty_String', null, shed_id),
+         decode(shipping_line_profile_id,
+                'Empty_String',
+                null,
+                shipping_line_profile_id),
+         decode(controller_profile_id,
+                'Empty_String',
+                null,
+                controller_profile_id),
+         decode(vessel_name, 'Empty_String', null, vessel_name),
+         decode(eff_date, 'Empty_String', null, eff_date),
+         decode(inventory_no, 'Empty_String', null, inventory_no),
+         decode(inventory_status, 'Empty_String', null, inventory_status),
+         decode(inventory_in_date, 'Empty_String', null, inventory_in_date),
+         decode(inventory_out_date,
+                'Empty_String',
+                null,
+                inventory_out_date),
+         decode(is_final_weight, 'Empty_String', null, is_final_weight),
+         decode(final_weight, 'Empty_String', null, final_weight),
+         decode(sales_int_alloc_group_id,
+                'Empty_String',
+                null,
+                sales_int_alloc_group_id),
+         decode(is_internal_movement,
+                'Empty_String',
+                null,
+                is_internal_movement),
+         decode(is_deleted, 'Empty_String', null, is_deleted),
+         decode(is_voyage_gmr, 'Empty_String', null, is_voyage_gmr),
+         decode(loaded_qty, 'Empty_String', null, loaded_qty),
+         decode(discharged_qty, 'Empty_String', null, discharged_qty),
+         decode(voyage_alloc_qty, 'Empty_String', null, voyage_alloc_qty),
+         decode(fulfilled_qty, 'Empty_String', null, fulfilled_qty),
+         decode(voyage_status, 'Empty_String', null, voyage_status),
+         decode(tt_in_qty, 'Empty_String', null, tt_in_qty),
+         decode(tt_out_qty, 'Empty_String', null, tt_out_qty),
+         decode(tt_under_cma_qty, 'Empty_String', null, tt_under_cma_qty),
+         decode(tt_none_qty, 'Empty_String', null, tt_none_qty),
+         decode(moved_out_qty, 'Empty_String', null, moved_out_qty),
+         decode(is_settlement_gmr, 'Empty_String', null, is_settlement_gmr),
+         decode(write_off_qty, 'Empty_String', null, write_off_qty),
+         decode(internal_action_ref_no,
+                'Empty_String',
+                null,
+                internal_action_ref_no),
+         decode(gravity_type_id, 'Empty_String', null, gravity_type_id),
+         decode(gravity, 'Empty_String', null, gravity),
+         decode(density_mass_qty_unit_id,
+                'Empty_String',
+                null,
+                density_mass_qty_unit_id),
+         decode(density_volume_qty_unit_id,
+                'Empty_String',
+                null,
+                density_volume_qty_unit_id),
+         decode(gravity_type, 'Empty_String', null, gravity_type),
+         decode(loading_state_id, 'Empty_String', null, loading_state_id),
+         decode(loading_city_id, 'Empty_String', null, loading_city_id),
+         decode(trans_state_id, 'Empty_String', null, trans_state_id),
+         decode(trans_city_id, 'Empty_String', null, trans_city_id),
+         decode(discharge_state_id,
+                'Empty_String',
+                null,
+                discharge_state_id),
+         decode(discharge_city_id, 'Empty_String', null, discharge_city_id),
+         decode(place_of_receipt_country_id,
+                'Empty_String',
+                null,
+                place_of_receipt_country_id),
+         decode(place_of_receipt_state_id,
+                'Empty_String',
+                null,
+                place_of_receipt_state_id),
+         decode(place_of_receipt_city_id,
+                'Empty_String',
+                null,
+                place_of_receipt_city_id),
+         decode(place_of_delivery_country_id,
+                'Empty_String',
+                null,
+                place_of_delivery_country_id),
+         decode(place_of_delivery_state_id,
+                'Empty_String',
+                null,
+                place_of_delivery_state_id),
+         decode(place_of_delivery_city_id,
+                'Empty_String',
+                null,
+                place_of_delivery_city_id),
+         decode(tolling_qty, 'Empty_String', null, tolling_qty),
+         decode(tolling_gmr_type, 'Empty_String', null, tolling_gmr_type),
+         decode(pool_id, 'Empty_String', null, pool_id),
+         decode(is_warrant, 'Empty_String', null, is_warrant),
+         decode(is_pass_through, 'Empty_String', null, is_pass_through),
+         decode(pledge_input_gmr, 'Empty_String', null, pledge_input_gmr),
+         decode(is_apply_freight_allowance,
+                'Empty_String',
+                null,
+                is_apply_freight_allowance),
+         decode(mode_of_transport, 'Empty_String', null, mode_of_transport) mode_of_transport,
+         decode(wns_status, 'Empty_String', null, wns_status) wns_status,
+         
+         gvc_dbd_id
+    from (select gmrul.internal_gmr_ref_no,
+                 substr(max(case
+                              when gmrul.gmr_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.gmr_ref_no
+                            end),
+                        24) gmr_ref_no,
+                 substr(max(case
+                              when gmrul.gmr_first_int_action_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.gmr_first_int_action_ref_no
+                            end),
+                        24) gmr_first_int_action_ref_no,
+                 substr(max(case
+                              when gmrul.internal_contract_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.internal_contract_ref_no
+                            end),
+                        24) internal_contract_ref_no,
+                 substr(max(case
+                              when gmrul.gmr_latest_action_action_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.gmr_latest_action_action_id
+                            end),
+                        24) gmr_latest_action_action_id,
+                 substr(max(case
+                              when gmrul.corporate_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.corporate_id
+                            end),
+                        24) corporate_id,
+                 substr(max(case
+                              when gmrul.created_by is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.created_by
+                            end),
+                        24) created_by,
+                 
+                 pd_trade_date created_date,
+                 substr(max(case
+                              when gmrul.contract_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.contract_type
+                            end),
+                        24) contract_type,
+                 substr(max(case
+                              when gmrul.status_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.status_id
+                            end),
+                        24) status_id,
+                 substr(max(case
+                              when gmrul.qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.qty
+                            end),
+                        24) qty,
+                 substr(max(case
+                              when gmrul.current_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.current_qty
+                            end),
+                        24) current_qty,
+                 substr(max(case
+                              when gmrul.qty_unit_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.qty_unit_id
+                            end),
+                        24) qty_unit_id,
+                 substr(max(case
+                              when gmrul.no_of_units is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.no_of_units
+                            end),
+                        24) no_of_units,
+                 substr(max(case
+                              when gmrul.current_no_of_units is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.current_no_of_units
+                            end),
+                        24) current_no_of_units,
+                 substr(max(case
+                              when gmrul.shipped_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.shipped_qty
+                            end),
+                        24) shipped_qty,
+                 substr(max(case
+                              when gmrul.landed_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.landed_qty
+                            end),
+                        24) landed_qty,
+                 substr(max(case
+                              when gmrul.weighed_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.weighed_qty
+                            end),
+                        24) weighed_qty,
+                 substr(max(case
+                              when gmrul.plan_ship_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.plan_ship_qty
+                            end),
+                        24) plan_ship_qty,
+                 substr(max(case
+                              when gmrul.released_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.released_qty
+                            end),
+                        24) released_qty,
+                 substr(max(case
+                              when gmrul.bl_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.bl_no
+                            end),
+                        24) bl_no,
+                 substr(max(case
+                              when gmrul.trucking_receipt_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.trucking_receipt_no
+                            end),
+                        24) trucking_receipt_no,
+                 substr(max(case
+                              when gmrul.rail_receipt_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.rail_receipt_no
+                            end),
+                        24) rail_receipt_no,
+                 substr(max(case
+                              when gmrul.bl_date is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.bl_date
+                            end),
+                        24) bl_date,
+                 substr(max(case
+                              when gmrul.trucking_receipt_date is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.trucking_receipt_date
+                            end),
+                        24) trucking_receipt_date,
+                 substr(max(case
+                              when gmrul.rail_receipt_date is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.rail_receipt_date
+                            end),
+                        24) rail_receipt_date,
+                 substr(max(case
+                              when gmrul.warehouse_receipt_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.warehouse_receipt_no
+                            end),
+                        24) warehouse_receipt_no,
+                 substr(max(case
+                              when gmrul.origin_city_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.origin_city_id
+                            end),
+                        24) origin_city_id,
+                 substr(max(case
+                              when gmrul.origin_country_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.origin_country_id
+                            end),
+                        24) origin_country_id,
+                 substr(max(case
+                              when gmrul.destination_city_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.destination_city_id
+                            end),
+                        24) destination_city_id,
+                 substr(max(case
+                              when gmrul.destination_country_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.destination_country_id
+                            end),
+                        24) destination_country_id,
+                 substr(max(case
+                              when gmrul.loading_country_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.loading_country_id
+                            end),
+                        24) loading_country_id,
+                 substr(max(case
+                              when gmrul.loading_port_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.loading_port_id
+                            end),
+                        24) loading_port_id,
+                 substr(max(case
+                              when gmrul.discharge_country_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.discharge_country_id
+                            end),
+                        24) discharge_country_id,
+                 substr(max(case
+                              when gmrul.discharge_port_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.discharge_port_id
+                            end),
+                        24) discharge_port_id,
+                 substr(max(case
+                              when gmrul.trans_port_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.trans_port_id
+                            end),
+                        24) trans_port_id,
+                 substr(max(case
+                              when gmrul.trans_country_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.trans_country_id
+                            end),
+                        24) trans_country_id,
+                 substr(max(case
+                              when gmrul.warehouse_profile_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.warehouse_profile_id
+                            end),
+                        24) warehouse_profile_id,
+                 substr(max(case
+                              when gmrul.shed_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.shed_id
+                            end),
+                        24) shed_id,
+                 substr(max(case
+                              when gmrul.shipping_line_profile_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.shipping_line_profile_id
+                            end),
+                        24) shipping_line_profile_id,
+                 substr(max(case
+                              when gmrul.controller_profile_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.controller_profile_id
+                            end),
+                        24) controller_profile_id,
+                 substr(max(case
+                              when gmrul.vessel_name is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.vessel_name
+                            end),
+                        24) vessel_name,
+                 substr(max(case
+                              when gmrul.eff_date is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.eff_date
+                            end),
+                        24) eff_date,
+                 substr(max(case
+                              when gmrul.inventory_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.inventory_no
+                            end),
+                        24) inventory_no,
+                 substr(max(case
+                              when gmrul.inventory_status is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.inventory_status
+                            end),
+                        24) inventory_status,
+                 substr(max(case
+                              when gmrul.inventory_in_date is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.inventory_in_date
+                            end),
+                        24) inventory_in_date,
+                 substr(max(case
+                              when gmrul.inventory_out_date is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.inventory_out_date
+                            end),
+                        24) inventory_out_date,
+                 substr(max(case
+                              when gmrul.is_final_weight is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.is_final_weight
+                            end),
+                        24) is_final_weight,
+                 substr(max(case
+                              when gmrul.final_weight is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.final_weight
+                            end),
+                        24) final_weight,
+                 substr(max(case
+                              when gmrul.sales_int_alloc_group_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.sales_int_alloc_group_id
+                            end),
+                        24) sales_int_alloc_group_id,
+                 substr(max(case
+                              when gmrul.is_internal_movement is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.is_internal_movement
+                            end),
+                        24) is_internal_movement,
+                 substr(max(case
+                              when gmrul.is_deleted is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.is_deleted
+                            end),
+                        24) is_deleted,
+                 substr(max(case
+                              when gmrul.is_voyage_gmr is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.is_voyage_gmr
+                            end),
+                        24) is_voyage_gmr,
+                 substr(max(case
+                              when gmrul.loaded_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.loaded_qty
+                            end),
+                        24) loaded_qty,
+                 substr(max(case
+                              when gmrul.discharged_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.discharged_qty
+                            end),
+                        24) discharged_qty,
+                 substr(max(case
+                              when gmrul.voyage_alloc_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.voyage_alloc_qty
+                            end),
+                        24) voyage_alloc_qty,
+                 substr(max(case
+                              when gmrul.fulfilled_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.fulfilled_qty
+                            end),
+                        24) fulfilled_qty,
+                 substr(max(case
+                              when gmrul.voyage_status is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.voyage_status
+                            end),
+                        24) voyage_status,
+                 substr(max(case
+                              when gmrul.tt_in_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.tt_in_qty
+                            end),
+                        24) tt_in_qty,
+                 substr(max(case
+                              when gmrul.tt_out_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.tt_out_qty
+                            end),
+                        24) tt_out_qty,
+                 substr(max(case
+                              when gmrul.tt_under_cma_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.tt_under_cma_qty
+                            end),
+                        24) tt_under_cma_qty,
+                 substr(max(case
+                              when gmrul.tt_none_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.tt_none_qty
+                            end),
+                        24) tt_none_qty,
+                 substr(max(case
+                              when gmrul.moved_out_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.moved_out_qty
+                            end),
+                        24) moved_out_qty,
+                 substr(max(case
+                              when gmrul.is_settlement_gmr is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.is_settlement_gmr
+                            end),
+                        24) is_settlement_gmr,
+                 substr(max(case
+                              when gmrul.write_off_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.write_off_qty
+                            end),
+                        24) write_off_qty,
+                 substr(max(case
+                              when gmrul.internal_action_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.internal_action_ref_no
+                            end),
+                        24) internal_action_ref_no,
+                 substr(max(case
+                              when gmrul.gravity_type_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.gravity_type_id
+                            end),
+                        24) gravity_type_id,
+                 substr(max(case
+                              when gmrul.gravity is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.gravity
+                            end),
+                        24) gravity,
+                 substr(max(case
+                              when gmrul.density_mass_qty_unit_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.density_mass_qty_unit_id
+                            end),
+                        24) density_mass_qty_unit_id,
+                 substr(max(case
+                              when gmrul.density_volume_qty_unit_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.density_volume_qty_unit_id
+                            end),
+                        24) density_volume_qty_unit_id,
+                 substr(max(case
+                              when gmrul.gravity_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.gravity_type
+                            end),
+                        24) gravity_type,
+                 substr(max(case
+                              when gmrul.loading_state_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.loading_state_id
+                            end),
+                        24) loading_state_id,
+                 substr(max(case
+                              when gmrul.loading_city_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.loading_city_id
+                            end),
+                        24) loading_city_id,
+                 substr(max(case
+                              when gmrul.trans_state_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.trans_state_id
+                            end),
+                        24) trans_state_id,
+                 substr(max(case
+                              when gmrul.trans_city_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.trans_city_id
+                            end),
+                        24) trans_city_id,
+                 substr(max(case
+                              when gmrul.discharge_state_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.discharge_state_id
+                            end),
+                        24) discharge_state_id,
+                 substr(max(case
+                              when gmrul.discharge_city_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.discharge_city_id
+                            end),
+                        24) discharge_city_id,
+                 substr(max(case
+                              when gmrul.place_of_receipt_country_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.place_of_receipt_country_id
+                            end),
+                        24) place_of_receipt_country_id,
+                 substr(max(case
+                              when gmrul.place_of_receipt_state_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.place_of_receipt_state_id
+                            end),
+                        24) place_of_receipt_state_id,
+                 substr(max(case
+                              when gmrul.place_of_receipt_city_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.place_of_receipt_city_id
+                            end),
+                        24) place_of_receipt_city_id,
+                 substr(max(case
+                              when gmrul.place_of_delivery_country_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.place_of_delivery_country_id
+                            end),
+                        24) place_of_delivery_country_id,
+                 substr(max(case
+                              when gmrul.place_of_delivery_state_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.place_of_delivery_state_id
+                            end),
+                        24) place_of_delivery_state_id,
+                 substr(max(case
+                              when gmrul.place_of_delivery_city_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.place_of_delivery_city_id
+                            end),
+                        24) place_of_delivery_city_id,
+                 /* substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                when gmrul.total_gross_weight is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 gmrul.total_gross_weight
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          24) total_gross_weight,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                when gmrul.total_tare_weight is not null then
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 gmrul.total_tare_weight
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              end),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          24) total_tare_weight,*/
+                 substr(max(case
+                              when gmrul.tolling_qty is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.tolling_qty
+                            end),
+                        24) tolling_qty,
+                 substr(max(case
+                              when gmrul.tolling_gmr_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.tolling_gmr_type
+                            end),
+                        24) tolling_gmr_type,
+                 substr(max(case
+                              when gmrul.pool_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.pool_id
+                            end),
+                        24) pool_id,
+                 substr(max(case
+                              when gmrul.is_warrant is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.is_warrant
+                            end),
+                        24) is_warrant,
+                 substr(max(case
+                              when gmrul.is_pass_through is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.is_pass_through
+                            end),
+                        24) is_pass_through,
+                 substr(max(case
+                              when gmrul.pledge_input_gmr is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.pledge_input_gmr
+                            end),
+                        24) pledge_input_gmr,
+                 substr(max(case
+                              when gmrul.is_apply_freight_allowance is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.is_apply_freight_allowance
+                            end),
+                        24) is_apply_freight_allowance,
+                 substr(max(case
+                              when gmrul.mode_of_transport is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.mode_of_transport
+                            end),
+                        24) mode_of_transport,
+                 substr(max(case
+                              when gmrul.wns_status is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.wns_status
+                            end),
+                        24) wns_status,
+                 gvc_dbd_id
+            from gmrul_gmr_ul       gmrul,
+                 axs_action_summary axs,
+                 dbd_database_dump  dbd,
+                 dbd_database_dump  dbd_ul
+           where dbd.dbd_id = axs.dbd_id
+             and dbd.process = gvc_process
+             and gmrul.internal_action_ref_no = axs.internal_action_ref_no
+             and axs.eff_date <= pd_trade_date
+             and axs.corporate_id = pc_corporate_id
+             and gmrul.dbd_id = dbd_ul.dbd_id
+             and dbd_ul.corporate_id = pc_corporate_id
+             and dbd_ul.process = gvc_process
+           group by gmrul.internal_gmr_ref_no) t;
 --
 -- Update FI AND PI Flag
 --          
@@ -3903,7 +3898,7 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
    and iam.invoice_action_ref_no = axs.internal_action_ref_no
  group by iid.internal_gmr_ref_no)
  where gmr.dbd_id = gvc_dbd_id ;
-     
+
   exception
     when others then
       vobj_error_log.extend;
@@ -6115,7 +6110,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        contract_type,
        purchase_sales,
        corporate_id,
-       --sub_corporate_id,
        contract_status,
        prod_qual_comments,
        base_price_comments,
@@ -6129,7 +6123,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        is_active,
        is_optionality_contract,
        payment_term_id,
-       --payment_due_date,
        provisional_pymt_pctg,
        provisional_pymt_at,
        payment_text,
@@ -6197,10 +6190,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
              decode(contract_type, 'Empty_String', null, contract_type),
              decode(purchase_sales, 'Empty_String', null, purchase_sales),
              decode(corporate_id, 'Empty_String', null, corporate_id),
-             /*decode(sub_corporate_id,
-                                                                                                                                                                                                                                                                                                                                                                                                             'Empty_String',
-                                                                                                                                                                                                                                                                                                                                                                                                             null,
-                                                                                                                                                                                                                                                                                                                                                                                                             sub_corporate_id),*/
              decode(contract_status, 'Empty_String', null, contract_status),
              decode(prod_qual_comments,
                     'Empty_String',
@@ -6232,10 +6221,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                     null,
                     is_optionality_contract),
              decode(payment_term_id, 'Empty_String', null, payment_term_id),
-             /* decode(payment_due_date,
-                                                                                                                                                                                                                                                                                                                                                                                                             'Empty_String',
-                                                                                                                                                                                                                                                                                                                                                                                                             null,
-                                                                                                                                                                                                                                                                                                                                                                                                             payment_due_date), */
              decode(provisional_pymt_pctg,
                     'Empty_String',
                     null,
@@ -6398,12 +6383,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                                    pcmul.corporate_id
                                 end),
                             24) corporate_id,
-                     /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   when pcmul.sub_corporate_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    pcmul.sub_corporate_id
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             24) sub_corporate_id,*/
                      substr(max(case
                                   when pcmul.contract_status is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -6482,12 +6461,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                                    pcmul.payment_term_id
                                 end),
                             24) payment_term_id,
-                     /*  substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   when pcmul. payment_due_date is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    pcmul. payment_due_date
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             24) payment_due_date, */
                      substr(max(case
                                   when pcmul.provisional_pymt_pctg is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -7641,7 +7614,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        event_name,
        no_of_event_months,
        is_spot_pricing,
-       --event_id,
        dbd_id)
       select decode(pfqpp_id, 'Empty_String', null, pfqpp_id),
              decode(ppfh_id, 'Empty_String', null, ppfh_id),
@@ -7700,10 +7672,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                     null,
                     no_of_event_months),
              decode(is_spot_pricing, 'Empty_String', null, is_spot_pricing),
-             /* decode(event_id,
-                                                                                                                                                                                                                                                                                                                                                                      'Empty_String',
-                                                                                                                                                                                                                                                                                                                                                                      null,
-                                                                                                                                                                                                                                                                                                                                                                      event_id),*/
              gvc_dbd_id
         from (select pfqppul.pfqpp_id,
                      substr(max(case
@@ -8340,7 +8308,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        version,
        is_active,
        called_off_qty,
-       --latest_internal_action_ref_no,
        dbd_id)
       select diqsul.diqs_id,
              substr(max(case
@@ -8452,7 +8419,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        version,
        is_active,
        called_off_qty,
-       --latest_internal_action_ref_no,
        dbd_id)
       select cqsul.cqs_id,
              substr(max(case
@@ -8493,7 +8459,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                         end),
                     24) is_active,
              round(sum(nvl(cqsul.called_off_qty_delta, 0)), 10),
-             --latest_internal_action_ref_no,
              gvc_dbd_id
         from cqsl_contract_qty_status_log cqsul,
              axs_action_summary           axs,

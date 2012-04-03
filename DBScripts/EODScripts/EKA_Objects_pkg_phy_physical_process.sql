@@ -283,6 +283,7 @@ create or replace package body pkg_phy_physical_process is
     pc_user_id,
     pc_dbd_id,
     pc_process);*/
+    vc_err_msg := 'sp_calc_secondary_cost ';
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -309,6 +310,7 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_invm_cog');
+    vc_err_msg := 'sp_calc_invm_cog ';
   
     pkg_phy_calculate_cog.sp_calc_invm_cog(pc_corporate_id,
                                            pc_process_id,
@@ -326,12 +328,108 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_invm_cogs');
+    vc_err_msg := 'sp_calc_invm_cogs ';
   
     pkg_phy_calculate_cog.sp_calc_invm_cogs(pc_corporate_id,
                                             pc_process_id,
                                             pc_user_id,
                                             pd_trade_date,
                                             pc_process);
+  
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_conc_contract_cog_price');
+    vc_err_msg := 'sp_conc_contract_cog_price';
+  
+    pkg_phy_cog_price.sp_conc_contract_cog_price(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 pc_process_id,
+                                                 pc_user_id,
+                                                 pc_dbd_id,
+                                                 pc_process);
+  
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_base_contract_cog_price');
+    vc_err_msg := 'sp_base_contract_cog_price';
+  
+    pkg_phy_cog_price.sp_base_contract_cog_price(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 pc_process_id,
+                                                 pc_user_id,
+                                                 pc_dbd_id,
+                                                 pc_process);
+  
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_conc_gmr_cog_price');
+  
+    vc_err_msg := 'sp_conc_gmr_cog_price ';
+  
+    pkg_phy_cog_price.sp_conc_gmr_cog_price(pc_corporate_id,
+                                            pd_trade_date,
+                                            pc_process_id,
+                                            pc_user_id,
+                                            pc_dbd_id,
+                                            pc_process);
+  
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_base_gmr_cog_price');
+    vc_err_msg := 'sp_base_gmr_cog_price';
+  
+    pkg_phy_cog_price.sp_base_gmr_cog_price(pc_corporate_id,
+                                            pd_trade_date,
+                                            pc_process_id,
+                                            pc_user_id,
+                                            pc_dbd_id,
+                                            pc_process);
+  
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_calc_customs_report');
+    vc_err_msg := 'sp_calc_customs_report';
+  
+    pkg_phy_eod_reports.sp_calc_customs_report(pc_corporate_id,
+                                               pd_trade_date,
+                                               pc_process_id,
+                                               pc_user_id,
+                                               pc_process);
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -532,10 +630,12 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_phy_purchase_accural');
     vc_err_msg := 'Before sp_phy_purchase_accural ';
-    pkg_phy_eod_reports.sp_phy_purchase_accural(pc_corporate_id,
-                                                pd_trade_date,
-                                                pc_process_id,
-                                                pc_dbd_id);
+    if pc_process = 'EOM' then
+      pkg_phy_eod_reports.sp_phy_purchase_accural(pc_corporate_id,
+                                                  pd_trade_date,
+                                                  pc_process_id,
+                                                  pc_dbd_id);
+    end if;
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -599,9 +699,12 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_phy_intrstat');
     vc_err_msg := 'Before sp_phy_intrstat';
-    pkg_phy_eod_reports.sp_phy_intrstat(pc_corporate_id,
-                                        pd_trade_date,
-                                        pc_process_id);
+    if pc_process = 'EOM' then
+      pkg_phy_eod_reports.sp_phy_intrstat(pc_corporate_id,
+                                          pd_trade_date,
+                                          pc_process,
+                                          pc_process_id);
+    end if;
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -629,9 +732,11 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_feed_consumption_report');
     vc_err_msg := 'Before sp_feed_consumption_report';
-    pkg_phy_eod_reports.sp_feed_consumption_report(pc_corporate_id,
-                                                   pd_trade_date,
-                                                   pc_process_id);
+    if pc_process = 'EOM' then
+      pkg_phy_eod_reports.sp_feed_consumption_report(pc_corporate_id,
+                                                     pd_trade_date,
+                                                     pc_process_id);
+    end if;
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -643,10 +748,11 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_stock_monthly_yeild');
     vc_err_msg := 'Before sp_stock_monthly_yeild';
-    pkg_phy_eod_reports.sp_stock_monthly_yeild(pc_corporate_id,
-                                               pd_trade_date,
-                                               pc_process_id);
-  
+    if pc_process = 'EOM' then
+      pkg_phy_eod_reports.sp_stock_monthly_yeild(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 pc_process_id);
+    end if;
     -- Concentrate PNL Call Start
     /*if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -789,6 +895,23 @@ create or replace package body pkg_phy_physical_process is
                                                     pc_process_id,
                                                     gvc_previous_process_id,
                                                     pc_user_id);
+  
+  if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_metal_balance_qty_summary');
+    vc_err_msg := 'Before sp_metal_balance_qty_summary';
+    If pc_process ='EOM' then
+   pkg_phy_eod_reports.sp_metal_balance_qty_summary(pc_corporate_id,
+                                                    pd_trade_date,
+                                                    pc_process_id);  
+                                                    end if;
   
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -3586,6 +3709,16 @@ create or replace package body pkg_phy_physical_process is
     delete from stock_monthly_yeild_data where process_id = pc_process_id;
     delete from upad_unreal_pnl_attr_detail
      where process_id = pc_process_id;
+    delete from cccp_conc_contract_cog_price
+     where process_id = pc_process_id;
+    delete from cgcp_conc_gmr_cog_price where process_id = pc_process_id;
+    delete from bccp_base_contract_cog_price
+     where process_id = pc_process_id;
+    delete from bgcp_base_gmr_cog_price where process_id = pc_process_id;
+    delete from cr_customs_report where process_id = pc_process_id;
+    delete from MAS_METAL_ACCOUNT_SUMMARY where process_id = pc_process_id;
+    delete from MD_METAL_DEBT where process_id = pc_process_id;
+  
     --
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
@@ -3661,5 +3794,5 @@ create or replace package body pkg_phy_physical_process is
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end;
+end; 
 /

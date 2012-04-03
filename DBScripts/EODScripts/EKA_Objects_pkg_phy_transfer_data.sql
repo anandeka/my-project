@@ -39,7 +39,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -83,13 +83,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
         into gvc_previous_dbd_id
         from dbd_database_dump dbd
        where dbd.corporate_id = pc_corporate_id
-         and dbd.process=pc_process
+         and dbd.process = pc_process
          and dbd.trade_date =
              (select max(dbd.trade_date)
                 from dbd_database_dump dbd
                where dbd.corporate_id = pc_corporate_id
                  and dbd.trade_date < pd_trade_date
-                 and dbd.process=pc_process);
+                 and dbd.process = pc_process);
     exception
       when no_data_found then
         gvc_previous_dbd_id := null;
@@ -575,6 +575,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('BVD_BP_VAT_DETAILS', 'c');
       dbms_mview.refresh('IOC_INVOICE_OTHER_CHARGE', 'c');
       dbms_mview.refresh('YPD_YIELD_PCT_DETAIL', 'c');
+      dbms_mview.refresh('SBS_SMELTER_BASE_STOCK', 'c');
+      dbms_mview.refresh('PRRQS_PRR_QTY_STATUS', 'c');
     end if;
   exception
     when others then
@@ -1142,6 +1144,10 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        is_pass_through,
        pledge_input_gmr,
        is_apply_freight_allowance,
+       mode_of_transport,
+       arrival_date,
+       wns_status,
+       
        dbd_id)
       select ul.internal_action_ref_no,
              ul.internal_gmr_ref_no,
@@ -1234,6 +1240,10 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_pass_through,
              ul.pledge_input_gmr,
              ul.is_apply_freight_allowance,
+             mode_of_transport,
+             arrival_date,
+             wns_status,
+             
              pc_dbd_id
         from gmrul_gmr_ul@eka_appdb       ul,
              axs_action_summary@eka_appdb axs
@@ -4167,5 +4177,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
