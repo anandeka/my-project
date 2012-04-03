@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0628
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  03-Apr-2012 
+
+Bug / Enhancement*            :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*	:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  		 :  Price Fixation
+ 
+Section   		 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 	 :  N/A
+ 
+FS Amendment details   	 :  N/A
+
+Dependent patches:	 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91498
+Author: sriveenam
+Date: Tuesday, April 03, 2012 10:19:47 AM
+Message:
+modified for getting only input products
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+
+
+
+
+
+
+
+
+
