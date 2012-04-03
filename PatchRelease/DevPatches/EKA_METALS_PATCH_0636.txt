@@ -1,0 +1,85 @@
+Patch No*          		:  EKA_METALS_PATCH_0636
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  03-Apr-2012 
+
+Bug / Enhancement*		:  Bug
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Reports
+
+Sub-Module  		 	: N/A
+ 
+Section   		 	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 	 	:  N/A
+ 
+FS Amendment details   	 	:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+
+
+Revision: 91605
+Author: suresh.gottipati
+Date: 5:46:33 PM, Tuesday, April 03, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_LOGISTICS.sql
+
+
+Revision: 91609
+Author: sivachalabathi.s
+Date: 5:53:45 PM, Tuesday, April 03, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_metal_acc_transactions.sql
+
+
+
+Revision: 91612
+Author: suresh.gottipati
+Date: 5:57:31 PM, Tuesday, April 03, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_240_MV_Refresh.sql
+
+
+
+Revision: 91614
+Author: suresh.gottipati
+Date: 6:03:07 PM, Tuesday, April 03, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+
+
+
+
+
+
+
+
