@@ -42,6 +42,7 @@ CREATE OR REPLACE PACKAGE "PKG_REPORT_GENERAL" is
                                     pc_qty_unit_id     varchar2) return number;                                                             
                                 
 end; 
+ 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
   function fn_get_item_dry_qty(pc_internal_cont_item_ref_no varchar2,
@@ -642,7 +643,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
     vn_deduct_qty       := 0;
     vn_deduct_total_qty := 0;
     for cur_deduct_qty in (select ash.ash_id,
-                                  asm.net_weight,
+                                  (case when ash_new.ash_id is not null then
+                                  pn_qty
+                                  else
+                                  asm.net_weight
+                                  end) net_weight,
                                   pqca.element_id,
                                   pqca.is_elem_for_pricing,
                                   pqca.unit_of_measure,
@@ -660,16 +665,21 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
                                   aml_attribute_master_list      aml,
                                   pqca_pq_chemical_attributes    pqca,
                                   rm_ratio_master                rm,
-                                  ppm_product_properties_mapping ppm
+                                  ppm_product_properties_mapping ppm,
+                                  (select  ash_new.pricing_assay_ash_id,
+                                          ash_new.ash_id
+                                           from ash_assay_header ash_new
+                                  where ash_new.assay_type='Provisional Assay')ash_new
                             where ash.ash_id = pc_assay_header_id
                               and ash.ash_id = asm.ash_id
                               and asm.asm_id = pqca.asm_id
                               and pqca.unit_of_measure = rm.ratio_id
                               and pqca.element_id = aml.attribute_id
                               and ppm.attribute_id = aml.attribute_id
-                              and ppm.product_id = pc_product_id
-                              and nvl(ppm.deduct_for_wet_to_dry, 'N') = 'Y')
-    loop
+                              and ppm.product_id = pc_product_id                              
+                              and nvl(ppm.deduct_for_wet_to_dry, 'N') = 'Y'
+                              and ash.ash_id=ash_new.pricing_assay_ash_id(+))
+    loop    
       vn_item_qty         := nvl(cur_deduct_qty.net_weight,pn_qty);  
       if cur_deduct_qty.ratio_name = '%' then
         vn_deduct_qty := vn_item_qty * (cur_deduct_qty.typical / 100);
@@ -686,7 +696,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
       end if;
       vn_deduct_total_qty := vn_deduct_total_qty + vn_deduct_qty;
     end loop;
-    return(pn_qty - vn_deduct_total_qty);
+    return(vn_item_qty - vn_deduct_total_qty);
   end;
   
 function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
