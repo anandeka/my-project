@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0630
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  03-Apr-2012 
+
+Bug / Enhancement*             :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+
+Sub-Module  		 	 :  N/A
+ 
+Section   		 	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 	 	:  N/A
+ 
+FS Amendment details   	 	:  N/A
+
+Dependent patches:	 	:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 91526
+Author: pradeep.kumar
+Date: 1:15:01 PM, Tuesday, April 03, 2012
+Message:
+-- view changed
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_METAL_ACCOUNTS_TRANSACTIONS.sql
+
