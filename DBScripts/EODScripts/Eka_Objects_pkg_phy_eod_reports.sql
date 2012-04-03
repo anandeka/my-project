@@ -1541,6 +1541,7 @@ create or replace package body pkg_phy_eod_reports is
              pci_physical_contract_item     pci
        where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
          and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+         and spq.is_stock_split ='N'
          and gmr.corporate_id = akc.corporate_id
          and akc.base_cur_id = cm.cur_id
          and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
@@ -1662,7 +1663,8 @@ create or replace package body pkg_phy_eod_reports is
                 from spq_stock_payable_qty spq
                where spq.process_id = gmr.process_id
                  and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and spq.element_id = sac.element_id);
+                 and spq.element_id = sac.element_id
+                 and spq.is_stock_split ='N');
   
     vn_gmr_treatment_charge      number;
     vc_gmr_treatment_cur_id      varchar2(15);
@@ -4407,6 +4409,7 @@ create or replace package body pkg_phy_eod_reports is
          and ppu.weight_unit_id = pdm.base_quantity_unit
          and nvl(ppu.weight, 1) = 1
          and spq.process_id = pc_process_id
+         and spq.is_stock_split ='N'
          and spq.internal_grd_ref_no = grd.internal_grd_ref_no
          and spq.element_id = aml.attribute_id
          and aml.underlying_product_id = pdm.product_id
@@ -4697,6 +4700,7 @@ create or replace package body pkg_phy_eod_reports is
          and ppu.weight_unit_id = pdm.base_quantity_unit
          and nvl(ppu.weight, 1) = 1
          and spq.process_id = pc_process_id
+         and spq.is_stock_split ='N'
          and spq.internal_grd_ref_no = grd.internal_grd_ref_no
          and spq.element_id = aml.attribute_id
          and aml.underlying_product_id = pdm.product_id
@@ -4884,6 +4888,7 @@ select tdc.process_id
                      pcmte.int_contract_ref_no
                  and pcmte.tolling_service_type = 'S'
                  and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
+                 and spq.is_stock_split ='N'
                  and gmr.landed_qty > 0
                  and pcm.is_active = 'Y'
                  and spq.is_active = 'Y'
@@ -5042,6 +5047,7 @@ select tdc.process_id
                  and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
                  and grd.internal_grd_ref_no = iid.stock_id
                  and iid.stock_id = spq.internal_grd_ref_no
+                 and spq.is_stock_split ='N'
                  and iss.internal_invoice_ref_no =
                      iid.internal_invoice_ref_no
                  and iss.is_active = 'Y'
@@ -7979,6 +7985,7 @@ select tdc.process_id
                  and poch.poch_id = pocd.poch_id
                  and pocd.qp_period_type <> 'Event'
                  and spq.process_id = pc_process_id
+                 and spq.is_stock_split ='N'
                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                  and spq.element_id = aml.attribute_id
                  and aml.underlying_product_id = pdm.product_id
@@ -8149,6 +8156,7 @@ select tdc.process_id
                  and ppu.weight_unit_id = pdm.base_quantity_unit
                  and nvl(ppu.weight, 1) = 1
                  and spq.process_id = pc_process_id
+                 and spq.is_stock_split ='N'
                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                  and spq.element_id = aml.attribute_id
                  and aml.underlying_product_id = pdm.product_id
@@ -8334,6 +8342,7 @@ select tdc.process_id
                  and grd.tolling_stock_type = 'None Tolling'
                  and grd.warehouse_profile_id = phd.profileid
                  and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+                 and spq.is_stock_split ='N'
                  and spq.element_id = aml.attribute_id
                  and aml.underlying_product_id = pdm.product_id
                  and pdm.base_quantity_unit = qum.qty_unit_id
@@ -8727,6 +8736,7 @@ select tdc.process_id
          and grd.is_afloat = 'Y'
          and grd.tolling_stock_type = 'None Tolling'
          and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+         and spq.is_stock_split ='N'
          and spq.element_id = aml.attribute_id
          and aml.underlying_product_id = pdm.product_id
          and pdm.base_quantity_unit = qum.qty_unit_id
