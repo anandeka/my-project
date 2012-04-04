@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0650
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  04-Apr-2012
+
+Bug / Enhancement*              :  -
+ 
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 91768
+Author: sriveenam
+Date: Wednesday, April 04, 2012 9:25:30 PM
+Message:
+Modified to get the doc details even if address setup is missing
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+
+
+
+
+
+
+
+
+
