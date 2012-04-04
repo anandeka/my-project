@@ -196,11 +196,11 @@ BEGIN
      AND pcm.corporate_id = ak.corporate_id
      AND pcm.invoice_currency_id = cm.cur_id
      AND pcm.cp_id = phd.profileid
-     and PHD.PROFILEID = PAD.PROFILE_ID
-     and PAD.COUNTRY_ID = CYM.COUNTRY_ID
+     and PHD.PROFILEID = PAD.PROFILE_ID(+)
+     and PAD.COUNTRY_ID = CYM.COUNTRY_ID(+)
      and PAD.CITY_ID = CIM.CITY_ID(+)
      and PAD.STATE_ID = SM.STATE_ID(+)
-     and PAD.ADDRESS_TYPE = 'Main'
+     and PAD.ADDRESS_TYPE(+) = 'Main'
      AND pcm.cp_person_in_charge_id = gab.gabid(+)
      and POFH.INTERNAL_GMR_REF_NO = GMR.INTERNAL_GMR_REF_NO(+)
      and pocd.qty_to_be_fixed_unit_id = qum.qty_unit_id
