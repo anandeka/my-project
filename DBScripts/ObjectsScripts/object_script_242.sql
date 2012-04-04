@@ -1,7 +1,7 @@
-DROP VIEW BOLIDEN_UAT_DEV.V_PCI;
+DROP VIEW V_PCI;
 
 
-CREATE OR REPLACE FORCE VIEW boliden_uat_dev.v_pci (internal_contract_item_ref_no,
+CREATE OR REPLACE FORCE VIEW v_pci (internal_contract_item_ref_no,
                                                     internal_contract_ref_no,
                                                     contract_ref_no,
                                                     item_no,
