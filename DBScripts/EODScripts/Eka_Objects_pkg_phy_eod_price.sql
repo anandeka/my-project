@@ -28,6 +28,9 @@ create or replace package "PKG_PHY_EOD_PRICE" is
                                         pc_process      varchar2);
 
 end; 
+ 
+ 
+ 
 /
 create or replace package body "PKG_PHY_EOD_PRICE" is
 
@@ -3028,6 +3031,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
+         and spq.payable_qty>0
       union all
       select gmr.corporate_id,
              gmr.internal_gmr_ref_no,
@@ -3107,7 +3111,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
          and gmr.process_id = tt.process_id(+)
-         and gmr.is_deleted = 'N';
+         and gmr.is_deleted = 'N'
+         and spq.payable_qty>0;
   
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is
       select pofh.internal_gmr_ref_no,
