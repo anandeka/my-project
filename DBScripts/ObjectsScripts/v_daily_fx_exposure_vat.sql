@@ -96,14 +96,11 @@ select akc.corporate_id,
    and pcpd.product_id = pdm.product_id
    and akc.base_cur_id = cm_base.cur_id
    and ivd.vat_remit_cur_id = cm_pay.cur_id
-   and akc.base_cur_id = cm_base.cur_id
-   
+   and akc.base_cur_id = cm_base.cur_id   
    and nvl(ivd.vat_amount_in_vat_cur,0) <> 0
    and iis.is_active = 'Y'
    and iis1.is_active = 'Y'
-   and gmr.is_deleted = 'N'
-   
-   
+   and gmr.is_deleted = 'N'  
 union all 
  select akc.corporate_id,
        akc.corporate_name,
@@ -200,7 +197,6 @@ union all
    and akc.base_cur_id = cm_base.cur_id                                                                                
    and iis.is_active = 'Y'
    and gmr.is_deleted = 'N'
-  
 union all ---for sales contract when invoice cur and vat cur are not same   outflow 
   select akc.corporate_id,
        akc.corporate_name,
@@ -444,6 +440,6 @@ union all --- Free Metal
    and pfqpp.is_active(+) = 'Y'
    and pym.is_active = 'Y'
    and pym.is_deleted = 'N'
-   and akc.corporate_id = '{?CorporateID}'
-   and to_char(pfd.as_of_date, 'dd-Mon-yyyy') = '{?AsOfDate}'
+ --  and akc.corporate_id = '{?CorporateID}'
+ --  and to_char(pfd.as_of_date, 'dd-Mon-yyyy') = '{?AsOfDate}'
 /   
