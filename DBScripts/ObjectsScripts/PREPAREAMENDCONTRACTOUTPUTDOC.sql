@@ -11,7 +11,7 @@ IS
    contractrefno              VARCHAR2 (50);
    cpcontractrefno            VARCHAR2 (50);
    corporateid                VARCHAR2 (20);
-   corporatename              VARCHAR2 (20);
+   corporatename              VARCHAR2 (100);
    contracttype               VARCHAR2 (20);
    cpid                       VARCHAR2 (20);
    counterparty               VARCHAR2 (200);
