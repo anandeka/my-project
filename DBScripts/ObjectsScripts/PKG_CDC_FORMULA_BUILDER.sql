@@ -41,7 +41,6 @@ CREATE OR REPLACE PACKAGE "PKG_CDC_FORMULA_BUILDER" is
 end; 
  
  
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_CDC_FORMULA_BUILDER" is
   procedure sp_calculate_price
@@ -238,7 +237,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_CDC_FORMULA_BUILDER" is
              pp.price_point_name,
              apm.available_price_name,
              apm.available_price_display_name,
-             pum.price_unit_id quotes_price_unit_id,
+             (case when pum.price_unit_id is null then
+                  (case when upper(irm.instrument_type) in ('SPOT','AVERAGE') then
+                       div_und.price_unit_id
+                   else
+                    div_dim.price_unit_id
+                  end)
+                 else
+                  pum.price_unit_id end) quotes_price_unit_id,
              pum.price_unit_name,
              pum.cur_id,
              pum.weight,
@@ -282,6 +288,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_CDC_FORMULA_BUILDER" is
              dim_der_instrument_master dim,
              irm_instrument_type_master irm,
              dim_der_instrument_master dim_und,
+             (select *
+                from div_der_instrument_valuation div_und
+               where div_und.is_deleted = 'N')div_und,
+             (select *
+                from div_der_instrument_valuation div_und1
+               where div_und1.is_deleted = 'N')div_dim,               
              v_ppu_pum pum,
              ps_price_source ps,
              pp_price_point pp,
@@ -291,6 +303,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_CDC_FORMULA_BUILDER" is
          and tt.price_source_id = ps.price_source_id(+)
          and tt.price_point_id = pp.price_point_id(+)
          and tt.available_price_id = apm.available_price_id(+)
+         and dim.underlying_instrument_id = div_und.instrument_id(+)
+         and dim.instrument_id = div_dim.instrument_id
          and dim.underlying_instrument_id = dim_und.instrument_id(+)
          and tt.basis_price_unit_id = pum.product_price_unit_id(+);
     vc_sql_temp                 varchar2(4000);
