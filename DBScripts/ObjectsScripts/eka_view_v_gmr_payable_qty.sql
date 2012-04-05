@@ -11,9 +11,3 @@ select spq.internal_gmr_ref_no,
           spq.stock_type,
           spq.element_id,
           spq.qty_unit_id;
- 
- 
- 
- 
- 
- 
