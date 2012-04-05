@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0655
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja
+ 
+Created on*        		:  05-Apr-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 91838
+Author: elaiyaraja.nallathambi
+Date: 4:22:14 PM, Thursday, April 05, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_mv_bi_cpd_currency_pnl_daily.sql
+
