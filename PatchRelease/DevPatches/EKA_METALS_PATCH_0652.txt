@@ -1,0 +1,70 @@
+Patch No*          		:  EKA_METALS_PATCH_0652
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  saurabh raj
+ 
+Created on*        		:  05-Apr-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 91804
+Author: saurabh.raj
+Date: 2:38:18 PM, Thursday, April 05, 2012
+Message:
+Added section for free metals
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt
+
+Revision: 91803
+Author: saurabh.raj
+Date: 2:36:56 PM, Thursday, April 05, 2012
+Message:
+Added section for free metal
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+
+Revision: 91805
+Author: saurabh.raj
+Date: 2:40:51 PM, Thursday, April 05, 2012
+Message:
+Added section for free metals
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql
+
+
+
+
+
+
+
+
+
+
