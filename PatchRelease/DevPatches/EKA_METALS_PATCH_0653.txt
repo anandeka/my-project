@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0653
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  05-Apr-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistcics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 91815
+Author: anupkumar.agarwal
+Date: 3:12:14 PM, Thursday, April 05, 2012
+Message:
+Changed Doc Query For All Logistics Purchase Details As Product And Quality Has To be Comma Separated.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_263.sql
+
+
+
