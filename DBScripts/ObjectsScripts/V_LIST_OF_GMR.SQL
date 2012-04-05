@@ -116,7 +116,8 @@ select gmr.corporate_id,
        cp.price_allocation_method,
        to_char(vd.eta, 'dd-Mon-yyyy') eta,
        gmr.mode_of_transport,
-       gmr.wns_status wns_status
+       gmr.wns_status wns_status,
+       cp.DEL_DISTRIBUTION_ITEM_NO DEL_DISTRIBUTION_ITEM_NO
   from gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
@@ -148,7 +149,8 @@ select gmr.corporate_id,
                f_string_aggregate(pci.internal_contract_item_ref_no) internal_contract_item_ref_no,
                f_string_aggregate(pci.contract_item_ref_no) contract_item_ref_no,
                f_string_aggregate(pci.product_specs) product_specs,
-               f_string_aggregate(pci.price_allocation_method) as price_allocation_method
+               f_string_aggregate(pci.price_allocation_method) as price_allocation_method,
+               f_string_aggregate(PCI.DEL_DISTRIBUTION_ITEM_NO) as DEL_DISTRIBUTION_ITEM_NO
           from v_pci                          pci,
                gcim_gmr_contract_item_mapping gcim
          where pci.internal_contract_item_ref_no =
