@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0661
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sivachalabathi
+ 
+Created on*        		:  09-Apr-2012
+
+Bug / Enhancement*              : Data Correction
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  EOD
+==================================================================
+Revision: 91930
+Author: sivachalabathi.s
+Date: 3:34:31 PM, Monday, April 09, 2012
+Message:
+Data correction for EOD DB - Traxys URL only
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/eoddb_data_correction_script_1.sql
