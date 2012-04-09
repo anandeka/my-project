@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_LIST_OF_PLEDGE_GMR AS
+create or replace view v_list_of_pledge_gmr as
 select gmr.corporate_id,
        gmr.internal_gmr_ref_no,
        gmr.gmr_ref_no,
@@ -17,6 +17,7 @@ select gmr.corporate_id,
        axs.eff_date activity_date,
        axs.action_ref_no,
        gmr.qty,
+       nvl(gepd.ext_pledge_qty, 0) ext_pledge_qty,
        gmr.qty_unit_id,
        qum.qty_unit,
        gepd.element_id,
