@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0659
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+ 
+Created on*        		:  09-Apr-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 91917
+Author: anupkumar.agarwal
+Date: 2:09:56 PM, Monday, April 09, 2012
+Message:
+Column Added IN V_PCI
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
+
