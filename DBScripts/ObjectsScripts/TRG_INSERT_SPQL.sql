@@ -28,11 +28,20 @@ BEGIN
                         SUPPLIER_ID,
                         SMELTER_ID,
                         FREE_METAL_STOCK_ID,
-                        FREE_METAL_QTY, 
+                        FREE_METAL_QTY,
+                        ASSAY_CONTENT,
+                        PLEDGE_STOCK_ID,
+                        GEPD_ID,
+                        ASSAY_HEADER_ID,
+                        IS_FINAL_ASSAY,
+                        CORPORATE_ID,
+                        IS_PURE_FREE_METAL_ELEM,
+                        EXT_ASSAY_HEADER_ID,
+                        EXT_ASSAY_CONTENT,
+                        EXT_PAYABLE_QTY, 
                         VERSION, 
                         ENTRY_TYPE, 
-                        IS_ACTIVE  
-                          
+                        IS_ACTIVE                          
                        )
                 VALUES (:NEW.SPQ_ID,
                         :NEW.INTERNAL_GMR_REF_NO,
@@ -50,7 +59,17 @@ BEGIN
                         :NEW.SUPPLIER_ID,
                         :NEW.SMELTER_ID,
                         :NEW.FREE_METAL_STOCK_ID,
-                        :NEW.FREE_METAL_QTY - nvl(:OLD.FREE_METAL_QTY,0),  
+                        :NEW.FREE_METAL_QTY - nvl(:OLD.FREE_METAL_QTY,0),
+                        :NEW.ASSAY_CONTENT - :OLD.ASSAY_CONTENT,
+                        :NEW.PLEDGE_STOCK_ID,
+                        :NEW.GEPD_ID,
+                        :NEW.ASSAY_HEADER_ID,
+                        :NEW.IS_FINAL_ASSAY,
+                        :NEW.CORPORATE_ID,
+                        :NEW.IS_PURE_FREE_METAL_ELEM,
+                        :NEW.EXT_ASSAY_HEADER_ID,
+                        :NEW.EXT_ASSAY_CONTENT - :OLD.EXT_ASSAY_CONTENT,
+                        :NEW.EXT_PAYABLE_QTY - :OLD.EXT_PAYABLE_QTY,  
                         :NEW.VERSION, 
                         'Update', 'Y'
                        );
@@ -73,7 +92,17 @@ BEGIN
                         SUPPLIER_ID,
                         SMELTER_ID,
                         FREE_METAL_STOCK_ID,
-                        FREE_METAL_QTY, 
+                        FREE_METAL_QTY,
+                        ASSAY_CONTENT,
+                        PLEDGE_STOCK_ID,
+                        GEPD_ID,
+                        ASSAY_HEADER_ID,
+                        IS_FINAL_ASSAY,
+                        CORPORATE_ID,
+                        IS_PURE_FREE_METAL_ELEM,
+                        EXT_ASSAY_HEADER_ID,
+                        EXT_ASSAY_CONTENT,
+                        EXT_PAYABLE_QTY, 
                         VERSION, 
                         ENTRY_TYPE,   
                         IS_ACTIVE 
@@ -107,6 +136,34 @@ BEGIN
                                                              :NEW.QTY_UNIT_ID,
                                                              nvl(:OLD.FREE_METAL_QTY,0)
                                                             ), 
+                        :NEW.ASSAY_CONTENT 
+                        - pkg_general.f_get_converted_quantity
+                                                            (null,
+                                                             :OLD.QTY_UNIT_ID,
+                                                             :NEW.QTY_UNIT_ID,
+                                                             :OLD.ASSAY_CONTENT
+                                                            ), 
+                        :NEW.PLEDGE_STOCK_ID,
+                        :NEW.GEPD_ID,
+                        :NEW.ASSAY_HEADER_ID,
+                        :NEW.IS_FINAL_ASSAY,
+                        :NEW.CORPORATE_ID,
+                        :NEW.IS_PURE_FREE_METAL_ELEM,
+                        :NEW.EXT_ASSAY_HEADER_ID,
+                        :NEW.EXT_ASSAY_CONTENT
+                        - pkg_general.f_get_converted_quantity
+                                                            (null,
+                                                             :OLD.QTY_UNIT_ID,
+                                                             :NEW.QTY_UNIT_ID,
+                                                             :OLD.EXT_ASSAY_CONTENT
+                                                            ),
+                        :NEW.EXT_PAYABLE_QTY
+                        - pkg_general.f_get_converted_quantity
+                                                            (null,
+                                                             :OLD.QTY_UNIT_ID,
+                                                             :NEW.QTY_UNIT_ID,
+                                                             :OLD.EXT_PAYABLE_QTY
+                                                            ), 
                         :NEW.VERSION, 
                         'Update', 'Y'
                        );
@@ -131,6 +188,16 @@ BEGIN
                         SMELTER_ID,
                         FREE_METAL_STOCK_ID,
                         FREE_METAL_QTY, 
+                        ASSAY_CONTENT,
+                        PLEDGE_STOCK_ID,
+                        GEPD_ID,
+                        ASSAY_HEADER_ID,
+                        IS_FINAL_ASSAY,
+                        CORPORATE_ID,
+                        IS_PURE_FREE_METAL_ELEM,
+                        EXT_ASSAY_HEADER_ID,
+                        EXT_ASSAY_CONTENT,
+                        EXT_PAYABLE_QTY, 
                         VERSION, 
                         ENTRY_TYPE,   
                         IS_ACTIVE 
@@ -151,7 +218,17 @@ BEGIN
                         :NEW.SUPPLIER_ID,
                         :NEW.SMELTER_ID,
                         :NEW.FREE_METAL_STOCK_ID,
-                        :NEW.FREE_METAL_QTY - nvl(:OLD.FREE_METAL_QTY,0), 
+                        :NEW.FREE_METAL_QTY - nvl(:OLD.FREE_METAL_QTY,0),
+                        :NEW.ASSAY_CONTENT - :OLD.ASSAY_CONTENT,
+                        :NEW.PLEDGE_STOCK_ID,
+                        :NEW.GEPD_ID,
+                        :NEW.ASSAY_HEADER_ID,
+                        :NEW.IS_FINAL_ASSAY,
+                        :NEW.CORPORATE_ID,
+                        :NEW.IS_PURE_FREE_METAL_ELEM,
+                        :NEW.EXT_ASSAY_HEADER_ID,
+                        :NEW.EXT_ASSAY_CONTENT - :OLD.EXT_ASSAY_CONTENT,
+                        :NEW.EXT_PAYABLE_QTY - :OLD.EXT_PAYABLE_QTY,  
                         :NEW.VERSION, 
                         'Update', 'N'
                        );
@@ -178,6 +255,16 @@ BEGIN
                         SMELTER_ID,
                         FREE_METAL_STOCK_ID,
                         FREE_METAL_QTY, 
+                        ASSAY_CONTENT,
+                        PLEDGE_STOCK_ID,
+                        GEPD_ID,
+                        ASSAY_HEADER_ID,
+                        IS_FINAL_ASSAY,
+                        CORPORATE_ID,
+                        IS_PURE_FREE_METAL_ELEM,
+                        EXT_ASSAY_HEADER_ID,
+                        EXT_ASSAY_CONTENT,
+                        EXT_PAYABLE_QTY,
                         VERSION, 
                         ENTRY_TYPE,   
                         IS_ACTIVE 
@@ -198,7 +285,17 @@ BEGIN
                        :NEW.SUPPLIER_ID,
                        :NEW.SMELTER_ID,
                        :NEW.FREE_METAL_STOCK_ID,
-                       :NEW.FREE_METAL_QTY,  
+                       :NEW.FREE_METAL_QTY,
+                       :NEW.ASSAY_CONTENT,
+                       :NEW.PLEDGE_STOCK_ID,
+                       :NEW.GEPD_ID,
+                       :NEW.ASSAY_HEADER_ID,
+                       :NEW.IS_FINAL_ASSAY,
+                       :NEW.CORPORATE_ID,
+                       :NEW.IS_PURE_FREE_METAL_ELEM,
+                       :NEW.EXT_ASSAY_HEADER_ID,
+                       :NEW.EXT_ASSAY_CONTENT,
+                       :NEW.EXT_PAYABLE_QTY,  
                        :NEW.VERSION, 
                        'Insert', 'Y'
                       );
