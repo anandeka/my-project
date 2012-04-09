@@ -111,7 +111,8 @@ CREATE OR REPLACE FORCE VIEW v_pci (internal_contract_item_ref_no,
                                                     incoterm_city_id,
                                                     incoterm_country,
                                                     incoterm_state,
-                                                    incoterm_city
+                                                    incoterm_city,
+                                                    IS_COMMERCIAL_FEE_APPLIED
                                                    )
 AS
    SELECT pci.internal_contract_item_ref_no AS internal_contract_item_ref_no,
@@ -264,7 +265,8 @@ AS
           cym.country_id AS incoterm_country_id,
           sm.state_id AS incoterm_state_id, cim.city_id AS incoterm_city_id,
           cym.country_name AS incoterm_country,
-          sm.state_name AS incoterm_state, cim.city_name AS incoterm_city
+          sm.state_name AS incoterm_state, cim.city_name AS incoterm_city,
+          CAST(PCM.IS_COMMERCIAL_FEE_APPLIED AS VARCHAR2 (1)) As IS_COMMERCIAL_FEE_APPLIED
      FROM pci_physical_contract_item pci,
           pcm_physical_contract_main pcm,
           pcdb_pc_delivery_basis pcdb,
