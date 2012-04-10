@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0665
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  10-Apr-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  Listing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 92031
+Author: abhishek.vijay
+Date: 6:45:42 PM, Tuesday, April 10, 2012
+Message:
+assay comments add in listing screen
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_264.sql
+
+
