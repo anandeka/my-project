@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0663
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Venu
+ 
+Created on*        		:  10-Apr-2012
+
+Bug / Enhancement*              : Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 91964
+Author: venugopal.ravindra
+Date: 11:18:17, 10 April 2012
+Message:
+Bug 63238 fix
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_RECENT_TRADES_BY_PRODUCT.sql
+
+
