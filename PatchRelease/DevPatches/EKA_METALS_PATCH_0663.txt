@@ -42,5 +42,3 @@ Message:
 Bug 63238 fix
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_RECENT_TRADES_BY_PRODUCT.sql
-
-
