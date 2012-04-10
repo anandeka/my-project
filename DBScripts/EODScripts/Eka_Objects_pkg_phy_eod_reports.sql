@@ -25,7 +25,7 @@ create or replace package pkg_phy_eod_reports is
 
   procedure sp_phy_intrstat(pc_corporate_id varchar2,
                             pd_trade_date   date,
-                            pc_process       varchar2,
+                            pc_process      varchar2,
                             pc_process_id   varchar2);
   procedure sp_phy_contract_status(pc_corporate_id varchar2,
                                    pd_trade_date   date,
@@ -56,7 +56,7 @@ create or replace package pkg_phy_eod_reports is
                                          pd_trade_date   date,
                                          pc_process_id   varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -1541,7 +1541,7 @@ create or replace package body pkg_phy_eod_reports is
              pci_physical_contract_item     pci
        where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
          and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-         and spq.is_stock_split ='N'
+         and spq.is_stock_split = 'N'
          and gmr.corporate_id = akc.corporate_id
          and akc.base_cur_id = cm.cur_id
          and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
@@ -1664,7 +1664,7 @@ create or replace package body pkg_phy_eod_reports is
                where spq.process_id = gmr.process_id
                  and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and spq.element_id = sac.element_id
-                 and spq.is_stock_split ='N');
+                 and spq.is_stock_split = 'N');
   
     vn_gmr_treatment_charge      number;
     vc_gmr_treatment_cur_id      varchar2(15);
@@ -1899,7 +1899,7 @@ create or replace package body pkg_phy_eod_reports is
        pay_in_cur_code,
        frightcharges_amount,
        othercharges_amount,
-       tranascation_type) 
+       tranascation_type)
       select temp.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -1976,7 +1976,8 @@ create or replace package body pkg_phy_eod_reports is
                  and asm.asm_id = pqca.asm_id
                  and iied.element_id = pqca.element_id
                  and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no=iid.internal_invoice_ref_no(+)
+                 and gmr.latest_internal_invoice_ref_no =
+                     iid.internal_invoice_ref_no(+)
                  and grd.process_id = pc_process_id
                  and gmr.process_id = pc_process_id
                  and gmr.is_deleted = 'N'
@@ -2036,7 +2037,7 @@ create or replace package body pkg_phy_eod_reports is
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
                  and grd.internal_grd_ref_no = iid.stock_id
-                 and gmr.corporate_id = akc.corporate_id                
+                 and gmr.corporate_id = akc.corporate_id
                  and akc.base_cur_id = cm.cur_id
                  and iid.internal_invoice_ref_no =
                      iam.internal_invoice_ref_no
@@ -2046,7 +2047,8 @@ create or replace package body pkg_phy_eod_reports is
                  and asm.asm_id = pqca.asm_id
                  and pqca.element_id = aml.attribute_id
                  and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no=iid.internal_invoice_ref_no(+)
+                 and gmr.latest_internal_invoice_ref_no =
+                     iid.internal_invoice_ref_no(+)
                  and grd.process_id = pc_process_id
                  and gmr.process_id = pc_process_id
                  and gmr.is_deleted = 'N'
@@ -2096,7 +2098,7 @@ create or replace package body pkg_phy_eod_reports is
                      rm_ratio_master             rm
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = iid.stock_id                 
+                 and grd.internal_grd_ref_no = iid.stock_id
                  and iid.internal_invoice_ref_no =
                      intc.internal_invoice_ref_no
                  and iid.stock_id = intc.grd_id
@@ -2111,7 +2113,8 @@ create or replace package body pkg_phy_eod_reports is
                  and asm.asm_id = pqca.asm_id
                  and intc.element_id = pqca.element_id
                  and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no=iid.internal_invoice_ref_no(+)
+                 and gmr.latest_internal_invoice_ref_no =
+                     iid.internal_invoice_ref_no(+)
                  and grd.process_id = pc_process_id
                  and gmr.process_id = pc_process_id
                  and gmr.is_deleted = 'N'
@@ -2161,7 +2164,7 @@ create or replace package body pkg_phy_eod_reports is
                      rm_ratio_master             rm
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = iid.stock_id                 
+                 and grd.internal_grd_ref_no = iid.stock_id
                  and iid.internal_invoice_ref_no =
                      inrc.internal_invoice_ref_no
                  and iid.stock_id = inrc.grd_id
@@ -2176,7 +2179,8 @@ create or replace package body pkg_phy_eod_reports is
                  and asm.asm_id = pqca.asm_id
                  and inrc.element_id = pqca.element_id
                  and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no=iid.internal_invoice_ref_no(+)             
+                 and gmr.latest_internal_invoice_ref_no =
+                     iid.internal_invoice_ref_no(+)
                  and grd.process_id = pc_process_id
                  and gmr.process_id = pc_process_id
                  and gmr.is_deleted = 'N'
@@ -2225,7 +2229,7 @@ create or replace package body pkg_phy_eod_reports is
                      rm_ratio_master             rm
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = iid.stock_id                
+                 and grd.internal_grd_ref_no = iid.stock_id
                  and iid.internal_invoice_ref_no =
                      iepd.internal_invoice_ref_no
                  and iid.stock_id = iepd.stock_id
@@ -2239,7 +2243,8 @@ create or replace package body pkg_phy_eod_reports is
                  and asm.asm_id = pqca.asm_id
                  and iepd.element_id = pqca.element_id
                  and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no=iid.internal_invoice_ref_no(+)
+                 and gmr.latest_internal_invoice_ref_no =
+                     iid.internal_invoice_ref_no(+)
                  and grd.process_id = pc_process_id
                  and gmr.process_id = pc_process_id
                  and gmr.is_deleted = 'N'
@@ -2253,7 +2258,7 @@ create or replace package body pkg_phy_eod_reports is
              pcm_physical_contract_main pcm,
              phd_profileheaderdetails phd,
              pcpch_pc_payble_content_header pcpch,
-              (select gmr.internal_gmr_ref_no,
+             (select gmr.internal_gmr_ref_no,
                      iss.total_other_charge_amount other_charges
                 from gmr_goods_movement_record   gmr,
                      iid_invoicable_item_details iid,
@@ -2496,7 +2501,7 @@ create or replace package body pkg_phy_eod_reports is
                               else
                                0
                             end) payable_amount_pay_ccy,
-              sum(case
+             sum(case
                    when pa.tranascation_type = 'Calculated' then
                     pa.payable_amt_price_ccy
                    else
@@ -2506,7 +2511,7 @@ create or replace package body pkg_phy_eod_reports is
                                pa.payable_amt_price_ccy
                               else
                                0
-                            end) payable_amount_price_ccy,               
+                            end) payable_amount_price_ccy,
              pa.pay_in_cur_id,
              pa.pay_in_cur_code,
              0,
@@ -2515,12 +2520,12 @@ create or replace package body pkg_phy_eod_reports is
                     pa.othercharges_amount
                    else
                     0
-                 end) - 
-              max(case when pa.tranascation_type = 'Invoiced' then
-                 pa.othercharges_amount
-                 else
-                 0
-                 end) othercharges_amount,             
+                 end) - max(case
+                              when pa.tranascation_type = 'Invoiced' then
+                               pa.othercharges_amount
+                              else
+                               0
+                            end) othercharges_amount,
              'Difference'
         from pa_purchase_accural_gmr pa
        where pa.process_id = pc_process_id
@@ -3483,9 +3488,9 @@ create or replace package body pkg_phy_eod_reports is
                             pd_trade_date   date,
                             pc_process      varchar2,
                             pc_process_id   varchar2) as
-    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count number := 1;
-    vc_previous_process_id    varchar2(15);
+    vobj_error_log         tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count     number := 1;
+    vc_previous_process_id varchar2(15);
   
   begin
     insert into isr_intrastat_grd
@@ -4409,10 +4414,11 @@ create or replace package body pkg_phy_eod_reports is
          and ppu.weight_unit_id = pdm.base_quantity_unit
          and nvl(ppu.weight, 1) = 1
          and spq.process_id = pc_process_id
-         and spq.is_stock_split ='N'
+         and spq.is_stock_split = 'N'
          and spq.internal_grd_ref_no = grd.internal_grd_ref_no
          and spq.element_id = aml.attribute_id
-         and aml.underlying_product_id = pdm.product_id
+         and cccp.process_id = pc_process_id
+         and cccp.pcdi_id = pci.pcdi_id
          and pcdi.pcdi_id = poch.pcdi_id
          and poch.poch_id = pocd.poch_id
          and pocd.qp_period_type <> 'Event'
@@ -4700,29 +4706,32 @@ create or replace package body pkg_phy_eod_reports is
          and ppu.weight_unit_id = pdm.base_quantity_unit
          and nvl(ppu.weight, 1) = 1
          and spq.process_id = pc_process_id
-         and spq.is_stock_split ='N'
+         and spq.is_stock_split = 'N'
          and spq.internal_grd_ref_no = grd.internal_grd_ref_no
          and spq.element_id = aml.attribute_id
-         and aml.underlying_product_id = pdm.product_id
-         and grd.current_qty > 0;
-         
-select tdc.process_id
-  into vc_previous_process_id
-  from tdc_trade_date_closure tdc
- where tdc.corporate_id = pc_corporate_id
-   and process = pc_process
-   and tdc.trade_date = (select max(trade_date)
-                           from tdc_trade_date_closure
-                          where corporate_id = pc_corporate_id
-                            and trade_date < pd_trade_date
-                            and process = pc_process);
-                            
-  update isr_intrastat_grd isr
-   set isr.is_new = 'Y'
-   where isr.internal_grd_ref_no in
-         (select isr_prev.internal_grd_ref_no from isr_intrastat_grd isr_prev
-           where isr_prev.process_id = vc_previous_process_id)
-     and isr.process_id = pc_process_id;
+         and grd.current_qty > 0
+         and cgcp.process_id = pc_process_id
+         and cgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+         and cgcp.element_id = spq.element_id;
+  
+    select tdc.process_id
+      into vc_previous_process_id
+      from tdc_trade_date_closure tdc
+     where tdc.corporate_id = pc_corporate_id
+       and process = pc_process
+       and tdc.trade_date = (select max(trade_date)
+                               from tdc_trade_date_closure
+                              where corporate_id = pc_corporate_id
+                                and trade_date < pd_trade_date
+                                and process = pc_process);
+  
+    update isr_intrastat_grd isr
+       set isr.is_new = 'Y'
+     where isr.internal_grd_ref_no in
+           (select isr_prev.internal_grd_ref_no
+              from isr_intrastat_grd isr_prev
+             where isr_prev.process_id = vc_previous_process_id)
+       and isr.process_id = pc_process_id;
     commit;
   exception
     when others then
@@ -4888,7 +4897,7 @@ select tdc.process_id
                      pcmte.int_contract_ref_no
                  and pcmte.tolling_service_type = 'S'
                  and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
-                 and spq.is_stock_split ='N'
+                 and spq.is_stock_split = 'N'
                  and gmr.landed_qty > 0
                  and pcm.is_active = 'Y'
                  and spq.is_active = 'Y'
@@ -5032,27 +5041,28 @@ select tdc.process_id
                       0 other_charges,
                       iid.invoice_currency_id,
                       iss.invoice_issue_date
-                from gmr_goods_movement_record gmr,
-                      grd_goods_record_detail grd,
+                from gmr_goods_movement_record   gmr,
+                      grd_goods_record_detail     grd,
                       iid_invoicable_item_details iid,
-                      is_invoice_summary iss,
-                      spq_stock_payable_qty spq,
-                      pcpd_pc_product_definition pcpd,
-                      iam_invoice_assay_mapping iam,
-                      ash_assay_header ash,
-                      asm_assay_sublot_mapping asm,
+                      is_invoice_summary          iss,
+                      spq_stock_payable_qty       spq,
+                      pcpd_pc_product_definition  pcpd,
+                      iam_invoice_assay_mapping   iam,
+                      ash_assay_header            ash,
+                      asm_assay_sublot_mapping    asm,
                       pqca_pq_chemical_attributes pqca,
-                      rm_ratio_master rm
+                      rm_ratio_master             rm
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
                  and grd.internal_grd_ref_no = iid.stock_id
                  and iid.stock_id = spq.internal_grd_ref_no
-                 and spq.is_stock_split ='N'
+                 and spq.is_stock_split = 'N'
                  and iss.internal_invoice_ref_no =
                      iid.internal_invoice_ref_no
                  and iss.is_active = 'Y'
                  and iss.process_id = pc_process_id
-                 and gmr.latest_internal_invoice_ref_no=iid.internal_invoice_ref_no(+)
+                 and gmr.latest_internal_invoice_ref_no =
+                     iid.internal_invoice_ref_no(+)
                  and gmr.process_id = pc_process_id
                  and grd.process_id = pc_process_id
                  and spq.process_id = pc_process_id
@@ -5113,17 +5123,17 @@ select tdc.process_id
                      0 other_charges,
                      iid.invoice_currency_id,
                      iss.invoice_issue_date
-                from gmr_goods_movement_record gmr,
-                     grd_goods_record_detail grd,
+                from gmr_goods_movement_record   gmr,
+                     grd_goods_record_detail     grd,
                      iid_invoicable_item_details iid,
-                     is_invoice_summary iss,
-                     intc_inv_treatment_charges intc,
-                     iam_invoice_assay_mapping iam,
-                     ash_assay_header ash,
-                     asm_assay_sublot_mapping asm,
+                     is_invoice_summary          iss,
+                     intc_inv_treatment_charges  intc,
+                     iam_invoice_assay_mapping   iam,
+                     ash_assay_header            ash,
+                     asm_assay_sublot_mapping    asm,
                      pqca_pq_chemical_attributes pqca,
-                     rm_ratio_master rm,
-                     pcpd_pc_product_definition pcpd                    
+                     rm_ratio_master             rm,
+                     pcpd_pc_product_definition  pcpd
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
                  and grd.internal_grd_ref_no = iid.stock_id
@@ -5142,7 +5152,8 @@ select tdc.process_id
                  and asm.asm_id = pqca.asm_id
                  and intc.element_id = pqca.element_id
                  and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no=iid.internal_invoice_ref_no(+)
+                 and gmr.latest_internal_invoice_ref_no =
+                     iid.internal_invoice_ref_no(+)
                  and gmr.is_deleted = 'N'
                  and gmr.corporate_id = pc_corporate_id
                  and gmr.process_id = pc_process_id
@@ -5194,17 +5205,17 @@ select tdc.process_id
                      0 other_charges,
                      iid.invoice_currency_id,
                      iss.invoice_issue_date
-                from gmr_goods_movement_record gmr,
-                     grd_goods_record_detail grd,
+                from gmr_goods_movement_record   gmr,
+                     grd_goods_record_detail     grd,
                      iid_invoicable_item_details iid,
-                     is_invoice_summary iss,
-                     inrc_inv_refining_charges inrc,
-                     iam_invoice_assay_mapping iam,
-                     ash_assay_header ash,
-                     asm_assay_sublot_mapping asm,
+                     is_invoice_summary          iss,
+                     inrc_inv_refining_charges   inrc,
+                     iam_invoice_assay_mapping   iam,
+                     ash_assay_header            ash,
+                     asm_assay_sublot_mapping    asm,
                      pqca_pq_chemical_attributes pqca,
-                     rm_ratio_master rm,
-                     pcpd_pc_product_definition pcpd
+                     rm_ratio_master             rm,
+                     pcpd_pc_product_definition  pcpd
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
                  and grd.internal_grd_ref_no = iid.stock_id
@@ -5223,7 +5234,8 @@ select tdc.process_id
                  and asm.asm_id = pqca.asm_id
                  and inrc.element_id = pqca.element_id
                  and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no=iid.internal_invoice_ref_no(+)
+                 and gmr.latest_internal_invoice_ref_no =
+                     iid.internal_invoice_ref_no(+)
                  and gmr.is_deleted = 'N'
                  and gmr.corporate_id = pc_corporate_id
                  and gmr.process_id = pc_process_id
@@ -5275,17 +5287,17 @@ select tdc.process_id
                      0 other_charges,
                      iid.invoice_currency_id,
                      iss.invoice_issue_date
-                from gmr_goods_movement_record gmr,
-                     grd_goods_record_detail grd,
+                from gmr_goods_movement_record   gmr,
+                     grd_goods_record_detail     grd,
                      iid_invoicable_item_details iid,
-                     is_invoice_summary iss,
-                     iepd_inv_epenalty_details iepd,
-                     iam_invoice_assay_mapping iam,
-                     ash_assay_header ash,
-                     asm_assay_sublot_mapping asm,
+                     is_invoice_summary          iss,
+                     iepd_inv_epenalty_details   iepd,
+                     iam_invoice_assay_mapping   iam,
+                     ash_assay_header            ash,
+                     asm_assay_sublot_mapping    asm,
                      pqca_pq_chemical_attributes pqca,
-                     rm_ratio_master rm,
-                     pcpd_pc_product_definition pcpd
+                     rm_ratio_master             rm,
+                     pcpd_pc_product_definition  pcpd
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
                  and grd.internal_grd_ref_no = iid.stock_id
@@ -5304,7 +5316,8 @@ select tdc.process_id
                  and asm.asm_id = pqca.asm_id
                  and iepd.element_id = pqca.element_id
                  and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no=iid.internal_invoice_ref_no(+)
+                 and gmr.latest_internal_invoice_ref_no =
+                     iid.internal_invoice_ref_no(+)
                  and gmr.is_deleted = 'N'
                  and gmr.is_pass_through = 'Y'
                  and gmr.process_id = pc_process_id
@@ -7985,7 +7998,7 @@ select tdc.process_id
                  and poch.poch_id = pocd.poch_id
                  and pocd.qp_period_type <> 'Event'
                  and spq.process_id = pc_process_id
-                 and spq.is_stock_split ='N'
+                 and spq.is_stock_split = 'N'
                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                  and spq.element_id = aml.attribute_id
                  and aml.underlying_product_id = pdm.product_id
@@ -8156,7 +8169,7 @@ select tdc.process_id
                  and ppu.weight_unit_id = pdm.base_quantity_unit
                  and nvl(ppu.weight, 1) = 1
                  and spq.process_id = pc_process_id
-                 and spq.is_stock_split ='N'
+                 and spq.is_stock_split = 'N'
                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                  and spq.element_id = aml.attribute_id
                  and aml.underlying_product_id = pdm.product_id
@@ -8342,7 +8355,7 @@ select tdc.process_id
                  and grd.tolling_stock_type = 'None Tolling'
                  and grd.warehouse_profile_id = phd.profileid
                  and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-                 and spq.is_stock_split ='N'
+                 and spq.is_stock_split = 'N'
                  and spq.element_id = aml.attribute_id
                  and aml.underlying_product_id = pdm.product_id
                  and pdm.base_quantity_unit = qum.qty_unit_id
@@ -8736,7 +8749,7 @@ select tdc.process_id
          and grd.is_afloat = 'Y'
          and grd.tolling_stock_type = 'None Tolling'
          and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-         and spq.is_stock_split ='N'
+         and spq.is_stock_split = 'N'
          and spq.element_id = aml.attribute_id
          and aml.underlying_product_id = pdm.product_id
          and pdm.base_quantity_unit = qum.qty_unit_id
@@ -8964,5 +8977,5 @@ select tdc.process_id
   
     commit;
   end;
-end; 
+end;
 /
