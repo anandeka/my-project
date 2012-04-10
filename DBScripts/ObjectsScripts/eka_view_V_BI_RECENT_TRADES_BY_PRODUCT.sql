@@ -1,5 +1,5 @@
-CREATE OR REPLACE VIEW V_BI_RECENT_TRADES_BY_PRODUCT
-AS 
+CREATE OR REPLACE VIEW V_BI_RECENT_TRADES_BY_PRODUCT 
+AS
 SELECT t2.corporate_id,
 	 t2.product_id,
 	 t2.product_name,
@@ -202,7 +202,68 @@ FROM   (SELECT t1.contract_ref_no,
 		    AND    pci.is_active = 'Y'
 		    AND    pdm.is_deleted = 'N'
 		    AND    (pcieq.payable_qty * ucm.multiplication_factor) <> 0
-		    --Bug 63238 fix end          
+		    --Bug 63238 fix end
+		    --derivatives start
+                --Bug 63342 fix start
+		    UNION ALL
+		    SELECT dt.derivative_ref_no contract_ref_no,
+			     dt.corporate_id,
+			     tab.created_date,
+			     tab.trade_date issue_date,
+			     decode(dt.trade_type, 'Buy', 'Derivative Buy', 'Sell', 'Derivative Sell', NULL) trade_type,
+			     pdm.product_id,
+			     pdm.product_desc product_name,
+			     pdm.base_quantity_unit,
+			     round(dt.open_quantity * ucm.multiplication_factor, 5) item_qty,
+			     qum.qty_unit
+		    FROM   dt_derivative_trade dt,
+			     drm_derivative_master drm,
+			     dim_der_instrument_master dim,
+			     irm_instrument_type_master irm,
+			     pdd_product_derivative_def pdd,
+			     pdm_productmaster pdm,
+			     qum_quantity_unit_master qum,
+			     ucm_unit_conversion_master ucm,
+			     (SELECT substr(MAX(CASE
+								WHEN dtul.derivative_ref_no IS NOT NULL THEN
+								 to_char(axs.created_date, 'yyyymmddhh24missff9') || dtul.derivative_ref_no
+							END)
+						 ,24) derivative_ref_no,
+					 substr(MAX(CASE
+								WHEN dtul.corporate_id IS NOT NULL THEN
+								 to_char(axs.created_date, 'yyyymmddhh24missff9') || dtul.corporate_id
+							END)
+						 ,24) corporate_id,
+					 substr(MAX(CASE
+								WHEN dtul.internal_derivative_ref_no IS NOT NULL THEN
+								 to_char(axs.created_date, 'yyyymmddhh24missff9') || dtul.internal_derivative_ref_no
+							END)
+						 ,24) internal_derivative_ref_no,
+					 substr(MAX(CASE
+								WHEN dtul.trade_date IS NOT NULL THEN
+								 to_char(axs.created_date, 'yyyymmddhh24missff9') || dtul.trade_date
+							END)
+						 ,24) trade_date,
+					 MAX(CASE
+						     WHEN axs.created_date IS NOT NULL THEN
+							axs.created_date
+					     END) created_date
+				FROM   dtul_derivative_trade_ul dtul,
+					 axs_action_summary       axs
+				WHERE  dtul.internal_action_ref_no = axs.internal_action_ref_no
+				GROUP  BY dtul.internal_derivative_ref_no) tab
+		    WHERE  dt.dr_id = drm.dr_id
+		    AND    tab.internal_derivative_ref_no = dt.internal_derivative_ref_no
+		    AND    drm.instrument_id = dim.instrument_id
+		    AND    dim.instrument_type_id = irm.instrument_type_id
+		    AND    dim.product_derivative_id = pdd.derivative_def_id
+		    AND    pdd.product_id = pdm.product_id
+		    AND    dt.status = 'Verified'
+		    AND    dt.quantity_unit_id = ucm.from_qty_unit_id
+		    AND    pdm.base_quantity_unit = ucm.to_qty_unit_id
+		    AND    pdm.base_quantity_unit = qum.qty_unit_id
+		    AND    dt.open_quantity <> 0	    
+		    --Bug 63342 fix end		    
 		    ) t1
 	  ORDER  BY t1.product_id,
 			t1.created_date) t2
