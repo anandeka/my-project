@@ -52,7 +52,7 @@ create or replace package pkg_phy_physical_process is
                                 pc_process_id   varchar2);
   procedure sp_phy_rebuild_stats;
 
-end;
+end; 
 /
 create or replace package body pkg_phy_physical_process is
 
@@ -3725,7 +3725,7 @@ create or replace package body pkg_phy_physical_process is
     delete from prd_physical_realized_daily
      where process_id = pc_process_id;
     delete from spd_stock_price_daily where process_id = pc_process_id;
-    delete from is_invoice_summary where process_id = pc_process_id;
+    delete from is_invoice_summary where dbd_id=vc_dbd_id;
     delete from cdl_cost_delta_log where dbd_id = vc_dbd_id;
     delete from invs_inventory_sales where process_id = pc_process_id;
     delete from tinvp_temp_invm_cog where process_id = pc_process_id;
@@ -3829,5 +3829,5 @@ create or replace package body pkg_phy_physical_process is
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end;
+end; 
 /

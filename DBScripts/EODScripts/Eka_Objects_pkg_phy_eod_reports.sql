@@ -56,7 +56,7 @@ create or replace package pkg_phy_eod_reports is
                                          pd_trade_date   date,
                                          pc_process_id   varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -1874,436 +1874,429 @@ create or replace package body pkg_phy_eod_reports is
     end loop;
   
     ---- Invoiced  GMR Level
-    insert into pa_purchase_accural_gmr
-      (corporate_id,
-       process_id,
-       eod_trade_date,
-       product_id,
-       product_type,
-       contract_type,
-       cp_id,
-       counterparty_name,
-       gmr_ref_no,
-       element_id,
-       element_name,
-       payable_returnable_type,
-       assay_content,
-       assay_content_unit,
-       payable_qty,
-       payable_qty_unit_id,
-       tcharges_amount,
-       rcharges_amount,
-       penalty_amount,
-       payable_amt_pay_ccy,
-       pay_in_cur_id,
-       pay_in_cur_code,
-       frightcharges_amount,
-       othercharges_amount,
-       tranascation_type)
-      select temp.corporate_id,
+ insert into pa_purchase_accural_gmr
+   (corporate_id,
+    process_id,
+    eod_trade_date,
+    product_id,
+    product_type,
+    contract_type,
+    cp_id,
+    counterparty_name,
+    gmr_ref_no,
+    element_id,
+    element_name,
+    payable_returnable_type,
+    assay_content,
+    assay_content_unit,
+    payable_qty,
+    payable_qty_unit_id,
+    tcharges_amount,
+    rcharges_amount,
+    penalty_amount,
+    payable_amt_pay_ccy,
+    pay_in_cur_id,
+    pay_in_cur_code,
+    frightcharges_amount,
+    othercharges_amount,
+    tranascation_type)
+   select temp.corporate_id,
+          pc_process_id,
+          pd_trade_date,
+          temp.product_id,
+          pdm_conc.product_desc,
+          temp.contract_type,
+          pcm.cp_id,
+          phd.companyname,
+          temp.gmr_ref_no,
+          temp.element_id,
+          aml.attribute_name,
+          pcpch.payable_type,
+          sum(temp.assay_qty) payable_qty,
+          temp.assay_qty_unit assay_qty_unit,
+          sum(temp.payble_qty) payable_qty,
+          temp.payable_qty_unit payable_qty_unit_id,
+          sum(temp.tcharges_amount) tcharges_amount,
+          sum(temp.rcharges_amount) rcharges_amount,
+          sum(temp.penalty_amount) penalty_amount,
+          sum(temp.element_payable_amount) element_payable_amount,
+          temp.invoice_currency_id,
+          cm.cur_code,
+          0,
+          oth_chagres.other_charges,
+          'Invoiced'
+     from (select grd.internal_gmr_ref_no,
+                  grd.internal_grd_ref_no,
+                  gmr.internal_contract_ref_no,
+                  gmr.gmr_ref_no,
+                  gmr.corporate_id,
+                  grd.product_id,
+                  grd.quality_id,
+                  grd.profit_center_id,
+                  iid.invoice_currency_id,
+                  iied.element_id,
+                  gmr.contract_type,
+                  0 assay_qty,
+                  (case
+                    when rm.ratio_name = '%' then
+                     ash.net_weight_unit
+                    else
+                     rm.qty_unit_id_numerator
+                  end) assay_qty_unit,
+                  iied.element_invoiced_qty payble_qty,
+                  iied.element_inv_qty_unit_id payable_qty_unit,
+                  iied.element_payable_amount,
+                  0 tcharges_amount,
+                  0 rcharges_amount,
+                  0 penalty_amount
+             from gmr_goods_movement_record     gmr,
+                  grd_goods_record_detail       grd,
+                  iid_invoicable_item_details   iid,
+                  iied_inv_item_element_details iied,
+                  ak_corporate                  akc,
+                  cm_currency_master            cm,
+                  iam_invoice_assay_mapping     iam,
+                  ash_assay_header              ash,
+                  asm_assay_sublot_mapping      asm,
+                  pqca_pq_chemical_attributes   pqca,
+                  rm_ratio_master               rm
+            where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+              and grd.internal_grd_ref_no = iid.stock_id
+              and iid.internal_invoice_ref_no = iied.internal_invoice_ref_no
+              and iid.stock_id = iied.grd_id
+              and gmr.corporate_id = akc.corporate_id
+              and akc.base_cur_id = cm.cur_id
+              and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
+              and iid.stock_id = iam.internal_grd_ref_no
+              and iam.ash_id = ash.ash_id
+              and ash.ash_id = asm.ash_id
+              and asm.asm_id = pqca.asm_id
+              and iied.element_id = pqca.element_id
+              and pqca.unit_of_measure = rm.ratio_id
+              and gmr.latest_internal_invoice_ref_no =
+                  iid.internal_invoice_ref_no(+)
+              and grd.process_id = pc_process_id
+              and gmr.process_id = pc_process_id
+              and gmr.is_deleted = 'N'
+              and gmr.corporate_id = pc_corporate_id
+           union all
+           ----- assay qty
+           select grd.internal_gmr_ref_no,
+                  grd.internal_grd_ref_no,
+                  gmr.internal_contract_ref_no,
+                  gmr.gmr_ref_no,
+                  gmr.corporate_id,
+                  grd.product_id,
+                  grd.quality_id,
+                  grd.profit_center_id,
+                  iid.invoice_currency_id,
+                  pqca.element_id,
+                  gmr.contract_type,
+                  (case
+                    when rm.ratio_name = '%' then
+                     (pqca.typical * asm.dry_weight) / 100
+                    else
+                     pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                          asm.net_weight_unit,
+                                                          rm.qty_unit_id_denominator,
+                                                          asm.dry_weight) *
+                     pqca.typical
+                  
+                  end) assay_qty,
+                  (case
+                    when rm.ratio_name = '%' then
+                     ash.net_weight_unit
+                    else
+                     rm.qty_unit_id_numerator
+                  end) assay_qty_unit,
+                  0 payble_qty,
+                  (case
+                    when rm.ratio_name = '%' then
+                     ash.net_weight_unit
+                    else
+                     rm.qty_unit_id_numerator
+                  end) payable_qty_unit,
+                  0 element_payable_amount,
+                  0 tcharges_amount,
+                  0 rcharges_amount,
+                  0 penalty_amount
+             from gmr_goods_movement_record   gmr,
+                  grd_goods_record_detail     grd,
+                  iid_invoicable_item_details iid,
+                  ak_corporate                akc,
+                  cm_currency_master          cm,
+                  iam_invoice_assay_mapping   iam,
+                  ash_assay_header            ash,
+                  asm_assay_sublot_mapping    asm,
+                  pqca_pq_chemical_attributes pqca,
+                  rm_ratio_master             rm,
+                  aml_attribute_master_list   aml
+            where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+              and grd.internal_grd_ref_no = iid.stock_id
+              and gmr.corporate_id = akc.corporate_id
+              and akc.base_cur_id = cm.cur_id
+              and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
+              and iid.stock_id = iam.internal_grd_ref_no
+              and iam.ash_id = ash.ash_id
+              and ash.ash_id = asm.ash_id
+              and asm.asm_id = pqca.asm_id
+              and pqca.element_id = aml.attribute_id
+              and pqca.unit_of_measure = rm.ratio_id
+              and gmr.latest_internal_invoice_ref_no =
+                  iid.internal_invoice_ref_no(+)
+              and grd.process_id = pc_process_id
+              and gmr.process_id = pc_process_id
+              and gmr.is_deleted = 'N'
+              and gmr.corporate_id = pc_corporate_id
+           ---- Tc Chrages
+           union all
+           select grd.internal_gmr_ref_no,
+                  grd.internal_grd_ref_no,
+                  gmr.internal_contract_ref_no,
+                  gmr.gmr_ref_no,
+                  gmr.corporate_id,
+                  grd.product_id,
+                  grd.quality_id,
+                  grd.profit_center_id,
+                  iid.invoice_currency_id,
+                  intc.element_id,
+                  gmr.contract_type,
+                  0 assay_qty,
+                  (case
+                    when rm.ratio_name = '%' then
+                     ash.net_weight_unit
+                    else
+                     rm.qty_unit_id_numerator
+                  end) assay_qty_unit,
+                  0 payble_qty,
+                  (case
+                    when rm.ratio_name = '%' then
+                     ash.net_weight_unit
+                    else
+                     rm.qty_unit_id_numerator
+                  end) payable_qty_unit,
+                  0 element_payable_amount,
+                  intc.tcharges_amount tcharges_amount,
+                  0 rcharges_amount,
+                  0 penalty_amount
+             from gmr_goods_movement_record   gmr,
+                  grd_goods_record_detail     grd,
+                  iid_invoicable_item_details iid,
+                  intc_inv_treatment_charges  intc,
+                  ak_corporate                akc,
+                  cm_currency_master          cm,
+                  aml_attribute_master_list   aml,
+                  iam_invoice_assay_mapping   iam,
+                  ash_assay_header            ash,
+                  asm_assay_sublot_mapping    asm,
+                  pqca_pq_chemical_attributes pqca,
+                  rm_ratio_master             rm
+            where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+              and grd.internal_grd_ref_no = iid.stock_id
+              and iid.internal_invoice_ref_no = intc.internal_invoice_ref_no
+              and iid.stock_id = intc.grd_id
+              and gmr.corporate_id = akc.corporate_id
+              and intc.element_id = aml.attribute_id
+              and akc.base_cur_id = cm.cur_id
+              and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
+              and iid.stock_id = iam.internal_grd_ref_no
+              and iam.ash_id = ash.ash_id
+              and ash.ash_id = asm.ash_id
+              and asm.asm_id = pqca.asm_id
+              and intc.element_id = pqca.element_id
+              and pqca.unit_of_measure = rm.ratio_id
+              and gmr.latest_internal_invoice_ref_no =
+                  iid.internal_invoice_ref_no(+)
+              and grd.process_id = pc_process_id
+              and gmr.process_id = pc_process_id
+              and gmr.is_deleted = 'N'
+              and gmr.corporate_id = pc_corporate_id
+           -- Rc Chargess
+           union all
+           select grd.internal_gmr_ref_no,
+                  grd.internal_grd_ref_no,
+                  gmr.internal_contract_ref_no,
+                  gmr.gmr_ref_no,
+                  gmr.corporate_id,
+                  grd.product_id,
+                  grd.quality_id,
+                  grd.profit_center_id,
+                  iid.invoice_currency_id,
+                  inrc.element_id,
+                  gmr.contract_type,
+                  0 assay_qty,
+                  (case
+                    when rm.ratio_name = '%' then
+                     ash.net_weight_unit
+                    else
+                     rm.qty_unit_id_numerator
+                  end) assay_qty_unit,
+                  0 payble_qty,
+                  (case
+                    when rm.ratio_name = '%' then
+                     ash.net_weight_unit
+                    else
+                     rm.qty_unit_id_numerator
+                  end) payable_qty_unit,
+                  0 element_payable_amount,
+                  0 tcharges_amount,
+                  inrc.rcharges_amount rcharges_amount,
+                  0 penalty_amount
+             from gmr_goods_movement_record   gmr,
+                  grd_goods_record_detail     grd,
+                  iid_invoicable_item_details iid,
+                  inrc_inv_refining_charges   inrc,
+                  ak_corporate                akc,
+                  cm_currency_master          cm,
+                  aml_attribute_master_list   aml,
+                  iam_invoice_assay_mapping   iam,
+                  ash_assay_header            ash,
+                  asm_assay_sublot_mapping    asm,
+                  pqca_pq_chemical_attributes pqca,
+                  rm_ratio_master             rm
+            where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+              and grd.internal_grd_ref_no = iid.stock_id
+              and iid.internal_invoice_ref_no = inrc.internal_invoice_ref_no
+              and iid.stock_id = inrc.grd_id
+              and gmr.corporate_id = akc.corporate_id
+              and inrc.element_id = aml.attribute_id
+              and akc.base_cur_id = cm.cur_id
+              and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
+              and iid.stock_id = iam.internal_grd_ref_no
+              and iam.ash_id = ash.ash_id
+              and ash.ash_id = asm.ash_id
+              and asm.asm_id = pqca.asm_id
+              and inrc.element_id = pqca.element_id
+              and pqca.unit_of_measure = rm.ratio_id
+              and gmr.latest_internal_invoice_ref_no =
+                  iid.internal_invoice_ref_no(+)
+              and grd.process_id = pc_process_id
+              and gmr.process_id = pc_process_id
+              and gmr.is_deleted = 'N'
+              and gmr.corporate_id = pc_corporate_id
+           -- penality
+           union all
+           select grd.internal_gmr_ref_no,
+                  grd.internal_grd_ref_no,
+                  gmr.internal_contract_ref_no,
+                  gmr.gmr_ref_no,
+                  gmr.corporate_id,
+                  grd.product_id,
+                  grd.quality_id,
+                  grd.profit_center_id,
+                  iid.invoice_currency_id,
+                  iepd.element_id,
+                  gmr.contract_type,
+                  0 assay_qty,
+                  (case
+                    when rm.ratio_name = '%' then
+                     ash.net_weight_unit
+                    else
+                     rm.qty_unit_id_numerator
+                  end) assay_qty_unit,
+                  0 payble_qty,
+                  (case
+                    when rm.ratio_name = '%' then
+                     ash.net_weight_unit
+                    else
+                     rm.qty_unit_id_numerator
+                  end) payable_qty_unit,
+                  0 element_payable_amount,
+                  0 tcharges_amount,
+                  0 rcharges_amount,
+                  iepd.element_penalty_amount penalty_amount
+             from gmr_goods_movement_record   gmr,
+                  grd_goods_record_detail     grd,
+                  iid_invoicable_item_details iid,
+                  iepd_inv_epenalty_details   iepd,
+                  ak_corporate                akc,
+                  cm_currency_master          cm,
+                  iam_invoice_assay_mapping   iam,
+                  ash_assay_header            ash,
+                  asm_assay_sublot_mapping    asm,
+                  pqca_pq_chemical_attributes pqca,
+                  rm_ratio_master             rm
+            where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+              and grd.internal_grd_ref_no = iid.stock_id
+              and iid.internal_invoice_ref_no = iepd.internal_invoice_ref_no
+              and iid.stock_id = iepd.stock_id
+              and gmr.corporate_id = akc.corporate_id
+              and akc.base_cur_id = cm.cur_id
+              and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
+              and iid.stock_id = iam.internal_grd_ref_no
+              and iam.ash_id = ash.ash_id
+              and ash.ash_id = asm.ash_id
+              and asm.asm_id = pqca.asm_id
+              and iepd.element_id = pqca.element_id
+              and pqca.unit_of_measure = rm.ratio_id
+              and gmr.latest_internal_invoice_ref_no =
+                  iid.internal_invoice_ref_no(+)
+              and grd.process_id = pc_process_id
+              and gmr.process_id = pc_process_id
+              and gmr.is_deleted = 'N'
+              and gmr.corporate_id = pc_corporate_id) temp,
+          pdm_productmaster pdm_conc,
+          qat_quality_attributes qat,
+          cpc_corporate_profit_center cpc,
+          ak_corporate akc,
+          cm_currency_master cm,
+          aml_attribute_master_list aml,
+          pcm_physical_contract_main pcm,
+          phd_profileheaderdetails phd,
+          pcpch_pc_payble_content_header pcpch,
+          (select gmr.internal_gmr_ref_no,
+                  iss.total_other_charge_amount other_charges
+             from gmr_goods_movement_record gmr,
+                  is_invoice_summary        iss
+            where (iss.internal_invoice_ref_no, gmr.internal_gmr_ref_no) in
+                  (select iid.internal_invoice_ref_no,
+                          iid.internal_gmr_ref_no
+                     from iid_invoicable_item_details iid
+                    where iid.internal_invoice_ref_no =
+                          iss.internal_invoice_ref_no
+                      and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                      and gmr.latest_internal_invoice_ref_no =
+                          iss.internal_invoice_ref_no
+                      and iss.is_active = 'Y'
+                      and iss.process_id = pc_process_id
+                      and gmr.process_id = pc_process_id)) oth_chagres
+    where temp.product_id = pdm_conc.product_id
+      and temp.quality_id = qat.quality_id(+)
+      and temp.profit_center_id = cpc.profit_center_id
+      and temp.corporate_id = akc.corporate_id
+      and temp.element_id = aml.attribute_id
+      and temp.invoice_currency_id = cm.cur_id
+      and temp.internal_contract_ref_no = pcm.internal_contract_ref_no
+      and pcm.cp_id = phd.profileid
+      and pcm.cp_id = phd.profileid
+      and temp.internal_contract_ref_no = pcpch.internal_contract_ref_no(+)
+      and temp.element_id = pcpch.element_id(+)
+      and pcm.process_id = pc_process_id
+      and pcpch.process_id(+) = pc_process_id
+      and pcm.is_active = 'Y'
+      and pcpch.is_active(+) = 'Y'
+      and temp.internal_gmr_ref_no = oth_chagres.internal_gmr_ref_no(+)
+    group by temp.corporate_id,
              pc_process_id,
-             pd_trade_date,
              temp.product_id,
              pdm_conc.product_desc,
-             temp.contract_type,
              pcm.cp_id,
+             temp.contract_type,
              phd.companyname,
              temp.gmr_ref_no,
              temp.element_id,
              aml.attribute_name,
              pcpch.payable_type,
-             sum(temp.assay_qty) payable_qty,
-             temp.assay_qty_unit assay_qty_unit,
-             sum(temp.payble_qty) payable_qty,
-             temp.payable_qty_unit payable_qty_unit_id,
-             sum(temp.tcharges_amount) tcharges_amount,
-             sum(temp.rcharges_amount) rcharges_amount,
-             sum(temp.penalty_amount) penalty_amount,
-             sum(temp.element_payable_amount) element_payable_amount,
              temp.invoice_currency_id,
+             temp.payable_qty_unit,
+             temp.assay_qty_unit,
              cm.cur_code,
-             0,
-             oth_chagres.other_charges,
-             'Invoiced'
-        from (select grd.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     gmr.internal_contract_ref_no,
-                     gmr.gmr_ref_no,
-                     gmr.corporate_id,
-                     grd.product_id,
-                     grd.quality_id,
-                     grd.profit_center_id,
-                     iid.invoice_currency_id,
-                     iied.element_id,
-                     gmr.contract_type,
-                     0 assay_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) assay_qty_unit,
-                     iied.element_invoiced_qty payble_qty,
-                     iied.element_inv_qty_unit_id payable_qty_unit,
-                     iied.element_payable_amount,
-                     0 tcharges_amount,
-                     0 rcharges_amount,
-                     0 penalty_amount
-                from gmr_goods_movement_record     gmr,
-                     grd_goods_record_detail       grd,
-                     iid_invoicable_item_details   iid,
-                     iied_inv_item_element_details iied,
-                     ak_corporate                  akc,
-                     cm_currency_master            cm,
-                     iam_invoice_assay_mapping     iam,
-                     ash_assay_header              ash,
-                     asm_assay_sublot_mapping      asm,
-                     pqca_pq_chemical_attributes   pqca,
-                     rm_ratio_master               rm
-               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = iid.stock_id
-                 and iid.internal_invoice_ref_no =
-                     iied.internal_invoice_ref_no
-                 and iid.stock_id = iied.grd_id
-                 and gmr.corporate_id = akc.corporate_id
-                 and akc.base_cur_id = cm.cur_id
-                 and iid.internal_invoice_ref_no =
-                     iam.internal_invoice_ref_no
-                 and iid.stock_id = iam.internal_grd_ref_no
-                 and iam.ash_id = ash.ash_id
-                 and ash.ash_id = asm.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and iied.element_id = pqca.element_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no =
-                     iid.internal_invoice_ref_no(+)
-                 and grd.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and gmr.corporate_id = pc_corporate_id
-              union all
-              ----- assay qty
-              select grd.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     gmr.internal_contract_ref_no,
-                     gmr.gmr_ref_no,
-                     gmr.corporate_id,
-                     grd.product_id,
-                     grd.quality_id,
-                     grd.profit_center_id,
-                     iid.invoice_currency_id,
-                     pqca.element_id,
-                     gmr.contract_type,
-                     (case
-                       when rm.ratio_name = '%' then
-                        (pqca.typical * asm.dry_weight) / 100
-                       else
-                        pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                             asm.net_weight_unit,
-                                                             rm.qty_unit_id_denominator,
-                                                             asm.dry_weight) *
-                        pqca.typical
-                     
-                     end) assay_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) assay_qty_unit,
-                     0 payble_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) payable_qty_unit,
-                     0 element_payable_amount,
-                     0 tcharges_amount,
-                     0 rcharges_amount,
-                     0 penalty_amount
-                from gmr_goods_movement_record   gmr,
-                     grd_goods_record_detail     grd,
-                     iid_invoicable_item_details iid,
-                     ak_corporate                akc,
-                     cm_currency_master          cm,
-                     iam_invoice_assay_mapping   iam,
-                     ash_assay_header            ash,
-                     asm_assay_sublot_mapping    asm,
-                     pqca_pq_chemical_attributes pqca,
-                     rm_ratio_master             rm,
-                     aml_attribute_master_list   aml
-               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = iid.stock_id
-                 and gmr.corporate_id = akc.corporate_id
-                 and akc.base_cur_id = cm.cur_id
-                 and iid.internal_invoice_ref_no =
-                     iam.internal_invoice_ref_no
-                 and iid.stock_id = iam.internal_grd_ref_no
-                 and iam.ash_id = ash.ash_id
-                 and ash.ash_id = asm.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and pqca.element_id = aml.attribute_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no =
-                     iid.internal_invoice_ref_no(+)
-                 and grd.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and gmr.corporate_id = pc_corporate_id
-              ---- Tc Chrages
-              union all
-              select grd.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     gmr.internal_contract_ref_no,
-                     gmr.gmr_ref_no,
-                     gmr.corporate_id,
-                     grd.product_id,
-                     grd.quality_id,
-                     grd.profit_center_id,
-                     iid.invoice_currency_id,
-                     intc.element_id,
-                     gmr.contract_type,
-                     0 assay_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) assay_qty_unit,
-                     0 payble_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) payable_qty_unit,
-                     0 element_payable_amount,
-                     intc.tcharges_amount tcharges_amount,
-                     0 rcharges_amount,
-                     0 penalty_amount
-                from gmr_goods_movement_record   gmr,
-                     grd_goods_record_detail     grd,
-                     iid_invoicable_item_details iid,
-                     intc_inv_treatment_charges  intc,
-                     ak_corporate                akc,
-                     cm_currency_master          cm,
-                     aml_attribute_master_list   aml,
-                     iam_invoice_assay_mapping   iam,
-                     ash_assay_header            ash,
-                     asm_assay_sublot_mapping    asm,
-                     pqca_pq_chemical_attributes pqca,
-                     rm_ratio_master             rm
-               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = iid.stock_id
-                 and iid.internal_invoice_ref_no =
-                     intc.internal_invoice_ref_no
-                 and iid.stock_id = intc.grd_id
-                 and gmr.corporate_id = akc.corporate_id
-                 and intc.element_id = aml.attribute_id
-                 and akc.base_cur_id = cm.cur_id
-                 and iid.internal_invoice_ref_no =
-                     iam.internal_invoice_ref_no
-                 and iid.stock_id = iam.internal_grd_ref_no
-                 and iam.ash_id = ash.ash_id
-                 and ash.ash_id = asm.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and intc.element_id = pqca.element_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no =
-                     iid.internal_invoice_ref_no(+)
-                 and grd.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and gmr.corporate_id = pc_corporate_id
-              -- Rc Chargess
-              union all
-              select grd.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     gmr.internal_contract_ref_no,
-                     gmr.gmr_ref_no,
-                     gmr.corporate_id,
-                     grd.product_id,
-                     grd.quality_id,
-                     grd.profit_center_id,
-                     iid.invoice_currency_id,
-                     inrc.element_id,
-                     gmr.contract_type,
-                     0 assay_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) assay_qty_unit,
-                     0 payble_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) payable_qty_unit,
-                     0 element_payable_amount,
-                     0 tcharges_amount,
-                     inrc.rcharges_amount rcharges_amount,
-                     0 penalty_amount
-                from gmr_goods_movement_record   gmr,
-                     grd_goods_record_detail     grd,
-                     iid_invoicable_item_details iid,
-                     inrc_inv_refining_charges   inrc,
-                     ak_corporate                akc,
-                     cm_currency_master          cm,
-                     aml_attribute_master_list   aml,
-                     iam_invoice_assay_mapping   iam,
-                     ash_assay_header            ash,
-                     asm_assay_sublot_mapping    asm,
-                     pqca_pq_chemical_attributes pqca,
-                     rm_ratio_master             rm
-               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = iid.stock_id
-                 and iid.internal_invoice_ref_no =
-                     inrc.internal_invoice_ref_no
-                 and iid.stock_id = inrc.grd_id
-                 and gmr.corporate_id = akc.corporate_id
-                 and inrc.element_id = aml.attribute_id
-                 and akc.base_cur_id = cm.cur_id
-                 and iid.internal_invoice_ref_no =
-                     iam.internal_invoice_ref_no
-                 and iid.stock_id = iam.internal_grd_ref_no
-                 and iam.ash_id = ash.ash_id
-                 and ash.ash_id = asm.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and inrc.element_id = pqca.element_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no =
-                     iid.internal_invoice_ref_no(+)
-                 and grd.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and gmr.corporate_id = pc_corporate_id
-              -- penality
-              union all
-              select grd.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     gmr.internal_contract_ref_no,
-                     gmr.gmr_ref_no,
-                     gmr.corporate_id,
-                     grd.product_id,
-                     grd.quality_id,
-                     grd.profit_center_id,
-                     iid.invoice_currency_id,
-                     iepd.element_id,
-                     gmr.contract_type,
-                     0 assay_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) assay_qty_unit,
-                     0 payble_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        ash.net_weight_unit
-                       else
-                        rm.qty_unit_id_numerator
-                     end) payable_qty_unit,
-                     0 element_payable_amount,
-                     0 tcharges_amount,
-                     0 rcharges_amount,
-                     iepd.element_penalty_amount penalty_amount
-                from gmr_goods_movement_record   gmr,
-                     grd_goods_record_detail     grd,
-                     iid_invoicable_item_details iid,
-                     iepd_inv_epenalty_details   iepd,
-                     ak_corporate                akc,
-                     cm_currency_master          cm,
-                     iam_invoice_assay_mapping   iam,
-                     ash_assay_header            ash,
-                     asm_assay_sublot_mapping    asm,
-                     pqca_pq_chemical_attributes pqca,
-                     rm_ratio_master             rm
-               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = iid.stock_id
-                 and iid.internal_invoice_ref_no =
-                     iepd.internal_invoice_ref_no
-                 and iid.stock_id = iepd.stock_id
-                 and gmr.corporate_id = akc.corporate_id
-                 and akc.base_cur_id = cm.cur_id
-                 and iid.internal_invoice_ref_no =
-                     iam.internal_invoice_ref_no
-                 and iid.stock_id = iam.internal_grd_ref_no
-                 and iam.ash_id = ash.ash_id
-                 and ash.ash_id = asm.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and iepd.element_id = pqca.element_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and gmr.latest_internal_invoice_ref_no =
-                     iid.internal_invoice_ref_no(+)
-                 and grd.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and gmr.corporate_id = pc_corporate_id) temp,
-             pdm_productmaster pdm_conc,
-             qat_quality_attributes qat,
-             cpc_corporate_profit_center cpc,
-             ak_corporate akc,
-             cm_currency_master cm,
-             aml_attribute_master_list aml,
-             pcm_physical_contract_main pcm,
-             phd_profileheaderdetails phd,
-             pcpch_pc_payble_content_header pcpch,
-             (select gmr.internal_gmr_ref_no,
-                     iss.total_other_charge_amount other_charges
-                from gmr_goods_movement_record   gmr,
-                     iid_invoicable_item_details iid,
-                     is_invoice_summary          iss
-               where gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and iid.internal_invoice_ref_no =
-                     iss.internal_invoice_ref_no
-                 and gmr.latest_internal_invoice_ref_no =
-                     iss.internal_invoice_ref_no
-                 and iss.is_active = 'Y'
-                 and iss.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id) oth_chagres
-       where temp.product_id = pdm_conc.product_id
-         and temp.quality_id = qat.quality_id(+)
-         and temp.profit_center_id = cpc.profit_center_id
-         and temp.corporate_id = akc.corporate_id
-         and temp.element_id = aml.attribute_id
-         and temp.invoice_currency_id = cm.cur_id
-         and temp.internal_contract_ref_no = pcm.internal_contract_ref_no
-         and pcm.cp_id = phd.profileid
-         and pcm.cp_id = phd.profileid
-         and temp.internal_contract_ref_no =
-             pcpch.internal_contract_ref_no(+)
-         and temp.element_id = pcpch.element_id(+)
-         and pcm.process_id = pc_process_id
-         and pcpch.process_id(+) = pc_process_id
-         and pcm.is_active = 'Y'
-         and pcpch.is_active(+) = 'Y'
-         and temp.internal_gmr_ref_no = oth_chagres.internal_gmr_ref_no(+)
-       group by temp.corporate_id,
-                pc_process_id,
-                temp.product_id,
-                pdm_conc.product_desc,
-                pcm.cp_id,
-                temp.contract_type,
-                phd.companyname,
-                temp.gmr_ref_no,
-                temp.element_id,
-                aml.attribute_name,
-                pcpch.payable_type,
-                temp.invoice_currency_id,
-                temp.payable_qty_unit,
-                temp.assay_qty_unit,
-                cm.cur_code,
-                oth_chagres.other_charges;
+             oth_chagres.other_charges;
   
     --calucalted GMR Leval             
     insert into pa_purchase_accural_gmr
@@ -2414,8 +2407,8 @@ create or replace package body pkg_phy_eod_reports is
        tcharges_amount,
        rcharges_amount,
        penalty_amount,
-       payable_amt_price_ccy,
-       payable_amt_pay_ccy,
+        payable_amt_pay_ccy,
+       payable_amt_price_ccy,     
        pay_in_cur_id,
        pay_in_cur_code,
        frightcharges_amount,
@@ -5341,17 +5334,21 @@ create or replace package body pkg_phy_eod_reports is
              qum_quantity_unit_master qum_paybale,
              (select gmr.internal_gmr_ref_no,
                      iss.total_other_charge_amount other_charges
-                from gmr_goods_movement_record   gmr,
-                     iid_invoicable_item_details iid,
-                     is_invoice_summary          iss
-               where gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-                 and iid.internal_invoice_ref_no =
-                     iss.internal_invoice_ref_no
-                 and gmr.latest_internal_invoice_ref_no =
-                     iss.internal_invoice_ref_no
-                 and iss.is_active = 'Y'
-                 and iss.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id) oth_chagres
+                from gmr_goods_movement_record gmr,
+                     is_invoice_summary        iss
+               where (iss.internal_invoice_ref_no, gmr.internal_gmr_ref_no) in
+                     (select iid.internal_invoice_ref_no,
+                             iid.internal_gmr_ref_no
+                        from iid_invoicable_item_details iid
+                       where iid.internal_invoice_ref_no =
+                             iss.internal_invoice_ref_no
+                         and iid.internal_gmr_ref_no =
+                             gmr.internal_gmr_ref_no
+                         and gmr.latest_internal_invoice_ref_no =
+                             iss.internal_invoice_ref_no
+                         and iss.is_active = 'Y'
+                         and iss.process_id = pc_process_id
+                         and gmr.process_id = pc_process_id)) oth_chagres
        where temp.corporate_id = akc.corporate_id
          and temp.product_id = pdm.product_id
          and temp.quality_id = qat.quality_id
@@ -8977,5 +8974,5 @@ create or replace package body pkg_phy_eod_reports is
   
     commit;
   end;
-end;
+end; 
 /
