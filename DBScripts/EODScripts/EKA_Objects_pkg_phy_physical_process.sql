@@ -260,12 +260,12 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_contract_conc_price');
-    /*pkg_phy_eod_price.sp_calc_contract_conc_price(pc_corporate_id,
-    pd_trade_date,
-    pc_process_id,
-    pc_user_id,
-    pc_dbd_id,
-    pc_process);*/
+    pkg_phy_eod_price.sp_calc_contract_conc_price(pc_corporate_id,
+                                                  pd_trade_date,
+                                                  pc_process_id,
+                                                  pc_user_id,
+                                                  pc_dbd_id,
+                                                  pc_process);
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -277,12 +277,12 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_conc_gmr_price');
-    /*pkg_phy_eod_price.sp_calc_conc_gmr_price(pc_corporate_id,
-    pd_trade_date,
-    pc_process_id,
-    pc_user_id,
-    pc_dbd_id,
-    pc_process);*/
+    pkg_phy_eod_price.sp_calc_conc_gmr_price(pc_corporate_id,
+                                             pd_trade_date,
+                                             pc_process_id,
+                                             pc_user_id,
+                                             pc_dbd_id,
+                                             pc_process);
     vc_err_msg := 'sp_calc_secondary_cost ';
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -457,10 +457,10 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_calc_m2m_conc_cost');
     vc_err_msg := 'Before calc m2m conc  cost ';
-    /*sp_calc_m2m_conc_cost(pc_corporate_id,
-    pd_trade_date,
-    pc_process_id,
-    pc_user_id);*/
+    sp_calc_m2m_conc_cost(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          pc_user_id);
     ----
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -474,10 +474,10 @@ create or replace package body pkg_phy_physical_process is
                           'sp_calc_m2m_tolling_extn_cost');
     vc_err_msg := 'Before call of sp_calc_m2m_tolling_extn_cost';
   
-    /*sp_calc_m2m_tolling_extn_cost(pc_corporate_id,
-    pd_trade_date,
-    pc_process_id,
-    pc_user_id);*/
+    sp_calc_m2m_tolling_extn_cost(pc_corporate_id,
+                                  pd_trade_date,
+                                  pc_process_id,
+                                  pc_user_id);
     ---
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -754,7 +754,7 @@ create or replace package body pkg_phy_physical_process is
                                                  pc_process_id);
     end if;
     -- Concentrate PNL Call Start
-    /*if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
     end if;
@@ -765,7 +765,7 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_calc_phy_opencon_unreal_pnl');
     vc_err_msg := 'Before sp_calc_phy_opencon_unreal_pnl';
-    
+  
     pkg_phy_conc_unrealized_pnl.sp_calc_phy_opencon_unreal_pnl(pc_corporate_id,
                                                                pd_trade_date,
                                                                pc_process_id,
@@ -773,8 +773,43 @@ create or replace package body pkg_phy_physical_process is
                                                                pc_user_id,
                                                                pc_process,
                                                                gvc_previous_process_id);
-    
+  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_cal_phy_stok_con_unreal_pnl');
+    vc_err_msg := 'Before sp_cal_phy_stok_con_unreal_pnl';
+    pkg_phy_conc_unrealized_pnl.sp_cal_phy_stok_con_unreal_pnl(pc_corporate_id,
+                                                               pd_trade_date,
+                                                               pc_process_id,
+                                                               pc_user_id,
+                                                               pc_process,
+                                                               gvc_previous_process_id);
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_phy_stok_con_ext_unreal_pnl');
+    vc_err_msg := 'Before sp_phy_stok_con_ext_unreal_pnl';
+    pkg_phy_conc_unrealized_pnl.sp_phy_stok_con_ext_unreal_pnl(pc_corporate_id,
+                                                               pd_trade_date,
+                                                               pc_process_id,
+                                                               pc_user_id,
+                                                               pc_process,
+                                                               gvc_previous_process_id);
+  
+    /*if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
     end if;
@@ -896,7 +931,7 @@ create or replace package body pkg_phy_physical_process is
                                                     gvc_previous_process_id,
                                                     pc_user_id);
   
-  if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
     end if;
@@ -907,11 +942,11 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_metal_balance_qty_summary');
     vc_err_msg := 'Before sp_metal_balance_qty_summary';
-    If pc_process ='EOM' then
-   pkg_phy_eod_reports.sp_metal_balance_qty_summary(pc_corporate_id,
-                                                    pd_trade_date,
-                                                    pc_process_id);  
-                                                    end if;
+    if pc_process = 'EOM' then
+      pkg_phy_eod_reports.sp_metal_balance_qty_summary(pc_corporate_id,
+                                                       pd_trade_date,
+                                                       pc_process_id);
+    end if;
   
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -3716,8 +3751,8 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     delete from bgcp_base_gmr_cog_price where process_id = pc_process_id;
     delete from cr_customs_report where process_id = pc_process_id;
-    delete from MAS_METAL_ACCOUNT_SUMMARY where process_id = pc_process_id;
-    delete from MD_METAL_DEBT where process_id = pc_process_id;
+    delete from mas_metal_account_summary where process_id = pc_process_id;
+    delete from md_metal_debt where process_id = pc_process_id;
   
     --
     -- If below tables Process ID might have marked for previoud DBD IDs
@@ -3794,5 +3829,5 @@ create or replace package body pkg_phy_physical_process is
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end; 
+end;
 /
