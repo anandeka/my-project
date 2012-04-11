@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_REPORT_GENERAL" is
+create or replace package "PKG_REPORT_GENERAL" is
   -- All general packages and procedures
   function fn_get_item_dry_qty(pc_internal_cont_item_ref_no varchar2,
                                pn_item_qty                  number)
@@ -35,16 +35,17 @@ CREATE OR REPLACE PACKAGE "PKG_REPORT_GENERAL" is
                                 pc_qty_unit_id     varchar2) return number;
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
                                     pc_internal_cont_item_ref_no varchar2,
-                                    pn_item_qty                  number) return number;
- function fn_get_elmt_assay_content_qty(pc_element_id      varchar2,
-                                    pc_assay_header_id varchar2,
-                                    pn_qty             number,
-                                    pc_qty_unit_id     varchar2) return number;                                                             
-                                
-end; 
- 
+                                    pn_item_qty                  number)
+    return number;
+  function fn_get_elmt_assay_content_qty(pc_element_id      varchar2,
+                                         pc_assay_header_id varchar2,
+                                         pn_qty             number,
+                                         pc_qty_unit_id     varchar2)
+    return number;
+
+end;
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
+create or replace package body "PKG_REPORT_GENERAL" is
   function fn_get_item_dry_qty(pc_internal_cont_item_ref_no varchar2,
                                pn_item_qty                  number)
     return number is
@@ -86,7 +87,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
                               and ppm.product_id = pcpd.product_id
                               and pci.internal_contract_item_ref_no =
                                   pc_internal_cont_item_ref_no
-                               and pcpq.assay_header_id=ash.ash_id    
+                              and pcpq.assay_header_id = ash.ash_id
                               and ppm.deduct_for_wet_to_dry = 'Y')
     loop
     
@@ -552,22 +553,22 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
           vd_qp_end_date   := cur_rows.qp_end_date;
         elsif cur_rows.qp_period_type = 'Event' then
           begin
-                  select dieqp.expected_qp_start_date,
-                         dieqp.expected_qp_end_date
-                    into vd_qp_start_date,
-                         vd_qp_end_date
-                    from di_del_item_exp_qp_details dieqp
-                   where dieqp.pcdi_id = cur_rows.pcdi_id
-                     and dieqp.pcbpd_id = cur_rows.pcbpd_id
-                     and dieqp.is_active = 'Y';
-                exception
-                  when no_data_found then
-                    vd_qp_start_date := cur_rows.qp_start_date;
-                    vd_qp_end_date   := cur_rows.qp_end_date;
-                  when others then
-                    vd_qp_start_date := cur_rows.qp_end_date;
-                    vd_qp_end_date   := cur_rows.qp_end_date;
-                end;
+            select dieqp.expected_qp_start_date,
+                   dieqp.expected_qp_end_date
+              into vd_qp_start_date,
+                   vd_qp_end_date
+              from di_del_item_exp_qp_details dieqp
+             where dieqp.pcdi_id = cur_rows.pcdi_id
+               and dieqp.pcbpd_id = cur_rows.pcbpd_id
+               and dieqp.is_active = 'Y';
+          exception
+            when no_data_found then
+              vd_qp_start_date := cur_rows.qp_start_date;
+              vd_qp_end_date   := cur_rows.qp_end_date;
+            when others then
+              vd_qp_start_date := cur_rows.qp_end_date;
+              vd_qp_end_date   := cur_rows.qp_end_date;
+          end;
           /*if cur_rows.event_name = 'Month After Month Of Shipment' then
             vd_evevnt_date   := add_months(vd_shipment_date,
                                            cur_rows.no_of_event_months);
@@ -643,10 +644,27 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
     vn_deduct_qty       := 0;
     vn_deduct_total_qty := 0;
     for cur_deduct_qty in (select ash.ash_id,
-                                  (case when ash_new.ash_id is not null then
-                                  pn_qty
-                                  else
-                                  asm.net_weight
+                                  (case
+                                    when ash.ash_id =
+                                         (select ash_new.pricing_assay_ash_id
+                                            from ash_assay_header ash_new
+                                           where ash_new.assay_type =
+                                                 'Provisional Assay'
+                                             and ash_new.is_active = 'Y'
+                                             and ash_new.internal_grd_ref_no =
+                                                 ash.internal_grd_ref_no) then
+                                     pn_qty                                    
+                                    when ash.ash_id =
+                                         (select ash_new.ash_id
+                                            from ash_assay_header ash_new
+                                           where ash_new.assay_type =
+                                                 'Shipment Assay'
+                                             and ash_new.is_active = 'Y'
+                                             and ash_new.internal_grd_ref_no =
+                                                 ash.internal_grd_ref_no) then
+                                     pn_qty
+                                    else
+                                     asm.net_weight
                                   end) net_weight,
                                   pqca.element_id,
                                   pqca.is_elem_for_pricing,
@@ -665,22 +683,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
                                   aml_attribute_master_list      aml,
                                   pqca_pq_chemical_attributes    pqca,
                                   rm_ratio_master                rm,
-                                  ppm_product_properties_mapping ppm,
-                                  (select  ash_new.pricing_assay_ash_id,
-                                          ash_new.ash_id
-                                           from ash_assay_header ash_new
-                                  where ash_new.assay_type='Provisional Assay')ash_new
+                                  ppm_product_properties_mapping ppm
                             where ash.ash_id = pc_assay_header_id
                               and ash.ash_id = asm.ash_id
                               and asm.asm_id = pqca.asm_id
                               and pqca.unit_of_measure = rm.ratio_id
                               and pqca.element_id = aml.attribute_id
                               and ppm.attribute_id = aml.attribute_id
-                              and ppm.product_id = pc_product_id                              
-                              and nvl(ppm.deduct_for_wet_to_dry, 'N') = 'Y'
-                              and ash.ash_id=ash_new.pricing_assay_ash_id(+))
-    loop    
-      vn_item_qty         := nvl(cur_deduct_qty.net_weight,pn_qty);  
+                              and ppm.product_id = pc_product_id
+                              and nvl(ppm.deduct_for_wet_to_dry, 'N') = 'Y')
+    loop
+      vn_item_qty := nvl(cur_deduct_qty.net_weight, pn_qty);
       if cur_deduct_qty.ratio_name = '%' then
         vn_deduct_qty := vn_item_qty * (cur_deduct_qty.typical / 100);
       else
@@ -698,8 +711,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_REPORT_GENERAL" is
     end loop;
     return(vn_item_qty - vn_deduct_total_qty);
   end;
-  
-function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
+
+  function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
                                     pc_internal_cont_item_ref_no varchar2,
                                     pn_item_qty                  number)
     return number is
@@ -739,7 +752,7 @@ function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
                               and pci.internal_contract_item_ref_no =
                                   pc_internal_cont_item_ref_no
                               and ppm.product_id = pc_product_id
-                              and pcpq.assay_header_id=ash.ash_id
+                              and pcpq.assay_header_id = ash.ash_id
                               and ppm.deduct_for_wet_to_dry = 'Y')
     loop
       if cur_deduct_qty.ratio_name = '%' then
@@ -760,11 +773,11 @@ function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
     
     end loop;
     return vn_deduct_total_qty;
-  end;  
-function fn_get_elmt_assay_content_qty(pc_element_id      varchar2,
-                                    pc_assay_header_id varchar2,
-                                    pn_qty             number,
-                                    pc_qty_unit_id     varchar2)
+  end;
+  function fn_get_elmt_assay_content_qty(pc_element_id      varchar2,
+                                         pc_assay_header_id varchar2,
+                                         pn_qty             number,
+                                         pc_qty_unit_id     varchar2)
     return number is
     cursor cur_element is
       select pqca.element_id,
@@ -800,9 +813,9 @@ function fn_get_elmt_assay_content_qty(pc_element_id      varchar2,
          and pqca.element_id = pc_element_id
          and ash.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcdi.pcdi_id = pci.pcdi_id
-         and pcdi.internal_contract_ref_no=pcpd.internal_contract_ref_no
-         and pcpd.pcpd_id=pcpq.pcpd_id
-         and pcpd.input_output='Input'
+         and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpd.pcpd_id = pcpq.pcpd_id
+         and pcpd.input_output = 'Input'
          and ash.is_active = 'Y'
          and asm.is_active = 'Y'
          and pqca.is_active = 'Y'
@@ -810,8 +823,8 @@ function fn_get_elmt_assay_content_qty(pc_element_id      varchar2,
          and rm.is_active = 'Y'
          and pcdi.is_active = 'Y'
          and pci.is_active = 'Y'
-         and pcpd.is_active='Y'
-         and pcpq.is_active='Y';
+         and pcpd.is_active = 'Y'
+         and pcpq.is_active = 'Y';
   
     vn_element_qty         number;
     vn_converted_qty       number;
@@ -833,7 +846,7 @@ function fn_get_elmt_assay_content_qty(pc_element_id      varchar2,
       else
         vn_item_qty := pn_qty;
       end if;*/
-       vn_item_qty := pn_qty;      
+      vn_item_qty := pn_qty;
       if cur_element_rows.ratio_name = '%' then
         vn_element_qty := vn_item_qty * (cur_element_rows.typical / 100);
         begin
@@ -866,6 +879,6 @@ function fn_get_elmt_assay_content_qty(pc_element_id      varchar2,
       vn_ele_qty := vn_element_qty;
     end loop;
     return(vn_ele_qty);
-  end;    
-end; 
+  end;
+end;
 /
