@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_0672
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  11-Apr-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 92124
+Author: suresh.gottipati
+Date: 7:27:09 PM, Wednesday, April 11, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_report_general.sql
+
+Revision: 92125
+Author: suresh.gottipati
+Date: 7:28:43 PM, Wednesday, April 11, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractedVsDeliveredReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+
+
+
+
+
+
+
+
+
