@@ -20,7 +20,7 @@ select dt.corporate_id,
        dt.strategy_id,
        css.strategy_name,
        dt.purpose_id,
-       dpm.purpose_name,
+       dpm.purpose_display_name purpose_name,
        round(dt.open_quantity * ucm.multiplication_factor, 5) trade_qty,
        (case
          when nvl(dpm.purpose_name, 'NA') in

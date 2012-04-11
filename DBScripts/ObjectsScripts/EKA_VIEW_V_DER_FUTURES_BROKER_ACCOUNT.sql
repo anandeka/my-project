@@ -83,7 +83,7 @@ select ak.corporate_id,
        emt.exchange_name,
        akcu.login_name,
        bca.account_name,
-       dpm.purpose_name,
+       dpm.purpose_display_name purpose_name,
        cmak.cur_code
        --Bug 61800 Fix ends
   from dt_derivative_trade dt,
