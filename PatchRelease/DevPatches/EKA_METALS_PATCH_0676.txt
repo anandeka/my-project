@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_PATCH_0676
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  ELaiyaraja Nallathambi
+ 
+Created on*        		:  12-Apr-2012
+
+Bug / Enhancement*             :   Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :  Transaction
+==================================================================
+Revision: 92182
+Author: elaiyaraja.nallathambi
+Date: 3:28:56 PM, Thursday, April 12, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyInventoryUnrealizedPhysicalPnL.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyInventoryUnrealizedPhysicalPnLConc.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyOpenUnrealizedPhysicalConc.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyOpenUnrealizedPhysicalPnL.rpt
+
+Revision: 92183
+Author: elaiyaraja.nallathambi
+Date: 3:32:59 PM, Thursday, April 12, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_269.sql
+
+Revision: 92184
+Author: elaiyaraja.nallathambi
+Date: 3:34:09 PM, Thursday, April 12, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_57_DML_RPC_RFC_Scripts.sql
+
+
