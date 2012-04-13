@@ -8821,7 +8821,7 @@ insert into isr_intrastat_grd
              product_name,
              sum(stock_qty) stock_qty,
              sum(debt_qty),
-             sum(stock_qty) - sum(debt_qty) net_qty,
+             sum(stock_qty) + sum(debt_qty) net_qty,
              qty_unit_id,
              qty_unit
         from (select debt_temp.corporate_id,
