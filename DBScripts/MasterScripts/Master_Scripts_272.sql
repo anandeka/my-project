@@ -116,7 +116,7 @@ SELECT '', phd.companyname buyer, pcm.issue_date contractdate,
        pcpd.tolerance_type tolerancetype, vd.vessel_voyage_name vesselname,
        gmr.bl_date bldate, gmr.bl_no blnumber, gmr.qty blqty,
        qumbl.qty_unit blqtyunit, '''', '''', gmr.created_date createddate,
-       '''', (pdm.product_desc || ' , ' || qat.quality_name) productandquality,
+       '''', (pdm.product_desc || '' , '' || qat.quality_name) productandquality,
        phdnp.companyname notifyparty, phd_ship.companyname shipper,
        vd.notes notes, vd.special_instructions specialinst,
        vd.voyage_number voyagenumber, vd.shippers_ref_no shipperrefno,
@@ -127,21 +127,21 @@ SELECT '', phd.companyname buyer, pcm.issue_date contractdate,
        qum_gmr.qty_unit quantity_unit, qum_gmr.decimals quantity_decimals,
        gmr.current_qty net_weignt_gmr, qum_gmr.qty_unit net_weight_unit_gmr,
        qum_gmr.decimals decimals,
-       ((TO_CHAR (gmr.bl_date, 'dd-Mon-yyyy')) || ' ' || gmr.bl_no
+       ((TO_CHAR (gmr.bl_date, ''dd-Mon-yyyy'')) || '' '' || gmr.bl_no
        ) bldate_blno,
        qum_gmr.decimals bl_quantity_decimals,
-       TO_CHAR (axs.action_date, 'dd-Mon-yyyy') activity_date,
+       TO_CHAR (axs.action_date, ''dd-Mon-yyyy'') activity_date,
        vd.voyage_number flight_number,
        cym_vd.country_name destination_airport,
-       TO_CHAR (sd.bl_date, 'dd-Mon-yyyy') awb_date, sd.bl_no awb_number,
+       TO_CHAR (sd.bl_date, ''dd-Mon-yyyy'') awb_date, sd.bl_no awb_number,
        gmr.qty awb_quantity, cym_vdl.country_name loading_airport,
        vd.loading_date loading_date, '''', '''', vd.no_of_pieces no_of_pieces,
        vd.nature_of_goods nature_of_good, vd.dimensions dimensions, '',
        gmr.qty net_weight, gmr.total_tare_weight tare_weight,
        gmr.total_gross_weight gross_weight, '''',
        sd.internal_remarks comments, '', '', '', '', '',
-       (vd.vessel_voyage_name || ' ' || vd.voyage_number) rail_name_number,
-       TO_CHAR (sd.bl_date, 'dd-Mon-yyyy') rr_date, sd.bl_no rr_number,
+       (vd.vessel_voyage_name || '' '' || vd.voyage_number) rail_name_number,
+       TO_CHAR (sd.bl_date, ''dd-Mon-yyyy'') rr_date, sd.bl_no rr_number,
        gmr.qty total_qty, gmr.qty rr_qty, vd.shippers_ref_no truck_number,
        sd.bl_date cmr_date, sd.bl_no cmr_number, gmr.qty cmr_quantity, '''',
        vd.comments trucking_instructions
@@ -207,8 +207,3 @@ begin
  update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID = '6';
   
 end;
-
-
-
-
-

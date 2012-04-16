@@ -101,7 +101,7 @@ TRUCKING_INSTRUCTIONS
 SELECT '''',
        phd.companyname buyer,
        to_char(pcm.issue_date,
-               'dd-Mon-yyyy') contractdate,
+               ''dd-Mon-yyyy'') contractdate,
        (SELECT f_string_aggregate(pci.contract_item_ref_no)
         FROM   v_pci           pci,
                agrd_action_grd agrd
@@ -109,7 +109,7 @@ SELECT '''',
                agrd.internal_contract_item_ref_no
         AND    agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.is_deleted = 'N') contractitemno,
+        AND    agrd.is_deleted = ''N'') contractitemno,
        pcpd.qty_max_val contractqty,
        qum.qty_unit contractqtyunit,
        pcm.contract_ref_no contractrefno,
@@ -117,16 +117,16 @@ SELECT '''',
        cym.country_name dischargecountry,
        pmt.port_name,
        to_char(vd.etd,
-               'dd-Mon-yyyy') etaend,
+               ''dd-Mon-yyyy'') etaend,
        to_char(vd.eta,
-               'dd-Mon-yyyy') etastart,
+               ''dd-Mon-yyyy'') etastart,
        '''',
        (SELECT f_string_aggregate(qat.quality_name)
         FROM   qat_quality_attributes qat,
                agrd_action_grd        agrd
         WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.is_deleted = 'N'
+        AND    agrd.is_deleted = ''N''
         AND    qat.quality_id = agrd.quality_id) goods,
        (SELECT f_string_aggregate(itm.incoterm)
         FROM   agrd_action_grd            agrd,
@@ -135,7 +135,7 @@ SELECT '''',
                itm_incoterm_master        itm
         WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.is_deleted = 'N'
+        AND    agrd.is_deleted = ''N''
         AND    pci.internal_contract_item_ref_no =
                agrd.internal_contract_item_ref_no
         AND    pcdb.pcdb_id = pci.pcdb_id
@@ -147,12 +147,12 @@ SELECT '''',
                agrd.internal_contract_item_ref_no
         AND    agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.is_deleted = 'N') internalcontractitemrefno,
+        AND    agrd.is_deleted = ''N'') internalcontractitemrefno,
        ?,
        gmr.internal_gmr_ref_no internalgmrrefno,
        '''',
        to_char(wn.issue_date,
-               'dd-Mon-yyyy') issue_date,
+               ''dd-Mon-yyyy'') issue_date,
        cyml.country_name loadingcountry,
        pmtl.port_name loadingport,
        '''',
@@ -164,7 +164,7 @@ SELECT '''',
         FROM   agrd_action_grd agrd
         WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.is_deleted = 'N') qty_of_goods,
+        AND    agrd.is_deleted = ''N'') qty_of_goods,
        qumbl.qty_unit,
        ak.corporate_name seller,
        '''',
@@ -173,14 +173,14 @@ SELECT '''',
        pcpd.tolerance_type tolerancetype,
        vd.vessel_voyage_name vesselname,
        to_char(gmr.bl_date,
-               'dd-Mon-yyyy') bldate,
+               ''dd-Mon-yyyy'') bldate,
        gmr.bl_no blnumber,
        gmr.qty blqty,
        qumbl.qty_unit blqtyunit,
        '''',
        '''',
        to_char(gmr.created_date,
-               'dd-Mon-yyyy') createddate,
+               ''dd-Mon-yyyy'') createddate,
        (SELECT f_string_aggregate(pci.incoterm_location)
         FROM   v_pci           pci,
                agrd_action_grd agrd
@@ -188,14 +188,14 @@ SELECT '''',
                agrd.internal_contract_item_ref_no
         AND    agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.is_deleted = 'N') parity_location,
-       (SELECT f_string_aggregate(pdm.product_desc || ' , ' || qat.quality_name)
+        AND    agrd.is_deleted = ''N'') parity_location,
+       (SELECT f_string_aggregate(pdm.product_desc || '' , '' || qat.quality_name)
         FROM   pdm_productmaster      pdm,
                qat_quality_attributes qat,
                agrd_action_grd        agrd
         WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.is_deleted = 'N'
+        AND    agrd.is_deleted = ''N''
         AND    pdm.product_id = agrd.product_id
         AND    qat.quality_id = agrd.quality_id) product_quality,
        '''',
@@ -217,10 +217,10 @@ SELECT '''',
        qumbl.qty_unit net_weight_unit_gmr,
        qumbl.decimals decimals,
        ((to_char(gmr.bl_date,
-                 'dd-Mon-yyyy')) || ' ' || gmr.bl_no) bldate_blno,
+                 ''dd-Mon-yyyy'')) || '' '' || gmr.bl_no) bldate_blno,
        qumbl.decimals bl_quantity_decimals,
        to_char(agmr.eff_date,
-               'dd-Mon-yyyy') activity_date,
+               ''dd-Mon-yyyy'') activity_date,
        vd.voyage_number flight_number,
        '''',
        '''',
@@ -237,7 +237,7 @@ SELECT '''',
         FROM   agrd_action_grd agrd
         WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.status = 'Active') stock_ref_no,
+        AND    agrd.status = ''Active'') stock_ref_no,
        (SELECT SUM(pkg_general.f_get_converted_quantity(agrd.product_id,
                                                         agrd.qty_unit_id,
                                                         gmr.qty_unit_id,
@@ -245,7 +245,7 @@ SELECT '''',
         FROM   agrd_action_grd agrd
         WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.status = 'Active') net_weight,
+        AND    agrd.status = ''Active'') net_weight,
        (SELECT SUM(pkg_general.f_get_converted_quantity(agrd.product_id,
                                                         agrd.qty_unit_id,
                                                         gmr.qty_unit_id,
@@ -253,7 +253,7 @@ SELECT '''',
         FROM   agrd_action_grd agrd
         WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.status = 'Active') tare_weight,
+        AND    agrd.status = ''Active'') tare_weight,
        (SELECT SUM(pkg_general.f_get_converted_quantity(agrd.product_id,
                                                         agrd.qty_unit_id,
                                                         gmr.qty_unit_id,
@@ -261,14 +261,14 @@ SELECT '''',
         FROM   agrd_action_grd agrd
         WHERE  agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
         AND    agrd.action_no = agmr.action_no
-        AND    agrd.status = 'Active') gross_weight,
+        AND    agrd.status = ''Active'') gross_weight,
        '''',
        '''',
        wn.activity_ref_no,
        phd_w.companyname weigher,
        wn.weight_note_no,
        to_char(wn.weighing_date,
-               'dd-Mon-yyyy') weighing_date,
+               ''dd-Mon-yyyy'') weighing_date,
        '''',
        '''',
        '''',
@@ -298,12 +298,12 @@ FROM   pcm_physical_contract_main pcm,
        pmt_portmaster             pmtl,
        pmt_portmaster             pmtts
 WHERE  gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-AND    agmr.gmr_latest_action_action_id = 'weightNote'
-AND    agmr.is_deleted = 'N'
+AND    agmr.gmr_latest_action_action_id = ''weightNote''
+AND    agmr.is_deleted = ''N''
 AND    pcm.internal_contract_ref_no = agmr.internal_contract_ref_no
 AND    phd.profileid = pcm.cp_id
 AND    pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
-AND    pcpd.is_active = 'Y'
+AND    pcpd.is_active = ''Y''
 AND    qum.qty_unit_id = pcpd.qty_unit_id
 AND    gmr.discharge_country_id = cym.country_id
 AND    gmr.qty_unit_id = qumbl.qty_unit_id
