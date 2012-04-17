@@ -1923,7 +1923,14 @@ create or replace package body pkg_phy_eod_reports is
           temp.invoice_currency_id,
           cm.cur_code,
           0,
-          oth_chagres.other_charges,
+          --oth_chagres.other_charges,
+           case
+           when dense_rank()
+            over(partition by temp.gmr_ref_no order by temp.element_id) = 1 then
+            oth_chagres.other_charges
+           else
+            0
+          end,
           'Invoiced'
      from (select grd.internal_gmr_ref_no,
                   grd.internal_grd_ref_no,
@@ -8571,7 +8578,7 @@ insert into isr_intrastat_grd
                  and grd.process_id = pc_process_id
                  and agmr.eff_date < pd_trade_date
                  and gmr.corporate_id = akc.corporate_id
-                 and grd.tolling_stock_type = 'RM Out Process Stock'
+                 and grd.tolling_stock_type = 'RM In Process Stock'
                group by aml.underlying_product_id,
                         pdm.product_desc,
                         grd.warehouse_profile_id,
