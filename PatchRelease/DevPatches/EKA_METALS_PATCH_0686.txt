@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0686
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  17-Apr-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 92487
+Author: elaiyaraja.nallathambi
+Date: 6:22:21 PM, Tuesday, April 17, 2012
+Message:
+As per FS Changes Logic for "Total Hedged/Unhedged Exposure" has been changed.( Exposure = Physicals + Derivatives)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+
