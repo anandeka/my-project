@@ -1,0 +1,1 @@
+alter table  SDD_D add  TOLERANCE_UNIT VARCHAR2(15);
