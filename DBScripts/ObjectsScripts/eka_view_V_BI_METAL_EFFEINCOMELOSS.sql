@@ -40,7 +40,7 @@ SELECT axs.action_ref_no AS pricefixationrefno, pfd.pfd_id,
           qum.qty_unit allocated_qty_unit,
             pfd.qty_fixed
           * pkg_general.f_get_converted_quantity (pdm.product_id,
-                                                  pcdi.qty_unit_id,
+                                                  pocd.Qty_To_Be_Fixed_Unit_Id,--pcdi.qty_unit_id, Bug 64031 Fix
                                                   pdm.base_quantity_unit,
                                                   1
                                                  ) price_fixation_qty,
@@ -142,5 +142,5 @@ SELECT axs.action_ref_no AS pricefixationrefno, pfd.pfd_id,
       AND ppu.is_active = 'Y'
       AND pum.is_active = 'Y'
       AND drm.is_deleted = 'N'
-      AND dim.is_active = 'Y' 
+      AND dim.is_active = 'Y'
 /
