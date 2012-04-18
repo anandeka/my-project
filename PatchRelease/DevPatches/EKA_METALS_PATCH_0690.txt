@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0690
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  18-Apr-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 92553
+Author: girishkv
+Date: 12:45:24 PM, Wednesday, April 18, 2012
+Message:
+added new column ship_land_date in AS_ASSAY_D table of  DGM Script.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_249.sql
+
+
+Revision: 92552
+Author: girishkv
+Date: 12:43:49 PM, Wednesday, April 18, 2012
+Message:
+added new column ship_land_date in AS_ASSAY_D table of  DGM Script.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_275.sql
