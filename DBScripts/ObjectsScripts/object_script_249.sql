@@ -1,0 +1,1 @@
+alter table AS_ASSAY_D add(ship_land_date DATE);
