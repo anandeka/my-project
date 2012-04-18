@@ -42,3 +42,12 @@ Message:
 Bug Fixes 63151
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+
+Revision: 92586
+Author: ashokkumar.l
+Date: 4:33:27 PM, Wednesday, April 18, 2012
+Message:
+Bug Fixes 63151
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AssayDocument.rpt
+
