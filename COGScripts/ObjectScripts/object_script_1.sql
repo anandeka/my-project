@@ -1,0 +1,1 @@
+alter table ECS_ELEMENT_COST_STORE add COST_REF_NO varchar2(15);
