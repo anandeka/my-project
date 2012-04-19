@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0695
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  19-Apr-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 92696
+Author: elaiyaraja.nallathambi
+Date: 6:22:04 PM, Thursday, April 19, 2012
+Message:
+Commercial Fee Invoice Document First Release form Reports Team.
+----
+Added : /7.3/Engg/Metals/Code/Reports/CommercialFeeInvoice.rpt
+
+
+Revision: 92697
+Author: elaiyaraja.nallathambi
+Date: 6:23:16 PM, Thursday, April 19, 2012
+Message:
+Commercial Fee Invoice Document First Release form Reports Team.
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt
+
+
+
