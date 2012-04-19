@@ -1,0 +1,35 @@
+Insert into DKM_DOC_REF_KEY_MASTER
+   (DOC_KEY_ID, DOC_KEY_DESC, VALIDATION_QUERY)
+ Values
+   ('CFI_KEY_&CorpId', 'Commercial Fee Invoice', 'SELECT COUNT (*) FROM DS_DOCUMENT_SUMMARY ds WHERE DS.DOC_REF_NO = :pc_document_ref_no AND DS.CORPORATE_ID = :pc_corporate_id');
+
+Insert into DRF_DOC_REF_NUMBER_FORMAT
+   (DOC_REF_NUMBER_FORMAT_ID, DOC_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
+    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
+ Values
+   ('DRF-CFI-&CorpId', 'CFI_KEY_&CorpId', '&CorpId', 'CFI-', 0, 
+    0, '-&CorpId', NULL, 'N');
+    
+Insert into DRFM_DOC_REF_NO_MAPPING
+   (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
+ Values
+   ('DRFM-CFI-&CorpId', '&CorpId', 'CREATE_CFI', 'CFI_KEY_&CorpId', 'N');
+
+
+Insert into DC_DOCUMENT_CONFIGURATION
+   (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD, DOC_VALIDATION_QUERY, 
+    NAVIGATION)
+ Values
+   ('CREATE_CFI', '&CorpId', 'Y', 'Y', 'select count(*) as countRow
+from IS_D isd
+where isd.INTERNAL_DOC_REF_NO = ?', 
+    '/metals/loadListOfInvoice.action?gridId=LOII_TEST');
+    
+Insert into CDC_CORPORATE_DOC_CONFIG
+   (DOC_TEMPLATE_ID, CORPORATE_ID, DOC_ID, DOC_TEMPLATE_NAME, DOC_TEMPLATE_NAME_DE, 
+    DOC_TEMPLATE_NAME_ES, DOC_PRINT_NAME, DOC_PRINT_NAME_DE, DOC_PRINT_NAME_ES, DOC_RPT_FILE_NAME, 
+    IS_ACTIVE, DOC_AUTO_GENERATE)
+ Values
+   ('CDC-CFI-1', '&CorpId', 'CREATE_CFI', 'CFI_TEMPLATE', NULL, 
+    NULL, NULL, NULL, NULL, 'InvoiceDocument.rpt', 
+    'Y', 'Y');
