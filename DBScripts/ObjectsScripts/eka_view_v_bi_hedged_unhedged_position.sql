@@ -15,17 +15,14 @@ select 'Price Fixations' section_type,
        cpc.profit_center_name,
        pcm.internal_contract_ref_no,
        axs.action_ref_no derivative_ref_no,
-       round(pfd.qty_fixed * ucm.multiplication_factor,5)  fixation_qty,
-     round( ( (case
-         when (nvl(pfd.qty_fixed, 0) - NVL(tad.allocated_qty, 0)) < 0 then
-          0
-         else
-          (nvl(pfd.qty_fixed, 0) - NVL(tad.allocated_qty, 0))
-       end) * (pkg_general.f_get_converted_quantity(pdm.product_id,
+      round(pfd.qty_fixed * ucm.multiplication_factor,5)  fixation_qty,
+      round( (nvl(pfd.qty_fixed, 0) * ucm.multiplication_factor )  -
+      (NVL(tad.allocated_qty, 0) * pkg_general.f_get_converted_quantity(pdm.product_id,
                                                     nvl(tad.allocated_qty_unit_id,
                                                         pdm.base_quantity_unit),
                                                     pocd.Qty_To_Be_Fixed_Unit_Id,
-                                                    1))) * ucm.multiplication_factor,5) un_allocated_qty,
+                                                    1) * ucm.multiplication_factor                                                    
+                                                    ),5)  un_allocated_qty,
      round( nvl(tad.allocated_qty, 0) *
        pkg_general.f_get_converted_quantity(pdm.product_id,
                                             nvl(tad.allocated_qty_unit_id,
@@ -86,10 +83,9 @@ select 'Price Fixations' section_type,
    and pdm_under.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.to_qty_unit_id = qum_ucm.qty_unit_id
    AND pfd.qty_fixed - nvl(tad.allocated_qty, 0)<>0
-   and pcpd.input_output = 'Input'
-  -- and pcm.internal_contract_ref_no = '137'
+   and pcpd.input_output = 'Input' 
    AND pofh.is_active = 'Y'
-   AND pocd.is_active = 'Y'
+   AND pocd.is_active = 'Y'   
 UNION ALL
 select 'Derivative' section_type,
        akc.corporate_id,
@@ -207,11 +203,11 @@ SELECT 'Derivative' section_type,
    AND dt.product_id = pdm.product_id
    AND dt.is_internal_trade IS NULL
    AND dt.internal_derivative_ref_no NOT IN
-       (SELECT dt_in.int_trade_parent_der_ref_no
+       (SELECT dt_in.internal_derivative_ref_no
           FROM dt_derivative_trade dt_in
          WHERE dt_in.is_internal_trade = 'Y'
            AND dt_in.status = 'Verified')
    AND dt.strategy_id = css.strategy_id
    AND pdm.base_quantity_unit = qum.qty_unit_id
    AND dt.total_quantity <> NVL(tad.allocated_qty, 0)
-   AND dt.status = 'Verified' 
+   AND dt.status = 'Verified'
