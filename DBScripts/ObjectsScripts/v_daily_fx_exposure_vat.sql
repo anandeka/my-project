@@ -1,6 +1,4 @@
-create or replace view v_daily_fx_exposure_vat
-as
----- for seprate vat invoice
+create or replace view v_daily_fx_exposure_vat as
 select akc.corporate_id,
        akc.corporate_name,
        cm_base.cur_code base_currency,
@@ -25,7 +23,7 @@ select akc.corporate_id,
        iis.invoice_ref_no,
        iis.vat_parent_ref_no parent_invoice_no,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
-       pcm.contract_ref_no || ' Item No. ' || pci.del_distribution_item_no contract_item_ref_no,
+       pcm.contract_ref_no || ' Item No. ' || pcdi.delivery_item_no contract_item_ref_no,
        gmr.gmr_ref_no gmr_ref_no,
        null element_name,
        null currency_pair,
@@ -64,7 +62,6 @@ select akc.corporate_id,
        is_invoice_summary iis,
        is_invoice_summary iis1,
        gmr_goods_movement_record gmr,
-       pci_physical_contract_item pci,
        pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        ak_corporate akc,
@@ -82,26 +79,23 @@ select akc.corporate_id,
    and ivd.is_separate_invoice = 'Y'
    and pcm.purchase_sales = 'P'
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
-   and iid.internal_contract_item_ref_no =
-       pci.internal_contract_item_ref_no
-   and pci.pcdi_id = pcdi.pcdi_id
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.corporate_id = akc.corporate_id
    and pcm.trader_id = akcu.user_id(+)
    and akcu.gabid = gab.gabid
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+   and pcpd.input_output = 'Input'
    and pcm.payment_term_id = pym.payment_term_id
    and pcpd.profit_center_id = cpc.profit_center_id
    and pcpd.product_id = pdm.product_id
    and akc.base_cur_id = cm_base.cur_id
    and ivd.vat_remit_cur_id = cm_pay.cur_id
-   and akc.base_cur_id = cm_base.cur_id   
+   and akc.base_cur_id = cm_base.cur_id
    and nvl(ivd.vat_amount_in_vat_cur,0) <> 0
    and iis.is_active = 'Y'
    and iis1.is_active = 'Y'
-   and gmr.is_deleted = 'N'  
-union all 
+   and gmr.is_deleted = 'N'
+union all
  select akc.corporate_id,
        akc.corporate_name,
        cm_base.cur_code base_currency,
@@ -126,7 +120,7 @@ union all
        iis.invoice_ref_no,
        iis.invoice_ref_no parent_invoice_no,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
-       pcm.contract_ref_no || ' Item No. ' || pci.del_distribution_item_no contract_item_ref_no,
+       pcm.contract_ref_no || ' Item No. ' || pcdi.delivery_item_no contract_item_ref_no,
        gmr.gmr_ref_no gmr_ref_no,
        null element_name,
        null currency_pair,
@@ -164,7 +158,6 @@ union all
                   iid.internal_invoice_ref_no) iid,
        is_invoice_summary iis,
        gmr_goods_movement_record gmr,
-       pci_physical_contract_item pci,
        pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        ak_corporate akc,
@@ -180,24 +173,22 @@ union all
    and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
-   and iid.internal_contract_item_ref_no =
-       pci.internal_contract_item_ref_no
-   and pci.pcdi_id = pcdi.pcdi_id
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.corporate_id = akc.corporate_id
    and pcm.trader_id = akcu.user_id(+)
    and akcu.gabid = gab.gabid
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+   and pcpd.input_output = 'Input'
    and pcm.payment_term_id = pym.payment_term_id
    and pcpd.profit_center_id = cpc.profit_center_id
    and pcpd.product_id = pdm.product_id
    and akc.base_cur_id = cm_base.cur_id
    and (case when PCM.PURCHASE_SALES = 'S' then ivd.invoice_cur_id else nvl(IVD.VAT_REMIT_CUR_ID,ivd.invoice_cur_id) end ) = cm_pay.cur_id --for purchase exposure in vat cur and
                                                                                                                     --     for sales  eposure in invoice cur
-   and akc.base_cur_id = cm_base.cur_id                                                                                
+   and akc.base_cur_id = cm_base.cur_id
    and iis.is_active = 'Y'
    and gmr.is_deleted = 'N'
-union all ---for sales contract when invoice cur and vat cur are not same   outflow 
+union all ---for sales contract when invoice cur and vat cur are not same   outflow
   select akc.corporate_id,
        akc.corporate_name,
        cm_base.cur_code base_currency,
@@ -222,7 +213,7 @@ union all ---for sales contract when invoice cur and vat cur are not same   outf
        iis.invoice_ref_no,
        iis.invoice_ref_no parent_invoice_no,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
-       pcm.contract_ref_no || ' Item No. ' || pci.del_distribution_item_no contract_item_ref_no,
+       pcm.contract_ref_no || ' Item No. ' || pcdi.delivery_item_no contract_item_ref_no,
        gmr.gmr_ref_no gmr_ref_no,
        null element_name,
        null currency_pair,
@@ -240,7 +231,7 @@ union all ---for sales contract when invoice cur and vat cur are not same   outf
        null price_unit_id,
        null price_unit,
        'Payable' payable_receivable,
-       (decode(iis.payable_receivable, 'Payable', 1, 'Receivable', -1) *  ---for make outflow sales amount 
+       (decode(iis.payable_receivable, 'Payable', 1, 'Receivable', -1) *  ---for make outflow sales amount
       ivd.vat_amount_in_vat_cur ) hedging_amount,
        '' cost_type,
        null effective_date,
@@ -260,7 +251,6 @@ union all ---for sales contract when invoice cur and vat cur are not same   outf
                   iid.internal_invoice_ref_no) iid,
        is_invoice_summary iis,
        gmr_goods_movement_record gmr,
-       pci_physical_contract_item pci,
        pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        ak_corporate akc,
@@ -276,24 +266,22 @@ union all ---for sales contract when invoice cur and vat cur are not same   outf
    and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
-   and iid.internal_contract_item_ref_no =
-       pci.internal_contract_item_ref_no
-   and pci.pcdi_id = pcdi.pcdi_id
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
-   and ivd.vat_remit_cur_id <> ivd.invoice_cur_id --for invoice exposure of sales 
+   and ivd.vat_remit_cur_id <> ivd.invoice_cur_id --for invoice exposure of sales
    and pcm.corporate_id = akc.corporate_id
    and pcm.trader_id = akcu.user_id(+)
    and akcu.gabid = gab.gabid
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+   and pcpd.input_output = 'Input'
    and pcm.payment_term_id = pym.payment_term_id
    and pcpd.profit_center_id = cpc.profit_center_id
    and pcpd.product_id = pdm.product_id
    and akc.base_cur_id = cm_base.cur_id
-   and ivd.vat_remit_cur_id =  cm_pay.cur_id 
+   and ivd.vat_remit_cur_id =  cm_pay.cur_id
    and pcm.purchase_sales = 'S'
    and akc.base_cur_id = cm_base.cur_id
    and iis.is_active = 'Y'
-   and gmr.is_deleted = 'N'   
+   and gmr.is_deleted = 'N'
 union all --- Free Metal
    select akc.corporate_id,
        akc.corporate_name,
@@ -319,7 +307,7 @@ union all --- Free Metal
         '' invoice_ref_no,
        '' parent_invoice_no,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
-       pcm.contract_ref_no || ' Item No. ' || pci.del_distribution_item_no contract_item_ref_no,
+       pcm.contract_ref_no || ' Item No. ' || pcdi.delivery_item_no contract_item_ref_no,
        gmr.gmr_ref_no gmr_ref_no,
        aml.attribute_name element_name,
        null currency_pair,
@@ -335,20 +323,34 @@ union all --- Free Metal
           to_char(pfqpp.qp_period_from_date, 'dd-Mon-yyyy') || ' to ' ||
           to_char(pfqpp.qp_period_to_date, 'dd-Mon-yyyy')
        end) qp,
-       to_date(('01' || pci.expected_delivery_month || '-' ||
-               pci.expected_delivery_year),
-               'dd-Mon-yyyy') delivery_month,
+       (case
+          when pcdi.basis_type = 'Arrival' then
+           (case
+          when pcdi.delivery_period_type = 'Date' then
+           pcdi.delivery_to_date
+          else
+           last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                            pcdi.delivery_to_year,
+                            'dd-Mon-yyyy'))
+        end) else(case
+         when pcdi.delivery_period_type = 'Date' then
+          pcdi.delivery_to_date
+         else
+          last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                           pcdi.delivery_to_year,
+                           'dd-Mon-yyyy'))
+       end) + pcdi.transit_days end) delivery_month,
        pym.payment_term payment_terms,
        pofh.per_day_pricing_qty qty,
        qum.qty_unit,
        qum.qty_unit_id,
        qum.decimals qty_decimals,
-       pfd.user_price price,
+       (nvl(pfd.user_price,0)+nvl(pfd.adjustment_price,0)) price,
        pum.price_unit_id,
        pum.price_unit_name price_unit,
        null payable_receivable,
        decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
-       (pfd.user_price / nvl(ppu.weight, 1)) *
+       ((nvl(pfd.user_price,0)+nvl(pfd.adjustment_price,0)) / nvl(ppu.weight, 1)) *
        (round(pkg_general.f_get_converted_currency_amt(akc.corporate_id,
                                                        ppu.cur_id,
                                                        cm_pay.cur_id,
@@ -364,8 +366,7 @@ union all --- Free Metal
        null effective_date,
        '' buy_sell,
        null value_date
-  from pci_physical_contract_item     pci,
-       pcdi_pc_delivery_item          pcdi,
+  from pcdi_pc_delivery_item          pcdi,
        pcm_physical_contract_main     pcm,
        poch_price_opt_call_off_header poch,
        aml_attribute_master_list      aml,
@@ -391,8 +392,7 @@ union all --- Free Metal
        v_ppu_pum                   ppu,
        pum_price_unit_master       pum,
        qum_quantity_unit_master    qum
- where pcdi.pcdi_id = pci.pcdi_id
-   and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+ where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcdi.pcdi_id = poch.pcdi_id
    and poch.is_free_metal_pricing = 'Y'
    and poch.element_id = aml.attribute_id
@@ -413,6 +413,7 @@ union all --- Free Metal
    and pcm.trader_id = akcu.user_id(+)
    and akcu.gabid = gab.gabid
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+   and pcpd.input_output = 'Input'
    and pcm.payment_term_id = pym.payment_term_id
    and pcpd.profit_center_id = cpc.profit_center_id
    and pcpd.product_id = pdm.product_id
@@ -428,7 +429,6 @@ union all --- Free Metal
         nvl(pcm.approval_status, 'Approved') else pcm.approval_status end) =
        'Approved'
    and pcdi.is_active = 'Y'
-   and pci.is_active = 'Y'
    and pcm.is_active = 'Y'
    and nvl(gmr.is_deleted, 'N') = 'N'
    and pcm.contract_status <> 'Cancelled'
@@ -442,4 +442,3 @@ union all --- Free Metal
    and pym.is_deleted = 'N'
  --  and akc.corporate_id = '{?CorporateID}'
  --  and to_char(pfd.as_of_date, 'dd-Mon-yyyy') = '{?AsOfDate}'
-/   
