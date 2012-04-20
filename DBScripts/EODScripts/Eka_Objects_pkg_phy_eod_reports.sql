@@ -4112,7 +4112,7 @@ insert into isr_intrastat_grd
      and ppu.weight_unit_id = pdm.base_quantity_unit
      and nvl(ppu.weight, 1) = 1
   -- and grd.current_qty > 0
-  union all
+  union all ------concentrates
   select corporate_id,
          pc_process_id,
          pd_trade_date,
@@ -4243,10 +4243,10 @@ insert into isr_intrastat_grd
                                                                     cccp.price_unit_id,
                                                                     ppu.product_price_unit_id,
                                                                     pd_trade_date) *
-                    pkg_general.f_get_converted_quantity(grd.product_id,
-                                                         grd.qty_unit_id,
-                                                         pdm.base_quantity_unit,
-                                                         grd.qty)
+                    pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                         spq.qty_unit_id,
+                                                         pdm_aml.base_quantity_unit,
+                                                         spq.payable_qty)
                  end) invoice_invenotry_value,
                  (case
                    when iid.invoice_item_amount is not null then
@@ -4394,7 +4394,8 @@ insert into isr_intrastat_grd
                  spq_stock_payable_qty spq,
                  aml_attribute_master_list aml,
                  poch_price_opt_call_off_header poch,
-                 pocd_price_option_calloff_dtls pocd
+                 pocd_price_option_calloff_dtls pocd,
+                 pdm_productmaster              pdm_aml
            where pcm.internal_contract_ref_no =
                  pcdi.internal_contract_ref_no
              and pcdi.pcdi_id = pci.pcdi_id
@@ -4451,9 +4452,9 @@ insert into isr_intrastat_grd
              and pcpd.process_id = pc_process_id
              and pcpq.process_id = pc_process_id
              and grd.process_id = pc_process_id
-             and ppu.product_id = pdm.product_id
+             and ppu.product_id = aml.underlying_product_id
              and ppu.cur_id = ak.base_cur_id
-             and ppu.weight_unit_id = pdm.base_quantity_unit
+             and ppu.weight_unit_id = pdm_aml.base_quantity_unit
              and nvl(ppu.weight, 1) = 1
              and spq.process_id = pc_process_id
              and spq.is_stock_split = 'N'
@@ -4465,6 +4466,7 @@ insert into isr_intrastat_grd
              and poch.poch_id = pocd.poch_id
              and spq.element_id = poch.element_id
              and spq.element_id = cccp.element_id
+             and aml.underlying_product_id=pdm_aml.product_id
              and nvl(pocd.qp_period_type, 'NA') <> 'Event'
           -- and grd.current_qty > 0
           union all
@@ -4536,10 +4538,10 @@ insert into isr_intrastat_grd
                                                                     cgcp.price_unit_id,
                                                                     ppu.product_price_unit_id,
                                                                     pd_trade_date) *
-                    pkg_general.f_get_converted_quantity(grd.product_id,
-                                                         grd.qty_unit_id,
-                                                         pdm.base_quantity_unit,
-                                                         grd.qty)
+                    pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                         spq.qty_unit_id,
+                                                         pdm_aml.base_quantity_unit,
+                                                         spq.payable_qty)
                  end) invoice_invenotry_value,
                  (case
                    when iid.invoice_item_amount is not null then
@@ -4685,7 +4687,8 @@ insert into isr_intrastat_grd
                  sam_stock_assay_mapping sam,
                  v_ppu_pum ppu,
                  spq_stock_payable_qty spq,
-                 aml_attribute_master_list aml
+                 aml_attribute_master_list aml,
+                 pdm_productmaster         pdm_aml
            where pcm.internal_contract_ref_no =
                  pcdi.internal_contract_ref_no
              and pcdi.pcdi_id = pci.pcdi_id
@@ -4742,14 +4745,15 @@ insert into isr_intrastat_grd
              and pcpd.process_id = pc_process_id
              and pcpq.process_id = pc_process_id
              and grd.process_id = pc_process_id
-             and ppu.product_id = pdm.product_id
+             and ppu.product_id =pdm_aml.product_id
              and ppu.cur_id = ak.base_cur_id
-             and ppu.weight_unit_id = pdm.base_quantity_unit
+             and ppu.weight_unit_id = pdm_aml.base_quantity_unit
              and nvl(ppu.weight, 1) = 1
              and spq.process_id = pc_process_id
              and spq.is_stock_split = 'N'
              and spq.internal_grd_ref_no = grd.internal_grd_ref_no
              and spq.element_id = aml.attribute_id
+             and aml.underlying_product_id=pdm_aml.product_id
                 --  and grd.current_qty > 0
              and cgcp.process_id = pc_process_id
              and cgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
@@ -7951,10 +7955,10 @@ insert into isr_intrastat_grd
                                                                         cccp.price_unit_id,
                                                                         ppu.product_price_unit_id,
                                                                         gmr.bl_date) *
-                        pkg_general.f_get_converted_quantity(grd.product_id,
-                                                             grd.qty_unit_id,
-                                                             pdm.base_quantity_unit,
-                                                             grd.current_qty)
+                        pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                             spq.qty_unit_id,
+                                                             pdm_aml.base_quantity_unit,
+                                                             spq.payable_qty)
                      end),
                      is1.invoice_cur_id invoice_currency_id,
                      cm_invoice.cur_code invoice_currency_code,
@@ -7990,7 +7994,8 @@ insert into isr_intrastat_grd
                      poch_price_opt_call_off_header poch,
                      pocd_price_option_calloff_dtls pocd,
                      spq_stock_payable_qty          spq,
-                     aml_attribute_master_list      aml
+                     aml_attribute_master_list      aml,
+                     pdm_productmaster              pdm_aml
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and sm_l.state_id(+) = gmr.loading_state_id
                  and sm_d.state_id(+) = gmr.discharge_state_id
@@ -8035,9 +8040,9 @@ insert into isr_intrastat_grd
                  and cccp.element_id = spq.element_id
                  and pcm.contract_type = 'CONCENTRATES'
                  and pcm.purchase_sales = 'P'
-                 and ppu.product_id = pdm.product_id
+                 and ppu.product_id = pdm_aml.product_id
                  and ppu.cur_id = ak.base_cur_id
-                 and ppu.weight_unit_id = pdm.base_quantity_unit
+                 and ppu.weight_unit_id = pdm_aml.base_quantity_unit
                  and nvl(ppu.weight, 1) = 1
                  and pcdi.pcdi_id = poch.pcdi_id
                  and poch.poch_id = pocd.poch_id
@@ -8047,6 +8052,7 @@ insert into isr_intrastat_grd
                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                  and spq.element_id = aml.attribute_id
                  and spq.element_id=poch.element_id
+                 and aml.underlying_product_id=pdm_aml.product_id
                  --and aml.underlying_product_id = pdm.product_id
                  and grd.current_qty > 0
               union all -- Concentrates Event Based
@@ -8128,10 +8134,10 @@ insert into isr_intrastat_grd
                                                                         cgcp.price_unit_id,
                                                                         ppu.product_price_unit_id,
                                                                         gmr.bl_date) *
-                        pkg_general.f_get_converted_quantity(grd.product_id,
-                                                             grd.qty_unit_id,
-                                                             pdm.base_quantity_unit,
-                                                             grd.current_qty)
+                        pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                             spq.qty_unit_id,
+                                                             pdm_aml.base_quantity_unit,
+                                                             spq.payable_qty)
                      end),
                      is1.invoice_cur_id invoice_currency_id,
                      cm_invoice.cur_code invoice_currency_code,
@@ -8165,7 +8171,8 @@ insert into isr_intrastat_grd
                      cgcp_conc_gmr_cog_price    cgcp,
                      v_ppu_pum                  ppu,
                      spq_stock_payable_qty      spq,
-                     aml_attribute_master_list  aml
+                     aml_attribute_master_list  aml,
+                     pdm_productmaster          pdm_aml
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and sm_l.state_id(+) = gmr.loading_state_id
                  and sm_d.state_id(+) = gmr.discharge_state_id
@@ -8210,14 +8217,15 @@ insert into isr_intrastat_grd
                  and cgcp.element_id = spq.element_id
                  and pcm.contract_type = 'CONCENTRATES'
                  and pcm.purchase_sales = 'P'
-                 and ppu.product_id = grd.product_id
+                 and ppu.product_id = pdm_aml.product_id
                  and ppu.cur_id = ak.base_cur_id
-                 and ppu.weight_unit_id = pdm.base_quantity_unit
+                 and ppu.weight_unit_id = pdm_aml.base_quantity_unit
                  and nvl(ppu.weight, 1) = 1
                  and spq.process_id = pc_process_id
                  and spq.is_stock_split = 'N'
                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                  and spq.element_id = aml.attribute_id
+                 and aml.underlying_product_id=pdm_aml.product_id
                 -- and aml.underlying_product_id = pdm.product_id
                  and grd.current_qty > 0)
        group by internal_contract_ref_no,
