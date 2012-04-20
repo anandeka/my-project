@@ -397,11 +397,7 @@ SELECT 'Accruals ',
        scm.cost_component_name cost_type_name,
        cigc.qty weight,
        qum.qty_unit weight_unit,
-       pkg_general.f_get_converted_currency_amt(gmr.corporate_id,
-                                                     cs.transaction_amt_cur_id,
-                                                     cm_base_cur.cur_id,
-                                                     SYSDATE,
-                                                     1) FX_Base,
+       nvl(cs.fx_to_base,1) FX_Base,
        cs.effective_date,
        cpc.profit_center_id profit_center_id,
        cpc.profit_center_name profit_center_name,
@@ -421,16 +417,7 @@ SELECT 'Accruals ',
        'NA' invoice_type,
        cs.transaction_amt_cur_id invoice_cur_id,
        cm_cs_cur.cur_code invoice_cur_code,
-       (CASE
-           WHEN cm_base_cur.cur_id = cs.transaction_amt_cur_id THEN
-            1
-           ELSE
-            pkg_general.f_get_converted_currency_amt(gmr.corporate_id,
-                                                     cs.transaction_amt_cur_id,
-                                                     cm_base_cur.cur_id,
-                                                     SYSDATE,
-                                                     1)
-       END) */* round(nvl(cs.transaction_amt, 0), 4)*/
+       nvl(cs.fx_to_base,1) */* round(nvl(cs.transaction_amt, 0), 4)*/
        (case
            when   cs.transaction_amt - nvl (cs_act.actual, 0)- nvl (cs_act.reversal, 0) > 0
            then   cs.transaction_amt - nvl (cs_act.actual, 0)- nvl (cs_act.reversal, 0)
@@ -476,13 +463,27 @@ FROM   cigc_contract_item_gmr_cost  cigc,
        ak_corporate_user             akcu,
        gab_globaladdressbook         gab,
        qum_quantity_unit_master      qum,
-       costtypewithoutaccrual      cs_act
+       costtypewithoutaccrual      cs_act,
+       (select grd.internal_gmr_ref_no,
+        pcdi.internal_contract_ref_no
+   from grd_goods_record_detail    grd,
+        pci_physical_contract_item pci,
+        pcdi_pc_delivery_item      pcdi
+  where grd.internal_contract_item_ref_no =
+        pci.internal_contract_item_ref_no
+    and pci.pcdi_id = pcdi.pcdi_id
+    and grd.is_deleted = 'N'
+    and pci.is_active = 'Y'
+    and pcdi.is_active = 'Y'
+  group by grd.internal_gmr_ref_no,
+           pcdi.internal_contract_ref_no) contract
 WHERE  cs.cog_ref_no = cigc.cog_ref_no
 AND    cs.cost_type = 'Accrual'
 AND    cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
 AND    gmr.corporate_id = akc.corporate_id
 AND    akc.base_cur_id = cm_base_cur.cur_id
-AND    gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
+and gmr.internal_gmr_ref_no=contract.internal_gmr_ref_no
+and contract.internal_contract_ref_no = pcpd.internal_contract_ref_no
 AND    pcpd.profit_center_id = cpc.profit_center_id
 AND    pcpd.strategy_id = css.strategy_id
 AND    cm_cs_cur.cur_id = cs.transaction_amt_cur_id
@@ -499,6 +500,11 @@ and    cigc.qty_unit_id = qum.qty_unit_id(+)
 and    cs_act.cost_ref_no(+) = cs.cost_ref_no
 and    nvl(pgm.is_active,'Y') = 'Y'
 and    nvl(gab.is_active,'Y') = 'Y'
+and    cs.is_deleted='N'
+and    cigc.is_deleted='N'
+and    gmr.is_deleted='N'
+and    pcm.is_active='Y'
+and    pcpd.is_active='Y'
 
 -- 5. Open Contracts(includes shipped title not transferred), title transferrred but not invoiced
 
