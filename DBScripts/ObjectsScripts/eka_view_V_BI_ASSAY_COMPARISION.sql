@@ -180,4 +180,4 @@ SELECT t.corporate_id,
            AND aml.is_active = 'Y'           
            AND ash.assay_type NOT IN
                ('Pricing Assay', 'Position Assay',
-                'Weighted Avg Position Assay', 'Weighted Avg Pricing Assay')) t;
+                'Weighted Avg Position Assay', 'Weighted Avg Pricing Assay','Invoicing Assay','Weighted Avg Invoice Assay')) t;
