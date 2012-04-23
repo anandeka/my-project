@@ -51,9 +51,9 @@ select ak.corporate_id,
        cm_cl_comm.cur_code clearer_commission_ccy,
        ((case
          when dt.trade_type = 'Sell' then
-          -1
+          1                 --bug 64292
          else
-          1
+          -1
        end) * (case
          when (cm_val.is_sub_cur = 'Y') then
           round((dt.trade_price * dt.total_quantity * scd.factor *
@@ -110,16 +110,15 @@ select ak.corporate_id,
                scd.sub_cur_id,
                scd.cur_id main_cur_id,
                scd.factor
-          from scd_sub_currency_detail scd,
-               cm_currency_master      cm
-         where scd.cur_id = cm.cur_id) scd,       
+          from scd_sub_currency_detail scd, cm_currency_master cm
+         where scd.cur_id = cm.cur_id) scd,
        --Bug 61800 Fix starts  
-       EMT_EXCHANGEMASTER emt,
-       AK_CORPORATE_USER akcu,
-       bca_broker_clearer_account bca,
-       dpm_derivative_purpose_master dpm, 
-       cm_currency_master cmak     
-       --Bug 61800 Fix ends
+       EMT_EXCHANGEMASTER            emt,
+       AK_CORPORATE_USER             akcu,
+       bca_broker_clearer_account    bca,
+       dpm_derivative_purpose_master dpm,
+       cm_currency_master            cmak
+--Bug 61800 Fix ends
  where dt.dr_id = drm.dr_id
    and dt.broker_profile_id = phd_broker.profileid(+)
    and dt.clearer_profile_id = phd_clr.profileid(+)
@@ -141,27 +140,26 @@ select ak.corporate_id,
    and cpc.business_line_id = blm.business_line_id(+)
    and cm_val.cur_id = scd.sub_cur_id(+)
    and dt.strategy_id = css.strategy_id(+)
-  /* and drm.is_deleted = 'N'
-   and drm.is_expired = 'N'
-   and dim.is_active = 'Y'
-   and dim.is_deleted = 'N'*/
+      /* and drm.is_deleted = 'N'
+               and drm.is_expired = 'N'
+               and dim.is_active = 'Y'
+               and dim.is_deleted = 'N'*/
    and irmf.is_active = 'Y'
    and irmf.is_deleted = 'N'
-  /* and pdd.is_active = 'Y'
-   and pdd.is_deleted = 'N'
-   and pdm.is_active = 'Y'
-   and pdm.is_deleted = 'N'
-   and pdd.is_active = 'Y'
-   and pdd.is_deleted = 'N'*/
- --  and cm_val.is_active = 'Y'
- --  and cm_val.is_deleted = 'N'
-   and dt.status = 'Verified' 
-   --Bug 61800 Fix starts
-   and emt.exchange_code='LME' --Bug 63062 Fix   
-   and pdd.exchange_id=emt.exchange_id
-   and akcu.user_id=dt.trader_id
-   and bca.account_id=dt.CLEARER_ACCOUNT_ID
-   and dpm.purpose_id=dt.purpose_id
-   and cmak.cur_id=ak.base_cur_id
-   --Bug 61800 Fix end
-/
+      /* and pdd.is_active = 'Y'
+               and pdd.is_deleted = 'N'
+               and pdm.is_active = 'Y'
+               and pdm.is_deleted = 'N'
+               and pdd.is_active = 'Y'
+               and pdd.is_deleted = 'N'*/
+      --  and cm_val.is_active = 'Y'
+      --  and cm_val.is_deleted = 'N'
+   and dt.status = 'Verified'
+      --Bug 61800 Fix starts
+   and emt.exchange_code = 'LME' --Bug 63062 Fix   
+   and pdd.exchange_id = emt.exchange_id
+   and akcu.user_id = dt.trader_id
+   and bca.account_id = dt.clearer_account_id
+   and dpm.purpose_id = dt.purpose_id
+   and cmak.cur_id = ak.base_cur_id
+--Bug 61800 Fix end
