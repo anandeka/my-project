@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0702
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sachin Talwar
+ 
+Created on*        		:  21-Apr-2012
+
+Bug / Enhancement*              :  Enahancement
+ 
+Bug ID*            		:  N/A
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  Physicals
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 92996
+Author: sachin
+Date: 5:47:13 PM, Monday, April 23, 2012
+Message:
+umpire rules changed.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_281.sql
+
+
+
+
+
+
+
