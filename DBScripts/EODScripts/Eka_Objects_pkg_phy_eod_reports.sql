@@ -2515,12 +2515,12 @@ create or replace package body pkg_phy_eod_reports is
              pa.pay_in_cur_id,
              pa.pay_in_cur_code,
              0,
-             max(case
+             sum(case
                    when pa.tranascation_type = 'Calculated' then
                     pa.othercharges_amount
                    else
                     0
-                 end) - max(case
+                 end) - sum(case
                               when pa.tranascation_type = 'Invoiced' then
                                pa.othercharges_amount
                               else
