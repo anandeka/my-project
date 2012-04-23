@@ -16,7 +16,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  EOD
+Module  		   	 :  APP
 
 Sub-Module  			 :  
  
