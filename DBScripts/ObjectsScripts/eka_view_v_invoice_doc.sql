@@ -688,13 +688,13 @@ select 'Invoice' section_name,
        isp.element_name element_name2,
        isp.pen_amount,
        isp.pen_amount_unit,
-       null vat_no,
-       null cp_vat_no,
-       null vat_code,
-       null vat_rate,
-       null vat_rate_unit,
-       null vat_amount,
-       null vat_amount_cur,
+       vat.vat_no,
+       vat.cp_vat_no,
+       vat.vat_code,
+       vat.vat_rate,
+       vat.vat_rate_unit,
+       vat.vat_amount,
+       isd.invoice_amount_unit vat_amount_cur,
        isd.is_inv_draft,
        null cost_name,
        null charge_type,
@@ -736,10 +736,20 @@ select 'Invoice' section_name,
          group by isp.internal_doc_ref_no,
                   isp.element_id,
                   isp.element_name,
-                  isp.amount_unit) isp
+                  isp.amount_unit) isp,
+        (select vat.internal_invoice_ref_no,
+                       vat.our_vat_no vat_no,
+                       vat.cp_vat_no,
+                       vat.vat_code,
+                       vat.vat_rate,
+                       vat.vat_rate_unit,
+                       vat.vat_amount_in_inv_cur vat_amount
+                  from ivd_invoice_vat_details vat
+                 where vat.is_separate_invoice = 'N')vat
  where isd.internal_doc_ref_no = ds.internal_doc_ref_no(+)
    and ds.corporate_id = akc.corporate_id(+)
    and isd.internal_doc_ref_no = isp.internal_doc_ref_no(+)
+   and isd.internal_invoice_ref_no = vat.internal_invoice_ref_no(+)
 union all
 select         'Other Charges' section_name,
                'Other Charges' sub_section,
