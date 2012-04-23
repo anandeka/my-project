@@ -61,6 +61,14 @@ Message:
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
 
+Revision: 92916
+Author: ashokkumar.l
+Date: 11:48:53 AM, Monday, April 23, 2012
+Message:
+Bug Fixes 64292
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_VIEW_V_DER_FUTURES_BROKER_ACCOUNT.sql
+
 
 
 
