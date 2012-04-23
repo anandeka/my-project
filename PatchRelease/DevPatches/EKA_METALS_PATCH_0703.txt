@@ -69,7 +69,13 @@ Bug Fixes 64292
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_VIEW_V_DER_FUTURES_BROKER_ACCOUNT.sql
 
-
+Revision: 93010
+Author: suresh.gottipati
+Date: 7:10:05 PM, Monday, April 23, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_ASSAY_COMPARISION.sql
 
 
 
