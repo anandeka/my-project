@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0707
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  SaurabhRaj
+ 
+Created on*        		:  24-Apr-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  N/A
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+/7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_283.sql
+
+/7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyInventoryUnrealizedPhysicalPnL_cog.rpt
+
+
+
+
