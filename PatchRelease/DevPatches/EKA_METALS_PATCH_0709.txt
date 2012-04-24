@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0709
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj
+ 
+Created on*        		:  24-Apr-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  N/A
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Gmr
+
+Sub-Module  			 :  Output documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+/7.3/Engg/Metals/Code/Reports/TruckDetail.rpt
+
+
+
+
+
