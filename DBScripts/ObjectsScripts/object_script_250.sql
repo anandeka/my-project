@@ -1,0 +1,1 @@
+alter table DGAM_DOC_GEN_ACTION_MAPPING add(INTERNAL_DOC_REF_NO varchar2(15));
