@@ -31,5 +31,5 @@ Insert into CDC_CORPORATE_DOC_CONFIG
     IS_ACTIVE, DOC_AUTO_GENERATE)
  Values
    ('CDC-CFI-1', '&CorpId', 'CREATE_CFI', 'CFI_TEMPLATE', NULL, 
-    NULL, NULL, NULL, NULL, 'InvoiceDocument.rpt', 
+    NULL, NULL, NULL, NULL, 'CommercialFeeInvoice.rpt', 
     'Y', 'Y');
