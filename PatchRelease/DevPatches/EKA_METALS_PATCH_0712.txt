@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0712
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam Singh
+ 
+Created on*        		:  25-Apr-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  N/A
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Derivative Allocation
+
+Sub-Module  			 :  Derivative Allocation
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 93200
+Author: uttam
+Date: 5:04:52 PM, Wednesday, April 25, 2012
+Message:
+view for DAT  Derivative aggregate  trade detail
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_DAT_DERIVATIVE_AGG_TRADE.sql
+
+
