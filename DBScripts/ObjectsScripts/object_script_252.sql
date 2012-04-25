@@ -1,0 +1,1 @@
+alter table PCDT_PHY_CON_DRAFT_TEMPLATE add IS_MINING_CONTRACT char(1);
