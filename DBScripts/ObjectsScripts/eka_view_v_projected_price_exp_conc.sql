@@ -1,6 +1,4 @@
-CREATE OR REPLACE VIEW V_PROJECTED_PRICE_EXP_CONC
-AS 
---For Concentrates
+create or replace view v_projected_price_exp_conc as
 with pofh_header_data as( select *
   from pofh_price_opt_fixation_header pofh
  where pofh.internal_gmr_ref_no is null
@@ -97,7 +95,9 @@ select ak.corporate_id,
        (PCI.ITEM_QTY  ) *
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             qum.qty_unit_id,
-                                            pdm.base_quantity_unit,
+                                            --pdm.base_quantity_unit,
+                                            nvl(pdm_under.base_quantity_unit,
+                                                pdm.base_quantity_unit),
                                             1) qty,
        qum_under.qty_unit_id,
        qum_under.qty_unit,
@@ -448,7 +448,9 @@ select ak.corporate_id,
        (PCI.ITEM_QTY  ) *
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             qum.qty_unit_id,
-                                            pdm.base_quantity_unit,
+                                            --pdm.base_quantity_unit,
+                                            nvl(pdm_under.base_quantity_unit,
+                                                pdm.base_quantity_unit),
                                             1) qty,
        qum_under.qty_unit_id,
        qum_under.qty_unit,
@@ -791,7 +793,9 @@ select ak.corporate_id,
        (pofh.qty_to_be_fixed - (nvl(pfd.qty_fixed, 0))) *
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             qum.qty_unit_id,
-                                            pdm.base_quantity_unit,
+                                            --pdm.base_quantity_unit,
+                                            nvl(pdm_under.base_quantity_unit,
+                                                pdm.base_quantity_unit),
                                             1) qty,
        qum_under.qty_unit_id,
        qum_under.qty_unit,
@@ -1874,5 +1878,4 @@ select ak.corporate_id,
           pfqpp.qp_date,
           dipq.is_price_optionality_present,
           dipq.price_option_call_off_status,
-          qat.quality_name;
-
+          qat.quality_name ;
