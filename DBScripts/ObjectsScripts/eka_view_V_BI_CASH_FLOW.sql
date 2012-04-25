@@ -23,6 +23,7 @@ with costtypewithoutaccrual as
            and cigc.is_deleted = 'N'
            and cs.is_deleted = 'N'
       group by cs.cost_ref_no)
+      --1 Invoices
 select 'Invoices to extent not paid' section_name,
        iss.corporate_id,
        akc.corporate_name,
@@ -168,7 +169,160 @@ select 'Invoices to extent not paid' section_name,
    and pcpd.input_output = 'Input'
    and pcpd.strategy_id = css.strategy_id(+)
    and iss.total_amount_to_pay <> 0
--- 2. OTC invoices
+union all
+--- 2 Service invoices
+select 'Invoices to extent not paid' section_name,
+       iss.corporate_id,
+       ak.corporate_name,
+       blm.business_line_id,
+       blm.business_line_name,
+       'NA' product_id,
+       'NA' product_desc,
+       'NA' product_group_id,
+       'NA' product_group,
+       iss.cp_id  counter_party_id,
+       phd_cp.companyname counter_party_name,
+       gab.gabid trader_user_id,
+       gab.firstname || ' ' || gab.lastname trader_user_name,
+       'NA' broker_profile_id,
+       'NA' broker,
+       'NA' cost_type_name,
+       iss.invoiced_qty weight,
+       'MT' weight_unit,
+       nvl(iss.fx_to_base, 1) fx_base,
+       iss.invoice_created_date effective_date,
+       cpc.profit_center_id profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       ak.base_cur_id,
+       cm_akc_base_cur.cur_code base_cur_code,
+       css.strategy_id,
+       css.strategy_name,
+       (case
+         when nvl(pcm.purchase_sales, 'NA') = 'P' then
+          'Purchase'
+         when nvl(pcm.purchase_sales, 'NA') = 'S' then
+          'Sales'
+         else
+          'NA'
+       end) contract_type,
+       'Invoices' position_type,
+       (case
+         when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' then
+          'Outflow'
+         when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' then
+          'Inflow'
+         else
+          (case
+         when nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+          'Inflow'
+         when nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+          'Outflow'
+         else
+          'Inflow'
+       end) end) payable_receivable,
+       nvl(iss.invoice_ref_no, 'NA') as contract_ref_no,
+       (case
+         when iss.invoice_type_name = 'AdvancePayment' then
+          'Commercial'
+         else
+          nvl(iss.invoice_type, 'NA')
+       end) invoice_type,
+       iss.invoice_cur_id invoice_cur_id,
+       cm_p.cur_code invoice_cur_code,
+       round(iss.total_amount_to_pay, 4) * nvl(iss.fx_to_base, 1) *
+       (case
+          when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' then
+           -1
+          when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' then
+           1
+          else
+           (case
+          when nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+           1
+          when nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+           -1
+          else
+           1
+        end) end) invoice_amount_in_base_cur,
+       round(iss.total_amount_to_pay, 4) * case
+         when nvl(iss.invoice_type, 'NA') = 'Service' and
+              nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+          -1
+         when nvl(iss.invoice_type, 'NA') = 'Service' and
+              nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+          1
+       end invoice_amt,
+       iss.invoice_issue_date activity_date,
+       iss.payment_due_date cash_flow_date,
+       iss.invoice_type_name invoice_name
+       
+  from is_invoice_summary           iss,
+       iam_invoice_action_mapping   iam,
+       iid_invoicable_item_details  iid,
+       axs_action_summary           axs,
+       cs_cost_store                cs,
+       cigc_contract_item_gmr_cost  cigc,
+       gmr_goods_movement_record    gmr,
+       pcpd_pc_product_definition   pcpd,
+       pcm_physical_contract_main   pcm,
+       css_corporate_strategy_setup css,
+       ak_corporate                 ak,
+       ak_corporate_user            akcu,
+       gab_globaladdressbook        gab,
+       cpc_corporate_profit_center  cpc,
+       blm_business_line_master     blm,
+       phd_profileheaderdetails     phd_cp,
+       cm_currency_master           cm_akc_base_cur,
+       cm_currency_master           cm_p
+ where iss.internal_contract_ref_no is null
+   and iss.is_active = 'Y'
+   and iss.internal_invoice_ref_no = iam.internal_invoice_ref_no
+   and iss.internal_invoice_ref_no = iid.internal_invoice_ref_no(+)
+   and iam.invoice_action_ref_no = axs.internal_action_ref_no
+   and iam.invoice_action_ref_no = cs.internal_action_ref_no(+)
+   and cs.cog_ref_no = cigc.cog_ref_no(+)
+   and cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
+   and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+   and pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no(+)
+   and pcm.trader_id = akcu.user_id(+)
+   and akcu.gabid = gab.gabid(+)
+   and pcpd.input_output(+) = 'Input'
+   and pcpd.strategy_id = css.strategy_id(+)
+   and iss.corporate_id = ak.corporate_id
+   and iss.profit_center_id = cpc.profit_center_id(+)
+   and cpc.business_line_id = blm.business_line_id(+)
+   and iss.cp_id = phd_cp.profileid
+   and cm_akc_base_cur.cur_id = ak.base_cur_id
+   and iss.invoice_cur_id = cm_p.cur_id(+)
+ group by iss.corporate_id,
+          iss.cp_id,
+          iss.invoiced_qty,
+          iss.fx_to_base,
+          iss.invoice_created_date,
+          iss.recieved_raised_type,
+          iss.invoice_type,
+          iss.invoice_ref_no,
+          iss.total_amount_to_pay,
+          iss.recieved_raised_type,
+          iss.invoice_cur_id,
+          iss.invoice_issue_date,
+          iss.payment_due_date,
+          iss.invoice_type_name,
+          ak.corporate_name,
+          ak.base_cur_id,
+          blm.business_line_id,
+          blm.business_line_name,
+          phd_cp.companyname,
+          cpc.profit_center_id,
+          cpc.profit_center_short_name,
+          cm_akc_base_cur.cur_code,
+          cm_p.cur_code,
+          css.strategy_id,
+          css.strategy_name,
+          gab.gabid,
+          gab.firstname || ' ' || gab.lastname,
+          pcm.purchase_sales
+-- 3. OTC invoices
 UNION ALL
 SELECT 'OTC invoices',
        dt.corporate_id,
@@ -284,7 +438,7 @@ AND    akcu.gabid = gab.gabid(+)
 and    dt.quantity_unit_id = qum.qty_unit_id(+)
 and    nvl(pgm.is_active,'Y') = 'Y'
 and    nvl(gab.is_active,'Y') = 'Y'
--- 3. Currency Trades
+-- 4. Currency Trades
 UNION ALL
 SELECT 'Currency Trades',
        ct.corporate_id,
@@ -376,7 +530,7 @@ AND    akcu.gabid = gab.gabid(+)
 and    nvl(pgm.is_active,'Y') = 'Y'
 and    nvl(gab.is_active,'Y') = 'Y'
 
--- 4. Accruals - Expense accruals (remaining), income accrual (remaining)
+-- 5. Accruals - Expense accruals (remaining), income accrual (remaining)
 
 UNION ALL
 SELECT 'Accruals ',
@@ -506,7 +660,7 @@ and    gmr.is_deleted='N'
 and    pcm.is_active='Y'
 and    pcpd.is_active='Y'
 
--- 5. Open Contracts(includes shipped title not transferred), title transferrred but not invoiced
+-- 6. Open Contracts(includes shipped title not transferred), title transferrred but not invoiced
 
 UNION ALL
 SELECT 'Open Contracts',
@@ -624,7 +778,7 @@ AND    mvf.trader_user_id = akcu.user_id(+)
 AND    akcu.gabid = gab.gabid(+)
 and    nvl(pgm.is_active,'Y') = 'Y'
 
--- 6. Base Metal Open Uninvoiced GMRs with Fixed Price (Base Metal)
+-- 7. Base Metal Open Uninvoiced GMRs with Fixed Price (Base Metal)
 
 UNION ALL
 SELECT 'Fixed Price GMRs Base Metal' section_name,
@@ -769,7 +923,7 @@ and    grd.qty_unit_id = qum.qty_unit_id(+)
 and    nvl(pgm.is_active,'Y') = 'Y'
 and    nvl(gab.is_active,'Y') = 'Y'
 
--- 7. Open Contracts Fixed Price Basis (Base Metal)
+-- 8. Open Contracts Fixed Price Basis (Base Metal)
 
 UNION ALL
 SELECT 'Fixed Price Contracts Base Metal' section_name,
