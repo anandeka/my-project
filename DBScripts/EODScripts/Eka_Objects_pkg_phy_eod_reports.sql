@@ -1519,6 +1519,7 @@ create or replace package body pkg_phy_eod_reports is
              phd.companyname counterparty_name,
              pcm.invoice_currency_id pay_cur_id,
              cm_pay.cur_code pay_cur_code,
+             cm_pay.decimals pay_cur_decimal,
              pci.pcdi_id
         from gmr_goods_movement_record      gmr,
              grd_goods_record_detail        grd,
@@ -1608,6 +1609,7 @@ create or replace package body pkg_phy_eod_reports is
              phd.companyname counterparty_name,
              pcm.invoice_currency_id pay_cur_id,
              cm_pay.cur_code pay_cur_code,
+             cm_pay.decimals pay_cur_decimal,
              pci.pcdi_id
         from gmr_goods_movement_record   gmr,
              grd_goods_record_detail     grd,
@@ -1742,21 +1744,21 @@ create or replace package body pkg_phy_eod_reports is
                                          vn_cont_price_cur_id_factor,
                                          vn_cont_price_cur_decimals);
     
-      vn_payable_amt_in_price_cur := (vn_gmr_price /
+      vn_payable_amt_in_price_cur := round((vn_gmr_price /
                                      nvl(vn_gmr_price_unit_weight, 1)) *
                                      (pkg_general.f_get_converted_quantity(cur_pur_accural_rows.conc_product_id,
                                                                            cur_pur_accural_rows.payable_qty_unit_id,
                                                                            vn_price_unit_weight_unit_id,
                                                                            cur_pur_accural_rows.payable_qty)) *
-                                     vn_cont_price_cur_id_factor;
+                                     vn_cont_price_cur_id_factor,vn_cont_price_cur_decimals);
     
       vn_fx_rate_price_to_pay   := pkg_general.f_get_converted_currency_amt(cur_pur_accural_rows.corporate_id,
                                                                             vc_gmr_price_unit_cur_id,
                                                                             cur_pur_accural_rows.pay_cur_id,
                                                                             pd_trade_date,
                                                                             1);
-      vn_payable_amt_in_pay_cur := vn_payable_amt_in_price_cur *
-                                   vn_fx_rate_price_to_pay;
+      vn_payable_amt_in_pay_cur := round(vn_payable_amt_in_price_cur *
+                                   vn_fx_rate_price_to_pay,cur_pur_accural_rows.pay_cur_decimal);
       pkg_metals_general.sp_get_gmr_treatment_charge(cur_pur_accural_rows.internal_gmr_ref_no,
                                                      cur_pur_accural_rows.internal_grd_ref_no,
                                                      cur_pur_accural_rows.element_id,
@@ -8882,6 +8884,7 @@ insert into isr_intrastat_grd
                                  and cpm.corporate_id = axs.corporate_id
                                  and prrqs.corporate_id = pc_corporate_id
                                  and axs.corporate_id = pc_corporate_id
+                                 and axs.eff_date<=pd_trade_date
                                group by axs.corporate_id,
                                         prrqs.cp_id,
                                         prrqs.product_id,
@@ -8993,6 +8996,7 @@ insert into isr_intrastat_grd
                          and cpm.product_id = pdm.product_id
                          and cpm.corporate_id = axs.corporate_id
                          and prrqs.corporate_id = pc_corporate_id
+                         and axs.eff_date<=pd_trade_date
                        group by axs.corporate_id,
                                 prrqs.cp_id,
                                 prrqs.product_id,
