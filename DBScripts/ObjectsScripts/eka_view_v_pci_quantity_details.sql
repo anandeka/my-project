@@ -196,10 +196,14 @@ select pcdi.pcdi_id,
                                              ciqs.item_qty_unit_id,
                                              pcpq.assay_header_id,
                                              aml.attribute_id) total_qty,
+       (case when pcpq.unit_of_measure = 'Dry'
+       then ciqs.open_qty
+       else
        pkg_report_general.fn_get_assay_dry_qty(pdm.product_id,
                                                pcpq.assay_header_id,
                                                ciqs.open_qty,
-                                               ciqs.item_qty_unit_id) item_open_qty,
+                                               ciqs.item_qty_unit_id)
+                                               end) item_open_qty,
        pkg_report_general.fn_get_element_qty(pci.internal_contract_item_ref_no,
                                              ciqs.open_qty,
                                              ciqs.item_qty_unit_id,
@@ -333,3 +337,4 @@ select pcdi.pcdi_id,
    and pcdi.is_active = 'Y'
    and ciqs.is_active = 'Y'
    and pcdb.is_active = 'Y'
+
