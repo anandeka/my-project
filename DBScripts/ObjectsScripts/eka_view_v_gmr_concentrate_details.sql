@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_GMR_CONCENTRATE_DETAILS AS
+create or replace view v_gmr_concentrate_details as
 select subsectionname,
        internal_contract_ref_no,
        inco_term_id,
@@ -138,6 +138,14 @@ select subsectionname,
                                                            'Wet',
                                                            grd.qty,
                                                            grd.qty_unit_id) total_qty,
+               (case when pcpq.unit_of_measure = 'Dry'
+               then (nvl(grd.current_qty,
+                                                            0) +
+                                                       nvl(grd.release_shipped_qty,
+                                                            0) -
+                                                       nvl(grd.title_transfer_out_qty,
+                                                            0))
+                else
                pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
                                                        sam.ash_id,
                                                        (nvl(grd.current_qty,
@@ -146,7 +154,8 @@ select subsectionname,
                                                             0) -
                                                        nvl(grd.title_transfer_out_qty,
                                                             0)),
-                                                       grd.qty_unit_id) item_open_qty,
+                                                       grd.qty_unit_id)
+                                                       end) item_open_qty,
                pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
                                                            sam.ash_id,
                                                            'Wet',
@@ -219,6 +228,7 @@ select subsectionname,
                cym_countrymaster              cym_sld,
                cym_countrymaster              cym_gmr,
                v_pci_pcdi_details             pci,
+               pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
                pdtm_product_type_master       pdtm,
                qum_quantity_unit_master       qum,
@@ -280,6 +290,7 @@ select subsectionname,
            and grd.status = 'Active'
            and grd.internal_contract_item_ref_no =
                pci.internal_contract_item_ref_no(+)
+           and pci.pcpq_id = pcpq.pcpq_id(+)
            and pci.inco_term_id = itm.incoterm_id(+)
            and pci.strategy_id = css.strategy_id(+)
            and pci.profit_center_id = cpc.profit_center_id(+)
@@ -368,10 +379,14 @@ select subsectionname,
                                                            'Wet',
                                                            grd.net_weight,
                                                            grd.net_weight_unit_id) total_qty,
+               (case when pcpq.unit_of_measure = 'Dry'
+               then grd.current_qty
+               else
                pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
                                                        sam.ash_id,
                                                        grd.current_qty,
-                                                       grd.net_weight_unit_id) item_open_qty,
+                                                       grd.net_weight_unit_id)
+                                                       end) item_open_qty,
                pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
                                                            sam.ash_id,
                                                            'Wet',
@@ -439,6 +454,7 @@ select subsectionname,
                cym_countrymaster              cym_sld,
                cym_countrymaster              cym_gmr,
                v_pci_pcdi_details             pci,
+               pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
                pdtm_product_type_master       pdtm,
                qum_quantity_unit_master       qum,
@@ -499,6 +515,7 @@ select subsectionname,
            and grd.status = 'Active'
            and grd.internal_contract_item_ref_no =
                pci.internal_contract_item_ref_no(+)
+           and pci.pcpq_id = pcpq.pcpq_id(+)
            and pci.inco_term_id = itm.incoterm_id(+)
            and pci.strategy_id = css.strategy_id(+)
            and pci.profit_center_id = cpc.profit_center_id(+)
@@ -589,6 +606,14 @@ select subsectionname,
                                                            'Wet',
                                                            grd.qty,
                                                            grd.qty_unit_id) total_qty,
+              (case when pcpq.unit_of_measure = 'Dry'
+              then (nvl(grd.current_qty,
+                                                            0) +
+                                                       nvl(grd.release_shipped_qty,
+                                                            0) -
+                                                       nvl(grd.title_transfer_out_qty,
+                                                            0))
+               else
                pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
                                                        sam.ash_id,
                                                        (nvl(grd.current_qty,
@@ -597,7 +622,8 @@ select subsectionname,
                                                             0) -
                                                        nvl(grd.title_transfer_out_qty,
                                                             0)),
-                                                       grd.qty_unit_id) item_open_qty,
+                                                       grd.qty_unit_id)
+                                                       end) item_open_qty,
                pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
                                                            sam.ash_id,
                                                            'Wet',
@@ -670,6 +696,7 @@ select subsectionname,
                cym_countrymaster              cym_sld,
                cym_countrymaster              cym_gmr,
                v_pci_pcdi_details             pci,
+               pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
                pdtm_product_type_master       pdtm,
                qum_quantity_unit_master       qum,
@@ -731,6 +758,7 @@ select subsectionname,
            and grd.status = 'Active'
            and grd.internal_contract_item_ref_no =
                pci.internal_contract_item_ref_no(+)
+           and pci.pcpq_id = pcpq.pcpq_id(+)
            and pci.inco_term_id = itm.incoterm_id(+)
            and grd.strategy_id = css.strategy_id(+)
            and grd.profit_center_id = cpc.profit_center_id(+)
@@ -819,10 +847,14 @@ select subsectionname,
                                                            'Wet',
                                                            grd.net_weight,
                                                            grd.net_weight_unit_id) total_qty,
+               (case when pcpq.unit_of_measure = 'Dry'
+               then grd.current_qty
+               else
                pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
                                                        sam.ash_id,
                                                        grd.current_qty,
-                                                       grd.net_weight_unit_id) item_open_qty,
+                                                       grd.net_weight_unit_id)
+                                                       end) item_open_qty,
                pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
                                                            sam.ash_id,
                                                            'Wet',
@@ -890,6 +922,7 @@ select subsectionname,
                cym_countrymaster              cym_sld,
                cym_countrymaster              cym_gmr,
                v_pci_pcdi_details             pci,
+               pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
                pdtm_product_type_master       pdtm,
                qum_quantity_unit_master       qum,
@@ -949,6 +982,7 @@ select subsectionname,
            and grd.status = 'Active'
            and grd.internal_contract_item_ref_no =
                pci.internal_contract_item_ref_no(+)
+           and pci.pcpq_id = pcpq.pcpq_id(+)
            and pci.inco_term_id = itm.incoterm_id(+)
            and grd.strategy_id = css.strategy_id(+)
            and grd.profit_center_id = cpc.profit_center_id(+)
@@ -1013,3 +1047,4 @@ select subsectionname,
           base_quantity_unit_id,
           position_type,
           assay_convertion_rate
+
