@@ -13,7 +13,7 @@ fetchqry clob :='INSERT INTO gepd_d
              pledge_gmr_ref_no, element_name, corporate_name,
              our_person_in_charge, corporate_id, logo_path)
    SELECT ?, pledgephd.companyname AS pledge_cp_name,
-          '' AS pledge_person_in_charge,
+          '' '' AS pledge_person_in_charge,
           TO_CHAR (gepd.activity_date, ''dd-Mon-yyyy'') AS pledge_activity_date,
           productquality.pname AS product, productquality.qname AS quality,
           supplierphd.companyname AS supplier_name,
