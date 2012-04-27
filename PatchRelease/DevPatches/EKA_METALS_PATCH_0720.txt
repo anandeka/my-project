@@ -53,6 +53,31 @@ Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/Dai
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt
 
 
+Revision: 93393
+Author: elaiyaraja.nallathambi
+Date: 2:41:40 PM, Friday, April 27, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
+
+Revision: 93394
+Author: elaiyaraja.nallathambi
+Date: 2:42:12 PM, Friday, April 27, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+
+Revision: 93395
+Author: elaiyaraja.nallathambi
+Date: 2:42:38 PM, Friday, April 27, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+
+
 
 
 
