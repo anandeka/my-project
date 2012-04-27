@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0721
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  27-Apr-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract Document
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 93418
+Author: sishir.pagada
+Date: 5:25:31 PM, Friday, April 27, 2012
+Message:
+Increased the size of the Doc_Name column.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_253.sql
+
+
+
+
+
+
+
+
+
+
