@@ -159,13 +159,18 @@ select        'Invoice' section_name,
                 isc.yield,
                 isc.product gmr_product,
                 isc.invoiced_qty_unit child_qty_unit,
-                isd.iban
+                isd.iban,
+                api_d.internal_doc_ref_no api_internal_doc_ref_no,
+                api_d.api_invoice_ref_no,
+                api_d.api_amount_adjusted,
+                api_d.invoice_currency api_invoice_currency
   from is_d isd,
        is_child_d isc,
        is_bdp_child_d isp_c1,
        is_bds_child_d isp_c2,
        is_conc_payable_child is_cp,
        is_parent_child_d ispcd,
+       api_details_d api_d,
        ds_document_summary ds,
        v_ak_corporate akc,
         (select vat.internal_invoice_ref_no,
@@ -181,6 +186,7 @@ select        'Invoice' section_name,
            and ds.corporate_id = akc.corporate_id(+)
            and isd.internal_doc_ref_no = isc.internal_doc_ref_no(+)
            and isd.internal_doc_ref_no = ispcd.internal_doc_ref_no(+)
+           and isd.internal_doc_ref_no = api_d.internal_doc_ref_no(+)
            and isd.internal_doc_ref_no = isp_c1.internal_doc_ref_no(+)
            and isd.internal_doc_ref_no = isp_c2.internal_doc_ref_no(+)
            and isd.internal_doc_ref_no = is_cp.internal_doc_ref_no(+)
@@ -346,7 +352,11 @@ select        'Invoice' section_name,
                 null yield,
                 null gmr_product,
                 null child_qty_unit,
-                isd.iban
+                isd.iban,
+                null api_internal_doc_ref_no,
+                null api_invoice_ref_no,
+                null api_amount_adjusted,
+                null api_invoice_currency
   from is_d isd,
        is_bdp_child_d isp_c1,
        is_bds_child_d isp_c2,
@@ -536,7 +546,11 @@ select        'Invoice' section_name,
                 null yield,
                 null  gmr_product,
                 null child_qty_unit,
-                isd.iban
+                isd.iban,
+                null api_internal_doc_ref_no,
+                null api_invoice_ref_no,
+                null api_amount_adjusted,
+                null api_invoice_currency
   from is_d isd,
        is_bdp_child_d isp_c1,
        is_bds_child_d isp_c2,
@@ -723,7 +737,11 @@ select 'Invoice' section_name,
        null yield,
        null gmr_product,
        null child_qty_unit,
-       null iban
+       null iban,
+       null api_internal_doc_ref_no,
+       null api_invoice_ref_no,
+       null api_amount_adjusted,
+       null api_invoice_currency
   from is_d isd,
        ds_document_summary ds,
        v_ak_corporate akc,
@@ -908,7 +926,11 @@ select         'Other Charges' section_name,
                null yield,
                null gmr_product,
                null child_qty_unit,
-               null iban
+               null iban,
+               null api_internal_doc_ref_no,
+               null api_invoice_ref_no,
+               null api_amount_adjusted,
+               null api_invoice_currency
        from ioc_d ioc,
             is_d isd,
             ds_document_summary ds,
@@ -1074,12 +1096,15 @@ select 'Other Taxes' section_name,
        null yield,
        null gmr_product,
        null child_qty_unit,
-       null iban
+       null iban,
+       null api_internal_doc_ref_no,
+       null api_invoice_ref_no,
+       null api_amount_adjusted,
+       null api_invoice_currency
      from itd_d itd,
          is_d isd,
          ds_document_summary ds,
          v_ak_corporate akc
         where itd.internal_doc_ref_no = ds.internal_doc_ref_no
           and isd.internal_doc_ref_no = itd.internal_doc_ref_no
-          and ds.corporate_id = akc.corporate_id(+)
-
+          and ds.corporate_id = akc.corporate_id(+) 
