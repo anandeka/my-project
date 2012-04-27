@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0718
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  27-Apr-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		: 64529,61538
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 93375
+Author: abhishek.vijay
+Date: 11:50:32 AM, Friday, April 27, 2012
+Message:
+script for gmc ,sls, and pciul
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_286.sql
+
+
+
+
