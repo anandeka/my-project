@@ -288,7 +288,11 @@ union all --- Free Metal
        cm_base.cur_code base_currency,
        'Physicals' main_section,
        'Price Fixation' section,
-       'Spot Fixations' sub_section,
+        (case when pfqpp.is_qp_any_day_basis = 'Y' then
+          'Spot Fixations'
+          else
+          'Average Fixations'
+          end)sub_section,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm_under.product_id,
@@ -404,7 +408,7 @@ union all --- Free Metal
    and pocd.pcbpd_id = pcbpd.pcbpd_id
    and pcbpd.pcbpd_id = ppfh.pcbpd_id(+)
    and ppfh.ppfh_id = pfqpp.ppfh_id(+)
-   and nvl(pfqpp.is_qp_any_day_basis, 'N') <> 'Y'
+   --and nvl(pfqpp.is_qp_any_day_basis, 'N') <> 'Y'
    and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
       /* and pcpch.internal_contract_ref_no = pcm.internal_contract_ref_no
                and nvl(pcpch.payable_type, 'Payable') = 'Payable'
