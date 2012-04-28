@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0723
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok Kumar
+ 
+Created on*        		:  28-Apr-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 29270
+Author: ashokkumar.l
+Date: 2:44:03 PM, Saturday, April 28, 2012
+Message:
+Bug Fixes of 64181,63938,63954
+----
+Modified : /CBA-PATCH-MNGMNT/CDC/Reports/DailyDerivativesUnRealizedPnLReport.rpt
