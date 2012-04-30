@@ -42,6 +42,8 @@ IS
    inputoutputproduct         VARCHAR2 (50);
    inputoutputquality         VARCHAR2 (50);
    iscommercialfeeapplied     VARCHAR2 (1);
+   amendmentdate              VARCHAR2 (50);
+   amendmentreason            VARCHAR2 (4000);
 
 
 
@@ -242,7 +244,7 @@ BEGIN
                 is_amend_section, print_type, is_changed
                )
         VALUES (docid, display_order, NULL, contractsection,
-                ' CP Trader name', 'Y', NULL,
+                'CP Trader name', 'Y', NULL,
                 NULL, cpcontactpersoson, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
@@ -260,6 +262,52 @@ BEGIN
         VALUES (docid, display_order, NULL, contractsection,
                 'Contract Issue Date', 'Y', NULL,
                 NULL, issuedate, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+            
+    BEGIN
+     SELECT TO_CHAR (par.amendment_date, 'dd-Mon-YYYY'), par.amendment_reason
+        INTO amendmentdate, amendmentreason
+         FROM par_physical_amend_reason par
+        WHERE par.internal_contract_ref_no = p_contractno
+         AND par.amendment_type = 'Amend'
+         AND par.is_active = 'Y';
+    EXCEPTION
+        WHEN NO_DATA_FOUND
+       THEN
+      amendmentdate := '';
+      amendmentreason := '';
+    END;
+    
+    display_order := display_order + 1;
+   
+  INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Amendment Date', 'Y', NULL,
+                NULL, amendmentdate, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+  
+  display_order := display_order + 1;
+   
+  INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Amendment Reason', 'Y', NULL,
+                NULL, amendmentreason, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );

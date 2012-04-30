@@ -16,14 +16,15 @@ IS
 BEGIN
    FOR product_rec IN cr_output_products
    LOOP
-      productdescription := productdescription || 'Product: '
+      productdescription := productdescription || 'Product '
          || i
-         || CHR (10)
+         || ': '
          || product_rec.productdesc;
       productdescription :=
             productdescription
          || CHR (10)
-         || getoutputqualitydetails (product_rec.pcpd_id);
+         || getoutputqualitydetails (product_rec.pcpd_id)
+         || CHR (10);
       i := i + 1;
    END LOOP;
 

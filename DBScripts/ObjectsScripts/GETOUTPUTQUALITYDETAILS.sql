@@ -30,9 +30,9 @@ BEGIN
    LOOP
    
       qualitydescription :=
-            qualitydescription ||  'Quality: '
+            qualitydescription ||  'Quality '
          || i
-         || CHR (10)
+         || ': '
          || quality_rec.quality_details || CHR(10) ;
    
       

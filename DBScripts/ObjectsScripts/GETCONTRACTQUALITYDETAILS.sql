@@ -34,8 +34,12 @@ return VARCHAR2 is
     begin
             for quality_rec in cr_quality
             loop
+            if(qualityDescription is not null) then
             qualityDescription:=qualityDescription ||chr(10)||quality_rec.quality_details ||chr(10);
-            
+            else
+            qualityDescription:=quality_rec.quality_details ||chr(10);
+            end if;
+                        
             if (quality_rec.origin_name is not null) then
                 qualityDescription:=qualityDescription ||'Origin :' || quality_rec.origin_name || chr(10);
             end if;
