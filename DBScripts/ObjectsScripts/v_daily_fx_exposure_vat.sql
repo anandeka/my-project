@@ -302,11 +302,16 @@ union all --- Free Metal
        cm_pay.cur_id exposure_cur_id,
        cm_pay.cur_code exposure_currency,
        pfd.as_of_date trade_date, --pcm.issue_date trade_date,
-       pkg_general.f_get_converted_currency_amt(akc.corporate_id,
+      /* pkg_general.f_get_converted_currency_amt(akc.corporate_id,
                                                 cm_base.cur_id,
                                                 cm_pay.cur_id,
                                                 pfd.as_of_date,
-                                                1) fx_rate,
+                                                1) fx_rate,*/
+       (case when pffxd.fx_rate_type='Fixed' then
+       pffxd.fixed_fx_rate
+       else
+       pfd.fx_rate
+       end) fx_rate,                                         
        pcm.contract_ref_no,
         '' invoice_ref_no,
        '' parent_invoice_no,
@@ -355,17 +360,22 @@ union all --- Free Metal
        null payable_receivable,
        decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
        ((nvl(pfd.user_price,0)+nvl(pfd.adjustment_price,0)) / nvl(ppu.weight, 1)) *
-       (round(pkg_general.f_get_converted_currency_amt(akc.corporate_id,
+       /*(round(pkg_general.f_get_converted_currency_amt(akc.corporate_id,
                                                        ppu.cur_id,
                                                        cm_pay.cur_id,
                                                        pfd.as_of_date,
                                                        1),
-              5) *
-        pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
+              5) **/
+      (case when pffxd.fx_rate_type='Fixed' then
+       pffxd.fixed_fx_rate
+       else
+       pfd.fx_rate
+       end)*    
+       pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                  pdm.product_id),
                                              qum.qty_unit_id,
                                              pum.weight_unit_id,
-                                             pofh.per_day_pricing_qty)) hedging_amount,
+                                             pofh.per_day_pricing_qty) hedging_amount,
        '' cost_type,
        null effective_date,
        '' buy_sell,
@@ -395,7 +405,8 @@ union all --- Free Metal
        cm_currency_master          cm_pay,
        v_ppu_pum                   ppu,
        pum_price_unit_master       pum,
-       qum_quantity_unit_master    qum
+       qum_quantity_unit_master    qum,
+       pffxd_phy_formula_fx_details   pffxd
  where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcdi.pcdi_id = poch.pcdi_id
    and poch.is_free_metal_pricing = 'Y'
@@ -444,5 +455,7 @@ union all --- Free Metal
    and pfqpp.is_active(+) = 'Y'
    and pym.is_active = 'Y'
    and pym.is_deleted = 'N'
+   and pcbpd.pffxd_id = pffxd.pffxd_id -- Newly Added
+   and pffxd.is_active = 'Y' -- Newly Added
  --  and akc.corporate_id = '{?CorporateID}'
  --  and to_char(pfd.as_of_date, 'dd-Mon-yyyy') = '{?AsOfDate}'
