@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0724
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Pagada
+ 
+Created on*        		:  30-Apr-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  64018,64022
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+
+Sub-Module  			 :  Output Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 93478
+Author: sishir.pagada
+Date: 3:59:40 PM, Monday, April 30, 2012
+Message:
+Fix for:- Amend contract output doc issue. Bug # 64018,64022
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETCONTRACTQUALITYDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETOUTPUTPRODUCTDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETOUTPUTQUALITYDETAILS.sql
