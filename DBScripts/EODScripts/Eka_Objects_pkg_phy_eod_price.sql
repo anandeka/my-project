@@ -28,9 +28,6 @@ create or replace package "PKG_PHY_EOD_PRICE" is
                                         pc_process      varchar2);
 
 end; 
- 
- 
- 
 /
 create or replace package body "PKG_PHY_EOD_PRICE" is
 
@@ -324,7 +321,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                (select *
                                   from pofh_price_opt_fixation_header pfh
                                  where pfh.internal_gmr_ref_no is null
-                                   and pfh.is_active = 'Y') pofh,
+                                   and pfh.is_active = 'Y'
+                                   and pfh.qty_to_be_fixed <> 0) pofh,
                                v_ppu_pum ppu
                          where poch.poch_id = pocd.poch_id
                            and pocd.pcbpd_id = pcbpd.pcbpd_id
@@ -4319,8 +4317,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                               -- and pofh.is_active(+) = 'Y'
                            and pcbpd.process_id = pc_process_id
                            and pfqpp.process_id = pc_process_id
-                           and ppfh.process_id = pc_process_id
-                           and pofh.qty_to_be_fixed <> 0)
+                           and ppfh.process_id = pc_process_id)
             
             loop
               if cur_pcdi_rows.basis_type = 'Shipment' then
