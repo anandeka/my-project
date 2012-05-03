@@ -61,7 +61,7 @@ end;
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
   --------------------------------------------------------------------------------------------------------------------------
-    --        procedure name                            : sp_calc_daily_trade_pnl
+    ----        procedure name                            : sp_calc_daily_trade_pnl
     --        author                                    : 
     --        created date                              : 11th Jan 2011
     --        purpose                                   : populate daily trade pnl
@@ -4910,6 +4910,7 @@ insert into isr_intrastat_grd
                      pcdi.internal_contract_ref_no
                  and pcm.contract_type = 'CONCENTRATES'
                  and pcpd.input_output = 'Input'
+                 and pcm.contract_status='In Position'
                  and pcm.corporate_id = pc_corporate_id
                  and pcdi.pcdi_id = dipq.pcdi_id
                  and dipq.qty_unit_id = qum.qty_unit_id
@@ -5474,7 +5475,14 @@ insert into isr_intrastat_grd
        conc_qty_unit) with ytd_data as
       (select ypd.internal_gmr_ref_no,
               ypd.element_id,
-              gmr.gmr_ref_no,
+               gmr.gmr_ref_no || case
+                                 when gmr.is_final_invoiced = 'Y' then
+                                 '[FIN]'
+                                 when gmr.is_provisional_invoiced = 'Y' then
+                                 '[PRV]'
+                                 else
+                                  ''
+                                  end gmr_ref_no, 
               gmr.corporate_id,
               aml.attribute_name element_name,
               pdm.product_id element_product_id,
@@ -5491,7 +5499,9 @@ insert into isr_intrastat_grd
               gmr_goods_movement_record gmr,
               agmr_action_gmr           agmr,
               aml_attribute_master_list aml,
-              pdm_productmaster         pdm
+              pdm_productmaster         pdm,
+              dbd_database_dump         dbd,
+              is_invoice_summary        iss
         where ypd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
           and ypd.internal_action_ref_no = axs.internal_action_ref_no
           and ypd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
@@ -5499,6 +5509,9 @@ insert into isr_intrastat_grd
           and aml.underlying_product_id = pdm.product_id(+)
           and gmr.process_id = pc_process_id
           and gmr.corporate_id = pc_corporate_id
+          and axs.dbd_id = dbd.dbd_id
+          and dbd.process = 'EOM'
+          and gmr.latest_internal_invoice_ref_no=iss.internal_invoice_ref_no(+)
           and gmr.is_deleted = 'N'
           and aml.is_active = 'Y'
           and pdm.is_active = 'Y'
@@ -5623,7 +5636,7 @@ insert into isr_intrastat_grd
                 ytd.yield_pct,
                 ytd.current_qty,
                 ytd.qty_unit_id,
-                ytd.gmr_ref_no,
+                ytd.gmr_ref_no,               
                 ytd.ytd_year,
                 ytd.ytd_month,
                 ytd.ytd_group_column,
