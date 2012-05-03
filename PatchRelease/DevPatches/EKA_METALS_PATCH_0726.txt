@@ -16,7 +16,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Reports
+Module  		   	 :  EOD
 
 Sub-Module  			 :  N/A
  
@@ -33,7 +33,7 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* : Transaction
+Schema type (Transaction / EOD)* : EOD
 ==================================================================
 Revision: 93557
 Author: suresh.gottipati
