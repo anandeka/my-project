@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0730
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  04-Mar-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  63118,63092,63775
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports(Documents)
+
+Sub-Module  			 :  Reports(Documents)
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 93670
+Author: elaiyaraja.nallathambi
+Date: 6:12:21 PM, Friday, May 04, 2012
+Message:
+Bug Fixes, Bug Id's: 63118,63092
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AirWayDetails.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ShipmentDetail.rpt
+
+
+Revision: 93671
+Author: elaiyaraja.nallathambi
+Date: 6:13:56 PM, Friday, May 04, 2012
+Message:
+Bug Fixes, Bug Id's: 63118,63092
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AirWayDetails.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ShipmentDetail.rpt
+
+
+
+
+
