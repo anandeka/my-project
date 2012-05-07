@@ -1,0 +1,88 @@
+Patch No*          		:  EKA_METALS_PATCH_0732
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  07-Mar-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  64074,64080,64007
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 93758
+Author: suresh.gottipati
+Date: 5:23:18 PM, Monday, May 07, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_288.sql
+
+Revision: 93759
+Author: suresh.gottipati
+Date: 5:24:04 PM, Monday, May 07, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_61_DML_RPC_RFP_Scripts.sql
+
+
+
+Revision: 93762
+Author: suresh.gottipati
+Date: 5:25:08 PM, Monday, May 07, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+
+Revision: 93761
+Author: suresh.gottipati
+Date: 5:24:52 PM, Monday, May 07, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AssayDocument.rpt
+
+Revision: 93763
+Author: suresh.gottipati
+Date: 5:26:22 PM, Monday, May 07, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt
+
+
+
+
+
+
+
+
+
+
