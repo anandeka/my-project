@@ -4886,7 +4886,7 @@ insert into isr_intrastat_grd
                      pcm.contract_status,
                      pcpd.product_id,
                      pdm.product_desc,
-                     dipq.payable_qty open_qty,
+                     sum(dipq.payable_qty) open_qty,
                      dipq.qty_unit_id,
                      qum.qty_unit,
                      pcm.invoice_currency_id invoice_cur_id,
@@ -4931,7 +4931,22 @@ insert into isr_intrastat_grd
                  and pcdi.is_active = 'Y'
                  and pcm.is_active = 'Y'
                  and dipq.is_active = 'Y'
-                 and pcpd.is_active = 'Y') main_table,
+                 and pcpd.is_active = 'Y'
+                 group by pcm.internal_contract_ref_no,
+                          pcm.contract_ref_no,
+                          pcm.corporate_id,
+                          akc.corporate_name,
+                          pcm.cp_id,
+                          dipq.element_id,
+                          aml.attribute_name,
+                          phd.companyname,
+                          pcm.contract_status,
+                          pcpd.product_id,
+                          pdm.product_desc,      
+                          dipq.qty_unit_id,
+                          qum.qty_unit,
+                          pcm.invoice_currency_id,
+                          cm.cur_code) main_table,
              (select gmr.internal_contract_ref_no,
                      spq.element_id,
                      sum(spq.payable_qty) landed_qty
