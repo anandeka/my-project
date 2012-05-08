@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0733
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  08-May-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  64823
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Assay
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 93825
+Author: anupkumar.agarwal
+Date: 11:38:39 AM, Tuesday, May 08, 2012
+Message:
+Changed The WNSGROUPID Prefix in IRC Table To GPID As Name Was Long Due To which Column Size Was Exceeding The Total Size While Generating Id
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_289.sql
+
+
+
+
+
+
+
+
+
+
