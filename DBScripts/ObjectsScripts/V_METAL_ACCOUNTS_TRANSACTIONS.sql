@@ -31,7 +31,8 @@ select mat_temp.unique_id,
        to_char(mat_temp.activity_date, 'dd-Mon-yyyy') activity_date,
        mat_temp.assay_content,
        nvl(mat_temp.ext_assay_content, 0) ext_assay_content,
-       nvl(mat_temp.assay_finalized, 'N') assay_finalized
+       nvl(mat_temp.assay_finalized, 'N') assay_finalized,
+       mat_temp.due_date
   from (select retn_temp.unique_id,
                retn_temp.corporate_id,
                retn_temp.contract_type,
@@ -60,7 +61,8 @@ select mat_temp.unique_id,
                retn_temp.activity_date,
                retn_temp.assay_content,
                retn_temp.ext_assay_content,
-               retn_temp.assay_finalized
+               retn_temp.assay_finalized,
+               retn_temp.due_date
           from (select spq.spq_id unique_id,
                        spq.corporate_id,
                        pci.contract_type,
@@ -89,7 +91,8 @@ select mat_temp.unique_id,
                        axs.eff_date activity_date,
                        spq.assay_content,
                        spq.ext_assay_content ext_assay_content,
-                       spq.is_final_assay assay_finalized
+                       spq.is_final_assay assay_finalized,
+                       spq.due_date
                   from spq_stock_payable_qty       spq,
                        grd_goods_record_detail     grd,
                        v_pci                       pci,
@@ -109,7 +112,6 @@ select mat_temp.unique_id,
                    and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
                    and pci.internal_contract_item_ref_no =
                        grd.internal_contract_item_ref_no
-                
                 union
                 select prrqs.prrqs_id unique_id,
                        prrqs.corporate_id,
@@ -139,7 +141,8 @@ select mat_temp.unique_id,
                        axs.eff_date activity_date,
                        prrqs.assay_content,
                        0 ext_assay_content,
-                       '' assay_finalized
+                       '' assay_finalized,
+                       prrqs.due_date
                   from prrqs_prr_qty_status      prrqs,
                        axs_action_summary        axs,
                        pdm_productmaster         pdm,
@@ -159,7 +162,6 @@ select mat_temp.unique_id,
                    and pdm.product_id = prrqs.product_id
                    and prrqs.activity_action_id in
                        ('pledgeTransfer', 'financialSettlement')
-                
                 union
                 select prrqs.prrqs_id unique_id,
                        prrqs.corporate_id,
@@ -189,7 +191,8 @@ select mat_temp.unique_id,
                        axs.eff_date activity_date,
                        prrqs.assay_content,
                        0 ext_assay_content,
-                       '' assay_finalized
+                       '' assay_finalized,
+                       prrqs.due_date
                   from prrqs_prr_qty_status      prrqs,
                        axs_action_summary        axs,
                        pdm_productmaster         pdm,
@@ -208,7 +211,6 @@ select mat_temp.unique_id,
                    and prrqs.qty_type = 'Returnable'
                    and pdm.product_id = prrqs.product_id
                    and prrqs.activity_action_id = 'financialSettlement'
-                
                 union
                 select prrqs.prrqs_id unique_id,
                        prrqs.corporate_id,
@@ -238,7 +240,8 @@ select mat_temp.unique_id,
                        axs.eff_date activity_date,
                        prrqs.assay_content,
                        0 ext_assay_content,
-                       '' assay_finalized
+                       '' assay_finalized,
+                       prrqs.due_date
                   from prrqs_prr_qty_status prrqs,
                        axs_action_summary   axs,
                        pdm_productmaster    pdm
@@ -278,7 +281,8 @@ select mat_temp.unique_id,
                axs.eff_date activity_date,
                prrqs.assay_content,
                0 ext_assay_content,
-               '' assay_finalized
+               '' assay_finalized,
+               prrqs.due_date
           from prrqs_prr_qty_status      prrqs,
                axs_action_summary        axs,
                pdm_productmaster         pdm,
