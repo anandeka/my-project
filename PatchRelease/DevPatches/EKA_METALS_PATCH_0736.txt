@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_0736
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir kumar Pagada
+ 
+Created on*        		:  09-May-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 93910
+Author: sishir.pagada
+Date: 12:17:55 PM, Wednesday, May 09, 2012
+Message:
+Returnable Date columns added.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_290.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
