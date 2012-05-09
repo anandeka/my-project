@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_0737
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir kumar Pagada
+ 
+Created on*        		:  09-May-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  O/P Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 93933
+Author: sishir.pagada
+Date: 2:16:03 PM, Wednesday, May 09, 2012
+Message:
+Returnable Date details added.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETRETURNABLECONTENTDETAILS.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
