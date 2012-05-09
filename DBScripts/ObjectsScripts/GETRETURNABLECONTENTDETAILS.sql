@@ -63,7 +63,10 @@ IS
              WHEN pcepc.include_ref_charges = 'Y'
                 THEN  ',Refining Charges : ' ||  f_format_to_char(pcepc.refining_charge_value,4) || ' ' || pum.price_unit_name
           END
-         ) ) AS payable_content
+         )|| ', '
+          || pcpch.due_date_days
+          || ' days from '
+          || pcpch.due_date_activity) AS payable_content
     FROM pcpch_pc_payble_content_header pcpch,
          pqd_payable_quality_details pqd,
          pcepc_pc_elem_payable_content pcepc,
