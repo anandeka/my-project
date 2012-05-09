@@ -132,7 +132,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
-end; 
+end;
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -202,10 +202,10 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       goto cancel_process;
     end if;
     sp_pre_check_m2m_conc_values(pc_corporate_id,
-    pd_trade_date,
-    gvc_dbd_id,
-    pc_user_id,
-    pc_process);
+                                 pd_trade_date,
+                                 gvc_dbd_id,
+                                 pc_user_id,
+                                 pc_process);
   
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
@@ -2452,17 +2452,18 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
               pcm.is_tolling_contract,
               pcm.is_tolling_extn,
               pcdi.payment_due_date
-         from pcm_physical_contract_main    pcm,
-              pci_physical_contract_item    pci,
-              pcpq_pc_product_quality       pcpq,
-              pcdi_pc_delivery_item         pcdi,
-              ciqs_contract_item_qty_status ciqs,
-              mvp_m2m_valuation_point       mvp,
-              mvpl_m2m_valuation_point_loc  mvpl,
-              mv_conc_qat_quality_valuation mv_qat,
-              v_derivatives_val_month       vdvm,
-              v_der_instrument_price_unit   vdip,
-              aml_attribute_master_list     aml
+         from pcm_physical_contract_main     pcm,
+              pci_physical_contract_item     pci,
+              pcpq_pc_product_quality        pcpq,
+              pcdi_pc_delivery_item          pcdi,
+              ciqs_contract_item_qty_status  ciqs,
+              mvp_m2m_valuation_point        mvp,
+              mvpl_m2m_valuation_point_loc   mvpl,
+              mv_conc_qat_quality_valuation  mv_qat,
+              v_derivatives_val_month        vdvm,
+              v_der_instrument_price_unit    vdip,
+              aml_attribute_master_list      aml,
+              pcpch_pc_payble_content_header pcpch
         where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
           and pcm.contract_type = 'CONCENTRATES'
           and pcm.is_tolling_contract = 'N'
@@ -2495,7 +2496,11 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           and pci.dbd_id = pc_dbd_id
           and ciqs.dbd_id = pc_dbd_id
           and pcpq.dbd_id = pc_dbd_id
-          and pcm.contract_status <> 'Cancelled');
+          and pcm.contract_status <> 'Cancelled'
+          and pcpch.internal_contract_ref_no = pcm.internal_contract_ref_no
+          and pcpch.dbd_id = pc_dbd_id
+          and pcpch.element_id = aml.attribute_id
+          and aml.is_active = 'Y');
     vc_error_loc := 4;
     --Insert into tmpc for inventory Concentrate
     insert into tmpc_temp_m2m_pre_check
@@ -2540,8 +2545,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              m2m.quality_id conc_quality_id,
              m2m.element_product_id,
              m2m.element_quality_id,
-             m2m.attribute_id,
-             m2m.attribute_name,
+             m2m.element_id,
+             m2m.element_name,
              m2m.assay_header_id,
              m2m.mvp_id,
              m2m.mvpl_id,
@@ -2575,8 +2580,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      mv_qat.quality_id element_quality_id,
                      temp.product_id,
                      temp.quality_id,
-                     aml.attribute_id,
-                     aml.attribute_name,
+                     temp.element_id,
+                     temp.element_name,
                      temp.assay_header_id,
                      mv_qat.eval_basis value_type,
                      mvp.mvp_id,
@@ -2649,14 +2654,18 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              pci.m2m_inco_term,
                              pcm.is_tolling_contract,
                              pcm.is_tolling_extn,
-                             pd_trade_date payment_due_date
-                        from grd_goods_record_detail     grd,
-                             gmr_goods_movement_record   gmr,
-                             pci_physical_contract_item  pci,
-                             pcm_physical_contract_main  pcm,
-                             pcdi_pc_delivery_item       pcdi,
-                             sld_storage_location_detail shm,
-                             pcpq_pc_product_quality     pcpq
+                             pd_trade_date payment_due_date,
+                             aml.attribute_id element_id,
+                             aml.attribute_name element_name
+                        from grd_goods_record_detail        grd,
+                             gmr_goods_movement_record      gmr,
+                             pci_physical_contract_item     pci,
+                             pcm_physical_contract_main     pcm,
+                             pcdi_pc_delivery_item          pcdi,
+                             sld_storage_location_detail    shm,
+                             pcpq_pc_product_quality        pcpq,
+                             pcpch_pc_payble_content_header pcpch,
+                             aml_attribute_master_list      aml
                        where grd.internal_gmr_ref_no =
                              gmr.internal_gmr_ref_no
                          and grd.internal_contract_item_ref_no =
@@ -2686,6 +2695,11 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcm.is_tolling_contract = 'N'
                          and pcm.is_tolling_extn = 'N'
                          and gmr.is_internal_movement = 'N'
+                         and pcpch.internal_contract_ref_no =
+                             pcm.internal_contract_ref_no
+                         and pcpch.dbd_id = pc_dbd_id
+                         and pcpch.element_id = aml.attribute_id
+                         and aml.is_active = 'Y'
                       union all
                       select case
                                when nvl(gmr.inventory_status, 'NA') =
@@ -2737,16 +2751,21 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              pci.m2m_inco_term,
                              pcm.is_tolling_contract,
                              pcm.is_tolling_extn,
-                             pd_trade_date payment_due_date
-                        from gmr_goods_movement_record   gmr,
-                             pci_physical_contract_item  pci,
-                             pcm_physical_contract_main  pcm,
-                             pcdi_pc_delivery_item       pcdi,
-                             gsm_gmr_stauts_master       gsm,
-                             agh_alloc_group_header      agh,
-                             sld_storage_location_detail shm,
-                             dgrd_delivered_grd          dgrd,
-                             pcpq_pc_product_quality     pcpq
+                             pd_trade_date payment_due_date,
+                             aml.attribute_id element_id,
+                             aml.attribute_name element_name
+                      
+                        from gmr_goods_movement_record      gmr,
+                             pci_physical_contract_item     pci,
+                             pcm_physical_contract_main     pcm,
+                             pcdi_pc_delivery_item          pcdi,
+                             gsm_gmr_stauts_master          gsm,
+                             agh_alloc_group_header         agh,
+                             sld_storage_location_detail    shm,
+                             dgrd_delivered_grd             dgrd,
+                             pcpq_pc_product_quality        pcpq,
+                             pcpch_pc_payble_content_header pcpch,
+                             aml_attribute_master_list      aml
                        where gmr.internal_contract_ref_no =
                              pcm.internal_contract_ref_no(+)
                          and pcm.internal_contract_ref_no =
@@ -2783,7 +2802,11 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and dgrd.status = 'Active'
                          and dgrd.net_weight > 0
                          and gmr.is_internal_movement = 'N'
-                      union all -- Internal movement
+                         and pcpch.internal_contract_ref_no =
+                             pcm.internal_contract_ref_no
+                         and pcpch.dbd_id = pc_dbd_id
+                         and pcpch.element_id = aml.attribute_id
+                      union all -- Internal movement Not sure why contract details are null ?? need to check
                       select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
                                     nvl(grd.inventory_status, 'NA') in
@@ -2825,12 +2848,19 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              null m2m_inco_term,
                              null is_tolling_contract,
                              null is_tolling_extn,
-                             pd_trade_date payment_due_date
-                        from grd_goods_record_detail     grd,
-                             gmr_goods_movement_record   gmr,
-                             sld_storage_location_detail shm,
-                             pdm_productmaster           pdm,
-                             pdtm_product_type_master    pdtm
+                             pd_trade_date payment_due_date,
+                             aml.attribute_id element_id,
+                             aml.attribute_name element_name
+                      
+                        from grd_goods_record_detail        grd,
+                             gmr_goods_movement_record      gmr,
+                             sld_storage_location_detail    shm,
+                             pdm_productmaster              pdm,
+                             pdtm_product_type_master       pdtm,
+                             pci_physical_contract_item     pci,
+                             pcdi_pc_delivery_item          pcdi,
+                             pcpch_pc_payble_content_header pcpch,
+                             aml_attribute_master_list      aml
                        where grd.internal_gmr_ref_no =
                              gmr.internal_gmr_ref_no
                          and gmr.is_internal_movement = 'Y'
@@ -2844,12 +2874,20 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and grd.status = 'Active'
                          and grd.is_deleted = 'N'
                          and gmr.is_deleted = 'N'
-                         and nvl(grd.inventory_status, 'NA') <> 'Out') temp,
+                         and nvl(grd.inventory_status, 'NA') <> 'Out'
+                         and grd.internal_contract_item_ref_no =
+                             pci.internal_contract_item_ref_no
+                         and pci.pcdi_id = pcdi.pcdi_id
+                         and pcdi.internal_contract_ref_no =
+                             pcpch.internal_contract_ref_no
+                         and pci.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
+                         and pcpch.dbd_id = pc_dbd_id
+                         and pcpch.element_id = aml.attribute_id) temp,
                      mv_conc_qat_quality_valuation mv_qat,
                      mvp_m2m_valuation_point mvp,
                      mvpl_m2m_valuation_point_loc mvpl,
-                     v_der_instrument_price_unit vdip,
-                     aml_attribute_master_list aml
+                     v_der_instrument_price_unit vdip
                where temp.corporate_id = mv_qat.corporate_id
                  and temp.quality_id = mv_qat.conc_quality_id
                  and mv_qat.instrument_id = vdip.instrument_id(+)
@@ -2858,8 +2896,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  and temp. issue_date <= pd_trade_date
                  and mvp.mvp_id = mvpl.mvp_id
                  and mvpl.loc_city_id = temp.city_id
-                 and aml.attribute_id = mv_qat.attribute_id
-                 and aml.is_active = 'Y') m2m;
+                 and temp.element_id = mv_qat.attribute_id) m2m;
     --End of insert into tmpc for Inventory  Concentrate
   
     for cur_ppu in (select tmpc.conc_product_id,
@@ -4354,8 +4391,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              m2m.quality_id conc_quality_id,
              m2m.element_product_id,
              m2m.element_quality_id,
-             m2m.attribute_id,
-             m2m.attribute_name,
+             m2m.element_id,
+             m2m.element_name,
              m2m.assay_header_id,
              m2m.mvp_id,
              m2m.mvpl_id,
@@ -4388,8 +4425,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      mv_qat.quality_id element_quality_id,
                      temp.product_id,
                      temp.quality_id,
-                     aml.attribute_id,
-                     aml.attribute_name,
+                     temp.element_id,
+                     temp.element_name,
                      temp.assay_header_id,
                      mv_qat.eval_basis value_type,
                      mvp.mvp_id,
@@ -4461,7 +4498,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              pci.m2m_inco_term,
                              pcm.is_tolling_contract,
                              pcpch.element_id,
-                             pcm.is_tolling_extn
+                             pcm.is_tolling_extn,
+                             aml.attribute_name element_name
                         from grd_goods_record_detail        grd,
                              gmr_goods_movement_record      gmr,
                              pci_physical_contract_item     pci,
@@ -4471,7 +4509,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              sld_storage_location_detail    shm,
                              pcpq_pc_product_quality        pcpq,
                              dipch_di_payablecontent_header dipch,
-                             pcpch_pc_payble_content_header pcpch
+                             pcpch_pc_payble_content_header pcpch,
+                             aml_attribute_master_list      aml
                        where grd.internal_gmr_ref_no =
                              gmr.internal_gmr_ref_no
                          and grd.internal_contract_item_ref_no =
@@ -4510,6 +4549,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcm.is_tolling_contract = 'Y'
                          and pcm.is_tolling_extn = 'Y'
                          and gmr.is_internal_movement = 'N'
+                         and aml.attribute_id = pcpch.element_id
+                         and aml.is_active = 'Y'
                       union all
                       select case
                                when nvl(gmr.inventory_status, 'NA') =
@@ -4561,7 +4602,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              pci.m2m_inco_term,
                              pcm.is_tolling_contract,
                              pcpch.element_id,
-                             pcm.is_tolling_extn
+                             pcm.is_tolling_extn,
+                             aml.attribute_name element_name
                         from gmr_goods_movement_record      gmr,
                              pcm_physical_contract_main     pcm,
                              pcmte_pcm_tolling_ext          pcmte,
@@ -4572,7 +4614,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              sld_storage_location_detail    shm,
                              gsm_gmr_stauts_master          gsm,
                              dipch_di_payablecontent_header dipch,
-                             pcpch_pc_payble_content_header pcpch
+                             pcpch_pc_payble_content_header pcpch,
+                             aml_attribute_master_list      aml
                        where gmr.internal_contract_ref_no =
                              pcm.internal_contract_ref_no(+)
                          and pcm.internal_contract_ref_no =
@@ -4612,6 +4655,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcpch.is_active = 'Y'
                          and grd.status = 'Active'
                          and gmr.is_internal_movement = 'N'
+                         and aml.is_active = 'Y'
+                         and pcpch.element_id = aml.attribute_id
                       union all -- Internal movement
                       select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
@@ -4654,12 +4699,17 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              null m2m_inco_term,
                              null is_tolling_contract,
                              null element_id,
-                             null is_tolling_extn
-                        from grd_goods_record_detail     grd,
-                             gmr_goods_movement_record   gmr,
-                             sld_storage_location_detail shm,
-                             pdm_productmaster           pdm,
-                             pdtm_product_type_master    pdtm
+                             null is_tolling_extn,
+                             aml.attribute_name element_name
+                        from grd_goods_record_detail        grd,
+                             gmr_goods_movement_record      gmr,
+                             sld_storage_location_detail    shm,
+                             pdm_productmaster              pdm,
+                             pdtm_product_type_master       pdtm,
+                             pci_physical_contract_item     pci,
+                             pcdi_pc_delivery_item          pcdi,
+                             pcpch_pc_payble_content_header pcpch,
+                             aml_attribute_master_list      aml
                        where grd.internal_gmr_ref_no =
                              gmr.internal_gmr_ref_no
                          and gmr.is_internal_movement = 'Y'
@@ -4673,12 +4723,21 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and grd.status = 'Active'
                          and grd.is_deleted = 'N'
                          and gmr.is_deleted = 'N'
-                         and nvl(grd.inventory_status, 'NA') <> 'Out') temp,
+                         and nvl(grd.inventory_status, 'NA') <> 'Out'
+                         and grd.internal_contract_item_ref_no =
+                             pci.internal_contract_item_ref_no
+                         and pci.pcdi_id = pcdi.pcdi_id
+                         and pcdi.internal_contract_ref_no =
+                             pcpch.internal_contract_ref_no
+                         and pci.dbd_id = pc_dbd_id
+                         and pcdi.dbd_id = pc_dbd_id
+                         and pcpch.dbd_id = pc_dbd_id
+                         and pcpch.element_id = aml.attribute_id
+                         and aml.is_active = 'Y') temp,
                      mv_conc_qat_quality_valuation mv_qat,
                      mvp_m2m_valuation_point mvp,
                      mvpl_m2m_valuation_point_loc mvpl,
-                     v_der_instrument_price_unit vdip,
-                     aml_attribute_master_list aml
+                     v_der_instrument_price_unit vdip
                where temp.corporate_id = mv_qat.corporate_id
                  and temp.quality_id = mv_qat.conc_quality_id
                  and mv_qat.instrument_id = vdip.instrument_id(+)
@@ -4687,9 +4746,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  and temp. issue_date <= pd_trade_date
                  and mvp.mvp_id = mvpl.mvp_id
                  and mvpl.loc_city_id = temp.city_id
-                 and aml.attribute_id = mv_qat.attribute_id
-                 and temp.element_id = aml.attribute_id
-                 and aml.is_active = 'Y') m2m;
+                 and temp.element_id = mv_qat.attribute_id) m2m;
   
     --End of insert into tmpc for Inventory  Concentrate
     sp_write_log(pc_corporate_id,
@@ -7471,5 +7528,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end; 
+end;
 /
