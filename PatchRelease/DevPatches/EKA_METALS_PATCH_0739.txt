@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0739
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  11-May-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 94185
+Author: pradeep.kumar
+Date: 6:13:17 PM, Friday, May 11, 2012
+Message:
+-- Function For Due Date Capture in Logistics Activity
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_returnable_due_date.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
