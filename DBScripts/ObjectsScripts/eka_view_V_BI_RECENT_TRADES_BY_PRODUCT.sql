@@ -269,5 +269,5 @@ FROM   (SELECT t1.contract_ref_no,
 			t1.created_date) t2
 WHERE  t2.order_seq < 6
 ORDER  BY t2.corporate_id,
-	    t2.product_id
+	    t2.product_id;
 
