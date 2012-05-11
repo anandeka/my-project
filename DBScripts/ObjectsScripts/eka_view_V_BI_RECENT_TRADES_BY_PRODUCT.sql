@@ -5,7 +5,7 @@ SELECT t2.corporate_id,
 	 t2.product_name,
 	 t2.contract_ref_no,
 	 t2.trade_type,
-	 to_date(t2.issue_date, 'dd-Mon-yyyy') issue_date,
+	 to_date(t2.issue_date, 'dd-Mon-RRRR') issue_date,
 	 t2.item_qty position_quantity,
 	 t2.base_quantity_unit qty_unit_id,
 	 t2.qty_unit base_qty_unit
@@ -100,7 +100,7 @@ FROM   (SELECT t1.contract_ref_no,
 		    AND    pcpd.product_id = pdm.product_id
 		    AND    cqs.item_qty_unit_id = ucm.from_qty_unit_id
 		    AND    pdm.base_quantity_unit = ucm.to_qty_unit_id
-		    AND    pcm.contract_type = 'BASEMETAL' --Bug 63238 fix
+		    --AND    pcm.contract_type = 'BASEMETAL' --Bug 63238 fix-11-May-2012 commented
 		    AND    pcm.contract_status IN ('In Position', 'Pending Approval')
 		    AND    pci.is_active = 'Y'
 		    AND    pdm.base_quantity_unit = qum.qty_unit_id
@@ -269,5 +269,5 @@ FROM   (SELECT t1.contract_ref_no,
 			t1.created_date) t2
 WHERE  t2.order_seq < 6
 ORDER  BY t2.corporate_id,
-	    t2.product_id;
+	    t2.product_id
 
