@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0741
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam
+ 
+Created on*        		:  14-May-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistic 
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 94222
+Author: uttam
+Date: 9:53:59 AM, Monday, May 14, 2012
+Message:
+physical attribute in GMR 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_255.sql
+
+
