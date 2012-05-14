@@ -1,0 +1,84 @@
+Patch No*          		:  EKA_METALS_PATCH_0742
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok Kumar
+ 
+Created on*        		:  14-May-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports 
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 94202
+Author: ashokkumar.l
+Date: 7:31:05 PM, Friday, May 11, 2012
+Message:
+Updating Logistic O/D as Per the lastest FS.(For AWB Sales)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_291.sql
+
+Revision: 94198
+Author: ashokkumar.l
+Date: 7:20:38 PM, Friday, May 11, 2012
+Message:
+Updating Logistic O/D as Per the lastest FS.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AirWayAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AirWayDetails.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ShipmentAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ShipmentDetail.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TrainAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TrainDetails.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TruckAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TruckDetail.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighNote_Purchase.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighNote_Sales.rpt
+
+Revision: 94200
+Author: ashokkumar.l
+Date: 7:25:08 PM, Friday, May 11, 2012
+Message:
+Updating Logistic O/D as Per the lastest FS.
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AirWayAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ShipmentAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TrainAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TrainDetails.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TruckAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TruckDetail.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighNote_Purchase.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighNote_Sales.rpt
+
+Revision: 94227
+Author: ashokkumar.l
+Date: 11:21:59 AM, Monday, May 14, 2012
+Message:
+Updating Logistic O/D as Per the lastest FS.(For AWB Sales)
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AirWayDetails.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ShipmentDetail.rpt
