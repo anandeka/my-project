@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0743
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  14-May-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  65036,65038,65051,65067
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports 
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 94260
+Author: suresh.gottipati
+Date: 5:48:26 PM, Monday, May 14, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractedVsDeliveredReport.rpt
+
+Revision: 94261
+Author: suresh.gottipati
+Date: 5:51:03 PM, Monday, May 14, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_report_general.sql
+
