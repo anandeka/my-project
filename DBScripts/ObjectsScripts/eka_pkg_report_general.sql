@@ -43,7 +43,7 @@ create or replace package "PKG_REPORT_GENERAL" is
                                          pc_qty_unit_id     varchar2)
     return number;
 
-end;
+end; 
 /
 create or replace package body "PKG_REPORT_GENERAL" is
   function fn_get_item_dry_qty(pc_internal_cont_item_ref_no varchar2,
@@ -709,7 +709,7 @@ create or replace package body "PKG_REPORT_GENERAL" is
       end if;
       vn_deduct_total_qty := vn_deduct_total_qty + vn_deduct_qty;
     end loop;
-    return(vn_item_qty - vn_deduct_total_qty);
+    return(pn_qty - vn_deduct_total_qty);
   end;
 
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -880,5 +880,5 @@ create or replace package body "PKG_REPORT_GENERAL" is
     end loop;
     return(vn_ele_qty);
   end;
-end;
+end; 
 /
