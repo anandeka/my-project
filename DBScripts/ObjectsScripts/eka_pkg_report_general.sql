@@ -794,7 +794,6 @@ create or replace package body "PKG_REPORT_GENERAL" is
              aml.underlying_product_id,
              asm.asm_id,
              asm.dry_weight,
-             pci.internal_contract_item_ref_no,
              pcpd.product_id,
              pcpq.unit_of_measure contract_unit_of_measure
         from ash_assay_header            ash,
@@ -802,8 +801,6 @@ create or replace package body "PKG_REPORT_GENERAL" is
              aml_attribute_master_list   aml,
              pqca_pq_chemical_attributes pqca,
              rm_ratio_master             rm,
-             pcdi_pc_delivery_item       pcdi,
-             pci_physical_contract_item  pci,
              pcpd_pc_product_definition  pcpd,
              pcpq_pc_product_quality     pcpq
        where ash.ash_id = pc_assay_header_id
@@ -812,9 +809,7 @@ create or replace package body "PKG_REPORT_GENERAL" is
          and pqca.unit_of_measure = rm.ratio_id
          and pqca.element_id = aml.attribute_id
          and pqca.element_id = pc_element_id
-         and ash.internal_contract_ref_no = pcdi.internal_contract_ref_no
-         and pcdi.pcdi_id = pci.pcdi_id
-         and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and ash.internal_contract_ref_no=pcpd.internal_contract_ref_no
          and pcpd.pcpd_id = pcpq.pcpd_id
          and pcpd.input_output = 'Input'
          and ash.is_active = 'Y'
@@ -822,8 +817,6 @@ create or replace package body "PKG_REPORT_GENERAL" is
          and pqca.is_active = 'Y'
          and aml.is_active = 'Y'
          and rm.is_active = 'Y'
-         and pcdi.is_active = 'Y'
-         and pci.is_active = 'Y'
          and pcpd.is_active = 'Y'
          and pcpq.is_active = 'Y';
   
@@ -833,20 +826,11 @@ create or replace package body "PKG_REPORT_GENERAL" is
     vc_element_qty_unit_id varchar2(15);
     vn_deduct_qty          number;
     vn_item_qty            number;
-    --pc_ele_qty_string      varchar2(100);
     vn_ele_assay_value number :=0;   
   begin
     for cur_element_rows in cur_element
     loop
-      vn_deduct_qty := 0;
-      /*if cur_element_rows.contract_unit_of_measure = 'Wet' then
-       vn_item_qty:=fn_get_assay_dry_qty(cur_element_rows.product_id,
-                                        cur_element_rows.ash_id, 
-                                        pn_qty,
-                                        pc_qty_unit_id);  
-      else
-        vn_item_qty := pn_qty;
-      end if;*/
+      vn_deduct_qty := 0;      
       vn_item_qty := nvl(cur_element_rows.dry_weight,pn_qty);
       if cur_element_rows.ratio_name = '%' then
         vn_element_qty := vn_item_qty * (cur_element_rows.typical / 100);
