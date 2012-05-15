@@ -793,6 +793,7 @@ create or replace package body "PKG_REPORT_GENERAL" is
              aml.attribute_desc,
              aml.underlying_product_id,
              asm.asm_id,
+             asm.dry_weight,
              pci.internal_contract_item_ref_no,
              pcpd.product_id,
              pcpq.unit_of_measure contract_unit_of_measure
@@ -833,7 +834,7 @@ create or replace package body "PKG_REPORT_GENERAL" is
     vn_deduct_qty          number;
     vn_item_qty            number;
     --pc_ele_qty_string      varchar2(100);
-    vn_ele_qty number;
+    vn_ele_assay_value number :=0;   
   begin
     for cur_element_rows in cur_element
     loop
@@ -846,7 +847,7 @@ create or replace package body "PKG_REPORT_GENERAL" is
       else
         vn_item_qty := pn_qty;
       end if;*/
-      vn_item_qty := pn_qty;
+      vn_item_qty := nvl(cur_element_rows.dry_weight,pn_qty);
       if cur_element_rows.ratio_name = '%' then
         vn_element_qty := vn_item_qty * (cur_element_rows.typical / 100);
         begin
@@ -875,10 +876,10 @@ create or replace package body "PKG_REPORT_GENERAL" is
             vc_element_qty_unit := null;
         end;
         vc_element_qty_unit_id := cur_element_rows.qty_unit_id_numerator;
-      end if;
-      vn_ele_qty := vn_element_qty;
+      end if;     
+      vn_ele_assay_value :=vn_ele_assay_value+vn_element_qty;     
     end loop;
-    return(vn_ele_qty);
+    return(vn_ele_assay_value);
   end;
 end; 
 /

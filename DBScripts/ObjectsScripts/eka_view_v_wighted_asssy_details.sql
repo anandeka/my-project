@@ -11,7 +11,7 @@ select ash.internal_grd_ref_no,
        rm.ratio_name,
        pqca.is_deductible,
        pqca.is_elem_for_pricing,
-       round(sum(asm.net_weight * pqca.typical) / sum(asm.net_weight), 3) avg_typical
+       sum(asm.dry_weight * pqca.typical) / sum(asm.dry_weight) avg_typical
   from ash_assay_header            ash,
        asm_assay_sublot_mapping    asm,
        pqca_pq_chemical_attributes pqca,
