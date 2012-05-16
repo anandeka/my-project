@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0747
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  16-May-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  WNS 
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 94428
+Author: anupkumar.agarwal
+Date: 6:20:06 PM, Wednesday, May 16, 2012
+Message:
+Added New Column For Sub-lot As sub-lot case 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_256.sql
+
