@@ -1,4 +1,4 @@
-create or replace package pkg_price is
+CREATE OR REPLACE PACKAGE "PKG_PRICE" is
 
   -- Author  : JANARDHANA
   -- Created : 12/8/2011 2:34:26 PM
@@ -37,7 +37,7 @@ create or replace package pkg_price is
 
 end;
 /
-create or replace package body pkg_price is
+CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
 
   procedure sp_calc_contract_price(pc_int_contract_item_ref_no varchar2,
                                    pd_trade_date               date,
@@ -2881,7 +2881,7 @@ create or replace package body pkg_price is
                         grd.product_id) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
-             v_gmr_stockpayable_qty spq,
+             V_GMR_PAYABLE_QTY spq,
              (select qat.internal_gmr_ref_no,
                      qat.instrument_id,
                      qat.element_id,
@@ -2958,7 +2958,7 @@ create or replace package body pkg_price is
                         grd.product_id) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
-             v_gmr_stockpayable_qty spq,
+             V_GMR_PAYABLE_QTY spq,
              (select qat.internal_gmr_ref_no,
                      qat.instrument_id,
                      qat.element_id,
@@ -3464,8 +3464,13 @@ create or replace package body pkg_price is
           end if;
         end if;
       end loop;
-      vn_average_price := round(vn_total_contract_value / vn_total_quantity,
+      DBMS_OUTPUT.put_line('cur_gmr_rows.payable_qty '||cur_gmr_rows.payable_qty || ' cont value ' || vn_total_contract_value ||' qty '|| vn_total_quantity);
+    IF vn_total_quantity=0 THEN
+      vn_average_price := 0;
+     ELSE
+     vn_average_price := round(vn_total_contract_value / vn_total_quantity,
                                 3);
+     END IF;
     end loop;
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_ppu_price_unit_id;
