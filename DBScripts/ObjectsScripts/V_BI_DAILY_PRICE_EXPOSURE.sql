@@ -739,7 +739,7 @@ with main_q as (
                                                     1) qty,
                'N' font_bold,
                nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_qty_unit_id,
-               qum_pdm.qty_unit_id base_qty_unit
+               /*qum_pdm.qty_unit_id*/qum_pdm.qty_unit base_qty_unit--fix 18-May-2012
           from pcm_physical_contract_main pcm,
                gmr_goods_movement_record gmr,
                ak_corporate ak,
@@ -839,7 +839,7 @@ with main_q as (
                   pofh.qty_to_be_fixed,
                   nvl(pdm_under.product_id, pdm.product_id),
                   qum.qty_unit_id,
-                  qum_pdm.qty_unit_id,
+                  /*qum_pdm.qty_unit_id*/qum_pdm.qty_unit,--Fix 18-May-2012
                   nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit)
         union all
         select akc.corporate_id,
