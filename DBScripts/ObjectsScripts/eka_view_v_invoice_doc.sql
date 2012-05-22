@@ -1,4 +1,4 @@
-create or replace view v_invoice_doc as
+--create or replace view v_invoice_doc as
 select        'Invoice' section_name,
               'Invoice' sub_section,
                rownum record_no,
@@ -655,20 +655,20 @@ select 'Invoice' section_name,
        null element_price_unit,
        null total_quantity,
        null gmr_qty_unit,
-       null internal_doc_ref_no1,
-       null benificiary_name_c1,
-       null bank_name_c1,
-       null account_no_c1,
-       null iban_c1,
-       null aba_rtn_c1,
-       null instruction_c1,
-       null internal_doc_ref_no2,
-       null benificiary_name_c2,
-       null bank_name_c2,
-       null account_no_c2,
-       null iban_c2,
-       null aba_rtn_c2,
-       null instruction_c2,
+       isp_c1.internal_doc_ref_no internal_doc_ref_no1,
+       isp_c1.beneficiary_name benificiary_name_c1,
+       isp_c1.bank_name bank_name_c1,
+       isp_c1.account_no account_no_c1,
+       isp_c1.iban iban_c1,
+       isp_c1.aba_rtn aba_rtn_c1,
+       isp_c1.instruction instruction_c1,
+       isp_c2.internal_doc_ref_no internal_doc_ref_no2,
+       isp_c2.beneficiary_name benificiary_name_c2,
+       isp_c2.bank_name bank_name_c2,
+       isp_c2.account_no account_no_c2,
+       isp_c2.iban iban_c2,
+       isp_c2.aba_rtn aba_rtn_c2,
+       isp_c2.instruction instruction_c2,
        null internal_doc_ref_no3,
        null stock_ref_no1,
        null stock_gmr_ref_no,
@@ -745,6 +745,8 @@ select 'Invoice' section_name,
   from is_d isd,
        ds_document_summary ds,
        v_ak_corporate akc,
+       is_bdp_child_d isp_c1,
+       is_bds_child_d isp_c2,
        (select isp.internal_doc_ref_no,
                isp.element_id pen_element_id,
                isp.element_name,
@@ -766,6 +768,8 @@ select 'Invoice' section_name,
                  where vat.is_separate_invoice = 'N')vat
  where isd.internal_doc_ref_no = ds.internal_doc_ref_no(+)
    and ds.corporate_id = akc.corporate_id(+)
+   and isd.internal_doc_ref_no = isp_c1.internal_doc_ref_no(+)
+   and isd.internal_doc_ref_no = isp_c2.internal_doc_ref_no(+)
    and isd.internal_doc_ref_no = isp.internal_doc_ref_no(+)
    and isd.internal_invoice_ref_no = vat.internal_invoice_ref_no(+)
 union all
