@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0754
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek
+ 
+Created on*        		:  21-May-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 94750
+Author: abhishek.vijay
+Date: 11:16:07 AM, Tuesday, May 22, 2012
+Message:
+change in POFH and create new table POFHL
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_POFHL.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_258.sql
+
