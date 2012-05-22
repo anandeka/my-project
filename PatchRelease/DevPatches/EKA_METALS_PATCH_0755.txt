@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0755
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  22-May-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 94804
+Author: elaiyaraja.nallathambi
+Date: 6:21:39 PM, Tuesday, May 22, 2012
+Message:
+"Price Fixation Summary" Section Added for "FI & DFI" Document.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+
+Revision: 94805
+Author: elaiyaraja.nallathambi
+Date: 6:22:21 PM, Tuesday, May 22, 2012
+Message:
+"Price Fixation Summary" Section Added for "FI & DFI" Document.
+----
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+
+Revision: 94806
+Author: elaiyaraja.nallathambi
+Date: 6:22:55 PM, Tuesday, May 22, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
+
+
