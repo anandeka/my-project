@@ -3233,6 +3233,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     for cur_gmr_rows in cur_gmr
     loop
       vn_total_contract_value := 0;
+      vc_exch_rate_string:=null;
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
                                           cur_gmr_rows.element_id)
       loop
@@ -4232,6 +4233,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     loop
       vc_pcdi_id    := cur_pcdi_rows.pcdi_id;
       vc_element_id := cur_pcdi_rows.element_id;
+      vc_exch_rate_string:=null;
       begin
         select dipq.price_option_call_off_status
           into vc_price_option_call_off_sts
