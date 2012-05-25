@@ -45,6 +45,8 @@ select t.corporate_id,
            and pcpd.is_active = 'Y'
            and diqs.is_active = 'Y'
            and qum.is_active = 'Y'
+           and pcdi.quality_declaration_date <= sysdate--added for 65307
            and pcdi.is_phy_optionality_present = 'Y'
            and nvl(diqs.total_qty, 0) - nvl(diqs.called_off_qty, 0) > 0
-           and pcm.contract_status <> 'Cancelled') t;
+           and pcm.contract_status <> 'Cancelled') t
+
