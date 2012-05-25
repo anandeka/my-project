@@ -1,7 +1,45 @@
-Insert into SLS_STATIC_LIST_SETUP
-   (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
  Values
-   ('invoicableItemSearch', 'contractRefNo', 'N', 1);
+   ('gmrRefNo', 'GMR Ref. No.');
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('deliveryRefNo', 'Delivery Item Ref. No.');
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('conItemRefNo', 'Contract Item Ref. No.');
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('activityRefNo', 'Activity Ref. No.');
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('CancelInvoice', 'Cancel Invoice');
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('AdvancePaymentDebitCredit', 'Advance Payment Debit Credit Note');
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('Output Charge Invoice', 'Receive Material Invoice');
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('Commercial Fee', 'Commercial Fee Invoice');
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('isFreeMetal', 'Free Metal Invoice');
+Insert into SLV_STATIC_LIST_VALUE
+   (VALUE_ID, VALUE_TEXT)
+ Values
+   ('isPledge', 'Pledge Invoice');
+
+
 Insert into SLS_STATIC_LIST_SETUP
    (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
  Values
@@ -50,50 +88,7 @@ Insert into SLS_STATIC_LIST_SETUP
 
 
 
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('contractRefNo', 'Contract Ref. No.');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('gmrRefNo', 'GMR Ref. No.');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('deliveryRefNo', 'Delivery Item Ref. No.');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('conItemRefNo', 'Contract Item Ref. No.');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('activityRefNo', 'Activity Ref. No.');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('CancelInvoice', 'Cancel Invoice');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('AdvancePaymentDebitCredit', 'Advance Payment Debit Credit Note');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('Output Charge Invoice', 'Receive Material Invoice');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('Commercial Fee', 'Commercial Fee Invoice');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('invoiceSubType', 'Free Metal Invoice');
-Insert into SLV_STATIC_LIST_VALUE
-   (VALUE_ID, VALUE_TEXT)
- Values
-   ('isPledge', 'Pledge Invoice');
+
 
 
 
