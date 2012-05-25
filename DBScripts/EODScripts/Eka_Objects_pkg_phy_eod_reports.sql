@@ -8642,7 +8642,7 @@ insert into pcs_purchase_contract_status
                  and gmr.corporate_id = akc.corporate_id
                  and gmr.process_id = pc_process_id
                  and grd.process_id = pc_process_id
-                 and agmr.eff_date < pd_trade_date
+                 and agmr.eff_date <= pd_trade_date
                  and grd.tolling_stock_type = 'MFT In Process Stock'
                group by aml.underlying_product_id,
                         pdm.product_desc,
@@ -8726,7 +8726,7 @@ insert into pcs_purchase_contract_status
                  and grd.warehouse_profile_id = phd.profileid
                  and gmr.process_id = pc_process_id
                  and grd.process_id = pc_process_id
-                 and agmr.eff_date < pd_trade_date
+                 and agmr.eff_date <= pd_trade_date
                  and gmr.corporate_id = akc.corporate_id
                  and grd.tolling_stock_type = 'RM In Process Stock'
                group by aml.underlying_product_id,
