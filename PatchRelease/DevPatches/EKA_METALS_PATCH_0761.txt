@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0761
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Ashok Kumar
+ 
+Created on*        		:  28-May-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  65198,65268,65302,65307
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Dash Board
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95005
+Author: ashokkumar.l
+Date: 2:42:42 PM, Friday, May 25, 2012
+Message:
+Bug Fixes 65198,65268,65302,65307
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PHYSICAL_CALL_OFF_DUE.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_gmr_stock_details.sql
+
+
+
+
