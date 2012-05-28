@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_0762
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  28-May-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  61247
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95090
+Author: elaiyaraja.nallathambi
+Date: 6:39:48 PM, Monday, May 28, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+
+Revision: 95091
+Author: elaiyaraja.nallathambi
+Date: 6:43:23 PM, Monday, May 28, 2012
+Message:
+Bug ID: 61247
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exp_conc.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql
+
+
+
+
+
