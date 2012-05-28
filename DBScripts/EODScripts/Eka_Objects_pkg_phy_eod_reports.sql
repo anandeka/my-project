@@ -1503,7 +1503,7 @@ create or replace package body pkg_phy_eod_reports is
              akc.corporate_name,
              pcpd.product_id conc_product_id,
              pdm_conc.product_desc conc_product_name,
-             pcpq.quality_template_id conc_quality_id,
+             grd.quality_id conc_quality_id,
              qat.quality_name conc_quality_name,
              pcpd.profit_center_id profit_center,
              cpc.profit_center_name,
@@ -1529,7 +1529,6 @@ create or replace package body pkg_phy_eod_reports is
              pcpd_pc_product_definition     pcpd,
              pdm_productmaster              pdm_conc,
              qum_quantity_unit_master       qum_pdm_conc,
-             pcpq_pc_product_quality        pcpq,
              qat_quality_attributes         qat,
              cpc_corporate_profit_center    cpc,
              sac_stock_assay_content        sac,
@@ -1543,20 +1542,19 @@ create or replace package body pkg_phy_eod_reports is
        where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
          and grd.internal_grd_ref_no = spq.internal_grd_ref_no
          and spq.is_stock_split = 'N'
+         and grd.status='Active'
          and gmr.corporate_id = akc.corporate_id
          and akc.base_cur_id = cm.cur_id
          and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
          and pcpd.product_id = pdm_conc.product_id
-         and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
-         and pcpd.pcpd_id = pcpq.pcpd_id
-         and pcpq.quality_template_id = qat.quality_id(+)
+         and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit   
+        and grd.quality_id=qat.quality_id(+)
          and pcpd.profit_center_id = cpc.profit_center_id
          and grd.internal_grd_ref_no = sac.internal_grd_ref_no
          and spq.element_id = aml.attribute_id
          and spq.element_id = sac.element_id
          and gmr.process_id = pc_process_id
-         and grd.process_id = pc_process_id
-         and pcpq.process_id = pc_process_id
+         and grd.process_id = pc_process_id      
          and pcpd.input_output = 'Input'
          and pcpd.process_id = pc_process_id
          and gmr.corporate_id = pc_corporate_id
@@ -1569,8 +1567,7 @@ create or replace package body pkg_phy_eod_reports is
          and pcm.invoice_currency_id = cm_pay.cur_id
          and gmr.is_deleted = 'N'
          and gmr.is_internal_movement = 'N'
-         and pcpd.is_active = 'Y'
-         and pcpq.is_active = 'Y'
+         and pcpd.is_active = 'Y'   
          and pcm.is_active = 'Y'
          and spq.process_id = pc_process_id
          and pcpch.process_id = pc_process_id
@@ -1593,7 +1590,7 @@ create or replace package body pkg_phy_eod_reports is
              akc.corporate_name,
              pcpd.product_id conc_product_id,
              pdm_conc.product_desc conc_product_name,
-             pcpq.quality_template_id conc_quality_id,
+             grd.quality_id conc_quality_id,
              qat.quality_name conc_quality_name,
              pcpd.profit_center_id profit_center,
              cpc.profit_center_name,
@@ -1618,7 +1615,6 @@ create or replace package body pkg_phy_eod_reports is
              pcpd_pc_product_definition  pcpd,
              pdm_productmaster           pdm_conc,
              qum_quantity_unit_master    qum_pdm_conc,
-             pcpq_pc_product_quality     pcpq,
              qat_quality_attributes      qat,
              cpc_corporate_profit_center cpc,
              sac_stock_assay_content     sac,
@@ -1634,8 +1630,8 @@ create or replace package body pkg_phy_eod_reports is
          and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
          and pcpd.product_id = pdm_conc.product_id
          and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
-         and pcpd.pcpd_id = pcpq.pcpd_id
-         and pcpq.quality_template_id = qat.quality_id(+)
+         and grd.status='Active'
+         and grd.quality_id=qat.quality_id(+)
          and pcpd.profit_center_id = cpc.profit_center_id
          and grd.internal_grd_ref_no = sac.internal_grd_ref_no
          and sac.element_id = aml.attribute_id
@@ -1647,14 +1643,12 @@ create or replace package body pkg_phy_eod_reports is
          and pcm.process_id = pc_process_id
          and gmr.process_id = pc_process_id
          and grd.process_id = pc_process_id
-         and pcpq.process_id = pc_process_id
          and pcpd.input_output = 'Input'
          and pcpd.process_id = pc_process_id
          and gmr.corporate_id = pc_corporate_id
          and gmr.is_deleted = 'N'
          and gmr.is_internal_movement = 'N'
          and pcpd.is_active = 'Y'
-         and pcpq.is_active = 'Y'
          and pcm.is_active = 'Y'
          and aml.is_active = 'Y'
          and pci.internal_contract_item_ref_no =
@@ -1726,6 +1720,7 @@ create or replace package body pkg_phy_eod_reports is
               from cgcp_conc_gmr_cog_price cgcp
              where cgcp.internal_gmr_ref_no =
                    cur_pur_accural_rows.internal_gmr_ref_no
+               and cgcp.internal_grd_ref_no=cur_pur_accural_rows.internal_grd_ref_no   
                and cgcp.process_id = pc_process_id
                and cgcp.element_id = cur_pur_accural_rows.element_id;
           exception
@@ -3564,7 +3559,7 @@ insert into isr_intrastat_grd
          pdm.product_desc,
          pcm.cp_id,
          phd.companyname supplier,
-         pcpq.quality_template_id,
+         grd.quality_id,
          qat.quality_name,
          grd.qty,
          grd.qty_unit_id,
@@ -3685,7 +3680,6 @@ insert into isr_intrastat_grd
          grd_goods_record_detail grd,
          pcpd_pc_product_definition pcpd,
          pdm_productmaster pdm,
-         pcpq_pc_product_quality pcpq,
          qat_quality_attributes qat,
          phd_profileheaderdetails phd,
          cym_countrymaster cym_load,
@@ -3779,9 +3773,8 @@ insert into isr_intrastat_grd
      and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
      and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
      and pcpd.input_output = 'Input'
-     and pcpd.product_id = pdm.product_id
-     and pcpd.pcpd_id = pcpq.pcpd_id
-     and pcpq.quality_template_id = qat.quality_id
+     and pcpd.product_id = pdm.product_id 
+     and grd.quality_id=qat.quality_id
      and pcm.cp_id = phd.profileid
      and phd.profileid = bvd.profile_id(+)
      and gmr.loading_country_id = cym_load.country_id(+)
@@ -3812,16 +3805,14 @@ insert into isr_intrastat_grd
      and pcm.is_active = 'Y'
      and pcdi.is_active = 'Y'
      and pci.is_active = 'Y'
-     and pcpd.is_active = 'Y'
-     and pcpq.is_active = 'Y'
+     and pcpd.is_active = 'Y'  
      and pdm.is_active = 'Y'
      and qat.is_active = 'Y'
      and pcm.process_id = pc_process_id
      and pci.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
      and gmr.process_id = pc_process_id
-     and pcpd.process_id = pc_process_id
-     and pcpq.process_id = pc_process_id
+     and pcpd.process_id = pc_process_id   
      and grd.process_id = pc_process_id
      and bccp.process_id = pc_process_id
      and bccp.pcdi_id = pcdi.pcdi_id
@@ -3847,8 +3838,8 @@ insert into isr_intrastat_grd
          pcpd.product_id,
          pdm.product_desc,
          pcm.cp_id,
-         phd.companyname supplier,
-         pcpq.quality_template_id,
+         phd.companyname supplier,       
+         grd.quality_id,
          qat.quality_name,
          grd.qty,
          grd.qty_unit_id,
@@ -3969,7 +3960,6 @@ insert into isr_intrastat_grd
          grd_goods_record_detail grd,
          pcpd_pc_product_definition pcpd,
          pdm_productmaster pdm,
-         pcpq_pc_product_quality pcpq,
          qat_quality_attributes qat,
          phd_profileheaderdetails phd,
          cym_countrymaster cym_load,
@@ -4064,8 +4054,7 @@ insert into isr_intrastat_grd
      and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
      and pcpd.input_output = 'Input'
      and pcpd.product_id = pdm.product_id
-     and pcpd.pcpd_id = pcpq.pcpd_id
-     and pcpq.quality_template_id = qat.quality_id
+     and grd.quality_id=qat.quality_id
      and pcm.cp_id = phd.profileid
      and phd.profileid = bvd.profile_id(+)
      and gmr.loading_country_id = cym_load.country_id(+)
@@ -4096,19 +4085,18 @@ insert into isr_intrastat_grd
      and pcm.is_active = 'Y'
      and pcdi.is_active = 'Y'
      and pci.is_active = 'Y'
-     and pcpd.is_active = 'Y'
-     and pcpq.is_active = 'Y'
+     and pcpd.is_active = 'Y'    
      and pdm.is_active = 'Y'
      and qat.is_active = 'Y'
      and pcm.process_id = pc_process_id
      and pci.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
      and gmr.process_id = pc_process_id
-     and pcpd.process_id = pc_process_id
-     and pcpq.process_id = pc_process_id
+     and pcpd.process_id = pc_process_id   
      and grd.process_id = pc_process_id
      and bgcp.process_id = pc_process_id
      and bgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+     and bgcp.internal_grd_ref_no=grd.internal_grd_ref_no
      and ppu.product_id = grd.product_id
      and ppu.cur_id = ak.base_cur_id
      and ppu.weight_unit_id = pdm.base_quantity_unit
@@ -4127,7 +4115,7 @@ insert into isr_intrastat_grd
          product_desc,
          cp_id,
          supplier,
-         quality_template_id,
+         quality_id,
          quality_name,
          qty,
          qty_unit_id,
@@ -4189,7 +4177,7 @@ insert into isr_intrastat_grd
                  pdm.product_desc,
                  pcm.cp_id,
                  phd.companyname supplier,
-                 pcpq.quality_template_id,
+                 grd.quality_id,
                  qat.quality_name,
                  (case
                    when pcpd.unit_of_measure = 'Wet' then
@@ -4302,7 +4290,6 @@ insert into isr_intrastat_grd
                  grd_goods_record_detail grd,
                  pcpd_pc_product_definition pcpd,
                  pdm_productmaster pdm,
-                 pcpq_pc_product_quality pcpq,
                  qat_quality_attributes qat,
                  phd_profileheaderdetails phd,
                  cym_countrymaster cym_load,
@@ -4408,8 +4395,7 @@ insert into isr_intrastat_grd
                  pcpd.internal_contract_ref_no
              and pcpd.input_output = 'Input'
              and pcpd.product_id = pdm.product_id
-             and pcpd.pcpd_id = pcpq.pcpd_id
-             and pcpq.quality_template_id = qat.quality_id
+             and  grd.quality_id=qat.quality_id
              and pcm.cp_id = phd.profileid
              and phd.profileid = bvd.profile_id(+)
              and gmr.loading_country_id = cym_load.country_id(+)
@@ -4443,16 +4429,14 @@ insert into isr_intrastat_grd
              and pcm.is_active = 'Y'
              and pcdi.is_active = 'Y'
              and pci.is_active = 'Y'
-             and pcpd.is_active = 'Y'
-             and pcpq.is_active = 'Y'
+             and pcpd.is_active = 'Y'           
              and pdm.is_active = 'Y'
              and qat.is_active = 'Y'
              and pcm.process_id = pc_process_id
              and pci.process_id = pc_process_id
              and pcdi.process_id = pc_process_id
              and gmr.process_id = pc_process_id
-             and pcpd.process_id = pc_process_id
-             and pcpq.process_id = pc_process_id
+             and pcpd.process_id = pc_process_id           
              and grd.process_id = pc_process_id
              and ppu.product_id = aml.underlying_product_id
              and ppu.cur_id = ak.base_cur_id
@@ -4484,7 +4468,7 @@ insert into isr_intrastat_grd
                  pdm.product_desc,
                  pcm.cp_id,
                  phd.companyname supplier,
-                 pcpq.quality_template_id,
+                 grd.quality_id,
                  qat.quality_name,
                  (case
                    when pcpd.unit_of_measure = 'Wet' then
@@ -4597,7 +4581,6 @@ insert into isr_intrastat_grd
                  grd_goods_record_detail grd,
                  pcpd_pc_product_definition pcpd,
                  pdm_productmaster pdm,
-                 pcpq_pc_product_quality pcpq,
                  qat_quality_attributes qat,
                  phd_profileheaderdetails phd,
                  cym_countrymaster cym_load,
@@ -4700,9 +4683,8 @@ insert into isr_intrastat_grd
              and pcm.internal_contract_ref_no =
                  pcpd.internal_contract_ref_no
              and pcpd.input_output = 'Input'
-             and pcpd.product_id = pdm.product_id
-             and pcpd.pcpd_id = pcpq.pcpd_id
-             and pcpq.quality_template_id = qat.quality_id
+             and pcpd.product_id = pdm.product_id          
+             and grd.quality_id=qat.quality_id
              and pcm.cp_id = phd.profileid
              and phd.profileid = bvd.profile_id(+)
              and gmr.loading_country_id = cym_load.country_id(+)
@@ -4736,16 +4718,14 @@ insert into isr_intrastat_grd
              and pcm.is_active = 'Y'
              and pcdi.is_active = 'Y'
              and pci.is_active = 'Y'
-             and pcpd.is_active = 'Y'
-             and pcpq.is_active = 'Y'
+             and pcpd.is_active = 'Y'           
              and pdm.is_active = 'Y'
              and qat.is_active = 'Y'
              and pcm.process_id = pc_process_id
              and pci.process_id = pc_process_id
              and pcdi.process_id = pc_process_id
              and gmr.process_id = pc_process_id
-             and pcpd.process_id = pc_process_id
-             and pcpq.process_id = pc_process_id
+             and pcpd.process_id = pc_process_id           
              and grd.process_id = pc_process_id
              and ppu.product_id =pdm_aml.product_id
              and ppu.cur_id = ak.base_cur_id
@@ -4758,6 +4738,7 @@ insert into isr_intrastat_grd
              and aml.underlying_product_id=pdm_aml.product_id
                 --  and grd.current_qty > 0
              and cgcp.process_id = pc_process_id
+             and cgcp.internal_grd_ref_no=grd.internal_grd_ref_no
              and cgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
              and cgcp.element_id = spq.element_id);
   
@@ -5763,7 +5744,7 @@ insert into pcs_purchase_contract_status
                 ytd.yield_pct,
                 ytd.current_qty,
                 ytd.qty_unit_id,
-                ytd.gmr_ref_no,               
+                ytd.gmr_ref_no,
                 ytd.ytd_year,
                 ytd.ytd_month,
                 ytd.ytd_group_column,
@@ -8010,6 +7991,7 @@ insert into pcs_purchase_contract_status
                  and gmr.is_deleted = 'N'
                  and bgcp.process_id = pc_process_id
                  and bgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                 and bgcp.internal_grd_ref_no=grd.internal_grd_ref_no-- added
                  and pcm.contract_type = 'BASEMETAL'
                  and pcm.purchase_sales = 'P'
                  and grd.product_id = pdm.product_id
@@ -8356,6 +8338,7 @@ insert into pcs_purchase_contract_status
                  and gmr.is_deleted = 'N'
                  and cgcp.process_id = pc_process_id
                  and cgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                 and cgcp.internal_grd_ref_no=grd.internal_grd_ref_no
                  and cgcp.element_id = spq.element_id
                  and pcm.contract_type = 'CONCENTRATES'
                  and pcm.purchase_sales = 'P'
