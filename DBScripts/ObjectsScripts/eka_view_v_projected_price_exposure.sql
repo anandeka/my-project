@@ -1,6 +1,5 @@
-create or replace view v_projected_price_exposure as
----for Base Metals
-   WITH pofh_header_data AS
+CREATE OR REPLACE VIEW V_PROJECTED_PRICE_EXPOSURE AS
+WITH pofh_header_data AS
         (SELECT *
            FROM pofh_price_opt_fixation_header pofh
           WHERE pofh.internal_gmr_ref_no IS NULL
@@ -12,7 +11,312 @@ create or replace view v_projected_price_exposure as
              FROM pfd_price_fixation_details pfd
             WHERE pfd.is_active = 'Y'
          GROUP BY pfd.pofh_id)
---Any Day Pricing Base Metal +Contract
+--Any Day Pricing Base Metal +Contract + Not Called Off + Excluding Event Based
+select ak.corporate_id,
+       ak.corporate_name,
+       'Any Day Pricing' section,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pcm.contract_type product_type,
+       (case
+         when pfqpp.qp_pricing_period_type = 'Month' then
+         to_date('01-'|| pfqpp.qp_month || ' - ' || pfqpp.qp_year)
+         when pfqpp.qp_pricing_period_type = 'Period' then
+          pfqpp.qp_period_from_date
+         when pfqpp.qp_pricing_period_type = 'Date' then
+          pfqpp.qp_date
+       end)   qp_start_date,
+       to_char((case
+         when pfqpp.qp_pricing_period_type = 'Month' then
+         last_day(to_date('01-'|| pfqpp.qp_month || ' - ' || pfqpp.qp_year))
+        when pfqpp.qp_pricing_period_type = 'Period' then
+          pfqpp.qp_period_to_date
+         when pfqpp.qp_pricing_period_type = 'Date' then
+          pfqpp.qp_date
+       end),'dd-Mon-yyyy')   qp_end_date,
+       ppfd.instrument_id,
+       0 pricing_days,
+       'Y' is_base_metal,
+       'N' is_concentrate,
+       ppfd.exchange_id,
+       ppfd.exchange_name exchange,
+       css.strategy_id,
+       css.strategy_name strategy,
+       decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales,
+       null element_id,
+       null element_name,
+       pcm.issue_date trade_date,
+       (case
+         when pfqpp.qp_pricing_period_type = 'Month' then
+          pfqpp.qp_month || ' - ' || pfqpp.qp_year
+         when pfqpp.qp_pricing_period_type = 'Period' then
+          to_char(pfqpp.qp_period_from_date, 'dd-Mon-yyyy') || ' to ' ||
+          to_char(pfqpp.qp_period_to_date, 'dd-Mon-yyyy')
+         when pfqpp.qp_pricing_period_type = 'Date' then
+          to_char(pfqpp.qp_date, 'dd-Mon-yyyy')
+       end) qp_options,
+       pcm.contract_ref_no,
+       pcm.contract_type,
+       pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+       null gmr_no,
+       (case
+          when pcdi.basis_type = 'Arrival' then
+           (case
+          when pcdi.delivery_period_type = 'Date' then
+           pcdi.delivery_to_date
+          else
+           last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                            pcdi.delivery_to_year,
+                            'dd-Mon-yyyy'))
+        end) else(case
+         when pcdi.delivery_period_type = 'Date' then
+          pcdi.delivery_to_date
+         else
+          last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                           pcdi.delivery_to_year,
+                           'dd-Mon-yyyy'))
+       end) + pcdi.transit_days end) expected_delivery,
+       qat.quality_name quality,
+       ppfh.formula_description formula,
+       vp.premium,
+       null price_unit_id,
+       null price_unit,
+       decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
+       (
+        nvl(diqs.open_qty,0) *
+        pkg_general.f_get_converted_quantity(pcpd.product_id,
+                                             qum.qty_unit_id,
+                                             pdm.base_quantity_unit,
+                                             1))
+                                              qty,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       qum.decimals qty_decimals,
+       null instrument,
+       null prompt_date,
+       null lots,
+       (case
+         when pcdi.is_price_optionality_present = 'Y' and
+              pcdi.price_option_call_off_status <> 'Called Off' then
+          'Y'
+         else
+          (case
+         when pcdi.price_option_call_off_status = 'Not Applicable' then
+          null
+         else
+          'N'
+       end) end) pending_calloff
+  from pcm_physical_contract_main pcm,
+       ak_corporate ak,
+       pcdi_pc_delivery_item pcdi,
+       diqs_delivery_item_qty_status diqs,
+       pcdiqd_di_quality_details pcdiqd,
+       pcpd_pc_product_definition pcpd,
+       pcpq_pc_product_quality pcpq,
+       css_corporate_strategy_setup css,
+       pdm_productmaster pdm,
+       qat_quality_attributes qat,
+       pcbph_pc_base_price_header pcbph,
+       pcbpd_pc_base_price_detail pcbpd,
+       ppfh_phy_price_formula_header ppfh,
+       (select ppfd.ppfh_id,
+               ppfd.instrument_id,
+               emt.exchange_id,
+               emt.exchange_name
+          from ppfd_phy_price_formula_details ppfd,
+               dim_der_instrument_master      dim,
+               pdd_product_derivative_def     pdd,
+               emt_exchangemaster             emt
+         where ppfd.is_active = 'Y'
+           and ppfd.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.exchange_id = emt.exchange_id
+         group by ppfd.ppfh_id,
+                  ppfd.instrument_id,
+                  emt.exchange_id,
+                  emt.exchange_name) ppfd,
+       cpc_corporate_profit_center cpc,
+       v_pci_multiple_premium vp,
+       pfqpp_phy_formula_qp_pricing pfqpp,
+       qum_quantity_unit_master qum
+ where ak.corporate_id = pcm.corporate_id
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   and pcpd.strategy_id = css.strategy_id
+   and pdm.product_id = pcpd.product_id
+   and pcpq.quality_template_id = qat.quality_id
+   and pcpq.pcpq_id = vp.pcpq_id(+)
+   and pcdi.pcdi_id = diqs.pcdi_id
+   and diqs.is_active = 'Y'
+   and qat.product_id = pdm.product_id
+   and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and pcbph.pcbph_id = pcbpd.pcbph_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and ppfh.ppfh_id = ppfd.ppfh_id
+   and pcpd.profit_center_id = cpc.profit_center_id
+   and ppfh.ppfh_id = pfqpp.ppfh_id
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and nvl(pfqpp.is_qp_any_day_basis, 'N') = 'Y'
+   and pcm.is_active = 'Y'
+   and pcm.contract_type = 'BASEMETAL'
+   and pcm.approval_status = 'Approved'
+   and pfqpp.qp_pricing_period_type <> 'Event'
+   and pcdi.price_option_call_off_status = 'Not Called Off'
+   and pcdi.is_active = 'Y'
+   and pdm.is_active = 'Y'
+   and qum.is_active = 'Y'
+   and qat.is_active = 'Y'
+   and ppfh.is_active = 'Y'
+union all
+--Any Day Pricing Base Metal +Contract + Not Called Off + Event Based
+select ak.corporate_id,
+       ak.corporate_name,
+       'Any Day Pricing' section,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pcm.contract_type product_type,
+       di.expected_qp_start_date qp_start_date,
+       to_char(di.expected_qp_end_date,'dd-Mon-yyyy') qp_end_date,
+       ppfd.instrument_id,
+       0 pricing_days,
+       'Y' is_base_metal,
+       'N' is_concentrate,
+       ppfd.exchange_id,
+       ppfd.exchange_name exchange,
+       css.strategy_id,
+       css.strategy_name strategy,
+       decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales,
+       null element_id,
+       null element_name,
+       pcm.issue_date trade_date,
+       pfqpp.no_of_event_months || ' ' || pfqpp.event_name qp_options,
+       pcm.contract_ref_no,
+       pcm.contract_type,
+       pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+       null gmr_no,
+       (case
+          when pcdi.basis_type = 'Arrival' then
+           (case
+          when pcdi.delivery_period_type = 'Date' then
+           pcdi.delivery_to_date
+          else
+           last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                            pcdi.delivery_to_year,
+                            'dd-Mon-yyyy'))
+        end) else(case
+         when pcdi.delivery_period_type = 'Date' then
+          pcdi.delivery_to_date
+         else
+          last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                           pcdi.delivery_to_year,
+                           'dd-Mon-yyyy'))
+       end) + pcdi.transit_days end) expected_delivery,
+       qat.quality_name quality,
+       ppfh.formula_description formula,
+       vp.premium,
+       null price_unit_id,
+       null price_unit,
+       decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
+       (
+        nvl(diqs.open_qty,0) *
+        pkg_general.f_get_converted_quantity(pcpd.product_id,
+                                             qum.qty_unit_id,
+                                             pdm.base_quantity_unit,
+                                             1))
+                                              qty,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       qum.decimals qty_decimals,
+       null instrument,
+       null prompt_date,
+       null lots,
+       (case
+         when pcdi.is_price_optionality_present = 'Y' and
+              pcdi.price_option_call_off_status <> 'Called Off' then
+          'Y'
+         else
+          (case
+         when pcdi.price_option_call_off_status = 'Not Applicable' then
+          null
+         else
+          'N'
+       end) end) pending_calloff
+  from pcm_physical_contract_main pcm,
+       ak_corporate ak,
+       pcdi_pc_delivery_item pcdi,
+       di_del_item_exp_qp_details di, -- Newly Added
+       diqs_delivery_item_qty_status diqs,
+       pcdiqd_di_quality_details pcdiqd,
+       pcpd_pc_product_definition pcpd,
+       pcpq_pc_product_quality pcpq,
+       css_corporate_strategy_setup css,
+       pdm_productmaster pdm,
+       qat_quality_attributes qat,
+       pcbph_pc_base_price_header pcbph,
+       pcbpd_pc_base_price_detail pcbpd,
+       ppfh_phy_price_formula_header ppfh,
+       (select ppfd.ppfh_id,
+               ppfd.instrument_id,
+               emt.exchange_id,
+               emt.exchange_name
+          from ppfd_phy_price_formula_details ppfd,
+               dim_der_instrument_master      dim,
+               pdd_product_derivative_def     pdd,
+               emt_exchangemaster             emt
+         where ppfd.is_active = 'Y'
+           and ppfd.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.exchange_id = emt.exchange_id
+         group by ppfd.ppfh_id,
+                  ppfd.instrument_id,
+                  emt.exchange_id,
+                  emt.exchange_name) ppfd,
+       cpc_corporate_profit_center cpc,
+       v_pci_multiple_premium vp,
+       pfqpp_phy_formula_qp_pricing pfqpp,
+       qum_quantity_unit_master qum
+ where ak.corporate_id = pcm.corporate_id
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.pcdi_id = di.pcdi_id -- Newly Added
+   and di.is_active = 'Y' -- Newly Added
+   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   and pcpd.strategy_id = css.strategy_id
+   and pdm.product_id = pcpd.product_id
+   and pcpq.quality_template_id = qat.quality_id
+   and pcpq.pcpq_id = vp.pcpq_id(+)
+   and pcdi.pcdi_id = diqs.pcdi_id
+   and diqs.is_active = 'Y'
+   and qat.product_id = pdm.product_id
+   and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and pcbph.pcbph_id = pcbpd.pcbph_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and ppfh.ppfh_id = ppfd.ppfh_id
+   and pcpd.profit_center_id = cpc.profit_center_id
+   and ppfh.ppfh_id = pfqpp.ppfh_id
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and nvl(pfqpp.is_qp_any_day_basis, 'N') = 'Y'
+   and pcm.is_active = 'Y'
+   and pcm.contract_type = 'BASEMETAL'
+   and pcm.approval_status = 'Approved'
+   and pfqpp.qp_pricing_period_type = 'Event'
+   and pcdi.price_option_call_off_status = 'Not Called Off'
+   and pcdi.is_active = 'Y'
+   and pdm.is_active = 'Y'
+   and qum.is_active = 'Y'
+   and qat.is_active = 'Y'
+   and ppfh.is_active = 'Y'
+union all
+--Any Day Pricing Base Metal +Contract + Called Off + Not Applicable
 select ak.corporate_id,
        ak.corporate_name,
        'Any Day Pricing' section,
@@ -72,7 +376,7 @@ select ak.corporate_id,
        vp.premium,
        null price_unit_id,
        null price_unit,
-       
+
        -----
        decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
        (((case
@@ -150,6 +454,7 @@ select ak.corporate_id,
    and pcpq.quality_template_id = qat.quality_id
    and pcpq.pcpq_id = vp.pcpq_id(+)
    and pcdi.pcdi_id = diqs.pcdi_id
+   and diqs.is_active = 'Y'
    and qat.product_id = pdm.product_id
    and pcdi.pcdi_id = poch.pcdi_id
    and pocd.poch_id = poch.poch_id
@@ -169,6 +474,7 @@ select ak.corporate_id,
    and pcm.is_active = 'Y'
    and pcm.contract_type = 'BASEMETAL'
    and pcm.approval_status = 'Approved'
+   and pcdi.price_option_call_off_status in ('Called Off','Not Applicable')
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
@@ -371,7 +677,311 @@ select ak.corporate_id,
           pcdi.price_option_call_off_status,
           qat.quality_name
 union all
---Average Pricing Base Metal+Contract
+--Average Pricing Base Metal+Contract + Not Called Off + Excluding Event Based
+select ak.corporate_id,
+       ak.corporate_name,
+       'Average Pricing' section,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pcm.contract_type product_type,
+      (case
+         when pfqpp.qp_pricing_period_type = 'Month' then
+         to_date('01-'|| pfqpp.qp_month || ' - ' || pfqpp.qp_year)
+         when pfqpp.qp_pricing_period_type = 'Period' then
+          pfqpp.qp_period_from_date
+         when pfqpp.qp_pricing_period_type = 'Date' then
+          pfqpp.qp_date
+       end)   qp_start_date,
+       to_char((case
+         when pfqpp.qp_pricing_period_type = 'Month' then
+         last_day(to_date('01-'|| pfqpp.qp_month || ' - ' || pfqpp.qp_year))
+         when pfqpp.qp_pricing_period_type = 'Period' then
+          pfqpp.qp_period_to_date
+         when pfqpp.qp_pricing_period_type = 'Date' then
+          pfqpp.qp_date
+       end),'dd-Mon-yyyy')   qp_end_date,
+       ppfd.instrument_id,
+       0 pricing_days,
+       'Y' is_base_metal,
+       'N' is_concentrate,
+       ppfd.exchange_id,
+       ppfd.exchange_name exchange,
+       css.strategy_id,
+       css.strategy_name strategy,
+       decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales,
+       null element_id,
+       null element_name,
+       null trade_date,
+       (case
+         when pfqpp.qp_pricing_period_type = 'Month' then
+          pfqpp.qp_month || ' - ' || pfqpp.qp_year
+         when pfqpp.qp_pricing_period_type = 'Period' then
+          to_char(pfqpp.qp_period_from_date, 'dd-Mon-yyyy') || ' to ' ||
+          to_char(pfqpp.qp_period_to_date, 'dd-Mon-yyyy')
+         when pfqpp.qp_pricing_period_type = 'Date' then
+          to_char(pfqpp.qp_date, 'dd-Mon-yyyy')
+       end) qp_options,
+       pcm.contract_ref_no,
+       pcm.contract_type,
+       pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+       null gmr_no,
+       (case
+          when pcdi.basis_type = 'Arrival' then
+           (case
+          when pcdi.delivery_period_type = 'Date' then
+           pcdi.delivery_to_date
+          else
+           last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                            pcdi.delivery_to_year,
+                            'dd-Mon-yyyy'))
+        end) else(case
+         when pcdi.delivery_period_type = 'Date' then
+          pcdi.delivery_to_date
+         else
+          last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                           pcdi.delivery_to_year,
+                           'dd-Mon-yyyy'))
+       end) + pcdi.transit_days end) expected_delivery,
+       qat.quality_name quality,
+       ppfh.formula_description formula,
+       vp.premium,
+       null price_unit_id,
+       null price_unit,
+       decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
+       nvl(diqs.open_qty,0) *
+       pkg_general.f_get_converted_quantity(pcpd.product_id,
+                                            qum.qty_unit_id,
+                                            pdm.base_quantity_unit,
+                                            1) qty,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       qum.decimals qty_decimals,
+       null instrument,
+       null prompt_date,
+       null lots,
+       (case
+         when pcdi.is_price_optionality_present = 'Y' and
+              pcdi.price_option_call_off_status <> 'Called Off' then
+          'Y'
+         else
+          (case
+         when pcdi.price_option_call_off_status = 'Not Applicable' then
+          null
+         else
+          'N'
+       end) end) pending_calloff
+
+  from pcm_physical_contract_main pcm,
+       pcdi_pc_delivery_item pcdi,
+       diqs_delivery_item_qty_status diqs,
+       pcdiqd_di_quality_details pcdiqd,
+       ak_corporate ak,
+       pcpd_pc_product_definition pcpd,
+       pdm_productmaster pdm,
+       css_corporate_strategy_setup css,
+       pcpq_pc_product_quality pcpq,
+       qat_quality_attributes qat,
+       pcbph_pc_base_price_header pcbph,
+       pcbpd_pc_base_price_detail pcbpd,
+       ppfh_phy_price_formula_header ppfh,
+       (select ppfd.ppfh_id,
+               ppfd.instrument_id,
+               emt.exchange_id,
+               emt.exchange_name
+          from ppfd_phy_price_formula_details ppfd,
+               dim_der_instrument_master      dim,
+               pdd_product_derivative_def     pdd,
+               emt_exchangemaster             emt
+         where ppfd.is_active = 'Y'
+           and ppfd.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.exchange_id = emt.exchange_id
+         group by ppfd.ppfh_id,
+                  ppfd.instrument_id,
+                  emt.exchange_id,
+                  emt.exchange_name) ppfd,
+       qum_quantity_unit_master qum,
+       cpc_corporate_profit_center cpc,
+       pfqpp_phy_formula_qp_pricing pfqpp,
+       v_pci_multiple_premium vp
+ where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.pcdi_id = diqs.pcdi_id
+   and diqs.is_active = 'Y'
+   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   and ak.corporate_id = pcm.corporate_id
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pdm.product_id = pcpd.product_id
+   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   and pcpd.strategy_id = css.strategy_id
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcpq.quality_template_id = qat.quality_id
+   and pcpq.pcpq_id = vp.pcpq_id(+)
+   and qat.product_id = pdm.product_id
+   and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and pcbph.pcbph_id = pcbpd.pcbph_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and pcpd.profit_center_id = cpc.profit_center_id
+   and ppfh.ppfh_id = pfqpp.ppfh_id
+   and ppfh.ppfh_id = ppfd.ppfh_id
+   and nvl(pfqpp.is_qp_any_day_basis, 'N') <> 'Y'
+   and pcm.is_active = 'Y'
+   and pcm.contract_type = 'BASEMETAL'
+   and pcm.approval_status = 'Approved'
+   and pfqpp.qp_pricing_period_type <> 'Event'
+   and pcdi.price_option_call_off_status = 'Not Called Off'
+   and pcdi.is_active = 'Y'
+   and pdm.is_active = 'Y'
+   and qum.is_active = 'Y'
+   and qat.is_active = 'Y'
+   and ppfh.is_active = 'Y'
+Union all
+--Average Pricing Base Metal+Contract + Not Called Off + Event Based
+select ak.corporate_id,
+       ak.corporate_name,
+       'Average Pricing' section,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pcm.contract_type product_type,
+       di.expected_qp_start_date qp_start_date,
+       to_char(di.expected_qp_end_date,'dd-Mon-yyyy') qp_end_date,
+       ppfd.instrument_id,
+       0 pricing_days,
+       'Y' is_base_metal,
+       'N' is_concentrate,
+       ppfd.exchange_id,
+       ppfd.exchange_name exchange,
+       css.strategy_id,
+       css.strategy_name strategy,
+       decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales,
+       null element_id,
+       null element_name,
+       null trade_date,
+       pfqpp.no_of_event_months || ' ' || pfqpp.event_name qp_options,
+       pcm.contract_ref_no,
+       pcm.contract_type,
+       pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+       null gmr_no,
+       (case
+          when pcdi.basis_type = 'Arrival' then
+           (case
+          when pcdi.delivery_period_type = 'Date' then
+           pcdi.delivery_to_date
+          else
+           last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                            pcdi.delivery_to_year,
+                            'dd-Mon-yyyy'))
+        end) else(case
+         when pcdi.delivery_period_type = 'Date' then
+          pcdi.delivery_to_date
+         else
+          last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                           pcdi.delivery_to_year,
+                           'dd-Mon-yyyy'))
+       end) + pcdi.transit_days end) expected_delivery,
+       qat.quality_name quality,
+       ppfh.formula_description formula,
+       vp.premium,
+       null price_unit_id,
+       null price_unit,
+       decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
+        nvl(diqs.open_qty,0)*
+       pkg_general.f_get_converted_quantity(pcpd.product_id,
+                                            qum.qty_unit_id,
+                                            pdm.base_quantity_unit,
+                                            1)  qty,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       qum.decimals qty_decimals,
+       null instrument,
+       null prompt_date,
+       null lots,
+       (case
+         when pcdi.is_price_optionality_present = 'Y' and
+              pcdi.price_option_call_off_status <> 'Called Off' then
+          'Y'
+         else
+          (case
+         when pcdi.price_option_call_off_status = 'Not Applicable' then
+          null
+         else
+          'N'
+       end) end) pending_calloff
+
+  from pcm_physical_contract_main pcm,
+       pcdi_pc_delivery_item pcdi,
+       diqs_delivery_item_qty_status diqs,
+       di_del_item_exp_qp_details di,
+       pcdiqd_di_quality_details pcdiqd,
+       ak_corporate ak,
+       pcpd_pc_product_definition pcpd,
+       pdm_productmaster pdm,
+       css_corporate_strategy_setup css,
+       pcpq_pc_product_quality pcpq,
+       qat_quality_attributes qat,
+       pcbph_pc_base_price_header pcbph,
+       pcbpd_pc_base_price_detail pcbpd,
+       ppfh_phy_price_formula_header ppfh,
+       (select ppfd.ppfh_id,
+               ppfd.instrument_id,
+               emt.exchange_id,
+               emt.exchange_name
+          from ppfd_phy_price_formula_details ppfd,
+               dim_der_instrument_master      dim,
+               pdd_product_derivative_def     pdd,
+               emt_exchangemaster             emt
+         where ppfd.is_active = 'Y'
+           and ppfd.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.exchange_id = emt.exchange_id
+         group by ppfd.ppfh_id,
+                  ppfd.instrument_id,
+                  emt.exchange_id,
+                  emt.exchange_name) ppfd,
+       qum_quantity_unit_master qum,
+       cpc_corporate_profit_center cpc,
+       pfqpp_phy_formula_qp_pricing pfqpp,
+       v_pci_multiple_premium vp
+ where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.pcdi_id = diqs.pcdi_id
+   and diqs.is_active = 'Y'
+   and pcdi.pcdi_id = di.pcdi_id
+   and di.pcbpd_id=pcbpd.pcbpd_id
+   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   and ak.corporate_id = pcm.corporate_id
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pdm.product_id = pcpd.product_id
+   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   and pcpd.strategy_id = css.strategy_id
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcpq.quality_template_id = qat.quality_id
+   and pcpq.pcpq_id = vp.pcpq_id(+)
+   and qat.product_id = pdm.product_id
+   and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and pcbph.pcbph_id = pcbpd.pcbph_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and pcpd.profit_center_id = cpc.profit_center_id
+   and ppfh.ppfh_id = pfqpp.ppfh_id
+   and ppfh.ppfh_id = ppfd.ppfh_id
+   and nvl(pfqpp.is_qp_any_day_basis, 'N') <> 'Y'
+   and pcm.is_active = 'Y'
+   and pcm.contract_type = 'BASEMETAL'
+   and pcm.approval_status = 'Approved'
+   and pfqpp.qp_pricing_period_type = 'Event'
+   and pcdi.price_option_call_off_status = 'Not Called Off'
+   and di.is_active = 'Y'
+   and pcdi.is_active = 'Y'
+   and pdm.is_active = 'Y'
+   and qum.is_active = 'Y'
+   and qat.is_active = 'Y'
+   and ppfh.is_active = 'Y'
+union all
+--Average Pricing Base Metal+Contract + Called Off + Not Applicable
 select ak.corporate_id,
        ak.corporate_name,
        'Average Pricing' section,
@@ -518,6 +1128,7 @@ select ak.corporate_id,
    and pcm.is_active = 'Y'
    and pcm.contract_type = 'BASEMETAL'
    and pcm.approval_status = 'Approved'
+   and pcdi.price_option_call_off_status in ('Called Off','Not Applicable')
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
@@ -675,7 +1286,282 @@ select ak.corporate_id,
    and gmr.is_deleted = 'N'
 --and ak.corporate_id = '{?CorporateID}'
 union all
---Fixed by Price Request Base Metal +Contract
+--Fixed by Price Request Base Metal +Contract + Not Called Off + Excluding Event Based
+select ak.corporate_id,
+       ak.corporate_name,
+       'Fixed by Price Request' section,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pcm.contract_type product_type,
+       f_get_pricing_month_start_date(pcbpd.pcbpd_id) qp_start_date,
+       f_get_pricing_month(pcbpd.pcbpd_id) qp_end_date,
+       ppfd.instrument_id,
+       0 pricing_days,
+       'Y' is_base_metal,
+       'N' is_concentrate,
+       ppfd.exchange_id,
+       ppfd.exchange_name exchange,
+       css.strategy_id,
+       css.strategy_name strategy,
+       decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales,
+       null element_id,
+       null element_name,
+       null trade_date,
+       (case
+         when pfqpp.qp_pricing_period_type = 'Month' then
+          pfqpp.qp_month || ' - ' || pfqpp.qp_year
+         when pfqpp.qp_pricing_period_type = 'Period' then
+          to_char(pfqpp.qp_period_from_date, 'dd-Mon-yyyy') || ' to ' ||
+          to_char(pfqpp.qp_period_to_date, 'dd-Mon-yyyy')
+         when pfqpp.qp_pricing_period_type = 'Date' then
+          to_char(pfqpp.qp_date, 'dd-Mon-yyyy')
+       end) qp_options,
+       pcm.contract_ref_no,
+       pcm.contract_type,
+       pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+       null gmr_no,
+       (case
+          when pcdi.basis_type = 'Arrival' then
+           (case
+          when pcdi.delivery_period_type = 'Date' then
+           pcdi.delivery_to_date
+          else
+           last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                            pcdi.delivery_to_year,
+                            'dd-Mon-yyyy'))
+        end) else(case
+         when pcdi.delivery_period_type = 'Date' then
+          pcdi.delivery_to_date
+         else
+          last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                           pcdi.delivery_to_year,
+                           'dd-Mon-yyyy'))
+       end) + pcdi.transit_days end) expected_delivery,
+       qat.quality_name quality,
+       ppfh.formula_description formula,
+       vp.premium,
+       null price_unit_id,
+       null price_unit,
+       decode(pcm.purchase_sales, 'P', 1, 'S', -1) * nvl(diqs.open_qty,0) *
+       pkg_general.f_get_converted_quantity(pcpd.product_id,
+                                            qum.qty_unit_id,
+                                            pdm.base_quantity_unit,
+                                            1) qty,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       qum.decimals qty_decimals,
+       null instrument,
+       null prompt_date,
+       null lots,
+       (case
+         when pcdi.is_price_optionality_present = 'Y' and
+              pcdi.price_option_call_off_status <> 'Called Off' then
+          'Y'
+         else
+          (case
+         when pcdi.price_option_call_off_status = 'Not Applicable' then
+          null
+         else
+          'N'
+       end) end) pending_calloff
+  from pcm_physical_contract_main pcm,
+       ak_corporate ak,
+       qum_quantity_unit_master qum,
+       pcdi_pc_delivery_item pcdi,
+       diqs_delivery_item_qty_status diqs,
+       pcdiqd_di_quality_details pcdiqd,
+       pcpd_pc_product_definition pcpd,
+       pcpq_pc_product_quality pcpq,
+       pdm_productmaster pdm,
+       css_corporate_strategy_setup css,
+       qat_quality_attributes qat,
+       pcbpd_pc_base_price_detail pcbpd,
+       ppfh_phy_price_formula_header ppfh,
+       (select ppfd.ppfh_id,
+               ppfd.instrument_id,
+               emt.exchange_id,
+               emt.exchange_name
+          from ppfd_phy_price_formula_details ppfd,
+               dim_der_instrument_master      dim,
+               pdd_product_derivative_def     pdd,
+               emt_exchangemaster             emt
+         where ppfd.is_active = 'Y'
+           and ppfd.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.exchange_id = emt.exchange_id
+         group by ppfd.ppfh_id,
+                  ppfd.instrument_id,
+                  emt.exchange_id,
+                  emt.exchange_name) ppfd,
+       pcbph_pc_base_price_header pcbph,
+       v_pci_multiple_premium vp,
+       cpc_corporate_profit_center cpc,
+       pfqpp_phy_formula_qp_pricing pfqpp
+ where ak.corporate_id = pcm.corporate_id
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.pcdi_id = diqs.pcdi_id
+   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   and pdm.product_id = pcpd.product_id
+   and pcpd.strategy_id = css.strategy_id
+   and pcpq.quality_template_id = qat.quality_id
+   and pcpq.pcpq_id = vp.pcpq_id(+)
+   and qat.product_id = pdm.product_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and pcbph.pcbph_id = pcbpd.pcbph_id
+   and ppfh.ppfh_id = ppfd.ppfh_id(+)
+   and pcpd.profit_center_id = cpc.profit_center_id
+   and pfqpp.ppfh_id = ppfh.ppfh_id
+   and pcm.contract_type = 'BASEMETAL'
+   and pcm.approval_status = 'Approved'
+   and pfqpp.qp_pricing_period_type <> 'Event'
+   and pcdi.price_option_call_off_status = 'Not Called Off'
+   and pfqpp.is_qp_any_day_basis = 'Y'
+   and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
+   and qum.qty_unit_id = pdm.base_quantity_unit
+union all
+--Fixed by Price Request Base Metal +Contract + Not Called Off + Event Based
+select ak.corporate_id,
+       ak.corporate_name,
+       'Fixed by Price Request' section,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pcm.contract_type product_type,
+       di.expected_qp_start_date qp_start_date,
+       to_char(di.expected_qp_end_date,'dd-Mon-yyyy') qp_end_date,
+       ppfd.instrument_id,
+       0 pricing_days,
+       'Y' is_base_metal,
+       'N' is_concentrate,
+       ppfd.exchange_id,
+       ppfd.exchange_name exchange,
+       css.strategy_id,
+       css.strategy_name strategy,
+       decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales,
+       null element_id,
+       null element_name,
+       null trade_date,
+       pfqpp.no_of_event_months || ' ' || pfqpp.event_name qp_options,
+       pcm.contract_ref_no,
+       pcm.contract_type,
+       pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+       null gmr_no,
+       (case
+          when pcdi.basis_type = 'Arrival' then
+           (case
+          when pcdi.delivery_period_type = 'Date' then
+           pcdi.delivery_to_date
+          else
+           last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                            pcdi.delivery_to_year,
+                            'dd-Mon-yyyy'))
+        end) else(case
+         when pcdi.delivery_period_type = 'Date' then
+          pcdi.delivery_to_date
+         else
+          last_day(to_date('01-' || pcdi.delivery_to_month || '-' ||
+                           pcdi.delivery_to_year,
+                           'dd-Mon-yyyy'))
+       end) + pcdi.transit_days end) expected_delivery,
+       qat.quality_name quality,
+       ppfh.formula_description formula,
+       vp.premium,
+       null price_unit_id,
+       null price_unit,
+       decode(pcm.purchase_sales, 'P', 1, 'S', -1) * nvl(diqs.open_qty,0) *
+       pkg_general.f_get_converted_quantity(pcpd.product_id,
+                                            qum.qty_unit_id,
+                                            pdm.base_quantity_unit,
+                                            1) qty,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       qum.decimals qty_decimals,
+       null instrument,
+       null prompt_date,
+       null lots,
+       (case
+         when pcdi.is_price_optionality_present = 'Y' and
+              pcdi.price_option_call_off_status <> 'Called Off' then
+          'Y'
+         else
+          (case
+         when pcdi.price_option_call_off_status = 'Not Applicable' then
+          null
+         else
+          'N'
+       end) end) pending_calloff
+  from pcm_physical_contract_main pcm,
+       ak_corporate ak,
+       qum_quantity_unit_master qum,
+       pcdi_pc_delivery_item pcdi,
+       di_del_item_exp_qp_details di, -- Newly Added
+       diqs_delivery_item_qty_status diqs,
+       pcdiqd_di_quality_details pcdiqd,
+       pcpd_pc_product_definition pcpd,
+       pcpq_pc_product_quality pcpq,
+       pdm_productmaster pdm,
+       css_corporate_strategy_setup css,
+       qat_quality_attributes qat,
+       pcbpd_pc_base_price_detail pcbpd,
+       ppfh_phy_price_formula_header ppfh,
+       (select ppfd.ppfh_id,
+               ppfd.instrument_id,
+               emt.exchange_id,
+               emt.exchange_name
+          from ppfd_phy_price_formula_details ppfd,
+               dim_der_instrument_master      dim,
+               pdd_product_derivative_def     pdd,
+               emt_exchangemaster             emt
+         where ppfd.is_active = 'Y'
+           and ppfd.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.exchange_id = emt.exchange_id
+         group by ppfd.ppfh_id,
+                  ppfd.instrument_id,
+                  emt.exchange_id,
+                  emt.exchange_name) ppfd,
+       pcbph_pc_base_price_header pcbph,
+       v_pci_multiple_premium vp,
+       cpc_corporate_profit_center cpc,
+       pfqpp_phy_formula_qp_pricing pfqpp
+ where ak.corporate_id = pcm.corporate_id
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.pcdi_id = di.pcdi_id -- Newly Added
+   and di.is_active = 'Y' -- Newly Added
+   and pcdi.pcdi_id = diqs.pcdi_id
+   and diqs.is_active = 'Y'
+   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.pcpd_id = pcpq.pcpd_id
+   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   and pdm.product_id = pcpd.product_id
+   and pcpd.strategy_id = css.strategy_id
+   and pcpq.quality_template_id = qat.quality_id
+   and pcpq.pcpq_id = vp.pcpq_id(+)
+   and qat.product_id = pdm.product_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and pcbph.pcbph_id = pcbpd.pcbph_id
+   and ppfh.ppfh_id = ppfd.ppfh_id(+)
+   and pcpd.profit_center_id = cpc.profit_center_id
+   and pfqpp.ppfh_id = ppfh.ppfh_id
+   and pcm.contract_type = 'BASEMETAL'
+   and pcm.approval_status = 'Approved'
+   and pfqpp.qp_pricing_period_type = 'Event'
+   and pcdi.price_option_call_off_status = 'Not Called Off'
+   and pfqpp.is_qp_any_day_basis = 'Y'
+   and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
+   and qum.qty_unit_id = pdm.base_quantity_unit
+
+union all
+--Fixed by Price Request Base Metal +Contract + Called Off + Not Applicable
 select ak.corporate_id,
        ak.corporate_name,
        'Fixed by Price Request' section,
@@ -821,6 +1707,7 @@ select ak.corporate_id,
    and pfqpp.ppfh_id = ppfh.ppfh_id
    and pcm.contract_type = 'BASEMETAL'
    and pcm.approval_status = 'Approved'
+   and pcdi.price_option_call_off_status in ('Called Off','Not Applicable')
    and pfqpp.is_qp_any_day_basis = 'Y'
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and qum.qty_unit_id = pocd.qty_to_be_fixed_unit_id
@@ -1066,3 +1953,4 @@ select ak.corporate_id,
           pcdi.is_price_optionality_present,
           pcdi.price_option_call_off_status,
           qat.quality_name
+
