@@ -52,9 +52,8 @@ WITH ucm_mfact AS
                  THEN 'Tolling Service Contract'
            END
           ) contract_type,
-          'Physical' position_type,
-             'Open '
-          || DECODE (pcm.purchase_sales, 'P', 'Purchase', 'Sales')
+          'Open' position_type,
+          DECODE (pcm.purchase_sales, 'P', 'Purchase', 'Sales')
                                                             position_sub_type,
              pcm.contract_ref_no
           || ','
@@ -319,7 +318,7 @@ WITH ucm_mfact AS
                  THEN 'Tolling Service Contract'
            END
           ) contract_type,
-          'Physical' position_type, 'Open Purchase' position_sub_type,
+          'Open' position_type, 'Purchase' position_sub_type,
           CASE
              WHEN pci.contract_ref_no IS NOT NULL
                 THEN    gmr.gmr_ref_no
@@ -491,7 +490,7 @@ WITH ucm_mfact AS
       AND pdtm.product_type_name = 'Standard'
       AND phd_pcm_cp.profileid(+) = pci.cp_id
       AND pym.payment_term_id(+) = pci.payment_term_id
-      AND gmr.inventory_status = 'In'
+      AND nvl(gmr.inventory_status,'NA')<>'In'
       AND cm_invoice_currency.cur_id(+) = pci.invoice_currency_id
       AND qum_gcd.qty_unit_id = gcd.group_qty_unit_id
       AND grd.qty_unit_id = ucm.from_qty_unit_id
@@ -501,6 +500,7 @@ WITH ucm_mfact AS
       AND pdm.base_quantity_unit = ucm_base.to_qty_unit_id
       AND grd.qty_unit_id = qum_grd.qty_unit_id
       and grd.warehouse_profile_id = phd_wh.profileid(+)
+      and grd.tolling_stock_type ='None Tolling'
    UNION ALL
 -- 3) Shipped But Not TT for Sales GMRs
    SELECT 'Standard' product_type,
@@ -540,7 +540,7 @@ WITH ucm_mfact AS
                  THEN 'Tolling Service Contract'
            END
           ) contract_type,
-          'Physical' position_type, 'Open Sales' position_sub_type,
+          'Open' position_type, 'Sales' position_sub_type,
           CASE
              WHEN pci.contract_ref_no IS NOT NULL
                 THEN    gmr.gmr_ref_no
@@ -757,6 +757,7 @@ WITH ucm_mfact AS
       AND pdm.base_quantity_unit = ucm_base.to_qty_unit_id
       and dgrd.warehouse_profile_id = phd_wh.profileid(+)
       and dgrd.shed_id = sld.storage_loc_id(+)
+      and dgrd.tolling_stock_type ='None Tolling'
    UNION ALL
 -- 4) Stocks
    SELECT 'Standard' product_type, 'Base Metal Stocks' section_name,
@@ -795,7 +796,7 @@ WITH ucm_mfact AS
                  THEN 'Tolling Service Contract'
            END
           ) contract_type,
-          'Stocks' position_type, 'Actual Stocks' position_sub_type,
+          'Inventory' position_type, 'Stocks' position_sub_type,
           grd.internal_grd_ref_no contract_ref_no, 'NA' external_reference_no,
           gmr.inventory_in_date issue_date, 'NA' counter_party_id,
           'NA' counter_party_name, 'NA', 'NA' trader_name,
@@ -927,7 +928,7 @@ WITH ucm_mfact AS
            - NVL (grd.title_transfer_out_qty, 0)
           ) > 0
       AND phd_pcm_cp.profileid(+) = pci.cp_id
-      AND NVL (grd.inventory_status, 'NA') = 'Out'
+      AND NVL (grd.inventory_status, 'NA') ='In'
       AND cm_invoice_currency.cur_id(+) = pci.invoice_currency_id
       AND cym_gmr_dest_country.country_id(+) =
                                            gmr.discharge_country_id
@@ -944,6 +945,7 @@ WITH ucm_mfact AS
       AND grd.qty_unit_id = ucm_base.from_qty_unit_id
       AND pdm.base_quantity_unit = ucm_base.to_qty_unit_id
       and grd.warehouse_profile_id = phd_wh.profileid(+)
+      and grd.tolling_stock_type ='None Tolling'
 -- This is for Concentrate Only(1.Open Contracts,2.Shipped But Not TT,3.Stocks)
    UNION ALL
    SELECT product_type, section_name, corporate_id, corporate_name,

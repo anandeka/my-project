@@ -41,12 +41,12 @@ select 'Composite' product_type,
          else
           'Physical - Open Sales'
        end as position_type_id,
-       'Physical' as position_type,
+       'Open' as position_type,
        case
          when pcm.purchase_sales = 'P' then
-          'Open Purchase'
+          'Purchase'
          else
-          'Open Sales'
+          'Sales'
        end as position_sub_type,
        pcm.contract_ref_no || ',' || pci.del_distribution_item_no contract_ref_no,
        nvl(pcm.cp_contract_ref_no, 'NA') cp_contract_ref_no,
@@ -170,7 +170,7 @@ select 'Composite' product_type,
                                                rm.qty_unit_id_numerator,
                                                gcd.group_qty_unit_id,
                                                1)
-       end) * pqcapd.payable_percentage qty_in_group_unit,
+       end) * pqca.typical qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,
        (ciqs.open_qty -
        pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
@@ -193,7 +193,7 @@ select 'Composite' product_type,
                                                rm.qty_unit_id_numerator,
                                                ciqs.item_qty_unit_id,
                                                1)
-       end) * pqcapd.payable_percentage qty_in_ctract_unit,
+       end) *pqca.typical qty_in_ctract_unit,
        qum_ciqs.qty_unit ctract_qty_unit,
        cm_base_cur.cur_code corp_base_cur,
        pci.expected_delivery_month || '-' || pci.expected_delivery_year delivery_month,
@@ -224,7 +224,7 @@ select 'Composite' product_type,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
                                                1)
-       end) * pqcapd.payable_percentage qty_in_base_unit,
+       end) * pqca.typical qty_in_base_unit,
        case
          when itm.location_field = 'DESTINATION' then
           pcdb.country_id
@@ -296,8 +296,7 @@ select 'Composite' product_type,
        pqca_pq_chemical_attributes    pqca,
        rm_ratio_master                rm,
        phd_profileheaderdetails       phd_wh,
-       sld_storage_location_detail    sld,
-       pqcapd_prd_qlty_cattr_pay_dtls pqcapd
+       sld_storage_location_detail    sld
  where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.pcdi_id = pci.pcdi_id
    and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no(+)
@@ -358,7 +357,6 @@ select 'Composite' product_type,
    and pqca.unit_of_measure = rm.ratio_id(+)
    and pcdb.warehouse_id = phd_wh.profileid(+)
    and pcdb.warehouse_shed_id = sld.storage_loc_id(+)
-   and pqca.pqca_id = pqcapd.pqca_id
 union all
 -- 2. shipped but not tt for purchase gmrs
 select 'Composite' product_type,
@@ -403,12 +401,12 @@ select 'Composite' product_type,
          else
           'Physical - Open Sales'
        end position_type_id,
-       'Physical' position_type,
+       'Open' position_type,
        case
          when pci.purchase_sales = 'P' then
-          'Open Purchase'
+          'Purchase'
          else
-          'Open Sales'
+          'Sales'
        end position_sub_type,
        case
          when pci.contract_ref_no is not null then
@@ -478,14 +476,14 @@ select 'Composite' product_type,
                                                pci.item_qty_unit_id,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
-                                               1)
+                                               1)/100
          else
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
                                                rm.qty_unit_id_numerator,
                                                qum_gcd.qty_unit_id,
                                                1)
-       end) * pqcapd.payable_percentage qty_in_group_unit,
+       end) *pqca.typical qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
        nvl(grd.title_transfer_out_qty, 0)) -
@@ -503,14 +501,14 @@ select 'Composite' product_type,
                                                pci.item_qty_unit_id,
                                                nvl(pdm_under.base_quantity_unit,
                                                    grd.qty_unit_id),
-                                               1)
+                                               1)/100
          else
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
                                                rm.qty_unit_id_numerator,
                                                grd.qty_unit_id,
                                                1)
-       end) * pqcapd.payable_percentage qty_in_ctract_unit,
+       end) *pqca.typical qty_in_ctract_unit,
        grd.qty_unit_id ctract_qty_unit,
        cm_base_currency.cur_code corp_base_cur,
        pci.expected_delivery_month || '-' || pci.expected_delivery_year delivery_month,
@@ -533,7 +531,7 @@ select 'Composite' product_type,
                                                pci.item_qty_unit_id,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
-                                               1)
+                                               1)/100
          else
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
@@ -541,7 +539,7 @@ select 'Composite' product_type,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
                                                1)
-       end) * pqcapd.payable_percentage qty_in_base_unit,
+       end) *pqca.typical qty_in_base_unit,
        nvl(cym_gmr_dest_country.country_id, 'NA') || ' - ' ||
        nvl(cim_gmr_dest_city.city_id, 'NA') comb_destination_id,
        'NA-NA' comb_origination_id,
@@ -612,8 +610,7 @@ select 'Composite' product_type,
        asm_assay_sublot_mapping       asm,
        pqca_pq_chemical_attributes    pqca,
        rm_ratio_master                rm,
-       phd_profileheaderdetails       phd_wh,
-       pqcapd_prd_qlty_cattr_pay_dtls pqcapd
+       phd_profileheaderdetails       phd_wh
  where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no(+)
@@ -654,7 +651,8 @@ select 'Composite' product_type,
    and pdtm.product_type_name = 'Composite'
    and pci.cp_id = phd_pcm_cp.profileid(+)
    and pci.payment_term_id = pym.payment_term_id(+)
-   and nvl(gmr.inventory_status, 'NA') = 'In'
+  -- and nvl(gmr.inventory_status, 'NA') = 'In'
+   and nvl(gmr.inventory_status, 'NA') <>'In'
    and pci.invoice_currency_id = cm_invoice_currency.cur_id(+)
    and cym_gmr_dest_country.country_id(+) = gmr.discharge_country_id
    and cym_gmr_dest_country.region_id = rem_gmr_dest_region.region_id(+)
@@ -682,7 +680,7 @@ select 'Composite' product_type,
    and pqca.is_elem_for_pricing = 'Y'
    and pqca.unit_of_measure = rm.ratio_id(+)
    and grd.warehouse_profile_id = phd_wh.profileid(+)
-   and pqca.pqca_id = pqcapd.pqca_id
+   and grd.tolling_stock_type ='None Tolling'
 -- 3. shipped but not tt sales gmrs
 union all
 select 'Composite' product_type,
@@ -722,8 +720,8 @@ select 'Composite' product_type,
           'Tolling Service Contract'
        end) contract_type,
        'Physical - Open Sales' position_type_id,
-       'Physical' position_type,
-       'Open Sales' position_sub_type,
+       'Open' position_type,
+       'Sales' position_sub_type,
        case
          when pci.contract_ref_no is not null then
           gmr.gmr_ref_no || ',' || pci.contract_ref_no || ',' ||
@@ -822,14 +820,14 @@ select 'Composite' product_type,
                                                pci.item_qty_unit_id,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
-                                               1)
+                                               1)/100
          else
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
                                                rm.qty_unit_id_numerator,
                                                qum_gcd.qty_unit_id,
                                                1)
-       end) * pqcapd.payable_percentage qty_in_group_unit,
+       end) *pqca.typical qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,
        (dgrd.current_qty -
        pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
@@ -842,14 +840,14 @@ select 'Composite' product_type,
                                                pci.item_qty_unit_id,
                                                nvl(pdm_under.base_quantity_unit,
                                                    dgrd.net_weight_unit_id),
-                                               1)
+                                               1)/100
          else
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
                                                rm.qty_unit_id_numerator,
                                                dgrd.net_weight_unit_id,
                                                1)
-       end) * pqcapd.payable_percentage qty_in_ctract_unit,
+       end) * pqca.typical qty_in_ctract_unit,
        qum_dgrd.qty_unit ctract_qty_unit,
        cm_base_cur.cur_code corp_base_cur,
        to_char(sysdate, 'Mon-yyyy') delivery_month,
@@ -869,7 +867,7 @@ select 'Composite' product_type,
                                                pci.item_qty_unit_id,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
-                                               1)
+                                               1)/100
          else
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
@@ -877,7 +875,7 @@ select 'Composite' product_type,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
                                                1)
-       end) * pqcapd.payable_percentage qty_in_base_unit,
+       end) * pqca.typical qty_in_base_unit,
        case
          when itm.location_field = 'DESTINATION' then
           pcdb.country_id
@@ -946,8 +944,7 @@ select 'Composite' product_type,
        asm_assay_sublot_mapping       asm,
        pqca_pq_chemical_attributes    pqca,
        rm_ratio_master                rm,
-       phd_profileheaderdetails       phd_wh,
-       pqcapd_prd_qlty_cattr_pay_dtls pqcapd
+       phd_profileheaderdetails       phd_wh
  where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no(+)
@@ -1016,11 +1013,11 @@ select 'Composite' product_type,
    and pqca.is_elem_for_pricing = 'Y'
    and pqca.unit_of_measure = rm.ratio_id(+)
    and dgrd.warehouse_profile_id = phd_wh.profileid(+)
-   and pqca.pqca_id = pqcapd.pqca_id
+   and dgrd.tolling_stock_type ='None Tolling'
 union all
 --4
 select 'Composite' product_type,
-       'Concentrates TT out for Purchase  GMRs' section_name,
+       'Concentrates TT In for Purchase  GMRs' section_name,
        gmr.corporate_id corporate_id,
        akc.corporate_name corporate_name,
        blm.business_line_id business_line_id,
@@ -1056,8 +1053,8 @@ select 'Composite' product_type,
           'Tolling Service Contract'
        end) contract_type,
        'Stocks -  Actual Stocks' position_type_id,
-       'Stocks' position_type,
-       'Actual Stocks' position_sub_type,
+       'Inventory' position_type,
+       'Stocks' position_sub_type,
        grd.internal_grd_ref_no contract_ref_no,
        'NA' external_reference_no,
        gmr.eff_date issue_date,
@@ -1122,14 +1119,14 @@ select 'Composite' product_type,
                                                pci.item_qty_unit_id,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
-                                               1)
+                                               1)/100
          else
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
                                                rm.qty_unit_id_numerator,
                                                qum_gcd.qty_unit_id,
                                                1)
-       end) * pqcapd.payable_percentage qty_in_group_unit,
+       end) *pqca.typical qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
        nvl(grd.title_transfer_out_qty, 0)) -
@@ -1147,14 +1144,14 @@ select 'Composite' product_type,
                                                pci.item_qty_unit_id,
                                                nvl(pdm_under.base_quantity_unit,
                                                    grd.qty_unit_id),
-                                               1)
+                                               1)/100
          else
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
                                                rm.qty_unit_id_numerator,
                                                grd.qty_unit_id,
                                                1)
-       end) * pqcapd.payable_percentage qty_in_ctract_unit,
+       end) * pqca.typical qty_in_ctract_unit,
        grd.qty_unit_id ctract_qty_unit,
        cm_base_currency.cur_code corp_base_cur,
        pci.expected_delivery_month || '-' || pci.expected_delivery_year delivery_month,
@@ -1178,7 +1175,7 @@ select 'Composite' product_type,
                                                pci.item_qty_unit_id,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
-                                               1)
+                                               1)/100
          else
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
@@ -1186,7 +1183,7 @@ select 'Composite' product_type,
                                                nvl(pdm_under.base_quantity_unit,
                                                    pdm.base_quantity_unit),
                                                1)
-       end) * pqcapd.payable_percentage qty_in_base_unit,
+       end) * pqca.typical qty_in_base_unit,
        cym_gmr_dest_country.country_id || ' - ' ||
        cim_gmr_dest_city.city_id comb_destination_id,
        'NA' comb_origination_id,
@@ -1238,8 +1235,7 @@ select 'Composite' product_type,
        asm_assay_sublot_mapping       asm,
        pqca_pq_chemical_attributes    pqca,
        rm_ratio_master                rm,
-       phd_profileheaderdetails       phd_wh,
-       pqcapd_prd_qlty_cattr_pay_dtls pqcapd
+       phd_profileheaderdetails       phd_wh
  where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no(+)
@@ -1293,7 +1289,7 @@ select 'Composite' product_type,
    and grd.internal_grd_ref_no = vsp.internal_grd_ref_no
    and vsp.is_latest_position_assay = 'Y'
    and vsp.ash_id = vdc.ash_id
-   and nvl(gmr.inventory_status, 'NA') = 'Out'
+   and nvl(gmr.inventory_status, 'NA') = 'In'
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id
    and vdc.ash_id = asm.ash_id
    and asm.asm_id = pqca.asm_id
@@ -1302,4 +1298,4 @@ select 'Composite' product_type,
    and pqca.is_elem_for_pricing = 'Y'
    and pqca.unit_of_measure = rm.ratio_id(+)
    and grd.warehouse_profile_id = phd_wh.profileid(+)
-   and pqca.pqca_id = pqcapd.pqca_id
+   and grd.tolling_stock_type ='None Tolling'
