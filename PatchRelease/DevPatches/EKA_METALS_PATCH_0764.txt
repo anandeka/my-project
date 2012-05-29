@@ -1,0 +1,69 @@
+Patch No*          		:  EKA_METALS_PATCH_0764
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  29-May-2012
+
+Bug / Enhancement*              :  BUG
+ 
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 95155
+Author: suresh.gottipati
+Date: 7:17:35 PM, Tuesday, May 29, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_CONC_PHY_POSITION.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PHY_POSITION_MGR.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_smelter_invoice_details.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_supplier_invoice_details .sql
+
+Revision: 95153
+Author: ashokkumar.l
+Date: 7:13:13 PM, Tuesday, May 29, 2012
+Message:
+TCRCDistributionReport and Excel is added.
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TCRCDistributionReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TCRCDistributionReport_Excel.rpt
+
+Revision: 95154
+Author: ashokkumar.l
+Date: 7:16:17 PM, Tuesday, May 29, 2012
+Message:
+TCRCDistributionReport and Excel is added.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_296_TCRC_Report_Entry.sql
+
+
+
+
+
+
