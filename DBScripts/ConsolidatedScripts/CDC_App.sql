@@ -13,6 +13,7 @@ update REF_REPORTEXPORTFORMAT rrf
 set RRF.REPORT_FILE_NAME = 'DailyDerivativeReport_Excel.rpt'
 where RRF.REPORT_ID = '54';
 commit;
+
 SET DEFINE OFF;
 declare
 begin
@@ -270,6 +271,7 @@ begin
      where ct1.internal_treasury_ref_no = temp.internal_treasury_ref_no;
   end loop;
 end;
+/
 commit;
 
 
@@ -290,6 +292,7 @@ SELECT ctul.internal_treasury_ref_no, crtd.amount, crtd.cur_id
      where ctul1.internal_treasury_ref_no = temp.internal_treasury_ref_no;
   end loop;
 end;
+/
 commit;
 
 DROP SNAPSHOT LOG ON  BRKMD_BROKER_MARGIN_DETAIL;
@@ -402,8 +405,7 @@ select tdc.process_id,
   from bmu_broker_margin_utilization@eka_eoddb bmu,
        tdc_trade_date_closure@eka_eoddb        tdc
  where bmu.corporate_id = tdc.corporate_id
-   and bmu.process_id = tdc.process_id
+   and bmu.process_id = tdc.process_id;
 /
 
-
-
+commit;

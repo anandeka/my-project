@@ -304,16 +304,7 @@ Insert into SLS_STATIC_LIST_SETUP
    (LIST_TYPE, VALUE_ID, IS_DEFAULT, DISPLAY_ORDER)
  Values
    ('invoiceSubType', 'isPledge', 'N', 2);
- Insert into ERC_EXTERNAL_REF_NO_CONFIG
-   (CORPORATE_ID, EXTERNAL_REF_NO_KEY, PREFIX, MIDDLE_NO_LAST_USED_VALUE, SUFFIX)
- Values
-   ('BLD', 'UTIL_INV_REF_NO', 'UTIL-', 8, '-BLD');
-
-Insert into ERC_EXTERNAL_REF_NO_CONFIG
-   (CORPORATE_ID, EXTERNAL_REF_NO_KEY, PREFIX, MIDDLE_NO_LAST_USED_VALUE, SUFFIX)
- Values
-   ('LDE', 'UTIL_INV_REF_NO', 'UTIL-', 10, '-LDE');
-
+ 
 Insert into AXM_ACTION_MASTER
    (ACTION_ID, ENTITY_ID, ACTION_NAME, IS_NEW_GMR_APPLICABLE, ACTION_DESC, 
     IS_GENERATE_DOC_APPLICABLE, IS_REF_NO_GEN_APPLICABLE)
@@ -327,28 +318,7 @@ Insert into AKM_ACTION_REF_KEY_MASTER
    ('UtilInvRefNo', 'Utility Ref No', 'SELECT COUNT(*) FROM   AXS_ACTION_SUMMARY axs WHERE  
 axs.action_ref_no = :pc_action_ref_no AND    axs.corporate_id = :pc_corporate_id');
 
-Insert into ARFM_ACTION_REF_NO_MAPPING
-   (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
- Values
-   ('ARFM-5550', 'BLD', 'CREATE_UTIL_INV', 'UtilInvRefNo', 'N');
-Insert into ARFM_ACTION_REF_NO_MAPPING
-   (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
- Values
-   ('ARFM-5551', 'LDE', 'CREATE_UTIL_INV', 'UtilInvRefNo', 'N');
 
-
-Insert into ARF_ACTION_REF_NUMBER_FORMAT
-   (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('ARF-5550', 'UtilInvRefNo', 'BLD', 'UTIL-', 1, 
-    8, '-BLD', NULL, 'N');
-Insert into ARF_ACTION_REF_NUMBER_FORMAT
-   (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
-    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
- Values
-   ('ARF-5551', 'UtilInvRefNo', 'LDE', 'UTIL-', 1, 
-    5, '-LDE', 1, 'N');
 
 Insert into CAC_CORPORATE_ACTION_CONFIG
    (ACTION_ID, IS_ACCRUAL_POSSIBLE, IS_ESTIMATE_POSSIBLE, EFF_DATE_FIELD, IS_DOC_APPLICABLE, 
@@ -384,4 +354,12 @@ insert into ref_reportexportformat
    (report_id, export_format, report_file_name)
  values
    ('249', 'EXCEL', 'TCRCDistributionReport_Excel.rpt');
+ update RFC_REPORT_FILTER_CONFIG rfc set rfc.label = 'Arrival No.' where rfc.label_id = 'RFC237PHY07';
+update RFC_REPORT_FILTER_CONFIG rfc set rfc.label= 'Contract Ref. No.' where rfc.label_id = 'RFC237PHY08';
+update RFC_REPORT_FILTER_CONFIG rfc set rfc.label= 'GMR Ref. No.' where rfc.label_id = 'RFC237PHY09';
+update RFC_REPORT_FILTER_CONFIG rfc set rfc.label = 'From Date'where rfc.label_id = 'RFC238PHY01';
+update RFC_REPORT_FILTER_CONFIG rfc set rfc.label = 'To Date' where rfc.label_id = 'RFC238PHY02';
+update RFC_REPORT_FILTER_CONFIG rfc set rfc.label = 'Contract Ref. No.' where rfc.label_id = 'RFC238PHY07';
+update RFC_REPORT_FILTER_CONFIG rfc set rfc.label= 'Contract Item Ref. No.' where rfc.label_id = 'RFC238PHY08';
 commit;
+

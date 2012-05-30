@@ -7,7 +7,7 @@ begin
   loop
  
     dbms_output.put_line(cc.corporate_id);
-Insert into CDC_CORPORATE_DOC_CONFIG
+/*Insert into CDC_CORPORATE_DOC_CONFIG
    (DOC_TEMPLATE_ID, CORPORATE_ID, DOC_ID, DOC_TEMPLATE_NAME, DOC_TEMPLATE_NAME_DE, 
     DOC_TEMPLATE_NAME_ES, DOC_PRINT_NAME, DOC_PRINT_NAME_DE, DOC_PRINT_NAME_ES, DOC_RPT_FILE_NAME, 
     IS_ACTIVE, DOC_AUTO_GENERATE)
@@ -27,7 +27,7 @@ Insert into DRFM_DOC_REF_NO_MAPPING
    (DOC_REF_NO_MAPPING_ID, CORPORATE_ID, DOC_ID, DOC_KEY_ID, IS_DELETED)
  Values
    ('DRFM-GEPD-'||cc.corporate_id, cc.corporate_id, 'pledgeTransfer', 'GEPD_KEY_3', 'N'); 
-
+*/
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
@@ -275,3 +275,40 @@ insert into rpc_rf_parameter_config
  end loop;
 commit;
 end;
+
+/
+
+SET DEFINE OFF;
+declare
+begin
+ for cc in (select *
+               from ak_corporate akc
+              where akc.is_internal_corporate = 'N')
+  loop
+ 
+    dbms_output.put_line(cc.corporate_id);
+
+Insert into ERC_EXTERNAL_REF_NO_CONFIG
+   (CORPORATE_ID, EXTERNAL_REF_NO_KEY, PREFIX, MIDDLE_NO_LAST_USED_VALUE, SUFFIX)
+ Values
+   (cc.corporate_id, 'UTIL_INV_REF_NO', 'UTIL-', 8, '-'||cc.corporate_id);
+
+ Insert into ARFM_ACTION_REF_NO_MAPPING
+   (ACTION_REF_NO_MAPPING_ID, CORPORATE_ID, ACTION_ID, ACTION_KEY_ID, IS_DELETED)
+ Values
+   ('ARFM-5550-'||cc.corporate_id, cc.corporate_id, 'CREATE_UTIL_INV', 'UtilInvRefNo', 'N');
+
+Insert into ARF_ACTION_REF_NUMBER_FORMAT
+   (ACTION_REF_NUMBER_FORMAT_ID, ACTION_KEY_ID, CORPORATE_ID, PREFIX, MIDDLE_NO_START_VALUE, 
+    MIDDLE_NO_LAST_USED_VALUE, SUFFIX, VERSION, IS_DELETED)
+ Values
+   ('ARF-5550-'||cc.corporate_id, 'UtilInvRefNo', cc.corporate_id, 'UTIL-', 1, 
+    8, '-'||cc.corporate_id, NULL, 'N');
+
+end loop;
+commit;
+end;
+
+/
+
+    commit;

@@ -494,3 +494,4 @@ Insert into AUMHP_ANALYTICS_UMHP
     '{"collapsed":true,"closed":false,"columnIndex":2,"rowIndex":3}', 'N', 'HOME-ACL-6')
 /
 
+commit;
