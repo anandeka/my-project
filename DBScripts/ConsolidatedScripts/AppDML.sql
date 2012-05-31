@@ -361,5 +361,8 @@ update RFC_REPORT_FILTER_CONFIG rfc set rfc.label = 'From Date'where rfc.label_i
 update RFC_REPORT_FILTER_CONFIG rfc set rfc.label = 'To Date' where rfc.label_id = 'RFC238PHY02';
 update RFC_REPORT_FILTER_CONFIG rfc set rfc.label = 'Contract Ref. No.' where rfc.label_id = 'RFC238PHY07';
 update RFC_REPORT_FILTER_CONFIG rfc set rfc.label= 'Contract Item Ref. No.' where rfc.label_id = 'RFC238PHY08';
+
+Update  PLD_PRODUCT_LICENCE_DETAIL SET PRODUCT_VERSION ='8.1.15.0';
+
 commit;
 
