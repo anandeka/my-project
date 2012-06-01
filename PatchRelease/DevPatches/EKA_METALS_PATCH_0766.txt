@@ -42,6 +42,16 @@ for IUD alteration. PK added.
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_262.sql
 
+Revision: 95266
+Author: b.ravikumar
+Date: 4:39:03 PM, Friday, June 01, 2012
+Message:
+sequence added for invoice utility documents.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_262.sql
+
+
+
 
 
 
