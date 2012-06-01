@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0766
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  B Ravi Kumar
+ 
+Created on*        		:  01-June-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice Utility
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95262
+Author: b.ravikumar
+Date: 4:25:04 PM, Friday, June 01, 2012
+Message:
+for IUD alteration. PK added.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_262.sql
+
+
+
+
+
+
+
+
