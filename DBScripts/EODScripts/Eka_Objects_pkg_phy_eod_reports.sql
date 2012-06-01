@@ -8626,7 +8626,7 @@ insert into pcs_purchase_contract_status
                  and gmr.process_id = pc_process_id
                  and grd.process_id = pc_process_id
                  and agmr.eff_date <= pd_trade_date
-                 and grd.tolling_stock_type = 'MFT In Process Stock'
+                  and grd.tolling_stock_type in('MFT In Process Stock','Free Material Stock','Delta MFT IP Stock')
                group by aml.underlying_product_id,
                         pdm.product_desc,
                         grd.warehouse_profile_id,
@@ -9139,12 +9139,46 @@ insert into pcs_purchase_contract_status
               select mas.corporate_id,
                      mas.product_id product_id,
                      mas.product_desc product_name,
-                     sum(mas.stock_qty) stock_qty,
+                    -- sum(mas.stock_qty) stock_qty,
+                     sum(case
+                            when mas.stock_type = 'Finished Stock' then
+                             (case
+                            when mas.section_name = 'Existing Stock' then
+                             mas.stock_qty
+                            when mas.section_name = 'New Stocks - Consumed' then
+                             mas.stock_qty
+                            when mas.section_name = 'New Stocks - Not Consumed' then
+                             0
+                          end) when mas.stock_type = 'In Process Stock' then(case
+                       when mas.section_name =
+                            'Existing Stock' then
+                        mas.stock_qty
+                       when mas.section_name =
+                            'New Stocks' then
+                        mas.stock_qty
+                       when mas.section_name =
+                            'Consumed' then
+                        mas.stock_qty * (-1)
+                       when mas.section_name =
+                            'Iron Stock' then
+                        0
+                     end) when mas.stock_type = 'Raw Material Stock' then(case
+                       when mas.section_name =
+                            'Existing Stock' then
+                        mas.stock_qty
+                       when mas.section_name =
+                            'New Stocks' then
+                        mas.stock_qty
+                       when mas.section_name =
+                            'Consumed' then
+                        mas.stock_qty * (-1)
+                     end) end) stock_qty,
                      0 debt_qty,
                      mas.qty_unit_id qty_unit_id,
                      mas.qty_unit
                 from mas_metal_account_summary mas
                where mas.process_id = pc_process_id
+               and mas.position_type = 'Inventory'
                group by mas.corporate_id,
                         mas.product_id,
                         mas.product_desc,
