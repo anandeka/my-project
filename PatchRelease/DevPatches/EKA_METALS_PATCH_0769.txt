@@ -1,0 +1,67 @@
+Patch No*          		:  EKA_METALS_PATCH_0769
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  01-June-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  -
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95284
+Author: sriveenam
+Date: Friday, June 01, 2012 6:33:39 PM
+Message:
+column size increased
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_263.sql
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 95286
+Author: sriveenam
+Date: Friday, June 01, 2012 6:40:18 PM
+Message:
+column size increased
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/45_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+
+
+
+
+
+
+
+
+
+
+
+
