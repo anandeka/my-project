@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_PATCH_0770
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  01-June-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  -
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95396
+Author: anupkumar.agarwal
+Date: 6:40:19 PM, Monday, June 04, 2012
+Message:
+1: Added A PQCAPDUL Table
+2: Sequence Generator for PQCAPDUL Table 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_264.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
