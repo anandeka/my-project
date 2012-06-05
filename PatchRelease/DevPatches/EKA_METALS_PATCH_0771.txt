@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0771
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  01-June-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  -
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95457
+Author: abhishek.vijay
+Date: 3:43:35 PM, Tuesday, June 05, 2012
+Message:
+change for balance pricing and hedge correction 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_265.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
