@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW V_BI_MB_INVENTORY_BY_SMELTERS
-AS 
+AS
 select t.corporate_id,
        t.product_id,
        t.product_name,
@@ -68,6 +68,7 @@ select t.corporate_id,
     and spq.is_active = 'Y'
     and pcm.cp_id = phd_smelter.profileid
     and grd.inventory_status = 'In'
+
   group by akc.corporate_id,
            akc.corporate_name,
            pdm.product_id,
@@ -89,8 +90,11 @@ select t.corporate_id,
         sum(pkg_general.f_get_converted_quantity(pdm.product_id,
                                                  spq.qty_unit_id,
                                                  pdm.base_quantity_unit,
-                                                 spq.payable_qty)) contained_qty,
-        0 in_process_qty,
+                                                 spq.payable_qty))*(-1) contained_qty,
+        sum(pkg_general.f_get_converted_quantity(pdm.product_id,
+                                                 spq.qty_unit_id,
+                                                 pdm.base_quantity_unit,
+                                                 spq.payable_qty)) in_process_qty,
         0 stock_qty,
         0 debt_qty
    from grd_goods_record_detail   grd,
@@ -107,6 +111,7 @@ select t.corporate_id,
   where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
     and gmr.corporate_id = akc.corporate_id
     and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+    and grd.element_id=spq.element_id
      and grd.internal_contract_item_ref_no = pci.internal_contract_item_ref_no
     and pci.pcdi_id = pcdi.pcdi_id
     and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
@@ -118,6 +123,7 @@ select t.corporate_id,
     and grd.is_deleted = 'N'
     and gmr.is_deleted = 'N'
     and spq.is_active = 'Y'
+
   group by akc.corporate_id,
            akc.corporate_name,
            pdm.product_id,
@@ -165,6 +171,7 @@ select t.corporate_id,
     and grd.tolling_stock_type = 'None Tolling'
     and grd.inventory_status = 'In'
     and pdm.product_type_id = 'Standard'
+
   group by akc.corporate_id,
            akc.corporate_name,
            pdm.product_id,
@@ -184,33 +191,68 @@ select t.corporate_id,
         phd_smelter.profileid smelter_id,
         phd_smelter.companyname smelter_name,
         0 contained_qty,
-        0 in_process_qty,
+        sum(pkg_general.f_get_converted_quantity(grd.product_id,
+                                                 grd.qty_unit_id,
+                                                 pdm.base_quantity_unit,
+                                                 grd.current_qty))*(-1) in_process_qty,
         sum(pkg_general.f_get_converted_quantity(grd.product_id,
                                                  grd.qty_unit_id,
                                                  pdm.base_quantity_unit,
                                                  grd.current_qty)) stock_qty,
         0 debt_qty
-   from grd_goods_record_detail   grd,
-        gmr_goods_movement_record gmr,
-        pci_physical_contract_item pci,
-        pcdi_pc_delivery_item pcdi,
-        pcm_physical_contract_main pcm,
-        ak_corporate              akc,
-        pdm_productmaster         pdm,
-        qum_quantity_unit_master  qum,
-        phd_profileheaderdetails  phd_smelter
-  where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-    and gmr.corporate_id = akc.corporate_id
-    and grd.tolling_stock_type = 'RM In Process Stock'
-     and grd.internal_contract_item_ref_no = pci.internal_contract_item_ref_no
-    and pci.pcdi_id = pcdi.pcdi_id
-    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
-    and pcm.cp_id = phd_smelter.profileid
-    and grd.product_id = pdm.product_id
-    and pdm.base_quantity_unit = qum.qty_unit_id
-    and grd.is_deleted = 'N'
-    and gmr.is_deleted = 'N'
-  group by akc.corporate_id,
+from grd_goods_record_detail        grd,
+      gmr_goods_movement_record gmr,
+      wrd_warehouse_receipt_detail wrd,
+      ak_corporate                         akc,
+      pdm_productmaster               pdm,
+      qum_quantity_unit_master      qum,
+      phd_profileheaderdetails          phd_smelter
+where grd.internal_gmr_ref_no=gmr.internal_gmr_ref_no
+      and grd.tolling_stock_type = 'RM In Process Stock'
+      and gmr.internal_gmr_ref_no=wrd.internal_gmr_ref_no
+      and gmr.corporate_id=akc.corporate_id
+      and grd.product_id=pdm.product_id
+      and pdm.base_quantity_unit=qum.qty_unit_id
+      and wrd.smelter_cp_id=phd_smelter.profileid
+
+group by akc.corporate_id,
+           akc.corporate_name,
+           pdm.product_id,
+           pdm.product_desc,
+           qum.qty_unit_id,
+           qum.qty_unit,
+           phd_smelter.profileid,
+           phd_smelter.companyname
+union all
+select akc.corporate_id,
+        akc.corporate_name,
+        pdm.product_id,
+        pdm.product_desc product_name,
+        qum.qty_unit_id,
+        qum.qty_unit,
+        phd_smelter.profileid smelter_id,
+        phd_smelter.companyname smelter_name,
+        0 contained_qty,
+        0 in_process_qty,
+        sum(pkg_general.f_get_converted_quantity(dgrd.product_id,
+                                                 dgrd.net_weight_unit_id,
+                                                 pdm.base_quantity_unit,
+                                                 dgrd.current_qty))*-1 stock_qty,
+        0 debt_qty
+from dgrd_delivered_grd                  dgrd,
+      gmr_goods_movement_record gmr,
+      ak_corporate                         akc,
+      pdm_productmaster               pdm,
+      qum_quantity_unit_master      qum,
+      phd_profileheaderdetails          phd_smelter
+where dgrd.internal_gmr_ref_no=gmr.internal_gmr_ref_no
+      and dgrd.tolling_stock_type = 'Return Material Stock'
+      and gmr.corporate_id=akc.corporate_id
+      and dgrd.product_id=pdm.product_id
+      and pdm.base_quantity_unit=qum.qty_unit_id
+      and dgrd.warehouse_profile_id=phd_smelter.profileid
+
+group by akc.corporate_id,
            akc.corporate_name,
            pdm.product_id,
            pdm.product_desc,
@@ -225,5 +267,5 @@ select t.corporate_id,
            t.qty_unit_id,
            t.qty_unit,
            t.smelter_id,
-           t.smelter_name;
+           t.smelter_name
 

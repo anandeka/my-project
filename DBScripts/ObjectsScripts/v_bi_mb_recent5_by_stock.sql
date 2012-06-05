@@ -101,6 +101,7 @@ select t2.corporate_id,
                                axs.internal_action_ref_no
                            and dgrdul.internal_gmr_ref_no =
                                gmr.internal_gmr_ref_no
+                           and gmr.is_deleted='N' --Bug 65543
                          group by dgrdul.internal_dgrd_ref_no) t,
                        dgrd_delivered_grd dgrd,
                        axm_action_master axm,
@@ -144,7 +145,7 @@ select t2.corporate_id,
                                              gmr.corporate_id
                                           end),
                                       24) corporate_id,
-                               
+
                                substr(max(case
                                             when grdul.pcdi_id is not null then
                                              to_char(axs.created_date,
@@ -197,6 +198,7 @@ select t2.corporate_id,
                                axs.internal_action_ref_no
                            and grdul.internal_gmr_ref_no =
                                gmr.internal_gmr_ref_no
+                           and gmr.is_deleted='N'--Bug 65543
                          group by grdul.internal_grd_ref_no) t,
                        grd_goods_record_detail grd,
                        axm_action_master axm,
@@ -214,4 +216,3 @@ select t2.corporate_id,
                    and pcm.cp_id = phd.profileid
                    and t.qty_unit_id = qum.qty_unit_id) t1) t2
  where t2.order_seq < 6 
-/
