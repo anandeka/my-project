@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_PATCH_0773
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Uttam
+ 
+Created on*        		:  05-June-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  -
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95488
+Author: uttam
+Date: 6:45:26 PM, Tuesday, June 05, 2012
+Message:
+data_correction_script_4.sql   ---- purchase side 1st activity
+data_correction_script_5.sql   ---- Landing Activity
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_4.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_5.sql
+
+
+NOTE :  data_correction_script_4  need to execute first as it deals with fist gmr activity .data_correction_script_5 need to 
+   execute later as it deals with landing after first activity
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
