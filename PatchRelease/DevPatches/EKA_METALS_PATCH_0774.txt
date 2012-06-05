@@ -1,0 +1,60 @@
+Patch No*          		:  EKA_METALS_PATCH_0774
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok Kumar
+ 
+Created on*        		:  05-June-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  -
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  DashBoard
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95500
+Author: ashokkumar.l
+Date: 7:03:02 PM, Tuesday, June 05, 2012
+Message:
+Bug Fixed 65542,65543,65545
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_INVENTORY_BY_PRODUCT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_INVENTORY_BY_SMELTERS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_stock.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
