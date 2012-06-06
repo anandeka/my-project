@@ -55,8 +55,10 @@ create or replace package pkg_phy_eod_reports is
   procedure sp_metal_balance_qty_summary(pc_corporate_id varchar2,
                                          pd_trade_date   date,
                                          pc_process_id   varchar2);
+  procedure sp_daily_position_record(pc_corporate_id varchar2,
+                                     pd_trade_date   date,pc_process_id   varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -9192,5 +9194,706 @@ insert into pcs_purchase_contract_status
   
     commit;
   end;
+ 
+
+ procedure sp_daily_position_record ( pc_corporate_id varchar2, pd_trade_date date,pc_process_id   varchar2)
+as
+
+begin
+
+insert into dpr_daily_position_record
+  (TRADE_DATE,
+   corporate_id,
+   business_line_id,
+   profit_center_id,
+   product_id,
+   fixed_qty,
+   quotational_qty,process_id)
+with last_eod_dump  as
+(SELECT dbd1.end_date db_dump_end_timestamp,
+        dbd1.start_date db_dump_start_timestamp,
+        dbd1.trade_date  trade_date
+    FROM   dbd_database_dump dbd1
+    where  dbd1.TRADE_DATE   = pd_trade_date 
+     AND   dbd1.corporate_id = pc_corporate_id
+     AND   dbd1.process = 'EOD'
+        )
+select 
+pd_trade_date,
+corporate_id, 
+business_line_id, 
+profit_center_id, 
+product_id,
+sum(fixed_qty) fixed_qty,
+sum(quotational_qty) quotational_qty,pc_process_id
+from (
+-- Physical New Trades and Modified trade
+SELECT   'Physicals' section_name,
+         pcm.contract_ref_no, 
+         pcm.corporate_id, 
+         pcdi.pcdi_id,
+         akc.corporate_name, 
+         blm.business_line_id, 
+         blm.business_line_name,
+         cpc.profit_center_id, 
+         cpc.profit_center_short_name,
+         cpc.profit_center_name, 
+         pdm.product_id,
+         pdm.product_desc product_name, 
+         pcm.issue_date,
+         CASE
+            WHEN pcbph.price_basis = 'Fixed'
+               THEN ( case when PCM.PURCHASE_SALES = 'S' then (-1) * diqsl.total_qty_delta * ucm.multiplication_factor else diqsl.total_qty_delta * ucm.multiplication_factor end)
+            ELSE 0
+         END fixed_qty,
+         CASE
+            WHEN pcbph.price_basis <> 'Fixed'
+               THEN ( case when PCM.PURCHASE_SALES = 'S' then (-1) * diqsl.total_qty_delta * ucm.multiplication_factor else diqsl.total_qty_delta * ucm.multiplication_factor end)
+            ELSE 0
+         END quotational_qty,
+         last_eod_dump1.db_dump_end_timestamp,
+         qum.qty_unit_id,
+         qum.qty_unit base_qty_unit
+         
+    FROM pcm_physical_contract_main@eka_appdb pcm,
+         pcdi_pc_delivery_item@eka_appdb pcdi,
+         diqs_delivery_item_qty_status@eka_appdb diqs,
+         pcpd_pc_product_definition@eka_appdb pcpd,
+         (SELECT   pcbph.internal_contract_ref_no,
+                   CASE
+                      WHEN SUM (CASE
+                                   WHEN pcbpd.price_basis = 'Fixed'
+                                      THEN 0
+                                   ELSE 1
+                                END
+                               ) = 0
+                         THEN 'Fixed'
+                      ELSE 'Other'
+                   END price_basis
+              FROM pcbph_pc_base_price_header@eka_appdb pcbph,
+                   pcbpd_pc_base_price_detail@eka_appdb pcbpd
+             WHERE pcbph.pcbph_id = pcbpd.pcbph_id
+               AND pcbph.is_active = 'Y'
+               AND pcbpd.is_active = 'Y'
+          GROUP BY pcbph.internal_contract_ref_no) pcbph,
+         pdm_productmaster pdm,
+         ucm_unit_conversion_master ucm,
+         ak_corporate akc,
+         cpc_corporate_profit_center cpc,
+         blm_business_line_master@eka_appdb blm,
+         diqsl_delivery_itm_qty_sts_log@eka_appdb diqsl, 
+         axs_action_summary@eka_appdb axs,
+         qum_quantity_unit_master qum,
+         last_eod_dump last_eod_dump1
+   WHERE pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     AND pcdi.pcdi_id = diqs.pcdi_id
+     AND pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
+     AND pcm.contract_status IN ( 'In Position','Cancelled')
+     AND pcm.contract_type = 'BASEMETAL'
+     AND pcdi.is_active = 'Y'
+     AND diqs.is_active = 'Y'
+     AND pcpd.is_active = 'Y'
+     AND pcpd.input_output = 'Input'
+     AND pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
+     AND pcdi.internal_contract_ref_no = pcbph.internal_contract_ref_no
+     AND ucm.from_qty_unit_id = diqs.item_qty_unit_id
+     AND ucm.to_qty_unit_id = pdm.base_quantity_unit
+     AND pcpd.product_id = pdm.product_id
+     AND pcm.corporate_id = akc.corporate_id
+     AND pcpd.profit_center_id = cpc.profit_center_id(+)
+     AND cpc.business_line_id = blm.business_line_id(+)
+     and diqs.diqs_id = diqsl.diqs_id
+     and diqsl.internal_action_ref_no = axs.internal_action_ref_no
+     and pdm.base_quantity_unit = qum.qty_unit_id
+    -- and diqsl.entry_type ='Insert'
+     and axs.action_id in('CREATE_SC','CREATE_PC','AMEND_PC','AMEND_SC','MODIFY_PC','MODIFY_SC')
+     and axs.created_date > last_eod_dump1.db_dump_start_timestamp
+     and axs.created_date <= last_eod_dump1.db_dump_end_timestamp
+     AND AXS.EFF_DATE <= pd_trade_date
+     and pcm.corporate_id=pc_corporate_id
+ union all
+   --Physical Cancelled trade
+  SELECT   'Physicals' section_name,
+         pcm.contract_ref_no, 
+         pcm.corporate_id, 
+         pcdi.pcdi_id,
+         akc.corporate_name, 
+         blm.business_line_id, 
+         blm.business_line_name,
+         cpc.profit_center_id, 
+         cpc.profit_center_short_name,
+         cpc.profit_center_name, 
+         pdm.product_id,
+         pdm.product_desc product_name, 
+         pcm.issue_date,
+         CASE
+            WHEN pcbph.price_basis = 'Fixed'
+               THEN ( case when PCM.PURCHASE_SALES = 'S' then  diqs.total_qty * ucm.multiplication_factor else (-1) *diqs.total_qty * ucm.multiplication_factor end)
+            ELSE 0
+         END fixed_qty,
+         CASE
+            WHEN pcbph.price_basis <> 'Fixed'
+               THEN ( case when PCM.PURCHASE_SALES = 'S' then diqs.total_qty * ucm.multiplication_factor else  (-1) * diqs.total_qty * ucm.multiplication_factor end)
+            ELSE 0
+         END quotational_qty,
+         last_eod_dump1.db_dump_end_timestamp,
+         qum.qty_unit_id,
+         qum.qty_unit base_qty_unit
+         
+    FROM pcm_physical_contract_main@eka_appdb pcm,
+         pcdi_pc_delivery_item@eka_appdb pcdi,
+         diqs_delivery_item_qty_status@eka_appdb diqs,
+         pcpd_pc_product_definition@eka_appdb pcpd,
+         (SELECT   pcbph.internal_contract_ref_no,
+                   CASE
+                      WHEN SUM (CASE
+                                   WHEN pcbpd.price_basis = 'Fixed'
+                                      THEN 0
+                                   ELSE 1
+                                END
+                               ) = 0
+                         THEN 'Fixed'
+                      ELSE 'Other'
+                   END price_basis
+              FROM pcbph_pc_base_price_header@eka_appdb pcbph,
+                   pcbpd_pc_base_price_detail@eka_appdb pcbpd
+             WHERE pcbph.pcbph_id = pcbpd.pcbph_id
+               AND pcbph.is_active = 'Y'
+               AND pcbpd.is_active = 'Y'
+          GROUP BY pcbph.internal_contract_ref_no) pcbph,
+         pdm_productmaster pdm,
+         ucm_unit_conversion_master ucm,
+         ak_corporate akc,
+         cpc_corporate_profit_center cpc,
+         blm_business_line_master@eka_appdb blm,
+          pcmul_phy_contract_main_ul@eka_appdb pcmul,
+         axs_action_summary@eka_appdb axs,
+         qum_quantity_unit_master qum,
+         last_eod_dump last_eod_dump1
+   WHERE pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     AND pcdi.pcdi_id = diqs.pcdi_id
+     AND pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
+     AND pcm.contract_status = 'Cancelled'
+     AND pcm.contract_type = 'BASEMETAL'
+     AND pcdi.is_active = 'Y'
+     AND diqs.is_active = 'Y'
+     AND pcpd.is_active = 'Y'
+     AND pcpd.input_output = 'Input'
+     AND pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
+     AND pcdi.internal_contract_ref_no = pcbph.internal_contract_ref_no
+     AND ucm.from_qty_unit_id = diqs.item_qty_unit_id
+     AND ucm.to_qty_unit_id = pdm.base_quantity_unit
+     AND pcpd.product_id = pdm.product_id
+     AND pcm.corporate_id = akc.corporate_id
+     AND pcpd.profit_center_id = cpc.profit_center_id(+)
+     AND cpc.business_line_id = blm.business_line_id(+)
+     and pcmul.internal_contract_ref_no = pcm.internal_contract_ref_no
+     and pcmul.contract_status = 'Cancelled'
+     and pcmul.internal_action_ref_no = axs.internal_action_ref_no
+     and pdm.base_quantity_unit = qum.qty_unit_id
+    -- and diqsl.entry_type ='Insert'
+     and axs.action_id in('CANCEL_PC', 'CANCEL_SC')
+     and axs.created_date > last_eod_dump1.db_dump_start_timestamp
+     and axs.created_date <= last_eod_dump1.db_dump_end_timestamp
+     AND AXS.EFF_DATE <= pd_trade_date
+     and pcm.corporate_id=pc_corporate_id
+   
+     
+-- 'Any one day price fix' 
+union all
+select 'Any one day price fix' section_name,
+       pcm.contract_ref_no,
+       pcm.corporate_id,
+       pcdi.pcdi_id,
+       akc.corporate_name,
+       blm.business_line_id,
+       blm.business_line_name,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name,
+       cpc.profit_center_name,
+       pdm.product_id,
+       pdm.product_desc product_name,
+       pfd.as_of_date issue_date,
+       (pfd.qty_fixed * ucm.multiplication_factor) fixed_qty,
+       ((-1) * pfd.qty_fixed * ucm.multiplication_factor) quotational_qty,
+       last_eod_dump1.db_dump_end_timestamp,
+       qum.qty_unit_id,
+       qum.qty_unit base_qty_unit    
+
+  from pcm_physical_contract_main@eka_appdb     pcm,
+       pcdi_pc_delivery_item@eka_appdb          pcdi,
+       pfd_price_fixation_details@eka_appdb     pfd,
+       poch_price_opt_call_off_header@eka_appdb poch,
+       pofh_price_opt_fixation_header@eka_appdb pofh,
+       pocd_price_option_calloff_dtls@eka_appdb pocd,
+       ppfh_phy_price_formula_header@eka_appdb  ppfh,
+       pfqpp_phy_formula_qp_pricing@eka_appdb   pfqpp,
+       pcpd_pc_product_definition@eka_appdb     pcpd,
+       axs_action_summary@eka_appdb             axs,
+       pfam_price_fix_action_mapping@EKA_APPDB  pfam,
+       pdm_productmaster              pdm,
+       qum_quantity_unit_master       qum,
+       ucm_unit_conversion_master     ucm,
+       ak_corporate                   akc,
+       cpc_corporate_profit_center    cpc,
+       blm_business_line_master@eka_appdb       blm,
+       last_eod_dump             last_eod_dump1
+ where pcm.contract_type = 'BASEMETAL'
+   and pcm.contract_status = 'In Position'
+   and pcdi.is_active = 'Y'
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pfd.pofh_id = pofh.pofh_id
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.poch_id = pocd.poch_id
+   and pocd.pocd_id = pofh.pocd_id
+   and pocd.pcbpd_id = ppfh.pcbpd_id
+   and ppfh.ppfh_id = pfqpp.ppfh_id
+   and pfqpp.is_qp_any_day_basis = 'Y'
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.input_output = 'Input'
+   and pfam.pfd_id = pfd.pfd_id
+   and axs.internal_action_ref_no = pfam.internal_action_ref_no
+   and pcpd.product_id = pdm.product_id
+   and pdm.base_quantity_unit = qum.qty_unit_id
+   and ucm.from_qty_unit_id = pcdi.qty_unit_id
+   and ucm.to_qty_unit_id = pdm.base_quantity_unit
+   and pcm.corporate_id = akc.corporate_id
+   and pcpd.profit_center_id = cpc.profit_center_id(+)
+   and cpc.business_line_id = blm.business_line_id(+)
+      -- and pfd.is_active = 'Y' --comment  this condition to fetch cancelled price fixation also for same contract it balance the next section data
+   and pcm.is_active = 'Y'
+   and poch.is_active = 'Y'
+   and pofh.is_active = 'Y'
+   and ppfh.is_active = 'Y'
+   and pfqpp.is_active = 'Y'
+   and pfd.as_of_date <= pd_trade_date
+   and axs.created_date > last_eod_dump1.db_dump_start_timestamp
+   and axs.created_date <= last_eod_dump1.db_dump_end_timestamp
+   and pcm.corporate_id=pc_corporate_id
+---todo need to use axs table creatation date between db_dump_start_timestamp and db_dump_end_timestamp
+
+  -- any one day price fix cancelled
+   union all
+ select 'Any one day price fix' section_name,
+        pcm.contract_ref_no,
+        pcm.corporate_id,
+        pcdi.pcdi_id,
+        akc.corporate_name,
+        blm.business_line_id,
+        blm.business_line_name,
+        cpc.profit_center_id,
+        cpc.profit_center_short_name,
+        cpc.profit_center_name,
+        pdm.product_id,
+        pdm.product_desc product_name,
+        pfd.as_of_date issue_date,
+        ((-1) * pfd.qty_fixed * ucm.multiplication_factor) fixed_qty,
+        (pfd.qty_fixed * ucm.multiplication_factor) quotational_qty,
+        last_eod_dump1.db_dump_end_timestamp,
+        qum.qty_unit_id,
+        qum.qty_unit base_qty_uni
+        
+ 
+   from pcm_physical_contract_main@eka_appdb     pcm,
+        pcdi_pc_delivery_item@eka_appdb          pcdi,
+        pfd_price_fixation_details@eka_appdb     pfd,
+        poch_price_opt_call_off_header@eka_appdb poch,
+        pofh_price_opt_fixation_header@eka_appdb pofh,
+        pocd_price_option_calloff_dtls@eka_appdb pocd,
+        ppfh_phy_price_formula_header@eka_appdb  ppfh,
+        pfqpp_phy_formula_qp_pricing@eka_appdb   pfqpp,
+        pcpd_pc_product_definition@eka_appdb     pcpd,
+        pdm_productmaster              pdm,
+        qum_quantity_unit_master       qum,
+        ucm_unit_conversion_master     ucm,
+        axs_action_summary@eka_appdb             axs,
+        pfam_price_fix_action_mapping@EKA_APPDB  pfam,
+        ak_corporate                   akc,
+        cpc_corporate_profit_center    cpc,
+        blm_business_line_master@eka_appdb       blm,
+        last_eod_dump                  last_eod_dump1
+  where pcm.contract_type = 'BASEMETAL'
+    and pcm.contract_status = 'In Position'
+    and pcdi.is_active = 'Y'
+    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+    and pfd.pofh_id = pofh.pofh_id
+    and pcdi.pcdi_id = poch.pcdi_id
+    and poch.poch_id = pocd.poch_id
+    and pocd.pocd_id = pofh.pocd_id
+    and pocd.pcbpd_id = ppfh.pcbpd_id
+    and ppfh.ppfh_id = pfqpp.ppfh_id
+    and pfqpp.is_qp_any_day_basis = 'Y'
+    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+    and pcpd.input_output = 'Input'
+    and pcpd.product_id = pdm.product_id
+    and pdm.base_quantity_unit = qum.qty_unit_id
+    and ucm.from_qty_unit_id = pcdi.qty_unit_id
+    and ucm.to_qty_unit_id = pdm.base_quantity_unit
+    and pcm.corporate_id = akc.corporate_id
+    and pcpd.profit_center_id = cpc.profit_center_id(+)
+    and cpc.business_line_id = blm.business_line_id(+)
+    and axs.action_id in ('CANCEL_PRICE_FIXATION')
+    and axs.internal_action_ref_no = pfam.internal_action_ref_no
+    and pfam.pfd_id = pfd.pfd_id
+    and pfd.is_active = 'N'
+    and pcm.is_active = 'Y'
+    and poch.is_active = 'Y'
+    and pofh.is_active = 'Y'
+    and ppfh.is_active = 'Y'
+    and pfqpp.is_active = 'Y'
+    and axs.created_date > last_eod_dump1.db_dump_start_timestamp
+    and axs.created_date <= last_eod_dump1.db_dump_end_timestamp
+    AND AXS.EFF_DATE <= pd_trade_date
+    and pcm.corporate_id = pc_corporate_id
+ union all
+  -- 'Average price fix'and cancelled
+ select 'Average price fix' section_name,
+        pcm.contract_ref_no,
+        pcm.corporate_id,
+        pcdi.pcdi_id,
+        akc.corporate_name,
+        blm.business_line_id,
+        blm.business_line_name,
+        cpc.profit_center_id,
+        cpc.profit_center_short_name,
+        cpc.profit_center_name,
+        pdm.product_id,
+        pdm.product_desc product_name,
+        pofhd.priced_date issue_date,
+        (pofhd.per_day_pricing_qty * ucm.multiplication_factor) fixed_qty,
+        ((-1) * pofhd.per_day_pricing_qty * ucm.multiplication_factor) quotational_qty,
+        last_eod_dump1.db_dump_end_timestamp,
+        qum.qty_unit_id,
+        qum.qty_unit base_qty_unit
+    from pcm_physical_contract_main@eka_appdb     pcm,
+        pcdi_pc_delivery_item@eka_appdb          pcdi,
+        pofhd_pofh_daily@EKA_APPDB     pofhd,
+        poch_price_opt_call_off_header@eka_appdb poch,
+        pofh_price_opt_fixation_header@eka_appdb pofh,
+        pocd_price_option_calloff_dtls@eka_appdb pocd,
+        ppfh_phy_price_formula_header@eka_appdb  ppfh,
+        pfqpp_phy_formula_qp_pricing@eka_appdb   pfqpp,
+        pcpd_pc_product_definition@eka_appdb     pcpd,
+        pdm_productmaster              pdm,
+        qum_quantity_unit_master       qum,
+        ucm_unit_conversion_master     ucm,
+        ak_corporate                   akc,
+        cpc_corporate_profit_center    cpc,
+        blm_business_line_master@eka_appdb       blm,
+        last_eod_dump last_eod_dump1 
+  where pcm.contract_type = 'BASEMETAL'
+    and pcm.contract_status = 'In Position'
+    and pcdi.is_active = 'Y'
+    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+    and pofhd.pofh_id = pofh.pofh_id
+    and pcdi.pcdi_id = poch.pcdi_id
+    and poch.poch_id = pocd.poch_id
+    and pofhd.pocd_id = pocd.pocd_id
+    and pocd.pocd_id = pofh.pocd_id
+    and pocd.pcbpd_id = ppfh.pcbpd_id
+    and ppfh.ppfh_id = pfqpp.ppfh_id
+    and pfqpp.is_qp_any_day_basis is null
+    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+    and pcpd.input_output = 'Input'
+    and pcpd.product_id = pdm.product_id
+    and pdm.base_quantity_unit = qum.qty_unit_id
+    and ucm.from_qty_unit_id = pcdi.qty_unit_id
+    and ucm.to_qty_unit_id = pdm.base_quantity_unit
+    and pcm.corporate_id = akc.corporate_id
+    and pcpd.profit_center_id = cpc.profit_center_id(+)
+    and cpc.business_line_id = blm.business_line_id(+)
+    and pofhd.is_active = 'Y'
+    and pcm.is_active = 'Y'
+    and poch.is_active = 'Y'
+    and pofh.is_active = 'Y'
+    and ppfh.is_active = 'Y'
+    and pfqpp.is_active = 'Y'
+    and pofhd.priced_date = pd_trade_date
+    and pcm.corporate_id = pc_corporate_id
+
+  UNION ALL
+----Futures
+select section_name,
+       contract_ref_no,
+       corporate_id,
+       null pcdi_id,
+       corporate_name,
+       business_line_id,
+       business_line_name,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       product_id,
+       product_name,
+       issue_date,
+       case
+         when instrument_type = 'Future' then
+          qty
+         else
+          0
+       end fixed_qty,
+       case
+         when instrument_type = 'Average' then
+          qty
+         else
+          0
+       end quotational_qty,
+       db_dump_end_timestamp,
+       qty_unit_id,
+       base_qty_unit
+  from (select 'Futures' section_name,
+               dt.derivative_ref_no contract_ref_no,
+               dt.corporate_id corporate_id,
+               akc.corporate_name corporate_name,
+               blm.business_line_id business_line_id,
+               blm.business_line_name business_line_name,
+               cpc.profit_center_id profit_center_id,
+               cpc.profit_center_short_name profit_center_short_name,
+               cpc.profit_center_name profit_center_name,
+               pdm.product_id product_id,
+               pdm.product_desc product_name,
+               dt.trade_date issue_date,
+               sum(dtql.total_quantity_delta *
+                   decode(dt.trade_type, 'Buy', 1, 'Sell', -1) *
+                   ucm.multiplication_factor) qty,
+               last_eod_dump1.db_dump_end_timestamp,
+               pdm.base_quantity_unit qty_unit_id,
+               qum.qty_unit base_qty_unit,
+               irm.instrument_type
+          from dt_derivative_trade@eka_appdb         dt,
+               ak_corporate                akc,
+               cpc_corporate_profit_center cpc,
+               blm_business_line_master@eka_appdb    blm,
+               drm_derivative_master@eka_appdb       drm,
+               dim_der_instrument_master@eka_appdb   dim,
+               irm_instrument_type_master@eka_appdb  irm,
+               dt_qty_log@eka_appdb                  dtql,
+               pdd_product_derivative_def  pdd,
+               pdm_productmaster           pdm,
+               axs_action_summary@eka_appdb          axs,
+               last_eod_dump               last_eod_dump1,
+               ucm_unit_conversion_master  ucm,
+               qum_quantity_unit_master    qum
+         where akc.corporate_id = dt.corporate_id
+           and dt.profit_center_id = cpc.profit_center_id
+           and cpc.business_line_id = blm.business_line_id
+           and dt.dr_id = drm.dr_id
+           and drm.instrument_id = dim.instrument_id
+           and irm.instrument_type_id = dim.instrument_type_id
+           and dt.internal_derivative_ref_no =
+               dtql.internal_derivative_ref_no
+           and axs.action_id in
+               ('CDC_CREATE_OTC_AVERAGE_FORWARD', 'CDC_CREATE_EX_FUTURE',
+                'CDC_MODIFY_EX_FUTURE', 'CDC_DELETE_EX_FUTURE',
+                'CDC_DELETE_OTC_AVERAGE_FORWARD',
+                'CDC_MODIFY_OTC_AVERAGE_FORWARD')
+           and irm.instrument_type in ('Average', 'Future')
+           and pdd.derivative_def_id = dim.product_derivative_id
+           and pdd.product_id = pdm.product_id
+           and axs.internal_action_ref_no = dtql.internal_action_ref_no
+           and axs.created_date > last_eod_dump1.db_dump_start_timestamp
+           and axs.created_date <= last_eod_dump1.db_dump_end_timestamp
+           and dt.corporate_id = pc_corporate_id
+           and dt.trade_date <= pd_trade_date
+           and ucm.from_qty_unit_id = dt.quantity_unit_id
+           and ucm.to_qty_unit_id = pdm.base_quantity_unit
+           and qum.qty_unit_id = pdm.base_quantity_unit
+         group by dt.derivative_ref_no,
+                  dt.corporate_id,
+                  akc.corporate_name,
+                  blm.business_line_id,
+                  blm.business_line_name,
+                  cpc.profit_center_id,
+                  cpc.profit_center_short_name,
+                  cpc.profit_center_name,
+                  pdm.product_id,
+                  pdm.product_desc,
+                  dt.trade_date,
+                  pdm.base_quantity_unit,
+                  db_dump_end_timestamp,
+                  qum.qty_unit,
+                  irm.instrument_type)
+UNION ALL
+---------------------avg trades       
+select 'Average Forwards' section_name,
+       dt.derivative_ref_no contract_ref_no,
+       dt.corporate_id corporate_id,
+       null,
+       akc.corporate_name corporate_name,
+       blm.business_line_id business_line_id,
+       blm.business_line_name business_line_name,
+       cpc.profit_center_id profit_center_id,
+       cpc.profit_center_short_name profit_center_short_name,
+       cpc.profit_center_name profit_center_name,
+       pdm.product_id product_id,
+       pdm.product_desc product_name,
+       dt.trade_date issue_date,
+       sum(dtavg.fixed_qty * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) *
+           ucm.multiplication_factor) fixed_qty,
+       (nvl(dtavg_quo.quantity, 0) *
+       decode(dt.trade_type, 'Buy', -1, 'Sell', 1) *
+       ucm.multiplication_factor) quotational_qty,
+       last_eod_dump1.db_dump_end_timestamp,
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit base_qty_unit
+  from dt_derivative_trade@eka_appdb dt,
+       ak_corporate akc,
+       cpc_corporate_profit_center cpc,
+       blm_business_line_master@eka_appdb blm,
+       drm_derivative_master drm,
+       dim_der_instrument_master dim,
+       irm_instrument_type_master irm,
+       pdd_product_derivative_def pdd,
+       pdm_productmaster pdm,
+       ucm_unit_conversion_master ucm,
+       last_eod_dump last_eod_dump1,
+       (select dt1.internal_derivative_ref_no,
+               dt1.period_date,
+               sum(dt1.quantity) fixed_qty
+          from dt_avg@eka_appdb dt1
+         group by dt1.internal_derivative_ref_no,
+                  dt1.period_date) dtavg,
+       dt_avg@eka_appdb dtavg_quo,
+       qum_quantity_unit_master qum
+ where akc.corporate_id = dt.corporate_id
+   and dt.profit_center_id = cpc.profit_center_id
+   and cpc.business_line_id = blm.business_line_id
+   and dt.dr_id = drm.dr_id
+   and drm.instrument_id = dim.instrument_id
+   and irm.instrument_type_id = dim.instrument_type_id
+   and pdd.derivative_def_id = dim.product_derivative_id
+   and pdd.product_id = pdm.product_id
+   and ucm.from_qty_unit_id = dt.quantity_unit_id
+   and ucm.to_qty_unit_id = pdm.base_quantity_unit
+   and dtavg.internal_derivative_ref_no = dt.internal_derivative_ref_no
+   and qum.qty_unit_id = pdm.base_quantity_unit
+   and dtavg_quo.internal_derivative_ref_no = dt.internal_derivative_ref_no
+   and dtavg_quo.period_date =
+       (select max(dtavg_sub.period_date)
+          from dt_avg@eka_appdb dtavg_sub
+         where dtavg_sub.period_date > dtavg.period_date
+           and dtavg_sub.internal_derivative_ref_no =
+               dt.internal_derivative_ref_no)
+  -- and dtavg.period_date > last_eod_dump1.trade_date :todo need to use previous eod date
+   and irm.instrument_type = 'Average'
+   and dt.status <> 'Delete'
+   and dtavg.period_date <= pd_trade_date
+   and dt.corporate_id= pc_corporate_id
+ group by dt.derivative_ref_no,
+          dt.corporate_id,
+          akc.corporate_name,
+          blm.business_line_id,
+          blm.business_line_name,
+          cpc.profit_center_id,
+          cpc.profit_center_short_name,
+          cpc.profit_center_name,
+          pdm.product_id,
+          pdm.product_desc,
+          dt.trade_date,
+          (nvl(dtavg_quo.quantity, 0) *
+          decode(dt.trade_type, 'Buy', -1, 'Sell', 1) *
+          ucm.multiplication_factor),
+          db_dump_end_timestamp,
+          pdm.base_quantity_unit,
+          qum.qty_unit
+
+UNION ALL
+--delete average forward trades       
+select 'Average Forwards' section_name,
+       dt.derivative_ref_no contract_ref_no,
+       null,
+       dt.corporate_id corporate_id,
+       akc.corporate_name corporate_name,
+       blm.business_line_id business_line_id,
+       blm.business_line_name business_line_name,
+       cpc.profit_center_id profit_center_id,
+       cpc.profit_center_short_name profit_center_short_name,
+       cpc.profit_center_name profit_center_name,
+       pdm.product_id product_id,
+       pdm.product_desc product_name,
+       dt.trade_date issue_date,
+       sum(dtavg.fixed_qty * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) *
+           ucm.multiplication_factor) fixed_qty,
+       (nvl(dtavg_quo.quantity, 0) *
+       decode(dt.trade_type, 'Buy', 1, 'Sell', -1) *
+       ucm.multiplication_factor) quotational_qty,
+       last_eod_dump1.db_dump_end_timestamp,
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit base_qty_unit
+  from dt_derivative_trade@eka_appdb dt,
+       dtul_derivative_trade_ul@eka_appdb dtul,
+       axs_action_summary@eka_appdb axs,
+       ak_corporate akc,
+       cpc_corporate_profit_center cpc,
+       blm_business_line_master@eka_appdb blm,
+       drm_derivative_master drm,
+       dim_der_instrument_master dim,
+       irm_instrument_type_master irm,
+       pdd_product_derivative_def pdd,
+       pdm_productmaster pdm,
+       ucm_unit_conversion_master ucm,
+       last_eod_dump last_eod_dump1,
+       (select dt1.internal_derivative_ref_no,
+               dt1.period_date,
+               sum(dt1.quantity) fixed_qty
+          from dt_avg@eka_appdb dt1
+         group by dt1.internal_derivative_ref_no,
+                  dt1.period_date) dtavg,
+       dt_avg@eka_appdb dtavg_quo,
+       qum_quantity_unit_master qum
+ where akc.corporate_id = dt.corporate_id
+   and dt.derivative_ref_no = 'FRWA14-EKA'
+   and dtul.internal_derivative_ref_no = dt.internal_derivative_ref_no
+   and dtul.status = 'Delete'
+   and dtul.internal_action_ref_no = axs.internal_action_ref_no
+   and axs.created_date > last_eod_dump1.db_dump_start_timestamp
+   and axs.action_id = 'CDC_DELETE_OTC_AVERAGE_FORWARD'
+   and dt.profit_center_id = cpc.profit_center_id
+   and cpc.business_line_id = blm.business_line_id
+   and dt.dr_id = drm.dr_id
+   and drm.instrument_id = dim.instrument_id
+   and irm.instrument_type_id = dim.instrument_type_id
+   and pdd.derivative_def_id = dim.product_derivative_id
+   and pdd.product_id = pdm.product_id
+   and ucm.from_qty_unit_id = dt.quantity_unit_id
+   and ucm.to_qty_unit_id = pdm.base_quantity_unit
+   and dtavg.internal_derivative_ref_no = dt.internal_derivative_ref_no
+   and dtavg_quo.internal_derivative_ref_no = dt.internal_derivative_ref_no
+   and qum.qty_unit_id = pdm.base_quantity_unit
+   and dtavg_quo.period_date =
+       (select max(dtavg_sub.period_date)
+          from dt_avg@eka_appdb dtavg_sub
+         where dtavg_sub.period_date > dtavg.period_date
+           and dtavg_sub.internal_derivative_ref_no =
+               dt.internal_derivative_ref_no)
+ --  and dtavg.period_date > last_eod_dump1.trade_date need to use previous eod date
+   and irm.instrument_type = 'Average'
+   and dtavg.period_date <= pd_trade_date
+     and dt.corporate_id= pc_corporate_id
+ group by dt.derivative_ref_no,
+          dt.corporate_id,
+          akc.corporate_name,
+          blm.business_line_id,
+          blm.business_line_name,
+          cpc.profit_center_id,
+          cpc.profit_center_short_name,
+          cpc.profit_center_name,
+          pdm.product_id,
+          pdm.product_desc,
+          dt.trade_date,
+          (nvl(dtavg_quo.quantity, 0) *
+          decode(dt.trade_type, 'Buy', 1, 'Sell', -1) *
+          ucm.multiplication_factor),
+          db_dump_end_timestamp,
+          pdm.base_quantity_unit,
+          qum.qty_unit)
+group by 
+db_dump_end_timestamp,
+corporate_id, 
+business_line_id, 
+profit_center_id, 
+product_id;
+
+end;
 end; 
 /
