@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0775
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  06-June-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  65763,64728
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95537
+Author: elaiyaraja.nallathambi
+Date: 12:45:19 PM, Wednesday, June 06, 2012
+Message:
+Bug Fixes.65763,64728
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractedVsDeliveredReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MetalBalanceSummaryReport.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
