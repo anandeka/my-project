@@ -1,0 +1,95 @@
+Patch No*          		:  EKA_METALS_PATCH_0776
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Saurabh Raj
+ 
+Created on*        		:  06-June-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95585
+Author: saurabh.raj
+Date: 8:21:01 PM, Wednesday, June 06, 2012
+Message:
+Created for new report DailyPositionBalanceReport
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_POFHD.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_267.sql
+
+Revision: 95584
+Author: saurabh.raj
+Date: 8:12:28 PM, Wednesday, June 06, 2012
+Message:
+Adding new report DailyPositionBalanceReport
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/046_EOD_DDL_Script.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+Revision: 95590
+Author: saurabh.raj
+Date: 8:27:32 PM, Wednesday, June 06, 2012
+Message:
+Insert script for report DailyPositionBalanceReport
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_298.txt
+
+Revision: 95591
+Author: saurabh.raj
+Date: 8:31:41 PM, Wednesday, June 06, 2012
+Message:
+Filter script for table DailyPositionBalanceReport
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_63_DML_RPC_RFP_Scripts.txt
+
+Revision: 95592
+Author: saurabh.raj
+Date: 8:33:18 PM, Wednesday, June 06, 2012
+Message:
+Report added DailyPositionBalanceReport
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
