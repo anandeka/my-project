@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0777
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Saurabh Raj
+ 
+Created on*        		:  07-June-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  MDM
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95594
+Author: baijukaimala
+Date: Thursday, June 07, 2012 10:35:16 AM
+Message:
+Added new role Pledge Party
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_299.txt
+
