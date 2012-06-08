@@ -981,7 +981,7 @@ create or replace package body pkg_phy_physical_process is
     vc_err_msg := 'Before sp_daily_position_record';
   
     pkg_phy_eod_reports.sp_daily_position_record ( pc_corporate_id 
-                                                  , pd_trade_date );
+                                                  , pd_trade_date,pc_process_id );
   
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -3788,7 +3788,7 @@ create or replace package body pkg_phy_physical_process is
     delete from cr_customs_report where process_id = pc_process_id;
     delete from mas_metal_account_summary where process_id = pc_process_id;
     delete from md_metal_debt where process_id = pc_process_id;
-  
+    delete from dpr_daily_position_record where process_id = pc_process_id;
     --
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
