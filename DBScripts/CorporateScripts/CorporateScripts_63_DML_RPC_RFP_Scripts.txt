@@ -89,4 +89,5 @@ Insert into RPC_RF_PARAMETER_CONFIG
    (CC.CORPORATE_ID, '251', 'RFC251PHY03', 'RFP1050', '1');
  
 end loop;
+update RFC_REPORT_FILTER_CONFIG set  LABEL = 'Trade Date' where REPORT_ID = '251' and LABEL_ROW_NUMBER = '1';
 end;
