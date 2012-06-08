@@ -6,7 +6,7 @@ select t.corporate_id corporate_id,
        round(sum(t.in_process_qty),2) inprocess_quantity,
        round(sum(t.stock_qty),2) stock_quantity,
        round(sum(t.debt_qty),2) debt_quantity,
-       round(sum(t.contained_qty),2) + round(sum(t.in_process_qty),2) + round(sum(t.stock_qty),2) -
+       round(sum(t.contained_qty),2) + round(sum(t.in_process_qty),2) + round(sum(t.stock_qty),2)+
        round(sum(t.debt_qty),2) net_quantity,
        t.qty_unit_id base_qty_unit_id,
        t.qty_unit base_qty_unit
@@ -27,7 +27,7 @@ select t.corporate_id corporate_id,
               ) contained_qty,
         0 in_process_qty,
         0 stock_qty,
-       sum(pkg_general.f_get_converted_quantity(pdm.product_id,
+       -1* sum(pkg_general.f_get_converted_quantity(pdm.product_id,
                                             spq.qty_unit_id,
                                             pdm.base_quantity_unit,
                                             spq.payable_qty)
@@ -53,7 +53,6 @@ select t.corporate_id corporate_id,
     and spq.is_active = 'Y'
     and grd.warehouse_profile_id = phd_smelter.profileid(+)--TT in
     and grd.inventory_status = 'In'
-
     group by akc.corporate_id,
            akc.corporate_name,
            pdm.product_id,
@@ -102,7 +101,6 @@ select t.corporate_id corporate_id,
     and grd.is_deleted = 'N'
     and gmr.is_deleted = 'N'
     and spq.is_active = 'Y'
-
   group by akc.corporate_id,
            akc.corporate_name,
            pdm.product_id,
@@ -144,7 +142,6 @@ select t.corporate_id corporate_id,
     and grd.tolling_stock_type = 'None Tolling'
     and grd.inventory_status = 'In'
     and pdm.product_type_id = 'Standard'
-
   group by akc.corporate_id,
            akc.corporate_name,
            pdm.product_id,
@@ -187,7 +184,6 @@ select t.corporate_id corporate_id,
     and grd.warehouse_profile_id = phd_smelter.profileid(+) --TT in
     and grd.is_deleted = 'N'
     and gmr.is_deleted = 'N'
-
   group by akc.corporate_id,
            akc.corporate_name,
            pdm.product_id,
@@ -227,7 +223,6 @@ where dgrd.internal_gmr_ref_no=gmr.internal_gmr_ref_no
         and dgrd.product_id=pdm.product_id
         and pdm.base_quantity_unit=qum.qty_unit_id
         and dgrd.warehouse_profile_id=phd_smelter.profileid
-        --and gmr.gmr_ref_no='GMR-369-BLD'
 
 group by akc.corporate_id,
            akc.corporate_name,

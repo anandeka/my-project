@@ -214,5 +214,190 @@ select t2.corporate_id,
                    and pcdi.internal_contract_ref_no =
                        pcm.internal_contract_ref_no
                    and pcm.cp_id = phd.profileid
-                   and t.qty_unit_id = qum.qty_unit_id) t1) t2
- where t2.order_seq < 6 
+                   and t.qty_unit_id = qum.qty_unit_id
+       union all--Receive Material
+       select  t.product_id,
+           t.internal_grd_ref_no,
+           t.corporate_id,
+           axm.action_name activity,
+           t.action_ref_no,
+           t.qty,
+           t.qty_unit_id,
+           t.created_date,
+           pdm.product_desc,
+           qum.qty_unit,
+           phd.profileid cp_id,
+           phd.companyname cpname
+                  from (select substr(max(case
+                                            when grdul.internal_grd_ref_no is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             grdul.internal_grd_ref_no
+                                          end),
+                                      24) internal_grd_ref_no,
+                               substr(max(case
+                                            when gmr.corporate_id is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             gmr.corporate_id
+                                          end),
+                                      24) corporate_id,
+                               substr(max(case
+                                            when grdul.product_id is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             grdul.product_id
+                                          end),
+                                      24) product_id,
+                               substr(max(case
+                                            when grdul.qty is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') || grdul.qty
+                                          end),
+                                      24) qty,
+                               substr(max(case
+                                            when grdul.qty_unit_id is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             grdul.qty_unit_id
+                                          end),
+                                      24) qty_unit_id,
+                               substr(max(case
+                                            when axs.action_id is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             axs.action_id
+                                          end),
+                                      24) action_id,
+                               substr(max(case
+                                            when axs.action_ref_no is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             axs.action_ref_no
+                                          end),
+                                      24) action_ref_no,
+                               max(case
+                                     when axs.created_date is not null then
+                                      axs.created_date
+                                   end) created_date
+                          from grdul_goods_record_detail_ul grdul,
+                               gmr_goods_movement_record    gmr,
+                               axs_action_summary           axs
+                         where grdul.internal_action_ref_no =
+                               axs.internal_action_ref_no
+                           and grdul.internal_gmr_ref_no =
+                               gmr.internal_gmr_ref_no
+                           and gmr.is_deleted='N'--Bug 65543
+                           and axs.status='Active'
+                           --and gmr.gmr_ref_no='GMR-380-BLD'
+                           group by grdul.internal_grd_ref_no) t,
+                       grd_goods_record_detail grd,
+                       axm_action_master axm,
+                       pdm_productmaster pdm,
+                       qum_quantity_unit_master qum,
+                       wrd_warehouse_receipt_detail wrd,
+                       phd_profileheaderdetails phd
+
+                 where t.internal_grd_ref_no = grd.internal_grd_ref_no
+                   and grd.internal_gmr_ref_no=wrd.internal_gmr_ref_no
+                   and wrd.smelter_cp_id=phd.profileid
+                   and grd.tolling_stock_type='RM In Process Stock'
+                   and t.action_id = axm.action_id
+                   and t.product_id = pdm.product_id
+                   and t.qty_unit_id = qum.qty_unit_id
+                   and grd.is_deleted='N'
+                   and pdm.is_active='Y'
+ union all --Return Material
+ select  t.product_id,
+           t.internal_grd_ref_no,
+           t.corporate_id,
+           axm.action_name activity,
+           t.action_ref_no,
+           t.qty,
+           t.qty_unit_id,
+           t.created_date,
+           pdm.product_desc,
+           qum.qty_unit,
+           phd.profileid cp_id,
+           phd.companyname cpname
+                  from (select substr(max(case
+                                            when dgrdul.internal_dgrd_ref_no is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             dgrdul.internal_dgrd_ref_no
+                                          end),
+                                      24) internal_grd_ref_no,
+                               substr(max(case
+                                            when gmr.corporate_id is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             gmr.corporate_id
+                                          end),
+                                      24) corporate_id,
+                               substr(max(case
+                                            when dgrdul.product_id is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             dgrdul.product_id
+                                          end),
+                                      24) product_id,
+                               substr(max(case
+                                            when dgrdul.net_weight is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') || dgrdul.net_weight
+                                          end),
+                                      24) qty,
+                               substr(max(case
+                                            when dgrdul.net_weight_unit_id is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             dgrdul.net_weight_unit_id
+                                          end),
+                                      24) qty_unit_id,
+                               substr(max(case
+                                            when axs.action_id is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             axs.action_id
+                                          end),
+                                      24) action_id,
+                               substr(max(case
+                                            when axs.action_ref_no is not null then
+                                             to_char(axs.created_date,
+                                                     'yyyymmddhh24missff9') ||
+                                             axs.action_ref_no
+                                          end),
+                                      24) action_ref_no,
+                               max(case
+                                     when axs.created_date is not null then
+                                      axs.created_date
+                                   end) created_date
+                          from dgrdul_delivered_grd_ul dgrdul,
+                               gmr_goods_movement_record    gmr,
+                               axs_action_summary           axs
+                         where dgrdul.internal_action_ref_no =
+                               axs.internal_action_ref_no
+                           and dgrdul.internal_gmr_ref_no =
+                               gmr.internal_gmr_ref_no
+                           and gmr.is_deleted='N'--Bug 65543
+                           --and gmr.gmr_ref_no='GMR-381-BLD'
+                           and axs.status='Active'
+                           group by dgrdul.internal_grd_ref_no) t,
+                       dgrd_delivered_grd    dgrd,
+                       axm_action_master axm,
+                       pdm_productmaster pdm,
+                       qum_quantity_unit_master qum,
+                       wrd_warehouse_receipt_detail wrd,
+                       phd_profileheaderdetails phd
+
+                 where t.internal_grd_ref_no = dgrd.internal_dgrd_ref_no
+                   and dgrd.internal_gmr_ref_no=wrd.internal_gmr_ref_no
+                   and wrd.smelter_cp_id=phd.profileid
+                   and dgrd.tolling_stock_type='Return Material Stock'
+                   and t.action_id = axm.action_id
+                   and t.product_id = pdm.product_id
+                   and t.qty_unit_id = qum.qty_unit_id
+                   and dgrd.status='Active'
+                   and pdm.is_active='Y' ) t1) t2
+ where t2.order_seq < 6
+

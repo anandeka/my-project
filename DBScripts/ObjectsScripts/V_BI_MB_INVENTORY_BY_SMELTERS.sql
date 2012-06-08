@@ -1,5 +1,4 @@
-CREATE OR REPLACE VIEW V_BI_MB_INVENTORY_BY_SMELTERS
-AS
+create or replace view v_bi_mb_inventory_by_smelters as
 select t.corporate_id,
        t.product_id,
        t.product_name,
@@ -90,7 +89,7 @@ select t.corporate_id,
         sum(pkg_general.f_get_converted_quantity(pdm.product_id,
                                                  spq.qty_unit_id,
                                                  pdm.base_quantity_unit,
-                                                 spq.payable_qty))*(-1) contained_qty,
+                                                 spq.payable_qty))*-1 contained_qty,
         sum(pkg_general.f_get_converted_quantity(pdm.product_id,
                                                  spq.qty_unit_id,
                                                  pdm.base_quantity_unit,
