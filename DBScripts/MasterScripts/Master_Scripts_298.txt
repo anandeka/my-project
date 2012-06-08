@@ -13,4 +13,5 @@ Insert into AMC_APP_MENU_CONFIGURATION
    ('RPT-D251', 'Daily Position Balance Report', 31, 5, '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=251&ReportName=DailyPositionBalanceReport.rpt&ExportFormat=HTML', 
     NULL, 'RPT-D21', NULL, 'Reports', NULL, 
     'N');
+insert into REF_REPORTEXPORTFORMAT values('251','EXCEL','DailyPositionBalanceReport.rpt');
 
