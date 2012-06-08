@@ -1,0 +1,1 @@
+alter table II_INVOICABLE_ITEM add(IS_FREE_METAL_APPLICABLE CHAR(1) default 'N');
