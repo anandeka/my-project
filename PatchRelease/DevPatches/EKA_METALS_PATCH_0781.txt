@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0781
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Ashok Kumar
+ 
+Created on*        		:  08-June-2012
+
+Bug / Enhancement*              :  Bug
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95699
+Author: ashokkumar.l
+Date: 5:39:47 PM, Friday, June 08, 2012
+Message:
+65586,65593
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_INVENTORY_BY_PRODUCT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MB_INVENTORY_BY_SMELTERS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_stock.sql
+
+Revision:  (95702,30801,95704)
+Author: ashokkumar.l
+Date: 5:47:49 PM, Friday, June 08, 2012
+Message:
+Bug 65906
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport_Excel.rpt
+Modified : /CBA-PATCH-MNGMNT/CDC/Reports/UpcomingOptionExpiryReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UpcomingOptionExpiryReport.rpt
