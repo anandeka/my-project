@@ -34,15 +34,16 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : EOD
 ==================================================================
-Revision: 95584
 Author: saurabh.raj
 Date: 8:12:28 PM, Wednesday, June 06, 2012
 Message:
 Adding new report DailyPositionBalanceReport
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/046_EOD_DDL_Script.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/046_EOD_DDL_Script.sql		(Revision: 95584)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql	(Revision: 95695)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql	(Revision: 95690)
+
+
 
 
 
