@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_0779
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Saurabh Raj
+ 
+Created on*        		:  08-June-2012
+
+Bug / Enhancement*              :  Enhancement
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 95584
+Author: saurabh.raj
+Date: 8:12:28 PM, Wednesday, June 06, 2012
+Message:
+Adding new report DailyPositionBalanceReport
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/046_EOD_DDL_Script.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

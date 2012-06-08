@@ -43,15 +43,7 @@ Created for new report DailyPositionBalanceReport
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_POFHD.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_267.sql
 
-Revision: 95584
-Author: saurabh.raj
-Date: 8:12:28 PM, Wednesday, June 06, 2012
-Message:
-Adding new report DailyPositionBalanceReport
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/046_EOD_DDL_Script.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
 
 Revision: 95590
 Author: saurabh.raj
