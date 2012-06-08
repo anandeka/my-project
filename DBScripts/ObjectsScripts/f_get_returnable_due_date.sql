@@ -33,7 +33,9 @@ begin
        and pcpch.element_id = pc_element_id
        and grd.internal_grd_ref_no = pc_stock_id;
   
-    if v_due_date_activity = 'Shipment' then
+    if v_due_date_activity = 'Shipment' and
+       pc_activity_action_id not in
+       ('CANCEL_SD', 'CANCEL_WR', 'CANCEL_RD', 'CANCEL_TD', 'CANCEL_AID') then
       select axs.eff_date
         into v_activity_date
         from agmr_action_gmr        agmr,
@@ -50,7 +52,8 @@ begin
          and agmr.internal_gmr_ref_no = v_internal_gmr_ref_no;
     end if;
   
-    if v_due_date_activity = 'Landing' then
+    if v_due_date_activity = 'Landing' and
+       pc_activity_action_id not in ('CANCEL_WR', 'CANCEL_LD') then
       select axs.eff_date
         into v_activity_date
         from agmr_action_gmr        agmr,
@@ -66,7 +69,8 @@ begin
          and agmr.internal_gmr_ref_no = v_internal_gmr_ref_no;
     end if;
   
-    if v_due_date_activity = 'Sampling' then
+    if v_due_date_activity = 'Sampling' and
+       pc_activity_action_id <> 'CANCEL_WNS_ASSAY' then
       select axs.eff_date
         into v_activity_date
         from ash_assay_header   ash,
