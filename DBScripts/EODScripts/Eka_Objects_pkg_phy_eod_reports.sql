@@ -56,7 +56,8 @@ create or replace package pkg_phy_eod_reports is
                                          pd_trade_date   date,
                                          pc_process_id   varchar2);
   procedure sp_daily_position_record(pc_corporate_id varchar2,
-                                     pd_trade_date   date,pc_process_id   varchar2);
+                                     pd_trade_date   date,
+                                     pc_process_id   varchar2);
 
 end;
 /
@@ -9777,7 +9778,7 @@ select 'Average Forwards' section_name,
   -- and dtavg.period_date > last_eod_dump1.trade_date :todo need to use previous eod date
    and irm.instrument_type = 'Average'
    and dt.status <> 'Delete'
-   and dtavg.period_date <= pd_trade_date
+   and dtavg.period_date = pd_trade_date
    and dt.corporate_id= pc_corporate_id
  group by dt.derivative_ref_no,
           dt.corporate_id,
@@ -9842,7 +9843,7 @@ select 'Average Forwards' section_name,
        dt_avg@eka_appdb dtavg_quo,
        qum_quantity_unit_master qum
  where akc.corporate_id = dt.corporate_id
-   and dt.derivative_ref_no = 'FRWA14-EKA'
+  -- and dt.derivative_ref_no = 'FRWA14-EKA'
    and dtul.internal_derivative_ref_no = dt.internal_derivative_ref_no
    and dtul.status = 'Delete'
    and dtul.internal_action_ref_no = axs.internal_action_ref_no
@@ -9868,7 +9869,7 @@ select 'Average Forwards' section_name,
                dt.internal_derivative_ref_no)
  --  and dtavg.period_date > last_eod_dump1.trade_date need to use previous eod date
    and irm.instrument_type = 'Average'
-   and dtavg.period_date <= pd_trade_date
+   and dtavg.period_date = pd_trade_date
      and dt.corporate_id= pc_corporate_id
  group by dt.derivative_ref_no,
           dt.corporate_id,
