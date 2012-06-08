@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0782
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Pradeep Kumar
+ 
+Created on*        		:  08-June-2012
+
+Bug / Enhancement*             :  Enhancement
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	               :  Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	               :  N/A
+ 
+FS Number and Clause No.	              :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95710
+Author: pradeep.kumar
+Date: 6:31:05 PM, Friday, June 08, 2012
+Message:
+-- MASTER SCRIPTS For Toggling of TC/RC/Penalties and Payable/Returnable Rules at GMR Level 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_301.txt
+
