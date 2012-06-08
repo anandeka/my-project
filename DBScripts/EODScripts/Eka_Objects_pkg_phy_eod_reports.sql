@@ -9894,7 +9894,9 @@ corporate_id,
 business_line_id, 
 profit_center_id, 
 product_id;
-
+exception
+when others then
+null;--TODO : need to ad exception handling
 end;
 end; 
 /
