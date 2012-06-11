@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0784
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: B Ravi Kumar
+ 
+Created on*        		: 11-June-2012
+
+Bug / Enhancement*             :  Enhancement 
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Utility
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95756
+Author: b.ravikumar
+Date: 11:54:41 AM, Monday, June 11, 2012
+Message:
+for invoice utility documents.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_271.sql
+
+
+
+
