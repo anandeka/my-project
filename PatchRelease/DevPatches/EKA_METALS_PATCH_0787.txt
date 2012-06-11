@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0787
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Suresh Gottipati
+ 
+Created on*        		: 11-June-2012
+
+Bug / Enhancement*             :  BUG 
+ 
+Bug ID*            		:  Metal Balance Summary Report
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 95821
+Author: suresh.gottipati
+Date: 6:43:53 PM, Monday, June 11, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
+
+
