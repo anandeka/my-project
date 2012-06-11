@@ -8629,7 +8629,7 @@ insert into pcs_purchase_contract_status
                  and gmr.process_id = pc_process_id
                  and grd.process_id = pc_process_id
                  and agmr.eff_date <= pd_trade_date
-                  and grd.tolling_stock_type in('MFT In Process Stock','Free Material Stock','Delta MFT IP Stock')
+                  and grd.tolling_stock_type in('MFT In Process Stock','Free Metal IP Stock','Delta FM IP Stock','Delta MFT IP Stock')
                group by aml.underlying_product_id,
                         pdm.product_desc,
                         grd.warehouse_profile_id,
