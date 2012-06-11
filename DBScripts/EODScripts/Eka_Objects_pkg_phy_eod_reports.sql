@@ -9220,13 +9220,24 @@ with last_eod_dump  as
      AND   dbd1.process = 'EOD'
         )
 select 
-pd_trade_date,
+t.trade_date,
+t.corporate_id, 
+t.business_line_id, 
+t.profit_center_id, 
+t.product_id,
+sum(t.fixed_qty) fixed_qty,
+sum(t.quotational_qty) quotational_qty,
+pc_process_id
+from 
+(
+select 
+pd_trade_date trade_date,
 corporate_id, 
 business_line_id, 
 profit_center_id, 
 product_id,
 sum(fixed_qty) fixed_qty,
-sum(quotational_qty) quotational_qty,pc_process_id
+sum(quotational_qty) quotational_qty
 from (
 -- Physical New Trades and Modified trade
 SELECT   'Physicals' section_name,
@@ -9438,6 +9449,21 @@ select 'Any one day price fix' section_name,
        ak_corporate                   akc,
        cpc_corporate_profit_center    cpc,
        blm_business_line_master@eka_appdb       blm,
+       (SELECT pofh.pofh_id,
+        CASE
+           WHEN TO_CHAR (pofh.qp_start_date, 'MON') =
+                                TO_CHAR (pofh.qp_end_date, 'MON')
+              THEN (CASE
+                       WHEN TO_CHAR (pofh.qp_start_date, 'DD') = '01'
+                       AND pofh.qp_end_date = LAST_DAY (pofh.qp_end_date)
+                          THEN 'N'
+                       ELSE 'Y'
+                    END
+                   )
+        END any_one_day
+   FROM pofh_price_opt_fixation_header@eka_appdb pofh
+        where pofh.is_active = 'Y'
+      ) is_any_day,
        last_eod_dump             last_eod_dump1
  where pcm.contract_type = 'BASEMETAL'
    and pcm.contract_status = 'In Position'
@@ -9454,6 +9480,8 @@ select 'Any one day price fix' section_name,
    and pcpd.input_output = 'Input'
    and pfam.pfd_id = pfd.pfd_id
    and axs.internal_action_ref_no = pfam.internal_action_ref_no
+   and is_any_day.pofh_id = pofh.pofh_id
+   and is_any_day.any_one_day = 'Y'
    and pcpd.product_id = pdm.product_id
    and pdm.base_quantity_unit = qum.qty_unit_id
    and ucm.from_qty_unit_id = pcdi.qty_unit_id
@@ -9512,6 +9540,21 @@ select 'Any one day price fix' section_name,
         ak_corporate                   akc,
         cpc_corporate_profit_center    cpc,
         blm_business_line_master@eka_appdb       blm,
+         (SELECT pofh.pofh_id,
+        CASE
+           WHEN TO_CHAR (pofh.qp_start_date, 'MON') =
+                                TO_CHAR (pofh.qp_end_date, 'MON')
+              THEN (CASE
+                       WHEN TO_CHAR (pofh.qp_start_date, 'DD') = '01'
+                       AND pofh.qp_end_date = LAST_DAY (pofh.qp_end_date)
+                          THEN 'N'
+                       ELSE 'Y'
+                    END
+                   )
+        END any_one_day
+   FROM pofh_price_opt_fixation_header@eka_appdb pofh
+        where pofh.is_active = 'Y'
+      ) is_any_day,
         last_eod_dump                  last_eod_dump1
   where pcm.contract_type = 'BASEMETAL'
     and pcm.contract_status = 'In Position'
@@ -9536,6 +9579,8 @@ select 'Any one day price fix' section_name,
     and axs.action_id in ('CANCEL_PRICE_FIXATION')
     and axs.internal_action_ref_no = pfam.internal_action_ref_no
     and pfam.pfd_id = pfd.pfd_id
+    and is_any_day.pofh_id = pofh.pofh_id
+    and is_any_day.any_one_day = 'Y'
     and pfd.is_active = 'N'
     and pcm.is_active = 'Y'
     and poch.is_active = 'Y'
@@ -9581,6 +9626,21 @@ select 'Any one day price fix' section_name,
         ak_corporate                   akc,
         cpc_corporate_profit_center    cpc,
         blm_business_line_master@eka_appdb       blm,
+         (SELECT pofh.pofh_id,
+        CASE
+           WHEN TO_CHAR (pofh.qp_start_date, 'MON') =
+                                TO_CHAR (pofh.qp_end_date, 'MON')
+              THEN (CASE
+                       WHEN TO_CHAR (pofh.qp_start_date, 'DD') = '01'
+                       AND pofh.qp_end_date = LAST_DAY (pofh.qp_end_date)
+                          THEN 'N'
+                       ELSE 'Y'
+                    END
+                   )
+        END any_one_day
+   FROM pofhd_pofh_daily@EKA_APPDB  pofh
+        where pofh.is_active = 'Y'
+      ) is_any_day,
         last_eod_dump last_eod_dump1 
   where pcm.contract_type = 'BASEMETAL'
     and pcm.contract_status = 'In Position'
@@ -9596,6 +9656,8 @@ select 'Any one day price fix' section_name,
     and pfqpp.is_qp_any_day_basis is null
     and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
     and pcpd.input_output = 'Input'
+    and is_any_day.pofh_id = pofhd.pofh_id
+    and is_any_day.any_one_day = 'N'
     and pcpd.product_id = pdm.product_id
     and pdm.base_quantity_unit = qum.qty_unit_id
     and ucm.from_qty_unit_id = pcdi.qty_unit_id
@@ -9699,6 +9761,7 @@ select section_name,
            and ucm.from_qty_unit_id = dt.quantity_unit_id
            and ucm.to_qty_unit_id = pdm.base_quantity_unit
            and qum.qty_unit_id = pdm.base_quantity_unit
+           AND  axs.eff_date <= pd_trade_date
          group by dt.derivative_ref_no,
                   dt.corporate_id,
                   akc.corporate_name,
@@ -9716,7 +9779,7 @@ select section_name,
                   irm.instrument_type)
 UNION ALL
 ---------------------avg trades       
-select 'Average Forwards' section_name,
+select 'Average price fix' section_name,
        dt.derivative_ref_no contract_ref_no,
        dt.corporate_id corporate_id,
        null,
@@ -9729,11 +9792,8 @@ select 'Average Forwards' section_name,
        pdm.product_id product_id,
        pdm.product_desc product_name,
        dt.trade_date issue_date,
-       sum(dtavg.fixed_qty * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) *
-           ucm.multiplication_factor) fixed_qty,
-       (nvl(dtavg_quo.quantity, 0) *
-       decode(dt.trade_type, 'Buy', -1, 'Sell', 1) *
-       ucm.multiplication_factor) quotational_qty,
+       (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) fixed_qty,
+     (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) quotational_qty,
        last_eod_dump1.db_dump_end_timestamp,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit base_qty_unit
@@ -9748,16 +9808,22 @@ select 'Average Forwards' section_name,
        pdm_productmaster pdm,
        ucm_unit_conversion_master ucm,
        last_eod_dump last_eod_dump1,
-       (select dt1.internal_derivative_ref_no,
-               dt1.period_date,
-               sum(dt1.quantity) fixed_qty
-          from dt_avg@eka_appdb dt1
-         group by dt1.internal_derivative_ref_no,
-                  dt1.period_date) dtavg,
-       dt_avg@eka_appdb dtavg_quo,
-       qum_quantity_unit_master qum
+       dt_avg@eka_appdb dtavg,
+       qum_quantity_unit_master qum,
+       (SELECT dt.derivative_ref_no,
+           CASE
+               WHEN to_char(dt.average_from_date, 'MON') = to_char(dt.average_to_date, 'MON') AND
+                  to_char(dt.average_from_date, 'DD') = '01' AND
+                  dt.average_to_date = last_day(dt.average_to_date) THEN
+                'N'
+               ELSE
+                'Y'
+           END any_one_day
+      FROM   dt_derivative_trade@eka_appdb dt) avg_or_any_day
  where akc.corporate_id = dt.corporate_id
    and dt.profit_center_id = cpc.profit_center_id
+   AND    avg_or_any_day.derivative_ref_no = dt.derivative_ref_no
+AND    avg_or_any_day.any_one_day = 'N'
    and cpc.business_line_id = blm.business_line_id
    and dt.dr_id = drm.dr_id
    and drm.instrument_id = dim.instrument_id
@@ -9768,17 +9834,10 @@ select 'Average Forwards' section_name,
    and ucm.to_qty_unit_id = pdm.base_quantity_unit
    and dtavg.internal_derivative_ref_no = dt.internal_derivative_ref_no
    and qum.qty_unit_id = pdm.base_quantity_unit
-   and dtavg_quo.internal_derivative_ref_no = dt.internal_derivative_ref_no
-   and dtavg_quo.period_date =
-       (select max(dtavg_sub.period_date)
-          from dt_avg@eka_appdb dtavg_sub
-         where dtavg_sub.period_date > dtavg.period_date
-           and dtavg_sub.internal_derivative_ref_no =
-               dt.internal_derivative_ref_no)
-  -- and dtavg.period_date > last_eod_dump1.trade_date :todo need to use previous eod date
+    -- and dtavg.period_date > last_eod_dump1.trade_date :todo need to use previous eod date
    and irm.instrument_type = 'Average'
    and dt.status <> 'Delete'
-   and dtavg.period_date = pd_trade_date
+   and dtavg.period_date <= pd_trade_date
    and dt.corporate_id= pc_corporate_id
  group by dt.derivative_ref_no,
           dt.corporate_id,
@@ -9791,16 +9850,91 @@ select 'Average Forwards' section_name,
           pdm.product_id,
           pdm.product_desc,
           dt.trade_date,
-          (nvl(dtavg_quo.quantity, 0) *
-          decode(dt.trade_type, 'Buy', -1, 'Sell', 1) *
-          ucm.multiplication_factor),
+          (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor),
+        (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor),
           db_dump_end_timestamp,
           pdm.base_quantity_unit,
           qum.qty_unit
-
+union all
+select 'Any one day price fix' section_name,
+       dt.derivative_ref_no contract_ref_no,
+       dt.corporate_id corporate_id,
+       null,
+       akc.corporate_name corporate_name,
+       blm.business_line_id business_line_id,
+       blm.business_line_name business_line_name,
+       cpc.profit_center_id profit_center_id,
+       cpc.profit_center_short_name profit_center_short_name,
+       cpc.profit_center_name profit_center_name,
+       pdm.product_id product_id,
+       pdm.product_desc product_name,
+       dt.trade_date issue_date,
+       (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) fixed_qty,
+     (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) quotational_qty,
+       last_eod_dump1.db_dump_end_timestamp,
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit base_qty_unit
+  from dt_derivative_trade@eka_appdb dt,
+       ak_corporate akc,
+       cpc_corporate_profit_center cpc,
+       blm_business_line_master@eka_appdb blm,
+       drm_derivative_master drm,
+       dim_der_instrument_master dim,
+       irm_instrument_type_master irm,
+       pdd_product_derivative_def pdd,
+       pdm_productmaster pdm,
+       ucm_unit_conversion_master ucm,
+       last_eod_dump last_eod_dump1,
+       dt_avg@eka_appdb dtavg,
+       qum_quantity_unit_master qum,
+       (SELECT dt.derivative_ref_no,
+           CASE
+               WHEN to_char(dt.average_from_date, 'MON') = to_char(dt.average_to_date, 'MON') AND
+                  to_char(dt.average_from_date, 'DD') = '01' AND
+                  dt.average_to_date = last_day(dt.average_to_date) THEN
+                'N'
+               ELSE
+                'Y'
+           END any_one_day
+      FROM   dt_derivative_trade@eka_appdb dt) avg_or_any_day
+ where akc.corporate_id = dt.corporate_id
+   and dt.profit_center_id = cpc.profit_center_id
+   AND    avg_or_any_day.derivative_ref_no = dt.derivative_ref_no
+AND    avg_or_any_day.any_one_day = 'Y'
+   and cpc.business_line_id = blm.business_line_id
+   and dt.dr_id = drm.dr_id
+   and drm.instrument_id = dim.instrument_id
+   and irm.instrument_type_id = dim.instrument_type_id
+   and pdd.derivative_def_id = dim.product_derivative_id
+   and pdd.product_id = pdm.product_id
+   and ucm.from_qty_unit_id = dt.quantity_unit_id
+   and ucm.to_qty_unit_id = pdm.base_quantity_unit
+   and dtavg.internal_derivative_ref_no = dt.internal_derivative_ref_no
+   and qum.qty_unit_id = pdm.base_quantity_unit
+    -- and dtavg.period_date > last_eod_dump1.trade_date :todo need to use previous eod date
+   and irm.instrument_type = 'Average'
+   and dt.status <> 'Delete'
+   and dtavg.period_date <= pd_trade_date
+   and dt.corporate_id= pc_corporate_id
+ group by dt.derivative_ref_no,
+          dt.corporate_id,
+          akc.corporate_name,
+          blm.business_line_id,
+          blm.business_line_name,
+          cpc.profit_center_id,
+          cpc.profit_center_short_name,
+          cpc.profit_center_name,
+          pdm.product_id,
+          pdm.product_desc,
+          dt.trade_date,
+          (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor),
+        (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor),
+          db_dump_end_timestamp,
+          pdm.base_quantity_unit,
+          qum.qty_unit
 UNION ALL
 --delete average forward trades       
-select 'Average Forwards' section_name,
+select 'Any one day price fix' section_name,
        dt.derivative_ref_no contract_ref_no,
        null,
        dt.corporate_id corporate_id,
@@ -9813,11 +9947,8 @@ select 'Average Forwards' section_name,
        pdm.product_id product_id,
        pdm.product_desc product_name,
        dt.trade_date issue_date,
-       sum(dtavg.fixed_qty * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) *
-           ucm.multiplication_factor) fixed_qty,
-       (nvl(dtavg_quo.quantity, 0) *
-       decode(dt.trade_type, 'Buy', 1, 'Sell', -1) *
-       ucm.multiplication_factor) quotational_qty,
+       (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) fixed_qty,
+     (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) quotational_qty,
        last_eod_dump1.db_dump_end_timestamp,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit base_qty_unit
@@ -9834,17 +9965,22 @@ select 'Average Forwards' section_name,
        pdm_productmaster pdm,
        ucm_unit_conversion_master ucm,
        last_eod_dump last_eod_dump1,
-       (select dt1.internal_derivative_ref_no,
-               dt1.period_date,
-               sum(dt1.quantity) fixed_qty
-          from dt_avg@eka_appdb dt1
-         group by dt1.internal_derivative_ref_no,
-                  dt1.period_date) dtavg,
-       dt_avg@eka_appdb dtavg_quo,
-       qum_quantity_unit_master qum
+       dt_avg@eka_appdb  dtavg,
+       qum_quantity_unit_master qum,
+       (SELECT dt.derivative_ref_no,
+           CASE
+               WHEN to_char(dt.average_from_date, 'MON') = to_char(dt.average_to_date, 'MON') AND
+                  to_char(dt.average_from_date, 'DD') = '01' AND
+                  dt.average_to_date = last_day(dt.average_to_date) THEN
+                'N'
+               ELSE
+                'Y'
+           END any_one_day
+      FROM   dt_derivative_trade@eka_appdb dt) avg_or_any_day
  where akc.corporate_id = dt.corporate_id
-  -- and dt.derivative_ref_no = 'FRWA14-EKA'
    and dtul.internal_derivative_ref_no = dt.internal_derivative_ref_no
+   AND    avg_or_any_day.derivative_ref_no = dt.derivative_ref_no
+AND    avg_or_any_day.any_one_day = 'Y'
    and dtul.status = 'Delete'
    and dtul.internal_action_ref_no = axs.internal_action_ref_no
    and axs.created_date > last_eod_dump1.db_dump_start_timestamp
@@ -9858,18 +9994,11 @@ select 'Average Forwards' section_name,
    and pdd.product_id = pdm.product_id
    and ucm.from_qty_unit_id = dt.quantity_unit_id
    and ucm.to_qty_unit_id = pdm.base_quantity_unit
-   and dtavg.internal_derivative_ref_no = dt.internal_derivative_ref_no
-   and dtavg_quo.internal_derivative_ref_no = dt.internal_derivative_ref_no
+   and dtavg.internal_derivative_ref_no = dt.internal_derivative_ref_no   
    and qum.qty_unit_id = pdm.base_quantity_unit
-   and dtavg_quo.period_date =
-       (select max(dtavg_sub.period_date)
-          from dt_avg@eka_appdb dtavg_sub
-         where dtavg_sub.period_date > dtavg.period_date
-           and dtavg_sub.internal_derivative_ref_no =
-               dt.internal_derivative_ref_no)
  --  and dtavg.period_date > last_eod_dump1.trade_date need to use previous eod date
    and irm.instrument_type = 'Average'
-   and dtavg.period_date = pd_trade_date
+   and dtavg.period_date <= pd_trade_date
      and dt.corporate_id= pc_corporate_id
  group by dt.derivative_ref_no,
           dt.corporate_id,
@@ -9882,18 +10011,122 @@ select 'Average Forwards' section_name,
           pdm.product_id,
           pdm.product_desc,
           dt.trade_date,
-          (nvl(dtavg_quo.quantity, 0) *
-          decode(dt.trade_type, 'Buy', 1, 'Sell', -1) *
-          ucm.multiplication_factor),
+          (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) ,
+     (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) ,
           db_dump_end_timestamp,
           pdm.base_quantity_unit,
-          qum.qty_unit)
+          qum.qty_unit
+UNION ALL
+select 'Average price fix' section_name,
+       dt.derivative_ref_no contract_ref_no,
+       null,
+       dt.corporate_id corporate_id,
+       akc.corporate_name corporate_name,
+       blm.business_line_id business_line_id,
+       blm.business_line_name business_line_name,
+       cpc.profit_center_id profit_center_id,
+       cpc.profit_center_short_name profit_center_short_name,
+       cpc.profit_center_name profit_center_name,
+       pdm.product_id product_id,
+       pdm.product_desc product_name,
+       dt.trade_date issue_date,
+       (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) fixed_qty,
+     (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) quotational_qty,
+       last_eod_dump1.db_dump_end_timestamp,
+       pdm.base_quantity_unit qty_unit_id,
+       qum.qty_unit base_qty_unit
+  from dt_derivative_trade@eka_appdb dt,
+       dtul_derivative_trade_ul@eka_appdb dtul,
+       axs_action_summary@eka_appdb axs,
+       ak_corporate akc,
+       cpc_corporate_profit_center cpc,
+       blm_business_line_master@eka_appdb blm,
+       drm_derivative_master drm,
+       dim_der_instrument_master dim,
+       irm_instrument_type_master irm,
+       pdd_product_derivative_def pdd,
+       pdm_productmaster pdm,
+       ucm_unit_conversion_master ucm,
+       last_eod_dump last_eod_dump1,
+       dt_avg@eka_appdb  dtavg,
+       qum_quantity_unit_master qum,
+       (SELECT dt.derivative_ref_no,
+           CASE
+               WHEN to_char(dt.average_from_date, 'MON') = to_char(dt.average_to_date, 'MON') AND
+                  to_char(dt.average_from_date, 'DD') = '01' AND
+                  dt.average_to_date = last_day(dt.average_to_date) THEN
+                'N'
+               ELSE
+                'Y'
+           END any_one_day
+      FROM   dt_derivative_trade@eka_appdb dt) avg_or_any_day
+ where akc.corporate_id = dt.corporate_id
+   and dtul.internal_derivative_ref_no = dt.internal_derivative_ref_no
+   AND    avg_or_any_day.derivative_ref_no = dt.derivative_ref_no
+AND    avg_or_any_day.any_one_day = 'N'
+   and dtul.status = 'Delete'
+   and dtul.internal_action_ref_no = axs.internal_action_ref_no
+   and axs.created_date > last_eod_dump1.db_dump_start_timestamp
+   and axs.action_id = 'CDC_DELETE_OTC_AVERAGE_FORWARD'
+   and dt.profit_center_id = cpc.profit_center_id
+   and cpc.business_line_id = blm.business_line_id
+   and dt.dr_id = drm.dr_id
+   and drm.instrument_id = dim.instrument_id
+   and irm.instrument_type_id = dim.instrument_type_id
+   and pdd.derivative_def_id = dim.product_derivative_id
+   and pdd.product_id = pdm.product_id
+   and ucm.from_qty_unit_id = dt.quantity_unit_id
+   and ucm.to_qty_unit_id = pdm.base_quantity_unit
+   and dtavg.internal_derivative_ref_no = dt.internal_derivative_ref_no   
+   and qum.qty_unit_id = pdm.base_quantity_unit
+ --  and dtavg.period_date > last_eod_dump1.trade_date need to use previous eod date
+   and irm.instrument_type = 'Average'
+   and dtavg.period_date <= pd_trade_date
+     and dt.corporate_id= pc_corporate_id
+ group by dt.derivative_ref_no,
+          dt.corporate_id,
+          akc.corporate_name,
+          blm.business_line_id,
+          blm.business_line_name,
+          cpc.profit_center_id,
+          cpc.profit_center_short_name,
+          cpc.profit_center_name,
+          pdm.product_id,
+          pdm.product_desc,
+          dt.trade_date,
+          (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) ,
+     (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) ,
+          db_dump_end_timestamp,
+          pdm.base_quantity_unit,
+          qum.qty_unit          )
 group by 
-db_dump_end_timestamp,
 corporate_id, 
 business_line_id, 
 profit_center_id, 
-product_id;
+product_id
+union all
+select trade_date,
+       corporate_id,
+       business_line_id,
+       profit_center_id,       
+       product_id,
+       fixed_qty,
+       quotational_qty
+  from dpr_daily_position_record dpr
+  WHERE dpr.trade_date = (select max(t.trade_date)
+                                 from tdc_trade_date_closure t
+                                where t.trade_date < pd_trade_date
+                                  and t.corporate_id = pc_corporate_id
+                                  and t.process = 'EOD')
+    and dpr.corporate_id = pc_corporate_id)t
+    
+    group by t.trade_date,
+t.corporate_id, 
+t.business_line_id, 
+t.profit_center_id, 
+t.product_id;
+    
+    
 exception
 when others then
 null;--TODO : need to ad exception handling
