@@ -793,7 +793,27 @@ create or replace package body "PKG_REPORT_GENERAL" is
              aml.attribute_desc,
              aml.underlying_product_id,
              asm.asm_id,
-             asm.dry_weight,
+             -- asm.dry_weight,
+             (case
+               when ash.ash_id =
+                    (select ash_new.pricing_assay_ash_id
+                       from ash_assay_header ash_new
+                      where ash_new.assay_type = 'Provisional Assay'
+                        and ash_new.is_active = 'Y'
+                        and ash_new.internal_grd_ref_no =
+                            ash.internal_grd_ref_no) then
+                pn_qty
+               when ash.ash_id =
+                    (select ash_new.ash_id
+                       from ash_assay_header ash_new
+                      where ash_new.assay_type = 'Shipment Assay'
+                        and ash_new.is_active = 'Y'
+                        and ash_new.internal_grd_ref_no =
+                            ash.internal_grd_ref_no) then
+                pn_qty
+               else
+                asm.dry_weight
+             end) dry_weight,
              pcpd.product_id,
              pcpq.unit_of_measure contract_unit_of_measure
         from ash_assay_header            ash,

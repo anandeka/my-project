@@ -67,7 +67,7 @@ select tt.supplier_invoive_no,
                          group by iepd.stock_id,
                                   iepd.internal_invoice_ref_no) iepd,
                        v_bi_latest_gmr_invoice invoice,
-                       ii_invoicable_item ii,
+                    --   ii_invoicable_item ii,
                        cm_currency_master cm,
                        ak_corporate      akc
                  where pcm.internal_contract_ref_no =
@@ -75,13 +75,12 @@ select tt.supplier_invoive_no,
                    and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                    and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
                    and grd.internal_grd_ref_no = iid.stock_id
-                   and iid.internal_invoice_ref_no =
-                       iss.internal_invoice_ref_no
+                   and iid.internal_invoice_ref_no =  iss.internal_invoice_ref_no
                    and iss.is_active = 'Y'
                    and pcm.is_active = 'Y'
                    and gmr.is_deleted = 'N'
                    and grd.is_deleted = 'N'
-                   and iid.invoicable_item_id = ii.invoicable_item_id
+               --    and iid.invoicable_item_id = ii.invoicable_item_id
                    and pcm.is_tolling_contract = 'Y'
                    and pcm.purchase_sales = 'P'
                    and iid.stock_id = intc.grd_id(+)
@@ -110,4 +109,4 @@ select tt.supplier_invoive_no,
                   test.invoice_currency_code,
                   test.supplier_gmr_ref_no,
                   test.supplier_internal_gmr_ref_no,
-                  iss.total_other_charge_amount) tt
+                  iss.total_other_charge_amount) tt 
