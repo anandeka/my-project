@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0785
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Rajeshwar Reddy
+ 
+Created on*        		: 11-June-2012
+
+Bug / Enhancement*             :  Enhancement 
+ 
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay/Hedge Correction
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95798
+Author: rajeshwar.reddy
+Date: 15:28:11, 11 June 2012
+Message:
+Assay cancel and Hedge correction creation AXS entries.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_64.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_302.txt
+
+
+
