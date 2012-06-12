@@ -112,7 +112,8 @@ CREATE OR REPLACE FORCE VIEW v_pci (internal_contract_item_ref_no,
                                                     incoterm_country,
                                                     incoterm_state,
                                                     incoterm_city,
-                                                    IS_COMMERCIAL_FEE_APPLIED
+                                                    IS_COMMERCIAL_FEE_APPLIED,
+                                                    is_free_metal_applicable
                                                    )
 AS
    SELECT pci.internal_contract_item_ref_no AS internal_contract_item_ref_no,
@@ -261,6 +262,7 @@ AS
           pcm.middle_no, pci.del_distribution_item_no,
           pcdi.price_option_call_off_status, pcdi.delivery_item_no,
           DECODE (pcmte.is_pass_through, 'Y', 'Y', 'N', 'N') is_pass_through,
+          NVL(pcmte.is_free_metal_applicable, 'N') is_free_metal_applicable,
           pci.fulfillment_date AS fulfillment_date, pcm.approval_status,
           cym.country_id AS incoterm_country_id,
           sm.state_id AS incoterm_state_id, cim.city_id AS incoterm_city_id,
