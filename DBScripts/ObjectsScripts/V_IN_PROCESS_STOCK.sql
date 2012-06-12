@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_IN_PROCESS_STOCK AS
+create or replace view v_in_process_stock as
 select ips_temp.corporate_id,
        ips_temp.internal_grd_ref_no,
        ips_temp.stock_ref_no,
@@ -43,8 +43,8 @@ select ips_temp.corporate_id,
           'Receive Material Stock'
          when ips_temp.tolling_stock_type = 'MFT In Process Stock' then
           'In Process Stock'
-         when ips_temp.tolling_stock_type = 'Free Material Stock' then
-          'Free Metal Stock'
+       /* when ips_temp.tolling_stock_type = 'Free Material Stock' then
+                        'Free Metal Stock'*/
          when ips_temp.tolling_stock_type = 'Delta MFT IP Stock' then
           'Delta IP Stock'
          else
@@ -254,6 +254,7 @@ select ips_temp.corporate_id,
                (aml.attribute_name || '/' || pdm_consc.product_desc) element_by_product,
                agrd_cloned.internal_stock_ref_no input_stock_ref_no
           from agrd_action_grd              agrd,
+               agrd_action_grd              agrd_fm,
                agrd_action_grd              agrd_cloned,
                pdm_productmaster            pdm_consc,
                ypd_yield_pct_detail         ypd,
@@ -270,11 +271,17 @@ select ips_temp.corporate_id,
                phd_profileheaderdetails     phd
          where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
-           and agrd.tolling_stock_type = 'Free Material Stock'
+           and agrd.tolling_stock_type in
+               ('Free Metal IP Stock', 'Delta FM IP Stock')
            and agmr.gmr_latest_action_action_id = 'CREATE_FREE_MATERIAL'
            and agmr.is_deleted = 'N'
            and agmr.internal_gmr_ref_no = agrd.internal_gmr_ref_no
            and agmr.action_no = agrd.action_no
+           and agrd_fm.tolling_stock_type = 'Free Material Stock'
+           and agrd_fm.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+           and agrd_fm.action_no = agmr.action_no
+           and agrd_fm.is_deleted = 'N'
+           and agrd_fm.status = 'Active'
            and ypd.internal_gmr_ref_no = agrd.internal_gmr_ref_no
            and ypd.action_no = agrd.action_no
            and ypd.element_id = agrd.element_id
@@ -294,60 +301,61 @@ select ips_temp.corporate_id,
            and axs.status = 'Active'
            and axm.action_id = axs.action_id
            and agrd_cloned.internal_grd_ref_no =
-               agrd.parent_internal_grd_ref_no
+               agrd_fm.parent_internal_grd_ref_no
+           and agrd_fm.internal_grd_ref_no = agrd.parent_internal_grd_ref_no
            and agrd_cloned.is_deleted = 'N'
            and agrd_cloned.status = 'Active'
            and pdm_consc.product_id = agrd_cloned.product_id
         /* union
-                      
-        select sbs.corporate_id,
-        sbs.sbs_id internal_grd_ref_no,
-        '' stock_ref_no,
-        '' internal_gmr_ref_no,
-        '' gmr_ref_no,
-        '' action_id,
-        '' action_name,
-        '' internal_action_ref_no,
-        sbs.activity_date,
-        '' action_ref_no,
-        '' internal_contract_item_ref_no,
-        '' contract_item_ref_no,
-        '' pcdi_id,
-        '' delivery_item_ref_no,
-        '' internal_contract_ref_no,
-        '' contract_ref_no,
-        sbs.smelter_cp_id smelter_cp_id,
-        phd.companyname smelter_cp_name,
-        sbs.product_id,
-        pdm.product_desc product_name,
-        sbs.quality_id,
-        qat.quality_name,
-        sbs.element_id,
-        aml.attribute_name element_name,
-        sbs.warehouse_profile_id,
-        shm.companyname as warehouse,
-        sbs.shed_id,
-        shm.shed_name,
-        nvl(sbs.qty, 0) as stock_qty,
-        pkg_general.f_get_quantity_unit(sbs.qty_unit_id) as qty_unit,
-        sbs.qty_unit_id as qty_unit_id,
-        'Returnable' payable_returnable_type,
-        'Base Stock' tolling_stock_type,
-        '' assay_content_qty,
-        '' is_pass_through,
-        '' element_by_product,
-        '' input_stock_ref_no
-        from sbs_smelter_base_stock    sbs,
-        pdm_productmaster         pdm,
-        qat_quality_attributes    qat,
-        aml_attribute_master_list aml,
-        phd_profileheaderdetails  phd,
-        v_shm_shed_master         shm
-        where pdm.product_id = sbs.product_id
-        and qat.quality_id = sbs.quality_id
-        and phd.profileid = sbs.smelter_cp_id
-        and aml.attribute_id(+) = sbs.element_id
-        and sbs.is_active = 'Y'
-        and shm.profile_id = sbs.warehouse_profile_id
-        and shm.shed_id = sbs.shed_id*/
+        
+                                select sbs.corporate_id,
+                                sbs.sbs_id internal_grd_ref_no,
+                                '' stock_ref_no,
+                                '' internal_gmr_ref_no,
+                                '' gmr_ref_no,
+                                '' action_id,
+                                '' action_name,
+                                '' internal_action_ref_no,
+                                sbs.activity_date,
+                                '' action_ref_no,
+                                '' internal_contract_item_ref_no,
+                                '' contract_item_ref_no,
+                                '' pcdi_id,
+                                '' delivery_item_ref_no,
+                                '' internal_contract_ref_no,
+                                '' contract_ref_no,
+                                sbs.smelter_cp_id smelter_cp_id,
+                                phd.companyname smelter_cp_name,
+                                sbs.product_id,
+                                pdm.product_desc product_name,
+                                sbs.quality_id,
+                                qat.quality_name,
+                                sbs.element_id,
+                                aml.attribute_name element_name,
+                                sbs.warehouse_profile_id,
+                                shm.companyname as warehouse,
+                                sbs.shed_id,
+                                shm.shed_name,
+                                nvl(sbs.qty, 0) as stock_qty,
+                                pkg_general.f_get_quantity_unit(sbs.qty_unit_id) as qty_unit,
+                                sbs.qty_unit_id as qty_unit_id,
+                                'Returnable' payable_returnable_type,
+                                'Base Stock' tolling_stock_type,
+                                '' assay_content_qty,
+                                '' is_pass_through,
+                                '' element_by_product,
+                                '' input_stock_ref_no
+                                from sbs_smelter_base_stock    sbs,
+                                pdm_productmaster         pdm,
+                                qat_quality_attributes    qat,
+                                aml_attribute_master_list aml,
+                                phd_profileheaderdetails  phd,
+                                v_shm_shed_master         shm
+                                where pdm.product_id = sbs.product_id
+                                and qat.quality_id = sbs.quality_id
+                                and phd.profileid = sbs.smelter_cp_id
+                                and aml.attribute_id(+) = sbs.element_id
+                                and sbs.is_active = 'Y'
+                                and shm.profile_id = sbs.warehouse_profile_id
+                                and shm.shed_id = sbs.shed_id*/
         ) ips_temp
