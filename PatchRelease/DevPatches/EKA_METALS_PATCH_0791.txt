@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_0791
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sishir kumar Pagada
+ 
+Created on*        		: 12-June-2012
+
+Bug / Enhancement*              :  Enhancement 
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95959
+Author: sishir.pagada
+Date: 9:40:03 PM, Tuesday, June 12, 2012
+Message:
+Added is_Free_Metal_ Applicable Flag...
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
