@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_0790
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Babu Lal
+ 
+Created on*        		: 12-June-2012
+
+Bug / Enhancement*             :  Enhancement 
+ 
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95876
+Author: babulal.meena
+Date: 1:16:49 PM, Tuesday, June 12, 2012
+Message:
+Db Patch to support Free Metal IP & Delta Stock related Change
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_IN_PROCESS_STOCK.sql
