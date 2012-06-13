@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0792
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Baiju Kaimala
+ 
+Created on*        		: 13-June-2012
+
+Bug / Enhancement*              :  Bug 
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  General
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 95975
+Author: baijukaimala
+Date: Wednesday, June 13, 2012 12:30:06 PM
+Message:
+Fix for list of country- United states not getting listed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_303.txt
+
