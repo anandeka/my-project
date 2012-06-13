@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0793
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+ 
+Created on*        		: 13-June-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 96009
+Author: anupkumar.agarwal
+Date: 5:23:18 PM, Wednesday, June 13, 2012
+Message:
+1: Added NEW Child Table For Purchase And Sales Side  Child Stock Table For Document.
+2: Populated Data  For All Details And Purchase Weight Note And All Advice And Sales Weight Note 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_304.txt
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_272.sql
+
+
+
