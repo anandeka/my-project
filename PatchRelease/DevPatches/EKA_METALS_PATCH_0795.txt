@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_0795
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Sishir Kumar Pagada
+ 
+Created on*        		: 14-June-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Mining contract
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 96093
+Author: sishir.pagada
+Date: 4:00:16 PM, Thursday, June 14, 2012
+Message:
+Is_Free_Metal column added in PCMTE Table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_274.sql
+
+Revision: 96094
+Author: sishir.pagada
+Date: 4:02:33 PM, Thursday, June 14, 2012
+Message:
+To update the PCMTE.IS_FREE_METAL_APPLICABLE column data to 'Y' for existing contracts
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_305.txt
+
+
+
+
+
+
