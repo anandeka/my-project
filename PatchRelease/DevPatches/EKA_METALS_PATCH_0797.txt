@@ -1,0 +1,67 @@
+Patch No*          		:  EKA_METALS_PATCH_0797
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Elaiyaraja Nallathambi
+ 
+Created on*        		: 14-June-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 96162
+Author: elaiyaraja.nallathambi
+Date: 8:01:29 PM, Thursday, June 14, 2012
+Message:
+New Release
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/GlobalPositionReport.rpt
+
+Revision: 96164
+Author: elaiyaraja.nallathambi
+Date: 8:02:48 PM, Thursday, June 14, 2012
+Message:
+(Global Position Report) New Release.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_306.sql
+
+Revision: 96165
+Author: elaiyaraja.nallathambi
+Date: 8:04:03 PM, Thursday, June 14, 2012
+Message:
+(Global Position Report) New Release.
+----
+
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_65.sql
+
+
+
+
+
+
+
