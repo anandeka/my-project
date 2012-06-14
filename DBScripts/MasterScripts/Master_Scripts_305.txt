@@ -1,0 +1,3 @@
+UPDATE pcmte_pcm_tolling_ext pcmte
+   SET pcmte.is_free_metal_applicable = 'Y'
+ WHERE pcmte.is_free_metal_applicable IS NULL AND pcmte.is_pass_through = 'Y';
