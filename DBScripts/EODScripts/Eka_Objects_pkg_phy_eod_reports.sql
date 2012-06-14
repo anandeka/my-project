@@ -59,7 +59,7 @@ create or replace package pkg_phy_eod_reports is
                                      pd_trade_date   date,
                                      pc_process_id   varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -9449,21 +9449,6 @@ select 'Any one day price fix' section_name,
        ak_corporate                   akc,
        cpc_corporate_profit_center    cpc,
        blm_business_line_master@eka_appdb       blm,
-       (SELECT pofh.pofh_id,
-        CASE
-           WHEN TO_CHAR (pofh.qp_start_date, 'MON') =
-                                TO_CHAR (pofh.qp_end_date, 'MON')
-              THEN (CASE
-                       WHEN TO_CHAR (pofh.qp_start_date, 'DD') = '01'
-                       AND pofh.qp_end_date = LAST_DAY (pofh.qp_end_date)
-                          THEN 'N'
-                       ELSE 'Y'
-                    END
-                   )
-        END any_one_day
-   FROM pofh_price_opt_fixation_header@eka_appdb pofh
-        where pofh.is_active = 'Y'
-      ) is_any_day,
        last_eod_dump             last_eod_dump1
  where pcm.contract_type = 'BASEMETAL'
    and pcm.contract_status = 'In Position'
@@ -9480,8 +9465,7 @@ select 'Any one day price fix' section_name,
    and pcpd.input_output = 'Input'
    and pfam.pfd_id = pfd.pfd_id
    and axs.internal_action_ref_no = pfam.internal_action_ref_no
-   and is_any_day.pofh_id = pofh.pofh_id
-   and is_any_day.any_one_day = 'Y'
+   and axs.action_id  in ('CREATE_PRICE_FIXATION')
    and pcpd.product_id = pdm.product_id
    and pdm.base_quantity_unit = qum.qty_unit_id
    and ucm.from_qty_unit_id = pcdi.qty_unit_id
@@ -9540,21 +9524,6 @@ select 'Any one day price fix' section_name,
         ak_corporate                   akc,
         cpc_corporate_profit_center    cpc,
         blm_business_line_master@eka_appdb       blm,
-         (SELECT pofh.pofh_id,
-        CASE
-           WHEN TO_CHAR (pofh.qp_start_date, 'MON') =
-                                TO_CHAR (pofh.qp_end_date, 'MON')
-              THEN (CASE
-                       WHEN TO_CHAR (pofh.qp_start_date, 'DD') = '01'
-                       AND pofh.qp_end_date = LAST_DAY (pofh.qp_end_date)
-                          THEN 'N'
-                       ELSE 'Y'
-                    END
-                   )
-        END any_one_day
-   FROM pofh_price_opt_fixation_header@eka_appdb pofh
-        where pofh.is_active = 'Y'
-      ) is_any_day,
         last_eod_dump                  last_eod_dump1
   where pcm.contract_type = 'BASEMETAL'
     and pcm.contract_status = 'In Position'
@@ -9579,8 +9548,6 @@ select 'Any one day price fix' section_name,
     and axs.action_id in ('CANCEL_PRICE_FIXATION')
     and axs.internal_action_ref_no = pfam.internal_action_ref_no
     and pfam.pfd_id = pfd.pfd_id
-    and is_any_day.pofh_id = pofh.pofh_id
-    and is_any_day.any_one_day = 'Y'
     and pfd.is_active = 'N'
     and pcm.is_active = 'Y'
     and poch.is_active = 'Y'
@@ -9593,7 +9560,7 @@ select 'Any one day price fix' section_name,
     and pcm.corporate_id = pc_corporate_id
  union all
   -- 'Average price fix'and cancelled
- select 'Average price fix' section_name,
+ select (CASE when is_any_day.any_one_day = 'N' then 'Average price fix' else 'Any one day price fix' end) section_name,
         pcm.contract_ref_no,
         pcm.corporate_id,
         pcdi.pcdi_id,
@@ -9657,7 +9624,6 @@ select 'Any one day price fix' section_name,
     and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
     and pcpd.input_output = 'Input'
     and is_any_day.pofh_id = pofhd.pofh_id
-    and is_any_day.any_one_day = 'N'
     and pcpd.product_id = pdm.product_id
     and pdm.base_quantity_unit = qum.qty_unit_id
     and ucm.from_qty_unit_id = pcdi.qty_unit_id
@@ -9792,8 +9758,8 @@ select 'Average price fix' section_name,
        pdm.product_id product_id,
        pdm.product_desc product_name,
        dt.trade_date issue_date,
-       (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) fixed_qty,
-     (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) quotational_qty,
+      sum (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) fixed_qty,
+     sum(dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) quotational_qty,
        last_eod_dump1.db_dump_end_timestamp,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit base_qty_unit
@@ -9850,9 +9816,7 @@ AND    avg_or_any_day.any_one_day = 'N'
           pdm.product_id,
           pdm.product_desc,
           dt.trade_date,
-          (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor),
-        (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor),
-          db_dump_end_timestamp,
+           db_dump_end_timestamp,
           pdm.base_quantity_unit,
           qum.qty_unit
 union all
@@ -9869,8 +9833,8 @@ select 'Any one day price fix' section_name,
        pdm.product_id product_id,
        pdm.product_desc product_name,
        dt.trade_date issue_date,
-       (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) fixed_qty,
-     (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) quotational_qty,
+       sum(dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) fixed_qty,
+     sum(dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) quotational_qty,
        last_eod_dump1.db_dump_end_timestamp,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit base_qty_unit
@@ -9927,8 +9891,6 @@ AND    avg_or_any_day.any_one_day = 'Y'
           pdm.product_id,
           pdm.product_desc,
           dt.trade_date,
-          (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor),
-        (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor),
           db_dump_end_timestamp,
           pdm.base_quantity_unit,
           qum.qty_unit
@@ -9947,8 +9909,8 @@ select 'Any one day price fix' section_name,
        pdm.product_id product_id,
        pdm.product_desc product_name,
        dt.trade_date issue_date,
-       (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) fixed_qty,
-     (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) quotational_qty,
+       sum(dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) fixed_qty,
+     sum(dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) quotational_qty,
        last_eod_dump1.db_dump_end_timestamp,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit base_qty_unit
@@ -10011,8 +9973,6 @@ AND    avg_or_any_day.any_one_day = 'Y'
           pdm.product_id,
           pdm.product_desc,
           dt.trade_date,
-          (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) ,
-     (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) ,
           db_dump_end_timestamp,
           pdm.base_quantity_unit,
           qum.qty_unit
@@ -10030,8 +9990,8 @@ select 'Average price fix' section_name,
        pdm.product_id product_id,
        pdm.product_desc product_name,
        dt.trade_date issue_date,
-       (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) fixed_qty,
-     (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) quotational_qty,
+       sum(dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) fixed_qty,
+     sum(dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) quotational_qty,
        last_eod_dump1.db_dump_end_timestamp,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit base_qty_unit
@@ -10094,8 +10054,7 @@ AND    avg_or_any_day.any_one_day = 'N'
           pdm.product_id,
           pdm.product_desc,
           dt.trade_date,
-          (dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) ,
-     (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) ,
+          
           db_dump_end_timestamp,
           pdm.base_quantity_unit,
           qum.qty_unit          )
