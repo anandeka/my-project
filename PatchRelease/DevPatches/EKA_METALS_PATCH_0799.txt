@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0799
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Babu Lal
+ 
+Created on*        		: 15-June-2012
+
+Bug / Enhancement*              :  Bug Fixed
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 96210
+Author: babulal.meena
+Date: 1:16:37 PM, Friday, June 15, 2012
+Message:
+1. DB patch for GMR listing screen - Performance Testing
+2. Free Metal Utility Dummy GMR should not shown into List of GMR
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR_NEW.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_PCI_NEW.sql
