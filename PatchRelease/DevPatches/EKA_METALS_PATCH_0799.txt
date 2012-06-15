@@ -43,3 +43,12 @@ Message:
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR_NEW.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_PCI_NEW.sql
+
+Revision: 96212
+Author: babulal.meena
+Date: 1:29:11 PM, Friday, June 15, 2012
+Message:
+Free Metal Utility Dummy GMR should not shown into system
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR.SQL
+
