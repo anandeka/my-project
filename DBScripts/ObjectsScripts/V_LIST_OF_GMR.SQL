@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_LIST_OF_GMR AS
+create or replace view v_list_of_gmr as
 select gmr.corporate_id,
        cp.contract_ref_no contract_ref_no,
        gmr.trucking_receipt_no trucking_receipt_no,
@@ -117,7 +117,7 @@ select gmr.corporate_id,
        to_char(vd.eta, 'dd-Mon-yyyy') eta,
        gmr.mode_of_transport,
        gmr.wns_status wns_status,
-       cp.DEL_DISTRIBUTION_ITEM_NO DEL_DISTRIBUTION_ITEM_NO
+       cp.del_distribution_item_no del_distribution_item_no
   from gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
@@ -150,7 +150,7 @@ select gmr.corporate_id,
                f_string_aggregate(pci.contract_item_ref_no) contract_item_ref_no,
                f_string_aggregate(pci.product_specs) product_specs,
                f_string_aggregate(pci.price_allocation_method) as price_allocation_method,
-               f_string_aggregate(PCI.DEL_DISTRIBUTION_ITEM_NO) as DEL_DISTRIBUTION_ITEM_NO
+               f_string_aggregate(pci.del_distribution_item_no) as del_distribution_item_no
           from v_pci                          pci,
                gcim_gmr_contract_item_mapping gcim
          where pci.internal_contract_item_ref_no =
@@ -188,7 +188,7 @@ select gmr.corporate_id,
    and nvl(gmr.tolling_gmr_type, 'None Tolling') not in
        ('Input Process', 'Output Process', 'Mark For Tolling',
         'Received Materials', 'Pledge', 'Financial Settlement',
-        'Return Material')
+        'Return Material', 'Free Metal Utility')
    and gam.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
    and vd.status(+) = 'Active'
    and axs_last.internal_action_ref_no = gmr.internal_action_ref_no
