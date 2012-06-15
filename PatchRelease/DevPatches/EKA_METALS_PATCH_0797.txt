@@ -42,17 +42,15 @@ Message:
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/GlobalPositionReport.rpt
 
-Revision: 96164
+Revision: 96202
 Author: elaiyaraja.nallathambi
-Date: 8:02:48 PM, Thursday, June 14, 2012
+Date: 12:23:21 PM, Friday, June 15, 2012
 Message:
-(Global Position Report) New Release.
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_306.sql
 
-Revision: 96178
+----
+Revision: 96201
 Author: elaiyaraja.nallathambi
-Date: 8:37:30 AM, Friday, June 15, 2012
+Date: 12:22:50 PM, Friday, June 15, 2012
 Message:
 
 ----
