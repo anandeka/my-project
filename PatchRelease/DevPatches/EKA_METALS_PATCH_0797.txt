@@ -34,13 +34,13 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 96162
+Revision: 96196
 Author: elaiyaraja.nallathambi
-Date: 8:01:29 PM, Thursday, June 14, 2012
+Date: 11:53:39 AM, Friday, June 15, 2012
 Message:
-New Release
+
 ----
-Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/GlobalPositionReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/GlobalPositionReport.rpt
 
 Revision: 96164
 Author: elaiyaraja.nallathambi
@@ -50,14 +50,13 @@ Message:
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_306.sql
 
-Revision: 96165
+Revision: 96178
 Author: elaiyaraja.nallathambi
-Date: 8:04:03 PM, Thursday, June 14, 2012
+Date: 8:37:30 AM, Friday, June 15, 2012
 Message:
-(Global Position Report) New Release.
-----
 
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_65.sql
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_65.sql
 
 
 
