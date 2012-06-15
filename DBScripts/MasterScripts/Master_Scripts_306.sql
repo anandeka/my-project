@@ -1,5 +1,6 @@
 delete from sls_static_list_setup sls where sls.list_type = 'GroupList';
 delete from slv_static_list_value slv where slv.value_id in ('Group','UnGroup');
+delete from ref_reportexportformat where report_id = '252';
 delete from rpc_rf_parameter_config rpc where rpc.report_id = '252';
 delete from rfc_report_filter_config rfc where rfc.report_id = '252';
 delete from amc_app_menu_configuration amc where amc.menu_id = 'RPT-D2496';
@@ -28,6 +29,10 @@ Insert into RML_REPORT_MASTER_LIST
  Values
    ('252', '11', 'GlobalPositionReport.rpt', 'Global Position Report', NULL, 
     NULL, NULL, 'populateFilter', 'ONLINE', 'Y');
+Insert into REF_REPORTEXPORTFORMAT
+   (REPORT_ID, EXPORT_FORMAT, REPORT_FILE_NAME)
+ Values
+   ('252', 'EXCEL', 'GlobalPositionReport.rpt');
 COMMIT;
 SET DEFINE OFF;
 Insert into AMC_APP_MENU_CONFIGURATION
