@@ -1,0 +1,100 @@
+CREATE OR REPLACE VIEW V_PCI_NEW AS
+select pci.internal_contract_item_ref_no as internal_contract_item_ref_no,
+       pcm.internal_contract_ref_no as internal_contract_ref_no,
+       pcm.contract_ref_no as contract_ref_no,
+       cast(pci.del_distribution_item_no as varchar2(5)) as item_no,
+       (pcm.contract_ref_no || ' ' || 'Item No.' || ' ' ||
+       pci.del_distribution_item_no) contract_item_ref_no,
+       cast(pcm.purchase_sales as varchar2(1)) as contract_type,
+       pcm.partnership_type partnership_type,
+       pcm.corporate_id as corporate_id,
+       pcm.cp_id as cp_id,
+       phd.companyname as cp_name,
+       pcm.cp_person_in_charge_id cp_person_in_charge_id,
+       pcm.cp_contract_ref_no cp_contract_ref_no,
+       pcm.our_person_in_charge_id our_person_in_charge_id,
+       pcm.issue_date as issue_date,
+       nvl(pcm.contract_type, 'Normal') trade_type,
+       pci.item_status as item_status,
+       pci.spe_settlement_status,
+       cast(pci.is_active as varchar2(1)) is_active,
+       pcm.invoice_currency_id as invoice_currency_id,
+       qat.long_desc product_specs,
+       pcpq.quality_template_id as quality_id,
+       qat.quality_name as quality_name,
+       orm.origin_name as origin_name,
+       pcpq.phy_attribute_group_no as phy_attribute_group_no,
+       pcpq.assay_header_id as assay_header_id,
+       pcdb.customs customs_id,
+       pcdb.duty_status duty_status_id,
+       pcdb.tax_status tax_status_id,
+       pci.delivery_period_type as delivery_period_type,
+       pci.delivery_from_date as delivery_from_date,
+       pci.delivery_to_date as delivery_to_date,
+       pci.delivery_from_month as delivery_from_month,
+       pci.delivery_from_year as delivery_from_year,
+       pci.delivery_to_month as delivery_to_month,
+       pci.delivery_to_year as delivery_to_year,
+       pci.pcpq_id as pcpq_id,
+       pci.pcdi_id as pcdi_id,
+       pcdi.price_allocation_method,
+       pci.pcdb_id as pcdb_id,
+       pcdb.inco_term_id as inco_term_id,
+       pcdb.warehouse_id as warehouse_id,
+       pcdb.warehouse_shed_id as warehouse_shed_id,
+       pci.m2m_country_id as valuation_country_id,
+       pci.m2m_state_id as valuation_state_id,
+       pci.m2m_city_id as valuation_city_id,
+       cym_valuation.country_name as valuation_country,
+       cast('Pricing' as varchar2(20)) as pricing,
+       pci.item_qty,
+       pci.item_qty_unit_id,
+       pcpq.unit_of_measure as qty_basis,
+       cast('Not Fulfilled' as varchar2(20)) as fulfillment_status,
+       (pcm.contract_ref_no || '-' || pcdi.delivery_item_no) as delivery_item_ref_no,
+       cast('QP PERIOD' as varchar2(20)) qp_period,
+       nvl(pcdi.tolerance_type, 'Approx') tolerance_type,
+       nvl(pcdi.min_tolerance, 0) tolerance_min,
+       nvl(pcdi.max_tolerance, 0) tolerance_max,
+       pcdi.tolerance_unit_id,
+       pcm.trader_id as trader_id,
+       pcdi.basis_type,
+       cast(pcm.is_tolling_contract as varchar2(1)) as is_tolling_contract,
+       pcm.middle_no,
+       pci.del_distribution_item_no,
+       pcdi.price_option_call_off_status,
+       pcdi.delivery_item_no,
+       pci.fulfillment_date as fulfillment_date,
+       pcm.approval_status,
+       cym.country_id as incoterm_country_id,
+       sm.state_id as incoterm_state_id,
+       cym.country_name as incoterm_country,
+       sm.state_name as incoterm_state,
+       cast(pcm.is_commercial_fee_applied as varchar2(1)) as is_commercial_fee_applied
+  from pci_physical_contract_item pci,
+       pcm_physical_contract_main pcm,
+       pcdb_pc_delivery_basis     pcdb,
+       pcdi_pc_delivery_item      pcdi,
+       pcpq_pc_product_quality    pcpq,
+       phd_profileheaderdetails   phd,
+       cym_countrymaster          cym,
+       qat_quality_attributes     qat,
+       cym_countrymaster          cym_valuation,
+       sm_state_master            sm,
+       pom_product_origin_master  pom,
+       orm_origin_master          orm
+ where pcdb.pcdb_id = pci.pcdb_id
+   and pci.pcdi_id = pcdi.pcdi_id
+   and phd.profileid = pcm.cp_id
+   and sm.state_id = pcdb.state_id
+   and pcdb.country_id = cym.country_id(+)
+   and pci.m2m_country_id = cym_valuation.country_id(+)
+   and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
+   and pci.pcpq_id = pcpq.pcpq_id
+   and pcpq.pcpq_id = pci.pcpq_id
+   and qat.quality_id = pcpq.quality_template_id
+   and qat.product_origin_id = pom.product_origin_id(+)
+   and pom.origin_id = orm.origin_id(+)
+   and pci.is_active = 'Y'
+   and pcm.contract_status = 'In Position'
+   and (pci.is_called_off = 'Y' or pcdi.is_phy_optionality_present = 'N')
