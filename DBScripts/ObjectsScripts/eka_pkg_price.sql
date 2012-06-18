@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_PRICE" is
+create or replace package pkg_price is
 
   -- Author  : JANARDHANA
   -- Created : 12/8/2011 2:34:26 PM
@@ -37,7 +37,7 @@ CREATE OR REPLACE PACKAGE "PKG_PRICE" is
 
 end;
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
+create or replace package body "PKG_PRICE" is
 
   procedure sp_calc_contract_price(pc_int_contract_item_ref_no varchar2,
                                    pd_trade_date               date,
@@ -167,9 +167,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
     vn_before_qp_price             number;
     vc_before_qp_price_unit_id     varchar2(15);
     vd_3rd_wed_of_qp               date;
-    vc_holiday                     char(1);
-    vn_after_qp_price              number;
-    vc_after_qp_price_unit_id      varchar2(10);
     vd_dur_qp_start_date           date;
     vd_dur_qp_end_date             date;
     vn_during_val_price            number;
@@ -180,14 +177,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
     vn_count_val_qp                number;
     vn_workings_days               number;
     vd_quotes_date                 date;
-    vn_after_count                 number;
-    vn_after_price                 number;
     vn_during_qp_price             number;
-    vc_after_price_dr_id           varchar2(15);
     vc_during_price_dr_id          varchar2(15);
     vc_during_qp_price_unit_id     varchar2(15);
     vn_market_flag                 char(1);
-    vn_any_day_price_fix_qty_value  number;
+    vn_any_day_price_fix_qty_value number;
     vn_anyday_price_ufix_qty_value number;
     vn_any_day_unfixed_qty         number;
     vn_any_day_fixed_qty           number;
@@ -383,7 +377,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          dqd.price_unit_id
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
@@ -392,12 +386,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id=cur_pcdi_rows.corporate_id
+                     and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
                          (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
+                            from dq_derivative_quotes          dq,
                                  v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_before_price_dr_id
@@ -408,7 +402,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id=cur_pcdi_rows.corporate_id
+                             and dq.corporate_id =
+                                 cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -424,51 +419,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                                            (vn_qty_to_be_priced / 100) *
                                            vn_before_qp_price;
                 vc_price_unit_id        := cc1.ppu_price_unit_id;
-              elsif vc_period = 'After QP' then
-                vn_after_price := 0;
-                vn_after_count := 0;
-                for pfd_price in (select pfd.user_price,
-                                         pfd.price_unit_id
-                                    from poch_price_opt_call_off_header poch,
-                                         pocd_price_option_calloff_dtls pocd,
-                                         pofh_price_opt_fixation_header pofh,
-                                         pfd_price_fixation_details     pfd
-                                   where poch.poch_id = pocd.poch_id
-                                     and pocd.pocd_id = pofh.pocd_id
-                                     and pfd.pofh_id = cc1.pofh_id
-                                     and pofh.pofh_id = pfd.pofh_id
-                                     and poch.is_active = 'Y'
-                                     and pocd.is_active = 'Y'
-                                     and pofh.is_active = 'Y'
-                                     and pfd.is_active = 'Y')
-                loop
-                  vn_after_price            := vn_after_price +
-                                               pfd_price.user_price;
-                  vn_after_count            := vn_after_count + 1;
-                  vc_after_qp_price_unit_id := pfd_price.price_unit_id;
-                end loop;
-                if vn_after_count = 0 then
-                  vn_after_qp_price       := 0;
-                  vn_total_contract_value := 0;
-                  vn_total_quantity       := cur_pcdi_rows.item_qty;
-                else
-                  vn_after_qp_price       := vn_after_price /
-                                             vn_after_count;
-                  vn_total_quantity       := cur_pcdi_rows.item_qty;
-                  vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
-                  vn_total_contract_value := vn_total_contract_value +
-                                             vn_total_quantity *
-                                             (vn_qty_to_be_priced / 100) *
-                                             vn_after_qp_price;
-                  vc_price_unit_id        := vc_after_qp_price_unit_id;
-                end if;
-              elsif vc_period = 'During QP' then
-                vd_dur_qp_start_date          := vd_qp_start_date;
-                vd_dur_qp_end_date            := vd_qp_end_date;
-                vn_during_total_set_price     := 0;
-                vn_count_set_qp               := 0;
+              elsif (vc_period = 'During QP' or vc_period = 'After QP') then
+                vd_dur_qp_start_date           := vd_qp_start_date;
+                vd_dur_qp_end_date             := vd_qp_end_date;
+                vn_during_total_set_price      := 0;
+                vn_count_set_qp                := 0;
                 vn_any_day_price_fix_qty_value := 0;
-                vn_any_day_fixed_qty          := 0;
+                vn_any_day_fixed_qty           := 0;
                 for cc in (select pfd.user_price,
                                   pfd.qty_fixed
                              from poch_price_opt_call_off_header poch,
@@ -486,14 +443,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                               and pofh.is_active = 'Y'
                               and pfd.is_active = 'Y')
                 loop
-                  vn_during_total_set_price     := vn_during_total_set_price +
-                                                   cc.user_price;
+                  vn_during_total_set_price      := vn_during_total_set_price +
+                                                    cc.user_price;
                   vn_any_day_price_fix_qty_value := vn_any_day_price_fix_qty_value +
-                                                   (cc.user_price *
-                                                   cc.qty_fixed);
-                  vn_any_day_fixed_qty          := vn_any_day_fixed_qty +
-                                                   cc.qty_fixed;
-                  vn_count_set_qp               := vn_count_set_qp + 1;
+                                                    (cc.user_price *
+                                                    cc.qty_fixed);
+                  vn_any_day_fixed_qty           := vn_any_day_fixed_qty +
+                                                    cc.qty_fixed;
+                  vn_count_set_qp                := vn_count_set_qp + 1;
                 end loop;
                 if cc1.is_qp_any_day_basis = 'Y' then
                   vn_market_flag := 'N';
@@ -515,7 +472,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                   end loop;
                   --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
-                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                  if (vd_3rd_wed_of_qp <= pd_trade_date and
+                     vc_period = 'During QP') or vc_period = 'After QP' then
                     vn_workings_days := 0;
                     vd_quotes_date   := pd_trade_date + 1;
                     while vn_workings_days <> 2
@@ -548,8 +506,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                 end if;
                 if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                  vc_prompt_date  := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                  vd_qp_end_date);
+                  if vc_period = 'During QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   vd_qp_end_date);
+                  elsif vc_period = 'After QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   pd_trade_date);
+                  
+                  end if;
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                   begin
@@ -572,7 +536,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          dqd.price_unit_id
                     into vn_during_val_price,
                          vc_during_val_price_unit_id
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
@@ -581,12 +545,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id=cur_pcdi_rows.corporate_id
+                     and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
                          (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
+                            from dq_derivative_quotes          dq,
                                  v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_during_price_dr_id
@@ -597,7 +561,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
-                              and dq.corporate_id=cur_pcdi_rows.corporate_id
+                             and dq.corporate_id =
+                                 cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -618,32 +583,16 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                   vn_anyday_price_ufix_qty_value := (vn_any_day_unfixed_qty *
                                                     vn_during_total_val_price);
                 else
-                  /*  WHILE vd_dur_qp_start_date <=
-                        vd_dur_qp_end_date LOOP
-                      IF f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                          vd_dur_qp_start_date) THEN
-                          vc_holiday := 'Y';
-                      ELSE
-                          vc_holiday := 'N';
-                      END IF;
-                      IF vc_holiday = 'N' THEN
-                          vn_during_total_val_price := vn_during_total_val_price +
-                                                       vn_during_val_price;
-                          vn_count_val_qp           := vn_count_val_qp + 1;
-                      END IF;
-                      vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
-                  END LOOP;*/
-                  vn_no_of_trading_days:=pkg_general.f_get_instrument_trading_days(cur_pcdi_rows.instrument_id,
-                                                                                   vd_qp_start_date,
-                                                                                   vd_qp_end_date);
-
-
+                  vn_no_of_trading_days := pkg_general.f_get_instrument_trading_days(cur_pcdi_rows.instrument_id,
+                                                                                     vd_qp_start_date,
+                                                                                     vd_qp_end_date);
+                
                   vn_count_val_qp           := vn_no_of_trading_days -
                                                vn_count_set_qp;
                   vn_during_total_val_price := vn_during_total_val_price +
                                                vn_during_val_price *
                                                vn_count_val_qp;
-
+                
                 end if;
                 if (vn_count_val_qp + vn_count_set_qp) <> 0 then
                   if vn_market_flag = 'N' then
@@ -845,7 +794,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          dqd.price_unit_id
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
@@ -854,12 +803,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id=cur_pcdi_rows.corporate_id
+                     and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
                          (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
+                            from dq_derivative_quotes          dq,
                                  v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_before_price_dr_id
@@ -870,7 +819,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id=cur_pcdi_rows.corporate_id
+                             and dq.corporate_id =
+                                 cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -886,7 +836,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                                            (vn_qty_to_be_priced / 100) *
                                            vn_before_qp_price;
                 vc_price_unit_id        := cc1.ppu_price_unit_id;
-              elsif vc_period = 'After QP' then
+              elsif (vc_period = 'During QP' or vc_period = 'After QP') then
                 if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
                   vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date,
                                                      'Wed',
@@ -902,121 +852,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                   end loop;
                   --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
-                  if vd_3rd_wed_of_qp <= pd_trade_date then
-                    vn_workings_days := 0;
-                    vd_quotes_date   := pd_trade_date + 1;
-                    while vn_workings_days <> 2
-                    loop
-                      if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                          vd_quotes_date) then
-                        vd_quotes_date := vd_quotes_date + 1;
-                      else
-                        vn_workings_days := vn_workings_days + 1;
-                        if vn_workings_days <> 2 then
-                          vd_quotes_date := vd_quotes_date + 1;
-                        end if;
-                      end if;
-                    end loop;
-                    vd_3rd_wed_of_qp := vd_quotes_date;
-                  end if;
-                  begin
-                    select drm.dr_id
-                      into vc_after_price_dr_id
-                      from drm_derivative_master drm
-                     where drm.instrument_id = cur_pcdi_rows.instrument_id
-                       and drm.prompt_date = vd_3rd_wed_of_qp
-                       and drm.price_point_id is null
-                       and rownum <= 1
-                       and drm.is_deleted = 'N';
-                  exception
-                    when no_data_found then
-                      vc_after_price_dr_id := null;
-                  end;
-                end if;
-                if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
-                   cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                  vc_prompt_date  := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                  vd_qp_end_date);
-                  vc_prompt_month := to_char(vc_prompt_date, 'Mon');
-                  vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
-                  begin
-                    select drm.dr_id
-                      into vc_after_price_dr_id
-                      from drm_derivative_master drm
-                     where drm.instrument_id = cur_pcdi_rows.instrument_id
-                       and drm.period_month = vc_prompt_month
-                       and drm.period_year = vc_prompt_year
-                       and rownum <= 1
-                       and drm.price_point_id is null
-                       and drm.is_deleted = 'N';
-                  exception
-                    when no_data_found then
-                      vc_after_price_dr_id := null;
-                  end;
-                end if;
-                begin
-                  select dqd.price,
-                         dqd.price_unit_id
-                    into vn_after_qp_price,
-                         vc_after_qp_price_unit_id
-                    from dq_derivative_quotes        dq,
-                         v_dqd_derivative_quote_detail dqd
-                   where dq.dq_id = dqd.dq_id
-                     and dqd.dr_id = vc_after_price_dr_id
-                     and dq.instrument_id = cur_pcdi_rows.instrument_id
-                     and dqd.available_price_id =
-                         cur_pcdi_rows.available_price_id
-                     and dq.price_source_id = cur_pcdi_rows.price_source_id
-                     and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id=cur_pcdi_rows.corporate_id
-                     and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N'
-                     and dq.trade_date =
-                         (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
-                                 v_dqd_derivative_quote_detail dqd
-                           where dq.dq_id = dqd.dq_id
-                             and dqd.dr_id = vc_after_price_dr_id
-                             and dq.instrument_id =
-                                 cur_pcdi_rows.instrument_id
-                             and dqd.available_price_id =
-                                 cur_pcdi_rows.available_price_id
-                             and dq.price_source_id =
-                                 cur_pcdi_rows.price_source_id
-                             and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id=cur_pcdi_rows.corporate_id
-                             and dq.is_deleted = 'N'
-                             and dqd.is_deleted = 'N'
-                             and dq.trade_date <= pd_trade_date);
-                exception
-                  when no_data_found then
-                    vn_after_qp_price         := 0;
-                    vc_after_qp_price_unit_id := null;
-                end;
-                vn_total_quantity       := cur_pcdi_rows.item_qty;
-                vn_qty_to_be_priced     := cur_not_called_off_rows.qty_to_be_priced;
-                vn_total_contract_value := vn_total_contract_value +
-                                           vn_total_quantity *
-                                           (vn_qty_to_be_priced / 100) *
-                                           vn_after_qp_price;
-                vc_price_unit_id        := cc1.ppu_price_unit_id;
-              elsif vc_period = 'During QP' then
-                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
-                  vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date,
-                                                     'Wed',
-                                                     3);
-                  while true
-                  loop
-                    if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                        vd_3rd_wed_of_qp) then
-                      vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
-                    else
-                      exit;
-                    end if;
-                  end loop;
-                  --- get 3rd wednesday  before QP period
-                  -- Get the quotation date = Trade Date +2 working Days
-                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                  if (vd_3rd_wed_of_qp <= pd_trade_date and
+                     vc_period = 'During QP') or vc_period = 'After QP' then
                     vn_workings_days := 0;
                     vd_quotes_date   := pd_trade_date + 1;
                     while vn_workings_days <> 2
@@ -1049,8 +886,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                 end if;
                 if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                  vc_prompt_date  := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                  vd_qp_end_date);
+                  if vc_period = 'During QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   vd_qp_end_date);
+                  elsif vc_period = 'After QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   pd_trade_date);
+                  
+                  end if;
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                   begin
@@ -1073,7 +916,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          dqd.price_unit_id
                     into vn_during_qp_price,
                          vc_during_qp_price_unit_id
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
@@ -1082,12 +925,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                      and dq.corporate_id=cur_pcdi_rows.corporate_id
+                     and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
                          (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
+                            from dq_derivative_quotes          dq,
                                  v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_during_price_dr_id
@@ -1098,7 +941,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id=cur_pcdi_rows.corporate_id
+                             and dq.corporate_id =
+                                 cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -1160,7 +1004,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                 from grd_goods_record_detail grd
                where grd.status = 'Active'
                  and grd.is_deleted = 'N'
-               --and nvl(grd.inventory_status, 'NA') <> 'Out'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id) grd,
@@ -1222,7 +1065,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                      grd.product_id
                 from dgrd_delivered_grd grd
                where grd.status = 'Active'
-              --  and nvl(grd.inventory_status, 'NA') <> 'Out'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id) grd,
@@ -1266,10 +1108,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
     vn_before_qp_price             number;
     vc_before_qp_price_unit_id     varchar2(15);
     vn_total_contract_value        number;
-    vn_after_price                 number;
-    vn_after_count                 number;
-    vn_after_qp_price              number;
-    vc_after_qp_price_unit_id      varchar2(15);
     vd_dur_qp_start_date           date;
     vd_dur_qp_end_date             date;
     vn_during_total_set_price      number;
@@ -1279,10 +1117,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
     vc_during_val_price_unit_id    varchar2(15);
     vn_during_total_val_price      number;
     vn_count_val_qp                number;
-    vc_holiday                     char(1);
     vn_during_qp_price             number;
     vn_market_flag                 char(1);
-    vn_any_day_price_fix_qty_value  number;
+    vn_any_day_price_fix_qty_value number;
     vn_anyday_price_ufix_qty_value number;
     vn_any_day_unfixed_qty         number;
     vn_any_day_fixed_qty           number;
@@ -1297,7 +1134,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
     loop
       vn_total_contract_value        := 0;
       vn_market_flag                 := null;
-      vn_any_day_price_fix_qty_value  := 0;
+      vn_any_day_price_fix_qty_value := 0;
       vn_anyday_price_ufix_qty_value := 0;
       vn_any_day_unfixed_qty         := 0;
       vn_any_day_fixed_qty           := 0;
@@ -1404,7 +1241,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                  dqd.price_unit_id
             into vn_before_qp_price,
                  vc_before_qp_price_unit_id
-            from dq_derivative_quotes        dq,
+            from dq_derivative_quotes          dq,
                  v_dqd_derivative_quote_detail dqd
            where dq.dq_id = dqd.dq_id
              and dqd.dr_id = vc_before_price_dr_id
@@ -1412,12 +1249,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
              and dqd.available_price_id = cur_gmr_rows.available_price_id
              and dq.price_source_id = cur_gmr_rows.price_source_id
              and dqd.price_unit_id = vc_price_unit_id
-             and dq.corporate_id=cur_gmr_rows.corporate_id
+             and dq.corporate_id = cur_gmr_rows.corporate_id
              and dq.is_deleted = 'N'
              and dqd.is_deleted = 'N'
              and dq.trade_date =
                  (select max(dq.trade_date)
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
@@ -1426,7 +1263,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_gmr_rows.available_price_id
                      and dq.price_source_id = cur_gmr_rows.price_source_id
                      and dqd.price_unit_id = vc_price_unit_id
-                     and dq.corporate_id=cur_gmr_rows.corporate_id
+                     and dq.corporate_id = cur_gmr_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date <= pd_trade_date);
@@ -1437,37 +1274,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
         end;
         vn_total_contract_value := vn_total_contract_value +
                                    vn_before_qp_price;
-      elsif vc_period = 'After QP' then
-        vn_after_price := 0;
-        vn_after_count := 0;
-        for pfd_price in (select pfd.user_price,
-                                 pfd.price_unit_id
-                            from poch_price_opt_call_off_header poch,
-                                 pocd_price_option_calloff_dtls pocd,
-                                 pofh_price_opt_fixation_header pofh,
-                                 pfd_price_fixation_details     pfd
-                           where poch.poch_id = pocd.poch_id
-                             and pocd.pocd_id = pofh.pocd_id
-                             and pfd.pofh_id = cur_gmr_rows.pofh_id
-                             and pofh.pofh_id = pfd.pofh_id
-                             and poch.is_active = 'Y'
-                             and pocd.is_active = 'Y'
-                             and pofh.is_active = 'Y'
-                             and pfd.is_active = 'Y')
-        loop
-          vn_after_price := vn_after_price + pfd_price.user_price;
-          vn_after_count := vn_after_count + 1;
-        end loop;
-        if vn_after_count = 0 then
-          vn_after_qp_price         := 0;
-          vn_total_contract_value   := 0;
-          vc_after_qp_price_unit_id := null;
-        else
-          vn_after_qp_price       := vn_after_price / vn_after_count;
-          vn_total_contract_value := vn_total_contract_value +
-                                     vn_after_qp_price;
-        end if;
-      elsif vc_period = 'During QP' then
+      elsif (vc_period = 'During QP' or vc_period = 'After QP') then
         vd_dur_qp_start_date      := vd_qp_start_date;
         vd_dur_qp_end_date        := vd_qp_end_date;
         vn_during_total_set_price := 0;
@@ -1492,10 +1299,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                       and pofh.is_active = 'Y'
                       and pfd.is_active = 'Y')
         loop
-          vn_during_total_set_price := vn_during_total_set_price +
-                                       cc.user_price;
-          vn_count_set_qp           := vn_count_set_qp + 1;
-          vn_any_day_fixed_qty      := vn_any_day_fixed_qty + cc.qty_fixed;
+          vn_during_total_set_price      := vn_during_total_set_price +
+                                            cc.user_price;
+          vn_count_set_qp                := vn_count_set_qp + 1;
+          vn_any_day_fixed_qty           := vn_any_day_fixed_qty +
+                                            cc.qty_fixed;
+          vn_any_day_price_fix_qty_value := vn_any_day_price_fix_qty_value +
+                                            (cc.user_price * cc.qty_fixed);
         end loop;
         if cur_gmr_rows.is_any_day_pricing = 'Y' then
           vn_market_flag := 'N';
@@ -1516,7 +1326,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
           end loop;
           --- get 3rd wednesday  before QP period
           -- Get the quotation date = Trade Date +2 working Days
-          if vd_3rd_wed_of_qp <= pd_trade_date then
+          if (vd_3rd_wed_of_qp <= pd_trade_date and vc_period = 'During QP') or
+             vc_period = 'After QP' then
             workings_days  := 0;
             vd_quotes_date := pd_trade_date + 1;
             while workings_days <> 2
@@ -1548,8 +1359,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
           end;
         elsif cur_gmr_rows.is_daily_cal_applicable = 'N' and
               cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
-          vc_prompt_date  := f_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
-                                                          vd_qp_end_date);
+          if vc_period = 'During QP' then
+            vc_prompt_date := f_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
+                                                           vd_qp_end_date);
+          elsif vc_period = 'After QP' then
+            vc_prompt_date := f_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
+                                                           pd_trade_date);
+          end if;
           vc_prompt_month := to_char(vc_prompt_date, 'Mon');
           vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
           begin
@@ -1572,7 +1388,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                  dqd.price_unit_id
             into vn_during_val_price,
                  vc_during_val_price_unit_id
-            from dq_derivative_quotes        dq,
+            from dq_derivative_quotes          dq,
                  v_dqd_derivative_quote_detail dqd
            where dq.dq_id = dqd.dq_id
              and dqd.dr_id = vc_during_price_dr_id
@@ -1580,12 +1396,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
              and dqd.available_price_id = cur_gmr_rows.available_price_id
              and dq.price_source_id = cur_gmr_rows.price_source_id
              and dqd.price_unit_id = vc_price_unit_id
-             and dq.corporate_id=cur_gmr_rows.corporate_id
+             and dq.corporate_id = cur_gmr_rows.corporate_id
              and dq.is_deleted = 'N'
              and dqd.is_deleted = 'N'
              and dq.trade_date =
                  (select max(dq.trade_date)
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
@@ -1594,7 +1410,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_gmr_rows.available_price_id
                      and dq.price_source_id = cur_gmr_rows.price_source_id
                      and dqd.price_unit_id = vc_price_unit_id
-                      and dq.corporate_id=cur_gmr_rows.corporate_id
+                     and dq.corporate_id = cur_gmr_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date <= pd_trade_date);
@@ -1615,26 +1431,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
           vn_anyday_price_ufix_qty_value := (vn_any_day_unfixed_qty *
                                             vn_during_total_val_price);
         else
-          /*WHILE vd_dur_qp_start_date <= vd_dur_qp_end_date LOOP
-              IF f_is_day_holiday(cur_gmr_rows.instrument_id,
-                                  vd_dur_qp_start_date) THEN
-                  vc_holiday := 'Y';
-              ELSE
-                  vc_holiday := 'N';
-              END IF;
-              IF vc_holiday = 'N' THEN
-                  vn_during_total_val_price := vn_during_total_val_price +
-                                               vn_during_val_price;
-                  vn_count_val_qp           := vn_count_val_qp + 1;
-              END IF;
-              vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
-          END LOOP;*/
           vn_count_val_qp           := cur_gmr_rows.no_of_prompt_days -
                                        vn_count_set_qp;
           vn_during_total_val_price := vn_during_total_val_price +
                                        vn_during_val_price *
                                        vn_count_val_qp;
-
+        
         end if;
         if (vn_count_val_qp + vn_count_set_qp) <> 0 then
           if vn_market_flag = 'N' then
@@ -1829,15 +1631,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
     vn_before_qp_price             number;
     vc_before_qp_price_unit_id     varchar2(15);
     vn_qty_to_be_priced            number;
-    vn_after_price                 number;
-    vn_after_count                 number;
-    vc_after_qp_price_unit_id      varchar2(15);
-    vn_after_qp_price              number;
     vd_dur_qp_start_date           date;
     vd_dur_qp_end_date             date;
     vn_during_total_set_price      number;
     vn_count_set_qp                number;
-    vn_any_day_price_fix_qty_value  number;
+    vn_any_day_price_fix_qty_value number;
     vn_any_day_fixed_qty           number;
     vn_market_flag                 char(1);
     vc_during_price_dr_id          varchar2(15);
@@ -1847,10 +1645,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
     vn_count_val_qp                number;
     vn_any_day_unfixed_qty         number;
     vn_anyday_price_ufix_qty_value number;
-    vc_holiday                     char(10);
     vn_during_qp_price             number;
     vn_average_price               number;
-    vc_after_price_dr_id           varchar2(15);
     vc_during_qp_price_unit_id     varchar2(15);
     vc_price_option_call_off_sts   varchar2(50);
     vc_pcdi_id                     varchar2(15);
@@ -2067,7 +1863,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          dqd.price_unit_id
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
@@ -2076,12 +1872,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id=cur_pcdi_rows.corporate_id
+                     and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
                          (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
+                            from dq_derivative_quotes          dq,
                                  v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_before_price_dr_id
@@ -2092,7 +1888,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
-                              and dq.corporate_id=cur_pcdi_rows.corporate_id
+                             and dq.corporate_id =
+                                 cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -2111,57 +1908,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                                            (vn_qty_to_be_priced / 100) *
                                            vn_before_qp_price;
                 vc_price_unit_id        := cc1.ppu_price_unit_id;
-              elsif vc_period = 'After QP' then
-                vn_after_price := 0;
-                vn_after_count := 0;
-                for pfd_price in (select pfd.user_price,
-                                         pfd.price_unit_id
-                                    from poch_price_opt_call_off_header poch,
-                                         pocd_price_option_calloff_dtls pocd,
-                                         pofh_price_opt_fixation_header pofh,
-                                         pfd_price_fixation_details     pfd
-                                   where poch.poch_id = pocd.poch_id
-                                     and pocd.pocd_id = pofh.pocd_id
-                                     and pfd.pofh_id = cc1.pofh_id
-                                     and pofh.pofh_id = pfd.pofh_id
-                                     and poch.is_active = 'Y'
-                                     and pocd.is_active = 'Y'
-                                     and pofh.is_active = 'Y'
-                                     and pfd.is_active = 'Y')
-                loop
-                  vn_after_price            := vn_after_price +
-                                               pfd_price.user_price;
-                  vn_after_count            := vn_after_count + 1;
-                  vc_after_qp_price_unit_id := pfd_price.price_unit_id;
-                end loop;
-                if vn_after_count = 0 then
-                  vn_after_qp_price       := 0;
-                  vn_total_contract_value := 0;
-                  vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
-                                                                                  cur_pcdi_rows.payable_qty_unit_id,
-                                                                                  cur_pcdi_rows.item_qty_unit_id,
-                                                                                  cur_pcdi_rows.payable_qty);
-                else
-                  vn_after_qp_price       := vn_after_price /
-                                             vn_after_count;
-                  vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
-                                                                                  cur_pcdi_rows.payable_qty_unit_id,
-                                                                                  cur_pcdi_rows.item_qty_unit_id,
-                                                                                  cur_pcdi_rows.payable_qty);
-                  vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
-                  vn_total_contract_value := vn_total_contract_value +
-                                             vn_total_quantity *
-                                             (vn_qty_to_be_priced / 100) *
-                                             vn_after_qp_price;
-                  vc_price_unit_id        := vc_after_qp_price_unit_id;
-                end if;
-              elsif vc_period = 'During QP' then
-                vd_dur_qp_start_date          := vd_qp_start_date;
-                vd_dur_qp_end_date            := vd_qp_end_date;
-                vn_during_total_set_price     := 0;
-                vn_count_set_qp               := 0;
+              elsif (vc_period = 'During QP' or vc_period = 'After QP') then
+                vd_dur_qp_start_date           := vd_qp_start_date;
+                vd_dur_qp_end_date             := vd_qp_end_date;
+                vn_during_total_set_price      := 0;
+                vn_count_set_qp                := 0;
                 vn_any_day_price_fix_qty_value := 0;
-                vn_any_day_fixed_qty          := 0;
+                vn_any_day_fixed_qty           := 0;
                 for cc in (select pfd.user_price,
                                   pfd.as_of_date,
                                   pfd.qty_fixed
@@ -2180,14 +1933,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                               and pofh.is_active = 'Y'
                               and pfd.is_active = 'Y')
                 loop
-                  vn_during_total_set_price     := vn_during_total_set_price +
-                                                   cc.user_price;
+                  vn_during_total_set_price      := vn_during_total_set_price +
+                                                    cc.user_price;
                   vn_any_day_price_fix_qty_value := vn_any_day_price_fix_qty_value +
-                                                   (cc.user_price *
-                                                   cc.qty_fixed);
-                  vn_any_day_fixed_qty          := vn_any_day_fixed_qty +
-                                                   cc.qty_fixed;
-                  vn_count_set_qp               := vn_count_set_qp + 1;
+                                                    (cc.user_price *
+                                                    cc.qty_fixed);
+                  vn_any_day_fixed_qty           := vn_any_day_fixed_qty +
+                                                    cc.qty_fixed;
+                  vn_count_set_qp                := vn_count_set_qp + 1;
                 end loop;
                 if cc1.is_qp_any_day_basis = 'Y' then
                   vn_market_flag := 'N';
@@ -2210,7 +1963,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                   end loop;
                   --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
-                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                  if (vd_3rd_wed_of_qp <= pd_trade_date and
+                     vc_period = 'During QP') or vc_period = 'After QP' then
                     vn_workings_days := 0;
                     vd_quotes_date   := pd_trade_date + 1;
                     while vn_workings_days <> 2
@@ -2243,8 +1997,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                 end if;
                 if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                  vc_prompt_date  := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                  vd_qp_end_date);
+                  if vc_period = 'During QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   vd_qp_end_date);
+                  elsif vc_period = 'After QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   pd_trade_date);
+                  end if;
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                   begin
@@ -2267,7 +2026,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          dqd.price_unit_id
                     into vn_during_val_price,
                          vc_during_val_price_unit_id
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
@@ -2276,12 +2035,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id=cur_pcdi_rows.corporate_id
+                     and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
                          (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
+                            from dq_derivative_quotes          dq,
                                  v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_during_price_dr_id
@@ -2292,7 +2051,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id=cur_pcdi_rows.corporate_id
+                             and dq.corporate_id =
+                                 cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -2307,42 +2067,28 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                 if vn_market_flag = 'N' then
                   vn_during_total_val_price      := vn_during_total_val_price +
                                                     vn_during_val_price;
-                  vn_any_day_unfixed_qty         := cc1.qty_to_be_fixed -
+                  vn_any_day_unfixed_qty         := nvl(cc1.qty_to_be_fixed,
+                                                        0) -
                                                     vn_any_day_fixed_qty;
                   vn_count_val_qp                := vn_count_val_qp + 1;
                   vn_anyday_price_ufix_qty_value := (vn_any_day_unfixed_qty *
                                                     vn_during_total_val_price);
                 else
-                  /*WHILE vd_dur_qp_start_date <=
-                        vd_dur_qp_end_date LOOP
-                      IF f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                          vd_dur_qp_start_date) THEN
-                          vc_holiday := 'Y';
-                      ELSE
-                          vc_holiday := 'N';
-                      END IF;
-                      IF vc_holiday = 'N' THEN
-                          vn_during_total_val_price := vn_during_total_val_price +
-                                                       vn_during_val_price;
-                          vn_count_val_qp           := vn_count_val_qp + 1;
-                      END IF;
-                      vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
-                  END LOOP;*/
-                  vn_no_of_trading_days:=pkg_general.f_get_instrument_trading_days(cur_pcdi_rows.instrument_id,
-                                                                                   vd_qp_start_date,
-                                                                                   vd_qp_end_date);
+                  vn_no_of_trading_days     := pkg_general.f_get_instrument_trading_days(cur_pcdi_rows.instrument_id,
+                                                                                         vd_qp_start_date,
+                                                                                         vd_qp_end_date);
                   vn_count_val_qp           := vn_no_of_trading_days -
                                                vn_count_set_qp;
                   vn_during_total_val_price := vn_during_total_val_price +
                                                vn_during_val_price *
                                                vn_count_val_qp;
-
+                
                 end if;
                 if (vn_count_val_qp + vn_count_set_qp) <> 0 then
                   if vn_market_flag = 'N' then
                     vn_during_qp_price := (vn_any_day_price_fix_qty_value +
                                           vn_anyday_price_ufix_qty_value) /
-                                          cc1.qty_to_be_fixed;
+                                          nvl(cc1.qty_to_be_fixed, 0);
                   else
                     vn_during_qp_price := (vn_during_total_set_price +
                                           vn_during_total_val_price) /
@@ -2492,7 +2238,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                   end loop;
                   --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
-                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                  if (vd_3rd_wed_of_qp <= pd_trade_date and
+                     vc_period = 'During QP') or vc_period = 'After QP' then
                     vn_workings_days := 0;
                     vd_quotes_date   := pd_trade_date + 1;
                     while vn_workings_days <> 2
@@ -2525,8 +2272,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                 end if;
                 if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                  vc_prompt_date  := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                  vd_qp_end_date);
+                  if vc_period = 'During QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   vd_qp_end_date);
+                  elsif vc_period = 'After QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   pd_trade_date);
+                  
+                  end if;
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                   begin
@@ -2549,7 +2302,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          dqd.price_unit_id
                     into vn_before_qp_price,
                          vc_before_qp_price_unit_id
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_before_price_dr_id
@@ -2558,12 +2311,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id=cur_pcdi_rows.corporate_id
+                     and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
                          (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
+                            from dq_derivative_quotes          dq,
                                  v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_before_price_dr_id
@@ -2574,7 +2327,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
-                              and dq.corporate_id=cur_pcdi_rows.corporate_id
+                             and dq.corporate_id =
+                                 cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -2593,7 +2347,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                                            (vn_qty_to_be_priced / 100) *
                                            vn_before_qp_price;
                 vc_price_unit_id        := cc1.ppu_price_unit_id;
-              elsif vc_period = 'After QP' then
+              elsif (vc_period = 'During QP' or vc_period = 'After QP') then
                 if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
                   vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date,
                                                      'Wed',
@@ -2609,124 +2363,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                   end loop;
                   --- get 3rd wednesday  before QP period
                   -- Get the quotation date = Trade Date +2 working Days
-                  if vd_3rd_wed_of_qp <= pd_trade_date then
-                    vn_workings_days := 0;
-                    vd_quotes_date   := pd_trade_date + 1;
-                    while vn_workings_days <> 2
-                    loop
-                      if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                          vd_quotes_date) then
-                        vd_quotes_date := vd_quotes_date + 1;
-                      else
-                        vn_workings_days := vn_workings_days + 1;
-                        if vn_workings_days <> 2 then
-                          vd_quotes_date := vd_quotes_date + 1;
-                        end if;
-                      end if;
-                    end loop;
-                    vd_3rd_wed_of_qp := vd_quotes_date;
-                  end if;
-                  begin
-                    select drm.dr_id
-                      into vc_after_price_dr_id
-                      from drm_derivative_master drm
-                     where drm.instrument_id = cur_pcdi_rows.instrument_id
-                       and drm.prompt_date = vd_3rd_wed_of_qp
-                       and drm.price_point_id is null
-                       and rownum <= 1
-                       and drm.is_deleted = 'N';
-                  exception
-                    when no_data_found then
-                      vc_after_price_dr_id := null;
-                  end;
-                end if;
-                if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
-                   cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                  vc_prompt_date  := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                  vd_qp_end_date);
-                  vc_prompt_month := to_char(vc_prompt_date, 'Mon');
-                  vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
-                  begin
-                    select drm.dr_id
-                      into vc_after_price_dr_id
-                      from drm_derivative_master drm
-                     where drm.instrument_id = cur_pcdi_rows.instrument_id
-                       and drm.period_month = vc_prompt_month
-                       and drm.period_year = vc_prompt_year
-                       and drm.price_point_id is null
-                       and rownum <= 1
-                       and drm.is_deleted = 'N';
-                  exception
-                    when no_data_found then
-                      vc_after_price_dr_id := null;
-                  end;
-                end if;
-                begin
-                  select dqd.price,
-                         dqd.price_unit_id
-                    into vn_after_qp_price,
-                         vc_after_qp_price_unit_id
-                    from dq_derivative_quotes        dq,
-                         v_dqd_derivative_quote_detail dqd
-                   where dq.dq_id = dqd.dq_id
-                     and dqd.dr_id = vc_after_price_dr_id
-                     and dq.instrument_id = cur_pcdi_rows.instrument_id
-                     and dqd.available_price_id =
-                         cur_pcdi_rows.available_price_id
-                     and dq.price_source_id = cur_pcdi_rows.price_source_id
-                     and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id=cur_pcdi_rows.corporate_id
-                     and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N'
-                     and dq.trade_date =
-                         (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
-                                 v_dqd_derivative_quote_detail dqd
-                           where dq.dq_id = dqd.dq_id
-                             and dqd.dr_id = vc_after_price_dr_id
-                             and dq.instrument_id =
-                                 cur_pcdi_rows.instrument_id
-                             and dqd.available_price_id =
-                                 cur_pcdi_rows.available_price_id
-                             and dq.price_source_id =
-                                 cur_pcdi_rows.price_source_id
-                             and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id=cur_pcdi_rows.corporate_id
-                             and dq.is_deleted = 'N'
-                             and dqd.is_deleted = 'N'
-                             and dq.trade_date <= pd_trade_date);
-                exception
-                  when no_data_found then
-                    vn_after_qp_price         := 0;
-                    vc_after_qp_price_unit_id := null;
-                end;
-                vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
-                                                                                cur_pcdi_rows.payable_qty_unit_id,
-                                                                                cur_pcdi_rows.item_qty_unit_id,
-                                                                                cur_pcdi_rows.payable_qty);
-                vn_qty_to_be_priced     := cur_not_called_off_rows.qty_to_be_priced;
-                vn_total_contract_value := vn_total_contract_value +
-                                           vn_total_quantity *
-                                           (vn_qty_to_be_priced / 100) *
-                                           vn_after_qp_price;
-                vc_price_unit_id        := cc1.ppu_price_unit_id;
-              elsif vc_period = 'During QP' then
-                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
-                  vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date,
-                                                     'Wed',
-                                                     3);
-                  while true
-                  loop
-                    if f_is_day_holiday(cur_pcdi_rows.instrument_id,
-                                        vd_3rd_wed_of_qp) then
-                      vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
-                    else
-                      exit;
-                    end if;
-                  end loop;
-                  --- get 3rd wednesday  before QP period
-                  -- Get the quotation date = Trade Date +2 working Days
-                  if vd_3rd_wed_of_qp <= pd_trade_date then
+                  if (vd_3rd_wed_of_qp <= pd_trade_date and
+                     vc_period = 'During QP') or vc_period = 'After QP' then
                     vn_workings_days := 0;
                     vd_quotes_date   := pd_trade_date + 1;
                     while vn_workings_days <> 2
@@ -2759,8 +2397,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                 end if;
                 if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
                    cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                  vc_prompt_date  := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
-                                                                  vd_qp_end_date);
+                  if vc_period = 'During QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   vd_qp_end_date);
+                  elsif vc_period = 'After QP' then
+                    vc_prompt_date := f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
+                                                                   pd_trade_date);
+                  
+                  end if;
                   vc_prompt_month := to_char(vc_prompt_date, 'Mon');
                   vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
                   begin
@@ -2783,7 +2427,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          dqd.price_unit_id
                     into vn_during_qp_price,
                          vc_during_qp_price_unit_id
-                    from dq_derivative_quotes        dq,
+                    from dq_derivative_quotes          dq,
                          v_dqd_derivative_quote_detail dqd
                    where dq.dq_id = dqd.dq_id
                      and dqd.dr_id = vc_during_price_dr_id
@@ -2792,12 +2436,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                          cur_pcdi_rows.available_price_id
                      and dq.price_source_id = cur_pcdi_rows.price_source_id
                      and dqd.price_unit_id = cc1.price_unit_id
-                      and dq.corporate_id=cur_pcdi_rows.corporate_id
+                     and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
                      and dq.trade_date =
                          (select max(dq.trade_date)
-                            from dq_derivative_quotes        dq,
+                            from dq_derivative_quotes          dq,
                                  v_dqd_derivative_quote_detail dqd
                            where dq.dq_id = dqd.dq_id
                              and dqd.dr_id = vc_during_price_dr_id
@@ -2808,7 +2452,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                              and dq.price_source_id =
                                  cur_pcdi_rows.price_source_id
                              and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id=cur_pcdi_rows.corporate_id
+                             and dq.corporate_id =
+                                 cur_pcdi_rows.corporate_id
                              and dq.is_deleted = 'N'
                              and dqd.is_deleted = 'N'
                              and dq.trade_date <= pd_trade_date);
@@ -2875,13 +2520,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                 from grd_goods_record_detail grd
                where grd.status = 'Active'
                  and grd.is_deleted = 'N'
-                -- and nvl(grd.inventory_status, 'NA') <> 'Out'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
-             V_GMR_PAYABLE_QTY spq,
+             v_gmr_stockpayable_qty spq,
              (select qat.internal_gmr_ref_no,
                      qat.instrument_id,
                      qat.element_id,
@@ -2952,13 +2596,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                      grd.product_id
                 from dgrd_delivered_grd grd
                where grd.status = 'Active'
-                -- and nvl(grd.inventory_status, 'NA') <> 'Out'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
-             V_GMR_PAYABLE_QTY spq,
+             v_gmr_stockpayable_qty spq,
              (select qat.internal_gmr_ref_no,
                      qat.instrument_id,
                      qat.element_id,
@@ -3036,10 +2679,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
     vn_before_qp_price             number;
     vc_before_qp_price_unit_id     varchar2(15);
     vn_total_contract_value        number;
-    vn_after_price                 number;
-    vn_after_count                 number;
-    vn_after_qp_price              number;
-    vc_after_qp_price_unit_id      varchar2(15);
     vd_dur_qp_start_date           date;
     vd_dur_qp_end_date             date;
     vn_during_total_set_price      number;
@@ -3049,10 +2688,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
     vc_during_val_price_unit_id    varchar2(15);
     vn_during_total_val_price      number;
     vn_count_val_qp                number;
-    vc_holiday                     char(1);
     vn_during_qp_price             number;
     vn_market_flag                 char(1);
-    vn_any_day_price_fix_qty_value  number;
+    vn_any_day_price_fix_qty_value number;
     vn_anyday_price_ufix_qty_value number;
     vn_any_day_unfixed_qty         number;
     vn_any_day_fixed_qty           number;
@@ -3074,7 +2712,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                                           cur_gmr_rows.element_id)
       loop
         vn_market_flag                 := null;
-        vn_any_day_price_fix_qty_value  := 0;
+        vn_any_day_price_fix_qty_value := 0;
         vn_anyday_price_ufix_qty_value := 0;
         vn_any_day_unfixed_qty         := 0;
         vn_any_day_fixed_qty           := 0;
@@ -3187,7 +2825,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                    dqd.price_unit_id
               into vn_before_qp_price,
                    vc_before_qp_price_unit_id
-              from dq_derivative_quotes        dq,
+              from dq_derivative_quotes          dq,
                    v_dqd_derivative_quote_detail dqd
              where dq.dq_id = dqd.dq_id
                and dqd.dr_id = vc_before_price_dr_id
@@ -3195,12 +2833,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                and dqd.available_price_id = cur_gmr_rows.available_price_id
                and dq.price_source_id = cur_gmr_rows.price_source_id
                and dqd.price_unit_id = vc_price_unit_id
-               and dq.corporate_id=cur_gmr_rows.corporate_id
+               and dq.corporate_id = cur_gmr_rows.corporate_id
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
                and dq.trade_date =
                    (select max(dq.trade_date)
-                      from dq_derivative_quotes        dq,
+                      from dq_derivative_quotes          dq,
                            v_dqd_derivative_quote_detail dqd
                      where dq.dq_id = dqd.dq_id
                        and dqd.dr_id = vc_before_price_dr_id
@@ -3209,7 +2847,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                            cur_gmr_rows.available_price_id
                        and dq.price_source_id = cur_gmr_rows.price_source_id
                        and dqd.price_unit_id = vc_price_unit_id
-                       and dq.corporate_id=cur_gmr_rows.corporate_id
+                       and dq.corporate_id = cur_gmr_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
                        and dq.trade_date <= pd_trade_date);
@@ -3227,49 +2865,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                                      vn_total_quantity *
                                      (vn_qty_to_be_priced / 100) *
                                      vn_before_qp_price;
-        elsif vc_period = 'After QP' then
-          vn_after_price := 0;
-          vn_after_count := 0;
-          for pfd_price in (select pfd.user_price,
-                                   pfd.price_unit_id,
-                                   pofh.final_price
-                              from poch_price_opt_call_off_header poch,
-                                   pocd_price_option_calloff_dtls pocd,
-                                   pofh_price_opt_fixation_header pofh,
-                                   pfd_price_fixation_details     pfd
-                             where poch.poch_id = pocd.poch_id
-                               and pocd.pocd_id = pofh.pocd_id
-                               and pfd.pofh_id = cur_gmr_ele_rows.pofh_id
-                               and pofh.pofh_id = pfd.pofh_id
-                               and poch.is_active = 'Y'
-                               and pocd.is_active = 'Y'
-                               and pofh.is_active = 'Y'
-                               and pfd.is_active = 'Y')
-          loop
-            vn_after_price := vn_after_price + pfd_price.user_price;
-            vn_after_count := vn_after_count + 1;
-          end loop;
-          if vn_after_count = 0 then
-            vn_after_qp_price         := 0;
-            vn_total_contract_value   := 0;
-            vc_after_qp_price_unit_id := null;
-            vn_total_quantity         := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
-                                                                              cur_gmr_rows.payable_qty_unit_id,
-                                                                              cur_gmr_rows.qty_unit_id,
-                                                                              cur_gmr_rows.payable_qty);
-          else
-            vn_after_qp_price       := vn_after_price / vn_after_count;
-            vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
-                                                                            cur_gmr_rows.payable_qty_unit_id,
-                                                                            cur_gmr_rows.qty_unit_id,
-                                                                            cur_gmr_rows.payable_qty);
-            vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
-            vn_total_contract_value := vn_total_contract_value +
-                                       vn_total_quantity *
-                                       (vn_qty_to_be_priced / 100) *
-                                       vn_after_price;
-          end if;
-        elsif vc_period = 'During QP' then
+        elsif (vc_period = 'During QP' or vc_period = 'After QP') then
           vd_dur_qp_start_date      := vd_qp_start_date;
           vd_dur_qp_end_date        := vd_qp_end_date;
           vn_during_total_set_price := 0;
@@ -3299,6 +2895,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
             vn_count_set_qp           := vn_count_set_qp + 1;
             vn_any_day_fixed_qty      := vn_any_day_fixed_qty +
                                          cc.qty_fixed;
+          
+            vn_any_day_price_fix_qty_value := vn_any_day_price_fix_qty_value +
+                                              (cc.user_price * cc.qty_fixed);
           end loop;
           if cur_gmr_ele_rows.is_any_day_pricing = 'Y' then
             vn_market_flag := 'N';
@@ -3319,7 +2918,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
             end loop;
             --- get 3rd wednesday  before QP period
             -- Get the quotation date = Trade Date +2 working Days
-            if vd_3rd_wed_of_qp <= pd_trade_date then
+            if (vd_3rd_wed_of_qp <= pd_trade_date and
+               vc_period = 'During QP') or vc_period = 'After QP' then
               vn_workings_days := 0;
               vd_quotes_date   := pd_trade_date + 1;
               while vn_workings_days <> 2
@@ -3351,8 +2951,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
             end;
           elsif cur_gmr_rows.is_daily_cal_applicable = 'N' and
                 cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
-            vc_prompt_date  := f_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
-                                                            vd_qp_end_date);
+            if vc_period = 'During QP' then
+              vc_prompt_date := f_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
+                                                             vd_qp_end_date);
+            elsif vc_period = 'After QP' then
+              vc_prompt_date := f_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
+                                                             pd_trade_date);
+            end if;
             vc_prompt_month := to_char(vc_prompt_date, 'Mon');
             vc_prompt_year  := to_char(vc_prompt_date, 'YYYY');
             ---- get the dr_id
@@ -3376,7 +2981,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                    dqd.price_unit_id
               into vn_during_val_price,
                    vc_during_val_price_unit_id
-              from dq_derivative_quotes        dq,
+              from dq_derivative_quotes          dq,
                    v_dqd_derivative_quote_detail dqd
              where dq.dq_id = dqd.dq_id
                and dqd.dr_id = vc_during_price_dr_id
@@ -3384,12 +2989,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                and dqd.available_price_id = cur_gmr_rows.available_price_id
                and dq.price_source_id = cur_gmr_rows.price_source_id
                and dqd.price_unit_id = vc_price_unit_id
-               and dq.corporate_id=cur_gmr_rows.corporate_id
+               and dq.corporate_id = cur_gmr_rows.corporate_id
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
                and dq.trade_date =
                    (select max(dq.trade_date)
-                      from dq_derivative_quotes        dq,
+                      from dq_derivative_quotes          dq,
                            v_dqd_derivative_quote_detail dqd
                      where dq.dq_id = dqd.dq_id
                        and dqd.dr_id = vc_during_price_dr_id
@@ -3398,7 +3003,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
                            cur_gmr_rows.available_price_id
                        and dq.price_source_id = cur_gmr_rows.price_source_id
                        and dqd.price_unit_id = vc_price_unit_id
-                       and dq.corporate_id=cur_gmr_rows.corporate_id
+                       and dq.corporate_id = cur_gmr_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
                        and dq.trade_date <= pd_trade_date);
@@ -3419,26 +3024,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
             vn_anyday_price_ufix_qty_value := (vn_any_day_unfixed_qty *
                                               vn_during_total_val_price);
           else
-            /*WHILE vd_dur_qp_start_date <= vd_dur_qp_end_date LOOP
-                IF f_is_day_holiday(cur_gmr_rows.instrument_id,
-                                    vd_dur_qp_start_date) THEN
-                    vc_holiday := 'Y';
-                ELSE
-                    vc_holiday := 'N';
-                END IF;
-                IF vc_holiday = 'N' THEN
-                    vn_during_total_val_price := vn_during_total_val_price +
-                                                 vn_during_val_price;
-                    vn_count_val_qp           := vn_count_val_qp + 1;
-                END IF;
-                vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
-            END LOOP;*/
             vn_count_val_qp           := cur_gmr_ele_rows.no_of_prompt_days -
                                          vn_count_set_qp;
             vn_during_total_val_price := vn_during_total_val_price +
                                          vn_during_val_price *
                                          vn_count_val_qp;
-
+          
           end if;
           if (vn_count_val_qp + vn_count_set_qp) <> 0 then
             if vn_market_flag = 'N' then
@@ -3464,13 +3055,8 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PRICE" is
           end if;
         end if;
       end loop;
-      DBMS_OUTPUT.put_line('cur_gmr_rows.payable_qty '||cur_gmr_rows.payable_qty || ' cont value ' || vn_total_contract_value ||' qty '|| vn_total_quantity);
-    IF vn_total_quantity=0 THEN
-      vn_average_price := 0;
-     ELSE
-     vn_average_price := round(vn_total_contract_value / vn_total_quantity,
+      vn_average_price := round(vn_total_contract_value / vn_total_quantity,
                                 3);
-     END IF;
     end loop;
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_ppu_price_unit_id;
