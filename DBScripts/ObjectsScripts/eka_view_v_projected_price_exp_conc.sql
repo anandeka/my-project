@@ -86,7 +86,8 @@ select ak.corporate_id,
                            pcdi.delivery_to_year,
                            'dd-Mon-yyyy'))
        end) + pcdi.transit_days end) expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -119,12 +120,12 @@ select ak.corporate_id,
   from pcm_physical_contract_main pcm,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        aml_attribute_master_list aml,
        pcbph_pc_base_price_header pcbph,
        pcbpd_pc_base_price_detail pcbpd,
@@ -157,16 +158,16 @@ select ak.corporate_id,
        dipq_delivery_item_payable_qty dipq
  where ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pcpd.strategy_id = css.strategy_id
    and pfqpp.qp_pricing_period_type <> 'Event'
    and dipq.price_option_call_off_status = 'Not Called Off'
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
    and pdm.product_id = pcpd.product_id
-   and pcpq.quality_template_id = qat.quality_id
-   and qat.product_id = pdm.product_id
+   --and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
    and pcbph.element_id = aml.attribute_id
    and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcbph.element_id = pcbph.element_id
@@ -190,13 +191,14 @@ select ak.corporate_id,
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
-   and qat.is_active = 'Y'
+   --and qat.is_active = 'Y'
    and ppfh.is_active = 'Y'
+   --and pcm.contract_ref_no='SCT-105-BLD'
  union all
  ---not called off immediate pricing (average pricing) + Excluding Event Based
  select ak.corporate_id,
        ak.corporate_name,
-       'Average Pricing' section,
+       'Average Pricing1' section,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm_under.product_id,
@@ -267,7 +269,8 @@ select ak.corporate_id,
                            pcdi.delivery_to_year,
                            'dd-Mon-yyyy'))
        end) + pcdi.transit_days end) expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -298,7 +301,7 @@ select ak.corporate_id,
           'N'
        end) end) pending_calloff
   from pcm_physical_contract_main pcm,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
        pdm_productmaster pdm_under,
@@ -306,9 +309,9 @@ select ak.corporate_id,
        qum_quantity_unit_master qum_under,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        aml_attribute_master_list aml,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
@@ -336,17 +339,17 @@ select ak.corporate_id,
        pum_price_unit_master pum,
        dipq_delivery_item_payable_qty dipq
  where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pfqpp.qp_pricing_period_type <> 'Event'
    and dipq.price_option_call_off_status = 'Not Called Off'
    and pcpd.strategy_id = css.strategy_id
    and pdm.product_id = pcpd.product_id
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
-   and pcpq.quality_template_id = qat.quality_id
-   and qat.product_id = pdm.product_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
    and pcbph.element_id = aml.attribute_id
    and pcbpd.pcbpd_id = ppfh.pcbpd_id
    and ppfh.ppfh_id = ppfd.ppfh_id
@@ -370,8 +373,9 @@ select ak.corporate_id,
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
-   and qat.is_active = 'Y'
+   --and qat.is_active = 'Y'
    and ppfh.is_active = 'Y'
+   --and pcm.contract_ref_no='PCT-41-BLD'
 --and ak.corporate_id = '{?CorporateID}'
 union all
 --- for event bases  not called off
@@ -429,7 +433,8 @@ select ak.corporate_id,
                            pcdi.delivery_to_year,
                            'dd-Mon-yyyy'))
        end) + pcdi.transit_days end) expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -462,12 +467,12 @@ select ak.corporate_id,
   from pcm_physical_contract_main pcm,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        aml_attribute_master_list aml,
        pcbph_pc_base_price_header pcbph,
        pcbpd_pc_base_price_detail pcbpd,
@@ -501,16 +506,16 @@ select ak.corporate_id,
        dipq_delivery_item_payable_qty dipq
  where ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pcpd.strategy_id = css.strategy_id
    and pfqpp.qp_pricing_period_type = 'Event'
    and dipq.price_option_call_off_status = 'Not Called Off'
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
    and pdm.product_id = pcpd.product_id
-   and pcpq.quality_template_id = qat.quality_id
-   and qat.product_id = pdm.product_id
+   --and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
    and pcbph.element_id = aml.attribute_id
    and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcbph.element_id = pcbph.element_id
@@ -537,14 +542,15 @@ select ak.corporate_id,
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
-   and qat.is_active = 'Y'
+   --and qat.is_active = 'Y'
    and ppfh.is_active = 'Y'
    and dieqp.is_active = 'Y'
+   --and pcm.contract_ref_no='SCT-105-BLD'
  union all
  ------ for not called off event based
  select ak.corporate_id,
        ak.corporate_name,
-       'Average Pricing' section,
+       'Average Pricing2' section,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm_under.product_id,
@@ -596,7 +602,8 @@ select ak.corporate_id,
                            pcdi.delivery_to_year,
                            'dd-Mon-yyyy'))
        end) + pcdi.transit_days end) expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -627,7 +634,7 @@ select ak.corporate_id,
           'N'
        end) end) pending_calloff
   from pcm_physical_contract_main pcm,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
        pdm_productmaster pdm_under,
@@ -635,9 +642,9 @@ select ak.corporate_id,
        qum_quantity_unit_master qum_under,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        aml_attribute_master_list aml,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
@@ -666,17 +673,17 @@ select ak.corporate_id,
        pum_price_unit_master pum,
        dipq_delivery_item_payable_qty dipq
  where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pfqpp.qp_pricing_period_type <> 'Event'
    and dipq.price_option_call_off_status = 'Not Called Off'
    and pcpd.strategy_id = css.strategy_id
    and pdm.product_id = pcpd.product_id
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
-   and pcpq.quality_template_id = qat.quality_id
-   and qat.product_id = pdm.product_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
    and pcbph.element_id = aml.attribute_id
    and dieqp.pcdi_id = pcdi.pcdi_id
    and dieqp.pcbpd_id = pcbpd.pcbpd_id
@@ -703,9 +710,10 @@ select ak.corporate_id,
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
-   and qat.is_active = 'Y'
+   --and qat.is_active = 'Y'
    and ppfh.is_active = 'Y'
    and dieqp.is_active = 'Y'
+   --and pcm.contract_ref_no='SCT-105-BLD'
 -- and ak.corporate_id = '{?CorporateID}'
 
    union all
@@ -764,7 +772,8 @@ select ak.corporate_id,
                            pcdi.delivery_to_year,
                            'dd-Mon-yyyy'))
        end) + pcdi.transit_days end) expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -797,12 +806,12 @@ select ak.corporate_id,
   from pcm_physical_contract_main pcm,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        poch_price_opt_call_off_header poch,
        aml_attribute_master_list aml,
        pocd_price_option_calloff_dtls pocd,
@@ -838,14 +847,14 @@ select ak.corporate_id,
        dipq_delivery_item_payable_qty dipq
  where ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pcpd.strategy_id = css.strategy_id
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
    and pdm.product_id = pcpd.product_id
-   and pcpq.quality_template_id = qat.quality_id
-   and qat.product_id = pdm.product_id
+   --and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
    and pcdi.pcdi_id = poch.pcdi_id
    and poch.element_id = aml.attribute_id
    and pocd.poch_id = poch.poch_id
@@ -862,6 +871,7 @@ select ak.corporate_id,
    and pcpd.profit_center_id = cpc.profit_center_id
    and ppfh.ppfh_id = pfqpp.ppfh_id
    and nvl(pfqpp.is_qp_any_day_basis, 'N') = 'Y'
+   and pocd.is_any_day_pricing='Y' -- newly added
    and pcm.internal_contract_ref_no = pcqpd.internal_contract_ref_no(+)
    and aml.underlying_product_id = pdm_under.product_id(+)
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
@@ -875,10 +885,11 @@ select ak.corporate_id,
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
-   and qat.is_active = 'Y'
+   --and qat.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
+   --and pcm.contract_ref_no='SCT-105-BLD'
 --and ak.corporate_id = '{?CorporateID}'
 union all
 --Any Day Pricing Concentrate +GMR
@@ -920,7 +931,8 @@ select ak.corporate_id,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
        gmr.gmr_ref_no gmr_no,
        vd.eta expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -954,12 +966,12 @@ select ak.corporate_id,
        gmr_goods_movement_record gmr,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        poch_price_opt_call_off_header poch,
        aml_attribute_master_list aml,
        pocd_price_option_calloff_dtls pocd,
@@ -996,15 +1008,15 @@ select ak.corporate_id,
        dipq_delivery_item_payable_qty dipq
  where ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pcpd.strategy_id = css.strategy_id
-   and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
    and pdm.product_id = pcpd.product_id
-   and pcpq.quality_template_id = qat.quality_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
-   and qat.product_id = pdm.product_id
+   --and pcpq.quality_template_id = qat.quality_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and qat.product_id = pdm.product_id
    and pcdi.pcdi_id = poch.pcdi_id
    and poch.element_id = aml.attribute_id
    and pocd.poch_id = poch.poch_id
@@ -1038,11 +1050,12 @@ select ak.corporate_id,
    and nvl(gmr.is_deleted, 'N') = 'N'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
-   and qat.is_active = 'Y'
+   --and qat.is_active = 'Y'
    and pofh.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
+  --and pcm.contract_ref_no='SCT-105-BLD'
 --and ak.corporate_id = '{?CorporateID}'
  group by ak.corporate_id,
           ak.corporate_name,
@@ -1088,13 +1101,12 @@ select ak.corporate_id,
           to_char(pcqpd.premium_disc_value),
           pcqpd.premium_disc_unit_id,
           dipq.is_price_optionality_present,
-          dipq.price_option_call_off_status,
-          qat.quality_name
+          dipq.price_option_call_off_status
 union all
 --Average Pricing Concentrate+Contract
 select ak.corporate_id,
        ak.corporate_name,
-       'Average Pricing' section,
+       'Average Pricing3' section,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm_under.product_id,
@@ -1146,7 +1158,8 @@ select ak.corporate_id,
                            pcdi.delivery_to_year,
                            'dd-Mon-yyyy'))
        end) + pcdi.transit_days end) expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -1177,7 +1190,7 @@ select ak.corporate_id,
           'N'
        end) end) pending_calloff
   from pcm_physical_contract_main pcm,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
        pdm_productmaster pdm_under,
@@ -1185,9 +1198,9 @@ select ak.corporate_id,
        qum_quantity_unit_master qum_under,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        poch_price_opt_call_off_header poch,
        aml_attribute_master_list aml,
        pocd_price_option_calloff_dtls pocd,
@@ -1218,15 +1231,15 @@ select ak.corporate_id,
        pum_price_unit_master pum,
        dipq_delivery_item_payable_qty dipq
  where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pcpd.strategy_id = css.strategy_id
    and pdm.product_id = pcpd.product_id
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
-   and pcpq.quality_template_id = qat.quality_id
-   and qat.product_id = pdm.product_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
    and pcdi.pcdi_id = poch.pcdi_id
    and pocd.poch_id = poch.poch_id
    and poch.element_id = aml.attribute_id
@@ -1255,16 +1268,17 @@ select ak.corporate_id,
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
-   and qat.is_active = 'Y'
+   --and qat.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
+   --and pcm.contract_ref_no='SCT-105-BLD'
 --and ak.corporate_id = '{?CorporateID}'
 union all
 --Average Pricing Concentrate +GMR
 select ak.corporate_id,
        ak.corporate_name,
-       'Average Pricing' section,
+       'Average Pricing4' section,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm_under.product_id,
@@ -1300,7 +1314,8 @@ select ak.corporate_id,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
        gmr.gmr_ref_no gmr_no,
        vd.eta expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -1334,15 +1349,15 @@ select ak.corporate_id,
        gmr_goods_movement_record gmr,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pdm_productmaster pdm_under,
        qum_quantity_unit_master qum,
        qum_quantity_unit_master qum_under,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        poch_price_opt_call_off_header poch,
        aml_attribute_master_list aml,
        pocd_price_option_calloff_dtls pocd,
@@ -1374,15 +1389,15 @@ select ak.corporate_id,
        pum_price_unit_master pum,
        dipq_delivery_item_payable_qty dipq
  where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pcpd.strategy_id = css.strategy_id
    and pdm.product_id = pcpd.product_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcpq.quality_template_id = qat.quality_id
-   and qat.product_id = pdm.product_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
    and pcdi.pcdi_id = poch.pcdi_id
    and pocd.poch_id = poch.poch_id
    and poch.element_id = aml.attribute_id
@@ -1415,11 +1430,12 @@ select ak.corporate_id,
    and pcdi.is_active = 'Y'
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
-   and qat.is_active = 'Y'
+   --and qat.is_active = 'Y'
    and pofh.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
+   --and pcm.contract_ref_no='PCT-41-BLD'
 --and ak.corporate_id = '{?CorporateID}'
 -----siva
 union all
@@ -1478,7 +1494,8 @@ select ak.corporate_id,
                            pcdi.delivery_to_year,
                            'dd-Mon-yyyy'))
        end) + pcdi.transit_days end) expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -1511,12 +1528,12 @@ select ak.corporate_id,
        ak_corporate ak,
        qum_quantity_unit_master qum,
        pcdi_pc_delivery_item pcdi,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
        css_corporate_strategy_setup css,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        poch_price_opt_call_off_header poch,
        aml_attribute_master_list aml,
        pdm_productmaster pdm_under,
@@ -1552,14 +1569,14 @@ select ak.corporate_id,
        dipq_delivery_item_payable_qty dipq
  where ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
    and pdm.product_id = pcpd.product_id
    and pcpd.strategy_id = css.strategy_id
-   and qat.product_id = pdm.product_id
-   and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
+   --and pcpq.quality_template_id = qat.quality_id
    and pcdi.pcdi_id = poch.pcdi_id
    and pocd.poch_id = poch.poch_id
    and poch.element_id = aml.attribute_id
@@ -1595,6 +1612,7 @@ select ak.corporate_id,
       --  and  pfd.as_of_date >= sysdate
    and pfd.is_price_request = 'Y'
    and pfd.as_of_date > trunc(sysdate)
+   --and pcm.contract_ref_no='SCT-105-BLD'
  group by ak.corporate_id,
           ak.corporate_name,
           cpc.profit_center_id,
@@ -1606,7 +1624,7 @@ select ak.corporate_id,
           pcm.purchase_sales,
           poch.element_id,
           aml.attribute_name,
-          qat.quality_name,
+          --qat.quality_name,
           pfd.as_of_date,
           pcm.contract_ref_no,
           pcm.contract_type,
@@ -1644,8 +1662,7 @@ select ak.corporate_id,
           pfqpp.qp_period_to_date,
           pfqpp.qp_date,
           dipq.is_price_optionality_present,
-          dipq.price_option_call_off_status,
-          qat.quality_name
+          dipq.price_option_call_off_status
 union all
 -- Fixed By Request Concentrate + Contrcat + Excluding Event Based
 select ak.corporate_id,
@@ -1700,7 +1717,8 @@ select ak.corporate_id,
                            pcdi.delivery_to_year,
                            'dd-Mon-yyyy'))
        end) + pcdi.transit_days end) expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -1733,12 +1751,12 @@ select ak.corporate_id,
        ak_corporate ak,
        qum_quantity_unit_master qum,
        pcdi_pc_delivery_item pcdi,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
        css_corporate_strategy_setup css,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        aml_attribute_master_list aml,
        pdm_productmaster pdm_under,
        qum_quantity_unit_master qum_under,
@@ -1769,14 +1787,14 @@ select ak.corporate_id,
        dipq_delivery_item_payable_qty dipq
  where ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
    and pdm.product_id = pcpd.product_id
    and pcpd.strategy_id = css.strategy_id
-   and qat.product_id = pdm.product_id
-   and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
+   --and pcpq.quality_template_id = qat.quality_id
    and pcbph.element_id = aml.attribute_id
    and aml.underlying_product_id = pdm_under.product_id(+)
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
@@ -1801,6 +1819,7 @@ select ak.corporate_id,
    and pcm.contract_status <> 'Cancelled'
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and dipq.qty_unit_id = qum.qty_unit_id
+   --and pcm.contract_ref_no='SCT-105-BLD'
 union all
    -- Fixed By Request Concentrate + Contrcat + Event Based
 select ak.corporate_id,
@@ -1847,7 +1866,8 @@ select ak.corporate_id,
                            pcdi.delivery_to_year,
                            'dd-Mon-yyyy'))
        end) + pcdi.transit_days end) expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -1881,12 +1901,12 @@ select ak.corporate_id,
        qum_quantity_unit_master qum,
        pcdi_pc_delivery_item pcdi,
        di_del_item_exp_qp_details di, -- Newly Added
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
        css_corporate_strategy_setup css,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        aml_attribute_master_list aml,
        pdm_productmaster pdm_under,
        qum_quantity_unit_master qum_under,
@@ -1919,14 +1939,14 @@ select ak.corporate_id,
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.pcdi_id = di.pcdi_id -- Newly Added
    and di.is_active = 'Y' -- Newly Added
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
    and pdm.product_id = pcpd.product_id
    and pcpd.strategy_id = css.strategy_id
-   and qat.product_id = pdm.product_id
-   and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
+   --and pcpq.quality_template_id = qat.quality_id
    and pcbph.element_id = aml.attribute_id
    and aml.underlying_product_id = pdm_under.product_id(+)
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
@@ -1951,6 +1971,7 @@ select ak.corporate_id,
    and pcm.contract_status <> 'Cancelled'
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and dipq.qty_unit_id = qum.qty_unit_id
+   --and pcm.contract_ref_no='SCT-105-BLD'
 union all
 ----Fixed by Price Request Concentrate+GMR
 select ak.corporate_id,
@@ -1991,7 +2012,8 @@ select ak.corporate_id,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
        gmr.gmr_ref_no,
        vd.eta expected_delivery,
-       qat.quality_name quality,
+       --qat.quality_name quality,
+       null quality,
        ppfh.formula_description formula,
        to_char(pcqpd.premium_disc_value) premimum,
        pcqpd.premium_disc_unit_id price_unit_id,
@@ -2025,12 +2047,12 @@ select ak.corporate_id,
        ak_corporate ak,
        qum_quantity_unit_master qum,
        pcdi_pc_delivery_item pcdi,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
-       pcpq_pc_product_quality pcpq,
+       --pcpq_pc_product_quality pcpq,
        pdm_productmaster pdm,
        css_corporate_strategy_setup css,
-       qat_quality_attributes qat,
+       --qat_quality_attributes qat,
        poch_price_opt_call_off_header poch,
        aml_attribute_master_list aml,
        pdm_productmaster pdm_under,
@@ -2067,10 +2089,10 @@ select ak.corporate_id,
        dipq_delivery_item_payable_qty dipq
  where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
-   and pcdiqd.pcpq_id = pcpq.pcpq_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcdiqd.pcpq_id = pcpq.pcpq_id
    and pcdi.pcdi_id = poch.pcdi_id
    and poch.poch_id = pocd.poch_id
    and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
@@ -2103,8 +2125,8 @@ select ak.corporate_id,
    and ak.corporate_id = pcm.corporate_id
    and pcpd.product_id = pdm.product_id
    and pcpd.strategy_id = css.strategy_id
-   and qat.product_id = pdm.product_id
-   and pcpq.quality_template_id = qat.quality_id
+   --and qat.product_id = pdm.product_id
+   --and pcpq.quality_template_id = qat.quality_id
    and poch.element_id = aml.attribute_id
    and aml.underlying_product_id = pdm_under.product_id(+)
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
@@ -2112,6 +2134,7 @@ select ak.corporate_id,
       --  and  pfd.as_of_date >= sysdate
    and pfd.is_price_request = 'Y'
    and pfd.as_of_date > trunc(sysdate)
+   --and pcm.contract_ref_no='SCT-105-BLD'
  group by ak.corporate_id,
           ak.corporate_name,
           cpc.profit_center_id,
@@ -2123,7 +2146,7 @@ select ak.corporate_id,
           pcm.purchase_sales,
           poch.element_id,
           aml.attribute_name,
-          qat.quality_name,
+          --qat.quality_name,
           pfd.as_of_date,
           pcm.contract_ref_no,
           pcm.contract_type,
@@ -2165,6 +2188,4 @@ select ak.corporate_id,
           pfqpp.qp_period_to_date,
           pfqpp.qp_date,
           dipq.is_price_optionality_present,
-          dipq.price_option_call_off_status,
-          qat.quality_name
-
+          dipq.price_option_call_off_status 
