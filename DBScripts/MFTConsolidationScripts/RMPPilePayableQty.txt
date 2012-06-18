@@ -1,0 +1,290 @@
+--Function i get deductable qty
+
+CREATE OR REPLACE FUNCTION FN_GET_DEDUCTABLE_QTY (grd_id varchar2,grd_item_qty number)
+    return number is
+    vn_deduct_qty       number(25,10);
+    vn_deduct_total_qty number(25,10);
+    vn_item_qty         number(25,10);
+    vn_converted_qty    number(25,10);
+  begin
+    vn_item_qty         := grd_item_qty;
+    vn_deduct_qty       := 0;
+    vn_deduct_total_qty := 0;
+    for cur_deduct_qty in (Select SAM.INTERNAL_GRD_REF_NO INTERNAL_GRD_REF_NO, PQCA.UNIT_OF_MEASURE UNIT_OF_MEASURE,
+                           rm.ratio_name ratio_name ,rm.qty_unit_id_numerator qty_unit_id_numerator,
+                           	rm.qty_unit_id_denominator qty_unit_id_denominator,pqca.typical typical,
+                            ppm.product_id product_id,GRD.QTY_UNIT_ID as item_qty_unit_id
+                            From 
+                            SAM_STOCK_ASSAY_MAPPING SAM,
+                            ASM_ASSAY_SUBLOT_MAPPING ASM,
+                            PQCA_PQ_CHEMICAL_ATTRIBUTES PQCA,
+                            GRD_GOODS_RECORD_DETAIL GRD,
+                            ppm_product_properties_mapping ppm,
+                            aml_attribute_master_list      aml,                                  
+                            rm_ratio_master                rm,
+                            ASH_ASSAY_HEADER		ASH
+                            Where 
+                            ASM.ASH_ID = SAM.ASH_ID
+                            and SAM.IS_LATEST_WEIGHTED_AVG_PRICING    ='Y'
+                            and SAM.IS_ACTIVE='Y' 
+                            and SAM.INTERNAL_GRD_REF_NO =grd_id
+                            and PQCA.ASM_ID = ASM.ASM_ID
+                            and ppm.attribute_id = aml.attribute_id
+                            and aml.attribute_id = pqca.element_id
+                            and pqca.unit_of_measure = rm.ratio_id
+                            and asm.ash_id = ash.ash_id
+                            and ppm.deduct_for_wet_to_dry = 'Y'
+                            and GRD.INTERNAL_GRD_REF_NO = SAM.INTERNAL_GRD_REF_NO
+                            and PPM.PRODUCT_ID = GRD.PRODUCT_ID)
+    loop
+    
+      if cur_deduct_qty.ratio_name = '%' then
+        vn_deduct_qty := vn_item_qty * (cur_deduct_qty.typical / 100);
+      else
+        vn_converted_qty := pkg_general.f_get_converted_quantity(cur_deduct_qty.product_id,
+                                                                 cur_deduct_qty.item_qty_unit_id,
+                                                                 cur_deduct_qty.qty_unit_id_denominator,
+                                                                 vn_item_qty) *
+                            cur_deduct_qty.typical;
+        vn_deduct_qty    := pkg_general.f_get_converted_quantity(cur_deduct_qty.product_id,
+                                                                 cur_deduct_qty.qty_unit_id_numerator,
+                                                                 cur_deduct_qty.item_qty_unit_id,
+                                                                 vn_converted_qty);
+      
+      end if;
+      vn_deduct_total_qty := vn_deduct_total_qty + vn_deduct_qty;
+    
+    end loop;
+    return vn_deduct_total_qty;
+  end;
+/
+
+
+--Function to get pool stock dry qty
+CREATE OR REPLACE FUNCTION FN_GET_POOL_STOCK_DRY_QTY (grd_id varchar2, grd_item_qty number)
+    return number is
+    vn_deduct_qty       number(25,10);
+    vn_deduct_total_qty number(25,10);
+    vn_item_qty         number(25,10);
+    vn_converted_qty    number(25,10);
+  begin
+    vn_item_qty         := grd_item_qty;
+    vn_deduct_qty       := 0;
+    vn_deduct_total_qty := 0;
+    for cur_deduct_qty in (Select SAM.INTERNAL_GRD_REF_NO INTERNAL_GRD_REF_NO, PQCA.UNIT_OF_MEASURE UNIT_OF_MEASURE,
+                           rm.ratio_name ratio_name ,rm.qty_unit_id_numerator qty_unit_id_numerator,
+                           	rm.qty_unit_id_denominator qty_unit_id_denominator,pqca.typical typical,
+                            ppm.product_id product_id,GRD.QTY_UNIT_ID as item_qty_unit_id
+                            From 
+                            SAM_STOCK_ASSAY_MAPPING SAM,
+                            ASM_ASSAY_SUBLOT_MAPPING ASM,
+                            PQCA_PQ_CHEMICAL_ATTRIBUTES PQCA,
+                            GRD_GOODS_RECORD_DETAIL GRD,
+                            ppm_product_properties_mapping ppm,
+                            aml_attribute_master_list      aml,                                  
+                            rm_ratio_master                rm,
+                            ASH_ASSAY_HEADER		ASH
+                            Where 
+                            ASM.ASH_ID = SAM.ASH_ID
+                            and SAM.IS_LATEST_WEIGHTED_AVG_PRICING ='Y' 
+                            and SAM.INTERNAL_GRD_REF_NO =grd_id
+                            and PQCA.ASM_ID = ASM.ASM_ID
+                            and ppm.attribute_id = aml.attribute_id
+                            and aml.attribute_id = pqca.element_id
+                            and pqca.unit_of_measure = rm.ratio_id
+                            and asm.ash_id = ash.ash_id
+                            and ppm.deduct_for_wet_to_dry = 'Y'
+                            and GRD.INTERNAL_GRD_REF_NO = SAM.INTERNAL_GRD_REF_NO
+                            and PPM.PRODUCT_ID = GRD.PRODUCT_ID)
+    loop
+    
+      if cur_deduct_qty.ratio_name = '%' then
+        vn_deduct_qty := vn_item_qty * (cur_deduct_qty.typical / 100);
+      else
+        vn_converted_qty := pkg_general.f_get_converted_quantity(cur_deduct_qty.product_id,
+                                                                 cur_deduct_qty.item_qty_unit_id,
+                                                                 cur_deduct_qty.qty_unit_id_denominator,
+                                                                 vn_item_qty) *
+                            cur_deduct_qty.typical;
+        vn_deduct_qty    := pkg_general.f_get_converted_quantity(cur_deduct_qty.product_id,
+                                                                 cur_deduct_qty.qty_unit_id_numerator,
+                                                                 cur_deduct_qty.item_qty_unit_id,
+                                                                 vn_converted_qty);
+      
+      end if;
+      vn_deduct_total_qty := vn_deduct_total_qty + vn_deduct_qty;
+    
+    end loop;
+    return grd_item_qty - vn_deduct_total_qty;
+  end;
+/
+
+--to get payable qty
+
+
+CREATE OR REPLACE FUNCTION FN_GET_PAYABLE_QTY (grd_id varchar2,grd_item_qty number,asmid varchar2 , pqcaid varchar2 )
+    return number is
+    vn_PayablePercentage       number(25,10);
+    
+  begin
+   Select
+    -- ASM.ASM_ID, GRD.INTERNAL_GMR_REF_NO INTERNAL_GMR_REF_NO, 
+      -- AML.ATTRIBUTE_ID ATTRIBUTE_ID ,AML.ATTRIBUTE_NAME, PQCA.UNIT_OF_MEASURE UNIT_OF_MEASURE,
+      -- rm.ratio_name ratio_name ,rm.qty_unit_id_numerator qty_unit_id_numerator,
+       -- rm.qty_unit_id_denominator qty_unit_id_denominator,
+       -- ppm.product_id product_id,GRD.QTY_UNIT_ID as item_qty_unit_id,        
+         (case rm.ratio_name 
+            WHEN '%' then                
+                 (PQCAPD.PAYABLE_PERCENTAGE/100)             
+            ELSE
+                PQCAPD.PAYABLE_PERCENTAGE * pkg_general.f_get_converted_quantity(AML.UNDERLYING_PRODUCT_ID,
+                                                             GRD.QTY_UNIT_ID,
+                                                             rm.qty_unit_id_denominator,
+                                                             1)             		  
+         END  )  as PAYABLE_PERCENTAGE into vn_PayablePercentage
+         
+        From 
+        ASM_ASSAY_SUBLOT_MAPPING ASM,
+        PQCA_PQ_CHEMICAL_ATTRIBUTES PQCA,
+        PQCAPD_PRD_QLTY_CATTR_PAY_DTLS PQCAPD,
+        GRD_GOODS_RECORD_DETAIL GRD,
+        ppm_product_properties_mapping ppm,
+        aml_attribute_master_list      aml,                                  
+        rm_ratio_master                rm,
+        ASH_ASSAY_HEADER		ASH
+        Where 
+        PQCA.ASM_ID = ASM.ASM_ID
+        and ppm.attribute_id = aml.attribute_id
+        and aml.attribute_id = pqca.element_id
+        and pqca.unit_of_measure = rm.ratio_id
+        and PPM.IS_ACTIVE ='Y' and PPM.IS_DELETED='N'
+        and asm.ash_id = ash.ash_id
+        and PPM.PRODUCT_ID = GRD.PRODUCT_ID
+        and PQCAPD.PQCA_ID = PQCA. PQCA_ID
+        and PQCAPD.PQCA_ID = pqcaid
+        and GRD.INTERNAL_GRD_REF_NO =grd_id
+        and asm.asm_id = asmid;
+    return grd_item_qty * vn_PayablePercentage ;
+  end;
+/
+
+
+
+
+
+----Main Query
+
+
+----Main Query
+
+
+select phd.companyname warehousename,
+       pm.pool_name poolname,
+       qat.quality_name qualityname,
+       grd.internal_gmr_ref_no as internal_gmr_ref_no,
+       gmr.gmr_ref_no as gmr_ref_no,
+       axs.eff_date,
+       grd.supp_internal_gmr_ref_no as supplier_int_gmr_ref_no,
+       gmr_supp.gmr_ref_no as supplier_gmr_ref_no,
+       grd.internal_stock_ref_no as stock_ref_no,
+       psr.current_stock_qty as wmt,
+       fn_get_deductable_qty(psr.internal_grd_ref_no, psr.current_stock_qty) as moisture,
+       fn_get_pool_stock_dry_qty(psr.internal_grd_ref_no,
+                                 psr.current_stock_qty) as dmt,
+       aml.attribute_name as element_name,
+       (case rm.ratio_name
+         when '%' then
+          pqca.typical / 100
+         else
+          pqca.typical *
+          pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                               grd.qty_unit_id,
+                                               rm.qty_unit_id_denominator,
+                                               1)
+       end) as pricing_assay,
+       rm.ratio_name as pricing_assay_qty_unit,
+       fn_get_payable_qty(psr.internal_grd_ref_no,
+                          psr.incoming_stock_qty,
+                          asm.asm_id,
+                          pqca.pqca_id) original_payableqty,
+       fn_get_payable_qty(psr.internal_grd_ref_no,
+                          psr.current_stock_qty,
+                          asm.asm_id,
+                          pqca.pqca_id) current_payableqty,
+       fn_get_payable_qty(psr.internal_grd_ref_no,
+                          psr.outgoing_stock_qty,
+                          asm.asm_id,
+                          pqca.pqca_id) consumed_payableqty,
+       (case rm.ratio_name
+         when '%' then
+          (psr.current_stock_qty * (pqca.typical / 100))
+         else
+          pqca.typical *
+          pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                               grd.qty_unit_id,
+                                               rm.qty_unit_id_denominator,
+                                               psr.current_stock_qty)
+       end) as current_contained_qty,
+       (case rm.ratio_name
+         when '%' then
+          qum.qty_unit_desc
+         else
+          (select qty_unit_desc
+             from qum_quantity_unit_master
+            where qty_unit_id = rm.qty_unit_id_numerator)
+       end) as qty_unit,
+       pqca.unit_of_measure unit_of_measure,
+       pm.warehouse_profile_id,
+       pm.pool_id,
+       qat.quality_id,
+       aml.attribute_id attribute_id,
+       psr.incoming_stock_qty,
+       psr.outgoing_stock_qty,
+       asm.asm_id,
+       pqca.pqca_id
+  from pm_pool_master                 pm,
+       phd_profileheaderdetails       phd,
+       psr_pool_stock_register        psr,
+       grd_goods_record_detail        grd,
+       gmr_goods_movement_record      gmr,
+       gmr_goods_movement_record      gmr_supp,
+       qat_quality_attributes         qat,
+       sam_stock_assay_mapping        sam,
+       asm_assay_sublot_mapping       asm,
+       pqca_pq_chemical_attributes    pqca,
+       ppm_product_properties_mapping ppm,
+       aml_attribute_master_list      aml,
+       rm_ratio_master                rm,
+       ash_assay_header               ash,
+       qum_quantity_unit_master       qum,
+       axs_action_summary             axs
+ where pm.warehouse_profile_id = phd.profileid
+   and psr.pool_id = pm.pool_id
+   and grd.internal_grd_ref_no = psr.internal_grd_ref_no
+   and psr.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+   and qat.quality_id = grd.quality_id
+   and asm.ash_id = sam.ash_id
+   and sam.is_latest_weighted_avg_pricing = 'Y'
+   and pqca.asm_id = asm.asm_id
+   and ppm.attribute_id = aml.attribute_id
+   and aml.attribute_id = pqca.element_id
+   and pqca.unit_of_measure = rm.ratio_id
+   and ppm.is_active = 'Y'
+   and ppm.is_deleted = 'N'
+   and asm.ash_id = ash.ash_id
+   and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+   and ppm.product_id = grd.product_id
+   and psr.qty_unit = qum.qty_unit_id
+   and axs.internal_action_ref_no = grd.internal_action_ref_no
+   and gmr_supp.internal_gmr_ref_no = grd.supp_internal_gmr_ref_no
+   --and pm.pool_id in ('PM-75')
+   order by 
+   phd.companyname ,
+   pm.pool_name ,
+   qat.quality_name ;
+  
+
+
+
+
+ 
