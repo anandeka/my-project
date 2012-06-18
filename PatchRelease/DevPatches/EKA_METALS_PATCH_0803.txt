@@ -1,0 +1,60 @@
+Patch No*          		:  EKA_METALS_PATCH_0803
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Janna
+ 
+Created on*        		: 18-June-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  COG Changes
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 96382
+Date: 5:26:39 PM, Monday, June 18, 2012
+Message:
+Moved the changes from COG Testing Branch to Main Branch
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/47_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/48_002_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/49_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/50_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/51_005_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/52_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/53_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_Pkg_General.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_bjects-_pkg_phy_conc_realized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
