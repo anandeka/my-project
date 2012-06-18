@@ -608,7 +608,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           and pcm.corporate_id = pc_corporate_id
           and mv_qat.corporate_id = pcm.corporate_id
           and pcm.issue_date <= pd_trade_date
-          and pcm.contract_status in ('In Position', 'Pending Approval')
+          and pcm.contract_status in ('In Position')
           and pcm.corporate_id = mvp.corporate_id
           and mv_qat.product_id = mvp.product_id(+)
           and mvp.mvp_id = mvpl.mvp_id(+)
@@ -790,6 +790,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcm.purchase_sales = 'P'
                          and pcm.contract_type = 'BASEMETAL'
                          and gmr.is_internal_movement = 'N'
+                         and pcm.contract_status = 'In Position'
                       union all
                       select case
                                when nvl(gmr.inventory_status, 'NA') =
@@ -878,6 +879,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and dgrd.status = 'Active'
                          and dgrd.net_weight > 0
                          and gmr.is_internal_movement = 'N'
+                         and pcm.contract_status = 'In Position'
                       union all -- Internal movement
                       select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
@@ -2288,6 +2290,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcdi.internal_contract_ref_no =
                              pcm.internal_contract_ref_no
                          and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.contract_status = 'In Position'
                          and pcm.is_tolling_contract = 'N'
                          and pcm.is_tolling_extn = 'N'
                          and grd.shed_id = shm.storage_loc_id(+)
@@ -2335,6 +2338,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcm.internal_contract_ref_no =
                              pcdi.internal_contract_ref_no
                          and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.contract_status = 'In Position'
                          and pcm.is_tolling_contract = 'N'
                          and pcm.is_tolling_extn = 'N'
                          and pci.pcdi_id = pcdi.pcdi_id
@@ -2475,7 +2479,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           and pcm.corporate_id = pc_corporate_id
           and mv_qat.corporate_id = pcm.corporate_id
           and pcm.issue_date <= pd_trade_date
-          and pcm.contract_status in ('In Position', 'Pending Approval')
+          and pcm.contract_status in ('In Position')
           and pcm.corporate_id = mvp.corporate_id
           and mv_qat.conc_product_id = mvp.product_id(+)
           and mv_qat.attribute_id = aml.attribute_id
@@ -2692,6 +2696,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and nvl(grd.inventory_status, 'NA') <> 'Out'
                          and pcm.purchase_sales = 'P'
                          and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.contract_status = 'In Position'
                          and pcm.is_tolling_contract = 'N'
                          and pcm.is_tolling_extn = 'N'
                          and gmr.is_internal_movement = 'N'
@@ -2754,7 +2759,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              pd_trade_date payment_due_date,
                              aml.attribute_id element_id,
                              aml.attribute_name element_name
-                      
                         from gmr_goods_movement_record      gmr,
                              pci_physical_contract_item     pci,
                              pcm_physical_contract_main     pcm,
@@ -2778,6 +2782,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and dgrd.shed_id = shm.storage_loc_id(+)
                          and pcm.purchase_sales = 'S'
                          and pcm.contract_type = 'CONCENTRATES'
+                         and pcm.contract_status = 'In Position'
                          and pcm.is_tolling_contract = 'N'
                          and pcm.is_tolling_extn = 'N'
                          and gsm.is_required_for_m2m = 'Y'
@@ -4141,6 +4146,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and pcm.is_active = 'Y'
                          and nvl(grd.inventory_status, 'NA') <> 'Out'
                          and pcm.purchase_sales = 'P'
+                         and pcm.contract_status = 'In Position'
                       union all
                       select pcm.corporate_id,
                              pcm.contract_ref_no,
@@ -4197,6 +4203,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and gmr.corporate_id = pc_corporate_id
                          and gmr.status_id = gsm.status_id
                          and agh.is_deleted = 'N'
+                         and pcm.contract_status = 'In Position'
                          and upper(agh.realized_status) in
                              ('UNREALIZED', 'UNDERCMA', 'REVERSEREALIZED',
                               'REVERSEUNDERCMA')
@@ -4315,7 +4322,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           and pcm.corporate_id = pc_corporate_id
           and mv_qat.corporate_id = pcm.corporate_id
           and pcm.issue_date <= pd_trade_date
-          and pcm.contract_status in ('In Position', 'Pending Approval')
+          and pcm.contract_status in ('In Position')
           and pcm.is_tolling_contract = 'Y'
           and pcm.is_tolling_extn = 'Y'
           and pcm.corporate_id = mvp.corporate_id
@@ -4551,6 +4558,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and gmr.is_internal_movement = 'N'
                          and aml.attribute_id = pcpch.element_id
                          and aml.is_active = 'Y'
+                         and pcm.contract_status = 'In Position'
                       union all
                       select case
                                when nvl(gmr.inventory_status, 'NA') =
@@ -4657,6 +4665,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and gmr.is_internal_movement = 'N'
                          and aml.is_active = 'Y'
                          and pcpch.element_id = aml.attribute_id
+                         and pcm.contract_status = 'In Position'
                       union all -- Internal movement
                       select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
@@ -7528,5 +7537,4 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end;
-/
+end; 

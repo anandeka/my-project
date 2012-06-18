@@ -30,7 +30,16 @@ create or replace package body pkg_phy_calculate_cog is
     vn_fw_exch_rate_trans_to_base number;
     vn_forward_points             number;
     vc_exch_rate_string           varchar2(25);
+    vc_base_cur_id                varchar2(15);
+    vc_base_cur_code              varchar2(15);
+    vn_price_to_base_fw_exch_rate number;
   begin
+    select akc.base_cur_id,
+           akc.base_currency_name
+      into vc_base_cur_id,
+           vc_base_cur_code
+      from ak_corporate akc
+     where akc.corporate_id = pc_corporate_id;
   
     insert into tinvp_temp_invm_cog
       (corporate_id,
@@ -62,22 +71,7 @@ create or replace package body pkg_phy_calculate_cog is
       select pc_corporate_id,
              pc_process_id,
              cs.internal_cost_id,
-             case
-               when scms.cost_display_name = 'Material Cost' then
-                'Price'
-               when scms.cost_display_name = 'Location Premium' then
-                'Location Premium'
-               when scms.cost_display_name = 'Quality Premium' then
-                'Quality Premium'
-               when scms.cost_display_name = 'Penalties' then
-                'Penalties'
-               when scms.cost_display_name = 'Refining Charges' then
-                'Refining Charges'
-               when scms.cost_display_name = 'Treatment Charges' then
-                'Treatment Charges'
-               else
-                'Secondary Cost'
-             end cost_type,
+             'Secondary Cost' cost_type,
              grd.internal_grd_ref_no,
              grd.product_id,
              pum_base.weight_unit_id,
@@ -99,7 +93,7 @@ create or replace package body pkg_phy_calculate_cog is
              1,
              1,
              ppu.product_price_unit_id,
-             cs.transact_amt_sign
+             cs.transact_amt_sign transact_amt_sign
         from scm_stock_cost_mapping      scm,
              grd_goods_record_detail     grd,
              cigc_contract_item_gmr_cost cigc,
@@ -120,10 +114,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cigc.cog_ref_no = cs.cog_ref_no
          and cpm.product_id = grd.product_id
          and cs.cost_component_id = scms.cost_id
-         and (scms.cost_display_name in
-             ('Material Cost', 'Location Premium', 'Quality Premium',
-              'Penalties', 'Refining Charges', 'Treatment Charges') or
-             scms.cost_type = 'SECONDARY_COST')
+         and scms.cost_type = 'SECONDARY_COST'
          and cs.cost_type = 'Accrual'
          and cs.cost_ref_no not in
              (select cs_in.cost_ref_no
@@ -313,7 +304,7 @@ create or replace package body pkg_phy_calculate_cog is
          and scms.cost_display_name in
              ('Material Cost', 'Location Premium', 'Quality Premium',
               'Penalties', 'Refining Charges', 'Treatment Charges')
-         and cs.cost_type = 'Actual'
+         and cs.cost_type in ('Actual', 'Accrual')
          and cs.is_actual_posted_in_cog = 'Y'
          and cs.internal_cost_id in
              (select substr(max(to_char(axs.created_date,
@@ -399,7 +390,16 @@ create or replace package body pkg_phy_calculate_cog is
              1,
              1,
              ppu.product_price_unit_id,
-             cs.transact_amt_sign
+             case
+               when scms.cost_display_name = 'Treatment Charges' then
+                1
+               when scms.cost_display_name = 'Refining Charges' then
+                1
+               when scms.cost_display_name = 'Penalties' then
+                1
+               else
+                cs.transact_amt_sign
+             end transact_amt_sign
         from scm_stock_cost_mapping      scm,
              grd_goods_record_detail     grd,
              cigc_contract_item_gmr_cost cigc,
@@ -503,7 +503,16 @@ create or replace package body pkg_phy_calculate_cog is
              1,
              1,
              ppu.product_price_unit_id,
-             cs.transact_amt_sign
+             case
+               when scms.cost_display_name = 'Treatment Charges' then
+                1
+               when scms.cost_display_name = 'Refining Charges' then
+                1
+               when scms.cost_display_name = 'Penalties' then
+                1
+               else
+                cs.transact_amt_sign
+             end transact_amt_sign
         from scm_stock_cost_mapping      scm,
              grd_goods_record_detail     grd,
              cigc_contract_item_gmr_cost cigc,
@@ -560,15 +569,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cs.acc_over_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and grd.tolling_stock_type = 'None Tolling';
-
--- Delete Concentrate contracts
-delete from tinvp_temp_invm_cog t
- where t.process_id = pc_process_id
-   and t.product_id in
-       (select pdm.product_id
-          from pdm_productmaster pdm
-         where pdm.product_type_id = 'Composite');
-
+  
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -664,6 +665,16 @@ delete from tinvp_temp_invm_cog t
                                   pc_process,
                                   vn_fw_exch_rate_trans_to_base,
                                   vn_forward_points);
+      update tinvp_temp_invm_cog t
+         set t.trans_to_base_fw_exch_rate    = '1 ' ||
+                                               cur_exch_rate.transaction_amt_main_cur_code || '=' ||
+                                               vn_fw_exch_rate_trans_to_base || ' ' ||
+                                               cur_exch_rate.base_cur_code,
+             t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base
+       where t.transaction_amt_main_cur_id =
+             cur_exch_rate.transaction_amt_main_cur_id
+         and t.process_id = pc_process_id;
+    
     end loop;
   
     --
@@ -891,7 +902,9 @@ delete from tinvp_temp_invm_cog t
        tc_per_unit,
        tc_price_unit_id,
        rc_per_unit,
-       rc_price_unit_id)
+       rc_price_unit_id,
+       payable_qty,
+       payable_qty_unit_id)
       select pc_process_id,
              t.internal_grd_ref_no,
              t.element_id,
@@ -900,7 +913,9 @@ delete from tinvp_temp_invm_cog t
              nvl(sum(tc_per_unit), 0),
              max(tc_price_unit_id),
              nvl(sum(rc_per_unit), 0),
-             max(rc_price_unit_id)
+             max(rc_price_unit_id),
+             payable_qty,
+             payable_qty_unit_id
         from (select t.internal_grd_ref_no,
                      ecs.element_id,
                      case
@@ -938,33 +953,94 @@ delete from tinvp_temp_invm_cog t
                         ecs.rate_price_unit_id
                        else
                         null
-                     end rc_price_unit_id
+                     end rc_price_unit_id,
+                     ecs.payable_qty,
+                     ecs.qty_unit_id payable_qty_unit_id
                 from tinvp_temp_invm_cog    t,
                      ecs_element_cost_store ecs
                where t.process_id = pc_process_id
                  and ecs.process_id = pc_process_id
                  and t.internal_cost_id = ecs.internal_cost_id
-                 and t.cost_type <> 'Secondary Cost') t
+                 and t.cost_type <> 'Secondary Cost'
+                 and ecs.internal_cost_id in
+                     (select substr(max(to_char(axs.created_date,
+                                                'yyyymmddhh24missff9') ||
+                                        cs.internal_cost_id),
+                                    24)
+                        from cs_cost_store      cs,
+                             axs_action_summary axs
+                       where cs.process_id = pc_process_id
+                         and cs.internal_action_ref_no =
+                             axs.internal_action_ref_no
+                         and cs.process_id = pc_process_id
+                         and cs.is_deleted = 'N'
+                       group by cs.cost_ref_no)) t
        group by t.internal_grd_ref_no,
-                t.element_id;
+                t.element_id,
+                t.payable_qty,
+                t.payable_qty_unit_id;
     update invme_cog_element t
-       set t.mc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.mc_price_unit_id);
+       set (t.mc_price_unit_name, t.mc_price_unit_cur_id, t.mc_price_unit_cur_code, t.mc_price_unit_weight_unit_id, t.mc_price_unit_weight_unit, t.mc_price_unit_weight) = (select ppu.price_unit_name,
+                                                                                                                                                                                   cm.cur_id,
+                                                                                                                                                                                   cm.cur_code,
+                                                                                                                                                                                   qum.qty_unit_id,
+                                                                                                                                                                                   qum.qty_unit,
+                                                                                                                                                                                   ppu.weight
+                                                                                                                                                                              from v_ppu_pum                ppu,
+                                                                                                                                                                                   cm_currency_master       cm,
+                                                                                                                                                                                   qum_quantity_unit_master qum
+                                                                                                                                                                             where ppu.product_price_unit_id =
+                                                                                                                                                                                   t.mc_price_unit_id
+                                                                                                                                                                               and cm.cur_id =
+                                                                                                                                                                                   ppu.cur_id
+                                                                                                                                                                               and qum.qty_unit_id =
+                                                                                                                                                                                   ppu.weight_unit_id)
+     where t.process_id = pc_process_id;
   
     update invme_cog_element t
-       set t.tc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.tc_price_unit_id);
+       set (t.tc_price_unit_name) = (select ppu.price_unit_name
+                                       from v_ppu_pum ppu
+                                      where ppu.product_price_unit_id =
+                                            t.tc_price_unit_id)
+     where t.process_id = pc_process_id;
   
     update invme_cog_element t
-       set t.rc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.rc_price_unit_id);
+       set (t.rc_price_unit_name) = (select ppu.price_unit_name
+                                       from v_ppu_pum ppu
+                                      where ppu.product_price_unit_id =
+                                            t.rc_price_unit_id)
+     where t.process_id = pc_process_id;
   
+    for cur_price_ex_rate in (select t.mc_price_unit_cur_id,
+                                     t.mc_price_unit_cur_code
+                                from invme_cog_element t
+                               where t.process_id = pc_process_id
+                                 and t.mc_price_unit_cur_id <>
+                                     vc_base_cur_id)
+    loop
+      pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                  pd_trade_date,
+                                  pd_trade_date,
+                                  cur_price_ex_rate.mc_price_unit_cur_id,
+                                  vc_base_cur_id,
+                                  30,
+                                  'INVME_COG Element Price to Base',
+                                  pc_process,
+                                  vn_price_to_base_fw_exch_rate,
+                                  vn_forward_points);
+      if vn_price_to_base_fw_exch_rate <> 0 then
+        update invme_cog_element t
+           set t.price_to_base_fw_exch_rate = '1 ' ||
+                                              cur_price_ex_rate.mc_price_unit_cur_code || '=' ||
+                                              vn_price_to_base_fw_exch_rate || ' ' ||
+                                              vc_base_cur_code
+         where t.process_id = pc_process_id
+           and t.mc_price_unit_cur_id =
+               cur_price_ex_rate.mc_price_unit_cur_id;
+      
+      end if;
+    
+    end loop;
   exception
     when others then
       vobj_error_log.extend;
@@ -1000,8 +1076,16 @@ delete from tinvp_temp_invm_cog t
     vn_fw_exch_rate_trans_to_base number;
     vn_forward_points             number;
     vc_exch_rate_string           varchar2(25);
+    vc_base_cur_id                varchar2(15);
+    vc_base_cur_code              varchar2(15);
+    vn_price_to_base_fw_exch_rate number;
   begin
-  
+    select akc.base_cur_id,
+           akc.base_currency_name
+      into vc_base_cur_id,
+           vc_base_cur_code
+      from ak_corporate akc
+     where akc.corporate_id = pc_corporate_id;
     insert into tinvs_temp_invm_cogs
       (corporate_id,
        process_id,
@@ -1033,22 +1117,7 @@ delete from tinvp_temp_invm_cog t
       select pc_corporate_id,
              pc_process_id,
              cs.internal_cost_id,
-             case
-               when scms.cost_display_name = 'Material Cost' then
-                'Price'
-               when scms.cost_display_name = 'Location Premium' then
-                'Location Premium'
-               when scms.cost_display_name = 'Quality Premium' then
-                'Quality Premium'
-               when scms.cost_display_name = 'Penalties' then
-                'Penalties'
-               when scms.cost_display_name = 'Refining Charges' then
-                'Refining Charges'
-               when scms.cost_display_name = 'Treatment Charges' then
-                'Treatment Charges'
-               else
-                'Secondary Cost'
-             end cost_type,
+             'Secondary Cost' cost_type,
              grd.internal_grd_ref_no,
              invm.sales_internal_gmr_ref_no,
              grd.product_id,
@@ -1071,7 +1140,7 @@ delete from tinvp_temp_invm_cog t
              1,
              1,
              ppu.product_price_unit_id,
-             cs.transact_amt_sign
+             cs.transact_amt_sign transact_amt_sign
         from scm_stock_cost_mapping      scm,
              invs_inventory_sales        invm,
              dgrd_delivered_grd          dgrd,
@@ -1103,10 +1172,7 @@ delete from tinvp_temp_invm_cog t
          and cigc.cog_ref_no = cs.cog_ref_no
          and cpm.product_id = grd.product_id
          and cs.cost_component_id = scms.cost_id
-         and (scms.cost_display_name in
-             ('Material Cost', 'Location Premium', 'Quality Premium',
-              'Penalties', 'Refining Charges', 'Treatment Charges') or
-             scms.cost_type = 'SECONDARY_COST')
+         and scms.cost_type = 'SECONDARY_COST'
          and cs.cost_type = 'Accrual'
          and cs.cost_ref_no not in
              (select cs_in.cost_ref_no
@@ -1142,6 +1208,16 @@ delete from tinvp_temp_invm_cog t
          and cs.acc_original_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and grd.tolling_stock_type = 'None Tolling'
+         and cigc.cog_ref_no not in
+             (select cigc_in.cog_ref_no
+                from cigc_contract_item_gmr_cost cigc_in,
+                     gmr_goods_movement_record   gmr
+               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                 and cigc_in.process_id = pc_process_id
+                 and gmr.process_id = pc_process_id
+                 and gmr.is_deleted = 'N'
+                 and cigc_in.is_deleted = 'N'
+                 and gmr.contract_type = 'Sales')
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -1240,6 +1316,16 @@ delete from tinvp_temp_invm_cog t
          and cs.acc_under_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and grd.tolling_stock_type = 'None Tolling'
+         and cigc.cog_ref_no not in
+             (select cigc_in.cog_ref_no
+                from cigc_contract_item_gmr_cost cigc_in,
+                     gmr_goods_movement_record   gmr
+               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                 and cigc_in.process_id = pc_process_id
+                 and gmr.process_id = pc_process_id
+                 and gmr.is_deleted = 'N'
+                 and cigc_in.is_deleted = 'N'
+                 and gmr.contract_type = 'Sales')
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -1316,7 +1402,7 @@ delete from tinvp_temp_invm_cog t
          and scms.cost_display_name in
              ('Material Cost', 'Location Premium', 'Quality Premium',
               'Penalties', 'Refining Charges', 'Treatment Charges')
-         and cs.cost_type = 'Actual'
+         and cs.cost_type in ('Actual', 'Accrual')
          and cs.is_actual_posted_in_cog = 'Y'
          and cs.internal_cost_id in
              (select substr(max(to_char(axs.created_date,
@@ -1358,6 +1444,16 @@ delete from tinvp_temp_invm_cog t
          and cs.acc_under_accrual = 'Y'
          and cs.income_expense = 'Expense'
          and grd.tolling_stock_type = 'None Tolling'
+         and cigc.cog_ref_no not in
+             (select cigc_in.cog_ref_no
+                from cigc_contract_item_gmr_cost cigc_in,
+                     gmr_goods_movement_record   gmr
+               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                 and cigc_in.process_id = pc_process_id
+                 and gmr.process_id = pc_process_id
+                 and gmr.is_deleted = 'N'
+                 and cigc_in.is_deleted = 'N'
+                 and gmr.contract_type = 'Sales')
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -1400,7 +1496,16 @@ delete from tinvp_temp_invm_cog t
              1,
              1,
              ppu.product_price_unit_id,
-             cs.transact_amt_sign
+             case
+               when scms.cost_display_name = 'Treatment Charges' then
+                1
+               when scms.cost_display_name = 'Refining Charges' then
+                1
+               when scms.cost_display_name = 'Penalties' then
+                1
+               else
+                cs.transact_amt_sign
+             end transact_amt_sign
         from scm_stock_cost_mapping      scm,
              invs_inventory_sales        invm,
              dgrd_delivered_grd          dgrd,
@@ -1471,6 +1576,16 @@ delete from tinvp_temp_invm_cog t
          and cs.acc_direct_actual = 'Y'
          and cs.income_expense = 'Expense'
          and grd.tolling_stock_type = 'None Tolling'
+         and cigc.cog_ref_no not in
+             (select cigc_in.cog_ref_no
+                from cigc_contract_item_gmr_cost cigc_in,
+                     gmr_goods_movement_record   gmr
+               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                 and cigc_in.process_id = pc_process_id
+                 and gmr.process_id = pc_process_id
+                 and gmr.is_deleted = 'N'
+                 and cigc_in.is_deleted = 'N'
+                 and gmr.contract_type = 'Sales')
       union all
       select pc_corporate_id,
              pc_process_id,
@@ -1513,7 +1628,16 @@ delete from tinvp_temp_invm_cog t
              1,
              1,
              ppu.product_price_unit_id,
-             cs.transact_amt_sign
+             case
+               when scms.cost_display_name = 'Treatment Charges' then
+                1
+               when scms.cost_display_name = 'Refining Charges' then
+                1
+               when scms.cost_display_name = 'Penalties' then
+                1
+               else
+                cs.transact_amt_sign
+             end transact_amt_sign
         from scm_stock_cost_mapping      scm,
              invs_inventory_sales        invm,
              dgrd_delivered_grd          dgrd,
@@ -1577,15 +1701,17 @@ delete from tinvp_temp_invm_cog t
          and cs.acc_original_accrual = 'Y'
          and cs.acc_over_accrual = 'Y'
          and cs.income_expense = 'Expense'
-         and grd.tolling_stock_type = 'None Tolling';
--- Delete Concentrate contracts
-delete from tinvs_temp_invm_cogs t
- where t.process_id = pc_process_id
-   and t.product_id in
-       (select pdm.product_id
-          from pdm_productmaster pdm
-         where pdm.product_type_id = 'Composite');
-                  
+         and grd.tolling_stock_type = 'None Tolling'
+         and cigc.cog_ref_no not in
+             (select cigc_in.cog_ref_no
+                from cigc_contract_item_gmr_cost cigc_in,
+                     gmr_goods_movement_record   gmr
+               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                 and cigc_in.process_id = pc_process_id
+                 and gmr.process_id = pc_process_id
+                 and gmr.is_deleted = 'N'
+                 and cigc_in.is_deleted = 'N'
+                 and gmr.contract_type = 'Sales');
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -1681,6 +1807,17 @@ delete from tinvs_temp_invm_cogs t
                                   pc_process,
                                   vn_fw_exch_rate_trans_to_base,
                                   vn_forward_points);
+    
+      update tinvs_temp_invm_cogs t
+         set t.trans_to_base_fw_exch_rate    = '1 ' ||
+                                               cur_exch_rate.transaction_amt_main_cur_code || '=' ||
+                                               vn_fw_exch_rate_trans_to_base || ' ' ||
+                                               cur_exch_rate.base_cur_code,
+             t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base
+       where t.transaction_amt_main_cur_id =
+             cur_exch_rate.transaction_amt_main_cur_id
+         and t.process_id = pc_process_id;
+    
     end loop;
   
     --
@@ -1914,17 +2051,21 @@ delete from tinvs_temp_invm_cogs t
        tc_per_unit,
        tc_price_unit_id,
        rc_per_unit,
-       rc_price_unit_id)
+       rc_price_unit_id,
+       payable_qty,
+       payable_qty_unit_id)
       select pc_process_id,
              t.internal_grd_ref_no,
              t.sales_internal_gmr_ref_no,
              t.element_id,
-             sum(mc_per_unit),
-             max(mc_price_unit_id),
-             nvl(sum(tc_per_unit), 0),
-             max(tc_price_unit_id),
-             nvl(sum(rc_per_unit), 0),
-             max(rc_price_unit_id)
+             sum(t.mc_per_unit) mc_per_unit,
+             max(t.mc_price_unit_id) mc_price_unit_id,
+             sum(t.tc_per_unit) tc_per_unit,
+             max(t.tc_price_unit_id) tc_price_unit_id,
+             nvl(sum(t.rc_per_unit), 0) rc_per_unit,
+             max(t.rc_price_unit_id) rc_price_unit_id,
+             payable_qty,
+             payable_qty_unit_id
         from (select t.internal_grd_ref_no,
                      ecs.element_id,
                      case
@@ -1963,33 +2104,93 @@ delete from tinvs_temp_invm_cogs t
                        else
                         null
                      end rc_price_unit_id,
-                     t.sales_internal_gmr_ref_no
+                     t.sales_internal_gmr_ref_no,
+                     ecs.payable_qty,
+                     ecs.qty_unit_id payable_qty_unit_id
                 from tinvs_temp_invm_cogs   t,
-                     ecs_element_cost_store ecs
+                     ecs_element_cost_store ecs,
+                     cs_cost_store          cs
                where t.process_id = pc_process_id
                  and ecs.process_id = pc_process_id
                  and t.internal_cost_id = ecs.internal_cost_id
-                 and t.cost_type <> 'Secondary Cost') t
+                 and t.cost_type <> 'Secondary Cost'
+                 and ecs.internal_cost_id = cs.internal_cost_id
+                 and cs.process_id = pc_process_id
+                 and cs.cog_ref_no not in
+                     (select cigc_in.cog_ref_no
+                        from cigc_contract_item_gmr_cost cigc_in,
+                             gmr_goods_movement_record   gmr
+                       where cigc_in.internal_gmr_ref_no =
+                             gmr.internal_gmr_ref_no
+                         and cigc_in.process_id = pc_process_id
+                         and gmr.process_id = pc_process_id
+                         and gmr.is_deleted = 'N'
+                         and cigc_in.is_deleted = 'N'
+                         and gmr.contract_type = 'Sales')) t
        group by t.internal_grd_ref_no,
+                t.sales_internal_gmr_ref_no,
                 t.element_id,
-                t.sales_internal_gmr_ref_no;
-    update invme_cog_element t
-       set t.mc_price_unit_name = (select ppu.price_unit_name
-                                     from v_ppu_pum ppu
-                                    where ppu.product_price_unit_id =
-                                          t.mc_price_unit_id);
+                t.payable_qty,
+                t.payable_qty_unit_id;
   
-    update invme_cog_element t
+    update invme_cogs_element t
+       set (t.mc_price_unit_name, t.mc_price_unit_cur_id, t.mc_price_unit_cur_code, t.mc_price_unit_weight_unit_id, t.mc_price_unit_weight_unit, t.mc_price_unit_weight) = (select ppu.price_unit_name,
+                                                                                                                                                                                   cm.cur_id,
+                                                                                                                                                                                   cm.cur_code,
+                                                                                                                                                                                   qum.qty_unit_id,
+                                                                                                                                                                                   qum.qty_unit,
+                                                                                                                                                                                   ppu.weight
+                                                                                                                                                                              from v_ppu_pum                ppu,
+                                                                                                                                                                                   cm_currency_master       cm,
+                                                                                                                                                                                   qum_quantity_unit_master qum
+                                                                                                                                                                             where ppu.product_price_unit_id =
+                                                                                                                                                                                   t.mc_price_unit_id
+                                                                                                                                                                               and cm.cur_id =
+                                                                                                                                                                                   ppu.cur_id
+                                                                                                                                                                               and qum.qty_unit_id =
+                                                                                                                                                                                   ppu.weight_unit_id);
+    update invme_cogs_element t
        set t.tc_price_unit_name = (select ppu.price_unit_name
                                      from v_ppu_pum ppu
                                     where ppu.product_price_unit_id =
                                           t.tc_price_unit_id);
   
-    update invme_cog_element t
+    update invme_cogs_element t
        set t.rc_price_unit_name = (select ppu.price_unit_name
                                      from v_ppu_pum ppu
                                     where ppu.product_price_unit_id =
                                           t.rc_price_unit_id);
+  
+    for cur_price_ex_rate in (select t.mc_price_unit_cur_id,
+                                     t.mc_price_unit_cur_code
+                                from invme_cogs_element t
+                               where t.process_id = pc_process_id
+                                 and t.mc_price_unit_cur_id <>
+                                     vc_base_cur_id)
+    loop
+      pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                  pd_trade_date,
+                                  pd_trade_date,
+                                  cur_price_ex_rate.mc_price_unit_cur_id,
+                                  vc_base_cur_id,
+                                  30,
+                                  'INVME_COG Element Price to Base',
+                                  pc_process,
+                                  vn_price_to_base_fw_exch_rate,
+                                  vn_forward_points);
+      if vn_price_to_base_fw_exch_rate <> 0 then
+        update invme_cogs_element t
+           set t.price_to_base_fw_exch_rate = '1 ' ||
+                                              cur_price_ex_rate.mc_price_unit_cur_code || '=' ||
+                                              vn_price_to_base_fw_exch_rate || ' ' ||
+                                              vc_base_cur_code
+         where t.process_id = pc_process_id
+           and t.mc_price_unit_cur_id =
+               cur_price_ex_rate.mc_price_unit_cur_id;
+      
+      end if;
+    
+    end loop;
   exception
     when others then
       vobj_error_log.extend;
@@ -2785,7 +2986,7 @@ delete from tinvs_temp_invm_cogs t
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping    scmt
+             scm_stock_cost_mapping      scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -2875,7 +3076,7 @@ delete from tinvs_temp_invm_cogs t
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping    scmt
+             scm_stock_cost_mapping      scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -2966,7 +3167,7 @@ delete from tinvs_temp_invm_cogs t
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping    scmt
+             scm_stock_cost_mapping      scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -3055,7 +3256,7 @@ delete from tinvs_temp_invm_cogs t
              qum_quantity_unit_master    qum,
              cm_currency_master          cm,
              gmr_goods_movement_record   gmr,
-             v_scm_stock_cost_mapping    scmt
+             scm_stock_cost_mapping      scmt
        where cigc.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -3096,14 +3297,6 @@ delete from tinvs_temp_invm_cogs t
          and scmt.is_deleted = 'N'
          and dgrd.tolling_stock_type = 'None Tolling';
     -- Sales GMR Inventory Out Ends Here
-  
-  -- Delete Concentrate contracts
-delete from tgsc_temp_gmr_sec_cost t
- where t.process_id = pc_process_id
-   and t.product_id in
-       (select pdm.product_id
-          from pdm_productmaster pdm
-         where pdm.product_type_id = 'Composite');
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -3201,6 +3394,17 @@ delete from tgsc_temp_gmr_sec_cost t
                                   pc_process,
                                   vn_fw_exch_rate_trans_to_base,
                                   vn_forward_points);
+    
+      update tgsc_temp_gmr_sec_cost t
+         set t.trans_to_base_fw_exch_rate    = '1 ' ||
+                                               cur_exch_rate.transaction_amt_main_cur_code || '=' ||
+                                               vn_fw_exch_rate_trans_to_base || ' ' ||
+                                               cur_exch_rate.base_cur_code,
+             t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base
+       where t.process_id = pc_process_id
+         and t.transaction_amt_main_cur_id =
+             cur_exch_rate.transaction_amt_main_cur_id;
+    
     end loop;
   
     --
@@ -3264,5 +3468,5 @@ delete from tgsc_temp_gmr_sec_cost t
       sp_insert_error_log(vobj_error_log);
     
   end;
-end; 
+end;
 /

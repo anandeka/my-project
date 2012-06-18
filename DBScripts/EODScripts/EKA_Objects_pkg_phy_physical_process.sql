@@ -52,7 +52,7 @@ create or replace package pkg_phy_physical_process is
                                 pc_process_id   varchar2);
   procedure sp_phy_rebuild_stats;
 
-end; 
+end;
 /
 create or replace package body pkg_phy_physical_process is
 
@@ -550,7 +550,45 @@ create or replace package body pkg_phy_physical_process is
                                                         pc_process,
                                                         gvc_previous_process_id);
   
+--- tolling start                                                                
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_phy_opencon_ext_unreal_pnl');
+    vc_err_msg := 'Before sp_phy_opencon_ext_unreal_pnl';
+    pkg_phy_tolling_unrealized_pnl.sp_phy_opencon_ext_unreal_pnl(pc_corporate_id,
+                                                               pd_trade_date,
+                                                               pc_process_id,
+                                                               pc_user_id,
+                                                               pc_dbd_id,
+                                                               pc_process,
+                                                               gvc_previous_process_id);
+                                                               
+   if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_phy_stok_con_ext_unreal_pnl');
+    vc_err_msg := 'Before sp_phy_stok_con_ext_unreal_pnl';
+    pkg_phy_tolling_unrealized_pnl.sp_phy_stok_con_ext_unreal_pnl(pc_corporate_id,
+                                                               pd_trade_date,
+                                                               pc_process_id,
+                                                               pc_user_id,
+                                                               pc_process,
+                                                               gvc_previous_process_id);    
+ -- tolling end             
+	if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
     end if;
@@ -773,64 +811,7 @@ create or replace package body pkg_phy_physical_process is
                                                                pc_user_id,
                                                                pc_process,
                                                                gvc_previous_process_id);
-  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-       'Cancel' then
-      goto cancel_process;
-    end if;
-    vn_logno := vn_logno + 1;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_logno,
-                          'sp_cal_phy_stok_con_unreal_pnl');
-    vc_err_msg := 'Before sp_cal_phy_stok_con_unreal_pnl';
-    pkg_phy_conc_unrealized_pnl.sp_cal_phy_stok_con_unreal_pnl(pc_corporate_id,
-                                                               pd_trade_date,
-                                                               pc_process_id,
-                                                               pc_user_id,
-                                                               pc_process, 
-                                                               gvc_previous_process_id);
---- tolling start                                                                
-    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-       'Cancel' then
-      goto cancel_process;
-    end if;
-    vn_logno := vn_logno + 1;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_logno,
-                          'sp_phy_opencon_ext_unreal_pnl');
-    vc_err_msg := 'Before sp_phy_opencon_ext_unreal_pnl';
-    pkg_phy_tolling_unrealized_pnl.sp_phy_opencon_ext_unreal_pnl(pc_corporate_id,
-                                                               pd_trade_date,
-                                                               pc_process_id,
-                                                               pc_user_id,
-                                                               pc_dbd_id,
-                                                               pc_process,
-                                                               gvc_previous_process_id);
-                                                               
-   if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-       'Cancel' then
-      goto cancel_process;
-    end if;
-    vn_logno := vn_logno + 1;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_logno,
-                          'sp_phy_stok_con_ext_unreal_pnl');
-    vc_err_msg := 'Before sp_phy_stok_con_ext_unreal_pnl';
-    pkg_phy_tolling_unrealized_pnl.sp_phy_stok_con_ext_unreal_pnl(pc_corporate_id,
-                                                               pd_trade_date,
-                                                               pc_process_id,
-                                                               pc_user_id,
-                                                               pc_process,
-                                                               gvc_previous_process_id);    
- -- tolling end                                                                                                                          
-  
-    /*if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
     end if;
@@ -859,13 +840,41 @@ create or replace package body pkg_phy_physical_process is
                           vn_logno,
                           'sp_stock_unreal_inv_in_conc');
     vc_err_msg := 'Before sp_stock_unreal_inv_in_conc';
-    
+  
     pkg_phy_conc_unrealized_pnl.sp_stock_unreal_inv_in_conc(pc_corporate_id,
                                                             pd_trade_date,
                                                             pc_process_id,
                                                             pc_user_id,
                                                             pc_process,
-                                                            gvc_previous_process_id);*/
+                                                            gvc_previous_process_id,
+                                                            pc_dbd_id);
+  
+    pkg_phy_conc_realized_pnl.sp_calc_phy_conc_realize_today(pc_corporate_id,
+                                                             pd_trade_date,
+                                                             pc_process_id,
+                                                             pc_dbd_id,
+                                                             pc_user_id,
+                                                             pc_process);
+  
+    pkg_phy_conc_realized_pnl.sp_calc_phy_conc_pnl_change(pc_corporate_id,
+                                                          pd_trade_date,
+                                                          pc_process,
+                                                          pc_process_id,
+                                                          pc_dbd_id,
+                                                          pc_user_id);
+  
+    pkg_phy_conc_realized_pnl.sp_calc_phy_conc_reverse_rlzed(pc_corporate_id,
+                                                             pd_trade_date,
+                                                             pc_process_id,
+                                                             gvc_previous_process_id,
+                                                             pc_user_id,
+                                                             pc_process);
+    pkg_phy_conc_realized_pnl.sp_calc_conc_rlzed_not_fixed(pc_corporate_id,
+                                                           pd_trade_date,
+                                                           pc_process_id,
+                                                           gvc_previous_process_id,
+                                                           pc_user_id,
+                                                           pc_process);
   
     -- Concentrate PNL Call End
     -- Trade PNL 
@@ -1679,32 +1688,18 @@ create or replace package body pkg_phy_physical_process is
                                cm_tran.cur_code,
                                cm_base.cur_code)
     loop
-      pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                              pd_trade_date,
-                                              cur_cisc.payment_due_date,
-                                              cur_cisc.transact_main_cur_id,
-                                              cur_cisc.base_cur_id,
-                                              30,
-                                              vn_trans_to_base_fw_rate,
-                                              vn_forward_points);
+      pkg_general.sp_bank_fx_rate(pc_corporate_id,
+                                  pd_trade_date,
+                                  cur_cisc.payment_due_date,
+                                  cur_cisc.transact_main_cur_id,
+                                  cur_cisc.base_cur_id,
+                                  30,
+                                  'sp_calc_secondary_cost on Contract Accrual CISC',
+                                  gvc_process,
+                                  vn_trans_to_base_fw_rate,
+                                  vn_forward_points);
     
-      if vn_trans_to_base_fw_rate is null or vn_trans_to_base_fw_rate = 0 then
-        vobj_error_log.extend;
-        vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                             'procedure pkg_phy_physical_process-sp_calc_cisc  ',
-                                                             'PHY-005',
-                                                             cur_cisc.transact_main_cur_code ||
-                                                             ' to ' ||
-                                                             cur_cisc.base_cur_code || ' (' ||
-                                                             to_char(cur_cisc.payment_due_date,
-                                                                     'dd-Mon-yyyy') || ') ',
-                                                             '',
-                                                             gvc_process,
-                                                             null, -- pc_user_id,
-                                                             sysdate,
-                                                             pd_trade_date);
-        sp_insert_error_log(vobj_error_log);
-      else
+      if vn_trans_to_base_fw_rate <> 0 then
         update cisc_contract_item_sec_cost cisc
            set cisc.fw_rate_trans_to_base_currency = vn_trans_to_base_fw_rate,
                cisc.fw_rate_string                 = '1 ' ||
@@ -3760,7 +3755,7 @@ create or replace package body pkg_phy_physical_process is
     delete from prd_physical_realized_daily
      where process_id = pc_process_id;
     delete from spd_stock_price_daily where process_id = pc_process_id;
-    delete from is_invoice_summary where dbd_id=vc_dbd_id;
+    delete from is_invoice_summary where process_id = pc_process_id;
     delete from cdl_cost_delta_log where dbd_id = vc_dbd_id;
     delete from invs_inventory_sales where process_id = pc_process_id;
     delete from tinvp_temp_invm_cog where process_id = pc_process_id;
@@ -3788,7 +3783,13 @@ create or replace package body pkg_phy_physical_process is
     delete from cr_customs_report where process_id = pc_process_id;
     delete from mas_metal_account_summary where process_id = pc_process_id;
     delete from md_metal_debt where process_id = pc_process_id;
-    delete from dpr_daily_position_record where process_id = pc_process_id;
+	delete from dpr_daily_position_record where process_id = pc_process_id;
+    delete from prch_phy_realized_conc_header
+     where process_id = pc_process_id;
+    delete from prce_phy_realized_conc_element
+     where process_id = pc_process_id;
+    delete from rgmrc_realized_gmr_conc where process_id = pc_process_id;
+    delete from trgmrc_temp_rgmr_conc where corporate_id = pc_corporate_id;
     --
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
@@ -3864,5 +3865,5 @@ create or replace package body pkg_phy_physical_process is
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end; 
+end;
 /

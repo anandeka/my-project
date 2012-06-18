@@ -2160,7 +2160,9 @@ insert into cs_cost_store
              cost_in_base_price_unit_id,
              cost_in_transact_price_unit_id,
              version,
+             cost_ref_no,
              is_deleted,
+             rate_price_unit_id_in_pum,
              dbd_id)
             select element_cost_id,
                    internal_cost_id,
@@ -2177,14 +2179,18 @@ insert into cs_cost_store
                    base_amt_cur_id,
                    cost_in_base_price_unit_id,
                    cost_in_transact_price_unit_id,
-                   version,
-                   is_deleted,
+                   ecs.version,
+                   cost_ref_no,
+                   ecs.is_deleted,
+                   ppu.price_unit_id,-- PUM ID
                    gvc_dbd_id
-              from ecs_element_cost_store@eka_appdb ecs
-             where ecs.internal_cost_id in
+              from ecs_element_cost_store@eka_appdb ecs,
+              ppu_product_price_units ppu
+              where ecs.internal_cost_id in
                    (select internal_cost_id
                       from cs_cost_store cs
-                     where cs.dbd_id = gvc_dbd_id);
+                     where cs.dbd_id = gvc_dbd_id)
+                     and ppu.internal_price_unit_id = ecs.rate_price_unit_id;
   exception
     when others then
       vobj_error_log.extend;
