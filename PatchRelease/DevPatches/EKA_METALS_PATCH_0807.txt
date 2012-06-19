@@ -1,0 +1,60 @@
+Patch No*          		:  EKA_METALS_PATCH_0807
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Saurabh Raj
+ 
+Created on*        		: 19-June-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Daily Position Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 96501
+Author: saurabh.raj
+Date: 6:39:06 PM, Tuesday, June 19, 2012
+Message:
+Excel Format for Daily Balance position report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_312.sql
+
+Revision: 96503
+Author: saurabh.raj
+Date: 6:46:02 PM, Tuesday, June 19, 2012
+Message:
+Added Business Line filter in Daily Balance Position Report 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_70_DML_RPC_RFP_Scripts.sql
+
+Revision: 96504
+Author: saurabh.raj
+Date: 6:48:42 PM, Tuesday, June 19, 2012
+Message:
+Bug Fixed and apply excel format for DailyPositionBalanceReport.rpt
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport_Excel.rpt
