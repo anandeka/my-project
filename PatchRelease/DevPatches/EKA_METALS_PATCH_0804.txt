@@ -34,6 +34,13 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : EOD
 ==================================================================
+Revision: 96505
+Author: sriveenam
+Date: Tuesday, June 19, 2012 7:05:54 PM
+Message:
+added new column in fmuh
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_276.sql
 
 Revision: 96445
 Author: sriveenam
@@ -41,8 +48,6 @@ Date: Tuesday, June 19, 2012 11:10:49 AM
 Message:
 Free metal pricing
 ----
-
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_276.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_310.sql
 
 Revision: 96449
