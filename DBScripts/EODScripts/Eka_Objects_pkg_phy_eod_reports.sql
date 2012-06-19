@@ -9211,16 +9211,21 @@ insert into dpr_daily_position_record
    fixed_qty,
    quotational_qty,process_id)
 with last_eod_dump  as
-(SELECT dbd1.end_date db_dump_end_timestamp,
-        dbd1.start_date db_dump_start_timestamp,
-        dbd1.trade_date  trade_date
-    FROM   dbd_database_dump dbd1
-    where  dbd1.TRADE_DATE   = pd_trade_date 
-     AND   dbd1.corporate_id = pc_corporate_id
-     AND   dbd1.process = 'EOD'
-        )
+(select --dbd1.corporate_id,
+       --dbd1.trade_date,
+       dbd1.end_date db_dump_end_timestamp,
+       dbd1.start_date db_dump_start_timestamp,
+       (select max(tdc.trade_date)
+          from tdc_trade_date_closure tdc
+         where tdc.corporate_id = dbd1.corporate_id
+           and tdc.process = dbd1.process
+           and tdc.trade_date < dbd1.trade_date) trade_date
+  from dbd_database_dump dbd1
+ where dbd1.trade_date = pd_trade_date
+   and dbd1.corporate_id = pc_corporate_id
+   and dbd1.process = 'EOD')
 select 
-t.trade_date,
+pd_trade_date,
 t.corporate_id, 
 t.business_line_id, 
 t.profit_center_id, 
@@ -9560,8 +9565,22 @@ select 'Any one day price fix' section_name,
     and pcm.corporate_id = pc_corporate_id
  union all
   -- 'Average price fix'and cancelled
- select (CASE when is_any_day.any_one_day = 'N' then 'Average price fix' else 'Any one day price fix' end) section_name,
-        pcm.contract_ref_no,
+ select --(CASE when is_any_day.any_one_day = 'N' then 'Average price fix' else 'Any one day price fix' end) section_name,
+        --pcm.contract_ref_no,
+        (case
+         when to_char(pofh.qp_start_date, 'dd') = '01' and
+              last_day(pofh.qp_start_date) = pofh.qp_end_date then
+          'Average price fix'
+         else
+          'Any one day price fix'
+       end) section_name,
+      (case
+         when to_char(pofh.qp_start_date, 'dd') = '01' and
+              last_day(pofh.qp_start_date) = pofh.qp_end_date then
+         null
+         else
+          pcm.contract_ref_no
+       end) contract_ref_no,
         pcm.corporate_id,
         pcdi.pcdi_id,
         akc.corporate_name,
@@ -9572,7 +9591,13 @@ select 'Any one day price fix' section_name,
         cpc.profit_center_name,
         pdm.product_id,
         pdm.product_desc product_name,
-        pofhd.priced_date issue_date,
+         (case
+         when to_char(pofh.qp_start_date, 'dd') = '01' and
+              last_day(pofh.qp_start_date) = pofh.qp_end_date then
+         null
+         else
+          pofhd.priced_date
+       end)  issue_date,
         (pofhd.per_day_pricing_qty * ucm.multiplication_factor) fixed_qty,
         ((-1) * pofhd.per_day_pricing_qty * ucm.multiplication_factor) quotational_qty,
         last_eod_dump1.db_dump_end_timestamp,
@@ -9593,21 +9618,6 @@ select 'Any one day price fix' section_name,
         ak_corporate                   akc,
         cpc_corporate_profit_center    cpc,
         blm_business_line_master@eka_appdb       blm,
-         (SELECT pofh.pofh_id,
-        CASE
-           WHEN TO_CHAR (pofh.qp_start_date, 'MON') =
-                                TO_CHAR (pofh.qp_end_date, 'MON')
-              THEN (CASE
-                       WHEN TO_CHAR (pofh.qp_start_date, 'DD') = '01'
-                       AND pofh.qp_end_date = LAST_DAY (pofh.qp_end_date)
-                          THEN 'N'
-                       ELSE 'Y'
-                    END
-                   )
-        END any_one_day
-   FROM pofhd_pofh_daily@EKA_APPDB  pofh
-        where pofh.is_active = 'Y'
-      ) is_any_day,
         last_eod_dump last_eod_dump1 
   where pcm.contract_type = 'BASEMETAL'
     and pcm.contract_status = 'In Position'
@@ -9621,9 +9631,14 @@ select 'Any one day price fix' section_name,
     and pocd.pcbpd_id = ppfh.pcbpd_id
     and ppfh.ppfh_id = pfqpp.ppfh_id
     and pfqpp.is_qp_any_day_basis is null
+    and not exists (select pfd.pfd_id
+          from pfd_price_fixation_details@eka_appdb pfd
+         where pfd.pofh_id = pofh.pofh_id
+           and pfd.is_active = 'Y'
+           and pfd.as_of_date = pofhd.priced_date)
     and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
     and pcpd.input_output = 'Input'
-    and is_any_day.pofh_id = pofhd.pofh_id
+  --  and is_any_day.pofh_id = pofhd.pofh_id
     and pcpd.product_id = pdm.product_id
     and pdm.base_quantity_unit = qum.qty_unit_id
     and ucm.from_qty_unit_id = pcdi.qty_unit_id
@@ -9637,9 +9652,9 @@ select 'Any one day price fix' section_name,
     and pofh.is_active = 'Y'
     and ppfh.is_active = 'Y'
     and pfqpp.is_active = 'Y'
-    and pofhd.priced_date = pd_trade_date
+    and pofhd.priced_date <= pd_trade_date
     and pcm.corporate_id = pc_corporate_id
-
+    and pofhd.priced_date > last_eod_dump1.trade_date 
   UNION ALL
 ----Futures
 select section_name,
@@ -9723,6 +9738,7 @@ select section_name,
            and axs.created_date > last_eod_dump1.db_dump_start_timestamp
            and axs.created_date <= last_eod_dump1.db_dump_end_timestamp
            and dt.corporate_id = pc_corporate_id
+           and dt.status = 'Verified'
            and dt.trade_date <= pd_trade_date
            and ucm.from_qty_unit_id = dt.quantity_unit_id
            and ucm.to_qty_unit_id = pdm.base_quantity_unit
@@ -9746,7 +9762,7 @@ select section_name,
 UNION ALL
 ---------------------avg trades       
 select 'Average price fix' section_name,
-       dt.derivative_ref_no contract_ref_no,
+       null contract_ref_no,
        dt.corporate_id corporate_id,
        null,
        akc.corporate_name corporate_name,
@@ -9757,9 +9773,9 @@ select 'Average price fix' section_name,
        cpc.profit_center_name profit_center_name,
        pdm.product_id product_id,
        pdm.product_desc product_name,
-       dt.trade_date issue_date,
-      sum (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) fixed_qty,
-     sum(dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) quotational_qty,
+       null issue_date,
+       sum (dtavg.quantity * decode(dt.trade_type, 'Buy', 1, 'Sell', -1) * ucm.multiplication_factor) fixed_qty,
+       sum(dtavg.quantity * decode(dt.trade_type, 'Buy', -1, 'Sell', 1) * ucm.multiplication_factor) quotational_qty,
        last_eod_dump1.db_dump_end_timestamp,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit base_qty_unit
@@ -9800,7 +9816,7 @@ AND    avg_or_any_day.any_one_day = 'N'
    and ucm.to_qty_unit_id = pdm.base_quantity_unit
    and dtavg.internal_derivative_ref_no = dt.internal_derivative_ref_no
    and qum.qty_unit_id = pdm.base_quantity_unit
-    -- and dtavg.period_date > last_eod_dump1.trade_date :todo need to use previous eod date
+   and dtavg.period_date > last_eod_dump1.trade_date
    and irm.instrument_type = 'Average'
    and dt.status <> 'Delete'
    and dtavg.period_date <= pd_trade_date
@@ -9815,7 +9831,7 @@ AND    avg_or_any_day.any_one_day = 'N'
           cpc.profit_center_name,
           pdm.product_id,
           pdm.product_desc,
-          dt.trade_date,
+        --  dt.trade_date,
            db_dump_end_timestamp,
           pdm.base_quantity_unit,
           qum.qty_unit
@@ -9877,6 +9893,7 @@ AND    avg_or_any_day.any_one_day = 'Y'
    and qum.qty_unit_id = pdm.base_quantity_unit
     -- and dtavg.period_date > last_eod_dump1.trade_date :todo need to use previous eod date
    and irm.instrument_type = 'Average'
+   and dt.status = 'Verified'
    and dt.status <> 'Delete'
    and dtavg.period_date <= pd_trade_date
    and dt.corporate_id= pc_corporate_id
@@ -10064,7 +10081,7 @@ business_line_id,
 profit_center_id, 
 product_id
 union all
-select trade_date,
+select pd_trade_date trade_date,
        corporate_id,
        business_line_id,
        profit_center_id,       
@@ -10079,7 +10096,7 @@ select trade_date,
                                   and t.process = 'EOD')
     and dpr.corporate_id = pc_corporate_id)t
     
-    group by t.trade_date,
+    group by --t.trade_date,
 t.corporate_id, 
 t.business_line_id, 
 t.profit_center_id, 
