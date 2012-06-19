@@ -15,7 +15,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Reports
+Module  		   	 :  Daily Position Reports
 
 Sub-Module  			 :  N/A
  
@@ -32,13 +32,28 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* : Transaction
+Schema type (Transaction / EOD)* : EOD
 ==================================================================
-Revision: 96342
-Author: saurabh.raj
-Date: 2:25:46 PM, Monday, June 18, 2012
+
+
+SQL Files
+==========
+Revision: 96464
+Author: sivachalabathi.s
+Date: 1:29:19 PM, Tuesday, June 19, 2012
 Message:
-Bug Fixed
+bug fixes for daily position report the avg section
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+RPT File:
+=========
+Revision: 96451
+Author: sivachalabathi.s
+Date: 12:12:07 PM, Tuesday, June 19, 2012
+Message:
+bug fixes for the avg section
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport.rpt
 
