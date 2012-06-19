@@ -44,7 +44,22 @@ Free metal pricing
 
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_276.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_310.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_69.sql
+
+Revision: 96449
+Author: baijukaimala
+Date: Tuesday, June 19, 2012 11:48:30 AM
+Message:
+corrected ERC
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_69.sql
+
+Revision: 96452
+Author: sriveenam
+Date: Tuesday, June 19, 2012 12:14:11 PM
+Message:
+Free metal pricing links
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_311.sql
 
 
 
