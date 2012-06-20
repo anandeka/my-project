@@ -197,7 +197,7 @@ select phd.companyname warehousename,
        gmr_supp.gmr_ref_no as supplier_gmr_ref_no,
        grd.internal_stock_ref_no as stock_ref_no,psr.internal_grd_ref_no as internal_grd_ref_no,
        PSR.INCOMING_STOCK_QTY as original_wmt,
-       round(( ( fn_get_deductable_qty(psr.internal_grd_ref_no, psr.INCOMING_STOCK_QTY)*100) /INCOMING_STOCK_QTY),5) as original_moisture_Perc,
+       round(( ( fn_get_deductable_qty(psr.internal_grd_ref_no, psr.INCOMING_STOCK_QTY)*100) /psr.INCOMING_STOCK_QTY),5) as original_moisture_Perc,
        fn_get_deductable_qty(psr.internal_grd_ref_no, psr.INCOMING_STOCK_QTY) as original_moisture_qty,
        fn_get_pool_stock_dry_qty(psr.internal_grd_ref_no,
                                  psr.INCOMING_STOCK_QTY) as original_dmt,
@@ -214,26 +214,26 @@ select phd.companyname warehousename,
        end) as pricing_assay,
        rm.ratio_name as pricing_assay_qty_unit,
        fn_get_payable_qty(psr.internal_grd_ref_no,
-                          psr.incoming_stock_qty,
+                          psr.incoming_stock_qty - fn_get_deductable_qty(psr.internal_grd_ref_no, psr.incoming_stock_qty),
                           asm.asm_id,
                           pqca.pqca_id) original_payableqty,
        fn_get_payable_qty(psr.internal_grd_ref_no,
-                          psr.current_stock_qty,
+                          psr.current_stock_qty - fn_get_deductable_qty(psr.internal_grd_ref_no, psr.current_stock_qty),
                           asm.asm_id,
                           pqca.pqca_id) current_payableqty,
        fn_get_payable_qty(psr.internal_grd_ref_no,
-                          psr.outgoing_stock_qty,
+                          psr.outgoing_stock_qty- fn_get_deductable_qty(psr.internal_grd_ref_no, psr.outgoing_stock_qty),
                           asm.asm_id,
                           pqca.pqca_id) consumed_payableqty,
        (case rm.ratio_name
          when '%' then
-          (psr.current_stock_qty * (pqca.typical / 100))
+          ((psr.current_stock_qty-fn_get_deductable_qty(psr.internal_grd_ref_no, psr.current_stock_qty)) * (pqca.typical / 100))
          else
           pqca.typical *
           pkg_general.f_get_converted_quantity(aml.underlying_product_id,
                                                grd.qty_unit_id,
                                                rm.qty_unit_id_denominator,
-                                               psr.current_stock_qty)
+                                               (psr.current_stock_qty-fn_get_deductable_qty(psr.internal_grd_ref_no, psr.current_stock_qty)))
        end) as current_contained_qty,
        (case rm.ratio_name
          when '%' then
@@ -243,15 +243,15 @@ select phd.companyname warehousename,
              from qum_quantity_unit_master
             where qty_unit_id = rm.qty_unit_id_numerator)
        end) as qty_unit,
-       pqca.unit_of_measure unit_of_measure,
-       pm.warehouse_profile_id,
-       pm.pool_id,
-       qat.quality_id,
-       aml.attribute_id attribute_id,
-       psr.incoming_stock_qty,
-       psr.outgoing_stock_qty,
-       asm.asm_id,
-       pqca.pqca_id
+       pqca.unit_of_measure unit_of_measure
+      -- pm.warehouse_profile_id,
+       --pm.pool_id,
+       --qat.quality_id,
+       --aml.attribute_id attribute_id,
+       --psr.incoming_stock_qty,
+       --psr.outgoing_stock_qty,
+       --asm.asm_id,
+       --pqca.pqca_id
   from pm_pool_master                 pm,
        phd_profileheaderdetails       phd,
        psr_pool_stock_register        psr,
