@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0810
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+ 
+Created on*        		:  20-June-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 96600
+Author: anupkumar.agarwal
+Date: 4:28:00 PM, Wednesday, June 20, 2012
+Message:
+Added Missing FK for All The Logistics Table 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_279.sql
+
+
+
+
+
