@@ -2,11 +2,11 @@ Patch No*          		:  EKA_METALS_PATCH_0811
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Elaiyaraja Nallathambi
+Created by*        		: Anup Kumar Agarwal
  
 Created on*        		:  20-June-2012
 
-Bug / Enhancement*              :  Bug
+Bug / Enhancement*              :  Enhancement
 
 Bug ID*            		:  N/A
 ==================================================================
@@ -15,9 +15,9 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Document
+Module  		   	 :  Logistics
 
-Sub-Module  			 :  Document
+Sub-Module  			 :  
  
 Section   		   	 :  N/A
  
@@ -34,43 +34,13 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 96608
-Author: elaiyaraja.nallathambi
-Date: 5:03:00 PM, Wednesday, June 20, 2012
+Revision: 96600
+Author: anupkumar.agarwal
+Date: 4:28:00 PM, Wednesday, June 20, 2012
 Message:
-Layout has been modified to Support "Stock level" details in ALL "Logistics" Documents.
+Added Missing FK for All The Logistics Table 
 ----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AirWayAdvice.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AirWayDetails.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ShipmentAdvice.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ShipmentDetail.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TrainAdvice.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TrainDetails.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TruckAdvice.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TruckDetail.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighNote_Purchase.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighNote_Sales.rpt
-
-Revision: 96609
-Author: elaiyaraja.nallathambi
-Date: 5:03:55 PM, Wednesday, June 20, 2012
-Message:
-Layout has been modified to Support "Stock level" details in ALL "Logistics" Documents.
-----
-Modified : /7.3/Engg/Metals/Code/Reports/AirWayAdvice.rpt
-Modified : /7.3/Engg/Metals/Code/Reports/AirWayDetails.rpt
-Modified : /7.3/Engg/Metals/Code/Reports/ShipmentAdvice.rpt
-Modified : /7.3/Engg/Metals/Code/Reports/ShipmentDetail.rpt
-Modified : /7.3/Engg/Metals/Code/Reports/TrainAdvice.rpt
-Modified : /7.3/Engg/Metals/Code/Reports/TrainDetails.rpt
-Modified : /7.3/Engg/Metals/Code/Reports/TruckAdvice.rpt
-Modified : /7.3/Engg/Metals/Code/Reports/TruckDetail.rpt
-Modified : /7.3/Engg/Metals/Code/Reports/WeighNote_Purchase.rpt
-Modified : /7.3/Engg/Metals/Code/Reports/WeighNote_Sales.rpt
-
-
-
-
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_279.sql
 
 
 
