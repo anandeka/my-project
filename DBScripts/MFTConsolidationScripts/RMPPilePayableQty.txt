@@ -178,6 +178,15 @@ CREATE OR REPLACE FUNCTION FN_GET_PAYABLE_QTY (grd_id varchar2,grd_item_qty numb
 ----Main Query
 
 
+
+
+
+----Main Query
+
+
+----Main Query
+
+
 select phd.companyname warehousename,
        pm.pool_name poolname,
        qat.quality_name qualityname,
@@ -186,11 +195,12 @@ select phd.companyname warehousename,
        axs.eff_date,
        grd.supp_internal_gmr_ref_no as supplier_int_gmr_ref_no,
        gmr_supp.gmr_ref_no as supplier_gmr_ref_no,
-       grd.internal_stock_ref_no as stock_ref_no,
-       psr.current_stock_qty as wmt,
-       fn_get_deductable_qty(psr.internal_grd_ref_no, psr.current_stock_qty) as moisture,
+       grd.internal_stock_ref_no as stock_ref_no,psr.internal_grd_ref_no as internal_grd_ref_no,
+       PSR.INCOMING_STOCK_QTY as original_wmt,
+       round(( ( fn_get_deductable_qty(psr.internal_grd_ref_no, psr.INCOMING_STOCK_QTY)*100) /INCOMING_STOCK_QTY),5) as original_moisture_Perc,
+       fn_get_deductable_qty(psr.internal_grd_ref_no, psr.INCOMING_STOCK_QTY) as original_moisture_qty,
        fn_get_pool_stock_dry_qty(psr.internal_grd_ref_no,
-                                 psr.current_stock_qty) as dmt,
+                                 psr.INCOMING_STOCK_QTY) as original_dmt,
        aml.attribute_name as element_name,
        (case rm.ratio_name
          when '%' then
@@ -257,7 +267,8 @@ select phd.companyname warehousename,
        rm_ratio_master                rm,
        ash_assay_header               ash,
        qum_quantity_unit_master       qum,
-       axs_action_summary             axs
+       axs_action_summary             axs,
+       PQCAPD_PRD_QLTY_CATTR_PAY_DTLS  PQCAPD
  where pm.warehouse_profile_id = phd.profileid
    and psr.pool_id = pm.pool_id
    and grd.internal_grd_ref_no = psr.internal_grd_ref_no
@@ -277,12 +288,13 @@ select phd.companyname warehousename,
    and psr.qty_unit = qum.qty_unit_id
    and axs.internal_action_ref_no = grd.internal_action_ref_no
    and gmr_supp.internal_gmr_ref_no = grd.supp_internal_gmr_ref_no
-   --and pm.pool_id in ('PM-75')
+   --and pm.pool_id in ('PM-63')
+   and PQCAPD.PQCA_ID = pqca.PQCA_ID
+   and PQCAPD.IS_ACTIVE ='Y'
    order by 
    phd.companyname ,
    pm.pool_name ,
    qat.quality_name ;
-  
 
 
 
