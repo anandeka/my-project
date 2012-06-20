@@ -25,7 +25,8 @@ select t.corporate_id,
                pcm.issue_date,
                pcdi.payment_due_date,
                pcdi.qp_declaration_date,
-               pcdi.qty_declaration_date,
+               --pcdi.qty_declaration_date,
+               trunc(least(nvl(pcdi.qty_declaration_date,sysdate),nvl(pcdi.quality_declaration_date,sysdate),nvl(pcdi.inco_location_declaration_date,sysdate))) qty_declaration_date, --added for 65307
                pcdi.quality_declaration_date,
                pcdi.inco_location_declaration_date
           from pcdi_pc_delivery_item         pcdi,
@@ -45,8 +46,9 @@ select t.corporate_id,
            and pcpd.is_active = 'Y'
            and diqs.is_active = 'Y'
            and qum.is_active = 'Y'
-           and pcdi.quality_declaration_date <= sysdate--added for 65307
+           --and pcdi.quality_declaration_date <= sysdate--added for 65307
            and pcdi.is_phy_optionality_present = 'Y'
            and nvl(diqs.total_qty, 0) - nvl(diqs.called_off_qty, 0) > 0
            and pcm.contract_status <> 'Cancelled') t
+           where t.qty_declaration_date <=trunc(sysdate); --added for 65307
 

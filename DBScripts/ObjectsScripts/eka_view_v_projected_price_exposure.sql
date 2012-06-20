@@ -480,7 +480,6 @@ select ak.corporate_id,
        pfqpp_table pfqpp,
        qum_quantity_unit_master qum
  where ak.corporate_id = pcm.corporate_id
-   and pcm.contract_ref_no = 'SC-8-TrxSA'
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.pcdi_id = diqs.pcdi_id
    and diqs.is_active = 'Y'
