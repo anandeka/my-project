@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0814
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok Kumar
+ 
+Created on*        		:  20-June-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 96633
+Author: ashokkumar.l
+Date: 7:08:42 PM, Wednesday, June 20, 2012
+Message:
+Bug 65307
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PHYSICAL_CALL_OFF_DUE.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql
+
+
+
+
+
+
+
