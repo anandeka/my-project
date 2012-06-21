@@ -1,4 +1,4 @@
-create or replace package pkg_phy_tolling_unrealized_pnl is
+CREATE OR REPLACE PACKAGE "PKG_PHY_TOLLING_UNREALIZED_PNL" is
 
   procedure sp_phy_opencon_ext_unreal_pnl(pc_corporate_id        varchar2,
                                           pd_trade_date          date,
@@ -14,9 +14,18 @@ create or replace package pkg_phy_tolling_unrealized_pnl is
                                            pc_user_id             varchar2,
                                            pc_process             varchar2,
                                            pc_previous_process_id varchar2);
-end;
+end; 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
 /
-create or replace package body pkg_phy_tolling_unrealized_pnl is
+CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
 
   procedure sp_phy_opencon_ext_unreal_pnl(pc_corporate_id        varchar2,
                                           pd_trade_date          date,
@@ -379,8 +388,7 @@ create or replace package body pkg_phy_tolling_unrealized_pnl is
   
   begin
     for cur_unrealized_rows in cur_unrealized
-    loop
-    
+    loop  
       -- convert wet qty to dry qty
       if cur_unrealized_rows.unit_of_measure = 'Wet' then
         vn_dry_qty := round(pkg_metals_general.fn_get_assay_dry_qty(cur_unrealized_rows.conc_product_id,
@@ -709,7 +717,8 @@ create or replace package body pkg_phy_tolling_unrealized_pnl is
                                                                'PHY-005',
                                                                cur_unrealized_rows.base_cur_code ||
                                                                ' to ' ||
-                                                               vc_price_cur_code,
+                                                               vc_price_cur_code||', '||to_char(cur_unrealized_rows.payment_due_date,
+                                                                         'dd-Mon-yyyy'),
                                                                '',
                                                                pc_process,
                                                                pc_user_id,
@@ -1071,8 +1080,8 @@ create or replace package body pkg_phy_tolling_unrealized_pnl is
            'Y',
            'Y');
       end if;
-    
     end loop;
+    commit;
   
     for cur_update_pnl in (select poude.internal_contract_item_ref_no,
                                   sum(poude.contract_value_in_base) net_contract_value_in_base_cur,
@@ -3425,5 +3434,5 @@ create or replace package body pkg_phy_tolling_unrealized_pnl is
       dbms_output.put_line('SQLERRM-1' || sqlerrm);
     
   end;
-end;
+end; 
 /

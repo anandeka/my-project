@@ -904,6 +904,7 @@ create or replace package body pkg_general is
          and pdd.product_id = pdm.product_id
          and pdm.base_cur_id = pc_from_cur_id
          and pdm.quote_cur_id = pc_to_cur_id
+         and cci.corporate_id=cdim.corporate_id
          and cci.is_deleted = 'N'
          and cdim.is_active = 'Y'
          and pdm.is_active = 'Y'
@@ -924,6 +925,7 @@ create or replace package body pkg_general is
            and cci.instrument_id = cdim.instrument_id
            and dim.instrument_id = cdim.instrument_id
            and dim.product_derivative_id = pdd.derivative_def_id
+           and cci.corporate_id=cdim.corporate_id
            and pdd.product_id = pdm.product_id
            and pdm.base_cur_id = pc_to_cur_id
            and pdm.quote_cur_id = pc_from_cur_id
@@ -1814,6 +1816,7 @@ create or replace package body pkg_general is
              and pdd.product_id = pdm.product_id
              and pdm.base_cur_id = pc_from_cur_id
              and pdm.quote_cur_id = pc_to_cur_id
+             and cci.corporate_id=cdim.corporate_id
              and cci.is_deleted = 'N'
              and cdim.is_active = 'Y'
              and pdm.is_active = 'Y'
@@ -1837,6 +1840,7 @@ create or replace package body pkg_general is
                and pdd.product_id = pdm.product_id
                and pdm.base_cur_id = pc_to_cur_id
                and pdm.quote_cur_id = pc_from_cur_id
+               and cci.corporate_id=cdim.corporate_id
                and cci.is_deleted = 'N'
                and cdim.is_active = 'Y'
                and dim.is_active = 'Y'
