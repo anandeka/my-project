@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0815
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  21-June-2012
+
+Bug / Enhancement*              :  BUG 
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Documnet
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 96701
+Author: anupkumar.agarwal
+Date: 4:05:19 PM, Thursday, June 21, 2012
+Message:
+BUG FIX : 63745 For Product Quality Was Not Comma Se prated
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_314.sql
+
+
+
+
+
