@@ -34,13 +34,15 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 96701
+Revision: 96708
 Author: anupkumar.agarwal
-Date: 4:05:19 PM, Thursday, June 21, 2012
+Date: 4:39:37 PM, Thursday, June 21, 2012
 Message:
-BUG FIX : 63745 For Product Quality Was Not Comma Se prated
+Message:
+BUG FIX : 63745 For Product Quality Was Not Comma Seprated
+For Bug Fix : 63718 For Landing Child Stock Population 
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_314.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_314.sql
 
 
 
