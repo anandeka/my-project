@@ -34,14 +34,16 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
-Revision: 96778
+Revision: 96805
 Author: elaiyaraja.nallathambi
-Date: 5:35:05 PM, Friday, June 22, 2012
+Date: 6:28:26 PM, Friday, June 22, 2012
 Message:
 
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport.rpt
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport_Excel.rpt
+
+
 
 
 Revision: 96780
