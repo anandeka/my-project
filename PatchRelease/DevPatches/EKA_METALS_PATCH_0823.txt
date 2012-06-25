@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_0823
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  25-June-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 96855
+Author: pradeep.kumar
+Date: 5:54:13 PM, Monday, June 25, 2012
+Message:
+-- View In_process_Stock Changed
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_IN_PROCESS_STOCK.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
