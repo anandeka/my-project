@@ -4,9 +4,9 @@ Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Elaiyaraja Nallathambi
  
-Created on*        		:  20-June-2012
+Created on*        		:  25-June-2012
 
-Bug / Enhancement*              :  Enhancement
+Bug / Enhancement*              :  Bug
 
 Bug ID*            		:  N/A
 ==================================================================
@@ -34,19 +34,21 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 96537
+Revision: 96833
 Author: elaiyaraja.nallathambi
-Date: 12:06:00 PM, Wednesday, June 20, 2012
+Date: 2:42:53 PM, Monday, June 25, 2012
 Message:
 
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/GlobalPositionReport.rpt
 
-Revision: 96538
+Revision: 96834
 Author: elaiyaraja.nallathambi
-Date: 12:07:41 PM, Wednesday, June 20, 2012
+Date: 2:44:08 PM, Monday, June 25, 2012
 Message:
 
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_71_DML_RPC_RFP_Scripts.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_72_DML_RPC_RFP_Scripts.sql
+
+
 
