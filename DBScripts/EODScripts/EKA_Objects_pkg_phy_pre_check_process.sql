@@ -6273,9 +6273,10 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
         vn_charge_amt := (cur_data_rows.charge_value / vn_charge_weight) *
                          vc_charge_main_cur_factor *
                          vn_fw_exch_rate_charge_to_base *
-                         pkg_general.f_get_converted_quantity(pc_conc_product_id,                                                             
-                                                              vc_charge_weight_unit_id,  
-                                                              vc_base_weight_unit_id,                                                            
+                         pkg_general.f_get_converted_quantity(pc_conc_product_id,
+                                                              vc_base_weight_unit_id,
+                                                              vc_charge_weight_unit_id,
+                                                              
                                                               1);
       
         vn_total_charge := vn_total_charge + vn_charge_amt;
@@ -6387,8 +6388,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                            vn_charge_weight) * vc_charge_main_cur_factor *
                            vn_fw_exch_rate_charge_to_base *
                            pkg_general.f_get_converted_quantity(pc_conc_product_id,
-                                                                vc_charge_weight_unit_id, 
-                                                                vc_base_weight_unit_id,                                                                                                                               
+                                                                vc_base_weight_unit_id,
+                                                                vc_charge_weight_unit_id,
                                                                 
                                                                 1);
         
