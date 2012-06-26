@@ -35,6 +35,15 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
+Revision: 96954
+Author: elaiyaraja.nallathambi
+Date: 6:46:11 PM, Tuesday, June 26, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport_Excel.rpt
+
 Revision: 96948
 
 Author: sivachalabathi.s
@@ -46,6 +55,9 @@ Message:
 ----
 
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+ 
+
 
  
 
