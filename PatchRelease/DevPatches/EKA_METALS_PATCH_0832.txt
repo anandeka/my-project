@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0832
+
+Project / Product* 		:  Boliden/METALS
+==================================================================
+Created by*        		:  B Ravi Kumar
+ 
+Created on*        		:  27-June-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Utility
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 96992
+Author: b.ravikumar
+Date: 1:22:31 PM, Wednesday, June 27, 2012
+Message:
+for invoice utility documents (IAD population).
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_285.sql
+ 
+
+
+ 
+
+
