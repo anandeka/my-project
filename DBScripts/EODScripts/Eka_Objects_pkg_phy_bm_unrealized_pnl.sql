@@ -20,7 +20,7 @@ create or replace package pkg_phy_bm_unrealized_pnl is
                                       pc_process             varchar2,
                                       pc_previous_process_id varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_bm_unrealized_pnl is
   procedure sp_calc_phy_open_unreal_pnl(pc_corporate_id        varchar2,
@@ -159,7 +159,13 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
              md.m2m_pp_fw_exch_rate,
              md.m2m_ld_fw_exch_rate,
              md.m2m_qp_fw_exch_rate,
-             qat.eval_basis
+             qat.eval_basis,
+             pcm.approval_status,
+             (case when pcm.approval_status='Approved' then
+             'Y'
+             else
+             'N'
+             end) approval_flag             
         from pcm_physical_contract_main pcm,
              ak_corporate akc,
              pcdi_pc_delivery_item pcdi,
@@ -800,7 +806,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          m2m_pp_fw_exch_rate,
          contract_qp_fw_exch_rate,
          contract_pp_fw_exch_rate,
-         accrual_to_base_fw_exch_rate)
+         accrual_to_base_fw_exch_rate,
+         contract_status,
+         is_approved)
       values
         (cur_unrealized_rows.corporate_id,
          cur_unrealized_rows.corporate_name,
@@ -824,7 +832,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          cur_unrealized_rows.delivery_to_date,
          cur_unrealized_rows.transit_days,
          cur_unrealized_rows.purchase_sales,
-         cur_unrealized_rows.contract_status,
+         cur_unrealized_rows.approval_status,----
          cur_unrealized_rows.unrealized_type,
          cur_unrealized_rows.profit_center_id,
          cur_unrealized_rows.profit_center_name,
@@ -962,7 +970,9 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          vc_m2m_pp_fw_exch_rate,
          vc_contract_qp_fw_exch_rate,
          vc_contract_pp_fw_exch_rate,
-         cur_unrealized_rows.accrual_to_base_fw_exch_rate);
+         cur_unrealized_rows.accrual_to_base_fw_exch_rate,
+         cur_unrealized_rows.contract_status,
+         cur_unrealized_rows.approval_flag);
     end loop;
     ---------
     commit;
@@ -3716,5 +3726,5 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /

@@ -15,15 +15,6 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_TOLLING_UNREALIZED_PNL" is
                                            pc_process             varchar2,
                                            pc_previous_process_id varchar2);
 end; 
- 
- 
- 
-
- 
- 
- 
- 
- 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
 
@@ -191,7 +182,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
              tmpc.mvp_id,
              tmpc.shipment_month,
              tmpc.shipment_year,
-             nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying
+             nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying,
+             pcm.approval_status,
+             (case when nvl(pcm.approval_status,'Approved')='Approved' then
+             'Y'
+             else
+             'N'
+             end) approval_flag
         from pcm_physical_contract_main pcm,
              ak_corporate akc,
              pcdi_pc_delivery_item pcdi,
@@ -982,7 +979,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
            m2m_loc_diff_premium,
            valuation_against_underlying,
            is_tolling_contract,
-           is_tolling_extn)
+           is_tolling_extn,
+           contract_status,
+           is_approved)
         values
           (cur_unrealized_rows.corporate_id,
            cur_unrealized_rows.corporate_name,
@@ -1006,7 +1005,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
            cur_unrealized_rows.delivery_to_date,
            cur_unrealized_rows.transit_days,
            cur_unrealized_rows.purchase_sales,
-           cur_unrealized_rows.contract_status,
+           cur_unrealized_rows.approval_status,---
            cur_unrealized_rows.unrealized_type,
            cur_unrealized_rows.profit_center_id,
            cur_unrealized_rows.profit_center_name,
@@ -1078,7 +1077,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
            vn_loc_total_amount,
            cur_unrealized_rows.valuation_against_underlying,
            'Y',
-           'Y');
+           'Y',
+           cur_unrealized_rows.contract_status,
+           cur_unrealized_rows.approval_flag);
       end if;
     end loop;
     commit;
