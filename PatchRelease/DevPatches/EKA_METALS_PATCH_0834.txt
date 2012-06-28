@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0834
+
+Project / Product* 		:  Boliden/METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  28-June-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 97105
+Author: suresh.gottipati
+Date: 12:26:14 PM, Thursday, June 28, 2012
+Message:
+Added Approval_status
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/54_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_unrealized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_tolling_unrealized_pnl.sql
+
+
+
+
+ 
+
+
+ 
+
+
