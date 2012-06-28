@@ -1692,6 +1692,7 @@ create or replace package body pkg_phy_eod_reports is
     for cur_pur_accural_rows in cur_pur_accural
     loop
       -- Price Not event based from CCCP and Event Based from CGCP
+      if cur_pur_accural_rows.payable_type='Payable' then
       begin
         select cccp.contract_price,
                cccp.price_unit_id,
@@ -1791,6 +1792,7 @@ create or replace package body pkg_phy_eod_reports is
                                                                                   pd_trade_date,
                                                                                   vn_gmr_refine_charge),
                                          cur_pur_accural_rows.base_cur_decimal);
+      end if;                                         
       pkg_metals_general.sp_get_gmr_penalty_charge(cur_pur_accural_rows.internal_gmr_ref_no,
                                                    cur_pur_accural_rows.internal_grd_ref_no,
                                                    pc_dbd_id,
@@ -1872,7 +1874,7 @@ create or replace package body pkg_phy_eod_reports is
          0 --othercharges_amount    
          );
     end loop;
-  
+  commit;
     ---- Invoiced  GMR Level
  insert into pa_purchase_accural_gmr
    (corporate_id,
@@ -2304,7 +2306,7 @@ create or replace package body pkg_phy_eod_reports is
              temp.assay_qty_unit,
              cm.cur_code,
              oth_chagres.other_charges;
-  
+  commit;
     --calucalted GMR Leval             
     insert into pa_purchase_accural_gmr
       (corporate_id,
@@ -2392,6 +2394,7 @@ create or replace package body pkg_phy_eod_reports is
                 pa.pay_in_cur_id,
                 pa.pay_in_cur_code,
                 pa.fx_rate_price_to_pay;
+   commit;                
     -- diff GMR level
   
     insert into pa_purchase_accural_gmr
@@ -8474,40 +8477,36 @@ insert into pcs_purchase_contract_status
                      'Inventory' position_type,
                      'Raw Material Stock' stock_type,
                      (case
-                       when agmr.eff_date > vd_prev_eom_date and
-                            agmr.eff_date <= pd_trade_date then
+                       when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
                         'New Stocks'
-                       when trunc(agmr.eff_date, 'MM') <=
-                            trunc(vd_prev_eom_date, 'MM') then
+                       else
                         'Existing Stock'
                      end) section_name,
                      (case
                        when agmr.eff_date > vd_prev_eom_date and
-                            agmr.eff_date <= pd_trade_date then
+                            agmr.eff_date <=pd_trade_date then
                         '2'
-                       when trunc(agmr.eff_date, 'MM') <=
-                            trunc(vd_prev_eom_date, 'MM') then
+                       else
                         '1'
                      end) section_order,
                      grd.warehouse_profile_id,
                      phd.companyname,
-                     (case
-                       when agmr.eff_date > vd_prev_eom_date and
-                            agmr.eff_date <= pd_trade_date then
-                        sum(pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                                 spq.qty_unit_id,
-                                                                 pdm.base_quantity_unit,
-                                                                 spq.payable_qty))
-                     
-                       when trunc(agmr.eff_date, 'MM') <=
-                            trunc(vd_prev_eom_date, 'MM') then
-                        sum(pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                                 spq.qty_unit_id,
-                                                                 pdm.base_quantity_unit,
-                                                                 spq.payable_qty))
-                       else
-                        0
-                     end) stock_qty,
+                     sum(case
+                            when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                            (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                                  spq.qty_unit_id,
+                                                                  pdm.base_quantity_unit,
+                                                                  spq.payable_qty))
+                         
+                           else
+                            (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                                  spq.qty_unit_id,
+                                                                  pdm.base_quantity_unit,
+                                                                  spq.payable_qty))
+                         
+                         end) stock_qty,
                      pdm.base_quantity_unit qty_unit_id,
                      qum.qty_unit
                 from gmr_goods_movement_record gmr,
@@ -8545,16 +8544,29 @@ insert into pcs_purchase_contract_status
                  and gmr.process_id = pc_process_id
                  and grd.process_id = pc_process_id
                  and spq.process_id = pc_process_id
-                 and agmr.eff_date < pd_trade_date
+                 and agmr.eff_date <= pd_trade_date
                group by aml.underlying_product_id,
                         pdm.product_desc,
                         grd.warehouse_profile_id,
                         phd.companyname,
                         pdm.base_quantity_unit,
-                        qum.qty_unit,
-                        agmr.eff_date,
+                        qum.qty_unit,                    
                         gmr.corporate_id,
-                        akc.corporate_name
+                        akc.corporate_name,
+                        (case
+                           when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                           'New Stocks'
+                          else
+                           'Existing Stock'
+                        end),
+                        (case
+                           when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                           '2'
+                          else
+                           '1'
+                        end)
               union all
               select aml.underlying_product_id,
                      pdm.product_desc,
@@ -8563,39 +8575,35 @@ insert into pcs_purchase_contract_status
                      'Inventory' position_type,
                      'In Process Stock' stock_type,
                      (case
-                       when agmr.eff_date > vd_prev_eom_date and
-                            agmr.eff_date <= pd_trade_date then
+                        when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
                         'New Stocks'
-                       when trunc(agmr.eff_date, 'MM') <=
-                            trunc(vd_prev_eom_date, 'MM') then
+                       else
                         'Existing Stock'
                      end) section_name,
                      (case
-                       when agmr.eff_date > vd_prev_eom_date and
-                            agmr.eff_date <= pd_trade_date then
+                        when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
                         '3'
-                       when trunc(agmr.eff_date, 'MM') <=
-                            trunc(vd_prev_eom_date, 'MM') then
+                       else
                         '2'
                      end) section_order,
                      grd.warehouse_profile_id,
                      phd.companyname,
-                     (case
-                       when agmr.eff_date > vd_prev_eom_date and
-                            agmr.eff_date <= pd_trade_date then
-                        sum(pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                                 grd.qty_unit_id,
-                                                                 pdm.base_quantity_unit,
-                                                                 grd.current_qty))
-                       when trunc(agmr.eff_date, 'MM') <=
-                            trunc(vd_prev_eom_date, 'MM') then
-                        sum(pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                                 grd.qty_unit_id,
-                                                                 pdm.base_quantity_unit,
-                                                                 grd.current_qty))
-                       else
-                        0
-                     end) stock_qty,
+                     sum(case
+                            when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                            (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                                  grd.qty_unit_id,
+                                                                  pdm.base_quantity_unit,
+                                                                  grd.qty))
+                           else
+                            (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                                  grd.qty_unit_id,
+                                                                  pdm.base_quantity_unit,
+                                                                  grd.qty))
+                         
+                         end) stock_qty,
                      pdm.base_quantity_unit qty_unit_id,
                      qum.qty_unit
                 from gmr_goods_movement_record gmr,
@@ -8629,16 +8637,31 @@ insert into pcs_purchase_contract_status
                  and gmr.process_id = pc_process_id
                  and grd.process_id = pc_process_id
                  and agmr.eff_date <= pd_trade_date
-                  and grd.tolling_stock_type in('MFT In Process Stock','Free Metal IP Stock','Delta FM IP Stock','Delta MFT IP Stock')
+                 and grd.tolling_stock_type in
+                     ('MFT In Process Stock', 'Free Metal IP Stock',
+                      'Delta FM IP Stock', 'Delta MFT IP Stock')
                group by aml.underlying_product_id,
                         pdm.product_desc,
                         grd.warehouse_profile_id,
                         phd.companyname,
                         pdm.base_quantity_unit,
-                        qum.qty_unit,
-                        agmr.eff_date,
+                        qum.qty_unit,                       
                         gmr.corporate_id,
-                        akc.corporate_name
+                        akc.corporate_name,
+                        (case
+                          when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                           'New Stocks'
+                          else
+                           'Existing Stock'
+                        end),
+                        (case
+                        when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                        '3'
+                       else
+                        '2'
+                     end)
               union all
               select aml.underlying_product_id,
                      pdm.product_desc,
@@ -8647,39 +8670,34 @@ insert into pcs_purchase_contract_status
                      'Inventory' position_type,
                      'Finished Stock' stock_type,
                      (case
-                       when agmr.eff_date > vd_prev_eom_date and
-                            agmr.eff_date <= pd_trade_date then
+                        when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
                         'New Stocks - Not Consumed'
-                       when trunc(agmr.eff_date, 'MM') <=
-                            trunc(vd_prev_eom_date, 'MM') then
+                       else
                         'Existing Stock'
                      end) section_name,
                      (case
-                       when agmr.eff_date > vd_prev_eom_date and
-                            agmr.eff_date <= pd_trade_date then
+                        when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
                         '3'
-                       when trunc(agmr.eff_date, 'MM') <=
-                            trunc(vd_prev_eom_date, 'MM') then
+                       else
                         '1'
                      end) section_order,
                      grd.warehouse_profile_id,
                      phd.companyname,
-                     (case
-                       when agmr.eff_date > vd_prev_eom_date and
-                            agmr.eff_date <= pd_trade_date then
-                        sum(pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                                 grd.qty_unit_id,
-                                                                 pdm.base_quantity_unit,
-                                                                 grd.current_qty))
-                       when trunc(agmr.eff_date, 'MM') <=
-                            trunc(vd_prev_eom_date, 'MM') then
-                        sum(pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                                 grd.qty_unit_id,
-                                                                 pdm.base_quantity_unit,
-                                                                 grd.current_qty))
-                       else
-                        0
-                     end) stock_qty,
+                     sum(case
+                            when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                            (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                                  grd.qty_unit_id,
+                                                                  pdm.base_quantity_unit,
+                                                                  grd.qty))
+                           else
+                            (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                                  grd.qty_unit_id,
+                                                                  pdm.base_quantity_unit,
+                                                                  grd.qty))
+                         end) stock_qty,
                      pdm.base_quantity_unit qty_unit_id,
                      qum.qty_unit
                 from gmr_goods_movement_record gmr,
@@ -8720,11 +8738,24 @@ insert into pcs_purchase_contract_status
                         grd.warehouse_profile_id,
                         phd.companyname,
                         pdm.base_quantity_unit,
-                        qum.qty_unit,
-                        agmr.eff_date,
+                        qum.qty_unit,                     
                         gmr.corporate_id,
-                        akc.corporate_name) t;
-  
+                        akc.corporate_name,
+                        (case
+                        when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                        'New Stocks - Not Consumed'
+                       else
+                        'Existing Stock'
+                     end),
+                     (case
+                        when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                        '3'
+                       else
+                        '1'
+                     end)) t;
+  commit;
     ---Consumed for Raw Material Stock 
     insert into mas_metal_account_summary
       (process_id,
@@ -8761,7 +8792,7 @@ insert into pcs_purchase_contract_status
        where mas.stock_type = 'In Process Stock'
          and mas.section_name = 'New Stocks'
          and mas.process_id = pc_process_id;
-  
+  commit;
     --- Iron Stock for In Process Stock 
   
     insert into mas_metal_account_summary
@@ -8807,7 +8838,8 @@ insert into pcs_purchase_contract_status
          and sbs.corporate_id = akc.corporate_id
          and sbs.warehouse_profile_id = phd.profileid
          and pdm.base_quantity_unit = qum.qty_unit_id;
-    ---     
+    ---  
+commit;       
     insert into mas_metal_account_summary
       (process_id,
        eod_trade_date,
@@ -8847,7 +8879,7 @@ insert into pcs_purchase_contract_status
              (('In Process Stock', 'New Stocks'),
               ('Finished Stock', 'New Stocks - Not Consumed'))
          and mas.process_id = pc_process_id;
-  
+  commit;
     ---afolat
     insert into mas_metal_account_summary
       (process_id,
@@ -8873,40 +8905,34 @@ insert into pcs_purchase_contract_status
              akc.corporate_name,
              'Afloat' position_type,
              'Raw Material Stock' stock_type,
-             (case
-               when agmr.eff_date > vd_prev_eom_date and
-                    agmr.eff_date <= pd_trade_date then
+             (case when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
                 'New Stocks'
-               when trunc(agmr.eff_date, 'MM') <=
-                    trunc(vd_prev_eom_date, 'MM') then
+               else
                 'Existing Stock'
              end) section_name,
              (case
-               when agmr.eff_date > vd_prev_eom_date and
-                    agmr.eff_date <= pd_trade_date then
+                when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
                 '2'
-               when trunc(agmr.eff_date, 'MM') <=
-                    trunc(vd_prev_eom_date, 'MM') then
+               else
                 '1'
              end) section_order,
              null warehouse_profile_id,
              null companyname,
-             (case
-               when agmr.eff_date > vd_prev_eom_date and
-                    agmr.eff_date <= pd_trade_date then
-                sum(pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                         spq.qty_unit_id,
-                                                         pdm.base_quantity_unit,
-                                                         spq.payable_qty))
-               when trunc(agmr.eff_date, 'MM') <=
-                    trunc(vd_prev_eom_date, 'MM') then
-                sum(pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                         spq.qty_unit_id,
-                                                         pdm.base_quantity_unit,
-                                                         spq.payable_qty))
-               else
-                0
-             end) stock_qty,
+             sum(case
+                    when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                    (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                          spq.qty_unit_id,
+                                                          pdm.base_quantity_unit,
+                                                          spq.payable_qty))
+                   else
+                    (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                             spq.qty_unit_id,
+                                                             pdm.base_quantity_unit,
+                                                             spq.payable_qty))
+                 end) stock_qty,
              pdm.base_quantity_unit qty_unit_id,
              qum.qty_unit
         from gmr_goods_movement_record gmr,
@@ -8939,15 +8965,29 @@ insert into pcs_purchase_contract_status
          and gmr.process_id = pc_process_id
          and grd.process_id = pc_process_id
          and spq.process_id = pc_process_id
-         and agmr.eff_date < pd_trade_date
+         and agmr.eff_date <= pd_trade_date
        group by aml.underlying_product_id,
                 pdm.product_desc,
                 pdm.base_quantity_unit,
-                qum.qty_unit,
-                agmr.eff_date,
+                qum.qty_unit,              
                 gmr.corporate_id,
-                akc.corporate_name;
+                akc.corporate_name,
+                (case
+                   when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                   'New Stocks'
+                  else
+                   'Existing Stock'
+                end),
+                (case
+                   when agmr.eff_date >vd_prev_eom_date and
+                            agmr.eff_date <=pd_trade_date then
+                   '2'
+                  else
+                   '1'
+                end);
   
+  commit;
     insert into md_metal_debt
       (process_id,
        corporate_id,
