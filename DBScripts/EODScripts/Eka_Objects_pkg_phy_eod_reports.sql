@@ -3496,6 +3496,65 @@ create or replace package body pkg_phy_eod_reports is
     vc_previous_process_id varchar2(15);
   
   begin
+  delete from temp_gmr_invoice where corporate_id = pc_corporate_id;
+  commit;
+  insert into temp_gmr_invoice
+  (process_id,
+   corporate_id,
+   internal_invoice_ref_no,
+   stock_id,
+   invoice_item_amount,
+   invoice_currency_id,
+   new_invoice_price,
+   invoice_type,
+   invoice_issue_date,
+   new_invoice_price_unit_id)
+select gmr.process_id,
+       gmr.corporate_id,
+       iid.internal_invoice_ref_no,
+       iid.stock_id,
+       iid.invoice_item_amount,
+       iid.invoice_currency_id,
+       new_invoice_price,
+       iss.invoice_type,
+       iss.invoice_issue_date,
+       iid.new_invoice_price_unit_id
+  from iid_invoicable_item_details iid,
+       is_invoice_summary          iss,
+       gmr_goods_movement_record   gmr
+ where iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
+   and iss.is_active = 'Y'
+   and iss.process_id = gmr.process_id
+   and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+   and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no
+  union all
+select gmr.process_id,
+gmr.corporate_id,
+       iid.internal_invoice_ref_no,
+       grd.internal_grd_ref_no,
+       iid.invoice_item_amount,
+       iid.invoice_currency_id,
+       new_invoice_price,
+       iss.invoice_type,
+       iss.invoice_issue_date,
+       iid.new_invoice_price_unit_id
+  from iid_invoicable_item_details iid,
+       is_invoice_summary          iss,
+       grd_goods_record_detail     grd,
+       grd_goods_record_detail     grd_parent,
+       gmr_goods_movement_record   gmr,
+       gmr_goods_movement_record   gmr_parent
+ where iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
+   and iss.is_active = 'Y' 
+   and grd.parent_internal_grd_ref_no is not null
+   and grd_parent.internal_grd_ref_no = grd.parent_internal_grd_ref_no
+   and gmr.internal_gmr_ref_no = grd_parent.internal_gmr_ref_no
+   and gmr.process_id = grd.process_id 
+   and grd.process_id=grd_parent.process_id
+   and grd_parent.process_id=iss.process_id 
+   and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no
+   and grd.internal_gmr_ref_no = gmr_parent.internal_gmr_ref_no;
+commit;
 insert into isr_intrastat_grd
   (corporate_id,
    process_id,
@@ -3697,52 +3756,7 @@ insert into isr_intrastat_grd
          rem_region_master rem_load,
          rem_region_master rem_discharge,
          bccp_base_contract_cog_price bccp,
-         (select iid.internal_invoice_ref_no,
-                 iid.stock_id,
-                 iid.invoice_item_amount,
-                 iid.invoice_currency_id,
-                 new_invoice_price,
-                 iss.invoice_type,
-                 iss.invoice_issue_date,
-                 iid.new_invoice_price_unit_id
-            from iid_invoicable_item_details iid,
-                 is_invoice_summary          iss,
-                 gmr_goods_movement_record   gmr
-           where iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
-             and iss.is_active = 'Y'
-             and iss.process_id = pc_process_id
-             and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-             and gmr.latest_internal_invoice_ref_no =
-                 iid.internal_invoice_ref_no
-             and gmr.process_id = pc_process_id
-          union all
-          select iid.internal_invoice_ref_no,
-                 grd.internal_grd_ref_no,
-                 iid.invoice_item_amount,
-                 iid.invoice_currency_id,
-                 new_invoice_price,
-                 iss.invoice_type,
-                 iss.invoice_issue_date,
-                 iid.new_invoice_price_unit_id
-            from iid_invoicable_item_details iid,
-                 is_invoice_summary          iss,
-                 grd_goods_record_detail     grd,
-                 grd_goods_record_detail     grd_parent,
-                 gmr_goods_movement_record   gmr,
-                 gmr_goods_movement_record   gmr_parent
-           where iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
-             and iss.is_active = 'Y'
-             and iss.process_id = pc_process_id
-             and grd.parent_internal_grd_ref_no is not null
-             and grd_parent.internal_grd_ref_no =
-                 grd.parent_internal_grd_ref_no
-             and gmr.internal_gmr_ref_no = grd_parent.internal_gmr_ref_no
-             and gmr.process_id = pc_process_id
-             and grd.process_id = pc_process_id
-             and grd_parent.process_id = pc_process_id
-             and gmr.latest_internal_invoice_ref_no =
-                 iid.internal_invoice_ref_no
-             and grd.internal_gmr_ref_no = gmr_parent.internal_gmr_ref_no) iid,
+         temp_gmr_invoice iid,
          cm_currency_master cm_cym_load,
          cm_currency_master cm_cym_discharge,
          ak_corporate ak,
@@ -3830,9 +3844,65 @@ insert into isr_intrastat_grd
      and gmr.internal_gmr_ref_no not in
          (select bgcp.internal_gmr_ref_no
             from bgcp_base_gmr_cog_price bgcp
-           where bgcp.process_id = pc_process_id)
-  union all
+           where bgcp.process_id = pc_process_id);
+ commit;
   --- Base metal Event Based
+  insert into isr_intrastat_grd
+  (corporate_id,
+   process_id,
+   eod_trade_date,
+   contract_ref_no,
+   contract_item_ref_no,
+   gmr_ref_no,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   product_id,
+   product_name,
+   cp_id,
+   counterparty_name,
+   quality_id,
+   quality_name,
+   qty,
+   qty_unit_id,
+   price,
+   price_unit_id,
+   price_unit_name,
+   shipment_date,
+   loading_country_id,
+   loading_country_name,
+   loading_city_id,
+   loading_city_name,
+   loading_state_id,
+   loading_state_name,
+   loading_region_id,
+   loading_region_name,
+   discharge_country_id,
+   discharge_country_name,
+   discharge_city_id,
+   discharge_city_name,
+   discharge_state_id,
+   discharge_state_name,
+   discharge_region_id,
+   discharge_region_name,
+   mode_of_transport,
+   arrival_no,
+   vat_no,
+   invoice_date,
+   invoice_invenotry_status,
+   invoice_invenotry_value,
+   invoice_invenotry_cur_id,
+   invoice_invenotry_cur_code,
+   loading_country_cur_id,
+   loading_country_cur_code,
+   discharge_country_cur_id,
+   discharge_country_cur_code,
+   base_cur_id,
+   base_cur_code,
+   ex_rate_to_base,
+   ex_rate_base_to_nat_load,
+   ex_rate_base_to_nat_dis,
+   comb_nome_item_code,
+   contract_type)
   select gmr.corporate_id,
          pc_process_id,
          pd_trade_date,
@@ -3977,52 +4047,7 @@ insert into isr_intrastat_grd
          rem_region_master rem_load,
          rem_region_master rem_discharge,
          bgcp_base_gmr_cog_price bgcp,
-         (select iid.internal_invoice_ref_no,
-                 iid.stock_id,
-                 iid.invoice_item_amount,
-                 iid.invoice_currency_id,
-                 new_invoice_price,
-                 iss.invoice_type,
-                 iss.invoice_issue_date,
-                 iid.new_invoice_price_unit_id
-            from iid_invoicable_item_details iid,
-                 is_invoice_summary          iss,
-                 gmr_goods_movement_record   gmr
-           where iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
-             and iss.is_active = 'Y'
-             and iss.process_id = pc_process_id
-             and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-             and gmr.latest_internal_invoice_ref_no =
-                 iid.internal_invoice_ref_no
-             and gmr.process_id = pc_process_id
-          union all
-          select iid.internal_invoice_ref_no,
-                 grd.internal_grd_ref_no,
-                 iid.invoice_item_amount,
-                 iid.invoice_currency_id,
-                 new_invoice_price,
-                 iss.invoice_type,
-                 iss.invoice_issue_date,
-                 iid.new_invoice_price_unit_id
-            from iid_invoicable_item_details iid,
-                 is_invoice_summary          iss,
-                 grd_goods_record_detail     grd,
-                 grd_goods_record_detail     grd_parent,
-                 gmr_goods_movement_record   gmr,
-                 gmr_goods_movement_record   gmr_parent
-           where iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
-             and iss.is_active = 'Y'
-             and iss.process_id = pc_process_id
-             and grd.parent_internal_grd_ref_no is not null
-             and grd_parent.internal_grd_ref_no =
-                 grd.parent_internal_grd_ref_no
-             and gmr.internal_gmr_ref_no = grd_parent.internal_gmr_ref_no
-             and gmr.process_id = pc_process_id
-             and grd.process_id = pc_process_id
-             and grd_parent.process_id = pc_process_id
-             and gmr.latest_internal_invoice_ref_no =
-                 iid.internal_invoice_ref_no
-             and grd.internal_gmr_ref_no = gmr_parent.internal_gmr_ref_no) iid,
+         temp_gmr_invoice iid,
          cm_currency_master cm_cym_load,
          cm_currency_master cm_cym_discharge,
          ak_corporate ak,
@@ -4106,9 +4131,66 @@ insert into isr_intrastat_grd
      and ppu.product_id = grd.product_id
      and ppu.cur_id = ak.base_cur_id
      and ppu.weight_unit_id = pdm.base_quantity_unit
-     and nvl(ppu.weight, 1) = 1
-  -- and grd.current_qty > 0
-  union all ------concentrates
+     and nvl(ppu.weight, 1) = 1;
+  -- and grd.current_qty > 0  
+  commit;
+   ------concentrates
+   insert into isr_intrastat_grd
+  (corporate_id,
+   process_id,
+   eod_trade_date,
+   contract_ref_no,
+   contract_item_ref_no,
+   gmr_ref_no,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   product_id,
+   product_name,
+   cp_id,
+   counterparty_name,
+   quality_id,
+   quality_name,
+   qty,
+   qty_unit_id,
+   price,
+   price_unit_id,
+   price_unit_name,
+   shipment_date,
+   loading_country_id,
+   loading_country_name,
+   loading_city_id,
+   loading_city_name,
+   loading_state_id,
+   loading_state_name,
+   loading_region_id,
+   loading_region_name,
+   discharge_country_id,
+   discharge_country_name,
+   discharge_city_id,
+   discharge_city_name,
+   discharge_state_id,
+   discharge_state_name,
+   discharge_region_id,
+   discharge_region_name,
+   mode_of_transport,
+   arrival_no,
+   vat_no,
+   invoice_date,
+   invoice_invenotry_status,
+   invoice_invenotry_value,
+   invoice_invenotry_cur_id,
+   invoice_invenotry_cur_code,
+   loading_country_cur_id,
+   loading_country_cur_code,
+   discharge_country_cur_id,
+   discharge_country_cur_code,
+   base_cur_id,
+   base_cur_code,
+   ex_rate_to_base,
+   ex_rate_base_to_nat_load,
+   ex_rate_base_to_nat_dis,
+   comb_nome_item_code,
+   contract_type)
   select corporate_id,
          pc_process_id,
          pd_trade_date,
@@ -4307,56 +4389,7 @@ insert into isr_intrastat_grd
                  rem_region_master rem_load,
                  rem_region_master rem_discharge,
                  cccp_conc_contract_cog_price cccp,
-                 (select iid.internal_invoice_ref_no,
-                         iid.stock_id,
-                         iid.invoice_item_amount,
-                         iid.invoice_currency_id,
-                         new_invoice_price,
-                         iss.invoice_type,
-                         iss.invoice_issue_date,
-                         iid.new_invoice_price_unit_id
-                    from iid_invoicable_item_details iid,
-                         is_invoice_summary          iss,
-                         gmr_goods_movement_record   gmr
-                   where iss.internal_invoice_ref_no =
-                         iid.internal_invoice_ref_no
-                     and iss.is_active = 'Y'
-                     and iss.process_id = pc_process_id
-                     and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                     and gmr.latest_internal_invoice_ref_no =
-                         iid.internal_invoice_ref_no
-                     and gmr.process_id = pc_process_id
-                  union all
-                  select iid.internal_invoice_ref_no,
-                         grd.internal_grd_ref_no,
-                         iid.invoice_item_amount,
-                         iid.invoice_currency_id,
-                         new_invoice_price,
-                         iss.invoice_type,
-                         iss.invoice_issue_date,
-                         iid.new_invoice_price_unit_id
-                    from iid_invoicable_item_details iid,
-                         is_invoice_summary          iss,
-                         grd_goods_record_detail     grd,
-                         grd_goods_record_detail     grd_parent,
-                         gmr_goods_movement_record   gmr,
-                         gmr_goods_movement_record   gmr_parent
-                   where iss.internal_invoice_ref_no =
-                         iid.internal_invoice_ref_no
-                     and iss.is_active = 'Y'
-                     and iss.process_id = pc_process_id
-                     and grd.parent_internal_grd_ref_no is not null
-                     and grd_parent.internal_grd_ref_no =
-                         grd.parent_internal_grd_ref_no
-                     and gmr.internal_gmr_ref_no =
-                         grd_parent.internal_gmr_ref_no
-                     and gmr.process_id = pc_process_id
-                     and grd.process_id = pc_process_id
-                     and grd_parent.process_id = pc_process_id
-                     and gmr.latest_internal_invoice_ref_no =
-                         iid.internal_invoice_ref_no
-                     and grd.internal_gmr_ref_no =
-                         gmr_parent.internal_gmr_ref_no) iid,
+                 temp_gmr_invoice iid,
                  cm_currency_master cm_cym_load,
                  cm_currency_master cm_cym_discharge,
                  ak_corporate ak,
@@ -4598,56 +4631,7 @@ insert into isr_intrastat_grd
                  rem_region_master rem_load,
                  rem_region_master rem_discharge,
                  cgcp_conc_gmr_cog_price cgcp,
-                 (select iid.internal_invoice_ref_no,
-                         iid.stock_id,
-                         iid.invoice_item_amount,
-                         iid.invoice_currency_id,
-                         new_invoice_price,
-                         iss.invoice_type,
-                         iss.invoice_issue_date,
-                         iid.new_invoice_price_unit_id
-                    from iid_invoicable_item_details iid,
-                         is_invoice_summary          iss,
-                         gmr_goods_movement_record   gmr
-                   where iss.internal_invoice_ref_no =
-                         iid.internal_invoice_ref_no
-                     and iss.is_active = 'Y'
-                     and iss.process_id = pc_process_id
-                     and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                     and gmr.latest_internal_invoice_ref_no =
-                         iid.internal_invoice_ref_no
-                     and gmr.process_id = pc_process_id
-                  union all
-                  select iid.internal_invoice_ref_no,
-                         grd.internal_grd_ref_no,
-                         iid.invoice_item_amount,
-                         iid.invoice_currency_id,
-                         new_invoice_price,
-                         iss.invoice_type,
-                         iss.invoice_issue_date,
-                         iid.new_invoice_price_unit_id
-                    from iid_invoicable_item_details iid,
-                         is_invoice_summary          iss,
-                         grd_goods_record_detail     grd,
-                         grd_goods_record_detail     grd_parent,
-                         gmr_goods_movement_record   gmr,
-                         gmr_goods_movement_record   gmr_parent
-                   where iss.internal_invoice_ref_no =
-                         iid.internal_invoice_ref_no
-                     and iss.is_active = 'Y'
-                     and iss.process_id = pc_process_id
-                     and grd.parent_internal_grd_ref_no is not null
-                     and grd_parent.internal_grd_ref_no =
-                         grd.parent_internal_grd_ref_no
-                     and gmr.internal_gmr_ref_no =
-                         grd_parent.internal_gmr_ref_no
-                     and gmr.process_id = pc_process_id
-                     and grd.process_id = pc_process_id
-                     and grd_parent.process_id = pc_process_id
-                     and gmr.latest_internal_invoice_ref_no =
-                         iid.internal_invoice_ref_no
-                     and grd.internal_gmr_ref_no =
-                         gmr_parent.internal_gmr_ref_no) iid,
+                 temp_gmr_invoice iid,
                  cm_currency_master cm_cym_load,
                  cm_currency_master cm_cym_discharge,
                  ak_corporate ak,
@@ -4746,7 +4730,8 @@ insert into isr_intrastat_grd
              and cgcp.process_id = pc_process_id
              and cgcp.internal_grd_ref_no=grd.internal_grd_ref_no
              and cgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-             and cgcp.element_id = spq.element_id);
+              and cgcp.element_id = spq.element_id);              
+        commit;
   
     select tdc.process_id
       into vc_previous_process_id
