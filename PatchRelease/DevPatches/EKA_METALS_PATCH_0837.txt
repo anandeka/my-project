@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0837
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  B Ravi Kumar
+ 
+Created on*        		:  28-June-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice Utility
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 97181
+Author: b.ravikumar
+Date: 6:23:24 PM, Thursday, June 28, 2012
+Message:
+Column added in IUD
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_287.sql
+
+
+
