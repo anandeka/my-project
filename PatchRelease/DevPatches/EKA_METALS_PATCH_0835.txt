@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0835
+
+Project / Product* 		:  Boliden/METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  28-June-2012
+
+Bug / Enhancement*              :  Data correction
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  Hedge Correction
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 97115
+Author: sishir.pagada
+Date: 12:45:21 PM, Thursday, June 28, 2012
+Message:
+Data correction patch for Hedge correction.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_6.sql
+
+
+
+
+ 
+
+
+ 
+
+
