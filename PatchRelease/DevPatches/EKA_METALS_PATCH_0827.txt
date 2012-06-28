@@ -34,13 +34,14 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
-Revision: 96918
+Revision: 97113
 Author: sriveenam
-Date: Tuesday, June 26, 2012 4:04:31 PM
+Date: Thursday, June 28, 2012 12:42:44 PM
 Message:
-added hedgecorrection date
+script updated
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_283.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_283.sql
+
 
 
 
