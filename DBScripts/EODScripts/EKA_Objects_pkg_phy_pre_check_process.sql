@@ -219,10 +219,10 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       goto cancel_process;
     end if;
     sp_pre_check_m2m_tolling_extn(pc_corporate_id,
-    pd_trade_date,
-    gvc_dbd_id,
-    pc_user_id,
-    pc_process);
+                                  pd_trade_date,
+                                  gvc_dbd_id,
+                                  pc_user_id,
+                                  pc_process);
   
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
@@ -328,6 +328,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
   begin
     delete from tmpc_temp_m2m_pre_check tmpc
      where corporate_id = pc_corporate_id;
+    commit;
     vc_error_loc := 1;
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
@@ -392,6 +393,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        group by t.corporate_id,
                 t.valuation_point;
     vc_error_loc := 2;
+    commit;
     ---check the valuation point for Stock/GMR
     insert into eel_eod_eom_exception_log
       (corporate_id,
@@ -524,6 +526,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                 cym.country_name;
     vc_error_loc := 3;
     ---insert into tmpc for the OPEN Contract
+    commit;
     insert into tmpc_temp_m2m_pre_check
       (corporate_id,
        product_id,
@@ -629,6 +632,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           and pcpq.dbd_id = pc_dbd_id
           and pcm.contract_status <> 'Cancelled');
     dbms_output.put_line(sql%rowcount);
+    commit;
     ----end of populate  m2m cost for open contract    
     vc_error_loc := 4;
     insert into tmpc_temp_m2m_pre_check
@@ -948,6 +952,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  and temp.product_id = mvp.product_id
                  and mvp.mvp_id = mvpl.mvp_id
                  and mvpl.loc_city_id = temp.city_id) m2m;
+    commit;
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -1064,7 +1069,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.product_type = 'BASEMETAL'
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
-  
+    commit;
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -7537,4 +7542,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end; 
+end;
+/
