@@ -3,7 +3,7 @@ Insert into AMC_APP_MENU_CONFIGURATION
     ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID, 
     IS_DELETED)
  Values
-   ('LOFMU', 'List Of Free Metal Utility', 10, 3, '/metals/loadListOfFreeMetalUtility.action?gridId=LOFM_UTILITY', 
+   ('LOFMU', 'List Of Free Metal Utility', 10, 2, '/metals/loadListOfFreeMetalUtility.action?gridId=LOFM_UTILITY', 
     NULL, 'F2', 'APP-ACL-N1085', 'Finance', 'APP-PFL-N-187', 
     'N');
 
