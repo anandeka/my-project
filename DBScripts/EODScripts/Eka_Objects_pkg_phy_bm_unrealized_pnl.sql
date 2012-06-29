@@ -1868,6 +1868,8 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
               sp_insert_error_log(vobj_error_log);
             end if;
           end if;
+        else
+        vn_m2m_base_fx_rate:=1;
         end if;
         vn_m2m_amount_in_base    := vn_m2m_amt * vn_m2m_base_fx_rate;
         vn_m2m_total_premium_amt := vn_qty_in_base *
@@ -3123,6 +3125,8 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
             
             end if;
           end if;
+        else
+        vn_m2m_base_fx_rate:=1;
         end if;
         vn_m2m_amount_in_base    := vn_m2m_amt * vn_m2m_base_fx_rate;
         vn_m2m_total_premium_amt := vn_qty_in_base *
