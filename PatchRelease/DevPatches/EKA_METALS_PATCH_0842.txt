@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_0842
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  02-July-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  EOD Issue
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 97340
+Author: suresh.gottipati
+Date: 2:58:18 PM, Monday, July 02, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/57_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+
+
+
+
+
+
+
+
