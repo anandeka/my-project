@@ -88,23 +88,26 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              dim.delivery_calender_id,
              pdc.is_daily_cal_applicable,
              pdc.is_monthly_cal_applicable
-        from pcdi_pc_delivery_item        pcdi,
-             pci_physical_contract_item   pci,
-             pcm_physical_contract_main   pcm,
-             ak_corporate                 akc,
-             pcpd_pc_product_definition   pcpd,
-             pcpq_pc_product_quality      pcpq,
-             v_contract_exchange_detail   qat,
-             dim_der_instrument_master    dim,
+        from pcdi_pc_delivery_item pcdi,
+             pci_physical_contract_item pci,
+             pcm_physical_contract_main pcm,
+             ak_corporate akc,
+             pcpd_pc_product_definition pcpd,
+             pcpq_pc_product_quality pcpq,
+             (select *
+                from ced_contract_exchange_detail ced
+               where ced.corporate_id = pc_corporate_id) qat,
+             dim_der_instrument_master dim,
              div_der_instrument_valuation div,
-             ps_price_source              ps,
-             apm_available_price_master   apm,
-             pum_price_unit_master        pum,
-             v_der_instrument_price_unit  vdip,
+             ps_price_source ps,
+             apm_available_price_master apm,
+             pum_price_unit_master pum,
+             v_der_instrument_price_unit vdip,
              pdc_prompt_delivery_calendar pdc
        where pcdi.pcdi_id = pci.pcdi_id
          and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpq.pcpd_id = pcpd.pcpd_id
          and pci.pcpq_id = pcpq.pcpq_id
          and pcm.corporate_id = akc.corporate_id
          and pcm.contract_status = 'In Position'
@@ -112,7 +115,6 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and pcpd.input_output = 'Input'
          and pci.internal_contract_item_ref_no =
              qat.internal_contract_item_ref_no(+)
-         and pci.process_id = qat.process_id(+)
          and qat.instrument_id = dim.instrument_id(+)
          and dim.instrument_id = div.instrument_id(+)
          and div.is_deleted(+) = 'N'
@@ -254,6 +256,242 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     vn_price_in_base_price_unit_id number;
     vc_fixed_price_unit_id         varchar2(15); -- During QP , Fixed Price Unit
   begin
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          2001,
+                          'Start of base contract price');
+    delete from ced_contract_exchange_detail ced
+     where ced.corporate_id = pc_corporate_id;
+    commit;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          2001,
+                          'End delete CED');
+  
+    insert into ced_contract_exchange_detail
+      (corporate_id,
+       internal_contract_item_ref_no,
+       pcdi_id,
+       element_id,
+       instrument_id,
+       instrument_name,
+       derivative_def_id,
+       derivative_def_name,
+       exchange_id,
+       exchange_name)
+      select pc_corporate_id,
+             tt.internal_contract_item_ref_no,
+             tt.pcdi_id,
+             tt.element_id,
+             tt.instrument_id,
+             dim.instrument_name,
+             pdd.derivative_def_id,
+             pdd.derivative_def_name,
+             emt.exchange_id,
+             emt.exchange_name
+        from (select pci.internal_contract_item_ref_no,
+                     poch.element_id,
+                     ppfd.instrument_id,
+                     pci.pcdi_id
+                from pci_physical_contract_item     pci,
+                     pcdi_pc_delivery_item          pcdi,
+                     poch_price_opt_call_off_header poch,
+                     pocd_price_option_calloff_dtls pocd,
+                     pcbpd_pc_base_price_detail     pcbpd,
+                     ppfh_phy_price_formula_header  ppfh,
+                     ppfd_phy_price_formula_details ppfd,
+                     pcm_physical_contract_main     pcm
+               where pci.pcdi_id = pcdi.pcdi_id
+                 and pcdi.pcdi_id = poch.pcdi_id
+                 and poch.poch_id = pocd.poch_id
+                 and pocd.pcbpd_id = pcbpd.pcbpd_id
+                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
+                 and ppfh.ppfh_id = ppfd.ppfh_id
+                 and pcdi.internal_contract_ref_no =
+                     pcm.internal_contract_ref_no
+                 and pci.process_id = pcdi.process_id
+                 and pcdi.process_id = pcbpd.process_id
+                 and pcbpd.process_id = ppfh.process_id
+                 and ppfh.process_id = ppfd.process_id
+                 and ppfd.process_id = pcm.process_id
+                 and pcm.process_id = pc_process_id
+                 and pcm.is_active = 'Y'
+                 and pci.is_active = 'Y'
+                 and pcdi.is_active = 'Y'
+                 and poch.is_active = 'Y'
+                 and pocd.is_active = 'Y'
+                 and pcbpd.is_active = 'Y'
+                 and ppfh.is_active = 'Y'
+                 and ppfd.is_active = 'Y'
+                 and pcm.product_group_type = 'BASEMETAL'
+                 and pcdi.price_option_call_off_status in
+                     ('Called Off', 'Not Applicable')
+               group by pci.internal_contract_item_ref_no,
+                        ppfd.instrument_id,
+                        poch.element_id,
+                        pci.pcdi_id
+              union all
+              select pci.internal_contract_item_ref_no,
+                     pcbpd.element_id,
+                     ppfd.instrument_id,
+                     pci.pcdi_id
+                from pci_physical_contract_item     pci,
+                     pcdi_pc_delivery_item          pcdi,
+                     pcipf_pci_pricing_formula      pcipf,
+                     pcbph_pc_base_price_header     pcbph,
+                     pcbpd_pc_base_price_detail     pcbpd,
+                     ppfh_phy_price_formula_header  ppfh,
+                     ppfd_phy_price_formula_details ppfd,
+                     pcm_physical_contract_main     pcm
+               where pci.internal_contract_item_ref_no =
+                     pcipf.internal_contract_item_ref_no
+                 and pcipf.pcbph_id = pcbph.pcbph_id
+                 and pcbph.pcbph_id = pcbpd.pcbph_id
+                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
+                 and ppfh.ppfh_id = ppfd.ppfh_id
+                 and pci.pcdi_id = pcdi.pcdi_id
+                 and pcdi.internal_contract_ref_no =
+                     pcm.internal_contract_ref_no
+                 and pci.process_id = pcdi.process_id
+                 and pcdi.process_id = pcipf.process_id
+                 and pcipf.process_id = pcbph.process_id
+                 and pcbph.process_id = ppfh.process_id
+                 and ppfh.process_id = ppfd.process_id
+                 and ppfd.process_id = pcm.process_id
+                 and pcbpd.process_id = pcm.process_id
+                 and pcm.process_id = pc_process_id
+                 and pcdi.is_active = 'Y'
+                 and pcm.product_group_type = 'BASEMETAL'
+                 and pcdi.price_option_call_off_status = 'Not Called Off'
+                 and pci.is_active = 'Y'
+                 and pcipf.is_active = 'Y'
+                 and pcbph.is_active = 'Y'
+                 and pcbpd.is_active = 'Y'
+                 and ppfh.is_active = 'Y'
+                 and ppfd.is_active = 'Y'
+               group by pci.internal_contract_item_ref_no,
+                        ppfd.instrument_id,
+                        pcbpd.element_id,
+                        pci.pcdi_id
+              union all
+              select pci.internal_contract_item_ref_no,
+                     pcbpd.element_id,
+                     ppfd.instrument_id,
+                     pci.pcdi_id
+                from pci_physical_contract_item     pci,
+                     pcdi_pc_delivery_item          pcdi,
+                     poch_price_opt_call_off_header poch,
+                     pocd_price_option_calloff_dtls pocd,
+                     pcbpd_pc_base_price_detail     pcbpd,
+                     ppfh_phy_price_formula_header  ppfh,
+                     ppfd_phy_price_formula_details ppfd,
+                     dipq_delivery_item_payable_qty dipq,
+                     pcm_physical_contract_main     pcm
+               where pci.pcdi_id = pcdi.pcdi_id
+                 and pcdi.pcdi_id = poch.pcdi_id
+                 and poch.poch_id = pocd.poch_id
+                 and pocd.pcbpd_id = pcbpd.pcbpd_id
+                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
+                 and ppfh.ppfh_id = ppfd.ppfh_id
+                 and pcdi.pcdi_id = dipq.pcdi_id
+                 and pcdi.internal_contract_ref_no =
+                     pcm.internal_contract_ref_no
+                 and pci.process_id = pc_process_id
+                 and pcdi.process_id = pc_process_id
+                 and pcbpd.process_id = pc_process_id
+                 and ppfh.process_id = pc_process_id
+                 and ppfd.process_id = pc_process_id
+                 and dipq.process_id = pc_process_id
+                 and pcbpd.process_id = pc_process_id
+                 and pcm.process_id = pc_process_id
+                 and dipq.element_id = pcbpd.element_id
+                 and pcdi.is_active = 'Y'
+                 and dipq.price_option_call_off_status in
+                     ('Called Off', 'Not Applicable')
+                 and pcm.product_group_type = 'CONCENTRATES'
+                 and pcm.is_active = 'Y'
+                 and dipq.is_active = 'Y'
+                 and pci.is_active = 'Y'
+                 and pcbpd.is_active = 'Y'
+                 and poch.is_active = 'Y'
+                 and pocd.is_active = 'Y'
+                 and ppfh.is_active = 'Y'
+                 and ppfd.is_active = 'Y'
+               group by pci.internal_contract_item_ref_no,
+                        ppfd.instrument_id,
+                        pcbpd.element_id,
+                        pci.pcdi_id
+              union all
+              select pci.internal_contract_item_ref_no,
+                     pcbpd.element_id,
+                     ppfd.instrument_id,
+                     pci.pcdi_id
+                from pci_physical_contract_item     pci,
+                     pcdi_pc_delivery_item          pcdi,
+                     pcipf_pci_pricing_formula      pcipf,
+                     pcbph_pc_base_price_header     pcbph,
+                     pcbpd_pc_base_price_detail     pcbpd,
+                     ppfh_phy_price_formula_header  ppfh,
+                     ppfd_phy_price_formula_details ppfd,
+                     dipq_delivery_item_payable_qty dipq,
+                     pcm_physical_contract_main     pcm
+               where pci.internal_contract_item_ref_no =
+                     pcipf.internal_contract_item_ref_no
+                 and pcipf.pcbph_id = pcbph.pcbph_id
+                 and pcbph.pcbph_id = pcbpd.pcbph_id
+                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
+                 and ppfh.ppfh_id = ppfd.ppfh_id
+                 and pci.pcdi_id = pcdi.pcdi_id
+                 and pcdi.pcdi_id = dipq.pcdi_id
+                 and pcdi.internal_contract_ref_no =
+                     pcm.internal_contract_ref_no
+                 and pci.process_id = pc_process_id
+                 and pcdi.process_id = pc_process_id
+                 and pcipf.process_id = pc_process_id
+                 and pcbph.process_id = pc_process_id
+                 and ppfh.process_id = pc_process_id
+                 and ppfd.process_id = pc_process_id
+                 and dipq.process_id = pc_process_id
+                 and pcm.process_id = pc_process_id
+                 and dipq.element_id = pcbpd.element_id
+                 and pcdi.is_active = 'Y'
+                 and dipq.price_option_call_off_status = 'Not Called Off'
+                 and pcm.product_group_type = 'CONCENTRATES'
+                 and pcm.is_active = 'Y'
+                 and dipq.is_active = 'Y'
+                 and pci.is_active = 'Y'
+                 and pcipf.is_active = 'Y'
+                 and pcbph.is_active = 'Y'
+                 and pcbpd.is_active = 'Y'
+                 and ppfh.is_active = 'Y'
+                 and ppfd.is_active = 'Y'
+               group by pci.internal_contract_item_ref_no,
+                        ppfd.instrument_id,
+                        pcbpd.element_id,
+                        pci.pcdi_id) tt,
+             dim_der_instrument_master dim,
+             pdd_product_derivative_def pdd,
+             emt_exchangemaster emt
+       where tt.instrument_id = dim.instrument_id
+         and dim.product_derivative_id = pdd.derivative_def_id
+         and pdd.exchange_id = emt.exchange_id(+)
+       group by tt.internal_contract_item_ref_no,
+                tt.element_id,
+                tt.instrument_id,
+                dim.instrument_name,
+                pdd.derivative_def_id,
+                pdd.derivative_def_name,
+                emt.exchange_id,
+                emt.exchange_name,
+                tt.pcdi_id;
+    commit;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          2001,
+                          'Start of Loop after Insert CED');
     for cur_pcdi_rows in cur_pcdi
     loop
       if cur_pcdi_rows.payment_due_date is null then
@@ -1796,7 +2034,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and pci.process_id = pc_process_id;
     
     end loop;
-  
+    commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -1884,7 +2122,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              --mv_qat_quality_valuation qat,
-             v_gmr_exchange_detail        qat,
+             ged_gmr_exchange_detail      qat,
              dim_der_instrument_master    dim,
              div_der_instrument_valuation div,
              ps_price_source              ps,
@@ -1900,9 +2138,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and pofh.pocd_id = pocd.pocd_id
             --and grd.quality_id = qat.quality_id
          and gmr.process_id = pc_process_id
-            --and qat.corporate_id = pc_corporate_id
+         and qat.corporate_id(+) = pc_corporate_id
          and gmr.internal_gmr_ref_no = qat.internal_gmr_ref_no(+)
-         and gmr.process_id = qat.process_id(+)
+            --   and gmr.process_id = qat.process_id(+)
          and qat.instrument_id = dim.instrument_id(+)
          and dim.instrument_id = div.instrument_id(+)
          and div.is_deleted(+) = 'N'
@@ -1972,13 +2210,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              --mv_qat_quality_valuation qat,
-             v_gmr_exchange_detail        qat,
-             dim_der_instrument_master    dim,
+             (select *
+                from ged_gmr_exchange_detail
+               where corporate_id = pc_corporate_id) qat,
+             dim_der_instrument_master dim,
              div_der_instrument_valuation div,
-             ps_price_source              ps,
-             apm_available_price_master   apm,
-             pum_price_unit_master        pum,
-             v_der_instrument_price_unit  vdip,
+             ps_price_source ps,
+             apm_available_price_master apm,
+             pum_price_unit_master pum,
+             v_der_instrument_price_unit vdip,
              pdc_prompt_delivery_calendar pdc
        where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
          and grd.product_id = pdm.product_id
@@ -1988,9 +2228,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and pofh.pocd_id = pocd.pocd_id
             --and grd.quality_id = qat.quality_id
          and gmr.process_id = pc_process_id
-            --and qat.corporate_id = pc_corporate_id
+            -- and qat.corporate_id = pc_corporate_id
          and gmr.internal_gmr_ref_no = qat.internal_gmr_ref_no(+)
-         and gmr.process_id = qat.process_id(+)
+            --and gmr.process_id = qat.process_id(+)
          and qat.instrument_id = dim.instrument_id(+)
          and dim.instrument_id = div.instrument_id(+)
          and div.is_deleted(+) = 'N'
@@ -2056,6 +2296,79 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     vc_fixed_price_unit_id         varchar2(15);
     vd_valid_quote_date            date;
   begin
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          2001,
+                          'Start of base gmr price');
+    delete from ged_gmr_exchange_detail ged
+     where ged.corporate_id = pc_corporate_id;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          2002,
+                          'Delete GED');
+    commit;
+  
+    insert into ged_gmr_exchange_detail
+      (corporate_id,
+       internal_gmr_ref_no,
+       instrument_id,
+       instrument_name,
+       derivative_def_id,
+       derivative_def_name,
+       exchange_id,
+       exchange_name,
+       element_id)
+      select pcbpd.process_id,
+             pofh.internal_gmr_ref_no,
+             ppfd.instrument_id,
+             dim.instrument_name,
+             pdd.derivative_def_id,
+             pdd.derivative_def_name,
+             emt.exchange_id,
+             emt.exchange_name,
+             pcbpd.element_id
+        from pofh_price_opt_fixation_header pofh,
+             pocd_price_option_calloff_dtls pocd,
+             pcbpd_pc_base_price_detail     pcbpd,
+             ppfh_phy_price_formula_header  ppfh,
+             ppfd_phy_price_formula_details ppfd,
+             dim_der_instrument_master      dim,
+             pdd_product_derivative_def     pdd,
+             emt_exchangemaster             emt
+       where pofh.pocd_id = pocd.pocd_id
+         and pocd.pcbpd_id = pcbpd.pcbpd_id
+         and pcbpd.pcbpd_id = ppfh.pcbpd_id
+         and ppfh.ppfh_id = ppfd.ppfh_id
+         and pcbpd.process_id = ppfh.process_id
+         and ppfh.process_id = ppfd.process_id
+         and ppfd.instrument_id = dim.instrument_id
+         and dim.product_derivative_id = pdd.derivative_def_id
+         and pdd.exchange_id = emt.exchange_id(+)
+         and pofh.internal_gmr_ref_no is not null
+         and pofh.is_active = 'Y'
+         and pocd.is_active = 'Y'
+         and pcbpd.is_active = 'Y'
+         and ppfh.is_active = 'Y'
+         and ppfd.is_active = 'Y'
+         and ppfd.process_id = pc_process_id
+       group by pcbpd.process_id,
+                pofh.internal_gmr_ref_no,
+                ppfd.instrument_id,
+                dim.instrument_name,
+                pdd.derivative_def_id,
+                pdd.derivative_def_name,
+                emt.exchange_id,
+                emt.exchange_name,
+                pcbpd.element_id;
+    commit;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          2003,
+                          'Insert GED');
+  
     for cur_gmr_rows in cur_gmr
     loop
       vc_price_fixation_status      := null;
@@ -2642,6 +2955,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          null);
     
     end loop;
+    commit;
   end;
 
   procedure sp_calc_stock_price(pc_process_id varchar2) is
@@ -2862,6 +3176,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          vc_price_unit_weight_unit,
          vn_price_unit_weight);
     end if;
+    commit;
   end;
   procedure sp_calc_conc_gmr_price(pc_corporate_id varchar2,
                                    pd_trade_date   date,
@@ -3756,6 +4071,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          vn_price_in_base_price_unit_id);
       vc_exch_rate_string := null;
     end loop;
+    commit;
   end;
   procedure sp_calc_contract_conc_price(pc_corporate_id varchar2,
                                         pd_trade_date   date,
@@ -3820,7 +4136,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       
         from pcdi_pc_delivery_item pcdi,
              --ceqs_contract_ele_qty_status ceqs,
-             v_contract_payable_qty ceqs,
+             cpq_contract_payable_qty ceqs,
              pci_physical_contract_item pci,
              pcm_physical_contract_main pcm,
              ak_corporate akc,
@@ -3829,8 +4145,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              aml_attribute_master_list aml,
              dipch_di_payablecontent_header dipch,
              pcpch_pc_payble_content_header pcpch,
-             (select qat.process_id,
-                     qat.internal_contract_item_ref_no,
+             (select qat.internal_contract_item_ref_no,
                      qat.element_id,
                      qat.instrument_id,
                      dim.instrument_name,
@@ -3844,7 +4159,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      dim.delivery_calender_id,
                      pdc.is_daily_cal_applicable,
                      pdc.is_monthly_cal_applicable
-                from v_contract_exchange_detail   qat,
+                from ced_contract_exchange_detail qat,
                      dim_der_instrument_master    dim,
                      div_der_instrument_valuation div,
                      ps_price_source              ps,
@@ -3860,8 +4175,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                  and div.price_unit_id = pum.price_unit_id
                  and dim.instrument_id = vdip.instrument_id
                  and dim.delivery_calender_id =
-                     pdc.prompt_delivery_calendar_id) tt
-      
+                     pdc.prompt_delivery_calendar_id
+                 and qat.corporate_id = pc_corporate_id) tt
        where pcdi.pcdi_id = pci.pcdi_id
          and pci.internal_contract_item_ref_no =
              ceqs.internal_contract_item_ref_no
@@ -3884,7 +4199,6 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and ceqs.internal_contract_item_ref_no =
              tt.internal_contract_item_ref_no(+)
          and ceqs.element_id = tt.element_id(+)
-         and ceqs.process_id = tt.process_id(+)
          and pci.item_qty > 0
          and ceqs.payable_qty > 0
          and pcdi.process_id = pc_process_id
@@ -3892,7 +4206,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and pcm.process_id = pc_process_id
          and pcpd.process_id = pc_process_id
          and pcpq.process_id = pc_process_id
-         and ceqs.process_id = pc_process_id
+            -- and ceqs.process_id = pc_process_id
          and dipch.process_id = pc_process_id
          and pcpch.process_id = pc_process_id
          and pcpd.is_active = 'Y'
@@ -4022,6 +4336,64 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     vn_price_in_base_price_unit_id number;
     vd_valid_quote_date            date;
   begin
+    delete from cpq_contract_payable_qty cpq
+     where cpq.corporate_id = pc_corporate_id;
+    commit;
+    insert into cpq_contract_payable_qty
+      (corporate_id,
+       internal_contract_item_ref_no,
+       element_id,
+       payable_qty,
+       payable_qty_unit_id)
+      select pc_corporate_id,
+             t.internal_contract_item_ref_no,
+             t.element_id,
+             sum(t.payable_qty) payable_qty,
+             t.qty_unit_id payable_qty_unit_id
+        from (select pci.internal_contract_item_ref_no,
+                     cipq.element_id,
+                     cipq.payable_qty,
+                     cipq.qty_unit_id,
+                     pci.process_id
+                from pci_physical_contract_item     pci,
+                     pcdi_pc_delivery_item          pcdi,
+                     cipq_contract_item_payable_qty cipq
+               where pci.pcdi_id = pcdi.pcdi_id
+                 and pci.internal_contract_item_ref_no =
+                     cipq.internal_contract_item_ref_no
+                 and pci.process_id = pcdi.process_id
+                 and pcdi.process_id = cipq.process_id
+                 and pci.is_active = 'Y'
+                 and pcdi.is_active = 'Y'
+                 and cipq.is_active = 'Y'
+                 and cipq.process_id = pc_process_id
+              union all
+              select /*+ ordered */
+               pci.internal_contract_item_ref_no,
+               spq.element_id,
+               spq.payable_qty,
+               spq.qty_unit_id,
+               pci.process_id
+                from pci_physical_contract_item pci,
+                     pcdi_pc_delivery_item      pcdi,
+                     grd_goods_record_detail    grd,
+                     spq_stock_payable_qty      spq
+               where pci.pcdi_id = pcdi.pcdi_id
+                 and pci.internal_contract_item_ref_no =
+                     grd.internal_contract_item_ref_no
+                    --and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                 and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                 and pci.process_id = pcdi.process_id
+                 and pcdi.process_id = spq.process_id
+                 and spq.process_id = grd.process_id
+                 and pci.is_active = 'Y'
+                 and pcdi.is_active = 'Y'
+                 and spq.is_active = 'Y'
+                 and grd.process_id = pc_process_id) t
+       group by t.internal_contract_item_ref_no,
+                t.element_id,
+                t.qty_unit_id;
+    commit;
     for cur_pcdi_rows in cur_pcdi
     loop
       vc_pcdi_id    := cur_pcdi_rows.pcdi_id;

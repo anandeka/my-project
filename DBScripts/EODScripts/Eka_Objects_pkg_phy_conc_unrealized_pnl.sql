@@ -21,7 +21,7 @@ create or replace package pkg_phy_conc_unrealized_pnl is
                                         pc_previous_process_id varchar2,
                                         pc_dbd_id              varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_phy_conc_unrealized_pnl is
   procedure sp_calc_phy_opencon_unreal_pnl(pc_corporate_id        varchar2,
@@ -175,7 +175,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              md.valuation_month,
              md.valuation_date,
              md.m2m_loc_incoterm_deviation,
-             dense_rank() over(partition by pci.internal_contract_item_ref_no order by cipde.element_id) ele_rank,
+             dense_rank() over(partition by cipde.internal_contract_item_ref_no order by cipde.element_id) ele_rank,
              md.base_price_unit_id_in_ppu,
              md.base_price_unit_id_in_pum,
              pum_base_price_id.price_unit_name base_price_unit_name,
@@ -254,6 +254,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
          and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcdi.pcdi_id = pci.pcdi_id
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpq.pcpd_id = pcpd.pcpd_id
          and pcpd.profit_center_id = cpc.profit_center_id
          and pcm.cp_id = phd_cp.profileid
          and pci.internal_contract_item_ref_no =
@@ -688,6 +689,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                       cur_unrealized_rows.base_cur_code;
           
           end if;
+        else
+          vn_m2m_base_fx_rate := 1;
         end if;
         vn_ele_m2m_amount_in_base := round(vn_ele_m2m_amt *
                                            vn_m2m_base_fx_rate,
@@ -1925,6 +1928,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and pcpq.pcpd_id = pcpd.pcpd_id
                  and pcpd.profit_center_id = cpc.profit_center_id
                  and grd.origin_id = orm.origin_id(+)
                  and grd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
@@ -2255,6 +2259,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and pcpq.pcpd_id = pcpd.pcpd_id
                  and pcpd.profit_center_id = cpc.profit_center_id
                  and grd.origin_id = orm.origin_id(+)
                  and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
@@ -2576,6 +2581,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and pcpq.pcpd_id = pcpd.pcpd_id
                  and pcpd.profit_center_id = cpc.profit_center_id
                  and dgrd.origin_id = orm.origin_id(+)
                  and dgrd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
@@ -2912,6 +2918,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and pcpq.pcpd_id = pcpd.pcpd_id
                  and pcpd.profit_center_id = cpc.profit_center_id
                  and dgrd.origin_id = orm.origin_id(+)
                  and dgrd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
@@ -4693,6 +4700,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and pcpq.pcpd_id = pcpd.pcpd_id
                  and pcpd.profit_center_id = cpc.profit_center_id
                  and grd.origin_id = orm.origin_id(+)
                  and grd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
@@ -4841,20 +4849,20 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
     vc_m2m_pc_exch_rate_string     varchar2(100);
     vc_m2m_tot_pc_exch_rate_string varchar2(100); -- M2M Penalty 
     vn_sc_in_base_cur              number;
-    vn_base_con_penality_charge    number;
-    vc_error_msg                   varchar2(10);
-    vn_forward_points              number;
-    vc_m2m_tc_main_cur_id          varchar2(15);
-    vc_m2m_tc_main_cur_code        varchar2(15);
-    vn_m2m_tc_main_cur_factor      number;
-    vn_m2m_tc_to_base_fw_rate      number;
-    vc_m2m_rc_main_cur_id          varchar2(15);
-    vc_m2m_rc_main_cur_code        varchar2(15);
-    vc_m2m_rc_main_cur_factor      number;
-    vn_m2m_rc_to_base_fw_rate      number;
-    vn_fx_price_deviation          number;
-    vn_product_premium_per_unit    number;
-    vn_product_premium_amt         number;
+    --vn_base_con_penality_charge    number;
+    vc_error_msg                varchar2(10);
+    vn_forward_points           number;
+    vc_m2m_tc_main_cur_id       varchar2(15);
+    vc_m2m_tc_main_cur_code     varchar2(15);
+    vn_m2m_tc_main_cur_factor   number;
+    vn_m2m_tc_to_base_fw_rate   number;
+    vc_m2m_rc_main_cur_id       varchar2(15);
+    vc_m2m_rc_main_cur_code     varchar2(15);
+    vc_m2m_rc_main_cur_factor   number;
+    vn_m2m_rc_to_base_fw_rate   number;
+    vn_fx_price_deviation       number;
+    vn_product_premium_per_unit number;
+    vn_product_premium_amt      number;
     --
     vn_ele_tc_charges number;
     vc_ele_tc_cur_id  varchar2(15);
@@ -5998,5 +6006,5 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end; 
+end;
 /

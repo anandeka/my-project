@@ -101,7 +101,7 @@ create or replace package "PKG_METALS_GENERAL" is
                                        pn_premium                  out number,
                                        pc_exch_rate_string         out varchar2);
 
-end;
+end; 
 /
 create or replace package body "PKG_METALS_GENERAL" is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -2229,22 +2229,22 @@ create or replace package body "PKG_METALS_GENERAL" is
       begin
         select pcepc.include_ref_charges
           into vc_include_ref_charge
-          from pcm_physical_contract_main     pcm,
+          from /*pcm_physical_contract_main     pcm,*/
                pcpch_pc_payble_content_header pcpch,
                pcepc_pc_elem_payable_content  pcepc
-         where pcm.internal_contract_ref_no =
+         where /*pcm.internal_contract_ref_no =
                pcpch.internal_contract_ref_no
-           and pcpch.pcpch_id = pcepc.pcpch_id
-           and pcm.dbd_id = pc_dbd_id
+           and */pcpch.pcpch_id = pcepc.pcpch_id
+           /*and pcm.dbd_id = pc_dbd_id*/
            and pcpch.dbd_id = pc_dbd_id
            and pcepc.dbd_id = pc_dbd_id
            and pcpch.element_id = cc.element_id
-           and pcm.internal_contract_ref_no = cc.internal_contract_ref_no
+           and pcpch.internal_contract_ref_no = cc.internal_contract_ref_no
            and (pcepc.range_min_value <= cc.typical or
                pcepc.position = 'Range Begining')
            and (pcepc.range_max_value > cc.typical or
                pcepc.position = 'Range End')
-           and pcm.is_active = 'Y'
+           /*and pcm.is_active = 'Y'*/
            and pcpch.is_active = 'Y'
            and pcepc.is_active = 'Y';
       exception
@@ -2267,8 +2267,8 @@ create or replace package body "PKG_METALS_GENERAL" is
                                         pum.cur_id,
                                         pum.price_unit_id,
                                         pum.weight_unit_id
-                                   from pcm_physical_contract_main     pcm,
-                                        pcdi_pc_delivery_item          pcdi,
+                                   from /*pcm_physical_contract_main     pcm,
+                                        */pcdi_pc_delivery_item          pcdi,
                                         pci_physical_contract_item     pci,
                                         pcpch_pc_payble_content_header pcpch,
                                         pcepc_pc_elem_payable_content  pcepc,
@@ -2276,11 +2276,11 @@ create or replace package body "PKG_METALS_GENERAL" is
                                         pum_price_unit_master          pum,
                                         gmr_goods_movement_record      gmr,
                                         grh_gmr_refining_header        grh
-                                  where pcm.internal_contract_ref_no =
+                                  where pcpch.internal_contract_ref_no =
                                         pcdi.internal_contract_ref_no
                                     and pcdi.pcdi_id = pci.pcdi_id
-                                    and pcm.internal_contract_ref_no =
-                                        pcpch.internal_contract_ref_no
+                                    /*and pcm.internal_contract_ref_no =
+                                        pcpch.internal_contract_ref_no*/
                                     and pcpch.element_id = cc.element_id
                                     and pcpch.pcpch_id = pcepc.pcpch_id
                                     and pcepc.include_ref_charges = 'Y'
@@ -2296,11 +2296,11 @@ create or replace package body "PKG_METALS_GENERAL" is
                                         grh.internal_gmr_ref_no
                                     and pci.dbd_id = pc_dbd_id
                                     and pcdi.dbd_id = pc_dbd_id
-                                    and pcm.dbd_id = pc_dbd_id
-                                    and pcpch.dbd_id = pc_dbd_id
+                                    /*and pcm.dbd_id = pc_dbd_id
+                                    */and pcpch.dbd_id = pc_dbd_id
                                     and pcepc.dbd_id = pc_dbd_id
                                     and pci.is_active = 'Y'
-                                    and pcm.is_active = 'Y'
+                                    /*and pcm.is_active = 'Y'*/
                                     and pcdi.is_active = 'Y'
                                     and pcpch.is_active = 'Y'
                                     and pcepc.is_active = 'Y')
@@ -3467,5 +3467,5 @@ create or replace package body "PKG_METALS_GENERAL" is
     end loop;
     pn_premium := vn_total_premium;
   end;
-end;
+end; 
 /

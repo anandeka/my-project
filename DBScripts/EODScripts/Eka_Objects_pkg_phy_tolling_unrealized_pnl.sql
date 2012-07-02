@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_PHY_TOLLING_UNREALIZED_PNL" is
+create or replace package "PKG_PHY_TOLLING_UNREALIZED_PNL" is
 
   procedure sp_phy_opencon_ext_unreal_pnl(pc_corporate_id        varchar2,
                                           pd_trade_date          date,
@@ -14,9 +14,9 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_TOLLING_UNREALIZED_PNL" is
                                            pc_user_id             varchar2,
                                            pc_process             varchar2,
                                            pc_previous_process_id varchar2);
-end; 
+end;
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
+create or replace package body "PKG_PHY_TOLLING_UNREALIZED_PNL" is
 
   procedure sp_phy_opencon_ext_unreal_pnl(pc_corporate_id        varchar2,
                                           pd_trade_date          date,
@@ -174,7 +174,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
              md.valuation_month,
              md.valuation_date,
              md.m2m_loc_incoterm_deviation,
-             dense_rank() over(partition by pci.internal_contract_item_ref_no order by cipde.element_id) ele_rank,
+             dense_rank() over(partition by cipde.internal_contract_item_ref_no order by cipde.element_id) ele_rank,
              md.base_price_unit_id_in_ppu,
              md.base_price_unit_id_in_pum,
              pum_base_price_id.price_unit_name base_price_unit_name,
@@ -245,13 +245,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
        where pcm.corporate_id = akc.corporate_id
          and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcdi.pcdi_id = pci.pcdi_id
-         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
          and pcpd.profit_center_id = cpc.profit_center_id
          and pcm.cp_id = phd_cp.profileid
          and pci.internal_contract_item_ref_no =
              ciqs.internal_contract_item_ref_no
          and ciqs.item_qty_unit_id = qum.qty_unit_id
          and pci.pcpq_id = pcpq.pcpq_id
+         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpq.pcpd_id = pcpd.pcpd_id
          and pcpq.quality_template_id = qat.quality_id
          and qat.quality_id = qav.quality_id
          and qav.attribute_id = ppm.property_id
@@ -385,7 +386,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
   
   begin
     for cur_unrealized_rows in cur_unrealized
-    loop  
+    loop
       -- convert wet qty to dry qty
       if cur_unrealized_rows.unit_of_measure = 'Wet' then
         vn_dry_qty := round(pkg_metals_general.fn_get_assay_dry_qty(cur_unrealized_rows.conc_product_id,
@@ -714,8 +715,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
                                                                'PHY-005',
                                                                cur_unrealized_rows.base_cur_code ||
                                                                ' to ' ||
-                                                               vc_price_cur_code||', '||to_char(cur_unrealized_rows.payment_due_date,
-                                                                         'dd-Mon-yyyy'),
+                                                               vc_price_cur_code || ', ' ||
+                                                               to_char(cur_unrealized_rows.payment_due_date,
+                                                                       'dd-Mon-yyyy'),
                                                                '',
                                                                pc_process,
                                                                pc_user_id,
@@ -1584,6 +1586,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and pcpq.pcpd_id = pcpd.pcpd_id
                  and pcpd.profit_center_id = cpc.profit_center_id
                  and grd.origin_id = orm.origin_id(+)
                  and grd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
@@ -1890,6 +1893,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and pcpq.pcpd_id = pcpd.pcpd_id
                  and pcpd.profit_center_id = cpc.profit_center_id
                  and grd.origin_id = orm.origin_id(+)
                  and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
@@ -2184,6 +2188,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and pcpq.pcpd_id = pcpd.pcpd_id
                  and pcpd.profit_center_id = cpc.profit_center_id
                  and dgrd.origin_id = orm.origin_id(+)
                  and dgrd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
@@ -2491,6 +2496,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
                      pcm.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and pcpq.pcpd_id = pcpd.pcpd_id
                  and pcpd.profit_center_id = cpc.profit_center_id
                  and dgrd.origin_id = orm.origin_id(+)
                  and dgrd.internal_gmr_ref_no = tmpc.internal_gmr_ref_no(+)
@@ -3435,5 +3441,5 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_TOLLING_UNREALIZED_PNL" is
       dbms_output.put_line('SQLERRM-1' || sqlerrm);
     
   end;
-end; 
+end;
 /

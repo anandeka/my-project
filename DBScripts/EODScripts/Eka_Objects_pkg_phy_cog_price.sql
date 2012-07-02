@@ -23,7 +23,7 @@ create or replace package pkg_phy_cog_price is
                                   pc_user_id      varchar2,
                                   pc_dbd_id       varchar2,
                                   pc_process      varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -98,19 +98,21 @@ create or replace package body pkg_phy_cog_price is
              dim.delivery_calender_id,
              pdc.is_daily_cal_applicable,
              pdc.is_monthly_cal_applicable
-        from pcdi_pc_delivery_item         pcdi,
+        from pcdi_pc_delivery_item pcdi,
              diqs_delivery_item_qty_status diqs,
-             pcm_physical_contract_main    pcm,
-             ak_corporate                  akc,
-             pcpd_pc_product_definition    pcpd,
-             v_pcdi_exchange_detail        qat,
-             dim_der_instrument_master     dim,
-             div_der_instrument_valuation  div,
-             ps_price_source               ps,
-             apm_available_price_master    apm,
-             pum_price_unit_master         pum,
-             v_der_instrument_price_unit   vdip,
-             pdc_prompt_delivery_calendar  pdc
+             pcm_physical_contract_main pcm,
+             ak_corporate akc,
+             pcpd_pc_product_definition pcpd,
+             (select *
+                from v_pcdi_exchange_detail t
+               where t.corporate_id = pc_corporate_id) qat,
+             dim_der_instrument_master dim,
+             div_der_instrument_valuation div,
+             ps_price_source ps,
+             apm_available_price_master apm,
+             pum_price_unit_master pum,
+             v_der_instrument_price_unit vdip,
+             pdc_prompt_delivery_calendar pdc
        where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
          and pcm.corporate_id = akc.corporate_id
@@ -118,7 +120,6 @@ create or replace package body pkg_phy_cog_price is
          and pcm.contract_type = 'BASEMETAL'
          and pcpd.input_output = 'Input'
          and pcdi.pcdi_id = qat.pcdi_id(+)
-         and pcdi.process_id = qat.process_id(+)
          and qat.instrument_id = dim.instrument_id(+)
          and dim.instrument_id = div.instrument_id(+)
          and div.is_deleted(+) = 'N'
@@ -350,7 +351,8 @@ create or replace package body pkg_phy_cog_price is
                                            cur_pcdi_rows.price_unit_name || ',' ||
                                            cur_pcdi_rows.available_price_name ||
                                            ' Price,Prompt Date:' ||
-                                           to_char(vd_quotes_date,'dd-Mon-RRRR');
+                                           to_char(vd_quotes_date,
+                                                   'dd-Mon-RRRR');
                     vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                          'procedure sp_concentrate_cog_price',
                                                                          'PHY-002',
@@ -581,7 +583,8 @@ create or replace package body pkg_phy_cog_price is
                                          cur_pcdi_rows.price_unit_name || ',' ||
                                          cur_pcdi_rows.available_price_name ||
                                          ' Price,Prompt Date:' ||
-                                         to_char(vd_quotes_date,'dd-Mon-RRRR');
+                                         to_char(vd_quotes_date,
+                                                 'dd-Mon-RRRR');
                   vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                        'procedure sp_concentrate_cog_price',
                                                                        'PHY-002',
@@ -1111,7 +1114,7 @@ create or replace package body pkg_phy_cog_price is
                                      cur_gmr_rows.price_unit_name || ',' ||
                                      cur_gmr_rows.available_price_name ||
                                      ' Price,Prompt Date:' ||
-                                     to_char(vd_quotes_date,'dd-Mon-RRRR');
+                                     to_char(vd_quotes_date, 'dd-Mon-RRRR');
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                    'procedure sp_concentrate_cog_price',
                                                                    'PHY-002',
@@ -1393,8 +1396,7 @@ create or replace package body pkg_phy_cog_price is
              aml_attribute_master_list aml,
              dipch_di_payablecontent_header dipch,
              pcpch_pc_payble_content_header pcpch,
-             (select qat.process_id,
-                     qat.pcdi_id,
+             (select qat.pcdi_id,
                      qat.element_id,
                      qat.instrument_id,
                      dim.instrument_name,
@@ -1424,7 +1426,8 @@ create or replace package body pkg_phy_cog_price is
                  and div.price_unit_id = pum.price_unit_id
                  and dim.instrument_id = vdip.instrument_id
                  and dim.delivery_calender_id =
-                     pdc.prompt_delivery_calendar_id) tt
+                     pdc.prompt_delivery_calendar_id
+                 and qat.corporate_id = pc_corporate_id) tt
        where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
          and pcdi.pcdi_id = dipch.pcdi_id
@@ -1438,7 +1441,7 @@ create or replace package body pkg_phy_cog_price is
          and dipq.element_id = aml.attribute_id
          and dipq.pcdi_id = tt.pcdi_id(+)
          and dipq.element_id = tt.element_id(+)
-         and dipq.process_id = tt.process_id(+)
+            --and dipq.process_id = tt.process_id(+)
          and pcdi.process_id = pc_process_id
          and pcm.process_id = pc_process_id
          and pcpd.process_id = pc_process_id
@@ -1446,7 +1449,7 @@ create or replace package body pkg_phy_cog_price is
          and dipch.process_id = pc_process_id
          and pcpch.process_id = pc_process_id
          and pcdi.pcdi_id = dipq.pcdi_id
-         and dipq.payable_qty>0
+         and dipq.payable_qty > 0
          and pcpd.is_active = 'Y'
          and pcdi.is_active = 'Y'
          and pcm.is_active = 'Y'
@@ -1671,7 +1674,8 @@ create or replace package body pkg_phy_cog_price is
                                          cur_pcdi_rows.price_unit_name || ',' ||
                                          cur_pcdi_rows.available_price_name ||
                                          ' Price,Prompt Date:' ||
-                                         to_char(vd_quotes_date,'dd-Mon-RRRR');
+                                         to_char(vd_quotes_date,
+                                                 'dd-Mon-RRRR');
                   vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                        'procedure sp_concentrate_cog_price',
                                                                        'PHY-002',
@@ -1899,7 +1903,8 @@ create or replace package body pkg_phy_cog_price is
                                          cur_pcdi_rows.price_unit_name || ',' ||
                                          cur_pcdi_rows.available_price_name ||
                                          ' Price,Prompt Date:' ||
-                                         to_char(vd_quotes_date,'dd-Mon-RRRR');
+                                         to_char(vd_quotes_date,
+                                                 'dd-Mon-RRRR');
                   vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                        'procedure sp_calc_contract_conc_price',
                                                                        'PHY-002',
@@ -2221,7 +2226,7 @@ create or replace package body pkg_phy_cog_price is
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
-         and spq.payable_qty>0
+         and spq.payable_qty > 0
       union all
       select gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
@@ -2299,7 +2304,7 @@ create or replace package body pkg_phy_cog_price is
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
-         and spq.payable_qty>0;
+         and spq.payable_qty > 0;
   
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is
       select pofh.internal_gmr_ref_no,
@@ -2448,7 +2453,7 @@ create or replace package body pkg_phy_cog_price is
                                      cur_gmr_rows.price_unit_name || ',' ||
                                      cur_gmr_rows.available_price_name ||
                                      ' Price,Prompt Date:' ||
-                                     to_char(vd_quotes_date,'dd-Mon-RRRR');
+                                     to_char(vd_quotes_date, 'dd-Mon-RRRR');
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                    'procedure sp_conc_contract_cog_price',
                                                                    'PHY-002',
@@ -2691,5 +2696,5 @@ create or replace package body pkg_phy_cog_price is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end; 
+end;
 /
