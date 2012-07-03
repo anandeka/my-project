@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0846
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek
+ 
+Created on*        		:  03-Jul-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+RRevision: 97507
+Author: abhishek.vijay
+Date: 6:42:49 PM, Tuesday, July 03, 2012
+Message:
+modify assay link update
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_319.sql
+
+
+
+
+
