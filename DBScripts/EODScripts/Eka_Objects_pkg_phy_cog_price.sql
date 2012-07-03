@@ -849,6 +849,7 @@ create or replace package body pkg_phy_cog_price is
     cursor cur_gmr is
       select gmr.corporate_id,
              grd.product_id,
+             grd.internal_grd_ref_no internal_grd_ref_no,
              gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
              gmr.qty,
@@ -871,6 +872,7 @@ create or replace package body pkg_phy_cog_price is
              pdc.is_monthly_cal_applicable
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
+                     grd.internal_grd_ref_no,
                      grd.quality_id,
                      grd.product_id
                 from grd_goods_record_detail grd
@@ -880,7 +882,8 @@ create or replace package body pkg_phy_cog_price is
                  and grd.is_deleted = 'N'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
-                        grd.product_id) grd,
+                        grd.product_id,
+                        grd.internal_grd_ref_no) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
              pofh_price_opt_fixation_header pofh,
@@ -915,6 +918,7 @@ create or replace package body pkg_phy_cog_price is
       union all
       select gmr.corporate_id,
              grd.product_id,
+             grd.internal_dgrd_ref_no internal_grd_ref_no,
              gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
              gmr.qty,
@@ -937,6 +941,7 @@ create or replace package body pkg_phy_cog_price is
              pdc.is_monthly_cal_applicable
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
+                     grd.internal_dgrd_ref_no,
                      grd.quality_id,
                      grd.product_id
                 from dgrd_delivered_grd grd
@@ -945,7 +950,8 @@ create or replace package body pkg_phy_cog_price is
                  and grd.tolling_stock_type = 'None Tolling'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
-                        grd.product_id) grd,
+                        grd.product_id,
+                        grd.internal_dgrd_ref_no) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
              pofh_price_opt_fixation_header pofh,
@@ -1325,7 +1331,8 @@ create or replace package body pkg_phy_cog_price is
          price_unit_weight_unit,
          fixed_qty,
          unfixed_qty,
-         price_basis)
+         price_basis,
+         internal_grd_ref_no)
       values
         (pc_process_id,
          pc_corporate_id,
@@ -1342,7 +1349,8 @@ create or replace package body pkg_phy_cog_price is
          vn_price_weight_unit,
          vn_fixed_qty,
          vn_unfixed_qty,
-         vc_price_basis);
+         vc_price_basis,
+         cur_gmr_rows.internal_grd_ref_no);
     
     end loop;
   end;
@@ -2152,6 +2160,7 @@ create or replace package body pkg_phy_cog_price is
       select gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
              grd.product_id,
+             grd.internal_grd_ref_no internal_grd_ref_no,
              tt.instrument_id,
              tt.instrument_name,
              tt.price_source_id,
@@ -2169,6 +2178,7 @@ create or replace package body pkg_phy_cog_price is
              spq.qty_unit_id payable_qty_unit_id
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
+                     grd.internal_grd_ref_no,
                      grd.quality_id,
                      grd.product_id
                 from grd_goods_record_detail grd
@@ -2179,7 +2189,8 @@ create or replace package body pkg_phy_cog_price is
                  and grd.is_deleted = 'N'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
-                        grd.product_id) grd,
+                        grd.product_id,
+                        grd.internal_grd_ref_no) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
              v_gmr_stockpayable_qty spq,
@@ -2224,13 +2235,15 @@ create or replace package body pkg_phy_cog_price is
          and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
+         and spq.internal_grd_ref_no=grd.internal_grd_ref_no --added
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
-         and spq.payable_qty > 0
+         and spq.payable_qty>0
       union all
       select gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
              grd.product_id,
+             grd.internal_dgrd_ref_no internal_grd_ref_no,
              tt.instrument_id,
              tt.instrument_name,
              tt.price_source_id,
@@ -2248,6 +2261,7 @@ create or replace package body pkg_phy_cog_price is
              spq.qty_unit_id payable_qty_unit_id
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
+                     grd.internal_dgrd_ref_no,
                      grd.quality_id,
                      grd.product_id
                 from dgrd_delivered_grd grd
@@ -2257,7 +2271,8 @@ create or replace package body pkg_phy_cog_price is
                      ('None Tolling', 'Clone Stock')
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
-                        grd.product_id) grd,
+                        grd.product_id,
+                        grd.internal_dgrd_ref_no) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
              v_gmr_stockpayable_qty spq,
@@ -2300,6 +2315,7 @@ create or replace package body pkg_phy_cog_price is
          and spq.process_id = pc_process_id
          and tt.element_id = spq.element_id
          and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
+         and grd.internal_dgrd_ref_no=spq.internal_dgrd_ref_no-- added
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
          and gmr.process_id = tt.process_id(+)
@@ -2658,7 +2674,8 @@ create or replace package body pkg_phy_cog_price is
          price_unit_weight_unit,
          fixed_qty,
          unfixed_qty,
-         price_basis)
+         price_basis,
+         internal_grd_ref_no)
       values
         (pc_process_id,
          pc_corporate_id,
@@ -2676,7 +2693,8 @@ create or replace package body pkg_phy_cog_price is
          vn_price_weight_unit,
          vn_fixed_qty,
          vn_unfixed_qty,
-         vc_price_basis);
+         vc_price_basis,
+         cur_gmr_rows.internal_grd_ref_no);
     end loop;
   exception
     when others then
