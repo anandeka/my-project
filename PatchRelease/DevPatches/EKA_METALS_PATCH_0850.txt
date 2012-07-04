@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0850
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok K
+ 
+Created on*        		:  04-Jul-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 97542
+Author: ashokkumar.l
+Date: 10:51:27 AM, Wednesday, July 04, 2012
+Message:
+Bug Fixes 65873,65869
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_DAILY_PRICE_EXPOSURE.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_multiple_premium.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql
+
+Revision: 97549
+Author: ashokkumar.l
+Date: 12:06:26 PM, Wednesday, July 04, 2012
+Message:
+Bug Fixes 66506,66508
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport_Excel.rpt
