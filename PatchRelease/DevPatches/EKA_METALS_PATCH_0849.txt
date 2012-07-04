@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0849
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manjavva
+ 
+Created on*        		:  04-Jul-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 97547
+Author: manjavva.bevoor
+Date: 11:43:06 AM, Wednesday, July 04, 2012
+Message:
+DB scripts for the Invoiceable Spell Correction 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_320.sql
+
