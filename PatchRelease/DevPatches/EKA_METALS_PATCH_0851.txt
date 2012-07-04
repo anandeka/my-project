@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0851
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  04-Jul-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  O/P document.
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 97569
+Author: mayank.chaturvedi
+Date: 3:16:05 PM, Wednesday, July 04, 2012
+Message:
+-patch for o/p doc issue for Assay, Ocular, Handling and Sampling charges..
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_321.sql
+
+
+
