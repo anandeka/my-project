@@ -1,4 +1,4 @@
-create or replace view V_BI_DAILY_PRICE_EXPOSURE AS
+create or replace view v_bi_daily_price_exposure as
 with main_q as (
         -- Average Pricing for the  base 
         select ak.corporate_id,
@@ -22,7 +22,7 @@ with main_q as (
                 pcpd_pc_product_definition pcpd,
                 pdm_productmaster pdm,
                 css_corporate_strategy_setup css,
-                pcpq_pc_product_quality pcpq,
+                --pcpq_pc_product_quality pcpq,
                 qat_quality_attributes qat,
                 poch_price_opt_call_off_header poch,
                 pocd_price_option_calloff_dtls pocd,
@@ -50,16 +50,16 @@ with main_q as (
                 cpc_corporate_profit_center cpc,
                 vd_voyage_detail vd,
                 pfqpp_phy_formula_qp_pricing pfqpp,
-                v_pci_multiple_premium vp,
+                --v_pci_multiple_premium vp,
                 qum_quantity_unit_master qum_pdm
          where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
            and ak.corporate_id = pcm.corporate_id
            and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
            and pcpd.product_id = pdm.product_id
            and pcpd.strategy_id = css.strategy_id
-           and pcpd.pcpd_id = pcpq.pcpd_id
-           and pcpq.quality_template_id = qat.quality_id
-           and pcpq.pcpq_id = vp.pcpq_id(+)
+           --and pcpd.pcpd_id = pcpq.pcpd_id
+           --and pcpq.quality_template_id = qat.quality_id
+           --and pcpq.pcpq_id = vp.pcpq_id(+)
            and pdm.product_id = qat.product_id
            and pcdi.pcdi_id = poch.pcdi_id
            and poch.poch_id = pocd.poch_id
@@ -116,7 +116,7 @@ with main_q as (
                qum_quantity_unit_master qum,
                pcpd_pc_product_definition pcpd,
                css_corporate_strategy_setup css,
-               pcpq_pc_product_quality pcpq,
+               --pcpq_pc_product_quality pcpq,
                pdm_productmaster pdm,
                qat_quality_attributes qat,
                poch_price_opt_call_off_header poch,
@@ -155,9 +155,9 @@ with main_q as (
            and ak.corporate_id = pcm.corporate_id
            and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
            and pcpd.strategy_id = css.strategy_id
-           and pcpd.pcpd_id = pcpq.pcpd_id
+           --and pcpd.pcpd_id = pcpq.pcpd_id
            and pcpd.product_id = pdm.product_id
-           and pcpq.quality_template_id = qat.quality_id
+           --and pcpq.quality_template_id = qat.quality_id
            and pdm.product_id = qat.product_id
            and pcdi.pcdi_id = poch.pcdi_id
            and poch.poch_id = pocd.poch_id
@@ -223,7 +223,7 @@ with main_q as (
                qum_quantity_unit_master qum,
                pcdi_pc_delivery_item pcdi,
                pcpd_pc_product_definition pcpd,
-               pcpq_pc_product_quality pcpq,
+               --pcpq_pc_product_quality pcpq,
                pdm_productmaster pdm,
                css_corporate_strategy_setup css,
                qat_quality_attributes qat,
@@ -250,7 +250,7 @@ with main_q as (
                pcbph_pc_base_price_header pcbph,
                pofh_price_opt_fixation_header pofh,
                pfd_price_fixation_details pfd,
-               v_pci_multiple_premium vp,
+               --v_pci_multiple_premium vp,
                cpc_corporate_profit_center cpc,
                vd_voyage_detail vd,
                pfqpp_phy_formula_qp_pricing pfqpp,
@@ -258,11 +258,11 @@ with main_q as (
          where ak.corporate_id = pcm.corporate_id
            and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
            and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-           and pcpd.pcpd_id = pcpq.pcpd_id
+           --and pcpd.pcpd_id = pcpq.pcpd_id
            and pdm.product_id = pcpd.product_id
            and pcpd.strategy_id = css.strategy_id
-           and pcpq.quality_template_id = qat.quality_id
-           and pcpq.pcpq_id = vp.pcpq_id(+)
+           --and pcpq.quality_template_id = qat.quality_id
+           --and pcpq.pcpq_id = vp.pcpq_id(+)
            and qat.product_id = pdm.product_id
            and pcdi.pcdi_id = poch.pcdi_id
            and pocd.poch_id = poch.poch_id
@@ -317,7 +317,7 @@ with main_q as (
                qum_quantity_unit_master qum,
                pcdi_pc_delivery_item pcdi,
                pcpd_pc_product_definition pcpd,
-               pcpq_pc_product_quality pcpq,
+               --pcpq_pc_product_quality pcpq,
                pdm_productmaster pdm,
                css_corporate_strategy_setup css,
                qat_quality_attributes qat,
@@ -356,11 +356,11 @@ with main_q as (
          where ak.corporate_id = pcm.corporate_id
            and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
            and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-           and pcpd.pcpd_id = pcpq.pcpd_id
+           --and pcpd.pcpd_id = pcpq.pcpd_id
            and pdm.product_id = pcpd.product_id
            and pcpd.strategy_id = css.strategy_id
            and qat.product_id = pdm.product_id
-           and pcpq.quality_template_id = qat.quality_id
+           --and pcpq.quality_template_id = qat.quality_id
            and pcdi.pcdi_id = poch.pcdi_id
            and pocd.poch_id = poch.poch_id
            and poch.element_id = aml.attribute_id
@@ -417,7 +417,7 @@ with main_q as (
                ak_corporate ak,
                pcpd_pc_product_definition pcpd,
                css_corporate_strategy_setup css,
-               pcpq_pc_product_quality pcpq,
+               --pcpq_pc_product_quality pcpq,
                pdm_productmaster pdm,
                qat_quality_attributes qat,
                poch_price_opt_call_off_header poch,
@@ -453,10 +453,10 @@ with main_q as (
          where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
            and ak.corporate_id = pcm.corporate_id
            and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-           and pcpd.pcpd_id = pcpq.pcpd_id
+           --and pcpd.pcpd_id = pcpq.pcpd_id
            and pdm.product_id = pcpd.product_id
            and pcpd.strategy_id = css.strategy_id
-           and pcpq.quality_template_id = qat.quality_id
+           --and pcpq.quality_template_id = qat.quality_id
            and qat.product_id = pdm.product_id
            and pcdi.pcdi_id = poch.pcdi_id
            and pocd.poch_id = poch.poch_id
@@ -521,7 +521,7 @@ with main_q as (
                gmr_goods_movement_record gmr,
                ak_corporate ak,
                pcpd_pc_product_definition pcpd,
-               pcpq_pc_product_quality pcpq,
+               --pcpq_pc_product_quality pcpq,
                css_corporate_strategy_setup css,
                pdm_productmaster pdm,
                qat_quality_attributes qat,
@@ -563,10 +563,10 @@ with main_q as (
            and pcm.contract_type = 'CONCENTRATES'
            and ak.corporate_id = pcm.corporate_id
            and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-           and pcpd.pcpd_id = pcpq.pcpd_id
+           --and pcpd.pcpd_id = pcpq.pcpd_id
            and pcpd.strategy_id = css.strategy_id
            and pdm.product_id = pcpd.product_id
-           and pcpq.quality_template_id = qat.quality_id
+           --and pcpq.quality_template_id = qat.quality_id
            and pcdi.pcdi_id = poch.pcdi_id
            and pocd.poch_id = poch.poch_id
            and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
@@ -639,7 +639,7 @@ with main_q as (
                pcdi_pc_delivery_item pcdi,
                pcpd_pc_product_definition pcpd,
                css_corporate_strategy_setup css,
-               pcpq_pc_product_quality pcpq,
+               --pcpq_pc_product_quality pcpq,
                pdm_productmaster pdm,
                qat_quality_attributes qat,
                poch_price_opt_call_off_header poch,
@@ -668,17 +668,17 @@ with main_q as (
                cpc_corporate_profit_center cpc,
                vd_voyage_detail vd,
                pfqpp_phy_formula_qp_pricing pfqpp,
-               v_pci_multiple_premium vp,
+               --v_pci_multiple_premium vp,
                qum_quantity_unit_master qum,
                qum_quantity_unit_master qum_pdm
          where ak.corporate_id = pcm.corporate_id
            and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
            and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
            and pcpd.strategy_id = css.strategy_id
-           and pcpd.pcpd_id = pcpq.pcpd_id
+           --and pcpd.pcpd_id = pcpq.pcpd_id
            and pdm.product_id = pcpd.product_id
-           and pcpq.quality_template_id = qat.quality_id
-           and pcpq.pcpq_id = vp.pcpq_id(+)
+           --and pcpq.quality_template_id = qat.quality_id
+           --and pcpq.pcpq_id = vp.pcpq_id(+)
            and qat.product_id = pdm.product_id
            and pcdi.pcdi_id = poch.pcdi_id
            and pocd.poch_id = poch.poch_id
@@ -746,7 +746,7 @@ with main_q as (
                pcdi_pc_delivery_item pcdi,
                pcpd_pc_product_definition pcpd,
                css_corporate_strategy_setup css,
-               pcpq_pc_product_quality pcpq,
+               --pcpq_pc_product_quality pcpq,
                pdm_productmaster pdm,
                qat_quality_attributes qat,
                poch_price_opt_call_off_header poch,
@@ -787,9 +787,9 @@ with main_q as (
            and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
            and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
            and pcpd.strategy_id = css.strategy_id
-           and pcpd.pcpd_id = pcpq.pcpd_id
+           --and pcpd.pcpd_id = pcpq.pcpd_id
            and pdm.product_id = pcpd.product_id
-           and pcpq.quality_template_id = qat.quality_id
+           --and pcpq.quality_template_id = qat.quality_id
            and qat.product_id = pdm.product_id
            and pcdi.pcdi_id = poch.pcdi_id
            and poch.element_id = aml.attribute_id
@@ -996,4 +996,5 @@ where drt.trade_date =  trunc(sysdate)
           drt.product_id,
           drt.product_desc,
           drt.qty_unit_id,
-          drt.qty_unit
+          drt.qty_unit;    
+ 

@@ -448,7 +448,7 @@ select ak.corporate_id,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
        diqs_delivery_item_qty_status diqs,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
        pdm_productmaster pdm,
@@ -483,7 +483,7 @@ select ak.corporate_id,
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.pcdi_id = diqs.pcdi_id
    and diqs.is_active = 'Y'
-   and pcdi.pcdi_id = pcdiqd.pcdi_id
+   --and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pcpd.strategy_id = css.strategy_id
    and pdm.product_id = pcpd.product_id
@@ -586,7 +586,7 @@ select ak.corporate_id,
        gmr_goods_movement_record gmr,
        ak_corporate ak,
        pcdi_pc_delivery_item pcdi,
-       pcdiqd_di_quality_details pcdiqd,
+       --pcdiqd_di_quality_details pcdiqd,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
        pdm_productmaster pdm,
@@ -620,7 +620,7 @@ select ak.corporate_id,
        qum_quantity_unit_master qum
  where ak.corporate_id = pcm.corporate_id
  and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
- and pcdi.pcdi_id = pcdiqd.pcdi_id
+ --and pcdi.pcdi_id = pcdiqd.pcdi_id
  and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
  and pcpd.strategy_id = css.strategy_id
  and pdm.product_id = pcpd.product_id
@@ -1878,4 +1878,4 @@ select ak.corporate_id,
           pcdi.basis_type,
           pcdi.transit_days,
           pcdi.is_price_optionality_present,
-          pcdi.price_option_call_off_status
+          pcdi.price_option_call_off_status 
