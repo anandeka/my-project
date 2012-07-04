@@ -4978,8 +4978,8 @@ select t.process_id,
          and iid.invoice_currency_id = cm_invoice.cur_id(+)
          and bccp.price_unit_cur_id = cm_inven.cur_id(+)
          and qat.quality_id = qat_ppm.quality_id(+)
-         and upper(pcm.contract_type) = 'BASEMETAL'
-         and pcm.is_active = 'Y'
+         and pcm.contract_type = 'BASEMETAL'
+        /* and pcm.is_active = 'Y'*/
          and pcdi.is_active = 'Y'
          and pci.is_active = 'Y'
          and pcpd.is_active = 'Y'
@@ -5233,8 +5233,7 @@ select t.process_id,
                  and qat.quality_id = qav.quality_id
                  and qav.attribute_id = ppm.property_id) qat_ppm,
              v_ppu_pum ppu
-      
-       where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+ where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcdi.pcdi_id = pci.pcdi_id
          and pci.internal_contract_item_ref_no =
              grd.internal_contract_item_ref_no
@@ -5270,8 +5269,8 @@ select t.process_id,
          and iid.invoice_currency_id = cm_invoice.cur_id(+)
          and bgcp.price_unit_cur_id = cm_inven.cur_id(+)
          and qat.quality_id = qat_ppm.quality_id(+)
-         and upper(pcm.contract_type) = 'BASEMETAL'
-         and pcm.is_active = 'Y'
+         and pcm.contract_type = 'BASEMETAL'
+     /*    and pcm.is_active = 'Y'*/
          and pcdi.is_active = 'Y'
          and pci.is_active = 'Y'
          and pcpd.is_active = 'Y'
@@ -5290,14 +5289,14 @@ select t.process_id,
          and ppu.cur_id = ak.base_cur_id
          and ppu.weight_unit_id = pdm.base_quantity_unit
          and nvl(ppu.weight, 1) = 1;
-    -- and grd.current_qty > 0  
+         -- and grd.current_qty > 0  
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           1008,
                           'End of Base Metal');
-    ------concentrates
+    -- Concentrates
     insert into isr_intrastat_grd
       (corporate_id,
        process_id,
@@ -5630,8 +5629,7 @@ select t.process_id,
                  and qat.quality_id = qat_ppm.quality_id(+)
                  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
                  and sam.is_latest_pricing_assay = 'Y'
-                 and upper(pcm.contract_type) = 'CONCENTRATES'
-                 and pcm.is_active = 'Y'
+                 and pcm.contract_type = 'CONCENTRATES'
                  and pcdi.is_active = 'Y'
                  and pci.is_active = 'Y'
                  and pcpd.is_active = 'Y'
@@ -5650,6 +5648,7 @@ select t.process_id,
                  and spq.process_id = pc_process_id
                  and spq.is_stock_split = 'N'
                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                 and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and spq.element_id = aml.attribute_id
                  and cccp.process_id = pc_process_id
                  and cccp.pcdi_id = pci.pcdi_id
@@ -5658,10 +5657,9 @@ select t.process_id,
                  and spq.element_id = poch.element_id
                  and spq.element_id = cccp.element_id
                  and aml.underlying_product_id = pdm_aml.product_id
-                 and nvl(pocd.qp_period_type, 'NA') <> 'Event'
-              -- and grd.current_qty > 0
-             );
-    commit;
+                and nvl(pocd.qp_period_type, 'NA') <> 'Event');
+                  -- and grd.current_qty > 0
+    Commit;
       sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -5999,8 +5997,8 @@ select t.process_id,
                  and qat.quality_id = qat_ppm.quality_id(+)
                  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
                  and sam.is_latest_pricing_assay = 'Y'
-                 and upper(pcm.contract_type) = 'CONCENTRATES'
-                 and pcm.is_active = 'Y'
+                 and pcm.contract_type = 'CONCENTRATES'
+                 /* and pcm.is_active = 'Y'*/
                  and pcdi.is_active = 'Y'
                  and pci.is_active = 'Y'
                  and pcpd.is_active = 'Y'
@@ -6019,6 +6017,7 @@ select t.process_id,
                  and spq.process_id = pc_process_id
                  and spq.is_stock_split = 'N'
                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                 and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and spq.element_id = aml.attribute_id
                  and aml.underlying_product_id = pdm_aml.product_id
                     --  and grd.current_qty > 0
@@ -8860,8 +8859,9 @@ select t.process_id,
                           pc_process_id,
                           1005,
                           'Start Of Base Metal Not Event Based');
-
-    -- Base Metal Not Event Based 
+--
+-- Base Metal Not Event Based 
+--
     insert into cr_customs_report
       (process_id,
        internal_contract_ref_no,
@@ -9200,8 +9200,9 @@ select t.process_id,
                           pc_process_id,
                           1005,
                           'Start Of Base Metal Event Based');                
-             -- Base Metal Event based
-                
+--                          
+-- Base Metal Event based
+--
       insert into cr_customs_report
         (process_id,
          internal_contract_ref_no,
@@ -9535,8 +9536,9 @@ select t.process_id,
                           pc_process_id,
                           1005,
                           'Start Of Concentrate Metal Not Event Based');                  
-              -- Concentrate Not Event Based
-                  
+--
+-- Concentrate Not Event Based
+--                  
       insert into cr_customs_report
         (process_id,
          internal_contract_ref_no,
@@ -9821,6 +9823,7 @@ select t.process_id,
                    and spq.process_id = pc_process_id
                    and spq.is_stock_split = 'N'
                    and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                   and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                    and spq.element_id = aml.attribute_id
                    and spq.element_id = poch.element_id
                    and aml.underlying_product_id = pdm_aml.product_id
@@ -9885,7 +9888,9 @@ select t.process_id,
                           1005,
                           'Start Of Concentrate Metal Event Based');                  
    
+--
 -- Concentrates Event Based                  
+--
     insert into cr_customs_report
       (process_id,
        internal_contract_ref_no,
@@ -10167,9 +10172,10 @@ select t.process_id,
                  and spq.process_id = pc_process_id
                  and spq.is_stock_split = 'N'
                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                 and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and spq.element_id = aml.attribute_id
                  and aml.underlying_product_id = pdm_aml.product_id
-                    -- and aml.underlying_product_id = pdm.product_id
+                 -- and aml.underlying_product_id = pdm.product_id
                  and grd.current_qty > 0)
        group by internal_contract_ref_no,
                 contract_ref_no,

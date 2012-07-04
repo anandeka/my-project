@@ -425,11 +425,11 @@ create or replace package body pkg_phy_physical_process is
                           'sp_calc_customs_report');
     vc_err_msg := 'sp_calc_customs_report';
   
-    /*pkg_phy_eod_reports.sp_calc_customs_report(pc_corporate_id,
-    pd_trade_date,
-    pc_process_id,
-    pc_user_id,
-    pc_process);*/
+    pkg_phy_eod_reports.sp_calc_customs_report(pc_corporate_id,
+                                               pd_trade_date,
+                                               pc_process_id,
+                                               pc_user_id,
+                                               pc_process);
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
