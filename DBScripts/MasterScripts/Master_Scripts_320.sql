@@ -1,0 +1,1 @@
+update AMC_APP_MENU_CONFIGURATION set MENU_DISPLAY_NAME='List Of Invoiceable Items' where MENU_ID='F5';
