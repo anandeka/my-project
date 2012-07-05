@@ -1,0 +1,71 @@
+Patch No*          		:  EKA_METALS_PATCH_0855
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  05-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 97731
+Author: elaiyaraja.nallathambi
+Date: 6:23:50 PM, Thursday, July 05, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_daily_hedge_correction.sql
+
+Revision: 97732
+Author: elaiyaraja.nallathambi
+Date: 6:25:25 PM, Thursday, July 05, 2012
+Message:
+Free Metal Section added along with the addition of "Price" and "Pay In Currency" column.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+
+Revision: 97739
+Author: elaiyaraja.nallathambi
+Date: 7:16:42 PM, Thursday, July 05, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql
+
+Revision: 97741
+Author: elaiyaraja.nallathambi
+Date: 7:17:42 PM, Thursday, July 05, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+
+
+
+
