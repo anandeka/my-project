@@ -505,7 +505,7 @@ select akc.corporate_id,
        end) sub_section,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
-       pdm.product_id,
+       aml.underlying_product_id product_id,
        pdm.product_desc product,
        pcm.trader_id trader_id,
        gab.firstname || ' ' || gab.lastname trader,
@@ -600,7 +600,8 @@ select akc.corporate_id,
        pum_price_unit_master          pum,
        qum_quantity_unit_master       qum,
        axs_action_summary             axs,
-       phd_profileheaderdetails       phd
+       phd_profileheaderdetails       phd,
+       aml_attribute_master_list      aml
  where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcdi.pcdi_id = poch.pcdi_id
    and poch.poch_id = pocd.poch_id
@@ -618,7 +619,8 @@ select akc.corporate_id,
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
    and pcm.payment_term_id = pym.payment_term_id
    and pcpd.profit_center_id = cpc.profit_center_id
-   and pcpd.product_id = pdm.product_id
+   and poch.element_id=aml.attribute_id
+   and aml.underlying_product_id = pdm.product_id
    and akc.base_cur_id = cm_base.cur_id
    and pocd.pay_in_cur_id = cm_pay.cur_id
    and pfd.price_unit_id = ppu.product_price_unit_id(+)
