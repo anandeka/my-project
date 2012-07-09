@@ -1,0 +1,1 @@
+alter table HCD_HEDGE_CORRECTION_DETAILS add EVENT_SEQUENC_NO varchar(30);
