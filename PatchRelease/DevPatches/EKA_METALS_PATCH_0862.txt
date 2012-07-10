@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0862
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj	
+ 
+Created on*        		:  10-Jul-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		: 66460,66603,66695
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 98097
+Author: saurabh.raj
+Date: 5:08:56 PM, Tuesday, July 10, 2012
+Message:
+Bug Fixed
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_LOGISTICS.sql
+
+Revision: 98098
+Author: saurabh.raj
+Date: 5:10:18 PM, Tuesday, July 10, 2012
+Message:
+Bug Fixed
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_feed.sql
+
+
+
+
+
+
+
+
+
+
