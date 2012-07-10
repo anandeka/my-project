@@ -81,6 +81,8 @@ select tt.corporate_id,
                    and grdul.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                    and grd.internal_grd_ref_no = grdul.internal_grd_ref_no
                    and grd.tolling_stock_type = 'MFT In Process Stock'
+                   and gmr.is_deleted='N'--Bug 66695
+                   and grd.status = 'Active'
                  group by grdul.internal_grd_ref_no,
                           grd.internal_grd_ref_no) t,
                grd_goods_record_detail grd,
