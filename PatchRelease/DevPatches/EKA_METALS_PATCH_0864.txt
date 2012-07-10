@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0864
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  10-Jul-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 98154
+Author: anandp
+Date: 20:25:55, 10 July 2012
+Message:
+Increase the column size.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_325.sql
+
+
+
+
+
+
+
+
+
+
+
