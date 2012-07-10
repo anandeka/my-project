@@ -75,7 +75,7 @@ select t.groupid,
        (t.bl_wet_weight - t.actual_wet_weight) wet_qty_diff,
        (t.bl_dry_weight - t.actual_dry_weight) dry_qty_diff,
        (t.bl_wet_weight - t.actual_wet_weight) / t.bl_wet_weight * 100 wet_ratio,
-       (t.bl_dry_weight - t.actual_dry_weight) / t.bl_wet_weight * 100 dry_ratio
+       (t.bl_dry_weight - t.actual_dry_weight) / t.bl_dry_weight * 100 dry_ratio
   from (select gcd.groupid,
                gcd.groupname corporate_group,
                gmr.corporate_id,
