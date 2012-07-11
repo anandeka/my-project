@@ -406,4 +406,4 @@ SELECT pss.corporate_id, akc.corporate_name,pss.trader_id trader_user_id,
    AND pss.product_id = pdm.product_id
    AND ucm.is_active = 'Y'
    AND tdc.process = 'EOD'
-   AND pss.price_type_id <> 'Fixed'
+  -- AND pss.price_type_id <> 'Fixed' remove the condition to get both fixed and variable price contract for concentrate 
