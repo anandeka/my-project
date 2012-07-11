@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0867
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  11-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+NOTE:-
+     The below order should be followed while appling this patch:-
+	 Order 1:- object_script_294.sql
+	 Order 2:- TRG_INSERT_GRDL.sql
+********************************************************************
+
+Revision: 98279
+Author: babulal.meena
+Date: 7:08:48 PM, Wednesday, July 11, 2012
+Message:
+Db script to populate SUPP_INTERNAL_GMR_REF_NO & utility_header_id column into GRDL table
+------------------------------------------------------------------------
+1. Added SUPP_INTERNAL_GMR_REF_NO new column into GRDL table
+2. Modified GRDL trigger to populate SUPP_INTERNAL_GMR_REF_NO & utility_header_idcolumn into GRDL table, And formatted the Trigger using PLSQL-Developer beautifier
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_GRDL.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_294.sql
