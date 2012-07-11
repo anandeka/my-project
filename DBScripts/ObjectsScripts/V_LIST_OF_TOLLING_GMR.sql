@@ -115,6 +115,8 @@ select gmr.corporate_id as corporate_id,
        end) is_free_material,
        cp.pcdi_id pcdi_id,
        cp.deliveryitemrefno as delivery_item_ref_no,
+       wrd.feeding_point_id,
+       sfp.feeding_point_name,
        axs.created_date,
        (select aku_sub.login_name
           from ak_corporate_user aku_sub
@@ -148,7 +150,8 @@ select gmr.corporate_id as corporate_id,
          group by gcim.internal_gmr_ref_no,
                   pci.price_allocation_method) cp,
        wrd_warehouse_receipt_detail wrd,
-       phd_profileheaderdetails phd_cp
+       phd_profileheaderdetails phd_cp,
+       sfp_smelter_feeding_point sfp
  where gmr.internal_gmr_ref_no = wrd.internal_gmr_ref_no
    and gmr.internal_gmr_ref_no = gam.internal_gmr_ref_no(+)
    and gam.internal_action_ref_no(+) = gmr.gmr_first_int_action_ref_no
@@ -159,6 +162,7 @@ select gmr.corporate_id as corporate_id,
    and wrd.warehouse_profile_id = shm.profile_id(+)
    and wrd.shed_id = shm.shed_id(+)
    and phd_cp.profileid = wrd.smelter_cp_id
+   and sfp.feeding_point_id(+) = wrd.feeding_point_id
    and gmr.internal_gmr_ref_no = cp.internal_gmr_ref_no(+)
    and nvl(gmr.tolling_gmr_type, 'None Tolling') in
        ('Mark For Tolling', 'Received Materials', 'Return Material')
