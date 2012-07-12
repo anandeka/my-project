@@ -40,7 +40,8 @@ Date: 4:24:44 PM, Thursday, July 12, 2012
 Message:
 Bug Fixes
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_spq_latest_assay.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
 
 
