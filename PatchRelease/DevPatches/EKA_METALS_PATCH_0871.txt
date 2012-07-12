@@ -1,0 +1,60 @@
+Patch No*          		:  EKA_METALS_PATCH_0871
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  12-Jul-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  Enhancement
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  Report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 98379
+Author: elaiyaraja.nallathambi
+Date: 5:14:50 PM, Thursday, July 12, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_328.sql
+
+Revision: 98381
+Author: elaiyaraja.nallathambi
+Date: 5:15:35 PM, Thursday, July 12, 2012
+Message:
+New Release
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport.rpt
+
+Revision: 98383
+Author: elaiyaraja.nallathambi
+Date: 5:16:15 PM, Thursday, July 12, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_74_DML_RPC_RFP_Scripts.sql
+
