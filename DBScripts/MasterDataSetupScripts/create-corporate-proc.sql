@@ -1,7 +1,7 @@
 declare
 
-  l_corporate_name varchar2(200) := 'Boliden';
-  l_corporate_id   varchar2(10) := 'BLD';
+  l_corporate_name varchar2(200) := 'Boliden1';
+  l_corporate_id   varchar2(10) := 'BL1';
   l_image_name     varchar2(100) := '';
   l_group_id       varchar2(15) := 'GCD-1';
   l_ref_corp_id    varchar2(15) := 'LDE';
@@ -58,6 +58,11 @@ declare
     select *
       from bpc_bp_corporates bpc
      where bpc.corporate_id = l_ref_corp_id;
+
+  cursor cur_DC is  
+    select *
+      from DC_DOCUMENT_CONFIGURATION dc
+     where dc.corporate_id = l_ref_corp_id;
 
 begin
 
@@ -193,6 +198,17 @@ begin
       select l_seq_bpc, cur_bpc_impl.bp_id, l_corporate_id, 'N' from dual;
   
   end loop;
+
+
+  for cur_dc_impl in cur_DC loop
+  
+     
+    insert into DC_DOCUMENT_CONFIGURATION
+      (ACTIVITY_ID, CORPORATE_ID, IS_GENERATE_DOC_REQD, IS_UPLOAD_DOC_REQD,DOC_VALIDATION_QUERY,NAVIGATION)
+      select cur_dc_impl.ACTIVITY_ID, l_corporate_id, cur_dc_impl.IS_GENERATE_DOC_REQD, cur_dc_impl.IS_UPLOAD_DOC_REQD,cur_dc_impl.DOC_VALIDATION_QUERY,cur_dc_impl.NAVIGATION from dual;
+  
+  end loop;
+
 
   -- CCG Table
 
