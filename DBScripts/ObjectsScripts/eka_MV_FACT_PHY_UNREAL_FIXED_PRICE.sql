@@ -279,7 +279,8 @@ SELECT poud.corporate_id, poud.corporate_name,
                                     'NA' valuation_instrument,
        'NA' derivative_def_id, 'NA' derivative_def_name, 'NA' valuation_month,
        NULL value_date,
-       poud.expected_cog_net_sale_value total_cost_in_m2m_currency,
+     --------------------  poud.expected_cog_net_sale_value total_cost_in_m2m_currency,
+       poud.net_contract_value_in_base_cur total_cost_in_m2m_currency,
        poud.base_cur_code m2m_currency,                        --base currency
        poud.expected_cog_net_sale_value expected_cog_net_sale_value,
 

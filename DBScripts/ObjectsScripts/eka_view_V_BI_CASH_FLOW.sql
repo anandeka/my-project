@@ -699,7 +699,7 @@ SELECT 'Open Contracts',
            ELSE
             'Sales'
        END) contract_type,
-       nvl(mvf.contract_ref_no,'NA') ref_no,
+     
        'Open Contracts' position_type,
        (CASE
            WHEN mvf.position_sub_type LIKE '%Purchase%' THEN
@@ -707,6 +707,7 @@ SELECT 'Open Contracts',
            ELSE
             'Inflow'
        END) inflow_outflow,
+         nvl(mvf.contract_ref_no,'NA') ref_no,
        'NA' invoice_type,
        NULL invoice_cur_id,
        mvf.m2m_currency invoice_cur_code,
@@ -881,7 +882,7 @@ FROM   gmr_goods_movement_record    gmr,
        cm_currency_master           cm_base,
        cm_currency_master cm_pum,
        pcpd_pc_product_definition   pcpd,
-        blm_business_line_master      blm,
+       blm_business_line_master      blm,
        pgm_product_group_master      pgm,
        phd_profileheaderdetails phd_contract_cp,
        ak_corporate_user             akcu,
