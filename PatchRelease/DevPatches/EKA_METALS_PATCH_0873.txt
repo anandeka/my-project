@@ -35,11 +35,13 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
-Revision: 98474
+Revision: 98477
 Author: ramachandran.r
-Date: 1:09:45 PM, Friday, July 13, 2012
+Date: 1:30:44 PM, Friday, July 13, 2012
 Message:
 Added columns in FMUH_FREE_METAL_UTILITY_HEADER and FMED_FREE_METAL_ELEMT_DETAILS
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_306.txt
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_295.sql
+
+
 
