@@ -40,10 +40,14 @@ Date: 3:59:17 PM, Friday, July 13, 2012
 Message:
 Monthly Arrival Report Added
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/59_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/59_DDL_EODDB_TABLE_ALTER_SCRIPT.sql(Revision: 98533)
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_gmr_assay_status.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
+
 
 
 
