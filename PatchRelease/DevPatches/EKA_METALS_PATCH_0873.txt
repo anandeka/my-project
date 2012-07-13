@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0873
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  13-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Free Metal utility
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 98474
+Author: ramachandran.r
+Date: 1:09:45 PM, Friday, July 13, 2012
+Message:
+Added columns in FMUH_FREE_METAL_UTILITY_HEADER and FMED_FREE_METAL_ELEMT_DETAILS
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_306.txt
+
