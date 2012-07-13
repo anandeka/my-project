@@ -52,7 +52,7 @@ create or replace package pkg_phy_physical_process is
                                 pc_process_id   varchar2);
   procedure sp_phy_rebuild_stats;
 
-end;
+end; 
 /
 create or replace package body pkg_phy_physical_process is
 
@@ -992,7 +992,22 @@ create or replace package body pkg_phy_physical_process is
     pkg_phy_eod_reports.sp_daily_position_record(pc_corporate_id,
                                                  pd_trade_date,
                                                  pc_process_id);
+if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_arrival_report');
+    vc_err_msg := 'Before sp_arrival_report';
   
+    pkg_phy_eod_reports.sp_arrival_report( pc_corporate_id,
+                                            pd_trade_date,
+                                            pc_process_id,
+                                            pc_process); 
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -3791,6 +3806,8 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     delete from rgmrc_realized_gmr_conc where process_id = pc_process_id;
     delete from trgmrc_temp_rgmr_conc where corporate_id = pc_corporate_id;
+    delete from AR_ARRIVAL_REPORT where process_id = pc_process_id;
+    delete from ARE_ARRIVAL_REPORT_ELEMENT where process_id = pc_process_id;
     --
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
@@ -3866,5 +3883,5 @@ create or replace package body pkg_phy_physical_process is
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end;
+end; 
 /

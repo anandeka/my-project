@@ -61,6 +61,10 @@ create or replace package pkg_phy_eod_reports is
   procedure sp_daily_position_record(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_process_id   varchar2);
+  procedure sp_arrival_report(pc_corporate_id varchar2,
+                              pd_trade_date   date,
+                              pc_process_id   varchar2,
+                              pc_process      varchar2);
 end;
 /
 create or replace package body pkg_phy_eod_reports is
@@ -3906,7 +3910,7 @@ select t.process_id,
          and cym_load.region_id = rem_load.region_id
          and cym_discharge.region_id = rem_discharge.region_id
          and grd.internal_grd_ref_no = iid.stock_id(+)
-         and iid.corporate_id = pc_corporate_id -- added
+         and iid.corporate_id(+) = pc_corporate_id -- added
          and cym_load.national_currency = cm_cym_load.cur_id
          and cym_discharge.national_currency = cm_cym_discharge.cur_id
          and gmr.corporate_id = ak.corporate_id
@@ -4197,7 +4201,7 @@ select t.process_id,
          and cym_load.region_id = rem_load.region_id
          and cym_discharge.region_id = rem_discharge.region_id
          and grd.internal_grd_ref_no = iid.stock_id(+)
-         and iid.corporate_id = pc_corporate_id -- added
+         and iid.corporate_id(+) = pc_corporate_id -- added
          and cym_load.national_currency = cm_cym_load.cur_id
          and cym_discharge.national_currency = cm_cym_discharge.cur_id
          and gmr.corporate_id = ak.corporate_id
@@ -4552,7 +4556,7 @@ select t.process_id,
                  and cym_load.region_id = rem_load.region_id
                  and cym_discharge.region_id = rem_discharge.region_id
                  and grd.internal_grd_ref_no = iid.stock_id(+)
-                 and iid.corporate_id = pc_corporate_id -- added
+                 and iid.corporate_id(+) = pc_corporate_id -- added
                  and cym_load.national_currency = cm_cym_load.cur_id(+)
                  and cym_discharge.national_currency =
                      cm_cym_discharge.cur_id(+)
@@ -4920,7 +4924,7 @@ select t.process_id,
                  and cym_load.region_id = rem_load.region_id
                  and cym_discharge.region_id = rem_discharge.region_id
                  and grd.internal_grd_ref_no = iid.stock_id(+)
-                 and iid.corporate_id = pc_corporate_id
+                 and iid.corporate_id(+) = pc_corporate_id
                  and cym_load.national_currency = cm_cym_load.cur_id(+)
                  and cym_discharge.national_currency =
                      cm_cym_discharge.cur_id(+)
@@ -10986,5 +10990,221 @@ when others then
 null;--TODO : need to ad exception handling
 end;
 
+procedure sp_arrival_report(pc_corporate_id varchar2,
+                            pd_trade_date   date,
+                            pc_process_id   varchar2,
+                            pc_process      varchar2) as
+
+  cursor cur_arrival is
+    select gmr.gmr_ref_no,
+           gmr.internal_gmr_ref_no,
+           grd.internal_grd_ref_no,
+           grd.internal_stock_ref_no,
+           gmr.corporate_id,
+           akc.corporate_name,
+           gmr.warehouse_profile_id,
+           phd.companyname,
+           gmr.shed_id,
+           sld.storage_location_name,
+           grd.product_id,
+           pdm.product_desc,
+           grd.quality_id,
+           qat.quality_name,
+           grd.qty wet_qty,
+           asm.dry_weight dry_qty,
+           grd.qty_unit_id qty_unit_id,
+           qum_grd.qty_unit qty_unit,
+           spq.element_id,
+           aml.attribute_name,
+           aml.underlying_product_id,
+           pdm_und.product_desc underlying_product_name,
+           pdm_und.base_quantity_unit base_quantity_unit_id,
+           qum_und.qty_unit base_quantity_unit,
+           spq.assay_content assay_qty,
+           spq.qty_unit_id assay_qty_unit_id,
+           qum.qty_unit assay_qty_unit,
+           spq.payable_qty,
+           spq.qty_unit_id payable_qty_unit_id,
+           qum.qty_unit payable_qty_unit,
+           (case
+             when (gmr.wns_status = 'Completed' and
+                  gmr_assay.assay_final_status = 'Assay Finalized') then
+              'Assay Finalized'
+             when (gmr.wns_status = 'Completed' and
+                  gmr_assay.assay_final_status = 'Partial Assay Finalized') then
+              'Partial Assay Finalized'
+             when (gmr.wns_status = 'Completed' and
+                  gmr_assay.assay_final_status = 'Not Assay Finalized') then
+              'Weight Finalized'
+             when (gmr.wns_status = 'Partial') then
+              'Partial Weight Finalized'
+             else
+              'Arrived'
+           end) arrival_status,
+           dense_rank() over(partition by grd.internal_grd_ref_no order by spq.element_id) ele_rank
+    
+      from gmr_goods_movement_record gmr,
+           grd_goods_record_detail grd,
+           ak_corporate akc,
+           pcm_physical_contract_main pcm,
+           pcmte_pcm_tolling_ext pcmte,
+           pdm_productmaster pdm,
+           qat_quality_attributes qat,
+           spq_stock_payable_qty spq,
+           ash_assay_header ash,
+           (select asm.ash_id,
+                   sum(asm.dry_weight) dry_weight
+              from asm_assay_sublot_mapping asm
+             where asm.is_active = 'Y'
+             group by asm.ash_id) asm,
+           aml_attribute_master_list aml,
+           pdm_productmaster  pdm_und,
+           qum_quantity_unit_master qum_und,
+           qum_quantity_unit_master qum_grd,
+           qum_quantity_unit_master qum,
+           gsm_gmr_stauts_master gsm,
+           sld_storage_location_detail sld,
+           phd_profileheaderdetails phd,
+           v_gmr_assay_status gmr_assay
+    
+     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+       and gmr.corporate_id = pc_corporate_id
+       and grd.status = 'Active'
+       and grd.tolling_stock_type = 'None Tolling'
+       and gmr.is_internal_movement = 'N'
+       and gmr.corporate_id = akc.corporate_id
+       and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pcm.is_active = 'Y'
+       and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no
+       and pcmte.tolling_service_type = 'S'
+       and grd.product_id = pdm.product_id
+       and grd.quality_id = qat.quality_id
+       and grd.qty_unit_id = qum_grd.qty_unit_id
+       and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+       and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
+       and spq.is_stock_split = 'N'
+       and spq.assay_header_id = ash.ash_id
+       and ash.ash_id = asm.ash_id
+       and spq.element_id = aml.attribute_id
+       and aml.underlying_product_id=pdm_und.product_id
+       and pdm_und.base_quantity_unit=qum_und.qty_unit_id
+       and spq.qty_unit_id = qum.qty_unit_id
+       and gmr.status_id = gsm.status_id
+       and gsm.status in ('In Warehouse', 'Landed')
+       and gmr.is_deleted = 'N'
+       and gmr.shed_id = sld.storage_loc_id
+       and gmr.warehouse_profile_id = phd.profileid
+       and gmr.internal_gmr_ref_no = gmr_assay.internal_gmr_ref_no
+       and gmr_assay.process_id = pc_process_id
+       and gmr.process_id = pc_process_id
+       and spq.process_id = pc_process_id
+       and grd.process_id = pc_process_id
+       and pcm.process_id = pc_process_id
+       and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
+       and gmr.eff_date <= pd_trade_date;
+
+  vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+  vn_eel_error_count number := 1;
+  vn_assay_qty       number;
+  vn_payable_qty     number;
+begin
+  for cur_arrival_rows in cur_arrival
+  loop
+  vn_assay_qty:=pkg_general.f_get_converted_quantity(cur_arrival_rows.underlying_product_id,
+                                                     cur_arrival_rows.assay_qty_unit_id,
+                                                     cur_arrival_rows.base_quantity_unit_id,
+                                                     cur_arrival_rows.assay_qty);
+  vn_payable_qty:=pkg_general.f_get_converted_quantity(cur_arrival_rows.underlying_product_id,
+                                                     cur_arrival_rows.payable_qty_unit_id,
+                                                     cur_arrival_rows.base_quantity_unit_id,
+                                                     cur_arrival_rows.payable_qty);                                                     
+                                                     
+    if cur_arrival_rows.ele_rank = 1 then
+      insert into ar_arrival_report
+        (process_id,
+         eod_trade_date,
+         corporate_id,
+         corporate_name,
+         gmr_ref_no,
+         internal_gmr_ref_no,
+         internal_grd_ref_no,
+         stock_ref_no,
+         product_id,
+         product_name,
+         quality_id,
+         quality_name,
+         arrival_status,
+         warehouse_id,
+         warehouse_name,
+         shed_id,
+         shed_name,
+         grd_wet_qty,
+         grd_dry_qty,
+         grd_qty_unit_id,
+         grd_qty_unit)
+      values
+        (pc_process_id,
+         pd_trade_date,
+         cur_arrival_rows.corporate_id,
+         cur_arrival_rows.corporate_name,
+         cur_arrival_rows.gmr_ref_no,
+         cur_arrival_rows.internal_gmr_ref_no,
+         cur_arrival_rows.internal_grd_ref_no,
+         cur_arrival_rows.internal_stock_ref_no,
+         cur_arrival_rows.product_id,
+         cur_arrival_rows.product_desc,
+         cur_arrival_rows.quality_id,
+         cur_arrival_rows.quality_name,
+         cur_arrival_rows.arrival_status,
+         cur_arrival_rows.warehouse_profile_id,
+         cur_arrival_rows.companyname,
+         cur_arrival_rows.shed_id,
+         cur_arrival_rows.storage_location_name,
+         cur_arrival_rows.wet_qty,
+         cur_arrival_rows.dry_qty,
+         cur_arrival_rows.qty_unit_id,
+         cur_arrival_rows.qty_unit);
+    end if;
+    insert into are_arrival_report_element
+      (process_id,
+       internal_gmr_ref_no,
+       internal_grd_ref_no,
+       element_id,
+       element_name,
+       assay_qty,
+       asaay_qty_unit_id,
+       asaay_qty_unit,
+       payable_qty,
+       payable_qty_unit_id,
+       payable_qty_unit)
+    values
+      (pc_process_id,
+       cur_arrival_rows.internal_gmr_ref_no,
+       cur_arrival_rows.internal_grd_ref_no,
+       cur_arrival_rows.element_id,
+       cur_arrival_rows.attribute_name,
+       vn_assay_qty,
+       cur_arrival_rows.base_quantity_unit_id,
+       cur_arrival_rows.base_quantity_unit,
+       vn_payable_qty,
+       cur_arrival_rows.base_quantity_unit_id,
+       cur_arrival_rows.base_quantity_unit);
+  end loop;
+exception
+  when others then
+    vobj_error_log.extend;
+    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                         'procedure sp_arrival_report',
+                                                         'M2M-013',
+                                                         'Code:' || sqlcode ||
+                                                         'Message:' ||
+                                                         sqlerrm,
+                                                         '',
+                                                         pc_process,
+                                                         '',
+                                                         sysdate,
+                                                         pd_trade_date);
+    sp_insert_error_log(vobj_error_log);
+end;
 end; 
 /
