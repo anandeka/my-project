@@ -1938,13 +1938,7 @@ create or replace package body pkg_phy_bm_realized_pnl is
              invs.quality_premium_per_unit,
              null product_premium,
              null product_premium_unit_id,
-             case
-               when rgmr.is_mc_change_for_sales = 'Y' then
-                (nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
-                nvl(grd.title_transfer_out_qty, 0))
-               else
-                prd.item_qty
-             end item_qty,
+             prd.item_qty item_qty,
              prd.qty_unit_id,
              prd.qty_unit,
              prd.delivery_item_no,
