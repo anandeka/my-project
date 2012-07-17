@@ -172,21 +172,6 @@ CREATE OR REPLACE FUNCTION FN_GET_PAYABLE_QTY (grd_id varchar2,grd_item_qty numb
 
 
 
-----Main Query
-
-
-----Main Query
-
-
-
-
-
-----Main Query
-
-
-----Main Query
-
-
 select phd.companyname warehousename,
        pm.pool_name poolname,
        qat.quality_name qualityname,
@@ -194,7 +179,7 @@ select phd.companyname warehousename,
        gmr.gmr_ref_no as gmr_ref_no,
        axs.eff_date,
        --grd.supp_internal_gmr_ref_no as supplier_int_gmr_ref_no,
-       gmr_supp.gmr_ref_no as supplier_gmr_ref_no,
+       gmr_supp.gmr_ref_no as supplier_gmr_ref_no,PCI.CONTRACT_ITEM_REF_NO as SUPP_CONTRACT_ITEM_REFNO,PCI.CONTRACT_REF_NO as SUPP_CONTRACT_REFNO,
        grd.internal_stock_ref_no as stock_ref_no,psr.internal_grd_ref_no as internal_grd_ref_no,
        PSR.INCOMING_STOCK_QTY as original_wmt,
        round(( ( fn_get_deductable_qty(psr.internal_grd_ref_no, psr.INCOMING_STOCK_QTY)*100) /psr.INCOMING_STOCK_QTY),5) as original_moisture_Perc,
@@ -268,7 +253,8 @@ select phd.companyname warehousename,
        ash_assay_header               ash,
        qum_quantity_unit_master       qum,
        axs_action_summary             axs,
-       PQCAPD_PRD_QLTY_CATTR_PAY_DTLS  PQCAPD
+       PQCAPD_PRD_QLTY_CATTR_PAY_DTLS  PQCAPD,
+       V_PCI PCI
  where pm.warehouse_profile_id = phd.profileid
    and psr.pool_id = pm.pool_id
    and grd.internal_grd_ref_no = psr.internal_grd_ref_no
@@ -291,6 +277,7 @@ select phd.companyname warehousename,
    --and pm.pool_id in ('PM-63')
    and PQCAPD.PQCA_ID = pqca.PQCA_ID
    and PQCAPD.IS_ACTIVE ='Y'
+   and PCI.INTERNAL_CONTRACT_ITEM_REF_NO = GRD.INTERNAL_CONTRACT_ITEM_REF_NO
    order by 
    phd.companyname ,
    pm.pool_name ,
