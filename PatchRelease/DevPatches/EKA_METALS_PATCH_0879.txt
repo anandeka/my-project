@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0879
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  17-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 98714
+Author: pradeep.kumar
+Date: 3:35:18 PM, Tuesday, July 17, 2012
+Message:
+-- Created View only For Excel Export Functionality in List Of InProcess Stock
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_in_process_stock_exp.sql
+
