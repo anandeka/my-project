@@ -554,3 +554,27 @@ REPORT_PARAMETER_NAME
 
 
 end;
+
+/*****************************************************************************/
+Post Process:Create the AXS Entries  MDM Mapping for Corporate PHD entries
+/*****************************************************************************/
+/*
+SET DEFINE OFF;
+Insert into AXS_ACTION_SUMMARY
+   (INTERNAL_ACTION_REF_NO, ACTION_REF_NO, PREFIX, SUFFIX, MIDDLE_NO, 
+    ACTION_ID, ACTION_DATE, CORPORATE_ID, CREATED_BY, CREATED_DATE, 
+    EFF_DATE, STATUS, CANCELLED_BY, CANCELLED_DATE, UPDATED_BY, 
+    UPDATED_DATE, PARENT_INTERNAL_ACTION_REF_NO)
+ Values
+   ('AXS-01', NULL, NULL, NULL, NULL, 
+    'PHD_PROFILEHEADERDETAILS', TO_TIMESTAMP('7/6/2012 1:02:44.545000 PM','fmMMfm/fmDDfm/YYYY fmHH12fm:MI:SS.FF AM'), 'BLD', 'AK-161', TO_TIMESTAMP('7/6/2012 1:02:44.547000 PM','fmMMfm/fmDDfm/YYYY fmHH12fm:MI:SS.FF AM'), 
+    TO_DATE('07/06/2012 00:00:00', 'MM/DD/YYYY HH24:MI:SS'), 'Active', NULL, NULL, 'AK-161', 
+    TO_TIMESTAMP('7/6/2012 1:02:44.547000 PM','fmMMfm/fmDDfm/YYYY fmHH12fm:MI:SS.FF AM'), NULL);
+
+
+Insert into MDM_MASTER_DATA_MAPPING
+   (INTERNAL_MDM_ID, INTERNAL_ACTION_REF_NO)
+ Values
+   ('PHD-250', 'AXS-01');
+COMMIT;
+*/
