@@ -441,6 +441,7 @@ create or replace package body "PKG_PRICE" is
                               and poch.is_active = 'Y'
                               and pocd.is_active = 'Y'
                               and pofh.is_active = 'Y'
+							  and pfd.is_hedge_correction='N'
                               and pfd.is_active = 'Y')
                 loop
                   vn_during_total_set_price      := vn_during_total_set_price +
@@ -1297,6 +1298,7 @@ create or replace package body "PKG_PRICE" is
                       and poch.is_active = 'Y'
                       and pocd.is_active = 'Y'
                       and pofh.is_active = 'Y'
+					  and pfd.is_hedge_correction='N'
                       and pfd.is_active = 'Y')
         loop
           vn_during_total_set_price      := vn_during_total_set_price +
@@ -1931,6 +1933,7 @@ create or replace package body "PKG_PRICE" is
                               and poch.is_active = 'Y'
                               and pocd.is_active = 'Y'
                               and pofh.is_active = 'Y'
+							  and pfd.is_hedge_correction='N'
                               and pfd.is_active = 'Y')
                 loop
                   vn_during_total_set_price      := vn_during_total_set_price +
@@ -2888,6 +2891,7 @@ create or replace package body "PKG_PRICE" is
                         and poch.is_active = 'Y'
                         and pocd.is_active = 'Y'
                         and pofh.is_active = 'Y'
+						and pfd.is_hedge_correction='N'
                         and pfd.is_active = 'Y')
           loop
             vn_during_total_set_price := vn_during_total_set_price +
