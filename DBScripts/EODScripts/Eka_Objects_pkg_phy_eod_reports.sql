@@ -3873,7 +3873,7 @@ select t.process_id,
              cm_currency_master cm_invoice,
              cm_currency_master cm_inven,
              (select qat.quality_id,
-                     qav.attribute_value
+                     qav.attribute_text attribute_value
                 from qat_quality_attributes         qat,
                      qav_quality_attribute_values   qav,
                      ppm_product_properties_mapping ppm,
@@ -4165,7 +4165,7 @@ select t.process_id,
              cm_currency_master cm_invoice,
              cm_currency_master cm_inven,
              (select qat.quality_id,
-                     qav.attribute_value
+                      qav.attribute_text attribute_value
                 from qat_quality_attributes         qat,
                      qav_quality_attribute_values   qav,
                      ppm_product_properties_mapping ppm,
@@ -4512,7 +4512,7 @@ select t.process_id,
                      cm_currency_master cm_invoice,
                      cm_currency_master cm_inven,
                      (select qat.quality_id,
-                             qav.attribute_value
+                              qav.attribute_text attribute_value
                         from qat_quality_attributes         qat,
                              qav_quality_attribute_values   qav,
                              ppm_product_properties_mapping ppm,
@@ -4882,7 +4882,7 @@ select t.process_id,
                      cm_currency_master cm_invoice,
                      cm_currency_master cm_inven,
                      (select qat.quality_id,
-                             qav.attribute_value
+                              qav.attribute_text attribute_value
                         from qat_quality_attributes         qat,
                              qav_quality_attribute_values   qav,
                              ppm_product_properties_mapping ppm,
