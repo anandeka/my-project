@@ -1,0 +1,1 @@
+alter table PPL_PRICE_PROCESS_LIST add PROCESS_TYPE varchar2(30);
