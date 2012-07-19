@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0887
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  19-Jul-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  Demo Bugs Migrated
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 98895
+Date: 11:59:20 AM, Thursday, July 19, 2012
+Message:
+Demo Issues Migrated to Main Branch
+COG Price Calcualtion Resulting Duplicate Price/TC/RC Records
+EOD Price : Do not consider fixations where price or qty = 0
+Get Dry Qty: Changed as on APP schema
+TC/RC Calcualtuion corrected(range condition was wrong)
+RC and TC When Price range consider only once
+RC ASH_ID from SPQ in RC
+Conc Unreal Inventory M2M Price to Base Conversion Corrected
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+
+
