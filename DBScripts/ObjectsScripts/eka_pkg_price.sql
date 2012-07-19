@@ -35,7 +35,7 @@ create or replace package pkg_price is
   function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                         pd_trade_date       date) return date;
 
-end;
+end; 
 /
 create or replace package body "PKG_PRICE" is
 
@@ -441,7 +441,8 @@ create or replace package body "PKG_PRICE" is
                               and poch.is_active = 'Y'
                               and pocd.is_active = 'Y'
                               and pofh.is_active = 'Y'
-							  and pfd.is_hedge_correction='N'
+                              and nvl(pfd.is_hedge_correction, 'N') = 'N'
+                              and nvl(pfd.user_price, 0) <> 0
                               and pfd.is_active = 'Y')
                 loop
                   vn_during_total_set_price      := vn_during_total_set_price +
@@ -1298,7 +1299,8 @@ create or replace package body "PKG_PRICE" is
                       and poch.is_active = 'Y'
                       and pocd.is_active = 'Y'
                       and pofh.is_active = 'Y'
-					  and pfd.is_hedge_correction='N'
+                      and nvl(pfd.is_hedge_correction, 'N') = 'N'
+                      and nvl(pfd.user_price, 0) <> 0
                       and pfd.is_active = 'Y')
         loop
           vn_during_total_set_price      := vn_during_total_set_price +
@@ -1566,7 +1568,8 @@ create or replace package body "PKG_PRICE" is
          and pcm.is_active = 'Y'
          and pci.internal_contract_item_ref_no =
              pc_int_contract_item_ref_no
-         and ceqs.element_id = pc_element_id;
+         and ceqs.element_id = pc_element_id
+         and pcpd.input_output ='Input';
     cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
       select poch.poch_id,
              poch.internal_action_ref_no,
@@ -1933,7 +1936,8 @@ create or replace package body "PKG_PRICE" is
                               and poch.is_active = 'Y'
                               and pocd.is_active = 'Y'
                               and pofh.is_active = 'Y'
-							  and pfd.is_hedge_correction='N'
+                              and nvl(pfd.is_hedge_correction, 'N') = 'N'
+                              and nvl(pfd.user_price, 0) <> 0
                               and pfd.is_active = 'Y')
                 loop
                   vn_during_total_set_price      := vn_during_total_set_price +
@@ -2891,7 +2895,8 @@ create or replace package body "PKG_PRICE" is
                         and poch.is_active = 'Y'
                         and pocd.is_active = 'Y'
                         and pofh.is_active = 'Y'
-						and pfd.is_hedge_correction='N'
+                        and nvl(pfd.is_hedge_correction, 'N') = 'N'
+                        and nvl(pfd.user_price, 0) <> 0
                         and pfd.is_active = 'Y')
           loop
             vn_during_total_set_price := vn_during_total_set_price +
@@ -3204,5 +3209,5 @@ create or replace package body "PKG_PRICE" is
     return vd_prompt_date;
   end;
 
-end;
+end; 
 /
