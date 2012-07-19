@@ -1,0 +1,79 @@
+Patch No*          		:  EKA_METALS_PATCH_0892
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar reddy
+ 
+Created on*        		:  19-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay/Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 98985
+Author: rajeshwar.reddy
+Date: 19:27:49, 19 July 2012
+Message:
+added column (Is_out_put_assay)SAM and (dry_wet_qty_ratio)ASM .
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_298.sql
+
+
+Revision: 98986
+Author: rajeshwar.reddy
+Date: 19:31:06, 19 July 2012
+Message:
+AXS insert Qrs for Assay creation/modification/cancellation.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_334.sql
+
+Revision: 98990
+Author: rajeshwar.reddy
+Date: 19:34:04, 19 July 2012
+Message:
+Corporate script for Assay creation/Modification/cancellation.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_76.sql
+
+
+Revision: 98984
+Author: rajeshwar.reddy
+Date: 19:24:05, 19 July 2012
+Message:
+DryWetQty Ratio.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_7.sql
+
+
+
+
+
+
+
+
+
