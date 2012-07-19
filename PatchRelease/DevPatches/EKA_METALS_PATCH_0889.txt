@@ -1,0 +1,78 @@
+Patch No*          		:  EKA_METALS_PATCH_0889
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  19-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 98940
+Author: elaiyaraja.nallathambi
+Date: 4:33:19 PM, Thursday, July 19, 2012
+Message:
+Bug ID: 63368
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+
+Revision: 98941
+Author: elaiyaraja.nallathambi
+Date: 4:34:15 PM, Thursday, July 19, 2012
+Message:
+Bug ID:- 63368
+----
+Modified : /7.3/Engg/Metals/Code/Reports/VatDocument.rpt
+
+Revision: 98944
+Author: elaiyaraja.nallathambi
+Date: 4:41:31 PM, Thursday, July 19, 2012
+Message:
+Bug Fixes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TotalInvoiceUtilityReport.rpt
+
+
+Revision: 98946
+Author: elaiyaraja.nallathambi
+Date: 4:42:38 PM, Thursday, July 19, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/Reports/TotalInvoiceUtilityReport.rpt
+
+
+
+
+
+
+
+
+
+
