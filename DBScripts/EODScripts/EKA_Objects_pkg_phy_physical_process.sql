@@ -213,6 +213,24 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_phy_rebuild_stats');
+                          
+      vc_err_msg := 'sp_insert_temp_gmr ';                      
+   if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_insert_temp_gmr');                       
+                          
+   pkg_phy_eod_reports.sp_insert_temp_gmr(pc_corporate_id,
+                                          pd_trade_date,
+                                          pc_process_id);
+                             
+                                                   
     vc_err_msg := 'sp_calc_contract_price ';
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =

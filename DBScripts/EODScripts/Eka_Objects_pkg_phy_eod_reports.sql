@@ -61,6 +61,9 @@ create or replace package pkg_phy_eod_reports is
   procedure sp_daily_position_record(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_process_id   varchar2);
+  procedure sp_insert_temp_gmr(pc_corporate_id varchar2,
+                               pd_trade_date   date,
+                               pc_process_id   varchar2); 
   procedure sp_arrival_report(pc_corporate_id varchar2,
                               pd_trade_date   date,
                               pc_process_id   varchar2,
@@ -3574,91 +3577,7 @@ create or replace package body pkg_phy_eod_reports is
     vc_previous_process_id varchar2(15);
   
   begin
-   sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          1005,
-                          'Start Delete temp_gmr_invoice');
    
-    delete from temp_gmr_invoice where corporate_id = pc_corporate_id;
-    commit;
-     sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          1006,
-                          'End Delete temp_gmr_invoice');
-    insert into temp_gmr_invoice
-      (process_id,
-       corporate_id,
-       internal_invoice_ref_no,
-       stock_id,
-       invoice_item_amount,
-       invoice_currency_id,
-       new_invoice_price,
-       invoice_type,
-       invoice_issue_date,
-       new_invoice_price_unit_id)
-      select gmr.process_id,
-       gmr.corporate_id,
-       iid.internal_invoice_ref_no,
-       iid.stock_id,
-       iid.invoice_item_amount,
-       iid.invoice_currency_id,
-       new_invoice_price,
-       iss.invoice_type,
-       iss.invoice_issue_date,
-       iid.new_invoice_price_unit_id
-  from iid_invoicable_item_details iid,
-       is_invoice_summary          iss,
-       gmr_goods_movement_record   gmr
- where iid.internal_invoice_ref_no = iss.internal_invoice_ref_no
-   and iss.is_active = 'Y'
-   and gmr.process_id = pc_process_id
-   and gmr.process_id = iss.process_id
-   and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-   and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          1007,
-                          'End of Insert into temp_gmr_invoice 1');
-   
-commit;   
-insert into temp_gmr_invoice
-  (process_id,
-   corporate_id,
-   internal_invoice_ref_no,
-   stock_id,
-   invoice_item_amount,
-   invoice_currency_id,
-   new_invoice_price,
-   invoice_type,
-   invoice_issue_date,
-   new_invoice_price_unit_id)
-select t.process_id,
-       t.corporate_id,
-       t.internal_invoice_ref_no,
-       grd.internal_grd_ref_no,
-       t.invoice_item_amount,
-       t.invoice_currency_id,
-       t.new_invoice_price,
-       t.invoice_type,
-       t.invoice_issue_date,
-       t.new_invoice_price_unit_id
-  from grd_goods_record_detail grd,
-       temp_gmr_invoice        t
- where grd.process_id = pc_process_id
-   and grd.parent_internal_grd_ref_no = t.stock_id
-   and grd.process_id = pc_process_id
-   and grd.status = 'Active'
-   and grd.is_deleted ='N'
-   AND t.corporate_id = pc_corporate_id; 
-    commit;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          1007,
-                          'End of Insert into temp_gmr_invoice 2');
     insert into isr_intrastat_grd
       (corporate_id,
        process_id,
@@ -7963,7 +7882,7 @@ select t.process_id,
                       pkg_general.f_get_converted_currency_amt(pcm.corporate_id,
                                                                (case
                                                                  when gmr.latest_internal_invoice_ref_no is not null then
-                                                                  is1.invoice_cur_id
+                                                                  is1.invoice_currency_id
                                                                  else
                                                                   invm.cog_cur_id
                                                                end),
@@ -7994,7 +7913,7 @@ select t.process_id,
                       nvl(is1.invoice_issue_date, gmr.eff_date) final_invoice_date,
                       (case
                         when is1.internal_invoice_ref_no is not null then
-                         is1.total_invoice_item_amount
+                         is1.invoice_item_amount
                         else
                          pkg_phy_pre_check_process.f_get_converted_price(pcm.corporate_id,
                                                                          bccp.contract_price,
@@ -8006,7 +7925,7 @@ select t.process_id,
                                                               pdm.base_quantity_unit,
                                                               grd.current_qty)
                       end) invoice_value,
-                      is1.invoice_cur_id invoice_cur_id,
+                      is1.invoice_currency_id invoice_cur_id,
                       cm_invoice.cur_code invoice_cur_code,
                       cm_invtry.cur_id inventory_cur_id,
                       cm_invtry.cur_code inventory_cur_code
@@ -8034,7 +7953,8 @@ select t.process_id,
                       cm_currency_master           cm_base,
                       cm_currency_master           cm_countryl,
                       cm_currency_master           cm_countryd,
-                      is_invoice_summary           is1,
+                     -- is_invoice_summary           is1,
+                      temp_gmr_invoice               is1,
                       bccp_base_contract_cog_price bccp,
                       v_ppu_pum                    ppu
                where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -8044,8 +7964,9 @@ select t.process_id,
                  and cim_d.city_id(+) = gmr.discharge_city_id
                  and pcm.internal_contract_ref_no =
                      pcdi.internal_contract_ref_no
-                 and gmr.latest_internal_invoice_ref_no =
-                     is1.internal_invoice_ref_no(+)
+                /* and gmr.latest_internal_invoice_ref_no =
+                     is1.internal_invoice_ref_no(+)*/
+                 and grd.internal_grd_ref_no = is1.stock_id(+)     
                  and pcm.cp_id = phd.profileid(+)
                  and grd.internal_contract_item_ref_no =
                      pci.internal_contract_item_ref_no(+)
@@ -8063,7 +7984,7 @@ select t.process_id,
                  and cym_l.country_id = gmr.loading_country_id
                  and cym_d.country_id = gmr.discharge_country_id
                  and ak.corporate_id = pcm.corporate_id
-                 and is1.invoice_cur_id = cm_invoice.cur_id(+)
+                 and is1.invoice_currency_id = cm_invoice.cur_id(+)
                  and invm.cog_cur_id = cm_invtry.cur_id(+)
                  and ak.base_cur_id = cm_base.cur_id
                  and cym_l.national_currency = cm_countryl.cur_id(+)
@@ -8074,7 +7995,7 @@ select t.process_id,
                  and pci.process_id = pc_process_id
                  and grd.process_id = pc_process_id
                  and pcpd.process_id = pc_process_id
-                 and is1.process_id = pc_process_id
+                 and is1.process_id(+) = pc_process_id
                  and gmr.is_deleted = 'N'
                  and bccp.process_id = pc_process_id
                  and bccp.pcdi_id = pcdi.pcdi_id
@@ -8303,7 +8224,7 @@ select t.process_id,
                        pkg_general.f_get_converted_currency_amt(pcm.corporate_id,
                                                                 (case
                                                                   when gmr.latest_internal_invoice_ref_no is not null then
-                                                                   is1.invoice_cur_id
+                                                                   is1.invoice_currency_id
                                                                   else
                                                                    invm.cog_cur_id
                                                                 end),
@@ -8333,7 +8254,7 @@ select t.process_id,
                        nvl(is1.invoice_issue_date, gmr.eff_date) final_invoice_date,
                        (case
                          when is1.internal_invoice_ref_no is not null then
-                          is1.total_invoice_item_amount
+                          is1.invoice_item_amount
                          else
                           pkg_phy_pre_check_process.f_get_converted_price(pcm.corporate_id,
                                                                           bgcp.contract_price,
@@ -8345,7 +8266,7 @@ select t.process_id,
                                                                pdm.base_quantity_unit,
                                                                grd.current_qty)
                        end) invoice_value,
-                       is1.invoice_cur_id invoice_cur_id,
+                       is1.invoice_currency_id invoice_cur_id,
                        cm_invoice.cur_code invoice_cur_code,
                        cm_invtry.cur_id inventory_cur_id,
                        cm_invtry.cur_code inventory_cur_code
@@ -8373,7 +8294,8 @@ select t.process_id,
                        cm_currency_master         cm_base,
                        cm_currency_master         cm_countryl,
                        cm_currency_master         cm_countryd,
-                       is_invoice_summary         is1,
+                     --  is_invoice_summary         is1,
+                       temp_gmr_invoice               is1,
                        bgcp_base_gmr_cog_price    bgcp,
                        v_ppu_pum                  ppu
                  where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -8383,8 +8305,9 @@ select t.process_id,
                    and cim_d.city_id(+) = gmr.discharge_city_id
                    and pcm.internal_contract_ref_no =
                        pcdi.internal_contract_ref_no
-                   and gmr.latest_internal_invoice_ref_no =
-                       is1.internal_invoice_ref_no(+)
+                 /*  and gmr.latest_internal_invoice_ref_no =
+                       is1.internal_invoice_ref_no(+)*/
+                    and grd.internal_grd_ref_no = is1.stock_id(+)    
                    and pcm.cp_id = phd.profileid(+)
                    and grd.internal_contract_item_ref_no =
                        pci.internal_contract_item_ref_no(+)
@@ -8402,7 +8325,7 @@ select t.process_id,
                    and cym_l.country_id = gmr.loading_country_id
                    and cym_d.country_id = gmr.discharge_country_id
                    and ak.corporate_id = pcm.corporate_id
-                   and is1.invoice_cur_id = cm_invoice.cur_id(+)
+                   and is1.invoice_currency_id = cm_invoice.cur_id(+)
                    and invm.cog_cur_id = cm_invtry.cur_id(+)
                    and ak.base_cur_id = cm_base.cur_id
                    and cym_l.national_currency = cm_countryl.cur_id(+)
@@ -8413,7 +8336,7 @@ select t.process_id,
                    and pci.process_id = pc_process_id
                    and grd.process_id = pc_process_id
                    and pcpd.process_id = pc_process_id
-                   and is1.process_id = pc_process_id
+                   and is1.process_id(+) = pc_process_id
                    and gmr.is_deleted = 'N'
                    and bgcp.process_id = pc_process_id
                    and bgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
@@ -8639,7 +8562,7 @@ select t.process_id,
                        pkg_general.f_get_converted_currency_amt(pcm.corporate_id,
                                                                 (case
                                                                   when gmr.latest_internal_invoice_ref_no is not null then
-                                                                   is1.invoice_cur_id
+                                                                   is1.invoice_currency_id
                                                                   else
                                                                    invm.cog_cur_id
                                                                 end),
@@ -8658,10 +8581,14 @@ select t.process_id,
                                                                 cm_countryd.cur_id,
                                                                 gmr.bl_date,
                                                                 1) cfx_base_to_dis_country,
+                       (case when dense_rank() over(partition by spq.internal_grd_ref_no order by spq.element_id)=1  then
                        pkg_general.f_get_converted_quantity(grd.product_id,
                                                             grd.qty_unit_id,
                                                             pdm.base_quantity_unit,
-                                                            grd.current_qty) qty,
+                                                            grd.current_qty)
+			else
+			0
+			end)qty,
                        qum.qty_unit_id,
                        qum.qty_unit,
                        is1.invoice_issue_date invoice_eff_date,
@@ -8669,7 +8596,7 @@ select t.process_id,
                        nvl(is1.invoice_issue_date, gmr.eff_date) final_invoice_date,
                        (case
                          when is1.internal_invoice_ref_no is not null then
-                          is1.total_invoice_item_amount
+                          is1.invoice_item_amount
                          else
                           pkg_phy_pre_check_process.f_get_converted_price(pcm.corporate_id,
                                                                           cccp.contract_price,
@@ -8681,7 +8608,7 @@ select t.process_id,
                                                                pdm_aml.base_quantity_unit,
                                                                spq.payable_qty)
                        end) invoice_value,
-                       is1.invoice_cur_id invoice_cur_id,
+                       is1.invoice_currency_id invoice_cur_id,
                        cm_invoice.cur_code invoice_cur_code,
                        cm_invtry.cur_id inventory_cur_id,
                        cm_invtry.cur_code inventory_cur_code
@@ -8709,7 +8636,8 @@ select t.process_id,
                        cm_currency_master             cm_base,
                        cm_currency_master             cm_countryl,
                        cm_currency_master             cm_countryd,
-                       is_invoice_summary             is1,
+                     --  is_invoice_summary             is1,
+                       temp_gmr_invoice               is1,
                        cccp_conc_contract_cog_price   cccp,
                        v_ppu_pum                      ppu,
                        poch_price_opt_call_off_header poch,
@@ -8724,8 +8652,9 @@ select t.process_id,
                    and cim_d.city_id(+) = gmr.discharge_city_id
                    and pcm.internal_contract_ref_no =
                        pcdi.internal_contract_ref_no
-                   and gmr.latest_internal_invoice_ref_no =
-                       is1.internal_invoice_ref_no(+)
+                 /*  and gmr.latest_internal_invoice_ref_no =
+                       is1.internal_invoice_ref_no(+)*/
+                   and grd.internal_grd_ref_no = is1.stock_id(+)    
                    and pcm.cp_id = phd.profileid(+)
                    and grd.internal_contract_item_ref_no =
                        pci.internal_contract_item_ref_no(+)
@@ -8743,7 +8672,7 @@ select t.process_id,
                    and cym_l.country_id = gmr.loading_country_id
                    and cym_d.country_id = gmr.discharge_country_id
                    and ak.corporate_id = pcm.corporate_id
-                   and is1.invoice_cur_id = cm_invoice.cur_id(+)
+                   and is1.invoice_currency_id = cm_invoice.cur_id(+)
                    and invm.cog_cur_id = cm_invtry.cur_id(+)
                    and ak.base_cur_id = cm_base.cur_id
                    and cym_l.national_currency = cm_countryl.cur_id(+)
@@ -8754,7 +8683,7 @@ select t.process_id,
                    and pci.process_id = pc_process_id
                    and grd.process_id = pc_process_id
                    and pcpd.process_id = pc_process_id
-                   and is1.process_id = pc_process_id
+                   and is1.process_id(+)= pc_process_id
                    and gmr.is_deleted = 'N'
                    and cccp.process_id = pc_process_id
                    and cccp.pcdi_id = pcdi.pcdi_id
@@ -8992,7 +8921,7 @@ select t.process_id,
                      pkg_general.f_get_converted_currency_amt(pcm.corporate_id,
                                                               (case
                                                                 when gmr.latest_internal_invoice_ref_no is not null then
-                                                                 is1.invoice_cur_id
+                                                                 is1.invoice_currency_id
                                                                 else
                                                                  invm.cog_cur_id
                                                               end),
@@ -9011,10 +8940,15 @@ select t.process_id,
                                                               cm_countryd.cur_id,
                                                               gmr.bl_date,
                                                               1) cfx_base_to_dis_country,
+                     (case when dense_rank() over(partition by spq.internal_grd_ref_no order by spq.element_id)=1  then
                      pkg_general.f_get_converted_quantity(grd.product_id,
                                                           grd.qty_unit_id,
                                                           pdm.base_quantity_unit,
-                                                          grd.current_qty) qty,
+                                                          grd.current_qty)
+                     
+		     else
+		     0
+		     end)qty,
                      qum.qty_unit_id,
                      qum.qty_unit,
                      is1.invoice_issue_date invoice_eff_date,
@@ -9022,7 +8956,7 @@ select t.process_id,
                      nvl(is1.invoice_issue_date, gmr.eff_date) final_invoice_date,
                      (case
                        when is1.internal_invoice_ref_no is not null then
-                        is1.total_invoice_item_amount
+                        is1.invoice_item_amount
                        else
                         pkg_phy_pre_check_process.f_get_converted_price(pcm.corporate_id,
                                                                         cgcp.contract_price,
@@ -9034,7 +8968,7 @@ select t.process_id,
                                                              pdm_aml.base_quantity_unit,
                                                              spq.payable_qty)
                      end) invoice_value,
-                     is1.invoice_cur_id invoice_cur_id,
+                     is1.invoice_currency_id invoice_cur_id,
                      cm_invoice.cur_code invoice_cur_code,
                      cm_invtry.cur_id inventory_cur_id,
                      cm_invtry.cur_code inventory_cur_code
@@ -9062,7 +8996,8 @@ select t.process_id,
                      cm_currency_master         cm_base,
                      cm_currency_master         cm_countryl,
                      cm_currency_master         cm_countryd,
-                     is_invoice_summary         is1,
+                    -- is_invoice_summary         is1,
+                      temp_gmr_invoice               is1,
                      cgcp_conc_gmr_cog_price    cgcp,
                      v_ppu_pum                  ppu,
                      spq_stock_payable_qty      spq,
@@ -9075,8 +9010,9 @@ select t.process_id,
                  and cim_d.city_id(+) = gmr.discharge_city_id
                  and pcm.internal_contract_ref_no =
                      pcdi.internal_contract_ref_no
-                 and gmr.latest_internal_invoice_ref_no =
-                     is1.internal_invoice_ref_no(+)
+                /* and gmr.latest_internal_invoice_ref_no =
+                     is1.internal_invoice_ref_no(+)*/
+                  and grd.internal_grd_ref_no = is1.stock_id(+)    
                  and pcm.cp_id = phd.profileid(+)
                  and grd.internal_contract_item_ref_no =
                      pci.internal_contract_item_ref_no(+)
@@ -9094,7 +9030,7 @@ select t.process_id,
                  and cym_l.country_id = gmr.loading_country_id
                  and cym_d.country_id = gmr.discharge_country_id
                  and ak.corporate_id = pcm.corporate_id
-                 and is1.invoice_cur_id = cm_invoice.cur_id(+)
+                 and is1.invoice_currency_id = cm_invoice.cur_id(+)
                  and invm.cog_cur_id = cm_invtry.cur_id(+)
                  and ak.base_cur_id = cm_base.cur_id
                  and cym_l.national_currency = cm_countryl.cur_id(+)
@@ -9105,7 +9041,7 @@ select t.process_id,
                  and pci.process_id = pc_process_id
                  and grd.process_id = pc_process_id
                  and pcpd.process_id = pc_process_id
-                 and is1.process_id = pc_process_id
+                 and is1.process_id(+) = pc_process_id
                  and gmr.is_deleted = 'N'
                  and cgcp.process_id = pc_process_id
                  and cgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
@@ -10988,6 +10924,79 @@ t.product_id;
 exception
 when others then
 null;--TODO : need to ad exception handling
+end;
+procedure sp_insert_temp_gmr(pc_corporate_id varchar2,
+                             pd_trade_date   date,
+                             pc_process_id   varchar2) as
+begin
+  delete from temp_gmr_invoice where corporate_id = pc_corporate_id;
+  commit;
+  insert into temp_gmr_invoice
+    (process_id,
+     corporate_id,
+     invoice_ref_no,
+     internal_invoice_ref_no,
+     stock_id,
+     invoice_item_amount,
+     invoice_currency_id,
+     new_invoice_price,
+     invoice_type,
+     invoice_issue_date,
+     new_invoice_price_unit_id)
+    select gmr.process_id,
+           gmr.corporate_id,
+           iss.invoice_ref_no,
+           iid.internal_invoice_ref_no,
+           iid.stock_id,
+           iid.invoice_item_amount,
+           iid.invoice_currency_id,
+           new_invoice_price,
+           iss.invoice_type,
+           iss.invoice_issue_date,
+           iid.new_invoice_price_unit_id
+      from iid_invoicable_item_details iid,
+           is_invoice_summary          iss,
+           gmr_goods_movement_record   gmr
+     where iid.internal_invoice_ref_no = iss.internal_invoice_ref_no
+       and iss.is_active = 'Y'
+       and gmr.process_id = pc_process_id
+       and gmr.process_id = iss.process_id
+       and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+       and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no;
+
+  commit;
+  insert into temp_gmr_invoice
+    (process_id,
+     corporate_id,
+     invoice_ref_no,
+     internal_invoice_ref_no,
+     stock_id,
+     invoice_item_amount,
+     invoice_currency_id,
+     new_invoice_price,
+     invoice_type,
+     invoice_issue_date,
+     new_invoice_price_unit_id)
+    select t.process_id,
+           t.corporate_id,
+           t.invoice_ref_no,
+           t.internal_invoice_ref_no,
+           grd.internal_grd_ref_no,
+           t.invoice_item_amount,
+           t.invoice_currency_id,
+           t.new_invoice_price,
+           t.invoice_type,
+           t.invoice_issue_date,
+           t.new_invoice_price_unit_id
+      from grd_goods_record_detail grd,
+           temp_gmr_invoice        t
+     where grd.process_id = pc_process_id
+       and grd.parent_internal_grd_ref_no = t.stock_id
+       and grd.process_id = pc_process_id
+       and grd.status = 'Active'
+       and grd.is_deleted = 'N'
+       and t.corporate_id = pc_corporate_id;
+  commit;
 end;
 
 procedure sp_arrival_report(pc_corporate_id varchar2,
