@@ -14,7 +14,7 @@ create or replace package pkg_phy_calculate_cog is
                                  pc_user_id      varchar2,
                                  pd_trade_date   date,
                                  pc_process      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_calculate_cog is
   procedure sp_calc_invm_cog(pc_corporate_id varchar2,
@@ -353,22 +353,7 @@ create or replace package body pkg_phy_calculate_cog is
       select pc_corporate_id,
              pc_process_id,
              cs.internal_cost_id,
-             case
-               when scms.cost_display_name = 'Material Cost' then
-                'Price'
-               when scms.cost_display_name = 'Location Premium' then
-                'Location Premium'
-               when scms.cost_display_name = 'Quality Premium' then
-                'Quality Premium'
-               when scms.cost_display_name = 'Penalties' then
-                'Penalties'
-               when scms.cost_display_name = 'Refining Charges' then
-                'Refining Charges'
-               when scms.cost_display_name = 'Treatment Charges' then
-                'Treatment Charges'
-               else
-                'Secondary Cost'
-             end cost_type,
+             'Secondary Cost' cost_type,
              grd.internal_grd_ref_no,
              grd.product_id,
              pum_base.weight_unit_id,
@@ -420,10 +405,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cigc.cog_ref_no = cs.cog_ref_no
          and cpm.product_id = grd.product_id
          and cs.cost_component_id = scms.cost_id
-         and (scms.cost_display_name in
-             ('Material Cost', 'Location Premium', 'Quality Premium',
-              'Penalties', 'Refining Charges', 'Treatment Charges') or
-             scms.cost_type = 'SECONDARY_COST')
+         and scms.cost_type = 'SECONDARY_COST'
          and cs.cost_type = 'Direct Actual'
          and cs.cost_ref_no not in
              (select cs_in.cost_ref_no
@@ -466,22 +448,7 @@ create or replace package body pkg_phy_calculate_cog is
       select pc_corporate_id,
              pc_process_id,
              cs.internal_cost_id,
-             case
-               when scms.cost_display_name = 'Material Cost' then
-                'Price'
-               when scms.cost_display_name = 'Location Premium' then
-                'Location Premium'
-               when scms.cost_display_name = 'Quality Premium' then
-                'Quality Premium'
-               when scms.cost_display_name = 'Penalties' then
-                'Penalties'
-               when scms.cost_display_name = 'Refining Charges' then
-                'Refining Charges'
-               when scms.cost_display_name = 'Treatment Charges' then
-                'Treatment Charges'
-               else
-                'Secondary Cost'
-             end cost_type,
+             'Secondary Cost' cost_type,
              grd.internal_grd_ref_no,
              grd.product_id,
              pum_base.weight_unit_id,
@@ -533,10 +500,7 @@ create or replace package body pkg_phy_calculate_cog is
          and cigc.cog_ref_no = cs.cog_ref_no
          and cpm.product_id = grd.product_id
          and cs.cost_component_id = scms.cost_id
-         and (scms.cost_display_name in
-             ('Material Cost', 'Location Premium', 'Quality Premium',
-              'Penalties', 'Refining Charges', 'Treatment Charges') or
-             scms.cost_type = 'SECONDARY_COST')
+         and scms.cost_type = 'SECONDARY_COST'
          and cs.cost_type = 'Reversal'
          and cpm.corporate_id = pc_corporate_id
          and cs.is_deleted = 'N'
@@ -1086,632 +1050,619 @@ create or replace package body pkg_phy_calculate_cog is
            vc_base_cur_code
       from ak_corporate akc
      where akc.corporate_id = pc_corporate_id;
-    insert into tinvs_temp_invm_cogs
-      (corporate_id,
-       process_id,
-       internal_cost_id,
-       cost_type,
-       internal_grd_ref_no,
-       sales_internal_gmr_ref_no,
-       product_id,
-       base_qty_unit_id,
-       base_qty_unit,
-       grd_current_qty,
-       grd_qty_unit_id,
-       cost_value,
-       transformation_ratio,
-       transaction_price_unit_id,
-       transaction_cur_factor,
-       transaction_amt_cur_id,
-       transaction_amt_main_cur_id,
-       base_cur_id,
-       base_cur_code,
-       base_price_unit_id,
-       price_qty_unit_id,
-       price_weight,
-       price_to_stock_wt_conversion,
-       stock_to_base_wt_conversion,
-       transact_to_base_fw_exch_rate,
-       base_price_unit_id_in_ppu,
-       transact_amt_sign)
-      select pc_corporate_id,
-             pc_process_id,
-             cs.internal_cost_id,
-             'Secondary Cost' cost_type,
-             grd.internal_grd_ref_no,
-             invm.sales_internal_gmr_ref_no,
-             grd.product_id,
-             pum_base.weight_unit_id,
-             qum.qty_unit,
-             invm.stock_qty,
-             grd.qty_unit_id,
-             cs.cost_value,
-             scm.transformation_ratio,
-             cs.transaction_price_unit_id,
-             nvl(scd.factor, 1),
-             cs.transaction_amt_cur_id,
-             nvl(scd.cur_id, cs.transaction_amt_cur_id),
-             akc.base_cur_id,
-             cm.cur_code,
-             pum_base.price_unit_id as base_price_unit_id,
-             pum_trans.weight_unit_id as price_weight_unit_id,
-             nvl(pum_trans.weight, 1),
-             1,
-             1,
-             1,
-             ppu.product_price_unit_id,
-             cs.transact_amt_sign transact_amt_sign
-        from scm_stock_cost_mapping      scm,
-             invs_inventory_sales        invm,
-             dgrd_delivered_grd          dgrd,
-             agh_alloc_group_header      agh,
-             agd_alloc_group_detail      agd,
-             grd_goods_record_detail     grd,
-             cigc_contract_item_gmr_cost cigc,
-             cs_cost_store               cs,
-             cpm_corporateproductmaster  cpm,
-             scm_service_charge_master   scms,
-             pdm_productmaster           pdm,
-             ak_corporate                akc,
-             pum_price_unit_master       pum_base,
-             scd_sub_currency_detail     scd,
-             pum_price_unit_master       pum_trans,
-             v_ppu_pum                   ppu,
-             qum_quantity_unit_master    qum,
-             cm_currency_master          cm
-       where invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
-         and invm.process_id = pc_process_id
-         and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
-         and dgrd.int_alloc_group_id = agh.int_alloc_group_id
-         and agh.int_alloc_group_id = agd.int_alloc_group_id
-         and agd.internal_stock_ref_no = grd.internal_grd_ref_no
-         and dgrd.process_id = pc_process_id
-         and agh.process_id = pc_process_id
-         and agd.process_id = pc_process_id
-         and scm.cog_ref_no = cigc.cog_ref_no
-         and cigc.cog_ref_no = cs.cog_ref_no
-         and cpm.product_id = grd.product_id
-         and cs.cost_component_id = scms.cost_id
-         and scms.cost_type = 'SECONDARY_COST'
-         and cs.cost_type = 'Accrual'
-         and cs.cost_ref_no not in
-             (select cs_in.cost_ref_no
-                from cs_cost_store cs_in
-               where cs_in.cost_type = 'Actual'
-                 and cs_in.is_deleted = 'N'
-                 and cs_in.is_actual_posted_in_cog = 'Y'
-                 and cs_in.process_id = pc_process_id)
-         and cs.is_deleted = 'N'
-         and cpm.corporate_id = pc_corporate_id
-         and cigc.is_deleted = 'N'
-         and scm.is_deleted = 'N'
-         and grd.is_deleted = 'N'
-         and grd.product_id = pdm.product_id
-         and cpm.corporate_id = akc.corporate_id
-         and pum_base.cur_id = akc.base_cur_id
-         and pum_base.weight_unit_id = pdm.base_quantity_unit
-         and pum_base.is_active = 'Y'
-         and pum_base.is_deleted = 'N'
-         and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
-         and grd.process_id = pc_process_id
-         and cs.process_id = pc_process_id
-         and cigc.process_id = pc_process_id
-         and cs.transaction_price_unit_id = pum_trans.price_unit_id
-         and pum_trans.is_active = 'Y'
-         and pum_trans.is_deleted = 'N'
-         and ppu.price_unit_id = pum_base.price_unit_id
-         and ppu.product_id = grd.product_id
-         and pum_base.weight_unit_id = qum.qty_unit_id
-         and akc.base_cur_id = cm.cur_id
-         and invm.is_active = 'Y'
-         and cs.reversal_type = 'CONTRACT'
-         and cs.acc_original_accrual = 'Y'
-         and cs.income_expense = 'Expense'
-         and grd.tolling_stock_type = 'None Tolling'
-         and cigc.cog_ref_no not in
-             (select cigc_in.cog_ref_no
-                from cigc_contract_item_gmr_cost cigc_in,
-                     gmr_goods_movement_record   gmr
-               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and cigc_in.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and cigc_in.is_deleted = 'N'
-                 and gmr.contract_type = 'Sales')
-      union all
-      select pc_corporate_id,
-             pc_process_id,
-             cs.internal_cost_id,
-             'Secondary Cost' cost_type,
-             grd.internal_grd_ref_no,
-             invm.sales_internal_gmr_ref_no,
-             grd.product_id,
-             pum_base.weight_unit_id,
-             qum.qty_unit,
-             invm.stock_qty,
-             grd.qty_unit_id,
-             cs.cost_value,
-             scm.transformation_ratio,
-             cs.transaction_price_unit_id,
-             nvl(scd.factor, 1),
-             cs.transaction_amt_cur_id,
-             nvl(scd.cur_id, cs.transaction_amt_cur_id),
-             akc.base_cur_id,
-             cm.cur_code,
-             pum_base.price_unit_id as base_price_unit_id,
-             pum_trans.weight_unit_id as price_weight_unit_id,
-             nvl(pum_trans.weight, 1),
-             1,
-             1,
-             1,
-             ppu.product_price_unit_id,
-             1
-        from scm_stock_cost_mapping      scm,
-             invs_inventory_sales        invm,
-             dgrd_delivered_grd          dgrd,
-             agh_alloc_group_header      agh,
-             agd_alloc_group_detail      agd,
-             grd_goods_record_detail     grd,
-             cigc_contract_item_gmr_cost cigc,
-             cs_cost_store               cs,
-             cpm_corporateproductmaster  cpm,
-             scm_service_charge_master   scms,
-             pdm_productmaster           pdm,
-             ak_corporate                akc,
-             pum_price_unit_master       pum_base,
-             scd_sub_currency_detail     scd,
-             pum_price_unit_master       pum_trans,
-             v_ppu_pum                   ppu,
-             qum_quantity_unit_master    qum,
-             cm_currency_master          cm
-       where invm.process_id = pc_process_id
-         and invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
-         and invm.process_id = pc_process_id
-         and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
-         and dgrd.int_alloc_group_id = agh.int_alloc_group_id
-         and agh.int_alloc_group_id = agd.int_alloc_group_id
-         and agd.internal_stock_ref_no = grd.internal_grd_ref_no
-         and dgrd.process_id = pc_process_id
-         and agh.process_id = pc_process_id
-         and agd.process_id = pc_process_id
-         and scm.cog_ref_no = cigc.cog_ref_no
-         and cigc.cog_ref_no = cs.cog_ref_no
-         and cpm.product_id = grd.product_id
-         and cs.cost_component_id = scms.cost_id
-         and scms.cost_type = 'SECONDARY_COST'
-         and cs.cost_type = 'Actual' -- Overaccrual case avoid
-         and cs.cost_ref_no in
-             (select distinct cs_in.cost_ref_no
-                from cs_cost_store cs_in
-               where cs_in.cost_ref_no = cs.cost_ref_no
-                 and cs_in.cost_type = 'Actual'
-                 and cs_in.is_actual_posted_in_cog = 'Y'
-                 and cs_in.is_deleted = 'N'
-                 and cs_in.process_id = pc_process_id)
-         and cs.is_deleted = 'N'
-         and cpm.corporate_id = pc_corporate_id
-         and cigc.is_deleted = 'N'
-         and scm.is_deleted = 'N'
-         and grd.is_deleted = 'N'
-         and grd.product_id = pdm.product_id
-         and cpm.corporate_id = akc.corporate_id
-         and pum_base.cur_id = akc.base_cur_id
-         and pum_base.weight_unit_id = pdm.base_quantity_unit
-         and pum_base.is_active = 'Y'
-         and pum_base.is_deleted = 'N'
-         and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
-         and grd.process_id = pc_process_id
-         and cs.process_id = pc_process_id
-         and cigc.process_id = pc_process_id
-         and cs.transaction_price_unit_id = pum_trans.price_unit_id
-         and pum_trans.is_active = 'Y'
-         and pum_trans.is_deleted = 'N'
-         and ppu.price_unit_id = pum_base.price_unit_id
-         and ppu.product_id = grd.product_id
-         and invm.is_active = 'Y'
-         and pum_base.weight_unit_id = qum.qty_unit_id
-         and akc.base_cur_id = cm.cur_id
-         and cs.reversal_type = 'CONTRACT'
-         and cs.acc_original_accrual = 'Y'
-         and cs.acc_under_accrual = 'Y'
-         and cs.income_expense = 'Expense'
-         and grd.tolling_stock_type = 'None Tolling'
-         and cigc.cog_ref_no not in
-             (select cigc_in.cog_ref_no
-                from cigc_contract_item_gmr_cost cigc_in,
-                     gmr_goods_movement_record   gmr
-               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and cigc_in.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and cigc_in.is_deleted = 'N'
-                 and gmr.contract_type = 'Sales')
-      union all
-      select pc_corporate_id,
-             pc_process_id,
-             cs.internal_cost_id,
-             case
-               when scms.cost_display_name = 'Material Cost' then
-                'Price'
-               when scms.cost_display_name = 'Location Premium' then
-                'Location Premium'
-               when scms.cost_display_name = 'Quality Premium' then
-                'Quality Premium'
-               when scms.cost_display_name = 'Penalties' then
-                'Penalties'
-               when scms.cost_display_name = 'Refining Charges' then
-                'Refining Charges'
-               when scms.cost_display_name = 'Treatment Charges' then
-                'Treatment Charges'
-             end cost_type,
-             grd.internal_grd_ref_no,
-             invm.sales_internal_gmr_ref_no,
-             grd.product_id,
-             pum_base.weight_unit_id,
-             qum.qty_unit,
-             invm.stock_qty,
-             grd.qty_unit_id,
-             cs.cost_value,
-             scm.transformation_ratio,
-             cs.transaction_price_unit_id,
-             nvl(scd.factor, 1),
-             cs.transaction_amt_cur_id,
-             nvl(scd.cur_id, cs.transaction_amt_cur_id),
-             akc.base_cur_id,
-             cm.cur_code,
-             pum_base.price_unit_id as base_price_unit_id,
-             pum_trans.weight_unit_id as price_weight_unit_id,
-             nvl(pum_trans.weight, 1),
-             1,
-             1,
-             1,
-             ppu.product_price_unit_id,
-             1
-        from scm_stock_cost_mapping      scm,
-             invs_inventory_sales        invm,
-             dgrd_delivered_grd          dgrd,
-             agh_alloc_group_header      agh,
-             agd_alloc_group_detail      agd,
-             grd_goods_record_detail     grd,
-             cigc_contract_item_gmr_cost cigc,
-             cs_cost_store               cs,
-             cpm_corporateproductmaster  cpm,
-             scm_service_charge_master   scms,
-             pdm_productmaster           pdm,
-             ak_corporate                akc,
-             pum_price_unit_master       pum_base,
-             scd_sub_currency_detail     scd,
-             pum_price_unit_master       pum_trans,
-             v_ppu_pum                   ppu,
-             qum_quantity_unit_master    qum,
-             cm_currency_master          cm
-       where invm.process_id = pc_process_id
-         and invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
-         and invm.process_id = pc_process_id
-         and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
-         and dgrd.int_alloc_group_id = agh.int_alloc_group_id
-         and agh.int_alloc_group_id = agd.int_alloc_group_id
-         and agd.internal_stock_ref_no = grd.internal_grd_ref_no
-         and dgrd.process_id = pc_process_id
-         and agh.process_id = pc_process_id
-         and agd.process_id = pc_process_id
-         and scm.cog_ref_no = cigc.cog_ref_no
-         and cigc.cog_ref_no = cs.cog_ref_no
-         and cpm.product_id = grd.product_id
-         and cs.cost_component_id = scms.cost_id
-         and scms.cost_display_name in
-             ('Material Cost', 'Location Premium', 'Quality Premium',
-              'Penalties', 'Refining Charges', 'Treatment Charges')
-         and cs.cost_type in ('Actual', 'Accrual')
-         and cs.is_actual_posted_in_cog = 'Y'
-         and cs.internal_cost_id in
-             (select substr(max(to_char(axs.created_date,
-                                        'yyyymmddhh24missff9') ||
-                                cs.internal_cost_id),
-                            24)
-                from cs_cost_store      cs,
-                     axs_action_summary axs
-               where cs.process_id = pc_process_id
-                 and cs.internal_action_ref_no = axs.internal_action_ref_no
-                 and cs.process_id = pc_process_id
-                 and cs.is_deleted = 'N'
-               group by cs.cost_ref_no)
-         and cs.is_deleted = 'N'
-         and cpm.corporate_id = pc_corporate_id
-         and cigc.is_deleted = 'N'
-         and scm.is_deleted = 'N'
-         and grd.is_deleted = 'N'
-         and grd.product_id = pdm.product_id
-         and cpm.corporate_id = akc.corporate_id
-         and pum_base.cur_id = akc.base_cur_id
-         and pum_base.weight_unit_id = pdm.base_quantity_unit
-         and pum_base.is_active = 'Y'
-         and pum_base.is_deleted = 'N'
-         and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
-         and grd.process_id = pc_process_id
-         and cs.process_id = pc_process_id
-         and cigc.process_id = pc_process_id
-         and cs.transaction_price_unit_id = pum_trans.price_unit_id
-         and pum_trans.is_active = 'Y'
-         and pum_trans.is_deleted = 'N'
-         and ppu.price_unit_id = pum_base.price_unit_id
-         and ppu.product_id = grd.product_id
-         and invm.is_active = 'Y'
-         and pum_base.weight_unit_id = qum.qty_unit_id
-         and akc.base_cur_id = cm.cur_id
-         and cs.reversal_type = 'CONTRACT'
-         and cs.acc_original_accrual = 'Y'
-         and cs.acc_under_accrual = 'Y'
-         and cs.income_expense = 'Expense'
-         and grd.tolling_stock_type = 'None Tolling'
-         and cigc.cog_ref_no not in
-             (select cigc_in.cog_ref_no
-                from cigc_contract_item_gmr_cost cigc_in,
-                     gmr_goods_movement_record   gmr
-               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and cigc_in.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and cigc_in.is_deleted = 'N'
-                 and gmr.contract_type = 'Sales')
-      union all
-      select pc_corporate_id,
-             pc_process_id,
-             cs.internal_cost_id,
-             case
-               when scms.cost_display_name = 'Material Cost' then
-                'Price'
-               when scms.cost_display_name = 'Location Premium' then
-                'Location Premium'
-               when scms.cost_display_name = 'Quality Premium' then
-                'Quality Premium'
-               when scms.cost_display_name = 'Penalties' then
-                'Penalties'
-               when scms.cost_display_name = 'Refining Charges' then
-                'Refining Charges'
-               when scms.cost_display_name = 'Treatment Charges' then
-                'Treatment Charges'
-               else
-                'Secondary Cost'
-             end cost_type,
-             grd.internal_grd_ref_no,
-             invm.sales_internal_gmr_ref_no,
-             grd.product_id,
-             pum_base.weight_unit_id,
-             qum.qty_unit,
-             invm.stock_qty,
-             grd.qty_unit_id,
-             cs.cost_value,
-             scm.transformation_ratio,
-             cs.transaction_price_unit_id,
-             nvl(scd.factor, 1),
-             cs.transaction_amt_cur_id,
-             nvl(scd.cur_id, cs.transaction_amt_cur_id),
-             akc.base_cur_id,
-             cm.cur_code,
-             pum_base.price_unit_id as base_price_unit_id,
-             pum_trans.weight_unit_id as price_weight_unit_id,
-             nvl(pum_trans.weight, 1),
-             1,
-             1,
-             1,
-             ppu.product_price_unit_id,
-             case
-               when scms.cost_display_name = 'Treatment Charges' then
-                1
-               when scms.cost_display_name = 'Refining Charges' then
-                1
-               when scms.cost_display_name = 'Penalties' then
-                1
-               else
-                cs.transact_amt_sign
-             end transact_amt_sign
-        from scm_stock_cost_mapping      scm,
-             invs_inventory_sales        invm,
-             dgrd_delivered_grd          dgrd,
-             agh_alloc_group_header      agh,
-             agd_alloc_group_detail      agd,
-             grd_goods_record_detail     grd,
-             cigc_contract_item_gmr_cost cigc,
-             cs_cost_store               cs,
-             cpm_corporateproductmaster  cpm,
-             scm_service_charge_master   scms,
-             pdm_productmaster           pdm,
-             ak_corporate                akc,
-             pum_price_unit_master       pum_base,
-             scd_sub_currency_detail     scd,
-             pum_price_unit_master       pum_trans,
-             v_ppu_pum                   ppu,
-             qum_quantity_unit_master    qum,
-             cm_currency_master          cm
-       where invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
-         and invm.process_id = pc_process_id
-         and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
-         and dgrd.int_alloc_group_id = agh.int_alloc_group_id
-         and agh.int_alloc_group_id = agd.int_alloc_group_id
-         and agd.internal_stock_ref_no = grd.internal_grd_ref_no
-         and dgrd.process_id = pc_process_id
-         and agh.process_id = pc_process_id
-         and agd.process_id = pc_process_id
-         and scm.cog_ref_no = cigc.cog_ref_no
-         and cigc.cog_ref_no = cs.cog_ref_no
-         and cpm.product_id = grd.product_id
-         and cs.cost_component_id = scms.cost_id
-         and (scms.cost_display_name in
-             ('Material Cost', 'Location Premium', 'Quality Premium',
-              'Penalties', 'Refining Charges', 'Treatment Charges') or
-             scms.cost_type = 'SECONDARY_COST')
-         and cs.cost_type = 'Direct Actual'
-         and cs.cost_ref_no not in
-             (select cs_in.cost_ref_no
-                from cs_cost_store cs_in
-               where cs_in.cost_type = 'Actual'
-                 and cs_in.is_deleted = 'N'
-                 and cs_in.is_actual_posted_in_cog = 'Y'
-                 and cs_in.process_id = pc_process_id)
-         and cs.is_deleted = 'N'
-         and cpm.corporate_id = pc_corporate_id
-         and cigc.is_deleted = 'N'
-         and scm.is_deleted = 'N'
-         and grd.is_deleted = 'N'
-         and grd.product_id = pdm.product_id
-         and cpm.corporate_id = akc.corporate_id
-         and pum_base.cur_id = akc.base_cur_id
-         and pum_base.weight_unit_id = pdm.base_quantity_unit
-         and pum_base.is_active = 'Y'
-         and pum_base.is_deleted = 'N'
-         and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
-         and grd.process_id = pc_process_id
-         and cs.process_id = pc_process_id
-         and cigc.process_id = pc_process_id
-         and cs.transaction_price_unit_id = pum_trans.price_unit_id
-         and pum_trans.is_active = 'Y'
-         and pum_trans.is_deleted = 'N'
-         and ppu.price_unit_id = pum_base.price_unit_id
-         and ppu.product_id = grd.product_id
-         and pum_base.weight_unit_id = qum.qty_unit_id
-         and akc.base_cur_id = cm.cur_id
-         and invm.is_active = 'Y'
-         and cs.reversal_type = 'CONTRACT'
-         and cs.acc_direct_actual = 'Y'
-         and cs.income_expense = 'Expense'
-         and grd.tolling_stock_type = 'None Tolling'
-         and cigc.cog_ref_no not in
-             (select cigc_in.cog_ref_no
-                from cigc_contract_item_gmr_cost cigc_in,
-                     gmr_goods_movement_record   gmr
-               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and cigc_in.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and cigc_in.is_deleted = 'N'
-                 and gmr.contract_type = 'Sales')
-      union all
-      select pc_corporate_id,
-             pc_process_id,
-             cs.internal_cost_id,
-             case
-               when scms.cost_display_name = 'Material Cost' then
-                'Price'
-               when scms.cost_display_name = 'Location Premium' then
-                'Location Premium'
-               when scms.cost_display_name = 'Quality Premium' then
-                'Quality Premium'
-               when scms.cost_display_name = 'Penalties' then
-                'Penalties'
-               when scms.cost_display_name = 'Refining Charges' then
-                'Refining Charges'
-               when scms.cost_display_name = 'Treatment Charges' then
-                'Treatment Charges'
-               else
-                'Secondary Cost'
-             end cost_type,
-             grd.internal_grd_ref_no,
-             invm.sales_internal_gmr_ref_no,
-             grd.product_id,
-             pum_base.weight_unit_id,
-             qum.qty_unit,
-             invm.stock_qty,
-             grd.qty_unit_id,
-             cs.cost_value,
-             scm.transformation_ratio,
-             cs.transaction_price_unit_id,
-             nvl(scd.factor, 1),
-             cs.transaction_amt_cur_id,
-             nvl(scd.cur_id, cs.transaction_amt_cur_id),
-             akc.base_cur_id,
-             cm.cur_code,
-             pum_base.price_unit_id as base_price_unit_id,
-             pum_trans.weight_unit_id as price_weight_unit_id,
-             nvl(pum_trans.weight, 1),
-             1,
-             1,
-             1,
-             ppu.product_price_unit_id,
-             case
-               when scms.cost_display_name = 'Treatment Charges' then
-                1
-               when scms.cost_display_name = 'Refining Charges' then
-                1
-               when scms.cost_display_name = 'Penalties' then
-                1
-               else
-                cs.transact_amt_sign
-             end transact_amt_sign
-        from scm_stock_cost_mapping      scm,
-             invs_inventory_sales        invm,
-             dgrd_delivered_grd          dgrd,
-             agh_alloc_group_header      agh,
-             agd_alloc_group_detail      agd,
-             grd_goods_record_detail     grd,
-             cigc_contract_item_gmr_cost cigc,
-             cs_cost_store               cs,
-             cpm_corporateproductmaster  cpm,
-             scm_service_charge_master   scms,
-             pdm_productmaster           pdm,
-             ak_corporate                akc,
-             pum_price_unit_master       pum_base,
-             scd_sub_currency_detail     scd,
-             pum_price_unit_master       pum_trans,
-             v_ppu_pum                   ppu,
-             qum_quantity_unit_master    qum,
-             cm_currency_master          cm
-       where invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
-         and invm.process_id = pc_process_id
-         and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
-         and dgrd.int_alloc_group_id = agh.int_alloc_group_id
-         and agh.int_alloc_group_id = agd.int_alloc_group_id
-         and agd.internal_stock_ref_no = grd.internal_grd_ref_no
-         and dgrd.process_id = pc_process_id
-         and agh.process_id = pc_process_id
-         and agd.process_id = pc_process_id
-         and scm.cog_ref_no = cigc.cog_ref_no
-         and cigc.cog_ref_no = cs.cog_ref_no
-         and cpm.product_id = grd.product_id
-         and cs.cost_component_id = scms.cost_id
-         and (scms.cost_display_name in
-             ('Material Cost', 'Location Premium', 'Quality Premium',
-              'Penalties', 'Refining Charges', 'Treatment Charges') or
-             scms.cost_type = 'SECONDARY_COST')
-         and cs.cost_type = 'Reversal'
-         and cs.is_deleted = 'N'
-         and cpm.corporate_id = pc_corporate_id
-         and cigc.is_deleted = 'N'
-         and scm.is_deleted = 'N'
-         and grd.is_deleted = 'N'
-         and grd.product_id = pdm.product_id
-         and cpm.corporate_id = akc.corporate_id
-         and pum_base.cur_id = akc.base_cur_id
-         and pum_base.weight_unit_id = pdm.base_quantity_unit
-         and pum_base.is_active = 'Y'
-         and pum_base.is_deleted = 'N'
-         and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
-         and grd.process_id = pc_process_id
-         and cs.process_id = pc_process_id
-         and cigc.process_id = pc_process_id
-         and cs.transaction_price_unit_id = pum_trans.price_unit_id
-         and pum_trans.is_active = 'Y'
-         and pum_trans.is_deleted = 'N'
-         and ppu.price_unit_id = pum_base.price_unit_id
-         and ppu.product_id = grd.product_id
-         and pum_base.weight_unit_id = qum.qty_unit_id
-         and akc.base_cur_id = cm.cur_id
-         and invm.is_active = 'Y'
-         and cs.reversal_type = 'CONTRACT'
-         and cs.acc_original_accrual = 'Y'
-         and cs.acc_over_accrual = 'Y'
-         and cs.income_expense = 'Expense'
-         and grd.tolling_stock_type = 'None Tolling'
-         and cigc.cog_ref_no not in
-             (select cigc_in.cog_ref_no
-                from cigc_contract_item_gmr_cost cigc_in,
-                     gmr_goods_movement_record   gmr
-               where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and cigc_in.process_id = pc_process_id
-                 and gmr.process_id = pc_process_id
-                 and gmr.is_deleted = 'N'
-                 and cigc_in.is_deleted = 'N'
-                 and gmr.contract_type = 'Sales');
+insert into tinvs_temp_invm_cogs
+  (corporate_id,
+   process_id,
+   internal_cost_id,
+   cost_type,
+   internal_grd_ref_no,
+   sales_internal_gmr_ref_no,
+   product_id,
+   base_qty_unit_id,
+   base_qty_unit,
+   grd_current_qty,
+   grd_qty_unit_id,
+   cost_value,
+   transformation_ratio,
+   transaction_price_unit_id,
+   transaction_cur_factor,
+   transaction_amt_cur_id,
+   transaction_amt_main_cur_id,
+   base_cur_id,
+   base_cur_code,
+   base_price_unit_id,
+   price_qty_unit_id,
+   price_weight,
+   price_to_stock_wt_conversion,
+   stock_to_base_wt_conversion,
+   transact_to_base_fw_exch_rate,
+   base_price_unit_id_in_ppu,
+   transact_amt_sign)
+  select pc_corporate_id,
+         pc_process_id,
+         cs.internal_cost_id,
+         'Secondary Cost' cost_type,
+         grd.internal_grd_ref_no,
+         invm.sales_internal_gmr_ref_no,
+         grd.product_id,
+         pum_base.weight_unit_id,
+         qum.qty_unit,
+         invm.stock_qty,
+         grd.qty_unit_id,
+         cs.cost_value,
+         scm.transformation_ratio,
+         cs.transaction_price_unit_id,
+         nvl(scd.factor, 1),
+         cs.transaction_amt_cur_id,
+         nvl(scd.cur_id, cs.transaction_amt_cur_id),
+         akc.base_cur_id,
+         cm.cur_code,
+         pum_base.price_unit_id as base_price_unit_id,
+         pum_trans.weight_unit_id as price_weight_unit_id,
+         nvl(pum_trans.weight, 1),
+         1,
+         1,
+         1,
+         ppu.product_price_unit_id,
+         cs.transact_amt_sign transact_amt_sign
+    from scm_stock_cost_mapping      scm,
+         invs_inventory_sales        invm,
+         dgrd_delivered_grd          dgrd,
+         agh_alloc_group_header      agh,
+         agd_alloc_group_detail      agd,
+         grd_goods_record_detail     grd,
+         cigc_contract_item_gmr_cost cigc,
+         cs_cost_store               cs,
+         cpm_corporateproductmaster  cpm,
+         scm_service_charge_master   scms,
+         pdm_productmaster           pdm,
+         ak_corporate                akc,
+         pum_price_unit_master       pum_base,
+         scd_sub_currency_detail     scd,
+         pum_price_unit_master       pum_trans,
+         v_ppu_pum                   ppu,
+         qum_quantity_unit_master    qum,
+         cm_currency_master          cm
+   where invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
+     and invm.process_id = pc_process_id
+     and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+     and dgrd.int_alloc_group_id = agh.int_alloc_group_id
+     and agh.int_alloc_group_id = agd.int_alloc_group_id
+     and agd.internal_stock_ref_no = grd.internal_grd_ref_no
+     and dgrd.process_id = pc_process_id
+     and agh.process_id = pc_process_id
+     and agd.process_id = pc_process_id
+     and scm.cog_ref_no = cigc.cog_ref_no
+     and cigc.cog_ref_no = cs.cog_ref_no
+     and cpm.product_id = grd.product_id
+     and cs.cost_component_id = scms.cost_id
+     and scms.cost_type = 'SECONDARY_COST'
+     and cs.cost_type = 'Accrual'
+     and cs.cost_ref_no not in
+         (select cs_in.cost_ref_no
+            from cs_cost_store cs_in
+           where cs_in.cost_type = 'Actual'
+             and cs_in.is_deleted = 'N'
+             and cs_in.is_actual_posted_in_cog = 'Y'
+             and cs_in.process_id = pc_process_id)
+     and cs.is_deleted = 'N'
+     and cpm.corporate_id = pc_corporate_id
+     and cigc.is_deleted = 'N'
+     and scm.is_deleted = 'N'
+     and grd.is_deleted = 'N'
+     and grd.product_id = pdm.product_id
+     and cpm.corporate_id = akc.corporate_id
+     and pum_base.cur_id = akc.base_cur_id
+     and pum_base.weight_unit_id = pdm.base_quantity_unit
+     and pum_base.is_active = 'Y'
+     and pum_base.is_deleted = 'N'
+     and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
+     and grd.process_id = pc_process_id
+     and cs.process_id = pc_process_id
+     and cigc.process_id = pc_process_id
+     and cs.transaction_price_unit_id = pum_trans.price_unit_id
+     and pum_trans.is_active = 'Y'
+     and pum_trans.is_deleted = 'N'
+     and ppu.price_unit_id = pum_base.price_unit_id
+     and ppu.product_id = grd.product_id
+     and pum_base.weight_unit_id = qum.qty_unit_id
+     and akc.base_cur_id = cm.cur_id
+     and invm.is_active = 'Y'
+     and cs.reversal_type = 'CONTRACT'
+     and cs.acc_original_accrual = 'Y'
+     and cs.income_expense = 'Expense'
+     and grd.tolling_stock_type = 'None Tolling'
+     and cigc.cog_ref_no not in
+         (select cigc_in.cog_ref_no
+            from cigc_contract_item_gmr_cost cigc_in,
+                 gmr_goods_movement_record   gmr
+           where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and cigc_in.process_id = pc_process_id
+             and gmr.process_id = pc_process_id
+             and gmr.is_deleted = 'N'
+             and cigc_in.is_deleted = 'N'
+             and gmr.contract_type = 'Sales')
+     and cigc.cog_ref_no in
+         (select scm_in.cog_ref_no
+            from scm_stock_cost_mapping scm_in
+           where scm_in.internal_grd_ref_no = grd.internal_grd_ref_no)
+     and invm.internal_grd_ref_no = grd.internal_gmr_ref_no
+  union all
+  select pc_corporate_id,
+         pc_process_id,
+         cs.internal_cost_id,
+         'Secondary Cost' cost_type,
+         grd.internal_grd_ref_no,
+         invm.sales_internal_gmr_ref_no,
+         grd.product_id,
+         pum_base.weight_unit_id,
+         qum.qty_unit,
+         invm.stock_qty,
+         grd.qty_unit_id,
+         cs.cost_value,
+         scm.transformation_ratio,
+         cs.transaction_price_unit_id,
+         nvl(scd.factor, 1),
+         cs.transaction_amt_cur_id,
+         nvl(scd.cur_id, cs.transaction_amt_cur_id),
+         akc.base_cur_id,
+         cm.cur_code,
+         pum_base.price_unit_id as base_price_unit_id,
+         pum_trans.weight_unit_id as price_weight_unit_id,
+         nvl(pum_trans.weight, 1),
+         1,
+         1,
+         1,
+         ppu.product_price_unit_id,
+         1
+    from scm_stock_cost_mapping      scm,
+         invs_inventory_sales        invm,
+         dgrd_delivered_grd          dgrd,
+         agh_alloc_group_header      agh,
+         agd_alloc_group_detail      agd,
+         grd_goods_record_detail     grd,
+         cigc_contract_item_gmr_cost cigc,
+         cs_cost_store               cs,
+         cpm_corporateproductmaster  cpm,
+         scm_service_charge_master   scms,
+         pdm_productmaster           pdm,
+         ak_corporate                akc,
+         pum_price_unit_master       pum_base,
+         scd_sub_currency_detail     scd,
+         pum_price_unit_master       pum_trans,
+         v_ppu_pum                   ppu,
+         qum_quantity_unit_master    qum,
+         cm_currency_master          cm
+   where invm.process_id = pc_process_id
+     and invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
+     and invm.process_id = pc_process_id
+     and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+     and dgrd.int_alloc_group_id = agh.int_alloc_group_id
+     and agh.int_alloc_group_id = agd.int_alloc_group_id
+     and agd.internal_stock_ref_no = grd.internal_grd_ref_no
+     and dgrd.process_id = pc_process_id
+     and agh.process_id = pc_process_id
+     and agd.process_id = pc_process_id
+     and scm.cog_ref_no = cigc.cog_ref_no
+     and cigc.cog_ref_no = cs.cog_ref_no
+     and cpm.product_id = grd.product_id
+     and cs.cost_component_id = scms.cost_id
+     and scms.cost_type = 'SECONDARY_COST'
+     and cs.cost_type = 'Actual' -- Overaccrual case avoid
+     and cs.cost_ref_no in
+         (select distinct cs_in.cost_ref_no
+            from cs_cost_store cs_in
+           where cs_in.cost_ref_no = cs.cost_ref_no
+             and cs_in.cost_type = 'Actual'
+             and cs_in.is_actual_posted_in_cog = 'Y'
+             and cs_in.is_deleted = 'N'
+             and cs_in.process_id = pc_process_id)
+     and cs.is_deleted = 'N'
+     and cpm.corporate_id = pc_corporate_id
+     and cigc.is_deleted = 'N'
+     and scm.is_deleted = 'N'
+     and grd.is_deleted = 'N'
+     and grd.product_id = pdm.product_id
+     and cpm.corporate_id = akc.corporate_id
+     and pum_base.cur_id = akc.base_cur_id
+     and pum_base.weight_unit_id = pdm.base_quantity_unit
+     and pum_base.is_active = 'Y'
+     and pum_base.is_deleted = 'N'
+     and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
+     and grd.process_id = pc_process_id
+     and cs.process_id = pc_process_id
+     and cigc.process_id = pc_process_id
+     and cs.transaction_price_unit_id = pum_trans.price_unit_id
+     and pum_trans.is_active = 'Y'
+     and pum_trans.is_deleted = 'N'
+     and ppu.price_unit_id = pum_base.price_unit_id
+     and ppu.product_id = grd.product_id
+     and invm.is_active = 'Y'
+     and pum_base.weight_unit_id = qum.qty_unit_id
+     and akc.base_cur_id = cm.cur_id
+     and cs.reversal_type = 'CONTRACT'
+     and cs.acc_original_accrual = 'Y'
+     and cs.acc_under_accrual = 'Y'
+     and cs.income_expense = 'Expense'
+     and grd.tolling_stock_type = 'None Tolling'
+     and cigc.cog_ref_no not in
+         (select cigc_in.cog_ref_no
+            from cigc_contract_item_gmr_cost cigc_in,
+                 gmr_goods_movement_record   gmr
+           where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and cigc_in.process_id = pc_process_id
+             and gmr.process_id = pc_process_id
+             and gmr.is_deleted = 'N'
+             and cigc_in.is_deleted = 'N'
+             and gmr.contract_type = 'Sales')
+     and cigc.cog_ref_no in
+         (select scm_in.cog_ref_no
+            from scm_stock_cost_mapping scm_in
+           where scm_in.internal_grd_ref_no = grd.internal_grd_ref_no)
+     and invm.internal_grd_ref_no = grd.internal_gmr_ref_no
+  union all
+  select pc_corporate_id,
+         pc_process_id,
+         cs.internal_cost_id,
+         case
+           when scms.cost_display_name = 'Material Cost' then
+            'Price'
+           when scms.cost_display_name = 'Location Premium' then
+            'Location Premium'
+           when scms.cost_display_name = 'Quality Premium' then
+            'Quality Premium'
+           when scms.cost_display_name = 'Penalties' then
+            'Penalties'
+           when scms.cost_display_name = 'Refining Charges' then
+            'Refining Charges'
+           when scms.cost_display_name = 'Treatment Charges' then
+            'Treatment Charges'
+         end cost_type,
+         grd.internal_grd_ref_no,
+         invm.sales_internal_gmr_ref_no,
+         grd.product_id,
+         pum_base.weight_unit_id,
+         qum.qty_unit,
+         invm.stock_qty,
+         grd.qty_unit_id,
+         cs.cost_value,
+         scm.transformation_ratio,
+         cs.transaction_price_unit_id,
+         nvl(scd.factor, 1),
+         cs.transaction_amt_cur_id,
+         nvl(scd.cur_id, cs.transaction_amt_cur_id),
+         akc.base_cur_id,
+         cm.cur_code,
+         pum_base.price_unit_id as base_price_unit_id,
+         pum_trans.weight_unit_id as price_weight_unit_id,
+         nvl(pum_trans.weight, 1),
+         1,
+         1,
+         1,
+         ppu.product_price_unit_id,
+         1
+    from scm_stock_cost_mapping      scm,
+         invs_inventory_sales        invm,
+         dgrd_delivered_grd          dgrd,
+         agh_alloc_group_header      agh,
+         agd_alloc_group_detail      agd,
+         grd_goods_record_detail     grd,
+         cigc_contract_item_gmr_cost cigc,
+         cs_cost_store               cs,
+         cpm_corporateproductmaster  cpm,
+         scm_service_charge_master   scms,
+         pdm_productmaster           pdm,
+         ak_corporate                akc,
+         pum_price_unit_master       pum_base,
+         scd_sub_currency_detail     scd,
+         pum_price_unit_master       pum_trans,
+         v_ppu_pum                   ppu,
+         qum_quantity_unit_master    qum,
+         cm_currency_master          cm
+   where invm.process_id = pc_process_id
+     and invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
+     and invm.process_id = pc_process_id
+     and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+     and dgrd.int_alloc_group_id = agh.int_alloc_group_id
+     and agh.int_alloc_group_id = agd.int_alloc_group_id
+     and agd.internal_stock_ref_no = grd.internal_grd_ref_no
+     and dgrd.process_id = pc_process_id
+     and agh.process_id = pc_process_id
+     and agd.process_id = pc_process_id
+     and scm.cog_ref_no = cigc.cog_ref_no
+     and cigc.cog_ref_no = cs.cog_ref_no
+     and cpm.product_id = grd.product_id
+     and cs.cost_component_id = scms.cost_id
+     and scms.cost_display_name in
+         ('Material Cost', 'Location Premium', 'Quality Premium',
+          'Penalties', 'Refining Charges', 'Treatment Charges')
+     and cs.cost_type in ('Actual', 'Accrual')
+     and cs.internal_cost_id in
+         (select substr(max(to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                            cs.internal_cost_id),
+                        24)
+            from cs_cost_store      cs,
+                 axs_action_summary axs
+           where cs.process_id = pc_process_id
+             and cs.internal_action_ref_no = axs.internal_action_ref_no
+             and cs.process_id = pc_process_id
+             and cs.is_deleted = 'N'
+           group by cs.cost_ref_no)
+     and cs.is_deleted = 'N'
+     and cpm.corporate_id = pc_corporate_id
+     and cigc.is_deleted = 'N'
+     and scm.is_deleted = 'N'
+     and grd.is_deleted = 'N'
+     and grd.product_id = pdm.product_id
+     and cpm.corporate_id = akc.corporate_id
+     and pum_base.cur_id = akc.base_cur_id
+     and pum_base.weight_unit_id = pdm.base_quantity_unit
+     and pum_base.is_active = 'Y'
+     and pum_base.is_deleted = 'N'
+     and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
+     and grd.process_id = pc_process_id
+     and cs.process_id = pc_process_id
+     and cigc.process_id = pc_process_id
+     and cs.transaction_price_unit_id = pum_trans.price_unit_id
+     and pum_trans.is_active = 'Y'
+     and pum_trans.is_deleted = 'N'
+     and ppu.price_unit_id = pum_base.price_unit_id
+     and ppu.product_id = grd.product_id
+     and invm.is_active = 'Y'
+     and pum_base.weight_unit_id = qum.qty_unit_id
+     and akc.base_cur_id = cm.cur_id
+     and cs.reversal_type = 'CONTRACT'
+     and cs.acc_original_accrual = 'Y'
+     and cs.acc_under_accrual = 'Y'
+     and cs.income_expense = 'Expense'
+     and grd.tolling_stock_type = 'None Tolling'
+     and cigc.cog_ref_no not in
+         (select cigc_in.cog_ref_no
+            from cigc_contract_item_gmr_cost cigc_in,
+                 gmr_goods_movement_record   gmr
+           where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and cigc_in.process_id = pc_process_id
+             and gmr.process_id = pc_process_id
+             and gmr.is_deleted = 'N'
+             and cigc_in.is_deleted = 'N'
+             and gmr.contract_type = 'Sales')
+     and cigc.cog_ref_no in
+         (select scm_in.cog_ref_no
+            from scm_stock_cost_mapping scm_in
+           where scm_in.internal_grd_ref_no = grd.internal_grd_ref_no)
+     and invm.internal_grd_ref_no = grd.internal_gmr_ref_no
+  union all
+  select pc_corporate_id,
+         pc_process_id,
+         cs.internal_cost_id,
+         'Secondary Cost' cost_type,
+         grd.internal_grd_ref_no,
+         invm.sales_internal_gmr_ref_no,
+         grd.product_id,
+         pum_base.weight_unit_id,
+         qum.qty_unit,
+         invm.stock_qty,
+         grd.qty_unit_id,
+         cs.cost_value,
+         scm.transformation_ratio,
+         cs.transaction_price_unit_id,
+         nvl(scd.factor, 1),
+         cs.transaction_amt_cur_id,
+         nvl(scd.cur_id, cs.transaction_amt_cur_id),
+         akc.base_cur_id,
+         cm.cur_code,
+         pum_base.price_unit_id as base_price_unit_id,
+         pum_trans.weight_unit_id as price_weight_unit_id,
+         nvl(pum_trans.weight, 1),
+         1,
+         1,
+         1,
+         ppu.product_price_unit_id,
+         case
+           when scms.cost_display_name = 'Treatment Charges' then
+            1
+           when scms.cost_display_name = 'Refining Charges' then
+            1
+           when scms.cost_display_name = 'Penalties' then
+            1
+           else
+            cs.transact_amt_sign
+         end transact_amt_sign
+    from scm_stock_cost_mapping      scm,
+         invs_inventory_sales        invm,
+         dgrd_delivered_grd          dgrd,
+         agh_alloc_group_header      agh,
+         agd_alloc_group_detail      agd,
+         grd_goods_record_detail     grd,
+         cigc_contract_item_gmr_cost cigc,
+         cs_cost_store               cs,
+         cpm_corporateproductmaster  cpm,
+         scm_service_charge_master   scms,
+         pdm_productmaster           pdm,
+         ak_corporate                akc,
+         pum_price_unit_master       pum_base,
+         scd_sub_currency_detail     scd,
+         pum_price_unit_master       pum_trans,
+         v_ppu_pum                   ppu,
+         qum_quantity_unit_master    qum,
+         cm_currency_master          cm
+   where invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
+     and invm.process_id = pc_process_id
+     and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+     and dgrd.int_alloc_group_id = agh.int_alloc_group_id
+     and agh.int_alloc_group_id = agd.int_alloc_group_id
+     and agd.internal_stock_ref_no = grd.internal_grd_ref_no
+     and dgrd.process_id = pc_process_id
+     and agh.process_id = pc_process_id
+     and agd.process_id = pc_process_id
+     and scm.cog_ref_no = cigc.cog_ref_no
+     and cigc.cog_ref_no = cs.cog_ref_no
+     and cpm.product_id = grd.product_id
+     and cs.cost_component_id = scms.cost_id
+     and scms.cost_type = 'SECONDARY_COST'
+     and cs.cost_type = 'Direct Actual'
+     and cs.cost_ref_no not in
+         (select cs_in.cost_ref_no
+            from cs_cost_store cs_in
+           where cs_in.cost_type = 'Actual'
+             and cs_in.is_deleted = 'N'
+             and cs_in.is_actual_posted_in_cog = 'Y'
+             and cs_in.process_id = pc_process_id)
+     and cs.is_deleted = 'N'
+     and cpm.corporate_id = pc_corporate_id
+     and cigc.is_deleted = 'N'
+     and scm.is_deleted = 'N'
+     and grd.is_deleted = 'N'
+     and grd.product_id = pdm.product_id
+     and cpm.corporate_id = akc.corporate_id
+     and pum_base.cur_id = akc.base_cur_id
+     and pum_base.weight_unit_id = pdm.base_quantity_unit
+     and pum_base.is_active = 'Y'
+     and pum_base.is_deleted = 'N'
+     and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
+     and grd.process_id = pc_process_id
+     and cs.process_id = pc_process_id
+     and cigc.process_id = pc_process_id
+     and cs.transaction_price_unit_id = pum_trans.price_unit_id
+     and pum_trans.is_active = 'Y'
+     and pum_trans.is_deleted = 'N'
+     and ppu.price_unit_id = pum_base.price_unit_id
+     and ppu.product_id = grd.product_id
+     and pum_base.weight_unit_id = qum.qty_unit_id
+     and akc.base_cur_id = cm.cur_id
+     and invm.is_active = 'Y'
+     and cs.reversal_type = 'CONTRACT'
+     and cs.acc_direct_actual = 'Y'
+     and cs.income_expense = 'Expense'
+     and grd.tolling_stock_type = 'None Tolling'
+     and cigc.cog_ref_no not in
+         (select cigc_in.cog_ref_no
+            from cigc_contract_item_gmr_cost cigc_in,
+                 gmr_goods_movement_record   gmr
+           where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and cigc_in.process_id = pc_process_id
+             and gmr.process_id = pc_process_id
+             and gmr.is_deleted = 'N'
+             and cigc_in.is_deleted = 'N'
+             and gmr.contract_type = 'Sales')
+     and cigc.cog_ref_no in
+         (select scm_in.cog_ref_no
+            from scm_stock_cost_mapping scm_in
+           where scm_in.internal_grd_ref_no = grd.internal_grd_ref_no)
+     and invm.internal_grd_ref_no = grd.internal_gmr_ref_no
+  union all
+  select pc_corporate_id,
+         pc_process_id,
+         cs.internal_cost_id,
+         'Secondary Cost' cost_type,
+         grd.internal_grd_ref_no,
+         invm.sales_internal_gmr_ref_no,
+         grd.product_id,
+         pum_base.weight_unit_id,
+         qum.qty_unit,
+         invm.stock_qty,
+         grd.qty_unit_id,
+         cs.cost_value,
+         scm.transformation_ratio,
+         cs.transaction_price_unit_id,
+         nvl(scd.factor, 1),
+         cs.transaction_amt_cur_id,
+         nvl(scd.cur_id, cs.transaction_amt_cur_id),
+         akc.base_cur_id,
+         cm.cur_code,
+         pum_base.price_unit_id as base_price_unit_id,
+         pum_trans.weight_unit_id as price_weight_unit_id,
+         nvl(pum_trans.weight, 1),
+         1,
+         1,
+         1,
+         ppu.product_price_unit_id,
+         case
+           when scms.cost_display_name = 'Treatment Charges' then
+            1
+           when scms.cost_display_name = 'Refining Charges' then
+            1
+           when scms.cost_display_name = 'Penalties' then
+            1
+           else
+            cs.transact_amt_sign
+         end transact_amt_sign
+    from scm_stock_cost_mapping      scm,
+         invs_inventory_sales        invm,
+         dgrd_delivered_grd          dgrd,
+         agh_alloc_group_header      agh,
+         agd_alloc_group_detail      agd,
+         grd_goods_record_detail     grd,
+         cigc_contract_item_gmr_cost cigc,
+         cs_cost_store               cs,
+         cpm_corporateproductmaster  cpm,
+         scm_service_charge_master   scms,
+         pdm_productmaster           pdm,
+         ak_corporate                akc,
+         pum_price_unit_master       pum_base,
+         scd_sub_currency_detail     scd,
+         pum_price_unit_master       pum_trans,
+         v_ppu_pum                   ppu,
+         qum_quantity_unit_master    qum,
+         cm_currency_master          cm
+   where invm.internal_dgrd_ref_no = scm.internal_dgrd_ref_no
+     and invm.process_id = pc_process_id
+     and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+     and dgrd.int_alloc_group_id = agh.int_alloc_group_id
+     and agh.int_alloc_group_id = agd.int_alloc_group_id
+     and agd.internal_stock_ref_no = grd.internal_grd_ref_no
+     and dgrd.process_id = pc_process_id
+     and agh.process_id = pc_process_id
+     and agd.process_id = pc_process_id
+     and scm.cog_ref_no = cigc.cog_ref_no
+     and cigc.cog_ref_no = cs.cog_ref_no
+     and cpm.product_id = grd.product_id
+     and cs.cost_component_id = scms.cost_id
+     and scms.cost_type = 'SECONDARY_COST'
+     and cs.cost_type = 'Reversal'
+     and cs.is_deleted = 'N'
+     and cpm.corporate_id = pc_corporate_id
+     and cigc.is_deleted = 'N'
+     and scm.is_deleted = 'N'
+     and grd.is_deleted = 'N'
+     and grd.product_id = pdm.product_id
+     and cpm.corporate_id = akc.corporate_id
+     and pum_base.cur_id = akc.base_cur_id
+     and pum_base.weight_unit_id = pdm.base_quantity_unit
+     and pum_base.is_active = 'Y'
+     and pum_base.is_deleted = 'N'
+     and cs.transaction_amt_cur_id = scd.sub_cur_id(+)
+     and grd.process_id = pc_process_id
+     and cs.process_id = pc_process_id
+     and cigc.process_id = pc_process_id
+     and cs.transaction_price_unit_id = pum_trans.price_unit_id
+     and pum_trans.is_active = 'Y'
+     and pum_trans.is_deleted = 'N'
+     and ppu.price_unit_id = pum_base.price_unit_id
+     and ppu.product_id = grd.product_id
+     and pum_base.weight_unit_id = qum.qty_unit_id
+     and akc.base_cur_id = cm.cur_id
+     and invm.is_active = 'Y'
+     and cs.reversal_type = 'CONTRACT'
+     and cs.acc_original_accrual = 'Y'
+     and cs.acc_over_accrual = 'Y'
+     and cs.income_expense = 'Expense'
+     and grd.tolling_stock_type = 'None Tolling'
+     and cigc.cog_ref_no not in
+         (select cigc_in.cog_ref_no
+            from cigc_contract_item_gmr_cost cigc_in,
+                 gmr_goods_movement_record   gmr
+           where cigc_in.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and cigc_in.process_id = pc_process_id
+             and gmr.process_id = pc_process_id
+             and gmr.is_deleted = 'N'
+             and cigc_in.is_deleted = 'N'
+             and gmr.contract_type = 'Sales')
+     and cigc.cog_ref_no in
+         (select scm_in.cog_ref_no
+            from scm_stock_cost_mapping scm_in
+           where scm_in.internal_grd_ref_no = grd.internal_grd_ref_no)
+     and invm.internal_grd_ref_no = grd.internal_gmr_ref_no;
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -3468,5 +3419,5 @@ create or replace package body pkg_phy_calculate_cog is
       sp_insert_error_log(vobj_error_log);
     
   end;
-end;
+end; 
 /

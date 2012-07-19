@@ -1,4 +1,4 @@
-create or replace package "PKG_METALS_GENERAL" is
+create or replace package pkg_metals_general is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
                                     pc_internal_cont_item_ref_no varchar2,
                                     pn_item_qty                  number,
@@ -101,9 +101,9 @@ create or replace package "PKG_METALS_GENERAL" is
                                        pn_premium                  out number,
                                        pc_exch_rate_string         out varchar2);
 
-end; 
+end;
 /
-create or replace package body "PKG_METALS_GENERAL" is
+create or replace package body pkg_metals_general is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
                                     pc_internal_cont_item_ref_no varchar2,
                                     pn_item_qty                  number,
@@ -327,7 +327,29 @@ create or replace package body "PKG_METALS_GENERAL" is
                                   aml.attribute_name,
                                   aml.attribute_desc,
                                   ppm.product_id,
-                                  aml.underlying_product_id
+                                  aml.underlying_product_id,
+                                  (case
+                                    when ash.ash_id =
+                                         (select ash_new.pricing_assay_ash_id
+                                            from ash_assay_header ash_new
+                                           where ash_new.assay_type =
+                                                 'Provisional Assay'
+                                             and ash_new.is_active = 'Y'
+                                             and ash_new.internal_grd_ref_no =
+                                                 ash.internal_grd_ref_no) then
+                                     pn_qty
+                                    when ash.ash_id =
+                                         (select ash_new.ash_id
+                                            from ash_assay_header ash_new
+                                           where ash_new.assay_type =
+                                                 'Shipment Assay'
+                                             and ash_new.is_active = 'Y'
+                                             and ash_new.internal_grd_ref_no =
+                                                 ash.internal_grd_ref_no) then
+                                     pn_qty
+                                    else
+                                     asm.net_weight
+                                  end) net_weight
                              from ash_assay_header               ash,
                                   asm_assay_sublot_mapping       asm,
                                   aml_attribute_master_list      aml,
@@ -343,6 +365,7 @@ create or replace package body "PKG_METALS_GENERAL" is
                               and ppm.product_id = pc_product_id
                               and nvl(ppm.deduct_for_wet_to_dry, 'N') = 'Y')
     loop
+      vn_item_qty := nvl(cur_deduct_qty.net_weight, pn_qty);
       if cur_deduct_qty.ratio_name = '%' then
         vn_deduct_qty := vn_item_qty * (cur_deduct_qty.typical / 100);
       else
@@ -357,8 +380,10 @@ create or replace package body "PKG_METALS_GENERAL" is
                                                                  vn_converted_qty);
       end if;
       vn_deduct_total_qty := vn_deduct_total_qty + vn_deduct_qty;
+    
     end loop;
-    return(vn_item_qty - vn_deduct_total_qty);
+    return(pn_qty - vn_deduct_total_qty);
+  
   end;
   procedure sp_get_penalty_charge(pc_inter_cont_item_ref_no varchar2,
                                   pc_dbd_id                 varchar2,
@@ -490,10 +515,10 @@ create or replace package body "PKG_METALS_GENERAL" is
           --as according to the typical value   
           if (cur_pc_charge.position = 'Range Begining' and
              cur_pc_charge.range_max_op = '<=' and
-             cur_pc_charge.range_max_value <= cc.typical) or
+             cc.typical <= cur_pc_charge.range_max_value) or
              (cur_pc_charge.position = 'Range Begining' and
              cur_pc_charge.range_max_op = '<' and
-             cur_pc_charge.range_max_value < cc.typical) or
+             cc.typical < cur_pc_charge.range_max_value) or
              (cur_pc_charge.position = 'Range End' and
              cur_pc_charge.range_min_op = '>=' and
              cc.typical >= cur_pc_charge.range_min_value) or
@@ -540,10 +565,10 @@ create or replace package body "PKG_METALS_GENERAL" is
             --find the range where the typical falls in 
             if (cur_pc_charge.position = 'Range Begining' and
                cur_pc_charge.range_max_op = '<=' and
-               cur_pc_charge.range_max_value <= vn_typical_val) or
+               vn_typical_val <= cur_pc_charge.range_max_value) or
                (cur_pc_charge.position = 'Range Begining' and
                cur_pc_charge.range_max_op = '<' and
-               cur_pc_charge.range_max_value < vn_typical_val) or
+               vn_typical_val < cur_pc_charge.range_max_value) or
                (cur_pc_charge.position = 'Range End' and
                cur_pc_charge.range_min_op = '>=' and
                vn_typical_val >= cur_pc_charge.range_min_value) or
@@ -625,9 +650,8 @@ create or replace package body "PKG_METALS_GENERAL" is
                 end if;
                 vn_tier_penalty := vn_tier_penalty + vn_penalty_charge;
                 /** vn_range_gap;*/
-              /* dbms_output.put_line(' Variable  Penalty charge for this ' ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           vn_penalty_charge);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      dbms_output.put_line('---------------------------');*/
+              /* dbms_output.put_line(' Variable  Penalty charge for this ' ||                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     vn_penalty_charge);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      dbms_output.put_line('---------------------------');*/
               --calculate total Penalty charge
               end loop;
             end if;
@@ -823,10 +847,10 @@ create or replace package body "PKG_METALS_GENERAL" is
           
             if (cur_ref_charge.position = 'Range Begining' and
                cur_ref_charge.range_max_op = '<=' and
-               cur_ref_charge.range_max_value <= cc.typical) or
+               cc.typical <= cur_ref_charge.range_max_value) or
                (cur_ref_charge.position = 'Range Begining' and
                cur_ref_charge.range_max_op = '<' and
-               cur_ref_charge.range_max_value < cc.typical) or
+               cc.typical < cur_ref_charge.range_max_value) or
                (cur_ref_charge.position = 'Range End' and
                cur_ref_charge.range_min_op = '>=' and
                cc.typical >= cur_ref_charge.range_min_value) or
@@ -912,16 +936,17 @@ create or replace package body "PKG_METALS_GENERAL" is
             vc_cur_id            := cur_ref_charge.cur_id;
             vc_price_unit_id     := cur_ref_charge.price_unit_id;
             if cur_ref_charge.range_type = 'Price Range' then
+              vn_tot_refine_charge := 0;
               --if the CHARGE_TYPE is fixed then it will
               --behave as the slab as same as the assay range
               --No base concept is here
               if cur_ref_charge.charge_type = 'Fixed' then
                 if (cur_ref_charge.position = 'Range Begining' and
                    cur_ref_charge.range_max_op = '<=' and
-                   cur_ref_charge.range_max_value <= vn_contract_price) or
+                   vn_contract_price <= cur_ref_charge.range_max_value) or
                    (cur_ref_charge.position = 'Range Begining' and
                    cur_ref_charge.range_max_op = '<' and
-                   cur_ref_charge.range_max_value < vn_contract_price) or
+                   vn_contract_price < cur_ref_charge.range_max_value) or
                    (cur_ref_charge.position = 'Range End' and
                    cur_ref_charge.range_min_op = '>=' and
                    vn_contract_price >= cur_ref_charge.range_min_value) or
@@ -1093,10 +1118,10 @@ create or replace package body "PKG_METALS_GENERAL" is
               --Make sure the range for the element is mentation properly.
               if (cur_ref_charge.position = 'Range Begining' and
                  cur_ref_charge.range_max_op = '<=' and
-                 cur_ref_charge.range_max_value <= cc.typical) or
+                 cc.typical <= cur_ref_charge.range_max_value) or
                  (cur_ref_charge.position = 'Range Begining' and
                  cur_ref_charge.range_max_op = '<' and
-                 cur_ref_charge.range_max_value < cc.typical) or
+                 cc.typical < cur_ref_charge.range_max_value) or
                  (cur_ref_charge.position = 'Range End' and
                  cur_ref_charge.range_min_op = '>=' and
                  cc.typical >= cur_ref_charge.range_min_value) or
@@ -1298,6 +1323,7 @@ create or replace package body "PKG_METALS_GENERAL" is
           vc_rc_weight_unit_id := cur_tret_charge.weight_unit_id;
           vc_weight_type       := cur_tret_charge.weight_type;
           if cur_tret_charge.range_type = 'Price Range' then
+            vn_total_treat_charge := 0;
             --if the CHARGE_TYPE is fixed then it will
             --behave as the slab as same as the assay range
             --No base concept is here
@@ -1306,10 +1332,10 @@ create or replace package body "PKG_METALS_GENERAL" is
             if cur_tret_charge.charge_type = 'Fixed' then
               if (cur_tret_charge.position = 'Range Begining' and
                  cur_tret_charge.range_max_op = '<=' and
-                 cur_tret_charge.range_max_value <= vn_contract_price) or
+                 vn_contract_price <= cur_tret_charge.range_max_value) or
                  (cur_tret_charge.position = 'Range Begining' and
                  cur_tret_charge.range_max_op = '<' and
-                 cur_tret_charge.range_max_value < vn_contract_price) or
+                 vn_contract_price < cur_tret_charge.range_max_value) or
                  (cur_tret_charge.position = 'Range End' and
                  cur_tret_charge.range_min_op = '>=' and
                  vn_contract_price >= cur_tret_charge.range_min_value) or
@@ -1474,10 +1500,10 @@ create or replace package body "PKG_METALS_GENERAL" is
             --Only Slab basics charge
             if (cur_tret_charge.position = 'Range Begining' and
                cur_tret_charge.range_max_op = '<=' and
-               cur_tret_charge.range_max_value <= cc.typical) or
+               cc.typical <= cur_tret_charge.range_max_value) or
                (cur_tret_charge.position = 'Range Begining' and
                cur_tret_charge.range_max_op = '<' and
-               cur_tret_charge.range_max_value < cc.typical) or
+               cc.typical < cur_tret_charge.range_max_value) or
                (cur_tret_charge.position = 'Range End' and
                cur_tret_charge.range_min_op = '>=' and
                cc.typical >= cur_tret_charge.range_min_value) or
@@ -1812,13 +1838,14 @@ create or replace package body "PKG_METALS_GENERAL" is
             --if the CHARGE_TYPE is fixed then it will
             --behave as the slab as same as the assay range
             --No base concept is here
+            vn_total_gmr_tc_value := 0;
             if cur_tret_charge.charge_type = 'Fixed' then
               if (cur_tret_charge.position = 'Range Begining' and
                  cur_tret_charge.range_max_op = '<=' and
-                 cur_tret_charge.range_max_value <= vn_contract_price) or
+                 vn_contract_price <= cur_tret_charge.range_max_value) or
                  (cur_tret_charge.position = 'Range Begining' and
                  cur_tret_charge.range_max_op = '<' and
-                 cur_tret_charge.range_max_value < vn_contract_price) or
+                 vn_contract_price < cur_tret_charge.range_max_value) or
                  (cur_tret_charge.position = 'Range End' and
                  cur_tret_charge.range_min_op = '>=' and
                  vn_contract_price >= cur_tret_charge.range_min_value) or
@@ -1983,10 +2010,10 @@ create or replace package body "PKG_METALS_GENERAL" is
             --Only Slab basics charge
             if (cur_tret_charge.position = 'Range Begining' and
                cur_tret_charge.range_max_op = '<=' and
-               cur_tret_charge.range_max_value <= cc.typical) or
+               cc.typical <= cur_tret_charge.range_max_value) or
                (cur_tret_charge.position = 'Range Begining' and
                cur_tret_charge.range_max_op = '<' and
-               cur_tret_charge.range_max_value < cc.typical) or
+               cc.typical < cur_tret_charge.range_max_value) or
                (cur_tret_charge.position = 'Range End' and
                cur_tret_charge.range_min_op = '>=' and
                cc.typical >= cur_tret_charge.range_min_value) or
@@ -2134,18 +2161,22 @@ create or replace package body "PKG_METALS_GENERAL" is
                       pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
                       rm_ratio_master                rm,
                       aml_attribute_master_list      aml,
-                      pci_physical_contract_item     pci
-               
+                      pci_physical_contract_item     pci,
+                      spq_stock_payable_qty          spq
                 where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                   and grd.internal_grd_ref_no = sam.internal_grd_ref_no
                   and sam.ash_id = ash.ash_id
-                  and sam.is_latest_pricing_assay = 'Y'
                   and ash.ash_id = asm.ash_id
+                  and spq.dbd_id = pc_dbd_id
+                  and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                  and spq.element_id = pc_element_id
+                  and spq.assay_header_id = ash.ash_id
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
                   and rm.ratio_id = pqca.unit_of_measure
-                  and ash.is_active = 'Y'
-                  and asm.is_active = 'Y'
+                     --   and ash.is_active = 'Y'
+                     --  and asm.is_active = 'Y'
                   and aml.attribute_id = pqca.element_id
                   and pqca.element_id = pc_element_id
                   and gmr.dbd_id = pc_dbd_id
@@ -2199,17 +2230,22 @@ create or replace package body "PKG_METALS_GENERAL" is
                       pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
                       rm_ratio_master                rm,
                       aml_attribute_master_list      aml,
-                      pci_physical_contract_item     pci
+                      pci_physical_contract_item     pci,
+                      spq_stock_payable_qty          spq
                 where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                   and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
                   and sam.ash_id = ash.ash_id
-                  and sam.is_latest_pricing_assay = 'Y'
                   and ash.ash_id = asm.ash_id
+                  and spq.dbd_id = pc_dbd_id
+                  and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+                  and spq.internal_dgrd_ref_no = dgrd.internal_gmr_ref_no
+                  and spq.element_id = pc_element_id
+                  and spq.assay_header_id = ash.ash_id
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
                   and rm.ratio_id = pqca.unit_of_measure
-                  and ash.is_active = 'Y'
-                  and asm.is_active = 'Y'
+                     -- and ash.is_active = 'Y'
+                     -- and asm.is_active = 'Y'      
                   and aml.attribute_id = pqca.element_id
                   and pqca.element_id = pc_element_id
                   and gmr.dbd_id = pc_dbd_id
@@ -2226,16 +2262,16 @@ create or replace package body "PKG_METALS_GENERAL" is
       --include refine charge from the contract creation.
       --If Yes then take the conract include_ref_charge 
       --else go for the Charge Range
+      dbms_output.put_line('payable qty ' || cc.sub_lot_no || ' payable ' ||
+                           cc.payable_qty || ' qty unit ' ||
+                           cc.payable_qty_unit);
+    
       begin
         select pcepc.include_ref_charges
           into vc_include_ref_charge
-          from /*pcm_physical_contract_main     pcm,*/
-               pcpch_pc_payble_content_header pcpch,
+          from pcpch_pc_payble_content_header pcpch,
                pcepc_pc_elem_payable_content  pcepc
-         where /*pcm.internal_contract_ref_no =
-               pcpch.internal_contract_ref_no
-           and */pcpch.pcpch_id = pcepc.pcpch_id
-           /*and pcm.dbd_id = pc_dbd_id*/
+         where pcpch.pcpch_id = pcepc.pcpch_id
            and pcpch.dbd_id = pc_dbd_id
            and pcepc.dbd_id = pc_dbd_id
            and pcpch.element_id = cc.element_id
@@ -2244,7 +2280,6 @@ create or replace package body "PKG_METALS_GENERAL" is
                pcepc.position = 'Range Begining')
            and (pcepc.range_max_value > cc.typical or
                pcepc.position = 'Range End')
-           /*and pcm.is_active = 'Y'*/
            and pcpch.is_active = 'Y'
            and pcepc.is_active = 'Y';
       exception
@@ -2267,8 +2302,7 @@ create or replace package body "PKG_METALS_GENERAL" is
                                         pum.cur_id,
                                         pum.price_unit_id,
                                         pum.weight_unit_id
-                                   from /*pcm_physical_contract_main     pcm,
-                                        */pcdi_pc_delivery_item          pcdi,
+                                   from pcdi_pc_delivery_item          pcdi,
                                         pci_physical_contract_item     pci,
                                         pcpch_pc_payble_content_header pcpch,
                                         pcepc_pc_elem_payable_content  pcepc,
@@ -2279,8 +2313,6 @@ create or replace package body "PKG_METALS_GENERAL" is
                                   where pcpch.internal_contract_ref_no =
                                         pcdi.internal_contract_ref_no
                                     and pcdi.pcdi_id = pci.pcdi_id
-                                    /*and pcm.internal_contract_ref_no =
-                                        pcpch.internal_contract_ref_no*/
                                     and pcpch.element_id = cc.element_id
                                     and pcpch.pcpch_id = pcepc.pcpch_id
                                     and pcepc.include_ref_charges = 'Y'
@@ -2296,11 +2328,9 @@ create or replace package body "PKG_METALS_GENERAL" is
                                         grh.internal_gmr_ref_no
                                     and pci.dbd_id = pc_dbd_id
                                     and pcdi.dbd_id = pc_dbd_id
-                                    /*and pcm.dbd_id = pc_dbd_id
-                                    */and pcpch.dbd_id = pc_dbd_id
+                                    and pcpch.dbd_id = pc_dbd_id
                                     and pcepc.dbd_id = pc_dbd_id
                                     and pci.is_active = 'Y'
-                                    /*and pcm.is_active = 'Y'*/
                                     and pcdi.is_active = 'Y'
                                     and pcpch.is_active = 'Y'
                                     and pcepc.is_active = 'Y')
@@ -2311,10 +2341,10 @@ create or replace package body "PKG_METALS_GENERAL" is
           
             if (cur_ref_charge.position = 'Range Begining' and
                cur_ref_charge.range_max_op = '<=' and
-               cur_ref_charge.range_max_value <= cc.typical) or
+               cc.typical <= cur_ref_charge.range_max_value) or
                (cur_ref_charge.position = 'Range Begining' and
                cur_ref_charge.range_max_op = '<' and
-               cur_ref_charge.range_max_value < cc.typical) or
+               cc.typical <= cur_ref_charge.range_max_value) or
                (cur_ref_charge.position = 'Range End' and
                cur_ref_charge.range_min_op = '>=' and
                cc.typical >= cur_ref_charge.range_min_value) or
@@ -2401,16 +2431,17 @@ create or replace package body "PKG_METALS_GENERAL" is
             vc_cur_id            := cur_ref_charge.cur_id;
             vc_price_unit_id     := cur_ref_charge.price_unit_id;
             if cur_ref_charge.range_type = 'Price Range' then
+              vn_gmr_rc_charges := 0;
               --if the CHARGE_TYPE is fixed then it will
               --behave as the slab as same as the assay range
               --No base concept is here
               if cur_ref_charge.charge_type = 'Fixed' then
                 if (cur_ref_charge.position = 'Range Begining' and
                    cur_ref_charge.range_max_op = '<=' and
-                   cur_ref_charge.range_max_value <= vn_contract_price) or
+                   vn_contract_price <= cur_ref_charge.range_max_value) or
                    (cur_ref_charge.position = 'Range Begining' and
                    cur_ref_charge.range_max_op = '<' and
-                   cur_ref_charge.range_max_value < vn_contract_price) or
+                   vn_contract_price < cur_ref_charge.range_max_value) or
                    (cur_ref_charge.position = 'Range End' and
                    cur_ref_charge.range_min_op = '>=' and
                    vn_contract_price >= cur_ref_charge.range_min_value) or
@@ -2576,10 +2607,10 @@ create or replace package body "PKG_METALS_GENERAL" is
               --Make sure the range for the element is mentation properly.
               if (cur_ref_charge.position = 'Range Begining' and
                  cur_ref_charge.range_max_op = '<=' and
-                 cur_ref_charge.range_max_value <= cc.typical) or
+                 cc.typical <= cur_ref_charge.range_max_value) or
                  (cur_ref_charge.position = 'Range Begining' and
                  cur_ref_charge.range_max_op = '<' and
-                 cur_ref_charge.range_max_value < cc.typical) or
+                 cc.typical < cur_ref_charge.range_max_value) or
                  (cur_ref_charge.position = 'Range End' and
                  cur_ref_charge.range_min_op = '>=' and
                  cc.typical >= cur_ref_charge.range_min_value) or
@@ -2782,10 +2813,10 @@ create or replace package body "PKG_METALS_GENERAL" is
           --as according to the typical value   
           if (cur_pc_charge.position = 'Range Begining' and
              cur_pc_charge.range_max_op = '<=' and
-             cur_pc_charge.range_max_value <= cc.typical) or
+             cc.typical <= cur_pc_charge.range_max_value) or
              (cur_pc_charge.position = 'Range Begining' and
              cur_pc_charge.range_max_op = '<' and
-             cur_pc_charge.range_max_value < cc.typical) or
+             cc.typical < cur_pc_charge.range_max_value) or
              (cur_pc_charge.position = 'Range End' and
              cur_pc_charge.range_min_op = '>=' and
              cc.typical >= cur_pc_charge.range_min_value) or
@@ -2832,10 +2863,10 @@ create or replace package body "PKG_METALS_GENERAL" is
             --find the range where the typical falls in 
             if (cur_pc_charge.position = 'Range Begining' and
                cur_pc_charge.range_max_op = '<=' and
-               cur_pc_charge.range_max_value <= vn_typical_val) or
+               vn_typical_val <= cur_pc_charge.range_max_value) or
                (cur_pc_charge.position = 'Range Begining' and
                cur_pc_charge.range_max_op = '<' and
-               cur_pc_charge.range_max_value < vn_typical_val) or
+               vn_typical_val < cur_pc_charge.range_max_value) or
                (cur_pc_charge.position = 'Range End' and
                cur_pc_charge.range_min_op = '>=' and
                vn_typical_val >= cur_pc_charge.range_min_value) or
@@ -3103,10 +3134,10 @@ create or replace package body "PKG_METALS_GENERAL" is
           --as according to the typical value   
           if (cur_pc_charge.position = 'Range Begining' and
              cur_pc_charge.range_max_op = '<=' and
-             cur_pc_charge.range_max_value <= cc.typical) or
+             cc.typical <= cur_pc_charge.range_max_value) or
              (cur_pc_charge.position = 'Range Begining' and
              cur_pc_charge.range_max_op = '<' and
-             cur_pc_charge.range_max_value < cc.typical) or
+             cc.typical < cur_pc_charge.range_max_value) or
              (cur_pc_charge.position = 'Range End' and
              cur_pc_charge.range_min_op = '>=' and
              cc.typical >= cur_pc_charge.range_min_value) or
@@ -3153,10 +3184,10 @@ create or replace package body "PKG_METALS_GENERAL" is
             --find the range where the typical falls in 
             if (cur_pc_charge.position = 'Range Begining' and
                cur_pc_charge.range_max_op = '<=' and
-               cur_pc_charge.range_max_value <= vn_typical_val) or
+               vn_typical_val <= cur_pc_charge.range_max_value) or
                (cur_pc_charge.position = 'Range Begining' and
                cur_pc_charge.range_max_op = '<' and
-               cur_pc_charge.range_max_value < vn_typical_val) or
+               vn_typical_val < cur_pc_charge.range_max_value) or
                (cur_pc_charge.position = 'Range End' and
                cur_pc_charge.range_min_op = '>=' and
                vn_typical_val >= cur_pc_charge.range_min_value) or
@@ -3467,5 +3498,5 @@ create or replace package body "PKG_METALS_GENERAL" is
     end loop;
     pn_premium := vn_total_premium;
   end;
-end; 
+end;
 /

@@ -27,7 +27,7 @@ create or replace package pkg_phy_eod_price is
                                         pc_dbd_id       varchar2,
                                         pc_process      varchar2);
 
-end;
+end; 
 /
 create or replace package body "PKG_PHY_EOD_PRICE" is
 
@@ -999,7 +999,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                               and poch.is_active = 'Y'
                               and pocd.is_active = 'Y'
                               and pofh.is_active = 'Y'
-                              and pfd.is_active = 'Y')
+                              and pfd.is_active = 'Y'
+                              and nvl(pfd.user_price,0) * nvl(pfd.qty_fixed,0) <> 0)
                 loop
                   vn_during_total_set_price    := vn_during_total_set_price +
                                                   cc.user_price;
@@ -2620,7 +2621,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                       and poch.is_active = 'Y'
                       and pocd.is_active = 'Y'
                       and pofh.is_active = 'Y'
-                      and pfd.is_active = 'Y')
+                      and pfd.is_active = 'Y'
+                      and nvl(pfd.user_price,0) * nvl(pfd.qty_fixed,0) <> 0)
         loop
           vn_during_total_set_price := vn_during_total_set_price +
                                        cc.user_price;
@@ -3709,7 +3711,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                         and poch.is_active = 'Y'
                         and pocd.is_active = 'Y'
                         and pofh.is_active = 'Y'
-                        and pfd.is_active = 'Y')
+                        and pfd.is_active = 'Y'
+                        and nvl(pfd.user_price,0) * nvl(pfd.qty_fixed,0) <> 0)
           loop
             vn_during_total_set_price    := vn_during_total_set_price +
                                             cc.user_price;
@@ -4912,7 +4915,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                               and pocd.is_active = 'Y'
                               and pofh.is_active = 'Y'
                               and pfd.is_active = 'Y'
-                              and pofh.qty_to_be_fixed <> 0)
+                              and pofh.qty_to_be_fixed <> 0
+                              and nvl(pfd.user_price,0) * nvl(pfd.qty_fixed,0) <> 0)
                 loop
                   vn_during_total_set_price     := vn_during_total_set_price +
                                                    cc.user_price;
@@ -5995,5 +5999,5 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     end loop;
     commit;
   end;
-end;
+end; 
 /

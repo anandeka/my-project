@@ -191,10 +191,11 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              nvl(pcdb.premium, 0) delivery_premium,
              pcdb.premium_unit_id delivery_premium_unit_id,
              pcm.approval_status,
-             (case when pcm.approval_status='Approved' then
-             'Y'
-             else
-             'N'
+             (case
+               when pcm.approval_status = 'Approved' then
+                'Y'
+               else
+                'N'
              end) approval_flag
         from pcm_physical_contract_main pcm,
              ak_corporate akc,
@@ -1319,7 +1320,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
            cur_unrealized_rows.delivery_to_date,
            cur_unrealized_rows.transit_days,
            cur_unrealized_rows.purchase_sales,
-           cur_unrealized_rows.approval_status,--
+           cur_unrealized_rows.approval_status, --
            cur_unrealized_rows.unrealized_type,
            cur_unrealized_rows.profit_center_id,
            cur_unrealized_rows.profit_center_name,
@@ -5380,12 +5381,12 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         vn_ele_m2m_amt_per_unit := round(vn_ele_m2m_total_amount /
                                          vn_ele_qty_in_base,
                                          cur_grd_rows.base_cur_decimal);
-      
-        vc_price_cur_id             := cur_grd_rows.base_cur_id;
-        vc_price_cur_code           := cur_grd_rows.base_cur_code;
-        vn_cont_price_cur_id_factor := 1;
-        vn_cont_price_cur_decimals  := 2;
-      
+        pkg_general.sp_get_main_cur_detail(nvl(vc_cont_price_unit_cur_id,
+                                               cur_grd_rows.base_cur_id),
+                                           vc_price_cur_id,
+                                           vc_price_cur_code,
+                                           vn_cont_price_cur_id_factor,
+                                           vn_cont_price_cur_decimals);
         vn_contract_value_in_price_cur := (vn_cont_price /
                                           nvl(vn_cont_price_wt, 1)) *
                                           (pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
