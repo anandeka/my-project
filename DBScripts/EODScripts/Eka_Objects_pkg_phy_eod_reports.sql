@@ -68,6 +68,10 @@ create or replace package pkg_phy_eod_reports is
                               pd_trade_date   date,
                               pc_process_id   varchar2,
                               pc_process      varchar2);
+  procedure sp_feedconsumption_report(pc_corporate_id varchar2,
+                                      pd_trade_date   date,
+                                      pc_process_id   varchar2,
+                                      pc_process      varchar2);
 end;
 /
 create or replace package body pkg_phy_eod_reports is
@@ -11110,7 +11114,15 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
        and grd.process_id = pc_process_id
        and pcm.process_id = pc_process_id
        and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
-       and gmr.eff_date <= pd_trade_date;
+       and gmr.eff_date <= pd_trade_date
+       and ash.is_active = 'Y'
+       and pcm.is_active = 'Y'
+       and spq.is_active = 'Y'
+       and gsm.is_active = 'Y'
+       and sld.is_active = 'Y'
+       and pdm.is_active = 'Y'
+       and qat.is_active = 'Y'
+       and aml.is_active = 'Y';
 
   vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
   vn_eel_error_count number := 1;
@@ -11199,6 +11211,7 @@ begin
        cur_arrival_rows.base_quantity_unit_id,
        cur_arrival_rows.base_quantity_unit);
   end loop;
+  commit;
 exception
   when others then
     vobj_error_log.extend;
@@ -11215,5 +11228,216 @@ exception
                                                          pd_trade_date);
     sp_insert_error_log(vobj_error_log);
 end;
+procedure sp_feedconsumption_report(pc_corporate_id varchar2,
+                                      pd_trade_date   date,
+                                      pc_process_id   varchar2,
+                                      pc_process      varchar2) as
+    cursor cur_feed is
+      select gmr.gmr_ref_no,
+             gmr.internal_gmr_ref_no,
+             grd.internal_grd_ref_no,
+             grd.internal_stock_ref_no,
+             grd.supp_internal_gmr_ref_no,
+             gmr_supp.gmr_ref_no supp_gmr_ref_no,
+             gmr.corporate_id,
+             akc.corporate_name,
+             gmr.warehouse_profile_id,
+             phd.companyname,
+             gmr.shed_id,
+             sld.storage_location_name,
+             grd.product_id,
+             pdm.product_desc,
+             grd.quality_id,
+             qat.quality_name,
+             grd.qty wet_qty,
+             (grd.qty * asm.dry_wet_qty_ratio / 100) dry_qty,
+             grd.qty_unit_id qty_unit_id,
+             qum_grd.qty_unit qty_unit,
+             spq.element_id,
+             aml.attribute_name,
+             aml.underlying_product_id,
+             pdm_und.product_desc underlying_product_name,
+             pdm_und.base_quantity_unit base_quantity_unit_id,
+             qum_und.qty_unit base_quantity_unit,
+             spq.assay_content assay_qty,
+             spq.qty_unit_id assay_qty_unit_id,
+             qum.qty_unit assay_qty_unit,
+             spq.payable_qty,
+             spq.qty_unit_id payable_qty_unit_id,
+             qum.qty_unit payable_qty_unit,
+             pm.pool_name,
+             dense_rank() over(partition by grd.internal_grd_ref_no order by spq.element_id) ele_rank
+      
+        from gmr_goods_movement_record   gmr,
+             grd_goods_record_detail     grd,
+             ak_corporate                akc,
+             pcm_physical_contract_main  pcm,
+             pcmte_pcm_tolling_ext       pcmte,
+             pdm_productmaster           pdm,
+             qat_quality_attributes      qat,
+             spq_stock_payable_qty       spq,
+             ash_assay_header            ash,
+             asm_assay_sublot_mapping    asm,
+             aml_attribute_master_list   aml,
+             pdm_productmaster           pdm_und,
+             qum_quantity_unit_master    qum_und,
+             qum_quantity_unit_master    qum_grd,
+             qum_quantity_unit_master    qum,
+             sld_storage_location_detail sld,
+             phd_profileheaderdetails    phd,
+             psr_pool_stock_register     psr,
+             pm_pool_master              pm,
+             gmr_goods_movement_record   gmr_supp
+      
+       where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+         and gmr.corporate_id = pc_corporate_id
+         and grd.status = 'Active'
+         and grd.tolling_stock_type = 'Clone Stock'
+         and gmr.corporate_id = akc.corporate_id
+         and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcm.is_active = 'Y'
+         and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no
+         and pcmte.tolling_service_type = 'P'
+         and pcmte.is_pass_through = 'Y'
+         and grd.product_id = pdm.product_id
+         and grd.quality_id = qat.quality_id
+         and grd.qty_unit_id = qum_grd.qty_unit_id
+         and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+         and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
+         and spq.is_stock_split = 'N'
+         and spq.assay_header_id = ash.ash_id
+         and ash.ash_id = asm.ash_id
+         and spq.element_id = aml.attribute_id
+         and aml.underlying_product_id = pdm_und.product_id
+         and pdm_und.base_quantity_unit = qum_und.qty_unit_id
+         and spq.qty_unit_id = qum.qty_unit_id
+         and gmr.is_deleted = 'N'
+         and gmr.shed_id = sld.storage_loc_id
+         and gmr.warehouse_profile_id = phd.profileid
+         and grd.parent_internal_grd_ref_no = psr.internal_grd_ref_no(+)
+         and psr.pool_id = pm.pool_id(+)
+         and grd.supp_internal_gmr_ref_no = gmr_supp.internal_gmr_ref_no
+         and gmr.process_id = pc_process_id
+         and spq.process_id = pc_process_id
+         and grd.process_id = pc_process_id
+         and pcm.process_id = pc_process_id
+         and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
+         and gmr.eff_date <= pd_trade_date
+         and ash.is_active = 'Y'
+         and asm.is_active = 'Y'
+         and pdm.is_active = 'Y'
+         and qat.is_active = 'Y'
+         and sld.is_active = 'Y'
+         and qum.is_active = 'Y'
+         and pm.is_active = 'Y';
+  
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+    vn_assay_qty       number;
+    vn_payable_qty     number;
+  
+  begin
+    for cur_feed_rows in cur_feed
+    loop
+      vn_assay_qty   := pkg_general.f_get_converted_quantity(cur_feed_rows.underlying_product_id,
+                                                             cur_feed_rows.assay_qty_unit_id,
+                                                             cur_feed_rows.base_quantity_unit_id,
+                                                             cur_feed_rows.assay_qty);
+      vn_payable_qty := pkg_general.f_get_converted_quantity(cur_feed_rows.underlying_product_id,
+                                                             cur_feed_rows.payable_qty_unit_id,
+                                                             cur_feed_rows.base_quantity_unit_id,
+                                                             cur_feed_rows.payable_qty);
+    
+      if cur_feed_rows.ele_rank = 1 then
+        insert into fc_feed_consumption
+          (process_id,
+           eod_trade_date,
+           corporate_id,
+           corporate_name,
+           gmr_ref_no,
+           internal_gmr_ref_no,
+           internal_grd_ref_no,
+           stock_ref_no,
+           product_id,
+           product_name,
+           quality_id,
+           quality_name,
+           pile_name,
+           parent_gmr_ref_no,
+           warehouse_id,
+           warehouse_name,
+           shed_id,
+           shed_name,
+           grd_wet_qty,
+           grd_dry_qty,
+           grd_qty_unit_id,
+           grd_qty_unit)
+        values
+          (pc_process_id,
+           pd_trade_date,
+           cur_feed_rows.corporate_id,
+           cur_feed_rows.corporate_name,
+           cur_feed_rows.gmr_ref_no,
+           cur_feed_rows.internal_gmr_ref_no,
+           cur_feed_rows.internal_grd_ref_no,
+           cur_feed_rows.internal_stock_ref_no,
+           cur_feed_rows.product_id,
+           cur_feed_rows.product_desc,
+           cur_feed_rows.quality_id,
+           cur_feed_rows.quality_name,
+           cur_feed_rows.pool_name,
+           cur_feed_rows.supp_gmr_ref_no,
+           cur_feed_rows.warehouse_profile_id,
+           cur_feed_rows.companyname,
+           cur_feed_rows.shed_id,
+           cur_feed_rows.storage_location_name,
+           cur_feed_rows.wet_qty,
+           cur_feed_rows.dry_qty,
+           cur_feed_rows.qty_unit_id,
+           cur_feed_rows.qty_unit);
+      end if;
+      insert into fce_feed_consumption_element
+        (process_id,
+         internal_gmr_ref_no,
+         internal_grd_ref_no,
+         element_id,
+         element_name,
+         assay_qty,
+         asaay_qty_unit_id,
+         asaay_qty_unit,
+         payable_qty,
+         payable_qty_unit_id,
+         payable_qty_unit)
+      values
+        (pc_process_id,
+         cur_feed_rows.internal_gmr_ref_no,
+         cur_feed_rows.internal_grd_ref_no,
+         cur_feed_rows.element_id,
+         cur_feed_rows.attribute_name,
+         vn_assay_qty,
+         cur_feed_rows.base_quantity_unit_id,
+         cur_feed_rows.base_quantity_unit,
+         vn_payable_qty,
+         cur_feed_rows.base_quantity_unit_id,
+         cur_feed_rows.base_quantity_unit);
+    end loop;
+    commit;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_feedconsumption_report',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           pc_process,
+                                                           '',
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
 end; 
 /

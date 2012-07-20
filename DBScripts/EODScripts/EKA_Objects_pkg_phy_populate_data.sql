@@ -197,7 +197,7 @@ create or replace package pkg_phy_populate_data is
                                pd_trade_date   date,
                                pc_user_id      varchar2);
 
-end pkg_phy_populate_data;
+end pkg_phy_populate_data; 
 /
 create or replace package body PKG_PHY_POPULATE_DATA is
 
@@ -8540,7 +8540,7 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        warehouse_profile_id,
        shed_id,
        origin_id,
-       crop_year_id,
+      -- crop_year_id,
        parent_id,
        is_released_shipped,
        release_shipped_no_of_units,
@@ -8596,11 +8596,11 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        allocated_no_of_units,
        current_no_of_units,
        stock_condition,
-       gravity_type_id,
+      /* gravity_type_id,
        gravity,
        density_mass_qty_unit_id,
        density_volume_qty_unit_id,
-       gravity_type,
+       gravity_type,*/
        customs_id,
        tax_id,
        duty_id,
@@ -8626,6 +8626,7 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        supplier_pcdi_id,
        payable_returnable_type,
        carry_over_qty,
+       supp_internal_gmr_ref_no,
        dbd_id
        )
       select grdul. internal_grd_ref_no,
@@ -8729,12 +8730,12 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                            grdul.origin_id
                         end),
                     24) origin_id,
-             substr(max(case
+            /* substr(max(case
                           when grdul.crop_year_id is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                            grdul.crop_year_id
                         end),
-                    24) crop_year_id,
+                    24) crop_year_id,*/
              substr(max(case
                           when grdul.parent_id is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -8961,7 +8962,7 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                            grdul.stock_condition
                         end),
                     24) stock_condition,
-             substr(max(case
+             /*substr(max(case
                           when grdul.gravity_type_id is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                            grdul.gravity_type_id
@@ -8985,7 +8986,7 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                            grdul.gravity_type
                         end),
-                    24) gravity_type,
+                    24) gravity_type,*/
              substr(max(case
                           when grdul.customs_id is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -9127,6 +9128,12 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                            grdul.carry_over_qty
                         end),
                     24) carry_over_qty,
+              substr(max(case
+                          when grdul.supp_internal_gmr_ref_no is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.supp_internal_gmr_ref_no
+                        end),
+                    24) supp_internal_gmr_ref_no,        
                     gvc_dbd_id
 
         from grdl_goods_record_detail_log grdul,

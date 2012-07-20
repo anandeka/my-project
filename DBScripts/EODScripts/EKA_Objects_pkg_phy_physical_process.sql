@@ -1021,11 +1021,29 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                           vn_logno,
                           'sp_arrival_report');
     vc_err_msg := 'Before sp_arrival_report';
-  
+   if pc_process = 'EOM' then
     pkg_phy_eod_reports.sp_arrival_report( pc_corporate_id,
                                             pd_trade_date,
                                             pc_process_id,
                                             pc_process); 
+   end if;
+   if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_feedconsumption_report');
+    vc_err_msg := 'Before sp_feedconsumption_report';
+    if pc_process = 'EOM' then
+    pkg_phy_eod_reports.sp_feedconsumption_report( pc_corporate_id,
+                                            pd_trade_date,
+                                            pc_process_id,
+                                            pc_process);  
+   end if;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -3826,6 +3844,8 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from trgmrc_temp_rgmr_conc where corporate_id = pc_corporate_id;
     delete from AR_ARRIVAL_REPORT where process_id = pc_process_id;
     delete from ARE_ARRIVAL_REPORT_ELEMENT where process_id = pc_process_id;
+    delete from FC_FEED_CONSUMPTION where process_id = pc_process_id;
+    delete from FCE_FEED_CONSUMPTION_ELEMENT where process_id = pc_process_id;
     --
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now

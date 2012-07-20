@@ -39,7 +39,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -2608,6 +2608,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        supplier_pcdi_id,
        payable_returnable_type,
        carry_over_qty,
+       supp_internal_gmr_ref_no,
        dbd_id)
       select ul.internal_grd_ref_no,
              ul.internal_action_ref_no,
@@ -2718,6 +2719,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.supplier_pcdi_id,
              ul.payable_returnable_type,
              ul.carry_over_qty,
+             ul.supp_internal_gmr_ref_no,
              pc_dbd_id
         from grdl_goods_record_detail_log@eka_appdb ul,
              axs_action_summary@eka_appdb           axs
@@ -4177,5 +4179,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
