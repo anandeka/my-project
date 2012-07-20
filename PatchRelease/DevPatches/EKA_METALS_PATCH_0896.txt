@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0896
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  20-Jul-2012
+
+Bug / Enhancement*              :  N/A
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing 
+
+Sub-Module  			 :  Hedge 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 99041
+Author: abhishek.vijay
+Date: 2:09:10 PM, Friday, July 20, 2012
+Message:
+ADD ONE NEW TABLE AND ADD NEW COLUMN FOR HEDGE CORRECTION
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_299.sql
+
+
