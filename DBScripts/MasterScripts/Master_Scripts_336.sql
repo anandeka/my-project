@@ -2,6 +2,9 @@ delete from rpc_rf_parameter_config rpc where rpc.report_id = 256;
 delete from rfc_report_filter_config rfc where rfc.report_id = 256;
 delete from amc_app_menu_configuration amc where amc.menu_id = 'RPT-D256';
 delete from rml_report_master_list rml where rml.report_id = 256;
+update amc_app_menu_configuration amc
+set amc.menu_display_name = 'Monthly Arrival Report'
+where amc.menu_id = 'RPT-D255';
 commit;
 SET DEFINE OFF;
 Insert into RML_REPORT_MASTER_LIST
