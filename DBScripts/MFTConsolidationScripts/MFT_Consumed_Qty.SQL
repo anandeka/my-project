@@ -8,7 +8,10 @@ select gmr.internal_gmr_ref_no as int_mft_ref_no,
        grd.supp_internal_gmr_ref_no as supp_int_gmr_ref_no,
        supp_gmr.gmr_ref_no as supp_gmr_ref_no,
        grd.qty as consumed_qty,
+       fn_get_pool_stock_dry_qty(grd.internal_grd_ref_no,
+                                 grd.qty) as consumed_qty_dry,
        qum.qty_unit as consumed_qty_unit,
+       
        (select ash.internal_grd_ref_no
           from sam_stock_assay_mapping sam,
                ash_assay_header        ash
@@ -41,6 +44,7 @@ select gmr.internal_gmr_ref_no as int_mft_ref_no,
        qum_quantity_unit_master  qum
  where gmr.gmr_latest_action_action_id = 'MARK_FOR_TOLLING'
    and gmr.is_deleted = 'N'
+   and GMR.IS_PASS_THROUGH = 'Y'
    and grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and axs.internal_action_ref_no = gmr.gmr_first_int_action_ref_no
    and grd.tolling_stock_type = 'Clone Stock'
