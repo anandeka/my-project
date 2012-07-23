@@ -2,13 +2,13 @@ Patch No*          		:  EKA_METALS_PATCH_0870
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Suresh Gottipati
+Created by*        		:  Ashok
  
 Created on*        		:  12-Jul-2012
 
 Bug / Enhancement*              :  Bug
 
-Bug ID*            		:  PURCHASE ACCURAL CHANGES
+Bug ID*            		:  Daily Position
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -34,11 +34,12 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
-Revision: 98374
-Author: ashokkumar.l
+Revision:98651
+
 Date: 5:11:38 PM, Thursday, July 12, 2012
 Message:
-Bug Fixes 66503,66506,66585,66693,66721
+Bug Fixes 66506,66585,66693,66721
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport.rpt
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport_Excel.rpt
+
