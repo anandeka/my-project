@@ -87,6 +87,7 @@ CREATE OR REPLACE FUNCTION FN_GET_POOL_STOCK_DRY_QTY (grd_id varchar2, grd_item_
                             Where 
                             ASM.ASH_ID = SAM.ASH_ID
                             and SAM.IS_LATEST_WEIGHTED_AVG_PRICING ='Y' 
+							and SAM.IS_ACTIVE='Y' 
                             and SAM.INTERNAL_GRD_REF_NO =grd_id
                             and PQCA.ASM_ID = ASM.ASM_ID
                             and ppm.attribute_id = aml.attribute_id
