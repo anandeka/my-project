@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0907
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj
+ 
+Created on*        		:  24-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  Report
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 99284
+Author: jana
+Date: 11:51:09 AM, Tuesday, July 24, 2012
+Message:
+Monthly realized for base metal
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_79_DML_RPC_RFP_Scripts.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_341.sql
+
+
+
