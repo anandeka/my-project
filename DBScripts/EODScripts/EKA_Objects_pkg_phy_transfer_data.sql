@@ -40,6 +40,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_process      varchar2);
 
 end pkg_phy_transfer_data; 
+ 
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -4082,7 +4083,12 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        is_free_metal,
        is_inv_draft,
        dbd_id,
-       is_cancelled_today)
+       is_cancelled_today,
+       is_pledge,		
+       is_receive_material,	
+       payable_receivable,		
+       invoiced_qty_unit_id,	
+       freight_allowance_amt)
       select internal_invoice_ref_no,
              invoice_type,
              invoice_type_name,
@@ -4136,7 +4142,12 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              is_free_metal,
              is_inv_draft,
              pc_dbd_id,
-             'N'
+             'N',
+             is_pledge,
+             is_receive_material,
+             payable_receivable,
+             invoiced_qty_unit_id,
+             freight_allowance_amt
         from is_invoice_summary@eka_appdb is1
        where is1.invoice_issue_date <= pd_trade_date;
   

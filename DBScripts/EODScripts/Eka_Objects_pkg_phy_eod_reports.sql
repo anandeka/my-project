@@ -2704,7 +2704,8 @@ create or replace package body pkg_phy_eod_reports is
        transact_amt,
        internal_contract_item_ref_no,
        int_alloc_group_id,
-       internal_stock_ref_no)
+       internal_stock_ref_no,
+       alloc_group_name)
       select t.section_name,
              t.sub_section_name,
              t.section_id,
@@ -2745,7 +2746,8 @@ create or replace package body pkg_phy_eod_reports is
              t.transact_amount,
              t.internal_contract_item_ref_no,
              t.int_alloc_group_id,
-             t.internal_stock_ref_no
+             t.internal_stock_ref_no,
+             t.alloc_group_name
         from (select (case
                        when prd.realized_type = 'Realized Today' then
                         'Realized on this Day'
@@ -2801,21 +2803,21 @@ create or replace package body pkg_phy_eod_reports is
                        when prd.realized_type = 'Realized Today' then
                         decode(r,
                                1,
-                               prd.contract_invoice_value,
+                               (prd.cog_net_sale_value+abs(prd.secondary_cost_value)),
                                2,
-                               prd.secondary_cost_value)
+                              (-1)* abs(prd.secondary_cost_value))
                        when prd.realized_type = 'Special Settlements' then
                         decode(r,
                                1,
                                0, --prd.income_expense,
                                2,
-                               prd.secondary_cost_value)
+                               abs(prd.secondary_cost_value))
                        else
                         decode(r,
                                1,
-                               prd.contract_invoice_value,
+                               (prd.cog_net_sale_value+abs(prd.secondary_cost_value)),
                                2,
-                               prd.secondary_cost_value)
+                              (-1) * abs(prd.secondary_cost_value))
                      end) current_amount,
                      pkg_general.f_get_converted_quantity(prd.product_id,
                                                           prd.prev_real_qty_id,
@@ -2823,9 +2825,9 @@ create or replace package body pkg_phy_eod_reports is
                                                           prd.prev_real_qty) previous_realized_qty,
                      decode(r,
                             1,
-                            prd.prev_real_contract_value,
+                      (prd.prev_real_cog_net_sale_value+abs(prd.secondary_cost_value)),
                             2,
-                            prd.prev_real_secondary_cost) previous_realized_amount,
+                          -1 *  abs(prd.prev_real_secondary_cost)) previous_realized_amount,
                      cast(null as date) month,
                      '' transact_cur_id,
                      '' transact_cur_code,
@@ -2840,7 +2842,8 @@ create or replace package body pkg_phy_eod_reports is
                      end) transact_amount,
                      prd.internal_contract_item_ref_no,
                      prd.int_alloc_group_id,
-                     prd.internal_stock_ref_no
+                     prd.internal_stock_ref_no,
+                     prd.alloc_group_name
                 from prd_physical_realized_daily prd,
                      tdc_trade_date_closure tdc,
                      (select rownum r from all_objects where rownum <= 2)
@@ -2932,7 +2935,8 @@ create or replace package body pkg_phy_eod_reports is
                      end) transact_amount,
                      prd.internal_contract_item_ref_no,
                      prd.int_alloc_group_id,
-                     prd.internal_stock_ref_no
+                     prd.internal_stock_ref_no,
+                     prd.alloc_group_name
                 from prd_physical_realized_daily prd,
                      tdc_trade_date_closure      tdc
                where prd.process_id = tdc.process_id
@@ -2973,7 +2977,8 @@ create or replace package body pkg_phy_eod_reports is
                         end),
                         prd.internal_contract_item_ref_no,
                         prd.int_alloc_group_id,
-                        prd.internal_stock_ref_no
+                        prd.internal_stock_ref_no,
+                        prd.alloc_group_name
               
               union all
               select 'Reverse Realized' section_name,
@@ -3054,7 +3059,8 @@ create or replace package body pkg_phy_eod_reports is
                      end) transact_amount,
                      prd.internal_contract_item_ref_no,
                      prd.int_alloc_group_id,
-                     prd.internal_stock_ref_no
+                     prd.internal_stock_ref_no,
+                     prd.alloc_group_name
                 from prd_physical_realized_daily prd,
                      tdc_trade_date_closure tdc,
                      (select rownum r from all_objects where rownum <= 2)
@@ -3128,7 +3134,8 @@ create or replace package body pkg_phy_eod_reports is
                      end) transact_amount,
                      prd.internal_contract_item_ref_no,
                      prd.int_alloc_group_id,
-                     prd.internal_stock_ref_no
+                     prd.internal_stock_ref_no,
+                     prd.alloc_group_name
                 from prd_physical_realized_daily prd,
                      tdc_trade_date_closure      tdc
                where prd.process_id = tdc.process_id
@@ -3195,7 +3202,7 @@ create or replace package body pkg_phy_eod_reports is
                      invs.invoice_type_name journal_type,
                      invs.invoice_issue_date realization_date,
                      invs.invoice_ref_no transaction_ref_no, -- Invoice Ref no
-                     gmr.gmr_ref_no contract_ref_no, --GMR ref no
+                     '-NA-' contract_ref_no, --GMR ref no
                      '-NA-' contract_details,
                      '-NA-' cost_id,
                      '-NA-' cost_name,
@@ -3203,12 +3210,12 @@ create or replace package body pkg_phy_eod_reports is
                      0 current_qty,
                      0 quantity_in_units,
                      ((case
-                       when invs.invoice_type_name = 'Credit Note General' then
-                        -1
-                       else
+                       when invs.payable_receivable = 'Receivable' then  
                         1
-                     end) * nvl(invs.total_invoice_item_amount, 0) -
-                     nvl(invs.amount_paid, 0) * invs.fx_to_base) current_amount,
+                       else 
+                        -1
+                     end) * nvl(abs(invs.total_invoice_item_amount), 0) -
+                     nvl(abs(invs.amount_paid), 0) * invs.fx_to_base) current_amount,
                      0 previous_realized_qty,
                      0 previous_realized_amount,
                      invs.invoice_issue_date month,
@@ -3220,38 +3227,35 @@ create or replace package body pkg_phy_eod_reports is
                          0) transact_amount,
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
-                     null internal_stock_ref_no
+                     null internal_stock_ref_no,
+                     null     alloc_group_name
                 from is_invoice_summary         invs,
-                     pcm_physical_contract_main pcm,
-                     gmr_goods_movement_record  gmr,
+                     iid_invoicable_item_details iid,
                      phd_profileheaderdetails   phd,
                      cm_currency_master         cm,
                      ak_corporate               akc,
                      cm_currency_master         cm_b,
                      --scm_service_charge_master    scm,
                      cpc_corporate_profit_center cpc
-               where invs.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and gmr.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and invs.invoice_type = 'DebitCreditNote'
+               where invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
+                 and invs.invoice_type = 'DebitCredit'
                  and invs.invoice_type_name in
-                     ('Credit Note General', 'Debit Note General')
-                 and invs.invoice_status = 'Active'
+                     ('DebitCredit')
+                 and invs.invoice_status in ( 'Active','Pending')
                  and invs.cp_id = phd.profileid
                  and cm.cur_id = invs.invoice_cur_id
                  and invs.corporate_id = akc.corporate_id
                  and akc.base_currency_name = cm_b.cur_code
-                 and invs.profit_center_id = cpc.profit_center_id
+                 and invs.profit_center_id = cpc.profit_center_id(+)
                  and invs.invoice_issue_date <= pd_trade_date
-                 and invs.process_id = pcm.process_id
-                 and pcm.process_id = gmr.process_id
-                 and gmr.process_id = pc_process_id
+                 and invs.process_id = pc_process_id
+                 and akc.corporate_id = pc_corporate_id
+                 and iid.is_active = 'Y'
                  and invs.is_invoice_new = 'Y' --need to do this marking....
               
               union all
               select 'Debit/Credit Note' section_name,
-                     invs.invoice_type_name || ' Cancelled' sub_section_name,
+                     invs.invoice_type_name sub_section_name,
                      6 section_id,
                      1 order_id,
                      invs.invoice_issue_date cost_created_date,
@@ -3273,59 +3277,55 @@ create or replace package body pkg_phy_eod_reports is
                      invs.invoice_type_name journal_type,
                      invs.invoice_issue_date realization_date,
                      invs.invoice_ref_no transaction_ref_no, -- Invoice Ref no
-                     gmr.gmr_ref_no contract_ref_no, --GMR ref no
+                     '-NA-' contract_ref_no, --GMR ref no
                      '-NA-' contract_details,
                      '-NA-' cost_id,
                      '-NA-' cost_name,
                      '' price_fixation_status,
                      0 current_qty,
                      0 quantity_in_units,
-                     (case
-                       when invs.invoice_type_name = 'Credit Note General' then
+                     ((case
+                       when invs.payable_receivable = 'Receivable' then  
                         -1
-                       else
+                       else 
                         1
-                     end) * (nvl(invs.total_invoice_item_amount -
-                                 nvl(invs.amount_paid, 0),
-                                 0) * (-1) * invs.fx_to_base) current_amount,
+                     end) * nvl(abs(invs.total_invoice_item_amount), 0) -
+                     nvl(abs(invs.amount_paid), 0) * invs.fx_to_base) current_amount,
                      0 previous_realized_qty,
                      0 previous_realized_amount,
                      invs.invoice_issue_date month,
                      invs.invoice_cur_id transact_cur_id,
                      cm.cur_code transact_cur_code,
                      cm.decimals transact_cur_decimals,
-                     (-1) * nvl((invs.total_invoice_item_amount -
-                                nvl((invs.amount_paid), 0)),
-                                0) transact_amount,
+                     nvl((invs.total_invoice_item_amount -
+                         nvl((invs.amount_paid), 0)),
+                         0) transact_amount,
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
-                     null internal_stock_ref_no
+                     null internal_stock_ref_no,
+                     null     alloc_group_name
                 from is_invoice_summary         invs,
-                     pcm_physical_contract_main pcm,
-                     gmr_goods_movement_record  gmr,
+                     iid_invoicable_item_details iid,
                      phd_profileheaderdetails   phd,
                      cm_currency_master         cm,
                      ak_corporate               akc,
                      cm_currency_master         cm_b,
                      --scm_service_charge_master    scm,
                      cpc_corporate_profit_center cpc
-               where invs.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and gmr.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and invs.invoice_type = 'DebitCreditNote'
+               where invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
+                 and invs.invoice_type = 'DebitCredit'
                  and invs.invoice_type_name in
-                     ('Credit Note General', 'Debit Note General')
-                 and invs.invoice_status = 'Active'
+                     ('DebitCredit')
+                 and invs.invoice_status in ('Cancelled')
                  and invs.cp_id = phd.profileid
                  and cm.cur_id = invs.invoice_cur_id
                  and invs.corporate_id = akc.corporate_id
                  and akc.base_currency_name = cm_b.cur_code
-                 and invs.profit_center_id = cpc.profit_center_id
+                 and invs.profit_center_id = cpc.profit_center_id(+)
                  and invs.invoice_issue_date <= pd_trade_date
-                 and invs.process_id = pcm.process_id
-                 and pcm.process_id = gmr.process_id
-                 and gmr.process_id = pc_process_id
+                 and invs.process_id = pc_process_id
+                 and akc.corporate_id = pc_corporate_id
+                 and iid.is_active = 'N'
                  and invs.is_cancelled_today = 'Y' --need to do this marking...
               --Ends here
               union all
@@ -3369,7 +3369,8 @@ create or replace package body pkg_phy_eod_reports is
                      nvl(to_number(eodcd.cost_value), 0) transact_amount,
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
-                     null internal_stock_ref_no
+                     null internal_stock_ref_no,
+                     null  alloc_group_name
                 from eodc_end_of_day_costs@eka_appdb         eodc,
                      eodcd_end_of_day_cost_details@eka_appdb eodcd,
                      cpc_corporate_profit_center             cpc,
@@ -3432,13 +3433,15 @@ create or replace package body pkg_phy_eod_reports is
                      nvl(cs.transaction_amt, 0) transact_amount,
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
-                     null internal_stock_ref_no
+                     null internal_stock_ref_no,
+                     null alloc_group_name
                 from cs_cost_store               cs,
                      cigc_contract_item_gmr_cost cigc,
                      pci_physical_contract_item  pci,
                      pcdi_pc_delivery_item       pcdi,
+                     pcm_physical_contract_main  pcm,
                      pcpd_pc_product_definition  pcpd,
-                     grd_goods_record_detail     grd,
+                     gmr_goods_movement_record   gmr,
                      scm_service_charge_master   scm,
                      cpc_corporate_profit_center cpc,
                      tdc_trade_date_closure      tdc,
@@ -3446,27 +3449,35 @@ create or replace package body pkg_phy_eod_reports is
                      phd_profileheaderdetails    phd,
                      cm_currency_master          cm_b,
                      cm_currency_master          cm
-               where cs.cost_component_id = scm.cost_id
+               where cs.cog_ref_no = cigc.cog_ref_no
+                 and cs.cost_component_id = scm.cost_id
                  and cs.base_amt_cur_id = cm_b.cur_id
                  and cs.transaction_amt_cur_id = cm.cur_id
                  and cigc.int_contract_item_ref_no =
                      pci.internal_contract_item_ref_no(+)
-                 and pci.pcdi_id = pcdi.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcpd.internal_contract_ref_no
-                    
+                 and pci.pcdi_id = pcdi.pcdi_id(+)
                  and pcpd.input_output = 'Input'
-                 and grd.internal_grd_ref_no(+) = cigc.internal_grd_ref_no
+                 and gmr.internal_gmr_ref_no(+) = cigc.internal_gmr_ref_no
+                 and pcm.internal_contract_ref_no(+) =
+                     gmr.internal_contract_ref_no
                  and (case when cigc.int_contract_item_ref_no is null then
-                      grd.profit_center_id else pcpd.profit_center_id end) =
-                     cpc.profit_center_id
+                      pcm.internal_contract_ref_no else
+                      pcdi.internal_contract_ref_no end) =
+                     pcpd.internal_contract_ref_no
+                 and pcpd.profit_center_id = cpc.profit_center_id
                  and tdc.trade_date = pd_trade_date
                  and scm.reversal_type not in ('CONTRACT')
                  and cs.process_id = tdc.process_id
-                 and pci.process_id = tdc.process_id
-                 and pcdi.process_id = tdc.process_id
+                 and (pci.process_id = tdc.process_id or
+                     pci.process_id is null)
+                 and (pcdi.process_id = tdc.process_id or
+                     pcdi.process_id is null)
+                 and cigc.process_id = tdc.process_id
                  and pcpd.process_id = tdc.process_id
-                    
+                 and (gmr.process_id = tdc.process_id or
+                     gmr.process_id is null)
+                 and (pcm.process_id = tdc.process_id or
+                     pcm.process_id is null)
                  and tdc.process_id = pc_process_id
                  and cpc.corporateid = pc_corporate_id
                  and cpc.corporateid = akc.corporate_id
@@ -3514,13 +3525,15 @@ create or replace package body pkg_phy_eod_reports is
                      nvl(cs.transaction_amt, 0) transact_amount,
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
-                     null internal_stock_ref_no
+                     null internal_stock_ref_no,
+                     null alloc_group_name
                 from cs_cost_store               cs,
                      cigc_contract_item_gmr_cost cigc,
                      pci_physical_contract_item  pci,
                      pcdi_pc_delivery_item       pcdi,
+                     pcm_physical_contract_main  pcm,
                      pcpd_pc_product_definition  pcpd,
-                     grd_goods_record_detail     grd,
+                     gmr_goods_movement_record   gmr,
                      scm_service_charge_master   scm,
                      cpc_corporate_profit_center cpc,
                      tdc_trade_date_closure      tdc,
@@ -3528,32 +3541,190 @@ create or replace package body pkg_phy_eod_reports is
                      phd_profileheaderdetails    phd,
                      cm_currency_master          cm_b,
                      cm_currency_master          cm
-               where cs.cost_component_id = scm.cost_id
+               where cs.cog_ref_no = cigc.cog_ref_no
+                 and cs.cost_component_id = scm.cost_id
                  and cs.base_amt_cur_id = cm_b.cur_id
                  and cs.transaction_amt_cur_id = cm.cur_id
                  and cigc.int_contract_item_ref_no =
                      pci.internal_contract_item_ref_no(+)
-                 and pci.pcdi_id = pcdi.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcpd.internal_contract_ref_no
-                    
+                 and pci.pcdi_id = pcdi.pcdi_id(+)
                  and pcpd.input_output = 'Input'
-                 and grd.internal_grd_ref_no(+) = cigc.internal_grd_ref_no
+                 and gmr.internal_gmr_ref_no(+) = cigc.internal_gmr_ref_no
+                 and pcm.internal_contract_ref_no =
+                     gmr.internal_contract_ref_no
                  and (case when cigc.int_contract_item_ref_no is null then
-                      grd.profit_center_id else pcpd.profit_center_id end) =
-                     cpc.profit_center_id
+                      pcm.internal_contract_ref_no else
+                      pcdi.internal_contract_ref_no end) =
+                     pcpd.internal_contract_ref_no
+                 and pcpd.profit_center_id = cpc.profit_center_id
                  and tdc.trade_date = pd_trade_date
                  and cs.cost_type = 'Direct Actual'
                  and cs.process_id = tdc.process_id
-                 and pci.process_id = tdc.process_id
-                 and pcdi.process_id = tdc.process_id
+                 and (pci.process_id = tdc.process_id or
+                     pci.process_id is null)
+                 and (pcdi.process_id = tdc.process_id or
+                     pcdi.process_id is null)
+                 and cigc.process_id = tdc.process_id
                  and pcpd.process_id = tdc.process_id
-                    
+                 and (gmr.process_id = tdc.process_id or
+                     gmr.process_id is null)
+                 and (pcm.process_id = tdc.process_id or
+                     pcm.process_id is null)
                  and tdc.process_id = pc_process_id
                  and cpc.corporateid = pc_corporate_id
                  and cpc.corporateid = akc.corporate_id
                  and cs.is_deleted = 'N'
-                 and cs.counter_party_id = phd.profileid(+)) t;
+                 and cs.counter_party_id = phd.profileid(+)
+               union all  
+                select 'Other Charges' section_name,
+                       invs.invoice_type_name sub_section_name,
+                       11 section_id,
+                       1 order_id,
+                       invs.invoice_issue_date cost_created_date,
+                       pc_process_id process_id,
+                       pd_trade_date eod_date,
+                       invs.corporate_id corporate_id,
+                       akc.corporate_name corporate_name,
+                       '' base_qty_unit,
+                       akc.base_currency_name base_currency_unit,
+                       '' base_qty_unit_id,
+                       cm_b.cur_id base_currency_unit_id,
+                       cm_b.decimals base_currency_decimals,
+                       0 base_qty_decimals,
+                       cpc.profit_center_name books,
+                       invs.profit_center_id book_id,
+                       cpc.profit_center_short_name book_short_name,
+                       phd.companyname customer_name,
+                       invs.cp_id customer_id,
+                       invs.invoice_type_name journal_type,
+                       invs.invoice_issue_date realization_date,
+                       invs.invoice_ref_no transaction_ref_no, -- Invoice Ref no
+                       null contract_ref_no, --GMR ref no
+                       '-NA-' contract_details,
+                       scm.cost_id cost_id,
+                       scm.cost_display_name cost_name,
+                       '' price_fixation_status,
+                       0 current_qty,
+                       0 quantity_in_units,
+                       ((case
+                         when invs.payable_receivable = 'Receivable' then
+                          1
+                         else
+                          -1
+                       end) * nvl(abs(ioc.flat_amount), 0)) current_amount,
+                       0 previous_realized_qty,
+                       0 previous_realized_amount,
+                       invs.invoice_issue_date month,
+                       invs.invoice_cur_id transact_cur_id,
+                       cm.cur_code transact_cur_code,
+                       cm.decimals transact_cur_decimals,
+                       nvl(ioc.flat_amount, 0) transact_amount,
+                       null internal_contract_item_ref_no,
+                       null int_alloc_group_id,
+                       null internal_stock_ref_no,
+                       null alloc_group_name
+                  from is_invoice_summary          invs,
+                       iid_invoicable_item_details iid,
+                       ioc_invoice_other_charge    ioc,
+                       scm_service_charge_master   scm,
+                       phd_profileheaderdetails    phd,
+                       cm_currency_master          cm,
+                       ak_corporate                akc,
+                       cm_currency_master          cm_b,
+                       --scm_service_charge_master    scm,
+                       cpc_corporate_profit_center cpc
+                 where invs.internal_invoice_ref_no =
+                       iid.internal_invoice_ref_no
+                   and ioc.internal_invoice_ref_no =
+                       invs.internal_invoice_ref_no
+                   and ioc.other_charge_cost_id = scm.cost_id(+)
+                   and invs.invoice_status in ('Active', 'Pending')
+                   and invs.total_other_charge_amount is not null
+                   and invs.cp_id = phd.profileid
+                   and cm.cur_id(+) = invs.other_charge_amount_cur_id
+                   and invs.corporate_id = akc.corporate_id
+                   and akc.base_currency_name = cm_b.cur_code
+                   and invs.profit_center_id = cpc.profit_center_id(+)
+                   and invs.invoice_issue_date <= pd_trade_date
+                   and invs.process_id = pc_process_id
+                   and akc.corporate_id = pc_corporate_id
+                   and iid.is_active = 'Y'
+                   and invs.is_invoice_new = 'Y'
+                union all
+                select 'Other Charges' section_name,
+                       invs.invoice_type_name || ' Cancelled' sub_section_name,
+                       11 section_id,
+                       1 order_id,
+                       invs.invoice_issue_date cost_created_date,
+                       pc_process_id process_id,
+                       pd_trade_date eod_date,
+                       invs.corporate_id corporate_id,
+                       akc.corporate_name corporate_name,
+                       '' base_qty_unit,
+                       akc.base_currency_name base_currency_unit,
+                       '' base_qty_unit_id,
+                       cm_b.cur_id base_currency_unit_id,
+                       cm_b.decimals base_currency_decimals,
+                       0 base_qty_decimals,
+                       cpc.profit_center_name books,
+                       invs.profit_center_id book_id,
+                       cpc.profit_center_short_name book_short_name,
+                       phd.companyname customer_name,
+                       invs.cp_id customer_id,
+                       invs.invoice_type_name journal_type,
+                       invs.invoice_issue_date realization_date,
+                       invs.invoice_ref_no transaction_ref_no, -- Invoice Ref no
+                       null contract_ref_no, --GMR ref no
+                       '-NA-' contract_details,
+                       scm.cost_id cost_id,
+                       scm.cost_display_name cost_name,
+                       '' price_fixation_status,
+                       0 current_qty,
+                       0 quantity_in_units,
+                       ((case
+                         when invs.payable_receivable = 'Receivable' then
+                          -1
+                         else
+                          1
+                       end) * nvl(abs(ioc.flat_amount), 0)) current_amount,
+                       0 previous_realized_qty,
+                       0 previous_realized_amount,
+                       invs.invoice_issue_date month,
+                       invs.invoice_cur_id transact_cur_id,
+                       cm.cur_code transact_cur_code,
+                       cm.decimals transact_cur_decimals,
+                       nvl(invs.total_other_charge_amount, 0) transact_amount,
+                       null internal_contract_item_ref_no,
+                       null int_alloc_group_id,
+                       null internal_stock_ref_no,
+                       null alloc_group_name
+                  from is_invoice_summary          invs,
+                       iid_invoicable_item_details iid,
+                       ioc_invoice_other_charge    ioc,
+                       scm_service_charge_master   scm,
+                       phd_profileheaderdetails    phd,
+                       cm_currency_master          cm,
+                       ak_corporate                akc,
+                       cm_currency_master          cm_b,
+                       --scm_service_charge_master    scm,
+                       cpc_corporate_profit_center cpc
+                 where invs.internal_invoice_ref_no =
+                       iid.internal_invoice_ref_no
+                   and ioc.internal_invoice_ref_no =
+                       invs.internal_invoice_ref_no
+                   and ioc.other_charge_cost_id = scm.cost_id(+)
+                   and invs.invoice_status in ('Cancelled')
+                   and invs.total_other_charge_amount is not null
+                   and invs.cp_id = phd.profileid
+                   and cm.cur_id(+) = invs.other_charge_amount_cur_id
+                   and invs.corporate_id = akc.corporate_id
+                   and akc.base_currency_name = cm_b.cur_code
+                   and invs.profit_center_id = cpc.profit_center_id(+)
+                   and invs.invoice_issue_date <= pd_trade_date
+                   and invs.process_id = pc_process_id
+                   and akc.corporate_id = pc_corporate_id
+                   and iid.is_active = 'N'
+                   and invs.is_cancelled_today = 'Y') t;
     --ends here
   exception
     when others then

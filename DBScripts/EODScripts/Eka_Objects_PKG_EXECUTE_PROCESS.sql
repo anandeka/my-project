@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_EXECUTE_PROCESS" is
+create or replace package "PKG_EXECUTE_PROCESS" is
   gvc_previous_process_id varchar2(50);
 
   procedure sp_execute_process(pc_corporate_id       in varchar2,
@@ -45,15 +45,9 @@ CREATE OR REPLACE PACKAGE "PKG_EXECUTE_PROCESS" is
                                           pc_dbd_id             varchar2,
                                           pc_user_id            varchar2);
 
-end; 
- 
- 
- 
- 
- 
- 
+end;
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_PROCESS" is
+create or replace package body "PKG_EXECUTE_PROCESS" is
 
   procedure sp_execute_process
   --------------------------------------------------------------------------------------------------------------------------
@@ -930,6 +924,49 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_PROCESS" is
          and akc.groupid = gcd.groupid
          and gcd.group_cur_id = cm.cur_id
          and gcd.group_qty_unit_id = qum.qty_unit_id;
+  
+    cursor cc_micsc is
+      select eodc.closed_date cost_created_date,
+             tdc.process_id process_id,
+             pd_trade_date eod_date,
+             akc.corporate_id corporate_id,
+             akc.corporate_name corporate_name,
+             akc.base_currency_name base_currency_unit,
+             cm_b.cur_id base_currency_unit_id,
+             cm_b.decimals base_currency_decimals,
+             cpc.profit_center_name profit_center_name,
+             cpc.profit_center_id profit_center_id,
+             cpc.profit_center_short_name profit_center_short_name,
+             scm.cost_display_name journal_type,
+             eodc.closed_date realization_date,
+             scm.cost_id cost_id,
+             scm.cost_display_name cost_name,
+             nvl(to_number(eodcd.cost_value), 0) current_amount,
+             eodc.closed_date month,
+             eodcd.currency_id transact_cur_id,
+             cm.cur_code transact_cur_code,
+             cm.decimals transact_cur_decimals,
+             nvl(to_number(eodcd.cost_value), 0) transact_amount
+        from eodc_end_of_day_costs@eka_appdb         eodc,
+             eodcd_end_of_day_cost_details@eka_appdb eodcd,
+             cpc_corporate_profit_center             cpc,
+             scm_service_charge_master               scm,
+             tdc_trade_date_closure                  tdc,
+             ak_corporate                            akc,
+             cm_currency_master                      cm_b,
+             cm_currency_master                      cm
+       where eodc.eodc_id = eodcd.eodc_id
+         and eodcd.profit_center_id = cpc.profit_center_id
+         and eodcd.cost_id = scm.cost_id
+         and eodcd.currency_id = cm.cur_id
+         and akc.base_cur_id = cm_b.cur_id
+         and tdc.trade_date = pd_trade_date
+         and eodc.closed_date = pd_trade_date
+         and eodc.corporate_id = pc_corporate_id
+         and cpc.corporateid = pc_corporate_id
+         and eodc.corporate_id = akc.corporate_id
+         and tdc.corporate_id = pc_corporate_id
+         and tdc.process = pc_process;
   begin
     select tdc.process_id
       into vc_process_id
@@ -1009,6 +1046,96 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_PROCESS" is
          cc.group_qty_unit_id,
          cc.qty_unit);
     end loop;
+    for cc in cc_micsc
+    loop
+      insert into ord_overall_realized_pnl_daily
+        (section_name,
+         sub_section_name,
+         section_id,
+         order_id,
+         cost_created_date,
+         process_id,
+         eod_date,
+         corporate_id,
+         corporate_name,
+         base_qty_unit,
+         base_qty_unit_id,
+         base_cur_id,
+         base_cur_code,
+         base_cur_decimals,
+         base_qty_decimals,
+         profit_center_id,
+         profit_center_name,
+         profit_center_short_name,
+         customer_id,
+         customer_name,
+         journal_type,
+         realization_date,
+         transaction_ref_no,
+         contract_ref_no,
+         contract_details,
+         cost_id,
+         cost_name,
+         price_fixation_status,
+         current_qty,
+         qty_in_units,
+         current_amount,
+         previous_realized_qty,
+         previous_realized_amount,
+         cost_month,
+         transact_cur_id,
+         transact_cur_code,
+         transact_cur_decimals,
+         transact_amt,
+         internal_contract_item_ref_no,
+         int_alloc_group_id,
+         internal_stock_ref_no,
+         alloc_group_name)
+      values
+        ('Miscellaneous Costs',
+         'Miscellaneous Costs',
+         9,
+         1,
+         cc.cost_created_date,
+         cc.process_id,
+         cc.eod_date,
+         cc.corporate_id,
+         cc.corporate_name,
+         null,
+         cc.base_currency_unit,
+         null,
+         cc.base_currency_unit_id,
+         cc.base_currency_decimals,
+         0,
+         cc.profit_center_name,
+         cc.profit_center_id,
+         cc.profit_center_short_name,
+         null,
+         null,
+         cc.journal_type,
+         cc.realization_date,
+         '-NA-',
+         '-NA-',
+         '-NA-',
+         cc.cost_id,
+         cc.cost_name,
+         null,
+         0,
+         0,
+         cc.current_amount,
+         0,
+         0,
+         cc.month,
+         cc.transact_cur_id,
+         cc.transact_cur_code,
+         cc.transact_cur_decimals,
+         cc.transact_amount,
+         null,
+         null,
+         null,
+         null);
+    
+    end loop;
   exception
     when others then
       vobj_error_log.extend;
@@ -1067,7 +1194,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_PROCESS" is
     vn_eel_error_count         number := 1;
   begin
     --EOD Precheck Success or Rollback is called from UI   
-    dbms_mview.refresh('ccg_corporateconfig','C');
+    dbms_mview.refresh('ccg_corporateconfig', 'C');
     select nvl(ccg.cdc_process_applicable, 'Y'),
            nvl(ccg.phy_process_applicable, 'Y')
       into vc_cdc_process_appplicable,
@@ -1302,7 +1429,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_PROCESS" is
     vc_cdc_execute             varchar2(4000);
   begin
     dbms_output.put_line('pc_process_id' || pc_process_id);
-    dbms_mview.refresh('ccg_corporateconfig','C');
+    dbms_mview.refresh('ccg_corporateconfig', 'C');
     select nvl(ccg.cdc_process_applicable, 'Y'),
            nvl(ccg.phy_process_applicable, 'Y')
       into vc_cdc_process_appplicable,
@@ -1448,5 +1575,5 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_PROCESS" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end; 
+end;
 /
