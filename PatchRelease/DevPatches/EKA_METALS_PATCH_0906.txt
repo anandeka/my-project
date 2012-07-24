@@ -1,0 +1,67 @@
+Patch No*          		:  EKA_METALS_PATCH_0906
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj
+ 
+Created on*        		:  24-Jul-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 99281
+Author: jana
+Date: 11:46:18 AM, Tuesday, July 24, 2012
+Message:
+Bug Release Saurabh 24 Jul
+Added extra columns to IS and ORD changed alloc group name
+Execute Process added misc call cost
+ORD changes for bugs
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/63_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_PKG_EXECUTE_PROCESS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+Revision: 99283
+Author: jana
+Date: 11:47:50 AM, Tuesday, July 24, 2012
+Message:
+Bug fix
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOverallRealizedPhysicalPnl.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyRealizedPNLReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyRealizedPNLReport.rpt
+
+
+
+
+
