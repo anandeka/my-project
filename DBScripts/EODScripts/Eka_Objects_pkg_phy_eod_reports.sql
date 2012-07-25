@@ -1981,7 +1981,13 @@ create or replace package body pkg_phy_eod_reports is
              sum(temp.element_payable_amount) element_payable_amount,
              temp.invoice_currency_id,
              cm.cur_code,
-             0,
+              case
+               when dense_rank() over(partition by temp.gmr_ref_no order by
+                         temp.element_id) = 1 then
+                oth_chagres.freight_charges
+               else
+                0
+             end,
              --oth_chagres.other_charges,
              case
                when dense_rank() over(partition by temp.gmr_ref_no order by
@@ -2325,7 +2331,8 @@ create or replace package body pkg_phy_eod_reports is
              phd_profileheaderdetails phd,
              pcpch_pc_payble_content_header pcpch,
              (select gmr.internal_gmr_ref_no,
-                     iss.total_other_charge_amount other_charges
+                     iss.total_other_charge_amount other_charges,
+                     iss.freight_allowance_amt freight_charges
                 from gmr_goods_movement_record gmr,
                      is_invoice_summary        iss
                where (iss.internal_invoice_ref_no, gmr.internal_gmr_ref_no) in
@@ -2373,7 +2380,8 @@ create or replace package body pkg_phy_eod_reports is
                 temp.payable_qty_unit,
                 temp.assay_qty_unit,
                 cm.cur_code,
-                oth_chagres.other_charges;
+                oth_chagres.other_charges,
+                oth_chagres.freight_charges;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
