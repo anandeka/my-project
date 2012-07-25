@@ -64,7 +64,7 @@ select gmr.corporate_id,
        gmr.internal_contract_ref_no,
        bl_details.bl_no bl_no,
        bl_details.bl_date bl_date,
-       axs.created_date,
+       gmr.created_date,
        (select aku_sub.login_name
           from ak_corporate_user aku_sub
          where aku_sub.user_id = axs.created_by) created_by,
