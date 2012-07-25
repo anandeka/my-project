@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0911
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  25-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD 
+
+Sub-Module  			 :  N/A
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 99406
+Author: suresh.gottipati
+Date: 6:28:07 PM, Wednesday, July 25, 2012
+Message:
+Fright charges added in Purchase accural Report
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
