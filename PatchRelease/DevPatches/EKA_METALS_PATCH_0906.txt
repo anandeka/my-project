@@ -36,8 +36,15 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : EOD
 ==================================================================
 
+Revision: 99451
+Date: 1:01:40 PM, Thursday, July 26, 2012
+Message:
+Removed ASM
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/63_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+
+
 Revision: 99281
-Author: jana
 Date: 11:46:18 AM, Tuesday, July 24, 2012
 Message:
 Bug Release Saurabh 24 Jul
@@ -45,13 +52,11 @@ Added extra columns to IS and ORD changed alloc group name
 Execute Process added misc call cost
 ORD changes for bugs
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/63_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_PKG_EXECUTE_PROCESS.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
 
 Revision: 99283
-Author: jana
 Date: 11:47:50 AM, Tuesday, July 24, 2012
 Message:
 Bug fix
