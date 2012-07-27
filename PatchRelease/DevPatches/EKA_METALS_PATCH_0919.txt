@@ -34,3 +34,11 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* Transaction
 ==================================================================
+Revision: 99564
+Author: babulal.meena
+Date: 4:47:57 PM, Friday, July 27, 2012
+Message:
+Change to consider the Free Metal Qty into "List Of Smelter Summery account" calculation
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_SMELTERS_IN_PROCESS.sql
+
