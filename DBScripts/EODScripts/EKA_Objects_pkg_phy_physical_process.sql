@@ -3846,6 +3846,8 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from ARE_ARRIVAL_REPORT_ELEMENT where process_id = pc_process_id;
     delete from FC_FEED_CONSUMPTION where process_id = pc_process_id;
     delete from FCE_FEED_CONSUMPTION_ELEMENT where process_id = pc_process_id;
+    delete from ord_overall_realized_pnl_daily where process_id = pc_process_id;
+    delete from tpd_trade_pnl_daily where process_id = pc_process_id;
     --
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now

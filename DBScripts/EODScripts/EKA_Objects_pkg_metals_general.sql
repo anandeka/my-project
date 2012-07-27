@@ -101,7 +101,7 @@ create or replace package pkg_metals_general is
                                        pn_premium                  out number,
                                        pc_exch_rate_string         out varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_metals_general is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -3435,7 +3435,7 @@ create or replace package body pkg_metals_general is
                vc_premium_weight_unit_id,
                vn_premium_weight
           from v_ppu_pum ppu
-         where ppu.product_price_unit_id = pc_price_unit_id;
+         where ppu.product_price_unit_id = cur_preimium_rows.premium_disc_unit_id;
       
         --
         -- Get the Main Currency of the Premium Price Unit
@@ -3498,5 +3498,5 @@ create or replace package body pkg_metals_general is
     end loop;
     pn_premium := vn_total_premium;
   end;
-end;
+end; 
 /

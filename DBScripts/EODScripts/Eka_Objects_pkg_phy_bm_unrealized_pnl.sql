@@ -1,4 +1,4 @@
-create or replace package pkg_phy_bm_unrealized_pnl is
+create or replace package "PKG_PHY_BM_UNREALIZED_PNL" is
 
   procedure sp_calc_phy_open_unreal_pnl(pc_corporate_id        varchar2,
                                         pd_trade_date          date,
@@ -20,9 +20,9 @@ create or replace package pkg_phy_bm_unrealized_pnl is
                                       pc_process             varchar2,
                                       pc_previous_process_id varchar2);
 
-end; 
+end;
 /
-create or replace package body pkg_phy_bm_unrealized_pnl is
+create or replace package body "PKG_PHY_BM_UNREALIZED_PNL" is
   procedure sp_calc_phy_open_unreal_pnl(pc_corporate_id        varchar2,
                                         pd_trade_date          date,
                                         pc_process_id          varchar2,
@@ -161,11 +161,12 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
              md.m2m_qp_fw_exch_rate,
              qat.eval_basis,
              pcm.approval_status,
-             (case when pcm.approval_status='Approved' then
-             'Y'
-             else
-             'N'
-             end) approval_flag             
+             (case
+               when pcm.approval_status = 'Approved' then
+                'Y'
+               else
+                'N'
+             end) approval_flag
         from pcm_physical_contract_main pcm,
              ak_corporate akc,
              pcdi_pc_delivery_item pcdi,
@@ -327,14 +328,18 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
   begin
     for cur_unrealized_rows in cur_unrealized
     loop
-      vc_m2m_ld_fw_exch_rate    := cur_unrealized_rows.m2m_ld_fw_exch_rate;
-      vc_m2m_qp_fw_exch_rate    := cur_unrealized_rows.m2m_qp_fw_exch_rate;
-      vc_m2m_pp_fw_exch_rate    := cur_unrealized_rows.m2m_pp_fw_exch_rate;
-      vc_error_msg              := '1';
-      vn_cont_delivery_premium  := 0;
-      vn_cont_del_premium_amt   := 0;
-      vn_contract_premium       := 0;
-      vn_contract_premium_value := 0;
+      vc_price_to_base_fw_rate    := null;
+      vc_m2m_to_base_fw_rate      := null;
+      vc_contract_qp_fw_exch_rate := null;
+      vc_contract_pp_fw_exch_rate := null;
+      vc_m2m_ld_fw_exch_rate      := cur_unrealized_rows.m2m_ld_fw_exch_rate;
+      vc_m2m_qp_fw_exch_rate      := cur_unrealized_rows.m2m_qp_fw_exch_rate;
+      vc_m2m_pp_fw_exch_rate      := cur_unrealized_rows.m2m_pp_fw_exch_rate;
+      vc_error_msg                := '1';
+      vn_cont_delivery_premium    := 0;
+      vn_cont_del_premium_amt     := 0;
+      vn_contract_premium         := 0;
+      vn_contract_premium_value   := 0;
     
       vn_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_unrealized_rows.product_id,
                                                                    cur_unrealized_rows.qty_unit_id,
@@ -384,14 +389,17 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
                                                                  sysdate,
                                                                  pd_trade_date);
             sp_insert_error_log(vobj_error_log);
-          
+          else
+            vc_error_msg := '4';
+            if vn_m2m_base_fx_rate <> 1 then
+              vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
+                                        vn_m2m_base_fx_rate || ' ' ||
+                                        cur_unrealized_rows.base_cur_code;
+            end if;
           end if;
-          vc_error_msg := '4';
-          if vn_m2m_base_fx_rate <> 1 then
-            vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
-                                      vn_m2m_base_fx_rate || ' ' ||
-                                      cur_unrealized_rows.base_cur_code;
-          end if;
+        
+        else
+          vn_m2m_base_fx_rate := 1;
         end if;
       else
         vn_m2m_amt          := 0;
@@ -444,11 +452,14 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
                                                                sysdate,
                                                                pd_trade_date);
           sp_insert_error_log(vobj_error_log);
-        
+        else
+          vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
+                                      vn_fx_price_to_base || ' ' ||
+                                      cur_unrealized_rows.base_cur_code;
         end if;
-        vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
-                                    vn_fx_price_to_base || ' ' ||
-                                    cur_unrealized_rows.base_cur_code;
+      
+      else
+        vn_fx_price_to_base := 1;
       end if;
     
       vc_error_msg := '8';
@@ -832,7 +843,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          cur_unrealized_rows.delivery_to_date,
          cur_unrealized_rows.transit_days,
          cur_unrealized_rows.purchase_sales,
-         cur_unrealized_rows.approval_status,----
+         cur_unrealized_rows.approval_status, ----
          cur_unrealized_rows.unrealized_type,
          cur_unrealized_rows.profit_center_id,
          cur_unrealized_rows.profit_center_name,
@@ -973,6 +984,8 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          cur_unrealized_rows.accrual_to_base_fw_exch_rate,
          cur_unrealized_rows.contract_status,
          cur_unrealized_rows.approval_flag);
+      dbms_output.put_line('vc_price_to_base_fw_rate' ||
+                           vc_price_to_base_fw_rate);
     end loop;
     ---------
     commit;
@@ -1468,7 +1481,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          and pci.pcdb_id = pcdb.pcdb_id
          and pci.process_id = pcdb.process_id
          and pcm.purchase_sales = 'S'
-          and pcm.cp_id = phd_cp.profileid
+         and pcm.cp_id = phd_cp.profileid
          and gsm.is_required_for_m2m = 'Y'
          and pcm.contract_status = 'In Position'
          and pcm.contract_type = 'BASEMETAL'
@@ -1756,6 +1769,11 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
   begin
     for cur_grd_rows in cur_grd
     loop
+    vc_price_to_base_fw_rate := null;
+    vc_m2m_to_base_fw_rate  := null;
+    vc_contract_qp_fw_exch_rate :=  null;
+    vc_contract_pp_fw_exch_rate := null;
+    
       vc_m2m_ld_fw_exch_rate := cur_grd_rows.m2m_ld_fw_exch_rate;
       vc_m2m_qp_fw_exch_rate := cur_grd_rows.m2m_qp_fw_exch_rate;
       vc_m2m_pp_fw_exch_rate := cur_grd_rows.m2m_pp_fw_exch_rate;
@@ -1869,7 +1887,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
             end if;
           end if;
         else
-        vn_m2m_base_fx_rate:=1;
+          vn_m2m_base_fx_rate := 1;
         end if;
         vn_m2m_amount_in_base    := vn_m2m_amt * vn_m2m_base_fx_rate;
         vn_m2m_total_premium_amt := vn_qty_in_base *
@@ -2350,7 +2368,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          vc_contract_pp_fw_exch_rate,
          cur_grd_rows.accrual_to_base_fw_exch_rate,
          cur_grd_rows.cp_id,
-         cur_grd_rows.cp_name );
+         cur_grd_rows.cp_name);
     end loop;
     -----------
     vc_error_msg := '19';
@@ -2764,7 +2782,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
          and akc.base_cur_id = cm.cur_id
          and gmr.status_id = gsm.status_id(+)
          and pcpd.strategy_id = css.strategy_id
-          and pcm.cp_id = phd_cp.profileid
+         and pcm.cp_id = phd_cp.profileid
          and grd.process_id = pc_process_id
          and gmr.process_id = pc_process_id
          and pcpd.process_id = pc_process_id
@@ -3026,6 +3044,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
       vc_contract_qp_fw_exch_rate   := cur_grd_rows.contract_qp_fw_exch_rate;
       vc_contract_pp_fw_exch_rate   := cur_grd_rows.contract_pp_fw_exch_rate;
       vc_price_to_base_fw_rate      := cur_grd_rows.price_to_base_fw_exch_rate;
+      vc_m2m_to_base_fw_rate        := null;
       vn_product_premium_amt        := 0;
       vn_quality_premium_amt        := 0;
       vn_contract_value_in_base_cur := 0;
@@ -3126,7 +3145,7 @@ create or replace package body pkg_phy_bm_unrealized_pnl is
             end if;
           end if;
         else
-        vn_m2m_base_fx_rate:=1;
+          vn_m2m_base_fx_rate := 1;
         end if;
         vn_m2m_amount_in_base    := vn_m2m_amt * vn_m2m_base_fx_rate;
         vn_m2m_total_premium_amt := vn_qty_in_base *

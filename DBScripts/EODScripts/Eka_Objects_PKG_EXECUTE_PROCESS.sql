@@ -45,7 +45,7 @@ create or replace package "PKG_EXECUTE_PROCESS" is
                                           pc_dbd_id             varchar2,
                                           pc_user_id            varchar2);
 
-end;
+end; 
 /
 create or replace package body "PKG_EXECUTE_PROCESS" is
 
@@ -821,6 +821,7 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                          and eodcd.profit_center_id = cpc.profit_center_id
                          and eodcd.currency_id = cm.cur_id
                          and eod.corporate_id = akc.corporate_id
+                         and akc.corporate_id = cpc.corporateid
                        group by eod.corporate_id,
                                 akc.corporate_name,
                                 cpc.profit_center_id,
@@ -860,6 +861,7 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                          and eodcd.profit_center_id = cpc.profit_center_id
                          and eodcd.currency_id = cm.cur_id
                          and eod.corporate_id = akc.corporate_id
+                         and akc.corporate_id = cpc.corporateid
                        group by eod.corporate_id,
                                 akc.corporate_name,
                                 cpc.profit_center_id,
@@ -899,6 +901,7 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                          and eomcd.profit_center_id = cpc.profit_center_id
                          and eomcd.currency_id = cm.cur_id
                          and eom.corporate_id = akc.corporate_id
+                         and akc.corporate_id = cpc.corporateid
                        group by eom.corporate_id,
                                 akc.corporate_name,
                                 cpc.profit_center_id,
@@ -1575,5 +1578,5 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /

@@ -27,8 +27,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
                                            pc_user_id      varchar2,
                                            pc_process      varchar2) is
     cursor cur_realized is
-    
-    --------for sales contract Washouts 
+    -- For sales contract Washouts 
       select pc_process_id process_id,
              akc.corporate_id,
              akc.corporate_name,
@@ -72,7 +71,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
              dgrd.current_qty item_qty,
              dgrd.net_weight_unit_id qty_unit_id,
              qum_dgrd.qty_unit,
-             sswd.price contract_price, ---cipd.contract_price,
+             sswd.price contract_price,
              sswd.price_unit_id,
              vppu.cur_id price_unit_cur_id,
              cm_pric.cur_code price_unit_cur_code,
@@ -269,9 +268,8 @@ create or replace package body pkg_phy_bm_washout_pnl is
          and dgrd.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
          and dgrd.process_id = gscs.process_id(+)
          and ppu_prm.cur_id = cm_ppu.cur_id(+)
-      
       union all
-      --------For purchase contract Washouts
+      -- For purchase contract Washouts
       select pc_process_id process_id,
              akc.corporate_id corporate_id,
              akc.corporate_name corporate_name,
@@ -488,7 +486,15 @@ create or replace package body pkg_phy_bm_washout_pnl is
          and sswh.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and dgrd.process_id = sswh.process_id
          and dgrd.status = 'Active'
-         and case when sswd_sales.contract_type = 'S' then sswd_sales.internal_contract_item_ref_no end = pci_sales.internal_contract_item_ref_no and pci_sales.process_id = sswd_sales.process_id and pci_sales.pcdi_id = pcdi_sales.pcdi_id and pcdi_sales.internal_contract_ref_no = pcm_sales.internal_contract_ref_no and pcdi_sales.process_id = sswd_sales.process_id and pcm_sales.process_id = sswd_sales.process_id and pcdi.item_price_type = pt.price_type_id(+) and grd.strategy_id = css.strategy_id(+);
+         and case when sswd_sales.contract_type = 'S' then sswd_sales.internal_contract_item_ref_no end --
+      = pci_sales.internal_contract_item_ref_no --
+      and pci_sales.process_id = sswd_sales.process_id --
+      and pci_sales.pcdi_id = pcdi_sales.pcdi_id --
+      and pcdi_sales.internal_contract_ref_no = pcm_sales.internal_contract_ref_no --
+      and pcdi_sales.process_id = sswd_sales.process_id --
+      and pcm_sales.process_id = sswd_sales.process_id --
+      and pcdi.item_price_type = pt.price_type_id(+) --
+      and grd.strategy_id = css.strategy_id(+);
   
     ---------
   
@@ -502,6 +508,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
        where prd.process_id = pc_process_id
          and prd.corporate_id = pc_corporate_id
          and prd.realized_type = 'Realized Today'
+         and prd.realized_sub_type = 'Washout'
        group by prd.corporate_id,
                 prd.sales_internal_gmr_ref_no,
                 prd.process_id,
@@ -551,7 +558,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
         when others then
           sp_write_log(pc_corporate_id,
                        pd_trade_date,
-                       'sp_calc_realized_today',
+                       'sp_calc_washout_realized_today',
                        'vc_base_price_unit is not available' || ' For' ||
                        cur_realized_rows.contract_ref_no);
       end;
@@ -611,7 +618,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
            vn_price_to_base_fw_exch_rate = 0 then
           vobj_error_log.extend;
           vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure pkg_phy_physical_process-sp_calc_washout_open_unrealized ',
+                                                               'procedure pkg_phy_bm_washout_pnl.sp_calc_washout_realized_today',
                                                                'PHY-005',
                                                                cur_realized_rows.base_cur_code ||
                                                                ' to ' ||
@@ -923,6 +930,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
          and prd.int_alloc_group_id =
              cur_update_pnl_rows.int_alloc_group_id
          and prd.process_id = pc_process_id
+         and prd.realized_sub_type = 'Washout'
          and rownum < 2;
     end loop;
     vc_error_msg := '11';
@@ -939,7 +947,8 @@ create or replace package body pkg_phy_bm_washout_pnl is
                                   prd.business_line_name
                              from prd_physical_realized_daily prd
                             where prd.process_id = pc_process_id
-                              and prd.contract_type = 'S')
+                              and prd.contract_type = 'S'
+                              and prd.realized_sub_type = 'Washout')
     loop
       update prd_physical_realized_daily prd
          set prd.sales_profit_center_id         = cur_update_cpc.profit_center_id,
@@ -952,7 +961,8 @@ create or replace package body pkg_phy_bm_washout_pnl is
        where prd.contract_type = 'P'
          and prd.sales_internal_gmr_ref_no =
              cur_update_cpc.sales_internal_gmr_ref_no
-         and prd.process_id = pc_process_id;
+         and prd.process_id = pc_process_id
+         and prd.realized_sub_type = 'Washout';
     end loop;
     commit;
     vc_error_msg := '12';
@@ -960,7 +970,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure pkg_phy_physical_process Realized Today',
+                                                           'procedure pkg_phy_bm_washout_pnl.sp_calc_washout_realized_today',
                                                            'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
@@ -988,15 +998,6 @@ create or replace package body pkg_phy_bm_washout_pnl is
     vn_eel_error_count number := 1;
     vc_error_msg       varchar2(10);
   begin
-  
-    --  get it from dbd for trade date
-    /*select
-    dbd.start_date, dbd.end_date
-     from dbd_database_dump dbd
-    where dbd.trade_date = pd_trade_date
-    and dbd.corporate_id = pc_corporate_id;
-    */
-  
     for cur_update in (select sswh.cancellation_date,
                               sswh.sswh_id
                          from sswh_spe_settle_washout_header@eka_appdb sswh,
@@ -1298,6 +1299,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
                  and tdc.corporate_id = pc_corporate_id
                  and prd.realized_type in
                      ('Realized Today', 'Previously Realized PNL Change')
+                 and prd.realized_sub_type = 'Washout'
                  and prd.trade_date <= pd_trade_date
                  and prd.trade_date = tdc.trade_date
                  and tdc.process = pc_process
@@ -1306,22 +1308,21 @@ create or replace package body pkg_phy_bm_washout_pnl is
              (select sswh.activity_ref_no,
                      sswh.internal_gmr_ref_no
                 from sswh_spe_settle_washout_header sswh
-               where sswh.cancelled_process_id = pc_process_id
-              
-              ) -- Records to be considered for Reverse Realization
+               where sswh.cancelled_process_id = pc_process_id) -- Records to be considered for Reverse Realization
          and prd.trade_date = tdc.trade_date
          and tdc.trade_date = max_eod.trade_date
          and prd.sales_internal_gmr_ref_no =
              max_eod.sales_internal_gmr_ref_no
          and tdc.corporate_id = pc_corporate_id
          and tdc.process = pc_process
-         and tdc.process_id = prd.process_id;
+         and tdc.process_id = prd.process_id
+         and prd.realized_sub_type = 'Washout';
   
   exception
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure pkg_phy_physical_process Realized Today',
+                                                           'procedure pkg_phy_bm_washout_pnl.sp_washout_reverse_realized',
                                                            'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
@@ -1337,11 +1338,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-
-  -------------------
-
   ------------------------------------------
-  --_realized PNL_Change
   procedure sp_washout_realize_pnl_change(pc_corporate_id varchar2,
                                           pd_trade_date   date,
                                           pc_process      varchar2,
@@ -1529,7 +1526,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
        where iis.process_id = pc_process_id
          and prd.internal_gmr_ref_no = iid.internal_gmr_ref_no
          and iid.internal_contract_ref_no = iis.internal_contract_ref_no
-         and prd.process_id <= pc_process_id
+         and prd.trade_date <= pd_trade_date
          and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
          and (iis.is_invoice_new = 'Y' or iis.is_cancelled_today = 'Y')
          and iid.new_invoice_price_unit_id = ppu.product_price_unit_id
@@ -1541,7 +1538,8 @@ create or replace package body pkg_phy_bm_washout_pnl is
                    prd.realized_type = 'Previously Realized PNL Change') then
               'TRUE' when(iis.is_invoice_new = 'Y' and
                           prd.realized_type = 'Realized Today') then 'TRUE' else
-              'FALSE' end);
+              'FALSE' end)
+         and prd.realized_sub_type = 'Washout';
   
     cursor cur_update_pnl is
       select prd.corporate_id,
@@ -1553,6 +1551,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
        where prd.process_id = pc_process_id
          and prd.corporate_id = pc_corporate_id
          and prd.realized_type = 'Previously Realized PNL Change'
+         and prd.realized_sub_type = 'Washout'
        group by prd.corporate_id,
                 prd.int_alloc_group_id,
                 prd.sales_internal_gmr_ref_no,
@@ -1625,7 +1624,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
            vn_price_to_base_fw_exch_rate = 0 then
           vobj_error_log.extend;
           vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure pkg_phy_physical_process-sp_ realized_pnl_change ',
+                                                               'procedure pkg_phy_bm_washout_pnl.sp_washout_realize_pnl_change ',
                                                                'PHY-005',
                                                                cur_realized_rows.base_cur_code ||
                                                                ' to ' ||
@@ -2001,7 +2000,7 @@ create or replace package body pkg_phy_bm_washout_pnl is
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_calc_phy_realize_pnl_change',
+                                                           'procedure pkg_phy_bm_washout_pnl.sp_washout_realize_pnl_change',
                                                            'M2M-013',
                                                            ' Code:' ||
                                                            sqlcode ||
@@ -2017,8 +2016,6 @@ create or replace package body pkg_phy_bm_washout_pnl is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-
 end;
-
 ------------------------------------------------------------------
 /

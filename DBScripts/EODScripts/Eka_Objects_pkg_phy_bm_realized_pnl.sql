@@ -1,4 +1,4 @@
-create or replace package pkg_phy_bm_realized_pnl is
+create or replace package "PKG_PHY_BM_REALIZED_PNL" is
   procedure sp_calc_phy_realized_today(pc_corporate_id varchar2,
                                        pd_trade_date   date,
                                        pc_process_id   varchar2,
@@ -24,7 +24,7 @@ create or replace package pkg_phy_bm_realized_pnl is
                                        pc_previous_process_id varchar2);
 end;
 /
-create or replace package body pkg_phy_bm_realized_pnl is
+create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
   procedure sp_calc_phy_realized_today(pc_corporate_id varchar2,
                                        pd_trade_date   date,
                                        pc_process_id   varchar2,
@@ -3191,6 +3191,8 @@ create or replace package body pkg_phy_bm_realized_pnl is
         vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
                                     vn_price_to_base_fw_rate || ' ' ||
                                     cur_not_fixed_rows.base_cur_code;
+      else
+        vc_price_to_base_fw_rate := null;
       end if;
       vn_contract_value_in_base_cur := round((vn_contract_value_in_price_cur *
                                              vn_price_to_base_fw_rate),

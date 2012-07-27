@@ -1788,7 +1788,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              trade_date)
           values
             (pc_corporate_id,
-             'Physicals Pre-Check',
+             'Physicals Pre-Check BM Location Diff ',
              'PHY-005',
              vc_data_missing_for,
              null,
@@ -2054,7 +2054,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              trade_date)
           values
             (pc_corporate_id,
-             'Physicals Pre-Check',
+             'Physicals Pre-Check Concentrate Location Diff',
              'PHY-005',
              vc_data_missing_for,
              null,
@@ -5915,7 +5915,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              trade_date)
           values
             (pc_corporate_id,
-             'Physicals Pre-Check',
+             'Physicals Pre-Check M2M QP Not Beyond',
              'PHY-005',
              vc_data_missing_for,
              null,
@@ -6020,7 +6020,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                trade_date)
             values
               (pc_corporate_id,
-               'Physicals Pre-Check',
+               'Physicals Pre-Check M2M QP Beyond',
                'PHY-005',
                vc_data_missing_for,
                null,
@@ -6245,7 +6245,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                trade_date)
             values
               (pc_corporate_id,
-               'Physicals Pre-Check',
+               'Physicals Pre-Check M2M TC/RC/PC',
                'PHY-005',
                vc_data_missing_for,
                null,
@@ -6359,7 +6359,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  trade_date)
               values
                 (pc_corporate_id,
-                 'Physicals Pre-Check',
+                 'Physicals Pre-Check M2M TC/RC/PC Beyond',
                  'PHY-005',
                  vc_data_missing_for,
                  null,
@@ -6761,7 +6761,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              trade_date)
           values
             (pc_corporate_id,
-             'Physicals Pre-Check',
+             'Physicals Pre-Check M2M Product Premium',
              'PHY-005',
              vc_data_missing_for,
              null,
@@ -6866,7 +6866,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                trade_date)
             values
               (pc_corporate_id,
-               'Physicals Pre-Check',
+               'Physicals Pre-Check M2M Product Premium Beyond',
                'PHY-005',
                vc_data_missing_for,
                null,
