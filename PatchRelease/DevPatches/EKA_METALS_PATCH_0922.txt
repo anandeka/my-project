@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0922
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  27-Jul-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 99600
+Author: elaiyaraja.nallathambi
+Date: 7:23:38 PM, Friday, July 27, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/GlobalPositionReport.rpt
+Revision: 99591
+Author: sivachalabathi.s
+Date: 6:35:18 PM, Friday, July 27, 2012
+Message:
+Ashok changes for the bug id: 66503
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport_Excel.rpt
+
+
+
+
