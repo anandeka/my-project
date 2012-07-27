@@ -445,7 +445,9 @@ create or replace package body "PKG_PHY_BM_UNREALIZED_PNL" is
                                                                'PHY-005',
                                                                cur_unrealized_rows.base_cur_code ||
                                                                ' to ' ||
-                                                               vc_price_cur_code,
+                                                               vc_price_cur_code || ' (' ||
+                                                               to_char(cur_unrealized_rows.payment_due_date,
+                                                                       'dd-Mon-yyyy') || ')',
                                                                '',
                                                                pc_process,
                                                                pc_user_id,
@@ -1769,10 +1771,10 @@ create or replace package body "PKG_PHY_BM_UNREALIZED_PNL" is
   begin
     for cur_grd_rows in cur_grd
     loop
-    vc_price_to_base_fw_rate := null;
-    vc_m2m_to_base_fw_rate  := null;
-    vc_contract_qp_fw_exch_rate :=  null;
-    vc_contract_pp_fw_exch_rate := null;
+      vc_price_to_base_fw_rate    := null;
+      vc_m2m_to_base_fw_rate      := null;
+      vc_contract_qp_fw_exch_rate := null;
+      vc_contract_pp_fw_exch_rate := null;
     
       vc_m2m_ld_fw_exch_rate := cur_grd_rows.m2m_ld_fw_exch_rate;
       vc_m2m_qp_fw_exch_rate := cur_grd_rows.m2m_qp_fw_exch_rate;
@@ -3749,5 +3751,5 @@ create or replace package body "PKG_PHY_BM_UNREALIZED_PNL" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end; 
+end;
 /
