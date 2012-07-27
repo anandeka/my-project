@@ -214,7 +214,13 @@ create or replace package body "PKG_PRICE" is
                                pofh.qp_start_date,
                                pofh.qp_end_date,
                                pfqpp.is_qp_any_day_basis,
-                               pofh.qty_to_be_fixed,
+                              -- pofh.qty_to_be_fixed,
+                               (case
+                                 when pocd.qp_period_type = 'Event' then
+                                  cur_pcdi_rows.item_qty
+                                 else
+                                  pofh.qty_to_be_fixed
+                               end) qty_to_be_fixed,
                                pofh.priced_qty,
                                pofh.pofh_id,
                                pofh.no_of_prompt_days
@@ -238,7 +244,7 @@ create or replace package body "PKG_PRICE" is
                            and pocd.is_active = 'Y'
                            and pcbpd.is_active = 'Y'
                            and ppfh.is_active = 'Y'
-                           and pfqpp.is_active = 'Y'
+                           and pfqpp.is_active = 'Y'                           
                         -- and pofh.is_active(+) = 'Y'
                         )
             loop
@@ -1705,7 +1711,13 @@ create or replace package body "PKG_PRICE" is
                                pfqpp.event_name,
                                pfqpp.no_of_event_months,
                                pfqpp.is_qp_any_day_basis,
-                               pofh.qty_to_be_fixed,
+                              -- pofh.qty_to_be_fixed,
+                               (case
+                                 when pocd.qp_period_type = 'Event' then
+                                  cur_pcdi_rows.item_qty
+                                 else
+                                  pofh.qty_to_be_fixed
+                               end) qty_to_be_fixed,
                                pofh.priced_qty,
                                pofh.pofh_id,
                                pofh.no_of_prompt_days
