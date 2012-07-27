@@ -44,7 +44,7 @@ select debt_temp.corporate_id,
                           pdm.product_desc,
                           cpm.inventory_qty_unit,
                           prrqs.qty_type
-                union
+                union all
                 select spq.corporate_id,
                        spq.smelter_id,
                        bvc_product.base_product_id product_id,
@@ -52,7 +52,9 @@ select debt_temp.corporate_id,
                        sum(pkg_general.f_get_converted_quantity(cpm.product_id,
                                                                 spq.qty_unit_id,
                                                                 cpm.inventory_qty_unit,
-                                                                spq.payable_qty)) total_qty,
+                                                                (spq.payable_qty +
+                                                                nvl(spq.free_metal_qty,
+                                                                     0)))) total_qty,
                        cpm.inventory_qty_unit qty_unit_id,
                        spq.qty_type qty_type
                   from spq_stock_payable_qty       spq,
@@ -78,7 +80,7 @@ select debt_temp.corporate_id,
                           cpm.inventory_qty_unit,
                           spq.qty_type
                 
-                /* UNION
+                /* UNION all
                 --Smelter Base Stock as Returnable(Debt)
                 SELECT sbs.corporate_id,
                 sbs.smelter_cp_id smelter_id,
@@ -111,7 +113,7 @@ select debt_temp.corporate_id,
                   returnable_temp.product_name,
                   returnable_temp.qty_unit_id,
                   returnable_temp.qty_type
-        union
+        union all
         select prrqs.corporate_id,
                prrqs.cp_id smelter_id,
                prrqs.product_id product_id,
