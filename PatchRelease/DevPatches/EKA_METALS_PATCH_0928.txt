@@ -1,4 +1,4 @@
-Patch No*          		:  EKA_METALS_PATCH_0927
+Patch No*          		:  EKA_METALS_PATCH_0928
 
 Project / Product* 		:  METALS
 ==================================================================
@@ -15,7 +15,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  EOD
+Module  		   	 :  Reports
 
 Sub-Module  			 :  N/A
  
@@ -32,15 +32,17 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* EOD
+Schema type (Transaction / EOD)* Transaction
 ==================================================================
-Revision: 99681
+Revision: 99683
 Author: suresh.gottipati
-Date: 7:03:52 PM, Monday, July 30, 2012
+Date: 7:06:27 PM, Monday, July 30, 2012
 Message:
 Bug Fixes
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt
+
+
 
 
 
