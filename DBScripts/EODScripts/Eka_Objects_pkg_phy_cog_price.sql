@@ -23,7 +23,7 @@ create or replace package pkg_phy_cog_price is
                                   pc_user_id      varchar2,
                                   pc_dbd_id       varchar2,
                                   pc_process      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -98,7 +98,7 @@ create or replace package body pkg_phy_cog_price is
              dim.delivery_calender_id,
              pdc.is_daily_cal_applicable,
              pdc.is_monthly_cal_applicable
-        from pcdi_pc_delivery_item pcdi,
+        from pcdi_pc_delivery_item         pcdi,
              diqs_delivery_item_qty_status diqs,
              pcm_physical_contract_main pcm,
              ak_corporate akc,
@@ -212,6 +212,7 @@ create or replace package body pkg_phy_cog_price is
     vc_prompt_month          varchar2(15);
     vc_prompt_year           number;
     vc_fixed_price_unit_id   varchar2(15);
+    
   begin
     for cur_pcdi_rows in cur_pcdi
     loop
@@ -220,6 +221,8 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_qty          := 0;
       vn_fixed_value          := 0;
       vn_unfixed_value        := 0;
+      vc_fixed_price_unit_id  :=null;
+      vc_unfixed_val_price_unit_id :=null;
       if cur_pcdi_rows.price_option_call_off_status in
          ('Called Off', 'Not Applicable') then
         vc_price_fixation_status := null;
@@ -286,8 +289,8 @@ create or replace package body pkg_phy_cog_price is
             
             loop
               begin
-                select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
-                       nvl(sum(pfd.qty_fixed), 0),
+                select nvl(sum(pfd.user_price * round(pfd.qty_fixed,5)), 0),
+                       nvl(sum(round(pfd.qty_fixed,5)), 0),
                        vppu.price_unit_id
                   into vn_fixed_value,
                        vn_fixed_qty,
@@ -351,8 +354,7 @@ create or replace package body pkg_phy_cog_price is
                                            cur_pcdi_rows.price_unit_name || ',' ||
                                            cur_pcdi_rows.available_price_name ||
                                            ' Price,Prompt Date:' ||
-                                           to_char(vd_quotes_date,
-                                                   'dd-Mon-RRRR');
+                                           to_char(vd_quotes_date,'dd-Mon-RRRR');
                     vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                          'procedure sp_concentrate_cog_price',
                                                                          'PHY-002',
@@ -474,6 +476,18 @@ create or replace package body pkg_phy_cog_price is
                                                                        pd_trade_date);
                 
                   sp_insert_error_log(vobj_error_log);
+               when others then
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                       'procedure sp_concentrate_congprice',
+                                                                        'M2M-013',
+                                                                        sqlcode|| ' '||sqlerrm,
+                                                                       '',
+                                                                       pc_process,
+                                                                       pc_user_id,
+                                                                       sysdate,
+                                                                       pd_trade_date);
+                sp_insert_error_log(vobj_error_log);                                                                         
+               
               end;
               --
               -- If Both Fixed and Unfixed Quantities are there then we have two prices
@@ -523,7 +537,7 @@ create or replace package body pkg_phy_cog_price is
         end loop;
         vn_average_price := round(vn_total_contract_value /
                                   vn_total_quantity,
-                                  3);
+                                  4);
       
         vn_error_no := vn_error_no + 1;
       elsif cur_pcdi_rows.price_option_call_off_status = 'Not Called Off' then
@@ -583,8 +597,7 @@ create or replace package body pkg_phy_cog_price is
                                          cur_pcdi_rows.price_unit_name || ',' ||
                                          cur_pcdi_rows.available_price_name ||
                                          ' Price,Prompt Date:' ||
-                                         to_char(vd_quotes_date,
-                                                 'dd-Mon-RRRR');
+                                         to_char(vd_quotes_date,'dd-Mon-RRRR');
                   vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                        'procedure sp_concentrate_cog_price',
                                                                        'PHY-002',
@@ -706,6 +719,19 @@ create or replace package body pkg_phy_cog_price is
                                                                      pd_trade_date);
               
                 sp_insert_error_log(vobj_error_log);
+             when others then
+             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                     'procedure sp_concentrate_congprice',
+                                                                     'M2M-013',
+                                                                     sqlcode||' '||sqlerrm,
+                                                                     '',
+                                                                     pc_process,
+                                                                     pc_user_id,
+                                                                     sysdate,
+                                                                     pd_trade_date);
+              
+                sp_insert_error_log(vobj_error_log);
+             
             end;
             vn_fixed_qty            := 0;
             vn_unfixed_qty          := vn_total_quantity;
@@ -727,7 +753,7 @@ create or replace package body pkg_phy_cog_price is
         end loop;
         vn_average_price := round(vn_total_contract_value /
                                   vn_total_quantity,
-                                  3);
+                                  4);
       end if;
       vn_error_no := 7;
       begin
@@ -1048,14 +1074,17 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_value        := 0;
       vc_pcbpd_id             := cur_gmr_rows.pcbpd_id;
       vn_total_quantity       := cur_gmr_rows.qty;
+      vc_unfixed_val_price_unit_id :=null;
+      vc_unfixed_val_price_unit_id :=null;
+     
     
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no)
       loop
         vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
-        vc_price_basis      := cur_gmr_ele_rows.price_basis;
+        vc_price_basis      := cur_gmr_ele_rows.price_basis;        
         begin
-          select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
-                 nvl(sum(pfd.qty_fixed), 0),
+          select nvl(sum(pfd.user_price * round(pfd.qty_fixed,5)), 0),
+                 nvl(sum(round(pfd.qty_fixed,5)), 0),
                  ppu.price_unit_id
             into vn_fixed_value,
                  vn_fixed_qty,
@@ -1120,7 +1149,7 @@ create or replace package body pkg_phy_cog_price is
                                      cur_gmr_rows.price_unit_name || ',' ||
                                      cur_gmr_rows.available_price_name ||
                                      ' Price,Prompt Date:' ||
-                                     to_char(vd_quotes_date, 'dd-Mon-RRRR');
+                                     to_char(vd_quotes_date,'dd-Mon-RRRR');
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                    'procedure sp_concentrate_cog_price',
                                                                    'PHY-002',
@@ -1241,6 +1270,19 @@ create or replace package body pkg_phy_cog_price is
                                                                  pd_trade_date);
           
             sp_insert_error_log(vobj_error_log);
+          when others then
+           vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure sp_concentrate_congprice',
+                                                                 'M2M-013',
+                                                                 sqlcode|| ' '||sqlerrm,
+                                                                 '',
+                                                                 pc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+          
+            sp_insert_error_log(vobj_error_log);
+          
         end;
         --
         -- If Both Fixed and Unfixed Quantities are there then we have two prices
@@ -1285,7 +1327,7 @@ create or replace package body pkg_phy_cog_price is
       end loop;
     
       vn_average_price := round(vn_total_contract_value / vn_total_quantity,
-                                3);
+                                4);
       --
       -- Convert the final price into Base Price Unit 
       --
@@ -1560,6 +1602,9 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_qty               := 0;
       vn_fixed_value               := 0;
       vn_unfixed_value             := 0;
+      vc_fixed_price_unit_id       :=null;
+      vc_unfixed_val_price_unit_id :=null;
+      
       vc_price_option_call_off_sts := cur_pcdi_rows.price_option_call_off_status;
       vn_total_contract_value      := 0;
       if vc_price_option_call_off_sts in ('Called Off', 'Not Applicable') then
@@ -1614,8 +1659,8 @@ create or replace package body pkg_phy_cog_price is
             loop
               vc_error_message := ' Line 240 ';
               begin
-                select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
-                       nvl(sum(pfd.qty_fixed), 0),
+                select nvl(sum(pfd.user_price * round(pfd.qty_fixed,5)), 0),
+                       nvl(sum(round(pfd.qty_fixed,5)), 0),
                        ppu.price_unit_id
                   into vn_fixed_value,
                        vn_fixed_qty,
@@ -1682,8 +1727,7 @@ create or replace package body pkg_phy_cog_price is
                                          cur_pcdi_rows.price_unit_name || ',' ||
                                          cur_pcdi_rows.available_price_name ||
                                          ' Price,Prompt Date:' ||
-                                         to_char(vd_quotes_date,
-                                                 'dd-Mon-RRRR');
+                                         to_char(vd_quotes_date,'dd-Mon-RRRR');
                   vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                        'procedure sp_concentrate_cog_price',
                                                                        'PHY-002',
@@ -1806,6 +1850,18 @@ create or replace package body pkg_phy_cog_price is
                                                                      pd_trade_date);
               
                 sp_insert_error_log(vobj_error_log);
+             when others then
+               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                     'procedure sp_concentrate_congprice',
+                                                                     'M2M-013',
+                                                                     sqlcode|| ' '||sqlerrm,
+                                                                     '',
+                                                                     pc_process,
+                                                                     pc_user_id,
+                                                                     sysdate,
+                                                                     pd_trade_date);
+              
+                sp_insert_error_log(vobj_error_log);
             end;
             --
             -- If Both Fixed and Unfixed Quantities are there then we have two prices
@@ -1857,7 +1913,7 @@ create or replace package body pkg_phy_cog_price is
       
         vn_average_price := round(vn_total_contract_value /
                                   vn_total_quantity,
-                                  3);
+                                  4);
       
       elsif vc_price_option_call_off_sts = 'Not Called Off' then
         for cur_not_called_off_rows in cur_not_called_off(cur_pcdi_rows.pcdi_id,
@@ -1911,8 +1967,7 @@ create or replace package body pkg_phy_cog_price is
                                          cur_pcdi_rows.price_unit_name || ',' ||
                                          cur_pcdi_rows.available_price_name ||
                                          ' Price,Prompt Date:' ||
-                                         to_char(vd_quotes_date,
-                                                 'dd-Mon-RRRR');
+                                         to_char(vd_quotes_date,'dd-Mon-RRRR');
                   vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                        'procedure sp_calc_contract_conc_price',
                                                                        'PHY-002',
@@ -2032,6 +2087,17 @@ create or replace package body pkg_phy_cog_price is
                                                                      sysdate,
                                                                      pd_trade_date);
                 sp_insert_error_log(vobj_error_log);
+             when others then
+             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                     'procedure sp_calc_contract_conc_price',
+                                                                     'M2M-013',
+                                                                     sqlcode|| ' ' ||sqlerrm,
+                                                                     '',
+                                                                     pc_process,
+                                                                     pc_user_id,
+                                                                     sysdate,
+                                                                     pd_trade_date);
+                sp_insert_error_log(vobj_error_log);
             end;
             vn_total_quantity       := cur_pcdi_rows.payable_qty;
             vn_qty_to_be_priced     := cur_not_called_off_rows.qty_to_be_priced;
@@ -2040,17 +2106,22 @@ create or replace package body pkg_phy_cog_price is
                                        ((vn_qty_to_be_priced / 100) *
                                        vn_unfixed_val_price));
             vc_error_message        := ' Line 641 ';
+            begin
             select ppu.product_price_unit_id
               into vc_price_unit_id
               from v_ppu_pum ppu
              where ppu.price_unit_id = vc_unfixed_val_price_unit_id
                and ppu.product_id = cur_pcdi_rows.product_id;
+             exception
+             when others then
+             vc_price_unit_id:=null;
+             end;
             vc_error_message := ' Line 647 ';
           end if;
         end loop;
         vn_average_price := round(vn_total_contract_value /
                                   vn_total_quantity,
-                                  3);
+                                  4);
       
       end if;
       -- Get Price Unit Currency, Quantity Details
@@ -2073,7 +2144,11 @@ create or replace package body pkg_phy_cog_price is
            and ppu.weight_unit_id = qum.qty_unit_id;
       exception
         when others then
-          null;
+           vc_price_unit_cur_id:=null;
+           vc_price_unit_cur_code:=null;
+           vc_price_unit_weight_unit_id:=null;
+           vc_price_unit_weight_unit:=null;
+           vn_price_unit_weight:=null;
       end;
       vc_error_message := ' Line 676 ';
       insert into cccp_conc_contract_cog_price
@@ -2320,7 +2395,7 @@ create or replace package body pkg_phy_cog_price is
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
-         and spq.payable_qty > 0;
+         and spq.payable_qty>0;
   
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is
       select pofh.internal_gmr_ref_no,
@@ -2393,6 +2468,8 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_qty          := 0;
       vn_fixed_value          := 0;
       vn_unfixed_value        := 0;
+      vc_unfixed_val_price_unit_id :=null;
+      vc_unfixed_val_price_unit_id:=null;
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
                                           cur_gmr_rows.element_id)
       loop
@@ -2401,8 +2478,8 @@ create or replace package body pkg_phy_cog_price is
         vc_pcbpd_id    := cur_gmr_ele_rows.pcbpd_id;
       
         begin
-          select nvl(sum((pfd.user_price * pfd.qty_fixed)), 0),
-                 nvl(sum(pfd.qty_fixed), 0),
+          select nvl(sum((pfd.user_price * round(pfd.qty_fixed,5))), 0),
+                 nvl(sum(round(pfd.qty_fixed,5)), 0),
                  ppu.price_unit_id
             into vn_fixed_value,
                  vn_fixed_qty,
@@ -2469,7 +2546,7 @@ create or replace package body pkg_phy_cog_price is
                                      cur_gmr_rows.price_unit_name || ',' ||
                                      cur_gmr_rows.available_price_name ||
                                      ' Price,Prompt Date:' ||
-                                     to_char(vd_quotes_date, 'dd-Mon-RRRR');
+                                     to_char(vd_quotes_date,'dd-Mon-RRRR');
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                    'procedure sp_conc_contract_cog_price',
                                                                    'PHY-002',
@@ -2586,6 +2663,17 @@ create or replace package body pkg_phy_cog_price is
                                                                  sysdate,
                                                                  pd_trade_date);
             sp_insert_error_log(vobj_error_log);
+          when others then
+           vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure sp_concentrate_congprice',
+                                                                 'M2M-013',
+                                                                 sqlcode||' '||sqlerrm,
+                                                                 '',
+                                                                 pc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
         end;
         --
         -- If Both Fixed and Unfixed Quantities are there then we have two prices
@@ -2631,7 +2719,7 @@ create or replace package body pkg_phy_cog_price is
       
       end loop;
       vn_average_price := round(vn_total_contract_value / vn_total_quantity,
-                                3);
+                                4);
       begin
         select cm.cur_id,
                cm.cur_code,
@@ -2714,5 +2802,5 @@ create or replace package body pkg_phy_cog_price is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /
