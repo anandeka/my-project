@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0923
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  30-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 99619
+Author: elaiyaraja.nallathambi
+Date: 11:02:09 AM, Monday, July 30, 2012
+Message:
+UnPriced Qty Report With Latest Changes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/UnpricedQuantityReport.rpt
+
+
+Revision: 99620
+Author: elaiyaraja.nallathambi
+Date: 11:04:33 AM, Monday, July 30, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_82_DML_RPC_RFP_Scripts.sql
+
+
