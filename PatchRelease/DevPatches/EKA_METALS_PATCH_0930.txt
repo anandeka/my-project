@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0927
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  30-Jul-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 99697
+Author: elaiyaraja.nallathambi
+Date: 7:32:12 PM, Monday, July 30, 2012
+Message:
+Internal Comments Column Data population.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+
+Revision: 99698
+Author: elaiyaraja.nallathambi
+Date: 7:32:37 PM, Monday, July 30, 2012
+Message:
+Internal Comments Column Data population.
+----
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+
+
+
