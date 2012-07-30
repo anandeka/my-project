@@ -1592,7 +1592,7 @@ create or replace package body pkg_phy_eod_reports is
          and pci.internal_contract_item_ref_no =
              grd.internal_contract_item_ref_no
          and pci.process_id = pc_process_id
-         and gmr.is_final_invoiced ='N'
+          and nvl(gmr.is_final_invoiced,'N') ='N'
       union all
       -- Penalty Elements
       select /*+ first_rows */
@@ -1700,7 +1700,8 @@ create or replace package body pkg_phy_eod_reports is
              grd.internal_contract_item_ref_no
          and pci.process_id = pc_process_id
          and pqca.element_id = aml.attribute_id
-         and aml.is_active = 'Y';
+         and aml.is_active = 'Y'
+         and nvl(gmr.is_final_invoiced,'N') ='N';
   
     vn_gmr_treatment_charge      number;
     vc_gmr_treatment_cur_id      varchar2(15);
@@ -3986,7 +3987,7 @@ create or replace package body pkg_phy_eod_reports is
                  and ppm.is_active = 'Y'
                  and aml.is_active = 'Y'
                  and qav.is_deleted = 'N'
-                 and aml.attribute_name = 'CNCode'
+                 and aml.attribute_name = 'CIN'
                  and aml.attribute_type_id = 'OTHERS'
                  and qat.quality_id = qav.quality_id
                  and qav.attribute_id = ppm.property_id) qat_ppm,
@@ -4278,7 +4279,7 @@ create or replace package body pkg_phy_eod_reports is
                  and ppm.is_active = 'Y'
                  and aml.is_active = 'Y'
                  and qav.is_deleted = 'N'
-                 and aml.attribute_name = 'CNCode'
+                 and aml.attribute_name = 'CIN'
                  and aml.attribute_type_id = 'OTHERS'
                  and qat.quality_id = qav.quality_id
                  and qav.attribute_id = ppm.property_id) qat_ppm,
@@ -4625,7 +4626,7 @@ create or replace package body pkg_phy_eod_reports is
                          and ppm.is_active = 'Y'
                          and aml.is_active = 'Y'
                          and qav.is_deleted = 'N'
-                         and aml.attribute_name = 'CNCode'
+                         and aml.attribute_name = 'CIN'
                          and aml.attribute_type_id = 'OTHERS'
                          and qat.quality_id = qav.quality_id
                          and qav.attribute_id = ppm.property_id) qat_ppm,
@@ -4995,7 +4996,7 @@ create or replace package body pkg_phy_eod_reports is
                          and ppm.is_active = 'Y'
                          and aml.is_active = 'Y'
                          and qav.is_deleted = 'N'
-                         and aml.attribute_name = 'CNCode'
+                         and aml.attribute_name = 'CIN'
                          and aml.attribute_type_id = 'OTHERS'
                          and qat.quality_id = qav.quality_id
                          and qav.attribute_id = ppm.property_id) qat_ppm,
@@ -11496,6 +11497,7 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
          and grd.parent_internal_grd_ref_no = psr.internal_grd_ref_no(+)
          and psr.pool_id = pm.pool_id(+)
          and grd.supp_internal_gmr_ref_no = gmr_supp.internal_gmr_ref_no
+         and gmr_supp.process_id=pc_process_id
          and gmr.process_id = pc_process_id
          and spq.process_id = pc_process_id
          and grd.process_id = pc_process_id
@@ -11508,7 +11510,7 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
          and qat.is_active = 'Y'
          and sld.is_active = 'Y'
          and qum.is_active = 'Y'
-         and pm.is_active = 'Y';
+         and pm.is_active(+) = 'Y';
   
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
