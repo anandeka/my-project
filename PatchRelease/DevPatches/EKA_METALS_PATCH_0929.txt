@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_0929
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar reddy
+ 
+Created on*        		:  30-Jul-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 99686
+Author: rajeshwar.reddy
+Date: 19:13:07, 30 July 2012
+Message:
+Assay O/P doc changes.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_304.sql
+
+
+Revision: 99687
+Author: rajeshwar.reddy
+Date: 19:14:26, 30 July 2012
+Message:
+Assay O/P doc changes.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_351.sql
+
+
+
