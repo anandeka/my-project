@@ -34,6 +34,20 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* Transaction
 ==================================================================
+
+SQL Files:
+===========
+Revision: 99842
+Author: sivachalabathi.s
+Date: 5:58:23 PM, Tuesday, July 31, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_DT_QTY_LOG.sql
+
+
+RPT Files:
+============
 Revision: 99763
 Author: elaiyaraja.nallathambi
 Date: 12:56:47 PM, Tuesday, July 31, 2012
