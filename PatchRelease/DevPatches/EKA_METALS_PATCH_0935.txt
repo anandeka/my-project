@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_0935
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  31-Jul-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  62978
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 99866
+Author: mayank.chaturvedi
+Date: 7:34:55 PM, Tuesday, July 31, 2012
+Message:
+Master script for 62978 (UI issue)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_355.sql
+
+
+
+
