@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0932
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena 
+ 
+Created on*        		:  31-Jul-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical Contract
+
+Sub-Module  			 :  TnC
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 99794
+Author: sriveenam
+Date: Tuesday, July 31, 2012 3:27:17 PM
+Message:
+standard text lsiting
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_352.sql
+
