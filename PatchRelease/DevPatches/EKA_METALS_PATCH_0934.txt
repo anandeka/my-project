@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0934
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar
+ 
+Created on*        		:  31-Jul-2012
+
+Bug / Enhancement*              :   Enhancement
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 99861
+Author: rajeshwar.reddy
+Date: 19:05:53, 31 July 2012
+Message:
+ship_land_date data is taken from first activity date.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_354.sql
+
+
