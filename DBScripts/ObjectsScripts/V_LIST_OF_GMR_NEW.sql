@@ -16,17 +16,8 @@ select gmr.corporate_id,
        phd_warehouse.companyname warehouse,
        gmr.shed_id shed_id,
        sld.storage_location_name shed_name,
-       (case
-         when gmr.is_internal_movement = 'Y' then
-          (select f_string_aggregate(qat_sub.long_desc)
-             from grd_goods_record_detail grd_sub,
-                  qat_quality_attributes  qat_sub
-            where grd_sub.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-              and qat_sub.quality_id = grd_sub.quality_id
-              and grd_sub.is_deleted = 'N')
-         else
-          cp.product_specs
-       end) productspec,
+       gmr.product_id,
+       pdm.product_desc product_name,
        nvl(nvl(gmr.current_qty, 0) - nvl(moved_out_qty, 0) -
            nvl(gmr.write_off_qty, 0),
            0) current_qty,
@@ -62,8 +53,8 @@ select gmr.corporate_id,
        vd.vessel_voyage_name,
        vd.booking_ref_no,
        gmr.internal_contract_ref_no,
-       bl_details.bl_no bl_no,
-       bl_details.bl_date bl_date,
+       sd.bl_no,
+       sd.bl_date,
        gmr.created_date,
        (select aku_sub.login_name
           from ak_corporate_user aku_sub
@@ -90,21 +81,31 @@ select gmr.corporate_id,
        sld_storage_location_detail sld,
        vd_voyage_detail vd,
        (select gcim.internal_gmr_ref_no internal_gmr_ref_no,
-               f_string_aggregate(pci.contract_ref_no) contract_ref_no,
-               f_string_aggregate(pci.cp_id) contract_party_profile_id,
-               f_string_aggregate(pci.cp_name) as cp_name,
-               f_string_aggregate(pci.contract_item_ref_no) contract_item_ref_no,
-               f_string_aggregate(pci.product_specs) product_specs,
-               f_string_aggregate(pci.price_allocation_method) as price_allocation_method
-          from v_pci_new                      pci,
+               f_string_aggregate(pcm.contract_ref_no) contract_ref_no,
+               f_string_aggregate(pcm.cp_id) contract_party_profile_id,
+               f_string_aggregate(phd.companyname) as cp_name,
+               f_string_aggregate(pcm.contract_ref_no || ' ' || 'Item No.' || ' ' ||
+                                  pci.del_distribution_item_no) contract_item_ref_no,
+               f_string_aggregate(pcdi.price_allocation_method) as price_allocation_method
+          from pci_physical_contract_item     pci,
+               pcm_physical_contract_main     pcm,
+               pcdb_pc_delivery_basis         pcdb,
+               pcdi_pc_delivery_item          pcdi,
+               phd_profileheaderdetails       phd,
                gcim_gmr_contract_item_mapping gcim
-         where pci.internal_contract_item_ref_no =
+         where pcdb.pcdb_id = pci.pcdb_id
+           and pci.pcdi_id = pcdi.pcdi_id
+           and phd.profileid = pcm.cp_id
+           and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
+           and pci.is_active = 'Y'
+           and pcm.contract_status = 'In Position'
+           and (pci.is_called_off = 'Y' or
+               pcdi.is_phy_optionality_present = 'N')
+           and pci.internal_contract_item_ref_no =
                gcim.internal_contract_item_ref_no
          group by gcim.internal_gmr_ref_no) cp,
-       (select sd.internal_gmr_ref_no,
-               sd.bl_no bl_no,
-               sd.bl_date bl_date
-          from sd_shipment_detail sd) bl_details
+       sd_shipment_detail sd,
+       pdm_productmaster pdm
  where gmr.internal_gmr_ref_no = gam.internal_gmr_ref_no(+)
    and gam.internal_action_ref_no(+) = gmr.gmr_first_int_action_ref_no
    and axs.internal_action_ref_no(+) = gam.internal_action_ref_no
@@ -116,7 +117,7 @@ select gmr.corporate_id,
    and gmr.warehouse_profile_id = phd_warehouse.profileid(+)
    and gmr.shed_id = sld.storage_loc_id(+)
    and gmr.internal_gmr_ref_no = cp.internal_gmr_ref_no(+)
-   and gmr.internal_gmr_ref_no = bl_details.internal_gmr_ref_no(+)
+   and gmr.internal_gmr_ref_no = sd.internal_gmr_ref_no(+)
    and nvl(gmr.is_settlement_gmr, 'N') = 'N'
    and nvl(gmr.tolling_gmr_type, 'None Tolling') not in
        ('Input Process', 'Output Process', 'Mark For Tolling',
@@ -125,3 +126,5 @@ select gmr.corporate_id,
    and gam.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
    and vd.status(+) = 'Active'
    and axs_last.internal_action_ref_no = gmr.internal_action_ref_no
+   and pdm.product_id = gmr.product_id
+
