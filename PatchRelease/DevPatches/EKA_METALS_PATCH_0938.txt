@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0938
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  01-Aug-2012
+
+Bug / Enhancement*              :  Enahancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 99922
+Author: babulal.meena
+Date: 1:16:11 PM, Wednesday, August 01, 2012
+Message:
+Db script to fix "List of GMR" Performance issues
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_8.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR_NEW.sql
