@@ -43,13 +43,13 @@ Bug Fixes
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport.rpt
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport.rpt
 
-Revision: 99989
+Revision: 99993
 Author: elaiyaraja.nallathambi
-Date: 7:46:28 PM, Wednesday, August 01, 2012
+Date: 8:03:18 PM, Wednesday, August 01, 2012
 Message:
 
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_357.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_357.sql
 
 Revision: 99990
 Author: elaiyaraja.nallathambi
