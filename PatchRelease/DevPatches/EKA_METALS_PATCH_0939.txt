@@ -34,6 +34,14 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* Transaction
 ==================================================================
+Revision: 99948
+Author: ashokkumar.l
+Date: 4:16:52 PM, Wednesday, August 01, 2012
+Message:
+Derivative Domain View is added.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_derivative.sql
+
 Revision: 99938
 Author: sivachalabathi.s
 Date: 3:41:09 PM, Wednesday, August 01, 2012
