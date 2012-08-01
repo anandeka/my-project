@@ -34,22 +34,14 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* Transaction
 ==================================================================
-Revision: 99948
-Author: ashokkumar.l
-Date: 4:16:52 PM, Wednesday, August 01, 2012
-Message:
-Derivative Domain View is added.
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_derivative.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_derivative.sql		(Revision: 99948)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_356_reports.sql			(Revision: 99938)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_83_DML_RPC_RFP_Scripts.sql	(Revision: 99938)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_306.sql			(Revision: 99983)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_EXECUTE_EOD.sql			(Revision: 99984)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_EXECUTE_EOM.sql			(Revision: 99984)
 
-Revision: 99938
-Author: sivachalabathi.s
-Date: 3:41:09 PM, Wednesday, August 01, 2012
-Message:
-broker margin
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_83_DML_RPC_RFP_Scripts.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_356_reports.sql
+
 
 Broker Marign Report
 =====================
