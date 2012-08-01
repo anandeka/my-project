@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0940
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  01-Aug-2012
+
+Bug / Enhancement*              :  Enahancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* EOD
+==================================================================
+Revision: 99963
+Author: suresh.gottipati
+Date: 5:18:21 PM, Wednesday, August 01, 2012
+Message:
+Monthly Closing Balance Report  Released
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/64_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
+
+
+
