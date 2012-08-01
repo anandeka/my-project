@@ -1,0 +1,74 @@
+Patch No*          		:  EKA_METALS_PATCH_0941
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  01-Aug-2012
+
+Bug / Enhancement*              :  Enahancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 99988
+Author: elaiyaraja.nallathambi
+Date: 7:39:26 PM, Wednesday, August 01, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport.rpt
+
+Revision: 99989
+Author: elaiyaraja.nallathambi
+Date: 7:46:28 PM, Wednesday, August 01, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_357.sql
+
+Revision: 99990
+Author: elaiyaraja.nallathambi
+Date: 7:47:42 PM, Wednesday, August 01, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_84_DML_RPC_RFP_Scripts.sql
+
+Revision: 99991
+Author: elaiyaraja.nallathambi
+Date: 7:50:55 PM, Wednesday, August 01, 2012
+Message:
+Monthly Closing Balance Report "New Release".
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingBalanceReport.rpt
+
+
+
+
+
+
