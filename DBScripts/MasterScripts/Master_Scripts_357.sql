@@ -14,14 +14,6 @@ Insert into REF_REPORTEXPORTFORMAT
    (REPORT_ID, EXPORT_FORMAT, REPORT_FILE_NAME)
  Values
    ('257', 'EXCEL', 'MonthlyClosingBalanceReport.rpt');
-Insert into AMC_APP_MENU_CONFIGURATION
-   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
-    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID, 
-    IS_DELETED)
- Values
-   ('RPT-D257', 'Monthly Closing Balance Report', 24, 5, '/EkaReport/CommonFilter.do?method=populateFilter&docType=EOM&ReportID=257&ReportName=MonthlyClosingBalanceReport.rpt&ExportFormat=HTML&isEodReport=Y', 
-    NULL, 'RPT-D23', NULL, 'Reports', NULL, 
-    'N');
 COMMIT;
 
 
