@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_EXECUTE_EOD" is
+create or replace package "PKG_EXECUTE_EOD" is
 
   procedure sp_execute_eod(pc_corporate_id       varchar2,
                            pc_action             varchar2,
@@ -30,10 +30,14 @@ CREATE OR REPLACE PACKAGE "PKG_EXECUTE_EOD" is
                                    pc_process      varchar2,
                                    pc_action       varchar2,
                                    pc_eod_status   varchar2);
+  procedure sp_mark_process_count(pc_corporate_id varchar2,
+                                  pc_process      varchar2,
+                                  pd_trade_date   date);
+
   procedure sp_refresh_mv;
-end pkg_execute_eod; 
+end pkg_execute_eod;
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
+create or replace package body "PKG_EXECUTE_EOD" is
 
   procedure sp_execute_eod(pc_corporate_id       in varchar2,
                            pc_action             varchar2,
@@ -67,7 +71,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
                           'Before calling sp_mark_dumps_status',
                           2);
     sp_mark_dumps_status(pc_corporate_id, pd_trade_date);
-
+  
     begin
       select count(*)
         into vn_error_count
@@ -146,6 +150,12 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
                            pc_action,
                            pc_eod_status);
     sp_refresh_mv;
+    if pc_eod_status in ('EOD Processed Successfully',
+        'EOD Process Success,Awaiting Cost Entry',
+        'EOM Processed Successfully',
+        'EOM Process Success,Awaiting Cost Entry') then
+      sp_mark_process_count(pc_corporate_id, 'EOD', pd_trade_date);
+    end if;
   exception
     when others then
       sp_mark_process_status(pc_corporate_id,
@@ -161,7 +171,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
       pkg_execute_process.sp_record_misc_cost@eka_eoddb(pc_corporate_id,
                                                         pd_trade_date,
                                                         'EOD');
-
+    
     end;
   end;
 
@@ -236,13 +246,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
     Author                                    : Siva
     Created Date                              : 22th Mar 2010
     Purpose                                   : To updated DB dump status back to transaction schema
-
+    
     Parameters
     pc_corporate_id                           : Corporate ID
     pd_trade_date                             : EOD Date ID
     pc_user_id                                : User ID
     pc_process                                : Process
-
+    
     Modification History
     Modified Date                             :
     Modified By                               :
@@ -285,13 +295,13 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
     Author                                    : Siva
     Created Date                              : 22th Mar 2010
     Purpose                                   : To updated DB dump status back to transaction schema
-
+    
     Parameters
     pc_corporate_id                           : Corporate ID
     pd_trade_date                             : EOD Date ID
     pc_user_id                                : User ID
     pc_process                                : Process
-
+    
     Modification History
     Modified Date                             :
     Modified By                               :
@@ -306,8 +316,25 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
                           pd_trade_date,
                           2);
     --     pc_corporate_id, pd_trade_date  pc_process, pc_action ,pc_eod_status
+    if pc_eod_status in ('EOD Processed Successfully',
+        'EOD Process Success,Awaiting Cost Entry',
+        'EOM Processed Successfully',
+        'EOM Process Success,Awaiting Cost Entry') then
+      insert into eod_eom_process_count
+        (corporate_id,
+         trade_date,
+         process,
+         created_date,
+         processing_status)
+      values
+        (pc_corporate_id,
+         pd_trade_date,
+         pc_process,
+         sysdate,
+         pc_eod_status);
+    end if;
     if pc_action in ('PRECHECK', 'PRECHECK_RUN', 'RUN') then
-
+    
       if pc_process = 'EOD' then
         update eod_end_of_day_details
            set processing_status = pc_eod_status
@@ -340,7 +367,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
         commit;
       end if;
     end if;
-
+  
   exception
     when others then
       update eod_end_of_day_details
@@ -398,16 +425,46 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
     when others then
       rollback;
   end;
+  procedure sp_mark_process_count(pc_corporate_id varchar2,
+                                  pc_process      varchar2,
+                                  pd_trade_date   date) is
+    pragma autonomous_transaction;
+  begin
+    if pc_corporate_id is not null then
+      for cc in (select epc.corporate_id,
+                        epc.trade_date,
+                        epc.process,
+                        count(*) process_count
+                   from eod_eom_process_count epc
+                  where epc.corporate_id = pc_corporate_id
+                    and epc.process = pc_process
+                    and epc.trade_date = pd_trade_date
+                  group by epc.corporate_id,
+                           epc.trade_date,
+                           epc.process)
+      loop
+        update tdc_trade_date_closure@eka_eoddb tdc
+           set tdc.process_run_count = cc.process_count
+         where tdc.corporate_id = pc_corporate_id
+           and tdc.trade_date = pd_trade_date
+           and tdc.process = pc_process;
+      end loop;
+    end if;
+    commit;
+  exception
+    when others then
+      rollback;
+  end;
   procedure sp_refresh_mv is
-
+  
     /******************************************************************************************************************************************
     Procedure Name                            : sp_refresh_mv
     Author                                    : Siva
     Created Date                              : 29th Jul 2011
     Purpose                                   : To refresh mv available in app db schema
-
+    
     Parameters
-
+    
     Modification History
     Modified Date                             :
     Modified By                               :
@@ -421,10 +478,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('mv_fact_bm_phy_open_pnl', 'c');
     dbms_mview.refresh('mv_fact_bm_phy_stock_pnl', 'c');
     dbms_mview.refresh('mv_fact_derivative_realized', 'c');
-    dbms_mview.refresh('mv_fact_derivative_unrealized', 'c');  
-    dbms_mview.refresh('MV_FACT_PHYSICAL_UNREALIZED', 'c'); 
-    dbms_mview.refresh('MV_FACT_UNREALIZED', 'c'); 
--------------------------------------------------------
+    dbms_mview.refresh('mv_fact_derivative_unrealized', 'c');
+    dbms_mview.refresh('MV_FACT_PHYSICAL_UNREALIZED', 'c');
+    dbms_mview.refresh('MV_FACT_UNREALIZED', 'c');
+    -------------------------------------------------------
     dbms_mview.refresh('MV_LATEST_EOD_DATES', 'c');
     dbms_mview.refresh('MV_TRPNL_CCY_BY_INSTRUMENT', 'c');
     dbms_mview.refresh('MV_TRPNL_DRT_BY_INSTRUMENT', 'c');
@@ -435,15 +492,16 @@ CREATE OR REPLACE PACKAGE BODY "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('MV_UNPNL_NET_BY_PROFITCENTER', 'c');
     dbms_mview.refresh('MV_UNPNL_PHY_BY_PRODUCT', 'c');
     dbms_mview.refresh('MV_UNPNL_PHY_CHANGE_BY_TRADE', 'c');
-    dbms_mview.refresh('MV_BI_UPAD', 'c');    
-------------------------------------------------------------
+    dbms_mview.refresh('MV_BI_UPAD', 'c');
+    dbms_mview.refresh('MV_FACT_BROKER_MARGIN_UTIL', 'c');
+    ------------------------------------------------------------
   
     commit;
   exception
     when others then
       null;
       commit;
-
+    
   end;
-end; 
+end;
 /
