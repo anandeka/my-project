@@ -54,7 +54,10 @@ begin
                           nvl(:old.expired_lots, 0);
     
       if nvl(:new.status, 'XXX') = 'Delete' then
-        v_total_qty := 0 - nvl(:old.total_quantity, 0);
+        v_total_qty  := 0 - nvl(:old.total_quantity, 0);
+        v_open_qty   := (-1) * nvl(:old.open_quantity, 0);
+        v_total_lots := (-1) * nvl(:old.total_lots, 0);
+        v_open_lots  := (-1) * nvl(:old.open_lots, 0);
       end if;
     
       if v_total_qty <> 0 or v_open_qty <> 0 or v_closed_qty <> 0 or
