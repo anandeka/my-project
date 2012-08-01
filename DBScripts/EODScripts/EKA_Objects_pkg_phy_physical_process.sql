@@ -1044,6 +1044,24 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                                             pc_process_id,
                                             pc_process);  
    end if;
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_closing_balance_report');
+    vc_err_msg := 'Before sp_closing_balance_report';
+    if pc_process = 'EOM' then
+    pkg_phy_eod_reports.sp_closing_balance_report( pc_corporate_id,
+                                                   pd_trade_date,
+                                                   pc_process_id,
+                                                   pc_process,
+                                                   pc_dbd_id);
+    end if;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -3846,6 +3864,8 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from ARE_ARRIVAL_REPORT_ELEMENT where process_id = pc_process_id;
     delete from FC_FEED_CONSUMPTION where process_id = pc_process_id;
     delete from FCE_FEED_CONSUMPTION_ELEMENT where process_id = pc_process_id;
+    delete from cbr_closing_balance_report where process_id = pc_process_id;
+    delete from cbre_closing_bal_report_ele where process_id = pc_process_id;
     delete from ord_overall_realized_pnl_daily where process_id = pc_process_id;
     delete from tpd_trade_pnl_daily where process_id = pc_process_id;
     --
