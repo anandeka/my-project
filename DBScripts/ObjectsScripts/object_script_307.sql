@@ -1,0 +1,1 @@
+alter table HQPM_HEDGE_QTY_PROCESS_MAPPING drop constraint FK_HQPM_PRICE_PROCESS_ID;
