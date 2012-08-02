@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_0944
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  02-Aug-2012
+
+Bug / Enhancement*              :  Enhancement 
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 100042
+Author: elaiyaraja.nallathambi
+Date: 2:03:16 PM, Thursday, August 02, 2012
+Message:
+Enhancement as per the "New Layout".
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighingandSampling.rpt
+
+Revision: 100043
+Author: elaiyaraja.nallathambi
+Date: 2:04:02 PM, Thursday, August 02, 2012
+Message:
+Enhancement as per the "New Layout".
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/WeighingandSampling.rpt
+
+
+
+
+
+
+
