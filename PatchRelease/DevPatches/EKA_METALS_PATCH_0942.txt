@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0942
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  02-Aug-2012
+
+Bug / Enhancement*              :  N/A
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing Process
+
+Sub-Module  			 :  Exposure Process
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 100021
+Author: ramachandran.r
+Date: 11:40:54 AM, Thursday, August 02, 2012
+Message:
+constraint removed in HQPM_HEDGE_QTY_PROCESS_MAPPING 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_307.sql
+
+=======================================================================
+Revision: 100022
+Author: ramachandran.r
+Date: 11:53:27 AM, Thursday, August 02, 2012
+Message:
+For Pricing Process
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_9.sql
+
+
+
