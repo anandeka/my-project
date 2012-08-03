@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_0950
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj
+ 
+Created on*        		:  03-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  Report
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 100185
+Author: saurabh.raj
+Date: 6:48:03 PM, Friday, August 03, 2012
+Message:
+Monthly Realized PnL Report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_361_reports.sql
+
+Revision: 100186
+Author: saurabh.raj
+Date: 6:50:41 PM, Friday, August 03, 2012
+Message:
+Monthly Realized PnL Report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_86_DML_RPC_RFP_Scripts.sql
+
+
