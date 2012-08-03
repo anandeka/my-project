@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_0948
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  03-Aug-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  65526
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 100154
+Author: pradeep.kumar
+Date: 3:22:54 PM, Friday, August 03, 2012
+Message:
+-- SLV/SLS Scripts for Yield Captured Dropdown Filter in List Of Tolling Input/OutPut GMR
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_360.sql
+
