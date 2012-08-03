@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_0949
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  03-Aug-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  67458,67460,67463,67471,67476,67497,67520,67536,67538,67550
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 100182
+Author: elaiyaraja.nallathambi
+Date: 6:44:18 PM, Friday, August 03, 2012
+Message:
+Bug Fixes.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql
+
+Revision: 100183
+Author: elaiyaraja.nallathambi
+Date: 6:45:02 PM, Friday, August 03, 2012
+Message:
+Bug Fixes: 67458,67460,67463,67471,67476,67497,67520,67536,67538,67550
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt
+
+
