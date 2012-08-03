@@ -1,5 +1,5 @@
-delete from rpc_rf_parameter_config rpc where rpc.report_id = 256;
-delete from rfc_report_filter_config rfc where rfc.report_id = 256;
+delete from rpc_rf_parameter_config rpc where rpc.report_id = 258;
+delete from rfc_report_filter_config rfc where rfc.report_id = 258;
 commit;
 SET DEFINE OFF;
 begin
@@ -9,17 +9,17 @@ Insert into RFC_REPORT_FILTER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, LABEL_COLUMN_NUMBER, LABEL_ROW_NUMBER, 
     LABEL, FIELD_ID, COLSPAN, IS_MANDATORY)
  Values
-   (cc.corporate_id, '256', 'RFC256PHY01', 1, 1, 
-    'Trade Date', 'GFF021', 1, 'Y');
+   (cc.corporate_id, '258', 'RFC258PHY01', 1, 1, 
+    'EOD Date', 'GFF021', 1, 'Y');
 
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   (cc.corporate_id, '256', 'RFC256PHY01', 'RFP0104', 'SYSTEM');
+   (cc.corporate_id, '258', 'RFC258PHY01', 'RFP0104', 'SYSTEM');
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   (cc.corporate_id, '256', 'RFC256PHY01', 'RFP0026', 'AsOfDate');
+   (cc.corporate_id, '258', 'RFC258PHY01', 'RFP0026', 'AsOfDate');
 
 end loop;
 commit;
