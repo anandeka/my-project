@@ -1,31 +1,27 @@
 create or replace view v_list_of_tolling_gmr as
 select gmr.corporate_id as corporate_id,
        gmr.internal_gmr_ref_no as internal_gmr_ref_no,
-       gmr.qty || ' ' || pkg_general.f_get_quantity_unit(gmr.qty_unit_id) as gmr_qty_string,
+       gmr.qty || ' ' || qum.qty_unit as gmr_qty_string,
        gmr.gmr_ref_no as gmr_ref_no,
        gmr.is_pass_through as is_pass_through,
        gmr.tolling_gmr_type as process_type,
        gam.action_no as action_no,
        axs.internal_action_ref_no as internal_action_ref_no,
-       (select (case
-                 when axm.action_id = 'RECORD_OUT_PUT_TOLLING' then
-                  'Receive Material'
-                 else
-                  axm.action_name
-               end) action_name
-          from axm_action_master axm
-         where axm.action_id = axs.action_id) as activity,
+       (case
+         when axm.action_id = 'RECORD_OUT_PUT_TOLLING' then
+          'Receive Material'
+         else
+          axm.action_name
+       end) activity,
        axs.eff_date as activity_date,
        axs.action_ref_no as activity_ref_no,
        gmr.gmr_latest_action_action_id as latest_action_id,
-       (select (case
-                 when axm.action_id = 'RECORD_OUT_PUT_TOLLING' then
-                  'Receive Material'
-                 else
-                  axm.action_name
-               end) action_name
-          from axm_action_master axm
-         where axm.action_id = gmr.gmr_latest_action_action_id) as latest_action_name,
+       (case
+         when axm_latest.action_id = 'RECORD_OUT_PUT_TOLLING' then
+          'Receive Material'
+         else
+          axm_latest.action_name
+       end) latest_action_name,
        gmr.warehouse_profile_id as warehouse_profile_id,
        shm.companyname as warehouse,
        shm.shed_name as shed_name,
@@ -95,7 +91,7 @@ select gmr.corporate_id as corporate_id,
        end) as quality_name,
        gmr.qty as gmr_qty,
        gmr.qty_unit_id as qty_unit_id,
-       pkg_general.f_get_quantity_unit(gmr.qty_unit_id) as qty_unit,
+       qum.qty_unit as qty_unit,
        wrd.smelter_cp_id as cp_profile_id,
        phd_cp.companyname as cp_name,
        cp.price_allocation_method as price_allocation_method,
@@ -104,12 +100,14 @@ select gmr.corporate_id as corporate_id,
        cp.internal_contract_ref_no as internal_contract_ref_no,
        cp.contract_ref_no as contract_ref_no,
        (case
-         when (select distinct grd.internal_gmr_ref_no
-                 from grd_goods_record_detail grd
-                where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                  and grd.tolling_stock_type = 'Free Material Stock'
-                  and grd.status = 'Active') is not null then
+         when (select distinct ypd.internal_gmr_ref_no
+                 from ypd_yield_pct_detail ypd
+                where ypd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                  and ypd.is_active = 'Y'
+                  and gmr.is_pass_through = 'Y') is not null then
           'Y'
+         when gmr.is_pass_through = 'N' then
+          'N/A'
          else
           'N'
        end) is_free_material,
@@ -118,46 +116,45 @@ select gmr.corporate_id as corporate_id,
        wrd.feeding_point_id,
        sfp.feeding_point_name,
        axs.created_date,
-       (select aku_sub.login_name
-          from ak_corporate_user aku_sub
-         where aku_sub.user_id = axs.created_by) created_by,
+       aku_create.login_name created_by,
        axs_last.updated_date,
-       (select aku_sub.login_name
-          from ak_corporate_user aku_sub
-         where aku_sub.user_id = axs_last.created_by) updated_by
+       aku_last.login_name updated_by
   from gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
+       ak_corporate_user aku_create,
        axs_action_summary axs,
        axm_action_master axm,
+       axm_action_master axm_latest,
+       ak_corporate_user aku_last,
        axs_action_summary axs_last,
        v_shm_shed_master shm,
-       (select f_string_aggregate(pci.internal_contract_ref_no) internal_contract_ref_no,
-               f_string_aggregate(pci.contract_ref_no) contract_ref_no,
-               f_string_aggregate(pci.internal_contract_item_ref_no) internal_contract_item_ref_no,
-               f_string_aggregate(pci.contract_item_ref_no) contract_item_ref_no,
-               f_string_aggregate(pci.product_id) product_id,
-               f_string_aggregate(pci.product_name) product_name,
-               f_string_aggregate(pci.quality_id) quality_id,
-               f_string_aggregate(pci.quality_name) quality_name,
-               f_string_aggregate(gcim.internal_gmr_ref_no) internal_gmr_ref_no,
-               pci.price_allocation_method as price_allocation_method,
-               f_string_aggregate(pci.pcdi_id) pcdi_id,
-               f_string_aggregate(pci.delivery_item_ref_no) deliveryitemrefno
+       (select pci.internal_contract_ref_no      internal_contract_ref_no,
+               pci.contract_ref_no               contract_ref_no,
+               pci.internal_contract_item_ref_no internal_contract_item_ref_no,
+               pci.contract_item_ref_no          contract_item_ref_no,
+               pci.product_id                    product_id,
+               pci.product_name                  product_name,
+               pci.quality_id                    quality_id,
+               pci.quality_name                  quality_name,
+               gcim.internal_gmr_ref_no          internal_gmr_ref_no,
+               pci.price_allocation_method       as price_allocation_method,
+               pci.pcdi_id                       pcdi_id,
+               pci.delivery_item_ref_no          deliveryitemrefno
           from v_pci                          pci,
                gcim_gmr_contract_item_mapping gcim
          where pci.internal_contract_item_ref_no =
-               gcim.internal_contract_item_ref_no
-         group by gcim.internal_gmr_ref_no,
-                  pci.price_allocation_method) cp,
+               gcim.internal_contract_item_ref_no) cp,
        wrd_warehouse_receipt_detail wrd,
        phd_profileheaderdetails phd_cp,
-       sfp_smelter_feeding_point sfp
+       sfp_smelter_feeding_point sfp,
+       qum_quantity_unit_master qum
  where gmr.internal_gmr_ref_no = wrd.internal_gmr_ref_no
    and gmr.internal_gmr_ref_no = gam.internal_gmr_ref_no(+)
    and gam.internal_action_ref_no(+) = gmr.gmr_first_int_action_ref_no
    and axs.internal_action_ref_no(+) = gam.internal_action_ref_no
    and axs.status(+) = 'Active'
    and axm.action_id(+) = axs.action_id
+   and aku_create.user_id = axs.created_by
    and gmr.is_deleted = 'N'
    and wrd.warehouse_profile_id = shm.profile_id(+)
    and wrd.shed_id = shm.shed_id(+)
@@ -167,3 +164,6 @@ select gmr.corporate_id as corporate_id,
    and nvl(gmr.tolling_gmr_type, 'None Tolling') in
        ('Mark For Tolling', 'Received Materials', 'Return Material')
    and axs_last.internal_action_ref_no = gmr.internal_action_ref_no
+   and aku_last.user_id = axs_last.created_by
+   and axm_latest.action_id = gmr.gmr_latest_action_action_id
+   and qum.qty_unit_id = gmr.qty_unit_id
