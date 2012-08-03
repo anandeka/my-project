@@ -218,11 +218,11 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        'Cancel' then
       goto cancel_process;
     end if;
-    sp_pre_check_m2m_tolling_extn(pc_corporate_id,
-                                  pd_trade_date,
-                                  gvc_dbd_id,
-                                  pc_user_id,
-                                  pc_process);
+    /*sp_pre_check_m2m_tolling_extn(pc_corporate_id,
+    pd_trade_date,
+    gvc_dbd_id,
+    pc_user_id,
+    pc_process);*/
   
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
@@ -611,7 +611,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           and pcm.corporate_id = pc_corporate_id
           and mv_qat.corporate_id = pcm.corporate_id
           and pcm.issue_date <= pd_trade_date
-          and pcm.contract_status in ('In Position')
+          and pcm.contract_status in ('In Position', 'Pending Approval')
           and pcm.corporate_id = mvp.corporate_id
           and mv_qat.product_id = mvp.product_id(+)
           and mvp.mvp_id = mvpl.mvp_id(+)
@@ -2484,7 +2484,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           and pcm.corporate_id = pc_corporate_id
           and mv_qat.corporate_id = pcm.corporate_id
           and pcm.issue_date <= pd_trade_date
-          and pcm.contract_status in ('In Position')
+          and pcm.contract_status in ('In Position', 'Pending Approval')
           and pcm.corporate_id = mvp.corporate_id
           and mv_qat.conc_product_id = mvp.product_id(+)
           and mv_qat.attribute_id = aml.attribute_id
@@ -4327,7 +4327,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           and pcm.corporate_id = pc_corporate_id
           and mv_qat.corporate_id = pcm.corporate_id
           and pcm.issue_date <= pd_trade_date
-          and pcm.contract_status in ('In Position')
+          and pcm.contract_status in ('In Position', 'Pending Approval')
           and pcm.is_tolling_contract = 'Y'
           and pcm.is_tolling_extn = 'Y'
           and pcm.corporate_id = mvp.corporate_id
