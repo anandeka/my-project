@@ -83,6 +83,7 @@ select akc.corporate_id,
    and ivd.is_separate_invoice = 'Y'
    and pcm.purchase_sales = 'P'
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+   and iid.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.corporate_id = akc.corporate_id
    and pcm.trader_id = akcu.user_id(+)
@@ -185,7 +186,7 @@ select akc.corporate_id,
  where ivd.internal_invoice_ref_no = iid.internal_invoice_ref_no
    and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and iid.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcm.corporate_id = akc.corporate_id
    and pcm.trader_id = akcu.user_id(+)
@@ -283,7 +284,7 @@ select akc.corporate_id,
  where ivd.internal_invoice_ref_no = iid.internal_invoice_ref_no
    and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and iid.internal_contract_ref_no = pcm.internal_contract_ref_no
    and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and ivd.vat_remit_cur_id <> ivd.invoice_cur_id --for invoice exposure of sales
    and pcm.corporate_id = akc.corporate_id
@@ -447,6 +448,7 @@ select akc.corporate_id,
    and poch.poch_id = pocd.poch_id
    and pocd.pocd_id = pofh.pocd_id(+)
    and pofh.pofh_id = pfd.pofh_id
+   and pfd.is_active = 'Y'
    and pocd.pcbpd_id = pcbpd.pcbpd_id
    and pcbpd.pcbpd_id = ppfh.pcbpd_id(+)
    and ppfh.ppfh_id = pfqpp.ppfh_id(+)
@@ -607,6 +609,7 @@ select akc.corporate_id,
    and poch.poch_id = pocd.poch_id
    and pocd.pocd_id = pofh.pocd_id(+)
    and pofh.pofh_id = pfd.pofh_id
+   and pfd.is_active = 'Y'
    and pocd.pcbpd_id = pcbpd.pcbpd_id
    and pcbpd.pffxd_id = pffxd.pffxd_id -- Newly Added
    and pffxd.is_active = 'Y' -- Newly Added
