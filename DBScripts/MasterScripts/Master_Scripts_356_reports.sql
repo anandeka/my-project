@@ -3,12 +3,12 @@ Insert into RML_REPORT_MASTER_LIST
    (REPORT_ID, SECTION_ID, REPORT_FILE_NAME, REPORT_DISPLAY_NAME, FEATURE_ID, 
     REPORT_DISPLAY_NAME_DE, REPORT_DISPLAY_NAME_ES, ACTION_METHOD, REPORT_TYPE, IS_ACTIVE)
  Values
-   ('256', '11', 'BrokerMarginReport.rpt', 'Broker Margin  Report', NULL, 
+   ('258', '11', 'BrokerMarginReport.rpt', 'Broker Margin  Report', NULL, 
     NULL, NULL, 'populateFilter', 'ONLINE', 'Y');
 COMMIT;
 
 insert into ref_reportexportformat (REPORT_ID, EXPORT_FORMAT, REPORT_FILE_NAME)
-values ('256', 'EXCEL', 'BrokerMarginReport.rpt');
+values ('258', 'EXCEL', 'BrokerMarginReport.rpt');
 
 
 Insert into AMC_APP_MENU_CONFIGURATION
@@ -16,8 +16,8 @@ Insert into AMC_APP_MENU_CONFIGURATION
     ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID, 
     IS_DELETED)
  Values
-   ('RPT-D256', 'Broker Margin  Report', 33, 5, '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=256&ReportName=BrokerMarginReport.rpt&ExportFormat=HTML', 
-    NULL, 'RPT-D21', NULL, 'Reports', NULL, 
+   ('RPT-D258', 'Broker Margin  Report', 33, 5, '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=258&ReportName=BrokerMarginReport.rpt&ExportFormat=HTML', 
+    NULL, 'RPT-D22', NULL, 'Reports', NULL, 
     'N');
 COMMIT;
 drop materialized view MV_FACT_BROKER_MARGIN_UTIL;
