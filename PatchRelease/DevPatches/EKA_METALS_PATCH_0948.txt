@@ -42,3 +42,13 @@ Message:
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_360.sql
 
+Revision: 100179
+Author: pradeep.kumar
+Date: 6:40:21 PM, Friday, August 03, 2012
+Message:
+-- View List_Of_Tolling_Gmr Changed..
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_TOLLING_GMR.sql
+
+
+
