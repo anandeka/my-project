@@ -1,14 +1,14 @@
-Patch No*          		:  EKA_METALS_PATCH_0915
+Patch No*          		:  EKA_METALS_PATCH_0946
 
 Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
  
-Created on*        		:  27-Jul-2012
+Created on*        		:  03-Aug-2012
 
 Bug / Enhancement*              :  BUG
 
-Bug ID*            		:  67228 67230 67402 67370 67402 67403 67405 67211
+Bug ID*            		:  67266,67268,67283,67284,67272,67275
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -35,28 +35,14 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
-Revision: 99519
-Date: 10:45:22 AM, Friday, July 27, 2012
+Revision: 100130
+Date: 12:31:04 PM, Friday, August 03, 2012
 Message:
-Precheck Submodule name enhanced show the exact process
-Washout fixed update / insert only washout records
-Physical Process : Added TPD and ORD Rollback
-BM Realization : Price to Base Nullified in Not Final Invoiced Section
-Metals General : Contract QP TO get Currency from QP and Not From Base Price Unit ID
-Executive Process Misc Cost Missing Corporate Join Fixed
-BM Unrealized : Issue in Exchange Rates: Variables Reinitialization done
-
+Concentrate Drt Qty Taken Based On Concentrate and Not As Element as it was creating penalty as large amount.
+Penalty changed to use EOD month and year to get data.
+Location differential rounding stopped as we get from MD table, Round only total amount after multiply by qty.
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_PKG_EXECUTE_PROCESS.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_washout_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
 
-Revision: 99522
-Date: 11:13:28 AM, Friday, July 27, 2012
-Message:
-Payment Due Date Display With PHY-005 Missing Added
-----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_unrealized_pnl.sql
+
+
