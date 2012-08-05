@@ -154,7 +154,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
         'EOD Process Success,Awaiting Cost Entry',
         'EOM Processed Successfully',
         'EOM Process Success,Awaiting Cost Entry') then
-      sp_mark_process_count(pc_corporate_id, 'EOD', pd_trade_date);
+    sp_mark_process_count(pc_corporate_id,'EOD',pd_trade_date);
     end if;
   exception
     when others then
@@ -495,7 +495,13 @@ create or replace package body "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('MV_BI_UPAD', 'c');
     dbms_mview.refresh('MV_FACT_BROKER_MARGIN_UTIL', 'c');
     ------------------------------------------------------------
-  
+  dbms_mview.refresh('MV_BI_DERIVATIVE_JOURNAL_EOM', 'c');
+  dbms_mview.refresh('MV_BI_DERIVATIVE_JOURNAL_EOD', 'c');
+  dbms_mview.refresh('MV_BI_DER_PHY_PFC_JOURNAL_EOM', 'c');
+  dbms_mview.refresh('MV_BI_DER_PHY_PFC_JOURNAL_EOD', 'c');
+  dbms_mview.refresh('MV_BI_DER_BOOK_JOURNAL_EOM', 'c');
+  dbms_mview.refresh('MV_BI_DER_BOOK_JOURNAL_EOD', 'c');
+
     commit;
   exception
     when others then
