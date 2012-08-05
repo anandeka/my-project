@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0952
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  03-Aug-2012
+
+Bug / Enhancement*              :  Enhancement*
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : EOD
+
+Sub-Module  			 : EOD
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 100250
+Author: sivachalabathi.s
+Date: 1:50:31 PM, Sunday, August 05, 2012
+Message:
+Custom Reports journal added
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/65_DDL_EODDB_TABLE_ALTER_SCRIPT_JOURNAL.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/66_DDL_EODDB_TABLE_ALTER_SCRIPT_PKG_CDC.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
