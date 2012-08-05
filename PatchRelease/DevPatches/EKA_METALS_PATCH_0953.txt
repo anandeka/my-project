@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_0953
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  03-Aug-2012
+
+Bug / Enhancement*              :  Enhancement*
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : BI
+
+Sub-Module  			 : BI Domain
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 100251
+Author: sivachalabathi.s
+Date: 2:32:37 PM, Sunday, August 05, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_DERIVATIVE_JOURNAL_EOD.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_DERIVATIVE_JOURNAL_EOM.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_DER_BOOK_JOURNAL_EOD.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_DER_BOOK_JOURNAL_EOM.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_DER_PHY_PFC_JOURNAL_EOD.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_DER_PHY_PFC_JOURNAL_EOM.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_EXECUTE_EOD.sql
+
