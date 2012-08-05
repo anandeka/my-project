@@ -87,6 +87,7 @@ create or replace package body pkg_phy_physical_process is
     vc_prev_eod_date   date;
     vc_prev_eom_id     varchar2(15);
     vc_prev_eom_date   date;
+    vc_prev_dbd_id     varchar2(15);
   begin
     gvc_process := pc_process;
   
@@ -169,6 +170,23 @@ create or replace package body pkg_phy_physical_process is
     end if;
     -- get the dump id
     gvc_dbd_id := pc_dbd_id;
+  
+    ---to get the previous dbd id -------
+    begin
+      select dbd.dbd_id
+        into vc_prev_dbd_id
+        from dbd_database_dump dbd
+       where dbd.corporate_id = pc_corporate_id
+         and dbd.process = pc_process
+         and dbd.trade_date = gvc_previous_process_date
+         and rownum <= 1;
+    exception
+      when no_data_found then
+        vc_prev_dbd_id := '000';
+      when others then
+        vc_prev_dbd_id := '000';
+    end;
+    --------prev dbd id call ends here
     --
     -- get the base currency decinals
     --
@@ -1062,6 +1080,27 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                                                    pc_process,
                                                    pc_dbd_id);
     end if;
+  vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'pkg_phy_custom_reports.sp_call_custom_reports started');
+    vc_err_msg := 'Before pkg_phy_custom_reports.sp_call_custom_reports';
+    pkg_phy_custom_reports.sp_call_custom_reports(pc_corporate_id,
+                                                  pd_trade_date,
+                                                  pc_process_id,
+                                                  pc_user_id,
+                                                  pc_process,
+                                                  pc_dbd_id,
+                                                  gvc_previous_process_id,
+                                                  vc_prev_dbd_id);
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'pkg_phy_custom_reports.sp_call_custom_reports finished');
+
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -3869,6 +3908,13 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from ord_overall_realized_pnl_daily where process_id = pc_process_id;
     delete from tpd_trade_pnl_daily where process_id = pc_process_id;
     --
+  
+    delete from eod_eom_fixation_journal where process_id = pc_process_id;
+    delete from pofh_history where process_id = pc_process_id;
+    delete from eod_eom_derivative_journal
+     where process_id = pc_process_id;
+    delete from eod_eom_booking_journal where process_id = pc_process_id;
+
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
     --
