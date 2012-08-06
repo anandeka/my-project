@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0954
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh
+ 
+Created on*        		:  06-Aug-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : BI
+
+Sub-Module  			 : BI Domain
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 100230
+Author: saurabh.raj
+Date: 9:13:02 PM, Friday, August 03, 2012
+Message:
+Bug Fixed
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_LOGISTICS.sql
