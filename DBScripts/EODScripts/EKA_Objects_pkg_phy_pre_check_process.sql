@@ -218,11 +218,11 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        'Cancel' then
       goto cancel_process;
     end if;
-    /*sp_pre_check_m2m_tolling_extn(pc_corporate_id,
+    sp_pre_check_m2m_tolling_extn(pc_corporate_id,
     pd_trade_date,
     gvc_dbd_id,
     pc_user_id,
-    pc_process);*/
+    pc_process);
   
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
@@ -760,7 +760,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              grd.product_id,
                              grd.quality_id quality_id,
                              pci.m2m_inco_term,
-                             pd_trade_date payment_due_date
+                             (case when nvl(grd.inventory_status, 'NA') = 'In' then pd_trade_date else pcdi.payment_due_date end)payment_due_date  
                         from grd_goods_record_detail     grd,
                              gmr_goods_movement_record   gmr,
                              pci_physical_contract_item  pci,
@@ -841,7 +841,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              dgrd.product_id,
                              dgrd.quality_id,
                              pci.m2m_inco_term,
-                             pd_trade_date payment_due_date
+                             (case when nvl(dgrd.inventory_status, 'NA') = 'Out' then pd_trade_date else pcdi.payment_due_date end)payment_due_date
                         from gmr_goods_movement_record   gmr,
                              pci_physical_contract_item  pci,
                              pcm_physical_contract_main  pcm,
