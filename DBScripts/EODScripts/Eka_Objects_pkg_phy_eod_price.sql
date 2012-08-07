@@ -1935,6 +1935,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       --
       -- Get the Forward Exchange Rate from Price Unit ID to Base Price Unit ID
       --
+      if  vc_price_cur_id is not null and vc_base_main_cur_id is not null then
       if vc_price_cur_id <> vc_base_main_cur_id then
         pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
                                                 pd_trade_date,
@@ -1958,6 +1959,12 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       else
         vn_fw_exch_rate_price_to_base := 1.0;
       end if;
+      else
+      vn_fw_exch_rate_price_to_base := 1.0;
+      vc_exch_rate_string := '';
+      end if;
+      if cur_pcdi_rows.product_id is not null and vc_price_weight_unit_id is not null and
+      cur_pcdi_rows.item_qty_unit_id is not null then
       vn_price_in_base_price_unit_id := vn_fw_exch_rate_price_to_base *
                                         vn_contract_main_cur_factor *
                                         pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
@@ -1965,6 +1972,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                                                              cur_pcdi_rows.item_qty_unit_id,
                                                                              1) *
                                         vn_average_price;
+       else
+        vn_price_in_base_price_unit_id := 0;
+       end if;
     
       vn_error_no := 9;
       insert into cipd_contract_item_price_daily
@@ -2296,6 +2306,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     vn_price_in_base_price_unit_id number;
     vc_fixed_price_unit_id         varchar2(15);
     vd_valid_quote_date            date;
+    vn_error_no varchar2(100);
   begin
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -2310,7 +2321,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                           2002,
                           'Delete GED');
     commit;
-  
+  vn_error_no :=  'Delete GED';
     insert into ged_gmr_exchange_detail
       (corporate_id,
        internal_gmr_ref_no,
@@ -2321,7 +2332,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
        exchange_id,
        exchange_name,
        element_id)
-      select pcbpd.process_id,
+      select pc_corporate_id,
              pofh.internal_gmr_ref_no,
              ppfd.instrument_id,
              dim.instrument_name,
@@ -2354,7 +2365,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and ppfh.is_active = 'Y'
          and ppfd.is_active = 'Y'
          and ppfd.process_id = pc_process_id
-       group by pcbpd.process_id,
+       group by --pcbpd.process_id,
                 pofh.internal_gmr_ref_no,
                 ppfd.instrument_id,
                 dim.instrument_name,
@@ -2372,6 +2383,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
   
     for cur_gmr_rows in cur_gmr
     loop
+      vn_error_no :=  'start gmr loop '||cur_gmr_rows.internal_gmr_ref_no ;    
       vc_price_fixation_status      := null;
       vn_total_contract_value       := 0;
       vn_market_flag                := null;
@@ -2442,6 +2454,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
           vc_price_unit_id     := cur_gmr_rows.price_unit_id;
           vc_price_name        := cur_gmr_rows.price_unit_name;
       end;
+      vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' vc_period'||vc_period;      
       if vc_period = 'Before QP' then
         vc_price_fixation_status := 'Un-priced';
       
@@ -2459,7 +2472,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
               exit;
             end if;
           end loop;
-        
+      vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' 2433';        
           --- get 3rd wednesday  before QP period 
           -- Get the quotation date = Trade Date +2 working Days
           if vd_3rd_wed_of_qp <= pd_trade_date then
@@ -2517,7 +2530,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
         
         elsif cur_gmr_rows.is_daily_cal_applicable = 'N' and
               cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
-        
+      vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' monthly y';        
           vc_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
                                                                               vd_qp_end_date);
           vc_prompt_month := to_char(vc_prompt_date, 'Mon');
@@ -2584,7 +2597,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              and cdim.instrument_id = dq.instrument_id;
         exception
           when no_data_found then
-          
+      vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' 2558';          
             select cdim.valid_quote_date
               into vd_valid_quote_date
               from cdim_corporate_dim cdim
@@ -2598,6 +2611,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                    vn_before_qp_price;
         --  vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
       elsif vc_period = 'During QP' or vc_period = 'After QP' then
+  vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' 2572';          
         vd_dur_qp_start_date      := vd_qp_start_date;
         vd_dur_qp_end_date        := vd_qp_end_date;
         vn_during_total_set_price := 0;
@@ -2794,6 +2808,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              and cdim.instrument_id = dq.instrument_id;
         exception
           when no_data_found then
+  vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' 2767';          
             select cdim.valid_quote_date
               into vd_valid_quote_date
               from cdim_corporate_dim cdim
@@ -2880,15 +2895,17 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
           vc_price_weight_unit_id := null;
           vc_price_qty_unit       := null;
       end;
-    
+      vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' 2855';
       pkg_general.sp_get_base_cur_detail(vc_price_cur_id,
                                          vc_contract_main_cur_id,
                                          vc_contract_main_cur_code,
                                          vn_contract_main_cur_factor);
     
+  vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' 2861';
       --
       -- Get the Forward Exchange Rate from Price Unit ID to Base Price Unit ID
       --
+  vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' 2865' || vc_contract_main_cur_id ||vc_base_main_cur_id;      
       if vc_contract_main_cur_id <> vc_base_main_cur_id then
         pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
                                                 pd_trade_date,
@@ -2901,6 +2918,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
         vc_exch_rate_string := vc_contract_main_cur_id || '=' ||
                                vn_settlement_price || ' ' ||
                                vc_base_main_cur_id;
+  vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' vn_settlement_price' || vn_settlement_price;                               
         if vn_settlement_price is null or vn_settlement_price = 0 then
         
           vobj_error_log.extend;
@@ -2924,7 +2942,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       end if;
       vn_price_in_base_price_unit_id := vn_settlement_price *
                                         vn_total_contract_value;
-    
+      vn_error_no :=  'gmr:'||cur_gmr_rows.internal_gmr_ref_no  || ' before gpd';
       insert into gpd_gmr_price_daily
         (corporate_id,
          internal_gmr_ref_no,
@@ -2958,6 +2976,25 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     
     end loop;
     commit;
+ exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure pkg_phy_eod_price.sp_calc_gmr_price',
+                                                           'M2M-013',
+                                                           ' Code:' ||
+                                                           sqlcode ||
+                                                           ' Message:' ||
+                                                           sqlerrm ||
+                                                           dbms_utility.format_error_backtrace ||
+                                                           'No ' ||
+                                                           vn_error_no,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);    
   end;
 
   procedure sp_calc_stock_price(pc_process_id varchar2) is
@@ -4005,6 +4042,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       --
       -- Get the Forward Exchange Rate from Price Unit ID to Base Price Unit ID
       --
+     if vc_price_cur_id is not null and  vc_base_main_cur_id is not null then
       if vc_price_cur_id <> vc_base_main_cur_id then
         pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
                                                 pd_trade_date,
@@ -4028,6 +4066,12 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       else
         vn_fw_exch_rate_price_to_base := 1.0;
       end if;
+     else
+      vn_fw_exch_rate_price_to_base := 1.0;
+      vc_exch_rate_string :='';
+     end if;
+     if vc_gmr_ele_product_id is not null and vc_price_weight_unit_id is not null and
+      vc_gmr_ele_base_qty_unit_id is not null then
       vn_price_in_base_price_unit_id := vn_fw_exch_rate_price_to_base *
                                         vn_price_main_cur_factor *
                                         pkg_general.f_get_converted_quantity(vc_gmr_ele_product_id,
@@ -4035,7 +4079,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                                                              vc_gmr_ele_base_qty_unit_id,
                                                                              1) *
                                         vn_average_price;
-    
+     else
+     vn_price_in_base_price_unit_id :=0;
+     end if;
       insert into gpd_gmr_conc_price_daily
         (corporate_id,
          internal_gmr_ref_no,
@@ -5883,7 +5929,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                   pc_process,
                                   vn_fw_exch_rate_price_to_base,
                                   vn_forward_points);
-    
+    if vc_contract_main_cur_id is not null and vc_base_main_cur_id is not null then
       if vc_contract_main_cur_id <> vc_base_main_cur_id then
         if vn_fw_exch_rate_price_to_base is null or
            vn_fw_exch_rate_price_to_base = 0 then
@@ -5919,6 +5965,11 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       else
         vn_fw_exch_rate_price_to_base := 1;
       end if;
+     else
+       vn_fw_exch_rate_price_to_base := 1;
+      end if;
+      if vc_price_weight_unit_id is not null and cur_pcdi_rows.item_qty_unit_id is not null and cur_pcdi_rows.product_id is not null then
+      
       vn_price_in_base_price_unit_id := vn_fw_exch_rate_price_to_base *
                                         vn_contract_main_cur_factor *
                                         pkg_general.f_get_converted_quantity(cur_pcdi_rows.product_id,
@@ -5926,7 +5977,10 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                                                              cur_pcdi_rows.item_qty_unit_id,
                                                                              1) *
                                         vn_average_price;
-    
+     else
+     vn_price_in_base_price_unit_id :=null;
+     end if;
+     if vn_average_price is not null and vc_price_unit_id is not null then
       insert into cipde_cipd_element_price
         (corporate_id,
          process_id,
@@ -5995,6 +6049,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          cur_pcdi_rows.instrument_id,
          vc_exch_rate_string,
          vn_price_in_base_price_unit_id);
+       end if;
       vc_exch_rate_string := null;
     end loop;
     commit;
