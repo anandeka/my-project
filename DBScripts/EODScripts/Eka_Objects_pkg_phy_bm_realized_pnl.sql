@@ -22,7 +22,7 @@ create or replace package "PKG_PHY_BM_REALIZED_PNL" is
                                        pc_process_id          varchar2,
                                        pc_user_id             varchar2,
                                        pc_previous_process_id varchar2);
-end;
+end; 
 /
 create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
   procedure sp_calc_phy_realized_today(pc_corporate_id varchar2,
@@ -400,44 +400,50 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
              invs.price_to_base_fw_exch_rate,
              gmr.latest_internal_invoice_ref_no,
              gmr_sales.gmr_ref_no
-        from agh_alloc_group_header       agh,
-             agd_alloc_group_detail       agd,
-             grd_goods_record_detail      grd,
-             pci_physical_contract_item   pci,
-             pcdi_pc_delivery_item        pcdi,
-             pcm_physical_contract_main   pcm,
-             ak_corporate                 akc,
-             gmr_goods_movement_record    gmr,
-             pdm_productmaster            pdm,
-             qat_quality_attributes       qat,
-             pom_product_origin_master    pom,
-             orm_origin_master            orm,
-             pcpd_pc_product_definition   pcpd,
-             cpc_corporate_profit_center  cpc,
-             phd_profileheaderdetails     phd_cp,
-             ak_corporate_user            akcu,
-             gab_globaladdressbook        gab,
-             pcdb_pc_delivery_basis       pcdb,
-             itm_incoterm_master          itm,
-             pym_payment_terms_master     pym,
-             qum_quantity_unit_master     qum_agd,
-             phd_profileheaderdetails     phd_wh,
-             sld_storage_location_detail  sld,
-             cim_citymaster               cim_sld,
-             gcd_groupcorporatedetails    gcd,
-             cm_currency_master           cm_gcd,
-             qum_quantity_unit_master     qum_gcd,
-             qum_quantity_unit_master     qum_pdm,
-             cym_countrymaster            cym_gmr_dest,
-             cim_citymaster               cim_gmr_dest,
-             invm_cogs                    invs,
-             dgrd_delivered_grd           dgrd,
-             pci_physical_contract_item   pci_sales,
-             pcdi_pc_delivery_item        pcdi_sales,
-             pcm_physical_contract_main   pcm_sales,
-             pt_price_type                pt,
+        from agh_alloc_group_header agh,
+             agd_alloc_group_detail agd,
+             grd_goods_record_detail grd,
+             pci_physical_contract_item pci,
+             pcdi_pc_delivery_item pcdi,
+             pcm_physical_contract_main pcm,
+             ak_corporate akc,
+             gmr_goods_movement_record gmr,
+             pdm_productmaster pdm,
+             qat_quality_attributes qat,
+             pom_product_origin_master pom,
+             orm_origin_master orm,
+             pcpd_pc_product_definition pcpd,
+             cpc_corporate_profit_center cpc,
+             phd_profileheaderdetails phd_cp,
+             ak_corporate_user akcu,
+             gab_globaladdressbook gab,
+             pcdb_pc_delivery_basis pcdb,
+             itm_incoterm_master itm,
+             pym_payment_terms_master pym,
+             qum_quantity_unit_master qum_agd,
+             phd_profileheaderdetails phd_wh,
+             sld_storage_location_detail sld,
+             cim_citymaster cim_sld,
+             gcd_groupcorporatedetails gcd,
+             cm_currency_master cm_gcd,
+             qum_quantity_unit_master qum_gcd,
+             qum_quantity_unit_master qum_pdm,
+             cym_countrymaster cym_gmr_dest,
+             cim_citymaster cim_gmr_dest,
+             invm_cogs invs,
+             (select dgrd.internal_gmr_ref_no,
+                     int_alloc_group_id
+                from dgrd_delivered_grd dgrd
+               where dgrd.process_id = pc_process_id
+                 and dgrd.status = 'Active'
+               group by dgrd.internal_gmr_ref_no,
+                        int_alloc_group_id) dgrd,
+             pci_physical_contract_item pci_sales,
+             pcdi_pc_delivery_item pcdi_sales,
+             pcm_physical_contract_main pcm_sales,
+             pt_price_type pt,
              css_corporate_strategy_setup css,
-             gmr_goods_movement_record    gmr_sales
+             gmr_goods_movement_record gmr_sales
        where agh.process_id = pc_process_id
          and agh.process_id = agd.process_id
          and agh.int_alloc_group_id = agd.int_alloc_group_id
@@ -491,8 +497,6 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
          and invs.process_id = grd.process_id
          and invs.sales_internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and agh.int_alloc_group_id = dgrd.int_alloc_group_id
-         and dgrd.process_id = agh.process_id
-         and dgrd.status = 'Active'
          and agh.int_sales_contract_item_ref_no =
              pci_sales.internal_contract_item_ref_no
          and pci_sales.process_id = agh.process_id
@@ -503,7 +507,8 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
          and pcm_sales.process_id = agh.process_id
          and pcdi.item_price_type = pt.price_type_id(+)
          and grd.strategy_id = css.strategy_id(+)
-         and dgrd.internal_gmr_ref_no = gmr_sales.internal_gmr_ref_no;
+         and dgrd.internal_gmr_ref_no = gmr_sales.internal_gmr_ref_no
+         and gmr_sales.process_id = pc_process_id;
   
     cursor cur_update_pnl is
       select prd.corporate_id,
@@ -1963,9 +1968,6 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
         from prd_physical_realized_daily prd,
              rgmr_realized_gmr           rgmr,
              invm_cogs                   invs,
-             grd_goods_record_detail     grd,
-             agh_alloc_group_header      agh,
-             agd_alloc_group_detail      agd,
              qum_quantity_unit_master    qum_agd,
              rgmrd_realized_gmr_detail   rgmrd
        where rgmr.process_id = pc_process_id
@@ -1977,13 +1979,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
          and invs.sales_internal_gmr_ref_no = prd.sales_internal_gmr_ref_no
          and invs.process_id = pc_process_id
          and prd.contract_type = 'P'
-         and grd.internal_grd_ref_no = prd.internal_grd_ref_no
-         and grd.process_id = pc_process_id
-         and agd.internal_stock_ref_no = grd.internal_grd_ref_no
-         and agd.process_id = pc_process_id
-         and agh.int_alloc_group_id = agd.int_alloc_group_id
-         and agh.process_id = pc_process_id
-         and qum_agd.qty_unit_id = agd.qty_unit_id
+         and qum_agd.qty_unit_id = prd.qty_unit_id
          and rgmrd.realized_internal_gmr_ref_no =
              prd.sales_internal_gmr_ref_no
          and rgmrd.purchase_internal_gmr_ref_no = prd.internal_gmr_ref_no
@@ -2165,7 +2161,16 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
        where rgmr.process_id = pc_process_id
          and rgmr.int_alloc_group_id = prd.int_alloc_group_id
          and rgmr.internal_gmr_ref_no = prd.sales_internal_gmr_ref_no
-         and prd.process_id = rgmr.realized_process_id;
+         and prd.process_id = rgmr.realized_process_id
+         group by pc_process_id,
+             prd.sales_internal_gmr_ref_no,
+             decode(prd.contract_type, 'P', prd.internal_gmr_ref_no, null),
+             prd.internal_contract_item_ref_no,
+             prd.price_type_id,
+             prd.contract_type,
+             prd.price_fixation_status,
+             'N',
+             prd.corporate_id;
     vc_error_msg := '5';
   
     update rgmrd_realized_gmr_detail t
@@ -3575,5 +3580,5 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /

@@ -3904,7 +3904,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
    and iam.invoice_action_ref_no = axs.internal_action_ref_no
  group by iid.internal_gmr_ref_no)
  where gmr.dbd_id = gvc_dbd_id ;
-
   exception
     when others then
       vobj_error_log.extend;
@@ -9170,6 +9169,7 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        set grd.payment_due_date = pd_trade_date
      where grd.dbd_id = gvc_dbd_id
        and grd.payment_due_date is null;
+       
  -- Purchase from GRD      
  for cur_grd in (      
 select grd.internal_gmr_ref_no, grd.product_id
@@ -9198,8 +9198,23 @@ update gmr_goods_movement_record gmr
  where gmr.dbd_id = gvc_dbd_id
  and gmr.internal_gmr_ref_no = cur_dgrd.internal_gmr_ref_no;
 end loop;
+--
+-- Added on 1st Aug 2012 By janna
+-- We have to nake sure that no where else we are using the below logic as
+-- we are updating the current qty to the exact value expected
+--
+Update grd_goods_record_detail grd
+set grd.current_qty = (nvl(grd.current_qty,0) + nvl(grd.release_shipped_qty,0) - nvl(grd.title_transfer_out_qty,0))
+where grd.dbd_id = gvc_dbd_id;
 
-
+Update gmr_goods_movement_record gmr
+set gmr.stock_current_qty =
+(select nvl(sum(nvl(grd.current_qty,0)),0) from grd_goods_record_detail grd
+where grd.dbd_id = gmr.dbd_id
+and grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+and grd.is_deleted ='N'
+and grd.status ='Active')
+where gmr.dbd_id = gvc_dbd_id;
        
   exception
     when others then
@@ -12977,10 +12992,10 @@ end loop;
        stock_qty)
       select t.inv_id,
              invm.inv_ref_no,
-             grd.internal_gmr_ref_no, -- Purchase gmr
+             null, -- Purchase gmr
              invm.internal_gmr_ref_no, -- Sales gmr
-             agd.internal_stock_ref_no internal_grd_ref_no, -- Purchase GRD
-             dgrd.internal_dgrd_ref_no,
+             null, -- Purchase GRD
+             dgrd.internal_dgrd_ref_no internal_dgrd_ref_no,
              invm.internal_contract_item_ref_no,
              invm.inv_in_action_ref_no,
              invm.inv_status,
@@ -13023,7 +13038,7 @@ end loop;
                 0
              end as quality_premium_per_unit,
              gvc_process_id,
-             agd.qty
+             null --agd.qty
         from (select invd.inv_id,
                      nvl(sum(invd.transaction_qty), 0) cur_inv_qty,
                      nvl(sum(case
@@ -13064,8 +13079,6 @@ end loop;
              invm_inventory_master@eka_appdb invm,
              dgrd_delivered_grd dgrd,
              agh_alloc_group_header agh,
-             agd_alloc_group_detail agd,
-             grd_goods_record_detail grd,
              pum_price_unit_master pum,
              cm_currency_master cm,
              qum_quantity_unit_master qum
@@ -13077,12 +13090,8 @@ end loop;
          and pum.weight_unit_id = qum.qty_unit_id
          and invm.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
          and dgrd.int_alloc_group_id = agh.int_alloc_group_id
-         and agh.int_alloc_group_id = agd.int_alloc_group_id
-         and agd.internal_stock_ref_no = grd.internal_grd_ref_no
          and dgrd.dbd_id = agh.dbd_id
-         and agh.dbd_id = grd.dbd_id
-         and agh.dbd_id = agd.dbd_id
-         and agd.dbd_id = gvc_dbd_id;
+         and agh.dbd_id = gvc_dbd_id;
   
   exception
     when others then
