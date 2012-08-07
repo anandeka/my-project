@@ -35,12 +35,7 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : EOD
 ==================================================================
-Revision: 100369
-Author: babulal.meena
-Date: 1:17:58 PM, Tuesday, August 07, 2012
-Message:
-added FreeMaterialStatus column into GMR table
+Message: eod error handled updated for the no data found,Bug Fixed 67333
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_10.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_TOLLING_GMR.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_308.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql	(Revision: 100377)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql	(Revision: 100368)
