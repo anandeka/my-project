@@ -278,6 +278,7 @@ select phd.companyname warehousename,
    --and pm.pool_id in ('PM-63')
    and PQCAPD.PQCA_ID = pqca.PQCA_ID
    and PQCAPD.IS_ACTIVE ='Y'
+   and PSR.IS_LINK_ACTIVE = 'Y'
    and PCI.INTERNAL_CONTRACT_ITEM_REF_NO = GRD.INTERNAL_CONTRACT_ITEM_REF_NO
    order by 
    phd.companyname ,
