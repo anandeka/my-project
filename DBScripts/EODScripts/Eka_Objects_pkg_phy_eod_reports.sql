@@ -78,7 +78,7 @@ create or replace package pkg_phy_eod_reports is
                                       pc_process      varchar2,
                                       pc_dbd_id       varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -5284,6 +5284,7 @@ create or replace package body pkg_phy_eod_reports is
                  and qum.qty_unit_id =
                      (case when rm.ratio_name = '%' then
                       diqs.item_qty_unit_id else rm.qty_unit_id_numerator end)
+                 and pqcapd.pcdi_id = pcdi.pcdi_id ---     
                  and diqs.process_id = pc_process_id
                  and diqs.is_active = 'Y'
                  and pcpd.process_id = pc_process_id
@@ -5394,21 +5395,21 @@ create or replace package body pkg_phy_eod_reports is
                                                                                                          diqs.item_qty_unit_id)) *
                             pqcapd.payable_percentage
                          end)) priced_qty
-                from pcm_physical_contract_main     pcm,
-                     pcmte_pcm_tolling_ext          pcmte,
-                     pcdi_pc_delivery_item          pcdi,
+                from pcm_physical_contract_main pcm,
+                     pcmte_pcm_tolling_ext pcmte,
+                     pcdi_pc_delivery_item pcdi,
                      poch_price_opt_call_off_header poch,
                      pocd_price_option_calloff_dtls pocd,
-                     pcbpd_pc_base_price_detail     pcbpd,
-                     pcpd_pc_product_definition     pcpd,
-                     pcpq_pc_product_quality        pcpq,
-                     ash_assay_header               ash,
-                     asm_assay_sublot_mapping       asm,
-                     pqca_pq_chemical_attributes    pqca,
+                     pcbpd_pc_base_price_detail pcbpd,
+                     pcpd_pc_product_definition pcpd,
+                     pcpq_pc_product_quality pcpq,
+                     ash_assay_header ash,
+                     asm_assay_sublot_mapping asm,
+                     pqca_pq_chemical_attributes pqca,
                      pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-                     rm_ratio_master                rm,
-                     aml_attribute_master_list      aml,
-                     diqs_delivery_item_qty_status  diqs
+                     rm_ratio_master rm,
+                     aml_attribute_master_list aml,
+                     diqs_delivery_item_qty_status diqs
                where pcm.internal_contract_ref_no =
                      pcdi.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
@@ -5430,6 +5431,8 @@ create or replace package body pkg_phy_eod_reports is
                  and aml.attribute_id = pqca.element_id
                  and pcdi.pcdi_id = diqs.pcdi_id
                  and poch.element_id = aml.attribute_id
+                 and pqcapd.pcdi_id = pcdi.pcdi_id ---
+                 and poch.is_active = 'Y' ---
                  and pcm.corporate_id = pc_corporate_id
                  and pcm.is_active = 'Y'
                  and pcdi.is_active = 'Y'
@@ -12449,5 +12452,5 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /
