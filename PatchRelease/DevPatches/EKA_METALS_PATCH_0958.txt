@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_0958
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  07-Aug-2012
+
+Bug / Enhancement*              :  N/A
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Reports
+
+Sub-Module  			 : Reports
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 100376
+Author: elaiyaraja.nallathambi
+Date: 2:43:19 PM, Tuesday, August 07, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_364.sql
+
+Revision: 100382
+Author: elaiyaraja.nallathambi
+Date: 2:58:05 PM, Tuesday, August 07, 2012
+Message:
+As Per New Request "UnPriced Quantity Report" renamed as "Arrived & Not Priced Report".
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport_Excel.rpt
+
