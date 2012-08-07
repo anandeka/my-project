@@ -1,0 +1,60 @@
+Patch No*          		:  EKA_METALS_PATCH_0959
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  07-Aug-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  67333,67443
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 100390
+Date: 3:09:33 PM, Tuesday, August 07, 2012
+Message:
+Renamed the file to remove CDC in the file name
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/67_DDL_EODDB_TABLE_ALTER_SCRIPT.SQL
+
+Revision: 100381
+Date: 2:55:42 PM, Tuesday, August 07, 2012
+Message:
+COG Code Revamp for Multiple Stocks on Purchase Or Sales Side(BM Released)
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql
+
+
+Message: eod error handled updated for the no data found,Bug Fixed 67333
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql	(Revision: 100377)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql	(Revision: 100368)
+
+
