@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0957
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  07-Aug-2012
+
+Bug / Enhancement*              :  N/A
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : EOD
+
+Sub-Module  			 : N/A
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 100369
+Author: babulal.meena
+Date: 1:17:58 PM, Tuesday, August 07, 2012
+Message:
+added FreeMaterialStatus column into GMR table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_10.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_TOLLING_GMR.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_308.sql
