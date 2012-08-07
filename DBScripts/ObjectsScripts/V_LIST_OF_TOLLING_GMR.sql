@@ -99,18 +99,7 @@ select gmr.corporate_id as corporate_id,
        cp.contract_item_ref_no as contract_item_ref_no,
        cp.internal_contract_ref_no as internal_contract_ref_no,
        cp.contract_ref_no as contract_ref_no,
-       (case
-         when (select distinct ypd.internal_gmr_ref_no
-                 from ypd_yield_pct_detail ypd
-                where ypd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                  and ypd.is_active = 'Y'
-                  and gmr.is_pass_through = 'Y') is not null then
-          'Y'
-         when gmr.is_pass_through = 'N' then
-          'N/A'
-         else
-          'N'
-       end) is_free_material,
+       gmr.free_material_status is_free_material,
        cp.pcdi_id pcdi_id,
        cp.deliveryitemrefno as delivery_item_ref_no,
        wrd.feeding_point_id,
