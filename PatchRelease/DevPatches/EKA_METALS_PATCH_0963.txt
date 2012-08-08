@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0963
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Babu Lal
+ 
+Created on*        		:  08-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 100553
+Author: babulal.meena
+Date: 6:27:54 PM, Wednesday, August 08, 2012
+Message:
+db script to show PoolName column into list of in-process stock 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_11.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_IN_PROCESS_STOCK.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_310.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_in_process_stock_exp.sql
