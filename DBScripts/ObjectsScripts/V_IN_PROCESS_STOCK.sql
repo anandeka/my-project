@@ -55,7 +55,9 @@ select ips_temp.corporate_id,
        ips_temp.element_by_product,
        ips_temp.input_stock_ref_no,
        ips_temp.utility_header_id,
-       fmuh.utility_ref_no
+       fmuh.utility_ref_no,
+       ips_temp.pool_id,
+       pm.pool_name
   from (select gmr.corporate_id,
                grd.internal_grd_ref_no,
                grd.internal_stock_ref_no stock_ref_no,
@@ -93,7 +95,8 @@ select ips_temp.corporate_id,
                gmr.is_pass_through is_pass_through,
                (aml.attribute_name || '/' || pdm_consc.product_desc) element_by_product,
                grd_cloned.internal_stock_ref_no input_stock_ref_no,
-               grd.utility_header_id as utility_header_id
+               grd.utility_header_id as utility_header_id,
+               grd.pool_id
           from grd_goods_record_detail      grd,
                grd_goods_record_detail      grd_cloned,
                pdm_productmaster            pdm_consc,
@@ -169,7 +172,8 @@ select ips_temp.corporate_id,
                gmr.is_pass_through is_pass_through,
                (aml.attribute_name || '/' || pdm_parent.product_desc) element_by_product,
                grd_parent.internal_stock_ref_no input_stock_ref_no,
-               grd.utility_header_id as utility_header_id
+               grd.utility_header_id as utility_header_id,
+               grd.pool_id
           from grd_goods_record_detail      grd,
                grd_goods_record_detail      grd_parent,
                pdm_productmaster            pdm_parent,
@@ -248,7 +252,8 @@ select ips_temp.corporate_id,
                gmr.is_pass_through is_pass_through,
                (aml.attribute_name || '/' || pdm_consc.product_desc) element_by_product,
                agrd_cloned.internal_stock_ref_no input_stock_ref_no,
-               grd.utility_header_id as utility_header_id
+               grd.utility_header_id as utility_header_id,
+               grd.pool_id
           from agrd_action_grd              agrd,
                grd_goods_record_detail      grd,
                agrd_action_grd              agrd_fm,
@@ -306,7 +311,7 @@ select ips_temp.corporate_id,
            and grd.internal_grd_ref_no = agrd.internal_grd_ref_no
         
         /* union all
-        
+                
         select sbs.corporate_id,
         sbs.sbs_id internal_grd_ref_no,
         '' stock_ref_no,
@@ -344,7 +349,8 @@ select ips_temp.corporate_id,
         '' is_pass_through,
         '' element_by_product,
         '' input_stock_ref_no,
-        '' utility_header_id
+        '' utility_header_id,
+        '' pool_id
         from sbs_smelter_base_stock    sbs,
         pdm_productmaster         pdm,
         qat_quality_attributes    qat,
@@ -359,6 +365,7 @@ select ips_temp.corporate_id,
         and shm.profile_id = sbs.warehouse_profile_id
         and shm.shed_id = sbs.shed_id*/
         ) ips_temp,
-       fmuh_free_metal_utility_header fmuh
+       fmuh_free_metal_utility_header fmuh,
+       pm_pool_master pm
  where ips_temp.utility_header_id = fmuh.fmuh_id(+)
-
+   and ips_temp.pool_id = pm.pool_id(+)

@@ -56,6 +56,8 @@ select ips_temp.corporate_id,
        ips_temp.input_stock_ref_no,
        ips_temp.utility_header_id,
        fmuh.utility_ref_no,
+       ips_temp.pool_id,
+       pm.pool_name,
        ips_temp.supp_contract_item_ref_no as supp_int_contract_item_ref_no,
        supp_pci.contract_item_ref_no supp_contract_item_ref_no,
        ips_temp.supp_internal_gmr_ref_no,
@@ -98,6 +100,7 @@ select ips_temp.corporate_id,
                (aml.attribute_name || '/' || pdm_consc.product_desc) element_by_product,
                grd_cloned.internal_stock_ref_no input_stock_ref_no,
                grd.utility_header_id as utility_header_id,
+               grd.pool_id,
                (case
                  when gmr.is_pass_through = 'Y' then
                   grd_cloned.supp_contract_item_ref_no
@@ -186,6 +189,7 @@ select ips_temp.corporate_id,
                (aml.attribute_name || '/' || pdm_parent.product_desc) element_by_product,
                grd_parent.internal_stock_ref_no input_stock_ref_no,
                grd.utility_header_id as utility_header_id,
+               grd.pool_id,
                '' supp_contract_item_ref_no,
                '' supp_internal_gmr_ref_no
           from grd_goods_record_detail      grd,
@@ -267,6 +271,7 @@ select ips_temp.corporate_id,
                (aml.attribute_name || '/' || pdm_consc.product_desc) element_by_product,
                agrd_cloned.internal_stock_ref_no input_stock_ref_no,
                grd.utility_header_id as utility_header_id,
+               grd.pool_id,
                agrd_cloned.supp_contract_item_ref_no,
                agrd_cloned.supp_internal_gmr_ref_no
           from agrd_action_grd              agrd,
@@ -365,6 +370,7 @@ select ips_temp.corporate_id,
         '' element_by_product,
         '' input_stock_ref_no,
         '' utility_header_id,
+        '' pool_id,
         '' supp_contract_item_ref_no,
         '' supp_internal_gmr_ref_no
         from sbs_smelter_base_stock    sbs,
@@ -382,9 +388,11 @@ select ips_temp.corporate_id,
         and shm.shed_id = sbs.shed_id*/
         ) ips_temp,
        fmuh_free_metal_utility_header fmuh,
+       pm_pool_master pm,
        gmr_goods_movement_record supp_gmr,
        v_pci supp_pci
  where ips_temp.utility_header_id = fmuh.fmuh_id(+)
+   and ips_temp.pool_id = pm.pool_id(+)
    and ips_temp.supp_internal_gmr_ref_no = supp_gmr.internal_gmr_ref_no(+)
    and ips_temp.supp_contract_item_ref_no =
        supp_pci.internal_contract_item_ref_no(+)
