@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0966
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  09-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  --
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Assay O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 100590
+Author: girishkv
+Date: 12:40:02 PM, Thursday, August 09, 2012
+Message:
+Bug:66453 if issublotAsStock='Y' then number of lots will be based on WNS_GROUP_ID count.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_366.sql
+
+
+
