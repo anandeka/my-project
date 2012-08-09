@@ -1,3 +1,35 @@
+create or replace view v_dim_cash_pricepoint_drid as
+select t.dr_id,
+       t.instrument_id,
+       t.price_point_id,
+       t.price_point_name,
+       t.price_source_id,
+       t.price_point_type,
+       t.price_source_name,
+       t.order_id
+  from (select drm.dr_id,
+               drm.instrument_id,
+               drm.price_point_id,
+               pp.price_point_name,
+               dip.price_source_id,
+               dip.price_point_type,
+               ps.price_source_name,
+               row_number() over(partition by drm.instrument_id, drm.price_point_id, dip.price_source_id order by drm.instrument_id, drm.price_point_id, dip.price_source_id asc) order_id
+          from drm_derivative_master      drm,
+               pp_price_point             pp,
+               dip_der_instrument_pricing dip,
+               ps_price_source            ps
+         where drm.price_point_id = pp.price_point_id
+           and upper(pp.price_point_name) = 'CASH'
+           and drm.is_deleted = 'N'
+           and drm.instrument_id = dip.instrument_id
+           and dip.is_deleted = 'N'
+           and dip.price_point_type = 'PRICE_POINT'
+           and dip.price_source_id = ps.price_source_id
+           and pp.is_active = 'Y'
+           and pp.is_deleted = 'N') t
+ where t.order_id = 1
+/
 create or replace package pkg_price is
 
   -- Author  : JANARDHANA
@@ -35,7 +67,7 @@ create or replace package pkg_price is
   function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                         pd_trade_date       date) return date;
 
-end; 
+end;
 /
 create or replace package body "PKG_PRICE" is
 
@@ -214,7 +246,7 @@ create or replace package body "PKG_PRICE" is
                                pofh.qp_start_date,
                                pofh.qp_end_date,
                                pfqpp.is_qp_any_day_basis,
-                              -- pofh.qty_to_be_fixed,
+                               -- pofh.qty_to_be_fixed,
                                (case
                                  when pocd.qp_period_type = 'Event' then
                                   cur_pcdi_rows.item_qty
@@ -244,7 +276,7 @@ create or replace package body "PKG_PRICE" is
                            and pocd.is_active = 'Y'
                            and pcbpd.is_active = 'Y'
                            and ppfh.is_active = 'Y'
-                           and pfqpp.is_active = 'Y'                           
+                           and pfqpp.is_active = 'Y'
                         -- and pofh.is_active(+) = 'Y'
                         )
             loop
@@ -539,46 +571,93 @@ create or replace package body "PKG_PRICE" is
                       vc_during_price_dr_id := null;
                   end;
                 end if;
-                begin
-                  select dqd.price,
-                         dqd.price_unit_id
-                    into vn_during_val_price,
-                         vc_during_val_price_unit_id
-                    from dq_derivative_quotes          dq,
-                         v_dqd_derivative_quote_detail dqd
-                   where dq.dq_id = dqd.dq_id
-                     and dqd.dr_id = vc_during_price_dr_id
-                     and dq.instrument_id = cur_pcdi_rows.instrument_id
-                     and dqd.available_price_id =
-                         cur_pcdi_rows.available_price_id
-                     and dq.price_source_id = cur_pcdi_rows.price_source_id
-                     and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id = cur_pcdi_rows.corporate_id
-                     and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N'
-                     and dq.trade_date =
-                         (select max(dq.trade_date)
-                            from dq_derivative_quotes          dq,
-                                 v_dqd_derivative_quote_detail dqd
-                           where dq.dq_id = dqd.dq_id
-                             and dqd.dr_id = vc_during_price_dr_id
-                             and dq.instrument_id =
-                                 cur_pcdi_rows.instrument_id
-                             and dqd.available_price_id =
-                                 cur_pcdi_rows.available_price_id
-                             and dq.price_source_id =
-                                 cur_pcdi_rows.price_source_id
-                             and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id =
-                                 cur_pcdi_rows.corporate_id
-                             and dq.is_deleted = 'N'
-                             and dqd.is_deleted = 'N'
-                             and dq.trade_date <= pd_trade_date);
-                exception
-                  when no_data_found then
-                    vn_during_val_price         := 0;
-                    vc_during_val_price_unit_id := null;
-                end;
+                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
+                  begin
+                    select dqd.dr_id,
+                           dqd.price,
+                           dqd.price_unit_id
+                      into vc_during_price_dr_id,
+                           vn_during_val_price,
+                           vc_during_val_price_unit_id
+                      from dq_derivative_quotes        dq,
+                           dqd_derivative_quote_detail dqd,
+                           v_dim_cash_pricepoint_drid  drm
+                     where dq.dq_id = dqd.dq_id
+                       and dq.instrument_id = cur_pcdi_rows.instrument_id
+                       and dq.instrument_id = drm.instrument_id
+                       and drm.dr_id = dqd.dr_id
+                       and dqd.available_price_id =
+                           cur_pcdi_rows.available_price_id
+                       and dq.price_source_id = drm.price_source_id
+                       and dqd.price_unit_id = cc1.price_unit_id
+                       and dq.corporate_id = cur_pcdi_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date =
+                           (select max(dq.trade_date)
+                              from dq_derivative_quotes        dq,
+                                   dqd_derivative_quote_detail dqd
+                             where dq.dq_id = dqd.dq_id
+                               and dqd.dr_id = drm.dr_id
+                               and dq.instrument_id =
+                                   cur_pcdi_rows.instrument_id
+                               and dqd.available_price_id =
+                                   cur_pcdi_rows.available_price_id
+                               and dq.price_source_id = drm.price_source_id
+                               and dqd.price_unit_id = cc1.price_unit_id
+                               and dq.corporate_id =
+                                   cur_pcdi_rows.corporate_id
+                               and dq.is_deleted = 'N'
+                               and dqd.is_deleted = 'N'
+                               and dq.trade_date <= pd_trade_date);
+                  exception
+                    when no_data_found then
+                      vn_during_val_price         := 0;
+                      vc_during_val_price_unit_id := null;
+                  end;
+                else
+                  begin
+                    select dqd.price,
+                           dqd.price_unit_id
+                      into vn_during_val_price,
+                           vc_during_val_price_unit_id
+                      from dq_derivative_quotes          dq,
+                           v_dqd_derivative_quote_detail dqd
+                     where dq.dq_id = dqd.dq_id
+                       and dqd.dr_id = vc_during_price_dr_id
+                       and dq.instrument_id = cur_pcdi_rows.instrument_id
+                       and dqd.available_price_id =
+                           cur_pcdi_rows.available_price_id
+                       and dq.price_source_id =
+                           cur_pcdi_rows.price_source_id
+                       and dqd.price_unit_id = cc1.price_unit_id
+                       and dq.corporate_id = cur_pcdi_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date =
+                           (select max(dq.trade_date)
+                              from dq_derivative_quotes          dq,
+                                   v_dqd_derivative_quote_detail dqd
+                             where dq.dq_id = dqd.dq_id
+                               and dqd.dr_id = vc_during_price_dr_id
+                               and dq.instrument_id =
+                                   cur_pcdi_rows.instrument_id
+                               and dqd.available_price_id =
+                                   cur_pcdi_rows.available_price_id
+                               and dq.price_source_id =
+                                   cur_pcdi_rows.price_source_id
+                               and dqd.price_unit_id = cc1.price_unit_id
+                               and dq.corporate_id =
+                                   cur_pcdi_rows.corporate_id
+                               and dq.is_deleted = 'N'
+                               and dqd.is_deleted = 'N'
+                               and dq.trade_date <= pd_trade_date);
+                  exception
+                    when no_data_found then
+                      vn_during_val_price         := 0;
+                      vc_during_val_price_unit_id := null;
+                  end;
+                end if;
                 vn_during_total_val_price := 0;
                 vn_count_val_qp           := 0;
                 vd_dur_qp_start_date      := pd_trade_date + 1;
@@ -919,46 +998,93 @@ create or replace package body "PKG_PRICE" is
                       vc_during_price_dr_id := null;
                   end;
                 end if;
-                begin
-                  select dqd.price,
-                         dqd.price_unit_id
-                    into vn_during_qp_price,
-                         vc_during_qp_price_unit_id
-                    from dq_derivative_quotes          dq,
-                         v_dqd_derivative_quote_detail dqd
-                   where dq.dq_id = dqd.dq_id
-                     and dqd.dr_id = vc_during_price_dr_id
-                     and dq.instrument_id = cur_pcdi_rows.instrument_id
-                     and dqd.available_price_id =
-                         cur_pcdi_rows.available_price_id
-                     and dq.price_source_id = cur_pcdi_rows.price_source_id
-                     and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id = cur_pcdi_rows.corporate_id
-                     and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N'
-                     and dq.trade_date =
-                         (select max(dq.trade_date)
-                            from dq_derivative_quotes          dq,
-                                 v_dqd_derivative_quote_detail dqd
-                           where dq.dq_id = dqd.dq_id
-                             and dqd.dr_id = vc_during_price_dr_id
-                             and dq.instrument_id =
-                                 cur_pcdi_rows.instrument_id
-                             and dqd.available_price_id =
-                                 cur_pcdi_rows.available_price_id
-                             and dq.price_source_id =
-                                 cur_pcdi_rows.price_source_id
-                             and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id =
-                                 cur_pcdi_rows.corporate_id
-                             and dq.is_deleted = 'N'
-                             and dqd.is_deleted = 'N'
-                             and dq.trade_date <= pd_trade_date);
-                exception
-                  when no_data_found then
-                    vn_during_qp_price         := 0;
-                    vc_during_qp_price_unit_id := null;
-                end;
+                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
+                  begin
+                    select dqd.dr_id,
+                           dqd.price,
+                           dqd.price_unit_id
+                      into vc_during_price_dr_id,
+                           vn_during_qp_price,
+                           vc_during_qp_price_unit_id
+                      from dq_derivative_quotes        dq,
+                           dqd_derivative_quote_detail dqd,
+                           v_dim_cash_pricepoint_drid  drm
+                     where dq.dq_id = dqd.dq_id
+                       and dq.instrument_id = cur_pcdi_rows.instrument_id
+                       and dq.instrument_id = drm.instrument_id
+                       and drm.dr_id = dqd.dr_id
+                       and dqd.available_price_id =
+                           cur_pcdi_rows.available_price_id
+                       and dq.price_source_id = drm.price_source_id
+                       and dqd.price_unit_id = cc1.price_unit_id
+                       and dq.corporate_id = cur_pcdi_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date =
+                           (select max(dq.trade_date)
+                              from dq_derivative_quotes        dq,
+                                   dqd_derivative_quote_detail dqd
+                             where dq.dq_id = dqd.dq_id
+                               and dqd.dr_id = drm.dr_id
+                               and dq.instrument_id =
+                                   cur_pcdi_rows.instrument_id
+                               and dqd.available_price_id =
+                                   cur_pcdi_rows.available_price_id
+                               and dq.price_source_id = drm.price_source_id
+                               and dqd.price_unit_id = cc1.price_unit_id
+                               and dq.corporate_id =
+                                   cur_pcdi_rows.corporate_id
+                               and dq.is_deleted = 'N'
+                               and dqd.is_deleted = 'N'
+                               and dq.trade_date <= pd_trade_date);
+                  exception
+                    when no_data_found then
+                      vn_during_qp_price         := 0;
+                      vc_during_qp_price_unit_id := null;
+                  end;
+                else
+                  begin
+                    select dqd.price,
+                           dqd.price_unit_id
+                      into vn_during_qp_price,
+                           vc_during_qp_price_unit_id
+                      from dq_derivative_quotes          dq,
+                           v_dqd_derivative_quote_detail dqd
+                     where dq.dq_id = dqd.dq_id
+                       and dqd.dr_id = vc_during_price_dr_id
+                       and dq.instrument_id = cur_pcdi_rows.instrument_id
+                       and dqd.available_price_id =
+                           cur_pcdi_rows.available_price_id
+                       and dq.price_source_id =
+                           cur_pcdi_rows.price_source_id
+                       and dqd.price_unit_id = cc1.price_unit_id
+                       and dq.corporate_id = cur_pcdi_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date =
+                           (select max(dq.trade_date)
+                              from dq_derivative_quotes          dq,
+                                   v_dqd_derivative_quote_detail dqd
+                             where dq.dq_id = dqd.dq_id
+                               and dqd.dr_id = vc_during_price_dr_id
+                               and dq.instrument_id =
+                                   cur_pcdi_rows.instrument_id
+                               and dqd.available_price_id =
+                                   cur_pcdi_rows.available_price_id
+                               and dq.price_source_id =
+                                   cur_pcdi_rows.price_source_id
+                               and dqd.price_unit_id = cc1.price_unit_id
+                               and dq.corporate_id =
+                                   cur_pcdi_rows.corporate_id
+                               and dq.is_deleted = 'N'
+                               and dqd.is_deleted = 'N'
+                               and dq.trade_date <= pd_trade_date);
+                  exception
+                    when no_data_found then
+                      vn_during_qp_price         := 0;
+                      vc_during_qp_price_unit_id := null;
+                  end;
+                end if;
                 vn_total_quantity       := cur_pcdi_rows.item_qty;
                 vn_qty_to_be_priced     := cur_not_called_off_rows.qty_to_be_priced;
                 vn_total_contract_value := vn_total_contract_value +
@@ -1393,42 +1519,85 @@ create or replace package body "PKG_PRICE" is
               vc_during_price_dr_id := null;
           end;
         end if;
-        begin
-          select dqd.price,
-                 dqd.price_unit_id
-            into vn_during_val_price,
-                 vc_during_val_price_unit_id
-            from dq_derivative_quotes          dq,
-                 v_dqd_derivative_quote_detail dqd
-           where dq.dq_id = dqd.dq_id
-             and dqd.dr_id = vc_during_price_dr_id
-             and dq.instrument_id = cur_gmr_rows.instrument_id
-             and dqd.available_price_id = cur_gmr_rows.available_price_id
-             and dq.price_source_id = cur_gmr_rows.price_source_id
-             and dqd.price_unit_id = vc_price_unit_id
-             and dq.corporate_id = cur_gmr_rows.corporate_id
-             and dq.is_deleted = 'N'
-             and dqd.is_deleted = 'N'
-             and dq.trade_date =
-                 (select max(dq.trade_date)
-                    from dq_derivative_quotes          dq,
-                         v_dqd_derivative_quote_detail dqd
-                   where dq.dq_id = dqd.dq_id
-                     and dqd.dr_id = vc_during_price_dr_id
-                     and dq.instrument_id = cur_gmr_rows.instrument_id
-                     and dqd.available_price_id =
-                         cur_gmr_rows.available_price_id
-                     and dq.price_source_id = cur_gmr_rows.price_source_id
-                     and dqd.price_unit_id = vc_price_unit_id
-                     and dq.corporate_id = cur_gmr_rows.corporate_id
-                     and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N'
-                     and dq.trade_date <= pd_trade_date);
-        exception
-          when no_data_found then
-            vn_during_val_price         := 0;
-            vc_during_val_price_unit_id := null;
-        end;
+        if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
+          begin
+            select dqd.dr_id,
+                   dqd.price,
+                   dqd.price_unit_id
+              into vc_during_price_dr_id,
+                   vn_during_val_price,
+                   vc_during_val_price_unit_id
+              from dq_derivative_quotes        dq,
+                   dqd_derivative_quote_detail dqd,
+                   v_dim_cash_pricepoint_drid  drm
+             where dq.dq_id = dqd.dq_id
+               and dq.instrument_id = cur_gmr_rows.instrument_id
+               and dq.instrument_id = drm.instrument_id
+               and drm.dr_id = dqd.dr_id
+               and dqd.available_price_id = cur_gmr_rows.available_price_id
+               and dq.price_source_id = drm.price_source_id
+               and dqd.price_unit_id = vc_price_unit_id
+               and dq.corporate_id = cur_gmr_rows.corporate_id
+               and dq.is_deleted = 'N'
+               and dqd.is_deleted = 'N'
+               and dq.trade_date =
+                   (select max(dq.trade_date)
+                      from dq_derivative_quotes        dq,
+                           dqd_derivative_quote_detail dqd
+                     where dq.dq_id = dqd.dq_id
+                       and dqd.dr_id = drm.dr_id
+                       and dq.instrument_id = cur_gmr_rows.instrument_id
+                       and dqd.available_price_id =
+                           cur_gmr_rows.available_price_id
+                       and dq.price_source_id = drm.price_source_id
+                       and dqd.price_unit_id = vc_price_unit_id
+                       and dq.corporate_id = cur_gmr_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date <= pd_trade_date);
+          exception
+            when no_data_found then
+              vn_during_val_price         := 0;
+              vc_during_val_price_unit_id := null;
+          end;
+        else
+          begin
+            select dqd.price,
+                   dqd.price_unit_id
+              into vn_during_val_price,
+                   vc_during_val_price_unit_id
+              from dq_derivative_quotes          dq,
+                   v_dqd_derivative_quote_detail dqd
+             where dq.dq_id = dqd.dq_id
+               and dqd.dr_id = vc_during_price_dr_id
+               and dq.instrument_id = cur_gmr_rows.instrument_id
+               and dqd.available_price_id = cur_gmr_rows.available_price_id
+               and dq.price_source_id = cur_gmr_rows.price_source_id
+               and dqd.price_unit_id = vc_price_unit_id
+               and dq.corporate_id = cur_gmr_rows.corporate_id
+               and dq.is_deleted = 'N'
+               and dqd.is_deleted = 'N'
+               and dq.trade_date =
+                   (select max(dq.trade_date)
+                      from dq_derivative_quotes          dq,
+                           v_dqd_derivative_quote_detail dqd
+                     where dq.dq_id = dqd.dq_id
+                       and dqd.dr_id = vc_during_price_dr_id
+                       and dq.instrument_id = cur_gmr_rows.instrument_id
+                       and dqd.available_price_id =
+                           cur_gmr_rows.available_price_id
+                       and dq.price_source_id = cur_gmr_rows.price_source_id
+                       and dqd.price_unit_id = vc_price_unit_id
+                       and dq.corporate_id = cur_gmr_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date <= pd_trade_date);
+          exception
+            when no_data_found then
+              vn_during_val_price         := 0;
+              vc_during_val_price_unit_id := null;
+          end;
+        end if;
         vn_during_total_val_price := 0;
         vn_count_val_qp           := 0;
         vd_dur_qp_start_date      := pd_trade_date + 1;
@@ -1575,7 +1744,7 @@ create or replace package body "PKG_PRICE" is
          and pci.internal_contract_item_ref_no =
              pc_int_contract_item_ref_no
          and ceqs.element_id = pc_element_id
-         and pcpd.input_output ='Input';
+         and pcpd.input_output = 'Input';
     cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
       select poch.poch_id,
              poch.internal_action_ref_no,
@@ -1711,7 +1880,7 @@ create or replace package body "PKG_PRICE" is
                                pfqpp.event_name,
                                pfqpp.no_of_event_months,
                                pfqpp.is_qp_any_day_basis,
-                              -- pofh.qty_to_be_fixed,
+                               -- pofh.qty_to_be_fixed,
                                (case
                                  when pocd.qp_period_type = 'Event' then
                                   cur_pcdi_rows.item_qty
@@ -2040,46 +2209,93 @@ create or replace package body "PKG_PRICE" is
                       vc_during_price_dr_id := null;
                   end;
                 end if;
-                begin
-                  select dqd.price,
-                         dqd.price_unit_id
-                    into vn_during_val_price,
-                         vc_during_val_price_unit_id
-                    from dq_derivative_quotes          dq,
-                         v_dqd_derivative_quote_detail dqd
-                   where dq.dq_id = dqd.dq_id
-                     and dqd.dr_id = vc_during_price_dr_id
-                     and dq.instrument_id = cur_pcdi_rows.instrument_id
-                     and dqd.available_price_id =
-                         cur_pcdi_rows.available_price_id
-                     and dq.price_source_id = cur_pcdi_rows.price_source_id
-                     and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id = cur_pcdi_rows.corporate_id
-                     and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N'
-                     and dq.trade_date =
-                         (select max(dq.trade_date)
-                            from dq_derivative_quotes          dq,
-                                 v_dqd_derivative_quote_detail dqd
-                           where dq.dq_id = dqd.dq_id
-                             and dqd.dr_id = vc_during_price_dr_id
-                             and dq.instrument_id =
-                                 cur_pcdi_rows.instrument_id
-                             and dqd.available_price_id =
-                                 cur_pcdi_rows.available_price_id
-                             and dq.price_source_id =
-                                 cur_pcdi_rows.price_source_id
-                             and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id =
-                                 cur_pcdi_rows.corporate_id
-                             and dq.is_deleted = 'N'
-                             and dqd.is_deleted = 'N'
-                             and dq.trade_date <= pd_trade_date);
-                exception
-                  when no_data_found then
-                    vn_during_val_price         := 0;
-                    vc_during_val_price_unit_id := null;
-                end;
+                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
+                  begin
+                    select dqd.dr_id,
+                           dqd.price,
+                           dqd.price_unit_id
+                      into vc_during_price_dr_id,
+                           vn_during_val_price,
+                           vc_during_val_price_unit_id
+                      from dq_derivative_quotes        dq,
+                           dqd_derivative_quote_detail dqd,
+                           v_dim_cash_pricepoint_drid  drm
+                     where dq.dq_id = dqd.dq_id
+                       and dq.instrument_id = cur_pcdi_rows.instrument_id
+                       and dq.instrument_id = drm.instrument_id
+                       and drm.dr_id = dqd.dr_id
+                       and dqd.available_price_id =
+                           cur_pcdi_rows.available_price_id
+                       and dq.price_source_id = drm.price_source_id
+                       and dqd.price_unit_id = cc1.price_unit_id
+                       and dq.corporate_id = cur_pcdi_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date =
+                           (select max(dq.trade_date)
+                              from dq_derivative_quotes        dq,
+                                   dqd_derivative_quote_detail dqd
+                             where dq.dq_id = dqd.dq_id
+                               and dqd.dr_id = drm.dr_id
+                               and dq.instrument_id =
+                                   cur_pcdi_rows.instrument_id
+                               and dqd.available_price_id =
+                                   cur_pcdi_rows.available_price_id
+                               and dq.price_source_id = drm.price_source_id
+                               and dqd.price_unit_id = cc1.price_unit_id
+                               and dq.corporate_id =
+                                   cur_pcdi_rows.corporate_id
+                               and dq.is_deleted = 'N'
+                               and dqd.is_deleted = 'N'
+                               and dq.trade_date <= pd_trade_date);
+                  exception
+                    when no_data_found then
+                      vn_during_val_price         := 0;
+                      vc_during_val_price_unit_id := null;
+                  end;
+                else
+                  begin
+                    select dqd.price,
+                           dqd.price_unit_id
+                      into vn_during_val_price,
+                           vc_during_val_price_unit_id
+                      from dq_derivative_quotes          dq,
+                           v_dqd_derivative_quote_detail dqd
+                     where dq.dq_id = dqd.dq_id
+                       and dqd.dr_id = vc_during_price_dr_id
+                       and dq.instrument_id = cur_pcdi_rows.instrument_id
+                       and dqd.available_price_id =
+                           cur_pcdi_rows.available_price_id
+                       and dq.price_source_id =
+                           cur_pcdi_rows.price_source_id
+                       and dqd.price_unit_id = cc1.price_unit_id
+                       and dq.corporate_id = cur_pcdi_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date =
+                           (select max(dq.trade_date)
+                              from dq_derivative_quotes          dq,
+                                   v_dqd_derivative_quote_detail dqd
+                             where dq.dq_id = dqd.dq_id
+                               and dqd.dr_id = vc_during_price_dr_id
+                               and dq.instrument_id =
+                                   cur_pcdi_rows.instrument_id
+                               and dqd.available_price_id =
+                                   cur_pcdi_rows.available_price_id
+                               and dq.price_source_id =
+                                   cur_pcdi_rows.price_source_id
+                               and dqd.price_unit_id = cc1.price_unit_id
+                               and dq.corporate_id =
+                                   cur_pcdi_rows.corporate_id
+                               and dq.is_deleted = 'N'
+                               and dqd.is_deleted = 'N'
+                               and dq.trade_date <= pd_trade_date);
+                  exception
+                    when no_data_found then
+                      vn_during_val_price         := 0;
+                      vc_during_val_price_unit_id := null;
+                  end;
+                end if;
                 vn_during_total_val_price := 0;
                 vn_count_val_qp           := 0;
                 vd_dur_qp_start_date      := pd_trade_date + 1;
@@ -2441,46 +2657,93 @@ create or replace package body "PKG_PRICE" is
                       vc_during_price_dr_id := null;
                   end;
                 end if;
-                begin
-                  select dqd.price,
-                         dqd.price_unit_id
-                    into vn_during_qp_price,
-                         vc_during_qp_price_unit_id
-                    from dq_derivative_quotes          dq,
-                         v_dqd_derivative_quote_detail dqd
-                   where dq.dq_id = dqd.dq_id
-                     and dqd.dr_id = vc_during_price_dr_id
-                     and dq.instrument_id = cur_pcdi_rows.instrument_id
-                     and dqd.available_price_id =
-                         cur_pcdi_rows.available_price_id
-                     and dq.price_source_id = cur_pcdi_rows.price_source_id
-                     and dqd.price_unit_id = cc1.price_unit_id
-                     and dq.corporate_id = cur_pcdi_rows.corporate_id
-                     and dq.is_deleted = 'N'
-                     and dqd.is_deleted = 'N'
-                     and dq.trade_date =
-                         (select max(dq.trade_date)
-                            from dq_derivative_quotes          dq,
-                                 v_dqd_derivative_quote_detail dqd
-                           where dq.dq_id = dqd.dq_id
-                             and dqd.dr_id = vc_during_price_dr_id
-                             and dq.instrument_id =
-                                 cur_pcdi_rows.instrument_id
-                             and dqd.available_price_id =
-                                 cur_pcdi_rows.available_price_id
-                             and dq.price_source_id =
-                                 cur_pcdi_rows.price_source_id
-                             and dqd.price_unit_id = cc1.price_unit_id
-                             and dq.corporate_id =
-                                 cur_pcdi_rows.corporate_id
-                             and dq.is_deleted = 'N'
-                             and dqd.is_deleted = 'N'
-                             and dq.trade_date <= pd_trade_date);
-                exception
-                  when no_data_found then
-                    vn_during_qp_price         := 0;
-                    vc_during_qp_price_unit_id := null;
-                end;
+                if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
+                  begin
+                    select dqd.dr_id,
+                           dqd.price,
+                           dqd.price_unit_id
+                      into vc_during_price_dr_id,
+                           vn_during_qp_price,
+                           vc_during_qp_price_unit_id
+                      from dq_derivative_quotes        dq,
+                           dqd_derivative_quote_detail dqd,
+                           v_dim_cash_pricepoint_drid  drm
+                     where dq.dq_id = dqd.dq_id
+                       and dq.instrument_id = cur_pcdi_rows.instrument_id
+                       and dq.instrument_id = drm.instrument_id
+                       and drm.dr_id = dqd.dr_id
+                       and dqd.available_price_id =
+                           cur_pcdi_rows.available_price_id
+                       and dq.price_source_id = drm.price_source_id
+                       and dqd.price_unit_id = cc1.price_unit_id
+                       and dq.corporate_id = cur_pcdi_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date =
+                           (select max(dq.trade_date)
+                              from dq_derivative_quotes        dq,
+                                   dqd_derivative_quote_detail dqd
+                             where dq.dq_id = dqd.dq_id
+                               and dqd.dr_id = drm.dr_id
+                               and dq.instrument_id =
+                                   cur_pcdi_rows.instrument_id
+                               and dqd.available_price_id =
+                                   cur_pcdi_rows.available_price_id
+                               and dq.price_source_id = drm.price_source_id
+                               and dqd.price_unit_id = cc1.price_unit_id
+                               and dq.corporate_id =
+                                   cur_pcdi_rows.corporate_id
+                               and dq.is_deleted = 'N'
+                               and dqd.is_deleted = 'N'
+                               and dq.trade_date <= pd_trade_date);
+                  exception
+                    when no_data_found then
+                      vn_during_qp_price         := 0;
+                      vc_during_qp_price_unit_id := null;
+                  end;
+                else
+                  begin
+                    select dqd.price,
+                           dqd.price_unit_id
+                      into vn_during_qp_price,
+                           vc_during_qp_price_unit_id
+                      from dq_derivative_quotes          dq,
+                           v_dqd_derivative_quote_detail dqd
+                     where dq.dq_id = dqd.dq_id
+                       and dqd.dr_id = vc_during_price_dr_id
+                       and dq.instrument_id = cur_pcdi_rows.instrument_id
+                       and dqd.available_price_id =
+                           cur_pcdi_rows.available_price_id
+                       and dq.price_source_id =
+                           cur_pcdi_rows.price_source_id
+                       and dqd.price_unit_id = cc1.price_unit_id
+                       and dq.corporate_id = cur_pcdi_rows.corporate_id
+                       and dq.is_deleted = 'N'
+                       and dqd.is_deleted = 'N'
+                       and dq.trade_date =
+                           (select max(dq.trade_date)
+                              from dq_derivative_quotes          dq,
+                                   v_dqd_derivative_quote_detail dqd
+                             where dq.dq_id = dqd.dq_id
+                               and dqd.dr_id = vc_during_price_dr_id
+                               and dq.instrument_id =
+                                   cur_pcdi_rows.instrument_id
+                               and dqd.available_price_id =
+                                   cur_pcdi_rows.available_price_id
+                               and dq.price_source_id =
+                                   cur_pcdi_rows.price_source_id
+                               and dqd.price_unit_id = cc1.price_unit_id
+                               and dq.corporate_id =
+                                   cur_pcdi_rows.corporate_id
+                               and dq.is_deleted = 'N'
+                               and dqd.is_deleted = 'N'
+                               and dq.trade_date <= pd_trade_date);
+                  exception
+                    when no_data_found then
+                      vn_during_qp_price         := 0;
+                      vc_during_qp_price_unit_id := null;
+                  end;
+                end if;
                 vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
                                                                                 cur_pcdi_rows.payable_qty_unit_id,
                                                                                 cur_pcdi_rows.item_qty_unit_id,
@@ -2772,6 +3035,8 @@ create or replace package body "PKG_PRICE" is
             vc_price_unit_id     := cur_gmr_rows.price_unit_id;
             vc_price_name        := cur_gmr_rows.price_unit_name;
         end;
+        dbms_output.put_line('vc_period ' || vc_period || ' QP: ' ||
+                             vd_qp_start_date || ' to ' || vd_qp_end_date);
         if vc_period = 'Before QP' then
           if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
             vd_3rd_wed_of_qp := f_get_next_day(vd_qp_end_date, 'Wed', 3);
@@ -2885,8 +3150,11 @@ create or replace package body "PKG_PRICE" is
                                      (vn_qty_to_be_priced / 100) *
                                      vn_before_qp_price;
         elsif (vc_period = 'During QP' or vc_period = 'After QP') then
-          vd_dur_qp_start_date      := vd_qp_start_date;
-          vd_dur_qp_end_date        := vd_qp_end_date;
+          vd_dur_qp_start_date := vd_qp_start_date;
+          vd_dur_qp_end_date   := vd_qp_end_date;
+          dbms_output.put_line('vc_period ' || vc_period || ' QP: ' ||
+                               vd_dur_qp_start_date || ' to ' ||
+                               vd_dur_qp_end_date);
           vn_during_total_set_price := 0;
           vn_count_set_qp           := 0;
           for cc in (select pfd.user_price,
@@ -2997,42 +3265,88 @@ create or replace package body "PKG_PRICE" is
                 vc_during_price_dr_id := null;
             end;
           end if;
-          begin
-            select dqd.price,
-                   dqd.price_unit_id
-              into vn_during_val_price,
-                   vc_during_val_price_unit_id
-              from dq_derivative_quotes          dq,
-                   v_dqd_derivative_quote_detail dqd
-             where dq.dq_id = dqd.dq_id
-               and dqd.dr_id = vc_during_price_dr_id
-               and dq.instrument_id = cur_gmr_rows.instrument_id
-               and dqd.available_price_id = cur_gmr_rows.available_price_id
-               and dq.price_source_id = cur_gmr_rows.price_source_id
-               and dqd.price_unit_id = vc_price_unit_id
-               and dq.corporate_id = cur_gmr_rows.corporate_id
-               and dq.is_deleted = 'N'
-               and dqd.is_deleted = 'N'
-               and dq.trade_date =
-                   (select max(dq.trade_date)
-                      from dq_derivative_quotes          dq,
-                           v_dqd_derivative_quote_detail dqd
-                     where dq.dq_id = dqd.dq_id
-                       and dqd.dr_id = vc_during_price_dr_id
-                       and dq.instrument_id = cur_gmr_rows.instrument_id
-                       and dqd.available_price_id =
-                           cur_gmr_rows.available_price_id
-                       and dq.price_source_id = cur_gmr_rows.price_source_id
-                       and dqd.price_unit_id = vc_price_unit_id
-                       and dq.corporate_id = cur_gmr_rows.corporate_id
-                       and dq.is_deleted = 'N'
-                       and dqd.is_deleted = 'N'
-                       and dq.trade_date <= pd_trade_date);
-          exception
-            when no_data_found then
-              vn_during_val_price         := 0;
-              vc_during_val_price_unit_id := null;
-          end;
+          if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
+            begin
+              select dqd.dr_id,
+                     dqd.price,
+                     dqd.price_unit_id
+                into vc_during_price_dr_id,
+                     vn_during_val_price,
+                     vc_during_val_price_unit_id
+                from dq_derivative_quotes        dq,
+                     dqd_derivative_quote_detail dqd,
+                     v_dim_cash_pricepoint_drid  drm
+               where dq.dq_id = dqd.dq_id
+                 and dq.instrument_id = cur_gmr_rows.instrument_id
+                 and dq.instrument_id = drm.instrument_id
+                 and drm.dr_id = dqd.dr_id
+                 and dqd.available_price_id =
+                     cur_gmr_rows.available_price_id
+                 and dq.price_source_id = drm.price_source_id
+                 and dqd.price_unit_id = vc_price_unit_id
+                 and dq.corporate_id = cur_gmr_rows.corporate_id
+                 and dq.is_deleted = 'N'
+                 and dqd.is_deleted = 'N'
+                 and dq.trade_date =
+                     (select max(dq.trade_date)
+                        from dq_derivative_quotes        dq,
+                             dqd_derivative_quote_detail dqd
+                       where dq.dq_id = dqd.dq_id
+                         and dqd.dr_id = drm.dr_id
+                         and dq.instrument_id = cur_gmr_rows.instrument_id
+                         and dqd.available_price_id =
+                             cur_gmr_rows.available_price_id
+                         and dq.price_source_id = drm.price_source_id
+                         and dqd.price_unit_id = vc_price_unit_id
+                         and dq.corporate_id = cur_gmr_rows.corporate_id
+                         and dq.is_deleted = 'N'
+                         and dqd.is_deleted = 'N'
+                         and dq.trade_date <= pd_trade_date);
+            exception
+              when no_data_found then
+                vn_during_val_price         := 0;
+                vc_during_val_price_unit_id := null;
+            end;
+          else
+            begin
+              select dqd.price,
+                     dqd.price_unit_id
+                into vn_during_val_price,
+                     vc_during_val_price_unit_id
+                from dq_derivative_quotes          dq,
+                     v_dqd_derivative_quote_detail dqd
+               where dq.dq_id = dqd.dq_id
+                 and dqd.dr_id = vc_during_price_dr_id
+                 and dq.instrument_id = cur_gmr_rows.instrument_id
+                 and dqd.available_price_id =
+                     cur_gmr_rows.available_price_id
+                 and dq.price_source_id = cur_gmr_rows.price_source_id
+                 and dqd.price_unit_id = vc_price_unit_id
+                 and dq.corporate_id = cur_gmr_rows.corporate_id
+                 and dq.is_deleted = 'N'
+                 and dqd.is_deleted = 'N'
+                 and dq.trade_date =
+                     (select max(dq.trade_date)
+                        from dq_derivative_quotes          dq,
+                             v_dqd_derivative_quote_detail dqd
+                       where dq.dq_id = dqd.dq_id
+                         and dqd.dr_id = vc_during_price_dr_id
+                         and dq.instrument_id = cur_gmr_rows.instrument_id
+                         and dqd.available_price_id =
+                             cur_gmr_rows.available_price_id
+                         and dq.price_source_id =
+                             cur_gmr_rows.price_source_id
+                         and dqd.price_unit_id = vc_price_unit_id
+                         and dq.corporate_id = cur_gmr_rows.corporate_id
+                         and dq.is_deleted = 'N'
+                         and dqd.is_deleted = 'N'
+                         and dq.trade_date <= pd_trade_date);
+            exception
+              when no_data_found then
+                vn_during_val_price         := 0;
+                vc_during_val_price_unit_id := null;
+            end;
+          end if;
           vn_during_total_val_price := 0;
           vn_count_val_qp           := 0;
           vd_dur_qp_start_date      := pd_trade_date + 1;
@@ -3076,6 +3390,9 @@ create or replace package body "PKG_PRICE" is
           end if;
         end if;
       end loop;
+      dbms_output.put_line('vn_total_quantity ' || vn_total_quantity ||
+                           ' vn_total_contract_value ' ||
+                           vn_total_contract_value);
       vn_average_price := round(vn_total_contract_value / vn_total_quantity,
                                 3);
     end loop;
@@ -3221,5 +3538,5 @@ create or replace package body "PKG_PRICE" is
     return vd_prompt_date;
   end;
 
-end; 
+end;
 /
