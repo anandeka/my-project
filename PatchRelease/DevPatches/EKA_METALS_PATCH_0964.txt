@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0964
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  09-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  COG Price
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+RRevision: 100573
+Author: sivachalabathi.s
+Date: 7:19:06 AM, Thursday, August 09, 2012
+Message:
+On line Price calculation has to use cash price for during/after qp for the unfixed qty, as communication jinen/srikanth
+----
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_dim_cash_pricepoint_drid.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+
+
