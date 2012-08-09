@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0965
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  09-Aug-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  --
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 100575
+Author: mayank.chaturvedi
+Date: 10:28:09 AM, Thursday, August 09, 2012
+Message:
+-For BUG In output document issue with Vat invoice adjustment in PI on PI and FI on PI.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_365.sql
+
+
+
