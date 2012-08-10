@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_0969
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  10-Aug-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+
+Revision: 100713
+Date: 2:28:50 PM, Friday, August 10, 2012
+Message:
+For DR_ID Missing Error, If Date is Not present do not log that error, Problem still remains, we have to find out why date was not coming..
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+
+
+
+
