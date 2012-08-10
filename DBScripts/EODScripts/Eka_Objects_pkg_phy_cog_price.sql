@@ -23,7 +23,7 @@ create or replace package pkg_phy_cog_price is
                                   pc_user_id      varchar2,
                                   pc_dbd_id       varchar2,
                                   pc_process      varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -98,7 +98,7 @@ create or replace package body pkg_phy_cog_price is
              dim.delivery_calender_id,
              pdc.is_daily_cal_applicable,
              pdc.is_monthly_cal_applicable
-        from pcdi_pc_delivery_item         pcdi,
+        from pcdi_pc_delivery_item pcdi,
              diqs_delivery_item_qty_status diqs,
              pcm_physical_contract_main pcm,
              ak_corporate akc,
@@ -212,17 +212,17 @@ create or replace package body pkg_phy_cog_price is
     vc_prompt_month          varchar2(15);
     vc_prompt_year           number;
     vc_fixed_price_unit_id   varchar2(15);
-    
+  
   begin
     for cur_pcdi_rows in cur_pcdi
     loop
-      vn_total_contract_value := 0;
-      vn_fixed_qty            := 0;
-      vn_unfixed_qty          := 0;
-      vn_fixed_value          := 0;
-      vn_unfixed_value        := 0;
-      vc_fixed_price_unit_id  :=null;
-      vc_unfixed_val_price_unit_id :=null;
+      vn_total_contract_value      := 0;
+      vn_fixed_qty                 := 0;
+      vn_unfixed_qty               := 0;
+      vn_fixed_value               := 0;
+      vn_unfixed_value             := 0;
+      vc_fixed_price_unit_id       := null;
+      vc_unfixed_val_price_unit_id := null;
       if cur_pcdi_rows.price_option_call_off_status in
          ('Called Off', 'Not Applicable') then
         vc_price_fixation_status := null;
@@ -289,8 +289,8 @@ create or replace package body pkg_phy_cog_price is
             
             loop
               begin
-                select nvl(sum(pfd.user_price * round(pfd.qty_fixed,5)), 0),
-                       nvl(sum(round(pfd.qty_fixed,5)), 0),
+                select nvl(sum(pfd.user_price * round(pfd.qty_fixed, 5)), 0),
+                       nvl(sum(round(pfd.qty_fixed, 5)), 0),
                        vppu.price_unit_id
                   into vn_fixed_value,
                        vn_fixed_qty,
@@ -343,29 +343,31 @@ create or replace package body pkg_phy_cog_price is
                      and drm.is_deleted = 'N';
                 exception
                   when no_data_found then
-                    vobj_error_log.extend;
-                    vc_data_missing_for := 'DR_ID missing for ' ||
-                                           cur_pcdi_rows.instrument_name ||
-                                           ',Price Source:' ||
-                                           cur_pcdi_rows.price_source_name ||
-                                           ' Contract Ref No: ' ||
-                                           cur_pcdi_rows.contract_ref_no ||
-                                           ',Price Unit:' ||
-                                           cur_pcdi_rows.price_unit_name || ',' ||
-                                           cur_pcdi_rows.available_price_name ||
-                                           ' Price,Prompt Date:' ||
-                                           to_char(vd_quotes_date,'dd-Mon-RRRR');
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                         'procedure sp_concentrate_cog_price',
-                                                                         'PHY-002',
-                                                                         vc_data_missing_for,
-                                                                         '',
-                                                                         pc_process,
-                                                                         pc_user_id,
-                                                                         sysdate,
-                                                                         pd_trade_date);
-                    sp_insert_error_log(vobj_error_log);
-                  
+                    if vd_quotes_date is not null then
+                      vobj_error_log.extend;
+                      vc_data_missing_for := 'DR_ID missing for ' ||
+                                             cur_pcdi_rows.instrument_name ||
+                                             ',Price Source:' ||
+                                             cur_pcdi_rows.price_source_name ||
+                                             ' Contract Ref No: ' ||
+                                             cur_pcdi_rows.contract_ref_no ||
+                                             ',Price Unit:' ||
+                                             cur_pcdi_rows.price_unit_name || ',' ||
+                                             cur_pcdi_rows.available_price_name ||
+                                             ' Price,Prompt Date:' ||
+                                             to_char(vd_quotes_date,
+                                                     'dd-Mon-RRRR');
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_concentrate_cog_price',
+                                                                           'PHY-002',
+                                                                           vc_data_missing_for,
+                                                                           '',
+                                                                           pc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                    end if;
                 end;
               end if;
             
@@ -387,29 +389,32 @@ create or replace package body pkg_phy_cog_price is
                      and drm.is_deleted = 'N';
                 exception
                   when no_data_found then
-                    vobj_error_log.extend;
-                    vc_data_missing_for := 'DR_ID missing for ' ||
-                                           cur_pcdi_rows.instrument_name ||
-                                           ',Price Source:' ||
-                                           cur_pcdi_rows.price_source_name ||
-                                           ' Contract Ref No: ' ||
-                                           cur_pcdi_rows.contract_ref_no ||
-                                           ',Price Unit:' ||
-                                           cur_pcdi_rows.price_unit_name || ',' ||
-                                           cur_pcdi_rows.available_price_name ||
-                                           ' Price,Prompt Date:' ||
-                                           vc_prompt_month || ' ' ||
-                                           vc_prompt_year;
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                         'procedure sp_concentrate_cog_price',
-                                                                         'PHY-002',
-                                                                         vc_data_missing_for,
-                                                                         '',
-                                                                         pc_process,
-                                                                         pc_user_id,
-                                                                         sysdate,
-                                                                         pd_trade_date);
-                    sp_insert_error_log(vobj_error_log);
+                    if vc_prompt_month is not null and
+                       vc_prompt_year is not null then
+                      vobj_error_log.extend;
+                      vc_data_missing_for := 'DR_ID missing for ' ||
+                                             cur_pcdi_rows.instrument_name ||
+                                             ',Price Source:' ||
+                                             cur_pcdi_rows.price_source_name ||
+                                             ' Contract Ref No: ' ||
+                                             cur_pcdi_rows.contract_ref_no ||
+                                             ',Price Unit:' ||
+                                             cur_pcdi_rows.price_unit_name || ',' ||
+                                             cur_pcdi_rows.available_price_name ||
+                                             ' Price,Prompt Date:' ||
+                                             vc_prompt_month || ' ' ||
+                                             vc_prompt_year;
+                      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                           'procedure sp_concentrate_cog_price',
+                                                                           'PHY-002',
+                                                                           vc_data_missing_for,
+                                                                           '',
+                                                                           pc_process,
+                                                                           pc_user_id,
+                                                                           sysdate,
+                                                                           pd_trade_date);
+                      sp_insert_error_log(vobj_error_log);
+                    end if;
                 end;
               end if;
               begin
@@ -441,53 +446,56 @@ create or replace package body pkg_phy_cog_price is
                     from cdim_corporate_dim cdim
                    where cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = cur_pcdi_rows.instrument_id;
-                  vobj_error_log.extend;
-                  select (case
-                           when cur_pcdi_rows.is_daily_cal_applicable = 'N' and
-                                cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                            to_char(vd_prompt_date, 'Mon-RRRR')
-                           else
-                            to_char(vd_quotes_date, 'dd-Mon-RRRR')
-                         end)
-                    into vc_prompt_date_text
-                    from dual;
-                  vc_data_missing_for := 'Price missing for ' ||
-                                         cur_pcdi_rows.instrument_name ||
-                                         ',Price Source:' ||
-                                         cur_pcdi_rows.price_source_name ||
-                                         ' Contract Ref No: ' ||
-                                         cur_pcdi_rows.contract_ref_no ||
-                                         ',Price Unit:' ||
-                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                         cur_pcdi_rows.available_price_name ||
-                                         ' Price,Prompt Date:' ||
-                                         vc_prompt_date_text ||
-                                         ' Trade Date(' ||
-                                         to_char(vd_valid_quote_date,
-                                                 'dd-Mon-RRRR') || ')';
+                  if vd_prompt_date is not null then
+                    vobj_error_log.extend;
+                    select (case
+                             when cur_pcdi_rows.is_daily_cal_applicable = 'N' and
+                                  cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                              to_char(vd_prompt_date, 'Mon-RRRR')
+                             else
+                              to_char(vd_quotes_date, 'dd-Mon-RRRR')
+                           end)
+                      into vc_prompt_date_text
+                      from dual;
+                    vc_data_missing_for := 'Price missing for ' ||
+                                           cur_pcdi_rows.instrument_name ||
+                                           ',Price Source:' ||
+                                           cur_pcdi_rows.price_source_name ||
+                                           ' Contract Ref No: ' ||
+                                           cur_pcdi_rows.contract_ref_no ||
+                                           ',Price Unit:' ||
+                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                           cur_pcdi_rows.available_price_name ||
+                                           ' Price,Prompt Date:' ||
+                                           vc_prompt_date_text ||
+                                           ' Trade Date(' ||
+                                           to_char(vd_valid_quote_date,
+                                                   'dd-Mon-RRRR') || ')';
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                         'procedure sp_concentrate_congprice',
+                                                                         'PHY-002',
+                                                                         vc_data_missing_for,
+                                                                         '',
+                                                                         pc_process,
+                                                                         pc_user_id,
+                                                                         sysdate,
+                                                                         pd_trade_date);
+                  
+                    sp_insert_error_log(vobj_error_log);
+                  end if;
+                when others then
                   vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                        'procedure sp_concentrate_congprice',
-                                                                       'PHY-002',
-                                                                       vc_data_missing_for,
+                                                                       'M2M-013',
+                                                                       sqlcode || ' ' ||
+                                                                       sqlerrm,
                                                                        '',
                                                                        pc_process,
                                                                        pc_user_id,
                                                                        sysdate,
                                                                        pd_trade_date);
-                
                   sp_insert_error_log(vobj_error_log);
-               when others then
-                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                       'procedure sp_concentrate_congprice',
-                                                                        'M2M-013',
-                                                                        sqlcode|| ' '||sqlerrm,
-                                                                       '',
-                                                                       pc_process,
-                                                                       pc_user_id,
-                                                                       sysdate,
-                                                                       pd_trade_date);
-                sp_insert_error_log(vobj_error_log);                                                                         
-               
+                
               end;
               --
               -- If Both Fixed and Unfixed Quantities are there then we have two prices
@@ -586,29 +594,31 @@ create or replace package body pkg_phy_cog_price is
                    and drm.is_deleted = 'N';
               exception
                 when no_data_found then
-                  vobj_error_log.extend;
-                  vc_data_missing_for := 'DR_ID missing for ' ||
-                                         cur_pcdi_rows.instrument_name ||
-                                         ',Price Source:' ||
-                                         cur_pcdi_rows.price_source_name ||
-                                         ' Contract Ref No: ' ||
-                                         cur_pcdi_rows.contract_ref_no ||
-                                         ',Price Unit:' ||
-                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                         cur_pcdi_rows.available_price_name ||
-                                         ' Price,Prompt Date:' ||
-                                         to_char(vd_quotes_date,'dd-Mon-RRRR');
-                  vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                       'procedure sp_concentrate_cog_price',
-                                                                       'PHY-002',
-                                                                       vc_data_missing_for,
-                                                                       '',
-                                                                       pc_process,
-                                                                       pc_user_id,
-                                                                       sysdate,
-                                                                       pd_trade_date);
-                  sp_insert_error_log(vobj_error_log);
-                
+                  if vd_quotes_date is not null then
+                    vobj_error_log.extend;
+                    vc_data_missing_for := 'DR_ID missing for ' ||
+                                           cur_pcdi_rows.instrument_name ||
+                                           ',Price Source:' ||
+                                           cur_pcdi_rows.price_source_name ||
+                                           ' Contract Ref No: ' ||
+                                           cur_pcdi_rows.contract_ref_no ||
+                                           ',Price Unit:' ||
+                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                           cur_pcdi_rows.available_price_name ||
+                                           ' Price,Prompt Date:' ||
+                                           to_char(vd_quotes_date,
+                                                   'dd-Mon-RRRR');
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                         'procedure sp_concentrate_cog_price',
+                                                                         'PHY-002',
+                                                                         vc_data_missing_for,
+                                                                         '',
+                                                                         pc_process,
+                                                                         pc_user_id,
+                                                                         sysdate,
+                                                                         pd_trade_date);
+                    sp_insert_error_log(vobj_error_log);
+                  end if;
               end;
             end if;
           
@@ -630,29 +640,33 @@ create or replace package body pkg_phy_cog_price is
                    and drm.is_deleted = 'N';
               exception
                 when no_data_found then
-                  vobj_error_log.extend;
-                  vc_data_missing_for := 'DR_ID missing for ' ||
-                                         cur_pcdi_rows.instrument_name ||
-                                         ',Price Source:' ||
-                                         cur_pcdi_rows.price_source_name ||
-                                         ' Contract Ref No: ' ||
-                                         cur_pcdi_rows.contract_ref_no ||
-                                         ',Price Unit:' ||
-                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                         cur_pcdi_rows.available_price_name ||
-                                         ' Price,Prompt Date:' ||
-                                         vc_prompt_month || ' ' ||
-                                         vc_prompt_year;
-                  vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                       'procedure sp_concentrate_cog_price',
-                                                                       'PHY-002',
-                                                                       vc_data_missing_for,
-                                                                       '',
-                                                                       pc_process,
-                                                                       pc_user_id,
-                                                                       sysdate,
-                                                                       pd_trade_date);
-                  sp_insert_error_log(vobj_error_log);
+                
+                  if vc_prompt_month is not null and
+                     vc_prompt_year is not null then
+                    vobj_error_log.extend;
+                    vc_data_missing_for := 'DR_ID missing for ' ||
+                                           cur_pcdi_rows.instrument_name ||
+                                           ',Price Source:' ||
+                                           cur_pcdi_rows.price_source_name ||
+                                           ' Contract Ref No: ' ||
+                                           cur_pcdi_rows.contract_ref_no ||
+                                           ',Price Unit:' ||
+                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                           cur_pcdi_rows.available_price_name ||
+                                           ' Price,Prompt Date:' ||
+                                           vc_prompt_month || ' ' ||
+                                           vc_prompt_year;
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                         'procedure sp_concentrate_cog_price',
+                                                                         'PHY-002',
+                                                                         vc_data_missing_for,
+                                                                         '',
+                                                                         pc_process,
+                                                                         pc_user_id,
+                                                                         sysdate,
+                                                                         pd_trade_date);
+                    sp_insert_error_log(vobj_error_log);
+                  end if;
               end;
             end if;
             begin
@@ -684,46 +698,49 @@ create or replace package body pkg_phy_cog_price is
                   from cdim_corporate_dim cdim
                  where cdim.corporate_id = pc_corporate_id
                    and cdim.instrument_id = cur_pcdi_rows.instrument_id;
-                vobj_error_log.extend;
-                select (case
-                         when cur_pcdi_rows.is_daily_cal_applicable = 'N' and
-                              cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                          to_char(vd_prompt_date, 'Mon-RRRR')
-                         else
-                          to_char(vd_quotes_date, 'dd-Mon-RRRR')
-                       end)
-                  into vc_prompt_date_text
-                  from dual;
-                vc_data_missing_for := 'Price missing for ' ||
-                                       cur_pcdi_rows.instrument_name ||
-                                       ',Price Source:' ||
-                                       cur_pcdi_rows.price_source_name ||
-                                       ' Contract Ref No: ' ||
-                                       cur_pcdi_rows.contract_ref_no ||
-                                       ',Price Unit:' ||
-                                       cur_pcdi_rows.price_unit_name || ',' ||
-                                       cur_pcdi_rows.available_price_name ||
-                                       ' Price,Prompt Date:' ||
-                                       vc_prompt_date_text ||
-                                       ' Trade Date(' ||
-                                       to_char(vd_valid_quote_date,
-                                               'dd-Mon-RRRR') || ')';
+                if vd_quotes_date is not null then
+                  vobj_error_log.extend;
+                  select (case
+                           when cur_pcdi_rows.is_daily_cal_applicable = 'N' and
+                                cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                            to_char(vd_prompt_date, 'Mon-RRRR')
+                           else
+                            to_char(vd_quotes_date, 'dd-Mon-RRRR')
+                         end)
+                    into vc_prompt_date_text
+                    from dual;
+                  vc_data_missing_for := 'Price missing for ' ||
+                                         cur_pcdi_rows.instrument_name ||
+                                         ',Price Source:' ||
+                                         cur_pcdi_rows.price_source_name ||
+                                         ' Contract Ref No: ' ||
+                                         cur_pcdi_rows.contract_ref_no ||
+                                         ',Price Unit:' ||
+                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                         cur_pcdi_rows.available_price_name ||
+                                         ' Price,Prompt Date:' ||
+                                         vc_prompt_date_text ||
+                                         ' Trade Date(' ||
+                                         to_char(vd_valid_quote_date,
+                                                 'dd-Mon-RRRR') || ')';
+                  vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                       'procedure sp_concentrate_congprice',
+                                                                       'PHY-002',
+                                                                       vc_data_missing_for,
+                                                                       '',
+                                                                       pc_process,
+                                                                       pc_user_id,
+                                                                       sysdate,
+                                                                       pd_trade_date);
+                
+                  sp_insert_error_log(vobj_error_log);
+                end if;
+              when others then
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                      'procedure sp_concentrate_congprice',
-                                                                     'PHY-002',
-                                                                     vc_data_missing_for,
-                                                                     '',
-                                                                     pc_process,
-                                                                     pc_user_id,
-                                                                     sysdate,
-                                                                     pd_trade_date);
-              
-                sp_insert_error_log(vobj_error_log);
-             when others then
-             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                     'procedure sp_concentrate_congprice',
                                                                      'M2M-013',
-                                                                     sqlcode||' '||sqlerrm,
+                                                                     sqlcode || ' ' ||
+                                                                     sqlerrm,
                                                                      '',
                                                                      pc_process,
                                                                      pc_user_id,
@@ -731,7 +748,7 @@ create or replace package body pkg_phy_cog_price is
                                                                      pd_trade_date);
               
                 sp_insert_error_log(vobj_error_log);
-             
+              
             end;
             vn_fixed_qty            := 0;
             vn_unfixed_qty          := vn_total_quantity;
@@ -807,43 +824,44 @@ create or replace package body pkg_phy_cog_price is
         when others then
           null;
       end;
-      insert into bccp_base_contract_cog_price
-        (process_id,
-         corporate_id,
-         pcdi_id,
-         internal_contract_ref_no,
-         contract_ref_no,
-         delivery_qty,
-         qty_unit_id,
-         contract_price,
-         price_unit_id,
-         price_unit_cur_id,
-         price_unit_cur_code,
-         price_unit_weight,
-         price_unit_weight_unit_id,
-         price_unit_weight_unit,
-         fixed_qty,
-         unfixed_qty,
-         price_basis)
-      values
-        (pc_process_id,
-         pc_corporate_id,
-         cur_pcdi_rows.pcdi_id,
-         cur_pcdi_rows.internal_contract_ref_no,
-         cur_pcdi_rows.contract_ref_no,
-         cur_pcdi_rows.item_qty,
-         cur_pcdi_rows.qty_unit_id,
-         vn_average_price,
-         vc_price_unit_id,
-         vc_price_unit_cur_id,
-         vc_price_unit_cur_code,
-         vn_price_unit_weight,
-         vc_price_unit_weight_unit_id,
-         vc_price_unit_weight_unit,
-         vn_fixed_qty,
-         vn_unfixed_qty,
-         vc_price_basis);
-    
+      if vn_average_price is not null and vc_price_unit_id is not null then
+        insert into bccp_base_contract_cog_price
+          (process_id,
+           corporate_id,
+           pcdi_id,
+           internal_contract_ref_no,
+           contract_ref_no,
+           delivery_qty,
+           qty_unit_id,
+           contract_price,
+           price_unit_id,
+           price_unit_cur_id,
+           price_unit_cur_code,
+           price_unit_weight,
+           price_unit_weight_unit_id,
+           price_unit_weight_unit,
+           fixed_qty,
+           unfixed_qty,
+           price_basis)
+        values
+          (pc_process_id,
+           pc_corporate_id,
+           cur_pcdi_rows.pcdi_id,
+           cur_pcdi_rows.internal_contract_ref_no,
+           cur_pcdi_rows.contract_ref_no,
+           cur_pcdi_rows.item_qty,
+           cur_pcdi_rows.qty_unit_id,
+           vn_average_price,
+           vc_price_unit_id,
+           vc_price_unit_cur_id,
+           vc_price_unit_cur_code,
+           vn_price_unit_weight,
+           vc_price_unit_weight_unit_id,
+           vc_price_unit_weight_unit,
+           vn_fixed_qty,
+           vn_unfixed_qty,
+           vc_price_basis);
+      end if;
     end loop;
   
   exception
@@ -1067,24 +1085,23 @@ create or replace package body pkg_phy_cog_price is
   begin
     for cur_gmr_rows in cur_gmr
     loop
-      vn_total_contract_value := 0;
-      vn_fixed_qty            := 0;
-      vn_unfixed_qty          := 0;
-      vn_fixed_value          := 0;
-      vn_unfixed_value        := 0;
-      vc_pcbpd_id             := cur_gmr_rows.pcbpd_id;
-      vn_total_quantity       := cur_gmr_rows.qty;
-      vc_unfixed_val_price_unit_id :=null;
-      vc_unfixed_val_price_unit_id :=null;
-     
+      vn_total_contract_value      := 0;
+      vn_fixed_qty                 := 0;
+      vn_unfixed_qty               := 0;
+      vn_fixed_value               := 0;
+      vn_unfixed_value             := 0;
+      vc_pcbpd_id                  := cur_gmr_rows.pcbpd_id;
+      vn_total_quantity            := cur_gmr_rows.qty;
+      vc_unfixed_val_price_unit_id := null;
+      vc_unfixed_val_price_unit_id := null;
     
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no)
       loop
         vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
-        vc_price_basis      := cur_gmr_ele_rows.price_basis;        
+        vc_price_basis      := cur_gmr_ele_rows.price_basis;
         begin
-          select nvl(sum(pfd.user_price * round(pfd.qty_fixed,5)), 0),
-                 nvl(sum(round(pfd.qty_fixed,5)), 0),
+          select nvl(sum(pfd.user_price * round(pfd.qty_fixed, 5)), 0),
+                 nvl(sum(round(pfd.qty_fixed, 5)), 0),
                  ppu.price_unit_id
             into vn_fixed_value,
                  vn_fixed_qty,
@@ -1138,29 +1155,31 @@ create or replace package body pkg_phy_cog_price is
                and drm.is_deleted = 'N';
           exception
             when no_data_found then
-              vobj_error_log.extend;
-              vc_data_missing_for := 'DR_ID missing for ' ||
-                                     cur_gmr_rows.instrument_name ||
-                                     ',Price Source:' ||
-                                     cur_gmr_rows.price_source_name ||
-                                     ' Contract Ref No: ' ||
-                                     cur_gmr_rows.gmr_ref_no ||
-                                     ',Price Unit:' ||
-                                     cur_gmr_rows.price_unit_name || ',' ||
-                                     cur_gmr_rows.available_price_name ||
-                                     ' Price,Prompt Date:' ||
-                                     to_char(vd_quotes_date,'dd-Mon-RRRR');
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure sp_concentrate_cog_price',
-                                                                   'PHY-002',
-                                                                   vc_data_missing_for,
-                                                                   '',
-                                                                   pc_process,
-                                                                   pc_user_id,
-                                                                   sysdate,
-                                                                   pd_trade_date);
-              sp_insert_error_log(vobj_error_log);
-            
+              if vd_quotes_date is not null then
+                vobj_error_log.extend;
+                vc_data_missing_for := 'DR_ID missing for ' ||
+                                       cur_gmr_rows.instrument_name ||
+                                       ',Price Source:' ||
+                                       cur_gmr_rows.price_source_name ||
+                                       ' Contract Ref No: ' ||
+                                       cur_gmr_rows.gmr_ref_no ||
+                                       ',Price Unit:' ||
+                                       cur_gmr_rows.price_unit_name || ',' ||
+                                       cur_gmr_rows.available_price_name ||
+                                       ' Price,Prompt Date:' ||
+                                       to_char(vd_quotes_date,
+                                               'dd-Mon-RRRR');
+                vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                     'procedure sp_concentrate_cog_price',
+                                                                     'PHY-002',
+                                                                     vc_data_missing_for,
+                                                                     '',
+                                                                     pc_process,
+                                                                     pc_user_id,
+                                                                     sysdate,
+                                                                     pd_trade_date);
+                sp_insert_error_log(vobj_error_log);
+              end if;
           end;
         end if;
       
@@ -1182,29 +1201,31 @@ create or replace package body pkg_phy_cog_price is
                and drm.is_deleted = 'N';
           exception
             when no_data_found then
-              vobj_error_log.extend;
-              vc_data_missing_for := 'DR_ID missing for ' ||
-                                     cur_gmr_rows.instrument_name ||
-                                     ',Price Source:' ||
-                                     cur_gmr_rows.price_source_name ||
-                                     ' Contract Ref No: ' ||
-                                     cur_gmr_rows.gmr_ref_no ||
-                                     ',Price Unit:' ||
-                                     cur_gmr_rows.price_unit_name || ',' ||
-                                     cur_gmr_rows.available_price_name ||
-                                     ' Price,Prompt Date:' ||
-                                     vc_prompt_month || ' ' ||
-                                     vc_prompt_year;
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure sp_concentrate_cog_price',
-                                                                   'PHY-002',
-                                                                   vc_data_missing_for,
-                                                                   '',
-                                                                   pc_process,
-                                                                   pc_user_id,
-                                                                   sysdate,
-                                                                   pd_trade_date);
-              sp_insert_error_log(vobj_error_log);
+              if vc_prompt_month is not null and vc_prompt_year is not null then
+                vobj_error_log.extend;
+                vc_data_missing_for := 'DR_ID missing for ' ||
+                                       cur_gmr_rows.instrument_name ||
+                                       ',Price Source:' ||
+                                       cur_gmr_rows.price_source_name ||
+                                       ' Contract Ref No: ' ||
+                                       cur_gmr_rows.gmr_ref_no ||
+                                       ',Price Unit:' ||
+                                       cur_gmr_rows.price_unit_name || ',' ||
+                                       cur_gmr_rows.available_price_name ||
+                                       ' Price,Prompt Date:' ||
+                                       vc_prompt_month || ' ' ||
+                                       vc_prompt_year;
+                vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                     'procedure sp_concentrate_cog_price',
+                                                                     'PHY-002',
+                                                                     vc_data_missing_for,
+                                                                     '',
+                                                                     pc_process,
+                                                                     pc_user_id,
+                                                                     sysdate,
+                                                                     pd_trade_date);
+                sp_insert_error_log(vobj_error_log);
+              end if;
           end;
         end if;
       
@@ -1236,45 +1257,48 @@ create or replace package body pkg_phy_cog_price is
               from cdim_corporate_dim cdim
              where cdim.corporate_id = pc_corporate_id
                and cdim.instrument_id = cur_gmr_rows.instrument_id;
-            vobj_error_log.extend;
-            select (case
-                     when cur_gmr_rows.is_daily_cal_applicable = 'N' and
-                          cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
-                      to_char(vd_prompt_date, 'Mon-RRRR')
-                     else
-                      to_char(vd_quotes_date, 'dd-Mon-RRRR')
-                   end)
-              into vc_prompt_date_text
-              from dual;
-            vc_data_missing_for := 'Price missing for ' ||
-                                   cur_gmr_rows.instrument_name ||
-                                   ',Price Source:' ||
-                                   cur_gmr_rows.price_source_name ||
-                                   ' Contract Ref No: ' ||
-                                   cur_gmr_rows.gmr_ref_no ||
-                                   ',Price Unit:' ||
-                                   cur_gmr_rows.price_unit_name || ',' ||
-                                   cur_gmr_rows.available_price_name ||
-                                   ' Price,Prompt Date:' ||
-                                   vc_prompt_date_text || ' Trade Date(' ||
-                                   to_char(vd_valid_quote_date,
-                                           'dd-Mon-RRRR') || ')';
+            if vd_quotes_date is not null then
+              vobj_error_log.extend;
+              select (case
+                       when cur_gmr_rows.is_daily_cal_applicable = 'N' and
+                            cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
+                        to_char(vd_prompt_date, 'Mon-RRRR')
+                       else
+                        to_char(vd_quotes_date, 'dd-Mon-RRRR')
+                     end)
+                into vc_prompt_date_text
+                from dual;
+              vc_data_missing_for := 'Price missing for ' ||
+                                     cur_gmr_rows.instrument_name ||
+                                     ',Price Source:' ||
+                                     cur_gmr_rows.price_source_name ||
+                                     ' Contract Ref No: ' ||
+                                     cur_gmr_rows.gmr_ref_no ||
+                                     ',Price Unit:' ||
+                                     cur_gmr_rows.price_unit_name || ',' ||
+                                     cur_gmr_rows.available_price_name ||
+                                     ' Price,Prompt Date:' ||
+                                     vc_prompt_date_text || ' Trade Date(' ||
+                                     to_char(vd_valid_quote_date,
+                                             'dd-Mon-RRRR') || ')';
+              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                   'procedure sp_concentrate_congprice',
+                                                                   'PHY-002',
+                                                                   vc_data_missing_for,
+                                                                   '',
+                                                                   pc_process,
+                                                                   pc_user_id,
+                                                                   sysdate,
+                                                                   pd_trade_date);
+            
+              sp_insert_error_log(vobj_error_log);
+            end if;
+          when others then
             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                  'procedure sp_concentrate_congprice',
-                                                                 'PHY-002',
-                                                                 vc_data_missing_for,
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-          
-            sp_insert_error_log(vobj_error_log);
-          when others then
-           vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure sp_concentrate_congprice',
                                                                  'M2M-013',
-                                                                 sqlcode|| ' '||sqlerrm,
+                                                                 sqlcode || ' ' ||
+                                                                 sqlerrm,
                                                                  '',
                                                                  pc_process,
                                                                  pc_user_id,
@@ -1357,43 +1381,44 @@ create or replace package body pkg_phy_cog_price is
           vc_price_weight_unit_id := null;
           vc_price_qty_unit       := null;
       end;
-      insert into bgcp_base_gmr_cog_price
-        (process_id,
-         corporate_id,
-         internal_gmr_ref_no,
-         gmr_ref_no,
-         qty,
-         qty_unit_id,
-         contract_price,
-         price_unit_id,
-         price_unit_cur_id,
-         price_unit_cur_code,
-         price_unit_weight,
-         price_unit_weight_unit_id,
-         price_unit_weight_unit,
-         fixed_qty,
-         unfixed_qty,
-         price_basis,
-         internal_grd_ref_no)
-      values
-        (pc_process_id,
-         pc_corporate_id,
-         cur_gmr_rows.internal_gmr_ref_no,
-         cur_gmr_rows.gmr_ref_no,
-         cur_gmr_rows.qty,
-         cur_gmr_rows.qty_unit_id,
-         vn_average_price,
-         vc_price_unit_id,
-         vc_price_cur_id,
-         vc_price_cur_code,
-         vn_price_weight_unit,
-         vc_price_weight_unit_id,
-         vn_price_weight_unit,
-         vn_fixed_qty,
-         vn_unfixed_qty,
-         vc_price_basis,
-         cur_gmr_rows.internal_grd_ref_no);
-    
+      if vn_average_price is not null and vc_price_unit_id is not null then
+        insert into bgcp_base_gmr_cog_price
+          (process_id,
+           corporate_id,
+           internal_gmr_ref_no,
+           gmr_ref_no,
+           qty,
+           qty_unit_id,
+           contract_price,
+           price_unit_id,
+           price_unit_cur_id,
+           price_unit_cur_code,
+           price_unit_weight,
+           price_unit_weight_unit_id,
+           price_unit_weight_unit,
+           fixed_qty,
+           unfixed_qty,
+           price_basis,
+           internal_grd_ref_no)
+        values
+          (pc_process_id,
+           pc_corporate_id,
+           cur_gmr_rows.internal_gmr_ref_no,
+           cur_gmr_rows.gmr_ref_no,
+           cur_gmr_rows.qty,
+           cur_gmr_rows.qty_unit_id,
+           vn_average_price,
+           vc_price_unit_id,
+           vc_price_cur_id,
+           vc_price_cur_code,
+           vn_price_weight_unit,
+           vc_price_weight_unit_id,
+           vn_price_weight_unit,
+           vn_fixed_qty,
+           vn_unfixed_qty,
+           vc_price_basis,
+           cur_gmr_rows.internal_grd_ref_no);
+      end if;
     end loop;
   end;
   procedure sp_conc_contract_cog_price(pc_corporate_id varchar2,
@@ -1602,9 +1627,9 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_qty               := 0;
       vn_fixed_value               := 0;
       vn_unfixed_value             := 0;
-      vc_fixed_price_unit_id       :=null;
-      vc_unfixed_val_price_unit_id :=null;
-      
+      vc_fixed_price_unit_id       := null;
+      vc_unfixed_val_price_unit_id := null;
+    
       vc_price_option_call_off_sts := cur_pcdi_rows.price_option_call_off_status;
       vn_total_contract_value      := 0;
       if vc_price_option_call_off_sts in ('Called Off', 'Not Applicable') then
@@ -1659,8 +1684,8 @@ create or replace package body pkg_phy_cog_price is
             loop
               vc_error_message := ' Line 240 ';
               begin
-                select nvl(sum(pfd.user_price * round(pfd.qty_fixed,5)), 0),
-                       nvl(sum(round(pfd.qty_fixed,5)), 0),
+                select nvl(sum(pfd.user_price * round(pfd.qty_fixed, 5)), 0),
+                       nvl(sum(round(pfd.qty_fixed, 5)), 0),
                        ppu.price_unit_id
                   into vn_fixed_value,
                        vn_fixed_qty,
@@ -1716,29 +1741,31 @@ create or replace package body pkg_phy_cog_price is
                    and drm.is_deleted = 'N';
               exception
                 when no_data_found then
-                  vobj_error_log.extend;
-                  vc_data_missing_for := 'DR_ID missing for ' ||
-                                         cur_pcdi_rows.instrument_name ||
-                                         ',Price Source:' ||
-                                         cur_pcdi_rows.price_source_name ||
-                                         ' Contract Ref No: ' ||
-                                         cur_pcdi_rows.contract_ref_no ||
-                                         ',Price Unit:' ||
-                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                         cur_pcdi_rows.available_price_name ||
-                                         ' Price,Prompt Date:' ||
-                                         to_char(vd_quotes_date,'dd-Mon-RRRR');
-                  vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                       'procedure sp_concentrate_cog_price',
-                                                                       'PHY-002',
-                                                                       vc_data_missing_for,
-                                                                       '',
-                                                                       pc_process,
-                                                                       pc_user_id,
-                                                                       sysdate,
-                                                                       pd_trade_date);
-                  sp_insert_error_log(vobj_error_log);
-                
+                  if vd_quotes_date is not null then
+                    vobj_error_log.extend;
+                    vc_data_missing_for := 'DR_ID missing for ' ||
+                                           cur_pcdi_rows.instrument_name ||
+                                           ',Price Source:' ||
+                                           cur_pcdi_rows.price_source_name ||
+                                           ' Contract Ref No: ' ||
+                                           cur_pcdi_rows.contract_ref_no ||
+                                           ',Price Unit:' ||
+                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                           cur_pcdi_rows.available_price_name ||
+                                           ' Price,Prompt Date:' ||
+                                           to_char(vd_quotes_date,
+                                                   'dd-Mon-RRRR');
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                         'procedure sp_concentrate_cog_price',
+                                                                         'PHY-002',
+                                                                         vc_data_missing_for,
+                                                                         '',
+                                                                         pc_process,
+                                                                         pc_user_id,
+                                                                         sysdate,
+                                                                         pd_trade_date);
+                    sp_insert_error_log(vobj_error_log);
+                  end if;
               end;
             end if;
             if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
@@ -1759,29 +1786,32 @@ create or replace package body pkg_phy_cog_price is
                    and drm.is_deleted = 'N';
               exception
                 when no_data_found then
-                  vobj_error_log.extend;
-                  vc_data_missing_for := 'DR_ID missing for ' ||
-                                         cur_pcdi_rows.instrument_name ||
-                                         ',Price Source:' ||
-                                         cur_pcdi_rows.price_source_name ||
-                                         ' Contract Ref No: ' ||
-                                         cur_pcdi_rows.contract_ref_no ||
-                                         ',Price Unit:' ||
-                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                         cur_pcdi_rows.available_price_name ||
-                                         ' Price,Prompt Date:' ||
-                                         vc_prompt_month || ' ' ||
-                                         vc_prompt_year;
-                  vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                       'procedure sp_concentrate_cog_price',
-                                                                       'PHY-002',
-                                                                       vc_data_missing_for,
-                                                                       '',
-                                                                       pc_process,
-                                                                       pc_user_id,
-                                                                       sysdate,
-                                                                       pd_trade_date);
-                  sp_insert_error_log(vobj_error_log);
+                  if vc_prompt_month is not null and
+                     vc_prompt_year is not null then
+                    vobj_error_log.extend;
+                    vc_data_missing_for := 'DR_ID missing for ' ||
+                                           cur_pcdi_rows.instrument_name ||
+                                           ',Price Source:' ||
+                                           cur_pcdi_rows.price_source_name ||
+                                           ' Contract Ref No: ' ||
+                                           cur_pcdi_rows.contract_ref_no ||
+                                           ',Price Unit:' ||
+                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                           cur_pcdi_rows.available_price_name ||
+                                           ' Price,Prompt Date:' ||
+                                           vc_prompt_month || ' ' ||
+                                           vc_prompt_year;
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                         'procedure sp_concentrate_cog_price',
+                                                                         'PHY-002',
+                                                                         vc_data_missing_for,
+                                                                         '',
+                                                                         pc_process,
+                                                                         pc_user_id,
+                                                                         sysdate,
+                                                                         pd_trade_date);
+                    sp_insert_error_log(vobj_error_log);
+                  end if;
               end;
             end if;
           
@@ -1814,47 +1844,50 @@ create or replace package body pkg_phy_cog_price is
                   from cdim_corporate_dim cdim
                  where cdim.corporate_id = pc_corporate_id
                    and cdim.instrument_id = cur_pcdi_rows.instrument_id;
-                vobj_error_log.extend;
-                vc_error_message := ' Line 391 ';
-                select (case
-                         when cur_pcdi_rows.is_daily_cal_applicable = 'N' and
-                              cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                          to_char(vd_prompt_date, 'Mon-RRRR')
-                         else
-                          to_char(vd_quotes_date, 'dd-Mon-RRRR')
-                       end)
-                  into vc_prompt_date_text
-                  from dual;
-                vc_data_missing_for := 'Price missing for ' ||
-                                       cur_pcdi_rows.instrument_name ||
-                                       ',Price Source:' ||
-                                       cur_pcdi_rows.price_source_name ||
-                                       ' Contract Ref No: ' ||
-                                       cur_pcdi_rows.contract_ref_no ||
-                                       ',Price Unit:' ||
-                                       cur_pcdi_rows.price_unit_name || ',' ||
-                                       cur_pcdi_rows.available_price_name ||
-                                       ' Price,Prompt Date:' ||
-                                       vc_prompt_date_text ||
-                                       ' Trade Date(' ||
-                                       to_char(vd_valid_quote_date,
-                                               'dd-Mon-RRRR') || ')';
+                if vd_quotes_date is not null then
+                  vobj_error_log.extend;
+                  vc_error_message := ' Line 391 ';
+                  select (case
+                           when cur_pcdi_rows.is_daily_cal_applicable = 'N' and
+                                cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                            to_char(vd_prompt_date, 'Mon-RRRR')
+                           else
+                            to_char(vd_quotes_date, 'dd-Mon-RRRR')
+                         end)
+                    into vc_prompt_date_text
+                    from dual;
+                  vc_data_missing_for := 'Price missing for ' ||
+                                         cur_pcdi_rows.instrument_name ||
+                                         ',Price Source:' ||
+                                         cur_pcdi_rows.price_source_name ||
+                                         ' Contract Ref No: ' ||
+                                         cur_pcdi_rows.contract_ref_no ||
+                                         ',Price Unit:' ||
+                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                         cur_pcdi_rows.available_price_name ||
+                                         ' Price,Prompt Date:' ||
+                                         vc_prompt_date_text ||
+                                         ' Trade Date(' ||
+                                         to_char(vd_valid_quote_date,
+                                                 'dd-Mon-RRRR') || ')';
+                  vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                       'procedure sp_concentrate_congprice',
+                                                                       'PHY-002',
+                                                                       vc_data_missing_for,
+                                                                       '',
+                                                                       pc_process,
+                                                                       pc_user_id,
+                                                                       sysdate,
+                                                                       pd_trade_date);
+                
+                  sp_insert_error_log(vobj_error_log);
+                end if;
+              when others then
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                      'procedure sp_concentrate_congprice',
-                                                                     'PHY-002',
-                                                                     vc_data_missing_for,
-                                                                     '',
-                                                                     pc_process,
-                                                                     pc_user_id,
-                                                                     sysdate,
-                                                                     pd_trade_date);
-              
-                sp_insert_error_log(vobj_error_log);
-             when others then
-               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                     'procedure sp_concentrate_congprice',
                                                                      'M2M-013',
-                                                                     sqlcode|| ' '||sqlerrm,
+                                                                     sqlcode || ' ' ||
+                                                                     sqlerrm,
                                                                      '',
                                                                      pc_process,
                                                                      pc_user_id,
@@ -1956,28 +1989,31 @@ create or replace package body pkg_phy_cog_price is
                    and drm.is_deleted = 'N';
               exception
                 when no_data_found then
-                  vobj_error_log.extend;
-                  vc_data_missing_for := 'DR-ID missing for ' ||
-                                         cur_pcdi_rows.instrument_name ||
-                                         ',Price Source:' ||
-                                         cur_pcdi_rows.price_source_name ||
-                                         ' Contract Ref No: ' ||
-                                         cur_pcdi_rows.contract_ref_no ||
-                                         ',Price Unit:' ||
-                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                         cur_pcdi_rows.available_price_name ||
-                                         ' Price,Prompt Date:' ||
-                                         to_char(vd_quotes_date,'dd-Mon-RRRR');
-                  vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                       'procedure sp_calc_contract_conc_price',
-                                                                       'PHY-002',
-                                                                       vc_data_missing_for,
-                                                                       '',
-                                                                       pc_process,
-                                                                       pc_user_id,
-                                                                       sysdate,
-                                                                       pd_trade_date);
-                  sp_insert_error_log(vobj_error_log);
+                  if vd_quotes_date is not null then
+                    vobj_error_log.extend;
+                    vc_data_missing_for := 'DR-ID missing for ' ||
+                                           cur_pcdi_rows.instrument_name ||
+                                           ',Price Source:' ||
+                                           cur_pcdi_rows.price_source_name ||
+                                           ' Contract Ref No: ' ||
+                                           cur_pcdi_rows.contract_ref_no ||
+                                           ',Price Unit:' ||
+                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                           cur_pcdi_rows.available_price_name ||
+                                           ' Price,Prompt Date:' ||
+                                           to_char(vd_quotes_date,
+                                                   'dd-Mon-RRRR');
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                         'procedure sp_calc_contract_conc_price',
+                                                                         'PHY-002',
+                                                                         vc_data_missing_for,
+                                                                         '',
+                                                                         pc_process,
+                                                                         pc_user_id,
+                                                                         sysdate,
+                                                                         pd_trade_date);
+                    sp_insert_error_log(vobj_error_log);
+                  end if;
               end;
             end if;
             if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
@@ -1999,29 +2035,32 @@ create or replace package body pkg_phy_cog_price is
                    and drm.is_deleted = 'N';
               exception
                 when no_data_found then
-                  vobj_error_log.extend;
-                  vc_data_missing_for := 'DR_ID missing for ' ||
-                                         cur_pcdi_rows.instrument_name ||
-                                         ',Price Source:' ||
-                                         cur_pcdi_rows.price_source_name ||
-                                         ' Contract Ref No: ' ||
-                                         cur_pcdi_rows.contract_ref_no ||
-                                         ',Price Unit:' ||
-                                         cur_pcdi_rows.price_unit_name || ',' ||
-                                         cur_pcdi_rows.available_price_name ||
-                                         ' Price,Prompt Date:' ||
-                                         vc_prompt_month || ' ' ||
-                                         vc_prompt_year;
-                  vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                       'procedure sp_calc_contract_conc_price',
-                                                                       'PHY-002',
-                                                                       vc_data_missing_for,
-                                                                       '',
-                                                                       pc_process,
-                                                                       pc_user_id,
-                                                                       sysdate,
-                                                                       pd_trade_date);
-                  sp_insert_error_log(vobj_error_log);
+                  if vc_prompt_month is not null and
+                     vc_prompt_year is not null then
+                    vobj_error_log.extend;
+                    vc_data_missing_for := 'DR_ID missing for ' ||
+                                           cur_pcdi_rows.instrument_name ||
+                                           ',Price Source:' ||
+                                           cur_pcdi_rows.price_source_name ||
+                                           ' Contract Ref No: ' ||
+                                           cur_pcdi_rows.contract_ref_no ||
+                                           ',Price Unit:' ||
+                                           cur_pcdi_rows.price_unit_name || ',' ||
+                                           cur_pcdi_rows.available_price_name ||
+                                           ' Price,Prompt Date:' ||
+                                           vc_prompt_month || ' ' ||
+                                           vc_prompt_year;
+                    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                         'procedure sp_calc_contract_conc_price',
+                                                                         'PHY-002',
+                                                                         vc_data_missing_for,
+                                                                         '',
+                                                                         pc_process,
+                                                                         pc_user_id,
+                                                                         sysdate,
+                                                                         pd_trade_date);
+                    sp_insert_error_log(vobj_error_log);
+                  end if;
               end;
             end if;
             begin
@@ -2053,45 +2092,49 @@ create or replace package body pkg_phy_cog_price is
                   from cdim_corporate_dim cdim
                  where cdim.corporate_id = pc_corporate_id
                    and cdim.instrument_id = cur_pcdi_rows.instrument_id;
-                vobj_error_log.extend;
-                select (case
-                         when cur_pcdi_rows.is_daily_cal_applicable = 'N' and
-                              cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
-                          to_char(vd_prompt_date, 'Mon-RRRR')
-                         else
-                          to_char(vd_quotes_date, 'dd-Mon-RRRR')
-                       end)
-                  into vc_prompt_date_text
-                  from dual;
-                vc_data_missing_for := 'Price missing for ' ||
-                                       cur_pcdi_rows.instrument_name ||
-                                       ',Price Source:' ||
-                                       cur_pcdi_rows.price_source_name ||
-                                       ' Contract Ref No: ' ||
-                                       cur_pcdi_rows.contract_ref_no ||
-                                       ',Price Unit:' ||
-                                       cur_pcdi_rows.price_unit_name || ',' ||
-                                       cur_pcdi_rows.available_price_name ||
-                                       ' Price,Prompt Date:' ||
-                                       vc_prompt_date_text ||
-                                       ' Trade Date(' ||
-                                       to_char(vd_valid_quote_date,
-                                               'dd-Mon-RRRR') || ')';
+                if vd_quotes_date is not null then
+                
+                  vobj_error_log.extend;
+                  select (case
+                           when cur_pcdi_rows.is_daily_cal_applicable = 'N' and
+                                cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
+                            to_char(vd_prompt_date, 'Mon-RRRR')
+                           else
+                            to_char(vd_quotes_date, 'dd-Mon-RRRR')
+                         end)
+                    into vc_prompt_date_text
+                    from dual;
+                  vc_data_missing_for := 'Price missing for ' ||
+                                         cur_pcdi_rows.instrument_name ||
+                                         ',Price Source:' ||
+                                         cur_pcdi_rows.price_source_name ||
+                                         ' Contract Ref No: ' ||
+                                         cur_pcdi_rows.contract_ref_no ||
+                                         ',Price Unit:' ||
+                                         cur_pcdi_rows.price_unit_name || ',' ||
+                                         cur_pcdi_rows.available_price_name ||
+                                         ' Price,Prompt Date:' ||
+                                         vc_prompt_date_text ||
+                                         ' Trade Date(' ||
+                                         to_char(vd_valid_quote_date,
+                                                 'dd-Mon-RRRR') || ')';
+                  vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                       'procedure sp_calc_contract_conc_price',
+                                                                       'PHY-002',
+                                                                       vc_data_missing_for,
+                                                                       '',
+                                                                       pc_process,
+                                                                       pc_user_id,
+                                                                       sysdate,
+                                                                       pd_trade_date);
+                  sp_insert_error_log(vobj_error_log);
+                end if;
+              when others then
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                      'procedure sp_calc_contract_conc_price',
-                                                                     'PHY-002',
-                                                                     vc_data_missing_for,
-                                                                     '',
-                                                                     pc_process,
-                                                                     pc_user_id,
-                                                                     sysdate,
-                                                                     pd_trade_date);
-                sp_insert_error_log(vobj_error_log);
-             when others then
-             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                     'procedure sp_calc_contract_conc_price',
                                                                      'M2M-013',
-                                                                     sqlcode|| ' ' ||sqlerrm,
+                                                                     sqlcode || ' ' ||
+                                                                     sqlerrm,
                                                                      '',
                                                                      pc_process,
                                                                      pc_user_id,
@@ -2107,15 +2150,15 @@ create or replace package body pkg_phy_cog_price is
                                        vn_unfixed_val_price));
             vc_error_message        := ' Line 641 ';
             begin
-            select ppu.product_price_unit_id
-              into vc_price_unit_id
-              from v_ppu_pum ppu
-             where ppu.price_unit_id = vc_unfixed_val_price_unit_id
-               and ppu.product_id = cur_pcdi_rows.product_id;
-             exception
-             when others then
-             vc_price_unit_id:=null;
-             end;
+              select ppu.product_price_unit_id
+                into vc_price_unit_id
+                from v_ppu_pum ppu
+               where ppu.price_unit_id = vc_unfixed_val_price_unit_id
+                 and ppu.product_id = cur_pcdi_rows.product_id;
+            exception
+              when others then
+                vc_price_unit_id := null;
+            end;
             vc_error_message := ' Line 647 ';
           end if;
         end loop;
@@ -2144,52 +2187,53 @@ create or replace package body pkg_phy_cog_price is
            and ppu.weight_unit_id = qum.qty_unit_id;
       exception
         when others then
-           vc_price_unit_cur_id:=null;
-           vc_price_unit_cur_code:=null;
-           vc_price_unit_weight_unit_id:=null;
-           vc_price_unit_weight_unit:=null;
-           vn_price_unit_weight:=null;
+          vc_price_unit_cur_id         := null;
+          vc_price_unit_cur_code       := null;
+          vc_price_unit_weight_unit_id := null;
+          vc_price_unit_weight_unit    := null;
+          vn_price_unit_weight         := null;
       end;
       vc_error_message := ' Line 676 ';
-      insert into cccp_conc_contract_cog_price
-        (process_id,
-         corporate_id,
-         pcdi_id,
-         internal_contract_ref_no,
-         contract_ref_no,
-         element_id,
-         payable_qty,
-         payable_qty_unit_id,
-         contract_price,
-         price_unit_id,
-         price_unit_cur_id,
-         price_unit_cur_code,
-         price_unit_weight,
-         price_unit_weight_unit_id,
-         price_unit_weight_unit,
-         fixed_qty,
-         unfixed_qty,
-         price_basis)
-      values
-        (pc_process_id,
-         pc_corporate_id,
-         cur_pcdi_rows.pcdi_id,
-         cur_pcdi_rows.internal_contract_ref_no,
-         cur_pcdi_rows.contract_ref_no,
-         cur_pcdi_rows.element_id,
-         cur_pcdi_rows.payable_qty,
-         cur_pcdi_rows.payable_qty_unit_id,
-         vn_average_price,
-         vc_price_unit_id,
-         vc_price_unit_cur_id,
-         vc_price_unit_cur_code,
-         vn_price_unit_weight,
-         vc_price_unit_weight_unit_id,
-         vc_price_unit_weight_unit,
-         vn_fixed_qty,
-         vn_unfixed_qty,
-         vc_price_basis);
-    
+      if vn_average_price is not null and vc_price_unit_id is not null then
+        insert into cccp_conc_contract_cog_price
+          (process_id,
+           corporate_id,
+           pcdi_id,
+           internal_contract_ref_no,
+           contract_ref_no,
+           element_id,
+           payable_qty,
+           payable_qty_unit_id,
+           contract_price,
+           price_unit_id,
+           price_unit_cur_id,
+           price_unit_cur_code,
+           price_unit_weight,
+           price_unit_weight_unit_id,
+           price_unit_weight_unit,
+           fixed_qty,
+           unfixed_qty,
+           price_basis)
+        values
+          (pc_process_id,
+           pc_corporate_id,
+           cur_pcdi_rows.pcdi_id,
+           cur_pcdi_rows.internal_contract_ref_no,
+           cur_pcdi_rows.contract_ref_no,
+           cur_pcdi_rows.element_id,
+           cur_pcdi_rows.payable_qty,
+           cur_pcdi_rows.payable_qty_unit_id,
+           vn_average_price,
+           vc_price_unit_id,
+           vc_price_unit_cur_id,
+           vc_price_unit_cur_code,
+           vn_price_unit_weight,
+           vc_price_unit_weight_unit_id,
+           vc_price_unit_weight_unit,
+           vn_fixed_qty,
+           vn_unfixed_qty,
+           vc_price_basis);
+      end if;
     end loop;
   
   exception
@@ -2310,10 +2354,10 @@ create or replace package body pkg_phy_cog_price is
          and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
-         and spq.internal_grd_ref_no=grd.internal_grd_ref_no --added
+         and spq.internal_grd_ref_no = grd.internal_grd_ref_no --added
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
-         and spq.payable_qty>0
+         and spq.payable_qty > 0
       union all
       select gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
@@ -2390,12 +2434,12 @@ create or replace package body pkg_phy_cog_price is
          and spq.process_id = pc_process_id
          and tt.element_id = spq.element_id
          and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
-         and grd.internal_dgrd_ref_no=spq.internal_dgrd_ref_no-- added
+         and grd.internal_dgrd_ref_no = spq.internal_dgrd_ref_no -- added
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
-         and spq.payable_qty>0;
+         and spq.payable_qty > 0;
   
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is
       select pofh.internal_gmr_ref_no,
@@ -2463,13 +2507,13 @@ create or replace package body pkg_phy_cog_price is
   
     for cur_gmr_rows in cur_gmr
     loop
-      vn_total_contract_value := 0;
-      vn_fixed_qty            := 0;
-      vn_unfixed_qty          := 0;
-      vn_fixed_value          := 0;
-      vn_unfixed_value        := 0;
-      vc_unfixed_val_price_unit_id :=null;
-      vc_unfixed_val_price_unit_id:=null;
+      vn_total_contract_value      := 0;
+      vn_fixed_qty                 := 0;
+      vn_unfixed_qty               := 0;
+      vn_fixed_value               := 0;
+      vn_unfixed_value             := 0;
+      vc_unfixed_val_price_unit_id := null;
+      vc_unfixed_val_price_unit_id := null;
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
                                           cur_gmr_rows.element_id)
       loop
@@ -2478,8 +2522,8 @@ create or replace package body pkg_phy_cog_price is
         vc_pcbpd_id    := cur_gmr_ele_rows.pcbpd_id;
       
         begin
-          select nvl(sum((pfd.user_price * round(pfd.qty_fixed,5))), 0),
-                 nvl(sum(round(pfd.qty_fixed,5)), 0),
+          select nvl(sum((pfd.user_price * round(pfd.qty_fixed, 5))), 0),
+                 nvl(sum(round(pfd.qty_fixed, 5)), 0),
                  ppu.price_unit_id
             into vn_fixed_value,
                  vn_fixed_qty,
@@ -2535,29 +2579,31 @@ create or replace package body pkg_phy_cog_price is
                and drm.is_deleted = 'N';
           exception
             when no_data_found then
-              vobj_error_log.extend;
-              vc_data_missing_for := 'DR_ID missing for ' ||
-                                     cur_gmr_rows.instrument_name ||
-                                     ',Price Source:' ||
-                                     cur_gmr_rows.price_source_name ||
-                                     ' GMR Ref No: ' ||
-                                     cur_gmr_rows.gmr_ref_no ||
-                                     ',Price Unit:' ||
-                                     cur_gmr_rows.price_unit_name || ',' ||
-                                     cur_gmr_rows.available_price_name ||
-                                     ' Price,Prompt Date:' ||
-                                     to_char(vd_quotes_date,'dd-Mon-RRRR');
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure sp_conc_contract_cog_price',
-                                                                   'PHY-002',
-                                                                   vc_data_missing_for,
-                                                                   '',
-                                                                   pc_process,
-                                                                   pc_user_id,
-                                                                   sysdate,
-                                                                   pd_trade_date);
-              sp_insert_error_log(vobj_error_log);
-            
+              if vd_quotes_date is not null then
+                vobj_error_log.extend;
+                vc_data_missing_for := 'DR_ID missing for ' ||
+                                       cur_gmr_rows.instrument_name ||
+                                       ',Price Source:' ||
+                                       cur_gmr_rows.price_source_name ||
+                                       ' GMR Ref No: ' ||
+                                       cur_gmr_rows.gmr_ref_no ||
+                                       ',Price Unit:' ||
+                                       cur_gmr_rows.price_unit_name || ',' ||
+                                       cur_gmr_rows.available_price_name ||
+                                       ' Price,Prompt Date:' ||
+                                       to_char(vd_quotes_date,
+                                               'dd-Mon-RRRR');
+                vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                     'procedure sp_conc_contract_cog_price',
+                                                                     'PHY-002',
+                                                                     vc_data_missing_for,
+                                                                     '',
+                                                                     pc_process,
+                                                                     pc_user_id,
+                                                                     sysdate,
+                                                                     pd_trade_date);
+                sp_insert_error_log(vobj_error_log);
+              end if;
           end;
         end if;
         if cur_gmr_rows.is_daily_cal_applicable = 'N' and
@@ -2578,29 +2624,32 @@ create or replace package body pkg_phy_cog_price is
                and drm.is_deleted = 'N';
           exception
             when no_data_found then
-              vobj_error_log.extend;
-              vc_data_missing_for := 'DR_ID missing for ' ||
-                                     cur_gmr_rows.instrument_name ||
-                                     ',Price Source:' ||
-                                     cur_gmr_rows.price_source_name ||
-                                     ' GMR Ref No: ' ||
-                                     cur_gmr_rows.gmr_ref_no ||
-                                     ',Price Unit:' ||
-                                     cur_gmr_rows.price_unit_name || ',' ||
-                                     cur_gmr_rows.available_price_name ||
-                                     ' Price,Prompt Date:' ||
-                                     vc_prompt_month || ' ' ||
-                                     vc_prompt_year;
-              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure sp_concentrate_cog_price',
-                                                                   'PHY-002',
-                                                                   vc_data_missing_for,
-                                                                   '',
-                                                                   pc_process,
-                                                                   pc_user_id,
-                                                                   sysdate,
-                                                                   pd_trade_date);
-              sp_insert_error_log(vobj_error_log);
+            
+              if vc_prompt_month is not null and vc_prompt_year is not null then
+                vobj_error_log.extend;
+                vc_data_missing_for := 'DR_ID missing for ' ||
+                                       cur_gmr_rows.instrument_name ||
+                                       ',Price Source:' ||
+                                       cur_gmr_rows.price_source_name ||
+                                       ' GMR Ref No: ' ||
+                                       cur_gmr_rows.gmr_ref_no ||
+                                       ',Price Unit:' ||
+                                       cur_gmr_rows.price_unit_name || ',' ||
+                                       cur_gmr_rows.available_price_name ||
+                                       ' Price,Prompt Date:' ||
+                                       vc_prompt_month || ' ' ||
+                                       vc_prompt_year;
+                vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                     'procedure sp_concentrate_cog_price',
+                                                                     'PHY-002',
+                                                                     vc_data_missing_for,
+                                                                     '',
+                                                                     pc_process,
+                                                                     pc_user_id,
+                                                                     sysdate,
+                                                                     pd_trade_date);
+                sp_insert_error_log(vobj_error_log);
+              end if;
           end;
         end if;
       
@@ -2632,42 +2681,45 @@ create or replace package body pkg_phy_cog_price is
               from cdim_corporate_dim cdim
              where cdim.corporate_id = pc_corporate_id
                and cdim.instrument_id = cur_gmr_rows.instrument_id;
-            vobj_error_log.extend;
-            select (case
-                     when cur_gmr_rows.is_daily_cal_applicable = 'N' and
-                          cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
-                      to_char(vd_prompt_date, 'Mon-RRRR')
-                     else
-                      to_char(vd_quotes_date, 'dd-Mon-RRRR')
-                   end)
-              into vc_prompt_date_text
-              from dual;
-            vc_data_missing_for := 'Price missing for ' ||
-                                   cur_gmr_rows.instrument_name ||
-                                   ',Price Source:' ||
-                                   cur_gmr_rows.price_source_name ||
-                                   ',Price Unit:' ||
-                                   cur_gmr_rows.price_unit_name || ',' ||
-                                   cur_gmr_rows.available_price_name ||
-                                   ' Price,Prompt Date:' ||
-                                   vc_prompt_date_text || ' Trade Date(' ||
-                                   to_char(vd_valid_quote_date,
-                                           'dd-Mon-RRRR') || ')';
+            if vd_quotes_date is not null then
+              vobj_error_log.extend;
+              select (case
+                       when cur_gmr_rows.is_daily_cal_applicable = 'N' and
+                            cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
+                        to_char(vd_prompt_date, 'Mon-RRRR')
+                       else
+                        to_char(vd_quotes_date, 'dd-Mon-RRRR')
+                     end)
+                into vc_prompt_date_text
+                from dual;
+              vc_data_missing_for := 'Price missing for ' ||
+                                     cur_gmr_rows.instrument_name ||
+                                     ',Price Source:' ||
+                                     cur_gmr_rows.price_source_name ||
+                                     ',Price Unit:' ||
+                                     cur_gmr_rows.price_unit_name || ',' ||
+                                     cur_gmr_rows.available_price_name ||
+                                     ' Price,Prompt Date:' ||
+                                     vc_prompt_date_text || ' Trade Date(' ||
+                                     to_char(vd_valid_quote_date,
+                                             'dd-Mon-RRRR') || ')';
+              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                   'procedure sp_concentrate_congprice',
+                                                                   'PHY-002',
+                                                                   vc_data_missing_for,
+                                                                   '',
+                                                                   pc_process,
+                                                                   pc_user_id,
+                                                                   sysdate,
+                                                                   pd_trade_date);
+              sp_insert_error_log(vobj_error_log);
+            end if;
+          when others then
             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                  'procedure sp_concentrate_congprice',
-                                                                 'PHY-002',
-                                                                 vc_data_missing_for,
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
-          when others then
-           vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure sp_concentrate_congprice',
                                                                  'M2M-013',
-                                                                 sqlcode||' '||sqlerrm,
+                                                                 sqlcode || ' ' ||
+                                                                 sqlerrm,
                                                                  '',
                                                                  pc_process,
                                                                  pc_user_id,
@@ -2745,44 +2797,46 @@ create or replace package body pkg_phy_cog_price is
           vc_price_weight_unit_id := null;
           vc_price_qty_unit       := null;
       end;
-      insert into cgcp_conc_gmr_cog_price
-        (process_id,
-         corporate_id,
-         internal_gmr_ref_no,
-         gmr_ref_no,
-         element_id,
-         payable_qty,
-         payable_qty_unit_id,
-         contract_price,
-         price_unit_id,
-         price_unit_cur_id,
-         price_unit_cur_code,
-         price_unit_weight,
-         price_unit_weight_unit_id,
-         price_unit_weight_unit,
-         fixed_qty,
-         unfixed_qty,
-         price_basis,
-         internal_grd_ref_no)
-      values
-        (pc_process_id,
-         pc_corporate_id,
-         cur_gmr_rows.internal_gmr_ref_no,
-         cur_gmr_rows.gmr_ref_no,
-         cur_gmr_rows.element_id,
-         cur_gmr_rows.payable_qty,
-         cur_gmr_rows.payable_qty_unit_id,
-         vn_average_price,
-         vc_price_unit_id,
-         vc_price_cur_id,
-         vc_price_cur_code,
-         vn_price_weight_unit,
-         vc_price_weight_unit_id,
-         vn_price_weight_unit,
-         vn_fixed_qty,
-         vn_unfixed_qty,
-         vc_price_basis,
-         cur_gmr_rows.internal_grd_ref_no);
+      if vn_average_price is not null and vc_price_unit_id is not null then
+        insert into cgcp_conc_gmr_cog_price
+          (process_id,
+           corporate_id,
+           internal_gmr_ref_no,
+           gmr_ref_no,
+           element_id,
+           payable_qty,
+           payable_qty_unit_id,
+           contract_price,
+           price_unit_id,
+           price_unit_cur_id,
+           price_unit_cur_code,
+           price_unit_weight,
+           price_unit_weight_unit_id,
+           price_unit_weight_unit,
+           fixed_qty,
+           unfixed_qty,
+           price_basis,
+           internal_grd_ref_no)
+        values
+          (pc_process_id,
+           pc_corporate_id,
+           cur_gmr_rows.internal_gmr_ref_no,
+           cur_gmr_rows.gmr_ref_no,
+           cur_gmr_rows.element_id,
+           cur_gmr_rows.payable_qty,
+           cur_gmr_rows.payable_qty_unit_id,
+           vn_average_price,
+           vc_price_unit_id,
+           vc_price_cur_id,
+           vc_price_cur_code,
+           vn_price_weight_unit,
+           vc_price_weight_unit_id,
+           vn_price_weight_unit,
+           vn_fixed_qty,
+           vn_unfixed_qty,
+           vc_price_basis,
+           cur_gmr_rows.internal_grd_ref_no);
+      end if;
     end loop;
   exception
     when others then
@@ -2802,5 +2856,5 @@ create or replace package body pkg_phy_cog_price is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end; 
+end;
 /
