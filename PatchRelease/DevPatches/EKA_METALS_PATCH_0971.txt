@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0971
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sachin Talwar
+ 
+Created on*        		:  10-Aug-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 100728
+Author: sachin
+Date: Friday, August 10, 2012 3:15:23 PM
+Message:
+data correction for hedge correction amt
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_12.sql
+
+
+
+
+
+
