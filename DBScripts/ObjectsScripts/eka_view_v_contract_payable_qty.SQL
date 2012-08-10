@@ -26,7 +26,22 @@ CREATE OR REPLACE VIEW v_contract_payable_qty AS
                 AND spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
                 AND pci.is_active = 'Y'
                 AND pcdi.is_active = 'Y'
-                AND spq.is_stock_split='N'
+                AND spq.is_stock_split = 'N'
+                AND spq.is_active = 'Y'
+             UNION ALL
+             SELECT pci.internal_contract_item_ref_no, spq.element_id,
+                    spq.payable_qty, spq.qty_unit_id
+               FROM pci_physical_contract_item pci,
+                    pcdi_pc_delivery_item pcdi,
+                    dgrd_delivered_grd dgrd,
+                    spq_stock_payable_qty spq
+              WHERE pci.pcdi_id = pcdi.pcdi_id
+                AND pci.internal_contract_item_ref_no =
+                                             dgrd.internal_contract_item_ref_no
+                AND spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+                AND pci.is_active = 'Y'
+                AND pcdi.is_active = 'Y'
+                AND spq.is_stock_split = 'N'
                 AND spq.is_active = 'Y') t
    GROUP BY t.internal_contract_item_ref_no,
             t.element_id,
