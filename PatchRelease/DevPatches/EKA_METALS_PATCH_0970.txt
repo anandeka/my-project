@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_0970
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  10-Aug-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 100722
+Author: elaiyaraja.nallathambi
+Date: 3:04:46 PM, Friday, August 10, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YTDMTDYIELD.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YTDMTDYIELD_Excel.rpt
+
+
+
+
