@@ -4378,6 +4378,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              aml_attribute_master_list aml,
              dipch_di_payablecontent_header dipch,
              pcpch_pc_payble_content_header pcpch,
+             dipq_delivery_item_payable_qty dipq,
              (select qat.internal_contract_item_ref_no,
                      qat.element_id,
                      qat.instrument_id,
@@ -4448,7 +4449,11 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and pci.is_active = 'Y'
          and pcm.is_active = 'Y'
          and dipch.is_active = 'Y'
-         and pcpch.is_active = 'Y';
+         and pcpch.is_active = 'Y'
+         and pcdi.pcdi_id = dipq.pcdi_id
+         and ceqs.element_id = dipq.element_id
+         and dipq.process_id = pc_process_id
+         and nvl(dipq.payable_qty, 0) > 0;
   
     cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
       select poch.poch_id,

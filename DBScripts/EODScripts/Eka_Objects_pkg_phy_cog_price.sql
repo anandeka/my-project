@@ -2312,7 +2312,7 @@ create or replace package body pkg_phy_cog_price is
                         grd.internal_grd_ref_no) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
-             v_gmr_stockpayable_qty spq,
+             v_gmr_payable_qty spq,
              (select qat.process_id,
                      qat.internal_gmr_ref_no,
                      qat.instrument_id,
@@ -2354,7 +2354,6 @@ create or replace package body pkg_phy_cog_price is
          and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
-         and spq.internal_grd_ref_no = grd.internal_grd_ref_no --added
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
          and spq.payable_qty > 0
@@ -2394,7 +2393,7 @@ create or replace package body pkg_phy_cog_price is
                         grd.internal_dgrd_ref_no) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
-             v_gmr_stockpayable_qty spq,
+             v_gmr_payable_qty spq,
              (select qat.process_id,
                      qat.internal_gmr_ref_no,
                      qat.instrument_id,
@@ -2434,7 +2433,6 @@ create or replace package body pkg_phy_cog_price is
          and spq.process_id = pc_process_id
          and tt.element_id = spq.element_id
          and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
-         and grd.internal_dgrd_ref_no = spq.internal_dgrd_ref_no -- added
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
          and gmr.process_id = tt.process_id(+)
