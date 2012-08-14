@@ -48,4 +48,13 @@ Message:
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_368.sql
 
+Revision: 100959
+Author: elaiyaraja.nallathambi
+Date: 2:11:59 PM, Tuesday, August 14, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport_Excel.rpt
+
 
