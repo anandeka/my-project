@@ -57,5 +57,13 @@ Bug Fixes:- 68028
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport.rpt
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport_Excel.rpt
 
-
+Revision: 101022
+Author: saurabh.raj
+Date: 4:30:41 AM, Wednesday, August 15, 2012
+Message:
+Bug Fixed
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CustomsReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CustomsReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyCustomsReport.rpt
 
