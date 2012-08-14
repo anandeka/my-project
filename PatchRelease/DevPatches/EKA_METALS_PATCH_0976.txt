@@ -67,3 +67,13 @@ Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/Cus
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CustomsReport_Excel.rpt
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyCustomsReport.rpt
 
+Revision: 101025
+Author: elaiyaraja.nallathambi
+Date: 4:53:53 AM, Wednesday, August 15, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MetalBalanceSummaryReport.rpt
+
+
+
