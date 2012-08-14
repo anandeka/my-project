@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0974
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  14-Aug-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 100907
+Date: 11:08:20 AM, Tuesday, August 14, 2012
+Message:
+Feed Consumption Changed
+Repopulated report tables based on Element Name
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/68_DDL_EODDB_TABLE_ALTER_SCRIPT.SQL
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
