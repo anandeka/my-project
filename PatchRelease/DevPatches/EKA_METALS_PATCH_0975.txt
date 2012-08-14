@@ -34,6 +34,18 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
+Revision: 100944
+Author: elaiyaraja.nallathambi
+Date: 1:13:51 PM, Tuesday, August 14, 2012
+Message:
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FeedConsumptionReport.rpt
 
+Revision: 100945
+Author: elaiyaraja.nallathambi
+Date: 1:15:00 PM, Tuesday, August 14, 2012
+Message:
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_368.sql
 
 
