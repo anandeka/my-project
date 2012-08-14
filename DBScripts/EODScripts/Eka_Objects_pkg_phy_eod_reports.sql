@@ -58,9 +58,9 @@ create or replace package pkg_phy_eod_reports is
   procedure sp_misc(pc_corporate_id varchar2,
                     pd_trade_date   date,
                     pc_user_id      varchar2);
-  procedure sp_daily_position_record(pc_corporate_id varchar2,
+ /* procedure sp_daily_position_record(pc_corporate_id varchar2,
                                      pd_trade_date   date,
-                                     pc_process_id   varchar2);
+                                     pc_process_id   varchar2);*/
   procedure sp_insert_temp_gmr(pc_corporate_id varchar2,
                                pd_trade_date   date,
                                pc_process_id   varchar2); 
@@ -5213,35 +5213,14 @@ create or replace package body pkg_phy_eod_reports is
                      pcm.contract_status,
                      pcpd.product_id,
                      pdm.product_desc,
-                     sum((case
-                           when rm.ratio_name = '%' then
-                            (pqcapd.payable_percentage *
-                            pkg_metals_general.fn_get_assay_dry_qty(pcpd.product_id,
-                                                                     pcpq.assay_header_id,
-                                                                     diqs.total_qty,
-                                                                     diqs.item_qty_unit_id)) / 100
-                           else
-                            pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                                 diqs.item_qty_unit_id,
-                                                                 rm.qty_unit_id_denominator,
-                                                                 pkg_metals_general.fn_get_assay_dry_qty(pcpd.product_id,
-                                                                                                         pcpq.assay_header_id,
-                                                                                                         diqs.total_qty,
-                                                                                                         diqs.item_qty_unit_id)) *
-                            pqcapd.payable_percentage
-                         end)) open_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        diqs.item_qty_unit_id
-                       else
-                        rm.qty_unit_id_numerator
-                     end) qty_unit_id,
-                     pqcapd.payable_percentage,
+                     dipq.payable_qty open_qty,
+                     dipq.qty_unit_id qty_unit_id,
                      qum.qty_unit,
                      pcm.invoice_currency_id invoice_cur_id,
                      cm.cur_code invoice_cur_code
                 from pcm_physical_contract_main     pcm,
                      phd_profileheaderdetails       phd,
+                     dipq_delivery_item_payable_qty dipq, ----------
                      pcpd_pc_product_definition     pcpd,
                      pdm_productmaster              pdm,
                      pcdi_pc_delivery_item          pcdi,
@@ -5252,14 +5231,12 @@ create or replace package body pkg_phy_eod_reports is
                      ash_assay_header               ash,
                      asm_assay_sublot_mapping       asm,
                      pqca_pq_chemical_attributes    pqca,
-                     pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-                     rm_ratio_master                rm,
                      aml_attribute_master_list      aml,
-                     diqs_delivery_item_qty_status  diqs,
                      qum_quantity_unit_master       qum
                where pcm.cp_id = phd.profileid
                  and pcm.internal_contract_ref_no =
                      pcpd.internal_contract_ref_no
+                 and dipq.pcdi_id = pcdi.pcdi_id ------------   
                  and pcpd.product_id = pdm.product_id
                  and pcm.internal_contract_ref_no =
                      pcdi.internal_contract_ref_no
@@ -5276,17 +5253,12 @@ create or replace package body pkg_phy_eod_reports is
                  and pcpq.assay_header_id = ash.ash_id
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
-                 and pqca.pqca_id = pqcapd.pqca_id
-                 and rm.ratio_id = pqca.unit_of_measure
                  and aml.attribute_id = pqca.element_id
                  and pqca.is_elem_for_pricing = 'Y'
-                 and pcdi.pcdi_id = diqs.pcdi_id
-                 and qum.qty_unit_id =
-                     (case when rm.ratio_name = '%' then
-                      diqs.item_qty_unit_id else rm.qty_unit_id_numerator end)
-                 and pqcapd.pcdi_id = pcdi.pcdi_id ---     
-                 and diqs.process_id = pc_process_id
-                 and diqs.is_active = 'Y'
+                 and dipq.element_id = pqca.element_id ---------
+                 and qum.qty_unit_id = dipq.qty_unit_id
+                 and dipq.process_id = pc_process_id ---------------   
+                 and dipq.is_active = 'Y' -------------
                  and pcpd.process_id = pc_process_id
                  and pcdi.process_id = pc_process_id
                  and pcm.process_id = pc_process_id
@@ -5301,26 +5273,22 @@ create or replace package body pkg_phy_eod_reports is
                  and pcm.is_active = 'Y'
                  and pcpd.is_active = 'Y'
                  and pcpq.is_active = 'Y'
-                 and rm.is_active = 'Y'
-                 and pqcapd.is_active = 'Y'
                group by pcm.internal_contract_ref_no,
                         pcm.contract_ref_no,
                         pcm.corporate_id,
                         akc.corporate_name,
                         pcm.cp_id,
+                        dipq.payable_qty,
                         pqca.element_id,
                         aml.attribute_name,
                         phd.companyname,
                         pcm.contract_status,
                         pcpd.product_id,
                         pdm.product_desc,
-                        rm.ratio_name,
-                        diqs.item_qty_unit_id,
+                        dipq.qty_unit_id,
                         qum.qty_unit,
                         pcm.invoice_currency_id,
-                        cm.cur_code,
-                        rm.qty_unit_id_numerator,
-                        pqcapd.payable_percentage) main_table,
+                        cm.cur_code) main_table,
              (select gmr.internal_contract_ref_no,
                      spq.element_id,
                      sum(spq.payable_qty) landed_qty
@@ -5378,43 +5346,26 @@ create or replace package body pkg_phy_eod_reports is
               union all
               select pcm.internal_contract_ref_no,
                      poch.element_id,
-                     sum((case
-                           when rm.ratio_name = '%' then
-                            (pqcapd.payable_percentage *
-                            pkg_metals_general.fn_get_assay_dry_qty(pcpd.product_id,
-                                                                     pcpq.assay_header_id,
-                                                                     diqs.total_qty,
-                                                                     diqs.item_qty_unit_id)) / 100
-                           else
-                            pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                                 diqs.item_qty_unit_id,
-                                                                 rm.qty_unit_id_denominator,
-                                                                 pkg_metals_general.fn_get_assay_dry_qty(pcpd.product_id,
-                                                                                                         pcpq.assay_header_id,
-                                                                                                         diqs.total_qty,
-                                                                                                         diqs.item_qty_unit_id)) *
-                            pqcapd.payable_percentage
-                         end)) priced_qty
-                from pcm_physical_contract_main pcm,
-                     pcmte_pcm_tolling_ext pcmte,
-                     pcdi_pc_delivery_item pcdi,
+                     sum(dipq.payable_qty) priced_qty
+                from pcm_physical_contract_main     pcm,
+                     pcmte_pcm_tolling_ext          pcmte,
+                     pcdi_pc_delivery_item          pcdi,
+                     dipq_delivery_item_payable_qty dipq, ----------
                      poch_price_opt_call_off_header poch,
                      pocd_price_option_calloff_dtls pocd,
-                     pcbpd_pc_base_price_detail pcbpd,
-                     pcpd_pc_product_definition pcpd,
-                     pcpq_pc_product_quality pcpq,
-                     ash_assay_header ash,
-                     asm_assay_sublot_mapping asm,
-                     pqca_pq_chemical_attributes pqca,
-                     pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-                     rm_ratio_master rm,
-                     aml_attribute_master_list aml,
-                     diqs_delivery_item_qty_status diqs
+                     pcbpd_pc_base_price_detail     pcbpd,
+                     pcpd_pc_product_definition     pcpd,
+                     pcpq_pc_product_quality        pcpq,
+                     ash_assay_header               ash,
+                     asm_assay_sublot_mapping       asm,
+                     pqca_pq_chemical_attributes    pqca,
+                     aml_attribute_master_list      aml
                where pcm.internal_contract_ref_no =
                      pcdi.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
                      pcmte.int_contract_ref_no
                  and pcmte.tolling_service_type = 'S'
+                 and dipq.pcdi_id = pcdi.pcdi_id
                  and pcdi.pcdi_id = poch.pcdi_id
                  and poch.poch_id = pocd.poch_id
                  and pocd.price_type = 'Fixed'
@@ -5426,13 +5377,11 @@ create or replace package body pkg_phy_eod_reports is
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
                  and pqca.is_elem_for_pricing = 'Y'
-                 and pqca.pqca_id = pqcapd.pqca_id
-                 and rm.ratio_id = pqca.unit_of_measure
+                 and dipq.element_id = pqca.element_id ---------
+                 and dipq.process_id = pc_process_id ---------------   
+                 and dipq.is_active = 'Y' -------------
                  and aml.attribute_id = pqca.element_id
-                 and pcdi.pcdi_id = diqs.pcdi_id
                  and poch.element_id = aml.attribute_id
-                 and pqcapd.pcdi_id = pcdi.pcdi_id ---
-                 and poch.is_active = 'Y' ---
                  and pcm.corporate_id = pc_corporate_id
                  and pcm.is_active = 'Y'
                  and pcdi.is_active = 'Y'
@@ -5442,14 +5391,11 @@ create or replace package body pkg_phy_eod_reports is
                  and ash.is_active = 'Y'
                  and asm.is_active = 'Y'
                  and pqca.is_active = 'Y'
-                 and pqcapd.is_active = 'Y'
-                 and rm.is_active = 'Y'
                  and aml.is_active = 'Y'
                  and pcpd.process_id = pc_process_id
                  and pcm.process_id = pc_process_id
                  and pcdi.process_id = pc_process_id
                  and pcpq.process_id = pc_process_id
-                 and diqs.process_id = pc_process_id
                group by pcm.internal_contract_ref_no,
                         poch.element_id) pfc_data
        where main_table.internal_contract_ref_no =
@@ -8779,9 +8725,9 @@ create or replace package body pkg_phy_eod_reports is
                                                             grd.qty_unit_id,
                                                             pdm.base_quantity_unit,
                                                             grd.current_qty)
-			else
-			0
-			end)qty,
+            else
+            0
+            end)qty,
                        qum.qty_unit_id,
                        qum.qty_unit,
                        is1.invoice_issue_date invoice_eff_date,
@@ -9139,9 +9085,9 @@ create or replace package body pkg_phy_eod_reports is
                                                           pdm.base_quantity_unit,
                                                           grd.current_qty)
                      
-		     else
-		     0
-		     end)qty,
+             else
+             0
+             end)qty,
                      qum.qty_unit_id,
                      qum.qty_unit,
                      is1.invoice_issue_date invoice_eff_date,
@@ -10208,7 +10154,7 @@ create or replace package body pkg_phy_eod_reports is
                                                                 pd_trade_date);
             sp_insert_error_log(vobj_error_log);
     END;
- procedure sp_daily_position_record ( pc_corporate_id varchar2, pd_trade_date date,pc_process_id   varchar2)
+ /*procedure sp_daily_position_record ( pc_corporate_id varchar2, pd_trade_date date,pc_process_id   varchar2)
 as
 
 begin
@@ -11117,7 +11063,7 @@ t.product_id;
 exception
 when others then
 null;--TODO : need to ad exception handling
-end;
+end;*/
 procedure sp_insert_temp_gmr(pc_corporate_id varchar2,
                              pd_trade_date   date,
                              pc_process_id   varchar2) as
@@ -11366,7 +11312,7 @@ begin
          grd_dry_qty,
          grd_qty_unit_id,
          grd_qty_unit,
-	     conc_base_qty_unit_id,
+         conc_base_qty_unit_id,
          conc_base_qty_unit)
       values
         (pc_process_id,
@@ -11949,7 +11895,7 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
                  and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
                  and asm.ash_id = ash_pricing.ash_id
                  and asm.asm_id = pqca.asm_id
-		         and pqca.is_elem_for_pricing='N'
+                 and pqca.is_elem_for_pricing='N'
                  and pqca.element_id = aml.attribute_id
                  and pqca.unit_of_measure = rm.ratio_id
                  and qum.qty_unit_id =
@@ -12212,7 +12158,7 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
                  and pcm.process_id = pc_process_id
                  and pcdi.process_id = pc_process_id
                  and pcm.invoice_currency_id = cm.cur_id
-		         and grd.product_id=pdm_conc.product_id
+                 and grd.product_id=pdm_conc.product_id
                  and pdm_conc.base_quantity_unit=qum_conc.qty_unit_id
                  and rm.is_active = 'Y'
                  and pdm.is_active = 'Y'
