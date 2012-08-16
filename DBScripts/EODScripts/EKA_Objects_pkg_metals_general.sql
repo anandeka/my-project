@@ -101,7 +101,7 @@ create or replace package pkg_metals_general is
                                        pn_premium                  out number,
                                        pc_exch_rate_string         out varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_metals_general is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -651,7 +651,7 @@ create or replace package body pkg_metals_general is
                 vn_tier_penalty := vn_tier_penalty + vn_penalty_charge;
                 /** vn_range_gap;*/
               /* dbms_output.put_line(' Variable  Penalty charge for this ' ||                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     vn_penalty_charge);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      dbms_output.put_line('---------------------------');*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  dbms_output.put_line('---------------------------');*/
               --calculate total Penalty charge
               end loop;
             end if;
@@ -1707,10 +1707,7 @@ create or replace package body pkg_metals_general is
                       pqca.element_id,
                       aml.underlying_product_id,
                       grd.current_qty,
-                      pkg_metals_general.fn_get_assay_dry_qty(grd.product_id,
-                                                              ash.ash_id,
-                                                              grd.current_qty,
-                                                              grd.qty_unit_id) dry_weight,
+                      grd.qty * asm.dry_wet_qty_ratio / 100 dry_weight,
                       grd.qty_unit_id net_weight_unit,
                       pci.pcpq_id
                  from gmr_goods_movement_record   gmr,
@@ -1721,17 +1718,14 @@ create or replace package body pkg_metals_general is
                       pqca_pq_chemical_attributes pqca,
                       rm_ratio_master             rm,
                       aml_attribute_master_list   aml,
-                      pci_physical_contract_item  pci
-               
+                      pci_physical_contract_item  pci,
+                      spq_stock_payable_qty       spq
                 where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                   and grd.internal_grd_ref_no = sam.internal_grd_ref_no
                   and sam.ash_id = ash.ash_id
-                  and sam.is_latest_pricing_assay = 'Y'
                   and ash.ash_id = asm.ash_id
                   and asm.asm_id = pqca.asm_id
                   and rm.ratio_id = pqca.unit_of_measure
-                  and ash.is_active = 'Y'
-                  and asm.is_active = 'Y'
                   and aml.attribute_id = pqca.element_id
                   and pqca.element_id = pc_element_id
                   and gmr.dbd_id = pc_dbd_id
@@ -1741,6 +1735,10 @@ create or replace package body pkg_metals_general is
                       pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
                   and grd.internal_grd_ref_no = pc_inter_grd_ref_no
+                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                  and spq.element_id = pqca.element_id
+                  and spq.dbd_id = pc_dbd_id
+                  and spq.assay_header_id = ash.ash_id
                union all
                select gmr.internal_gmr_ref_no,
                       dgrd.internal_dgrd_ref_no,
@@ -1754,7 +1752,7 @@ create or replace package body pkg_metals_general is
                       pqca.element_id,
                       aml.underlying_product_id,
                       asm.net_weight,
-                      asm.dry_weight,
+                      dgrd.net_weight * asm.dry_wet_qty_ratio / 100,
                       asm.net_weight_unit,
                       pci.pcpq_id
                  from gmr_goods_movement_record   gmr,
@@ -1765,16 +1763,14 @@ create or replace package body pkg_metals_general is
                       pqca_pq_chemical_attributes pqca,
                       rm_ratio_master             rm,
                       aml_attribute_master_list   aml,
-                      pci_physical_contract_item  pci
+                      pci_physical_contract_item  pci,
+                      spq_stock_payable_qty       spq
                 where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                   and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
                   and sam.ash_id = ash.ash_id
-                  and sam.is_latest_pricing_assay = 'Y'
                   and ash.ash_id = asm.ash_id
                   and asm.asm_id = pqca.asm_id
                   and rm.ratio_id = pqca.unit_of_measure
-                  and ash.is_active = 'Y'
-                  and asm.is_active = 'Y'
                   and aml.attribute_id = pqca.element_id
                   and pqca.element_id = pc_element_id
                   and gmr.dbd_id = pc_dbd_id
@@ -1783,7 +1779,11 @@ create or replace package body pkg_metals_general is
                   and dgrd.internal_contract_item_ref_no =
                       pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
-                  and dgrd.internal_dgrd_ref_no = pc_inter_grd_ref_no)
+                  and dgrd.internal_dgrd_ref_no = pc_inter_grd_ref_no
+                  and spq.internal_grd_ref_no = dgrd.internal_dgrd_ref_no
+                  and spq.element_id = pqca.element_id
+                  and spq.dbd_id = pc_dbd_id
+                  and spq.assay_header_id = ash.ash_id)
     loop
       begin
         for cur_tret_charge in (select pcth.range_type,
@@ -2127,31 +2127,23 @@ create or replace package body pkg_metals_general is
                       rm.ratio_name,
                       pqca.element_id,
                       aml.underlying_product_id,
-                      grd.current_qty net_weight,
-                      pkg_metals_general.fn_get_assay_dry_qty(grd.product_id,
-                                                              ash.ash_id,
-                                                              grd.current_qty,
-                                                              grd.qty_unit_id) dry_weight,
+                      grd.qty net_weight,
                       grd.qty_unit_id net_weight_unit,
                       pci.pcpq_id,
-                      (case
+                      case
                         when rm.ratio_name = '%' then
-                         (pqcapd.payable_percentage * asm.dry_weight) / 100
+                         (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
+                         pqcapd.payable_percentage / 100)
                         else
-                         pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                              asm.net_weight_unit,
-                                                              rm.qty_unit_id_denominator,
-                                                              asm.dry_weight) *
-                         pqcapd.payable_percentage
-                      
-                      end) payable_qty,
+                         (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
+                         pqcapd.payable_percentage)
+                      end payable_qty,
                       (case
                         when rm.ratio_name = '%' then
                          ash.net_weight_unit
                         else
                          rm.qty_unit_id_numerator
                       end) payable_qty_unit
-               
                  from gmr_goods_movement_record      gmr,
                       grd_goods_record_detail        grd,
                       sam_stock_assay_mapping        sam,
@@ -2175,8 +2167,6 @@ create or replace package body pkg_metals_general is
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
                   and rm.ratio_id = pqca.unit_of_measure
-                     --   and ash.is_active = 'Y'
-                     --  and asm.is_active = 'Y'
                   and aml.attribute_id = pqca.element_id
                   and pqca.element_id = pc_element_id
                   and gmr.dbd_id = pc_dbd_id
@@ -2201,20 +2191,16 @@ create or replace package body pkg_metals_general is
                       pqca.element_id,
                       aml.underlying_product_id,
                       asm.net_weight,
-                      asm.dry_weight,
                       asm.net_weight_unit,
                       pci.pcpq_id,
-                      (case
+                      case
                         when rm.ratio_name = '%' then
-                         (pqcapd.payable_percentage * asm.dry_weight) / 100
+                         (((dgrd.net_weight * asm.dry_wet_qty_ratio / 100)) *
+                         pqcapd.payable_percentage / 100)
                         else
-                         pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                              asm.net_weight_unit,
-                                                              rm.qty_unit_id_denominator,
-                                                              asm.dry_weight) *
-                         pqcapd.payable_percentage
-                      
-                      end) payable_qty,
+                         (((dgrd.net_weight * asm.dry_wet_qty_ratio / 100)) *
+                         pqcapd.payable_percentage)
+                      end payable_qty,
                       (case
                         when rm.ratio_name = '%' then
                          ash.net_weight_unit
@@ -2244,8 +2230,6 @@ create or replace package body pkg_metals_general is
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
                   and rm.ratio_id = pqca.unit_of_measure
-                     -- and ash.is_active = 'Y'
-                     -- and asm.is_active = 'Y'      
                   and aml.attribute_id = pqca.element_id
                   and pqca.element_id = pc_element_id
                   and gmr.dbd_id = pc_dbd_id
@@ -2716,10 +2700,7 @@ create or replace package body pkg_metals_general is
                       pqca.element_id,
                       aml.underlying_product_id,
                       grd.current_qty,
-                      pkg_metals_general.fn_get_assay_dry_qty(grd.product_id,
-                                                              ash.ash_id,
-                                                              grd.current_qty,
-                                                              grd.qty_unit_id) dry_weight,
+                      grd.qty * asm.dry_wet_qty_ratio / 100 dry_weight,
                       grd.qty_unit_id net_weight_unit,
                       pci.pcpq_id
                  from gmr_goods_movement_record   gmr,
@@ -2730,17 +2711,14 @@ create or replace package body pkg_metals_general is
                       pqca_pq_chemical_attributes pqca,
                       rm_ratio_master             rm,
                       aml_attribute_master_list   aml,
-                      pci_physical_contract_item  pci
-               
+                      pci_physical_contract_item  pci,
+                      spq_stock_payable_qty       spq
                 where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                   and grd.internal_grd_ref_no = sam.internal_grd_ref_no
                   and sam.ash_id = ash.ash_id
-                  and sam.is_latest_pricing_assay = 'Y'
                   and ash.ash_id = asm.ash_id
                   and asm.asm_id = pqca.asm_id
                   and rm.ratio_id = pqca.unit_of_measure
-                  and ash.is_active = 'Y'
-                  and asm.is_active = 'Y'
                   and aml.attribute_id = pqca.element_id
                   and nvl(pqca.is_elem_for_pricing, 'N') = 'N'
                   and pqca.element_id = pc_element_id
@@ -2750,7 +2728,11 @@ create or replace package body pkg_metals_general is
                   and grd.internal_contract_item_ref_no =
                       pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
-                  and grd.internal_grd_ref_no = pc_inter_grd_ref_no)
+                  and grd.internal_grd_ref_no = pc_inter_grd_ref_no
+                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                  and spq.element_id = pqca.element_id
+                  and spq.dbd_id = pc_dbd_id
+                  and spq.assay_header_id = ash.ash_id)
     loop
       vn_element_pc_charge := 0;
       vn_tier_penalty      := 0;
@@ -2993,11 +2975,8 @@ create or replace package body pkg_metals_general is
                       rm.ratio_name,
                       pqca.element_id,
                       aml.underlying_product_id,
-                      grd.current_qty net_weight,
-                      pkg_metals_general.fn_get_assay_dry_qty(grd.product_id,
-                                                              ash.ash_id,
-                                                              grd.current_qty,
-                                                              grd.qty_unit_id) dry_weight,
+                      grd.qty net_weight,
+                      grd.qty * asm.dry_wet_qty_ratio / 100 dry_weight,
                       grd.qty_unit_id net_weight_unit,
                       pci.pcpq_id
                  from gmr_goods_movement_record   gmr,
@@ -3008,17 +2987,14 @@ create or replace package body pkg_metals_general is
                       pqca_pq_chemical_attributes pqca,
                       rm_ratio_master             rm,
                       aml_attribute_master_list   aml,
-                      pci_physical_contract_item  pci
-               
+                      pci_physical_contract_item  pci,
+                      spq_stock_payable_qty       spq
                 where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                   and grd.internal_grd_ref_no = sam.internal_grd_ref_no
                   and sam.ash_id = ash.ash_id
-                  and sam.is_latest_pricing_assay = 'Y'
                   and ash.ash_id = asm.ash_id
                   and asm.asm_id = pqca.asm_id
                   and rm.ratio_id = pqca.unit_of_measure
-                  and ash.is_active = 'Y'
-                  and asm.is_active = 'Y'
                   and aml.attribute_id = pqca.element_id
                   and nvl(pqca.is_elem_for_pricing, 'N') = 'N'
                   and gmr.dbd_id = pc_dbd_id
@@ -3028,6 +3004,10 @@ create or replace package body pkg_metals_general is
                       pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
                   and grd.internal_grd_ref_no = pc_inter_grd_ref_no
+                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                  and spq.element_id = pqca.element_id
+                  and spq.dbd_id = pc_dbd_id
+                  and spq.assay_header_id = ash.ash_id
                union
                select gmr.internal_gmr_ref_no,
                       dgrd.internal_grd_ref_no,
@@ -3041,7 +3021,7 @@ create or replace package body pkg_metals_general is
                       pqca.element_id,
                       aml.underlying_product_id,
                       asm.net_weight,
-                      asm.dry_weight,
+                      dgrd.net_weight,
                       asm.net_weight_unit,
                       pci.pcpq_id
                  from gmr_goods_movement_record   gmr,
@@ -3052,17 +3032,14 @@ create or replace package body pkg_metals_general is
                       pqca_pq_chemical_attributes pqca,
                       rm_ratio_master             rm,
                       aml_attribute_master_list   aml,
-                      pci_physical_contract_item  pci
-               
+                      pci_physical_contract_item  pci,
+                      spq_stock_payable_qty       spq
                 where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                   and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
                   and sam.ash_id = ash.ash_id
-                  and sam.is_latest_pricing_assay = 'Y'
                   and ash.ash_id = asm.ash_id
                   and asm.asm_id = pqca.asm_id
                   and rm.ratio_id = pqca.unit_of_measure
-                  and ash.is_active = 'Y'
-                  and asm.is_active = 'Y'
                   and aml.attribute_id = pqca.element_id
                   and nvl(pqca.is_elem_for_pricing, 'N') = 'N'
                   and gmr.dbd_id = pc_dbd_id
@@ -3071,7 +3048,11 @@ create or replace package body pkg_metals_general is
                   and dgrd.internal_contract_item_ref_no =
                       pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
-                  and dgrd.internal_dgrd_ref_no = pc_inter_grd_ref_no)
+                  and dgrd.internal_dgrd_ref_no = pc_inter_grd_ref_no
+                  and spq.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+                  and spq.element_id = pqca.element_id
+                  and spq.dbd_id = pc_dbd_id
+                  and spq.assay_header_id = ash.ash_id)
     loop
       vn_element_pc_charge := 0;
       vn_tier_penalty      := 0;
@@ -3435,7 +3416,8 @@ create or replace package body pkg_metals_general is
                vc_premium_weight_unit_id,
                vn_premium_weight
           from v_ppu_pum ppu
-         where ppu.product_price_unit_id = cur_preimium_rows.premium_disc_unit_id;
+         where ppu.product_price_unit_id =
+               cur_preimium_rows.premium_disc_unit_id;
       
         --
         -- Get the Main Currency of the Premium Price Unit
@@ -3498,5 +3480,5 @@ create or replace package body pkg_metals_general is
     end loop;
     pn_premium := vn_total_premium;
   end;
-end; 
+end;
 /
