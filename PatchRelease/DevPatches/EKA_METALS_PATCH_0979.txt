@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0979
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  17-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+
+Revision: 101177
+Author: sishir.pagada
+Date: 11:27:49 AM, Friday, August 17, 2012
+Message:
+Defaulting drop downs to => & <=
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_371.sql
+
