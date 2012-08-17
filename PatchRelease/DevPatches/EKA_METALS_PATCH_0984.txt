@@ -1,0 +1,67 @@
+Patch No*          		:  EKA_METALS_PATCH_0984
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  17-Aug-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  67944,67983,67960
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* EOD
+==================================================================
+Revision: 101390
+Author: elaiyaraja.nallathambi
+Date: 10:15:11 PM, Friday, August 17, 2012
+Message:
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingBalanceReport.rpt
+
+
+Revision: 101366
+Author: sivachalabathi.s
+Date: 8:23:20 PM, Friday, August 17, 2012
+Message:
+cutover reports bug fixes for closing balance
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/70_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+
+
+Revision: 101387
+Author: sivachalabathi.s
+Date: 9:46:34 PM, Friday, August 17, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
