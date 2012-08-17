@@ -1850,7 +1850,7 @@ create or replace package body pkg_phy_eod_reports is
                                                                                     vn_gmr_refine_charge),
                                            cur_pur_accural_rows.base_cur_decimal);
       end if;
-      if cur_pur_accural_rows.payable_type <> 'Payable' then
+      if cur_pur_accural_rows.payable_type is null then
       pkg_metals_general.sp_get_gmr_penalty_charge(cur_pur_accural_rows.internal_gmr_ref_no,
                                                    cur_pur_accural_rows.internal_grd_ref_no,
                                                    pc_dbd_id,
@@ -1867,7 +1867,7 @@ create or replace package body pkg_phy_eod_reports is
        else
        vn_base_gmr_penality_charge := 0;
        end if;
-    vn_rno := vn_rno + 1;
+      vn_rno := vn_rno + 1;
       insert into pa_purchase_accural
         (corporate_id,
          process_id,
@@ -3951,7 +3951,9 @@ insert into isr_intrastat_grd
    ex_rate_base_to_nat_load,
    ex_rate_base_to_nat_dis,
    comb_nome_item_code,
-   contract_type)
+   contract_type,
+   EXPORT_DATE,
+   IMPORT_DATE)
 --- Base metal Not Event Based
   select gmr.corporate_id,
          pc_process_id,
@@ -4011,7 +4013,7 @@ insert into isr_intrastat_grd
            when iid.invoice_type = 'Final' then
             iid.invoice_issue_date
            else
-            gmr.eff_date
+            gmr.bl_date-- .eff_date
          end) invoice_date,
          (case
            when iid.invoice_item_amount is not null then
@@ -4078,7 +4080,9 @@ insert into isr_intrastat_grd
                                                   gmr.bl_date,
                                                   1) ex_rate_base_to_nat_dis,
          qat_ppm.attribute_value,
-         pcm.contract_type
+         pcm.contract_type,
+         vd.loading_date,
+         gmr.eff_date
     from pcm_physical_contract_main pcm,
          pcdi_pc_delivery_item pcdi,
          pci_physical_contract_item pci,
@@ -4255,7 +4259,9 @@ insert into isr_intrastat_grd
    ex_rate_base_to_nat_load,
    ex_rate_base_to_nat_dis,
    comb_nome_item_code,
-   contract_type)
+   contract_type,
+   export_date,
+   import_date)
   select gmr.corporate_id,
          pc_process_id,
          pd_trade_date,
@@ -4314,7 +4320,7 @@ insert into isr_intrastat_grd
            when iid.invoice_type = 'Final' then
             iid.invoice_issue_date
            else
-            gmr.eff_date
+           gmr.bl_date-- gmr.eff_date
          end) invoice_date,
          (case
            when iid.invoice_item_amount is not null then
@@ -4381,7 +4387,9 @@ insert into isr_intrastat_grd
                                                   gmr.bl_date,
                                                   1) ex_rate_base_to_nat_dis,
          qat_ppm.attribute_value,
-         pcm.contract_type
+         pcm.contract_type,
+         vd.loading_date,
+         gmr.eff_date
     from pcm_physical_contract_main pcm,
          pcdi_pc_delivery_item pcdi,
          pci_physical_contract_item pci,
@@ -4561,7 +4569,9 @@ insert into isr_intrastat_grd
    ex_rate_base_to_nat_load,
    ex_rate_base_to_nat_dis,
    comb_nome_item_code,
-   contract_type)
+   contract_type,
+   export_date,
+   import_date)
   select corporate_id,
          pc_process_id,
          pd_trade_date,
@@ -4624,7 +4634,9 @@ insert into isr_intrastat_grd
          ex_rate_base_to_nat_load,
          ex_rate_base_to_nat_dis,
          attribute_value,
-         contract_type
+         contract_type,
+         loading_date,
+         eff_date
     from (select gmr.corporate_id,
                  spq.element_id,
                  pcm.contract_ref_no,
@@ -4675,7 +4687,7 @@ insert into isr_intrastat_grd
                    when iid.invoice_type = 'Final' then
                     iid.invoice_issue_date
                    else
-                    gmr.eff_date
+                    gmr.bl_date-- gmr.eff_date
                  end) invoice_date,
                  (case
                    when iid.invoice_item_amount is not null then
@@ -4741,7 +4753,9 @@ insert into isr_intrastat_grd
                                                           1) ex_rate_base_to_nat_dis,
                  
                  qat_ppm.attribute_value,
-                 pcm.contract_type
+                 pcm.contract_type,
+                 vd.loading_date,
+                 gmr.eff_date
             from pcm_physical_contract_main pcm,
                  pcdi_pc_delivery_item pcdi,
                  pci_physical_contract_item pci,
@@ -4942,7 +4956,9 @@ insert into isr_intrastat_grd
        ex_rate_base_to_nat_load,
        ex_rate_base_to_nat_dis,
        comb_nome_item_code,
-       contract_type)
+       contract_type,
+       export_date,
+       import_date)
       select corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -5005,7 +5021,9 @@ insert into isr_intrastat_grd
              ex_rate_base_to_nat_load,
              ex_rate_base_to_nat_dis,
              attribute_value,
-             contract_type
+             contract_type,
+             loading_date,
+             eff_date
         from ( --concentrates event based
               select gmr.corporate_id,
                       spq.element_id,
@@ -5057,7 +5075,7 @@ insert into isr_intrastat_grd
                         when iid.invoice_type = 'Final' then
                          iid.invoice_issue_date
                         else
-                         gmr.eff_date
+                         gmr.bl_date-- .eff_date
                       end) invoice_date,
                       (case
                         when iid.invoice_item_amount is not null then
@@ -5123,7 +5141,9 @@ insert into isr_intrastat_grd
                                                                1) ex_rate_base_to_nat_dis,
                       
                       qat_ppm.attribute_value,
-                      pcm.contract_type
+                      pcm.contract_type,
+                      vd.loading_date,
+                      gmr.eff_date
                 from pcm_physical_contract_main pcm,
                       pcdi_pc_delivery_item pcdi,
                       pci_physical_contract_item pci,
@@ -5210,6 +5230,7 @@ insert into isr_intrastat_grd
                  and gmr.corporate_id = ak.corporate_id
                  and ak.base_cur_id = cm.cur_id
                  and grd.is_mark_for_tolling = 'N'
+                 and grd.status = 'Active'
                  and gmr.is_deleted = 'N'
                  and gmr.corporate_id = pc_corporate_id
                  and cgcp.price_unit_id = ppu_inven.internal_price_unit_id(+)
@@ -5383,13 +5404,13 @@ insert into isr_intrastat_grd
                      pcm.corporate_id,
                      akc.corporate_name,
                      pcm.cp_id,
-                     pqca.element_id,
+                     dipq.element_id,
                      aml.attribute_name,
                      phd.companyname,
                      pcm.contract_status,
                      pcpd.product_id,
                      pdm.product_desc,
-                     dipq.payable_qty open_qty,
+                     sum(dipq.payable_qty) open_qty,
                      dipq.qty_unit_id qty_unit_id,
                      qum.qty_unit,
                      pcm.invoice_currency_id invoice_cur_id,
@@ -5403,44 +5424,29 @@ insert into isr_intrastat_grd
                      cm_currency_master             cm,
                      ak_corporate                   akc,
                      pcmte_pcm_tolling_ext          pcmte,
-                     pcpq_pc_product_quality        pcpq,
-                     ash_assay_header               ash,
-                     asm_assay_sublot_mapping       asm,
-                     pqca_pq_chemical_attributes    pqca,
                      aml_attribute_master_list      aml,
                      qum_quantity_unit_master       qum
                where pcm.cp_id = phd.profileid
-                 and pcm.internal_contract_ref_no =
-                     pcpd.internal_contract_ref_no
+                 and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
                  and dipq.pcdi_id = pcdi.pcdi_id ------------   
                  and pcpd.product_id = pdm.product_id
-                 and pcm.internal_contract_ref_no =
-                     pcdi.internal_contract_ref_no
+                 and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
                  and pcm.contract_type = 'CONCENTRATES'
                  and pcpd.input_output = 'Input'
                  and pcm.contract_status = 'In Position'
                  and pcm.corporate_id = pc_corporate_id
                  and pcm.invoice_currency_id = cm.cur_id
                  and pcm.corporate_id = akc.corporate_id
-                 and pcm.internal_contract_ref_no =
-                     pcmte.int_contract_ref_no
+                 and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no
                  and pcmte.tolling_service_type = 'S'
-                 and pcpd.pcpd_id = pcpq.pcpd_id
-                 and pcpq.assay_header_id = ash.ash_id
-                 and ash.ash_id = asm.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and aml.attribute_id = pqca.element_id
-                 and pqca.is_elem_for_pricing = 'Y'
-                 and dipq.element_id = pqca.element_id ---------
+                 and dipq.element_id = aml.attribute_id
                  and qum.qty_unit_id = dipq.qty_unit_id
                  and dipq.process_id = pc_process_id ---------------   
                  and dipq.is_active = 'Y' -------------
                  and pcpd.process_id = pc_process_id
                  and pcdi.process_id = pc_process_id
                  and pcm.process_id = pc_process_id
-                 and pcpq.process_id = pc_process_id
-                 and ash.is_active = 'Y'
-                 and asm.is_active = 'Y'
+               --  and pcm.contract_ref_no = 'SCT-52-BLD'
                  and aml.is_active = 'Y'
                  and cm.is_active = 'Y'
                  and qum.is_active = 'Y'
@@ -5448,14 +5454,12 @@ insert into isr_intrastat_grd
                  and pcdi.is_active = 'Y'
                  and pcm.is_active = 'Y'
                  and pcpd.is_active = 'Y'
-                 and pcpq.is_active = 'Y'
                group by pcm.internal_contract_ref_no,
                         pcm.contract_ref_no,
                         pcm.corporate_id,
                         akc.corporate_name,
                         pcm.cp_id,
-                        dipq.payable_qty,
-                        pqca.element_id,
+                        dipq.element_id,
                         aml.attribute_name,
                         phd.companyname,
                         pcm.contract_status,
@@ -5464,14 +5468,16 @@ insert into isr_intrastat_grd
                         dipq.qty_unit_id,
                         qum.qty_unit,
                         pcm.invoice_currency_id,
-                        cm.cur_code) main_table,
+                        cm.cur_code
+                        ) main_table,
              (select gmr.internal_contract_ref_no,
                      spq.element_id,
                      sum(spq.payable_qty) landed_qty
                 from pcm_physical_contract_main pcm,
                      pcmte_pcm_tolling_ext      pcmte,
                      gmr_goods_movement_record  gmr,
-                     spq_stock_payable_qty      spq
+                     spq_stock_payable_qty      spq,
+                     grd_goods_record_detail    grd
                where pcm.internal_contract_ref_no =
                      gmr.internal_contract_ref_no
                  and pcm.internal_contract_ref_no =
@@ -5486,6 +5492,10 @@ insert into isr_intrastat_grd
                  and spq.process_id = pc_process_id
                  and pcm.process_id = pc_process_id
                  and gmr.process_id = pc_process_id
+                 and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                 and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                 and spq.process_id = grd.process_id
+                 and grd.status = 'Active'
                group by gmr.internal_contract_ref_no,
                         spq.element_id) stock_table,
              (select pcm.internal_contract_ref_no,
@@ -5687,6 +5697,7 @@ begin
                and grd.process_id = pc_process_id
                and spq.process_id = pc_process_id
                and gmr.is_deleted = 'N'
+               and grd.status = 'Active'
                and gmr.is_pass_through = 'Y'
                and grd.tolling_stock_type = 'Clone Stock') t,
            iam_invoice_assay_mapping iam,
@@ -6589,7 +6600,7 @@ end;
                 t.credit_exp_cur_code;
   exception
     when others then
-      dbms_output.put_line('Error in CRC calculation');
+      --dbms_output.put_line('Error in CRC calculation');
       null;
       /*vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
@@ -8023,7 +8034,9 @@ end;
        invoice_cur_id,
        invoice_cur_code,
        inventory_cur_id,
-       inventory_cur_code)
+       inventory_cur_code,
+       export_date,
+       import_date)
       select pc_process_id,
              internal_contract_ref_no,
              contract_ref_no,
@@ -8078,7 +8091,9 @@ end;
              invoice_cur_id,
              invoice_cur_code,
              inventory_cur_id,
-             inventory_cur_code
+             inventory_cur_code,
+             loading_date,
+             eff_date
         from (
               select pcm.internal_contract_ref_no,
                      pcm.contract_ref_no,
@@ -8144,7 +8159,7 @@ end;
                      qum.qty_unit,
                      is1.invoice_issue_date invoice_eff_date,
                      gmr.eff_date gmr_eff_date,
-                     nvl(is1.invoice_issue_date, gmr.eff_date) final_invoice_date,
+                     nvl(is1.invoice_issue_date, gmr.bl_date) final_invoice_date,
                      (case
                        when is1.internal_invoice_ref_no is not null then
                         is1.invoice_item_amount
@@ -8159,10 +8174,12 @@ end;
                                                              pdm.base_quantity_unit,
                                                              grd.qty)
                      end) invoice_value,
-                     is1.invoice_currency_id invoice_cur_id,
-                     cm_invoice.cur_code invoice_cur_code,
+                     nvl(is1.invoice_currency_id,cm_base.cur_id) invoice_cur_id,
+                     nvl(cm_invoice.cur_code,cm_base.cur_code) invoice_cur_code,
                      cm_invtry.cur_id inventory_cur_id,
-                     cm_invtry.cur_code inventory_cur_code
+                     cm_invtry.cur_code inventory_cur_code,
+                     vd.loading_date,
+                     gmr.eff_date
                 from gmr_goods_movement_record  gmr,
                      pcm_physical_contract_main pcm,
                      pcdi_pc_delivery_item      pcdi,
@@ -8304,6 +8321,8 @@ end;
                 qty_unit,
                 invoice_eff_date,
                 gmr_eff_date,
+                loading_date,
+                eff_date,
                 final_invoice_date,
                 invoice_cur_id,
                 invoice_cur_code,
@@ -8373,7 +8392,9 @@ end;
          invoice_cur_id,
          invoice_cur_code,
          inventory_cur_id,
-         inventory_cur_code)
+         inventory_cur_code,
+         export_date,
+         import_date)
         select pc_process_id,
                internal_contract_ref_no,
                contract_ref_no,
@@ -8428,7 +8449,9 @@ end;
                invoice_cur_id,
                invoice_cur_code,
                inventory_cur_id,
-               inventory_cur_code
+               inventory_cur_code,
+               loading_date,
+               eff_date
           from (
           select pcm.internal_contract_ref_no,
                  pcm.contract_ref_no,
@@ -8493,7 +8516,7 @@ end;
                  qum.qty_unit,
                  is1.invoice_issue_date invoice_eff_date,
                  gmr.eff_date gmr_eff_date,
-                 nvl(is1.invoice_issue_date, gmr.eff_date) final_invoice_date,
+                 nvl(is1.invoice_issue_date, gmr.bl_date) final_invoice_date,
                  (case
                    when is1.internal_invoice_ref_no is not null then
                     is1.invoice_item_amount
@@ -8508,10 +8531,12 @@ end;
                                                          pdm.base_quantity_unit,
                                                          grd.qty)
                  end) invoice_value,
-                 is1.invoice_currency_id invoice_cur_id,
-                 cm_invoice.cur_code invoice_cur_code,
+                 nvl(is1.invoice_currency_id,cm_base.cur_id) invoice_cur_id,
+                 nvl(cm_invoice.cur_code,cm_base.cur_code) invoice_cur_code,
                  cm_invtry.cur_id inventory_cur_id,
-                 cm_invtry.cur_code inventory_cur_code
+                 cm_invtry.cur_code inventory_cur_code,
+                     vd.loading_date,
+                     gmr.eff_date
             from gmr_goods_movement_record  gmr,
                  pcm_physical_contract_main pcm,
                  pcdi_pc_delivery_item      pcdi,
@@ -8655,6 +8680,8 @@ end;
                   invoice_cur_id,
                   invoice_cur_code,
                   inventory_cur_id,
+                  loading_date,
+                  eff_date,
                   inventory_cur_code;
 
    sp_eodeom_process_log(pc_corporate_id,
@@ -8720,7 +8747,9 @@ end;
          invoice_cur_id,
          invoice_cur_code,
          inventory_cur_id,
-         inventory_cur_code)
+         inventory_cur_code,
+         export_date,
+         import_date)
         select pc_process_id,
                internal_contract_ref_no,
                contract_ref_no,
@@ -8775,7 +8804,9 @@ end;
                invoice_cur_id,
                invoice_cur_code,
                inventory_cur_id,
-               inventory_cur_code
+               inventory_cur_code,
+               loading_date,
+               eff_date
           from (
            select pcm.internal_contract_ref_no,
                   pcm.contract_ref_no,
@@ -8849,7 +8880,7 @@ end;
                   qum.qty_unit,
                   is1.invoice_issue_date invoice_eff_date,
                   gmr.eff_date gmr_eff_date,
-                  nvl(is1.invoice_issue_date, gmr.eff_date) final_invoice_date,
+                  nvl(is1.invoice_issue_date, gmr.bl_date) final_invoice_date,
                   (case
                     when is1.internal_invoice_ref_no is not null then
                      is1.invoice_item_amount
@@ -8864,10 +8895,12 @@ end;
                                                           pdm_aml.base_quantity_unit,
                                                           spq.payable_qty)
                   end) invoice_value,
-                  is1.invoice_currency_id invoice_cur_id,
-                  cm_invoice.cur_code invoice_cur_code,
+                  nvl(is1.invoice_currency_id,cm_base.cur_id) invoice_cur_id,
+                  nvl(cm_invoice.cur_code,cm_base.cur_code) invoice_cur_code,
                   cm_invtry.cur_id inventory_cur_id,
-                  cm_invtry.cur_code inventory_cur_code
+                  cm_invtry.cur_code inventory_cur_code,
+                     vd.loading_date,
+                     gmr.eff_date
              from gmr_goods_movement_record  gmr,
                   pcm_physical_contract_main pcm,
                   pcdi_pc_delivery_item      pcdi,
@@ -9029,7 +9062,9 @@ end;
                   invoice_cur_id,
                   invoice_cur_code,
                   inventory_cur_id,
-                  inventory_cur_code;
+                  inventory_cur_code,
+                  loading_date,
+                  eff_date;
 
  sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -9095,7 +9130,7 @@ end;
        invoice_cur_id,
        invoice_cur_code,
        inventory_cur_id,
-       inventory_cur_code)
+       inventory_cur_code,export_date,import_date)
       select pc_process_id,
              internal_contract_ref_no,
              contract_ref_no,
@@ -9150,7 +9185,9 @@ end;
              invoice_cur_id,
              invoice_cur_code,
              inventory_cur_id,
-             inventory_cur_code
+             inventory_cur_code,
+             loading_date,
+             eff_date
         from ( select pcm.internal_contract_ref_no,
            pcm.contract_ref_no,
            pcdi.delivery_item_no,
@@ -9222,7 +9259,7 @@ end;
            qum.qty_unit,
            is1.invoice_issue_date invoice_eff_date,
            gmr.eff_date gmr_eff_date,
-           nvl(is1.invoice_issue_date, gmr.eff_date) final_invoice_date,
+           nvl(is1.invoice_issue_date,gmr.bl_date) final_invoice_date,
            (case
              when is1.internal_invoice_ref_no is not null then
               is1.invoice_item_amount
@@ -9237,10 +9274,12 @@ end;
                                                    pdm_aml.base_quantity_unit,
                                                    spq.payable_qty)
            end) invoice_value,
-           is1.invoice_currency_id invoice_cur_id,
-           cm_invoice.cur_code invoice_cur_code,
+           nvl(is1.invoice_currency_id,cm_base.cur_id) invoice_cur_id,
+           nvl(cm_invoice.cur_code,cm_base.cur_code) invoice_cur_code,
            cm_invtry.cur_id inventory_cur_id,
-           cm_invtry.cur_code inventory_cur_code
+           cm_invtry.cur_code inventory_cur_code,
+                     vd.loading_date,
+                     gmr.eff_date
       from gmr_goods_movement_record  gmr,
            pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item      pcdi,
@@ -9393,7 +9432,9 @@ end;
                 invoice_cur_id,
                 invoice_cur_code,
                 inventory_cur_id,
-                inventory_cur_code;
+                inventory_cur_code,
+                loading_date,
+                eff_date;
  sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -11903,7 +11944,7 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
        and pcm.process_id = pc_process_id
        and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
        and gmr.eff_date <= pd_trade_date
-       and ash.is_active = 'Y'
+     --  and ash.is_active = 'Y'
        and pcm.is_active = 'Y'
        and spq.is_active = 'Y'
        and gsm.is_active = 'Y'
@@ -12134,7 +12175,7 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
          and pcm.process_id = pc_process_id
          and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
          and gmr.eff_date <= pd_trade_date
-         and ash.is_active = 'Y'
+       --  and ash.is_active = 'Y'
          and asm.is_active = 'Y'
          and pdm.is_active = 'Y'
          and qat.is_active = 'Y'
@@ -12264,790 +12305,986 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-  procedure sp_closing_balance_report(pc_corporate_id varchar2,
-                                      pd_trade_date   date,
-                                      pc_process_id   varchar2,
-                                      pc_process      varchar2,
-                                      pc_dbd_id       varchar2) as
-    cursor cur_closing is
-    
-      select t.gmr_ref_no,
-             t.internal_gmr_ref_no,
-             t.internal_grd_ref_no,
-             t.internal_stock_ref_no,
-             t.corporate_id,
-             t.corporate_name,
-             t.warehouse_profile_id,
-             t.companyname,
-             t.shed_id,
-             t.storage_location_name,
-             t.product_id,
-             t.product_desc,
-             t.quality_id,
-             t.quality_name,
-             t.wet_qty,
-             t.dry_qty,
-             t.qty_unit_id,
-             t.qty_unit,
-             t.element_id,
-             t.attribute_name,
-             t.underlying_product_id,
-             t.underlying_product_name,
-             t.base_quantity_unit_id,
-             t.base_quantity_unit,
-             t.assay_qty,
-             t.assay_qty_unit_id,
-             t.assay_qty_unit,
-             t.payable_qty,
-             t.payable_qty_unit_id,
-             t.payable_qty_unit,
-             t.pool_name,
-             dense_rank() over(partition by t.internal_grd_ref_no order by t.element_id) ele_rank,
-             t.ash_id,
-             t.pcdi_id,
-             t.pay_cur_id,
-             t.pay_cur_code,
-             t.pay_cur_decimal,
-             t.qty_type,
-             t.conc_base_qty_unit_id,
-             t.conc_base_qty_unit
-        from (
-              
-              -- Internal Movement payable elements
-              select gmr.gmr_ref_no,
-                      gmr.internal_gmr_ref_no,
-                      grd.internal_grd_ref_no,
-                      grd.internal_stock_ref_no,
-                      gmr.corporate_id,
-                      akc.corporate_name,
-                      gmr.warehouse_profile_id,
-                      phd.companyname,
-                      gmr.shed_id,
-                      sld.storage_location_name,
-                      grd.product_id,
-                      pdm.product_desc,
-                      grd.quality_id,
-                      qat.quality_name,
-                      grd.qty wet_qty,
-                      (grd.qty * asm.dry_wet_qty_ratio / 100) dry_qty,
-                      grd.qty_unit_id qty_unit_id,
-                      qum_grd.qty_unit qty_unit,
-                      spq.element_id,
-                      aml.attribute_name,
-                      aml.underlying_product_id,
-                      pdm_und.product_desc underlying_product_name,
-                      pdm_und.base_quantity_unit base_quantity_unit_id,
-                      qum_und.qty_unit base_quantity_unit,
-                      pqca.typical * (grd.qty * asm.dry_wet_qty_ratio / 100) assay_qty,
-                      (case
-                        when rm.ratio_name = '%' then
-                         grd.qty_unit_id
-                        else
-                         rm.qty_unit_id_numerator
-                      end) assay_qty_unit_id,
-                      qum.qty_unit assay_qty_unit,
-                      pqcapd.payable_percentage *
-                      (grd.qty * asm.dry_wet_qty_ratio / 100) payable_qty,
-                      (case
-                        when rm.ratio_name = '%' then
-                         grd.qty_unit_id
-                        else
-                         rm.qty_unit_id_numerator
-                      end) payable_qty_unit_id,
-                      qum.qty_unit payable_qty_unit,
-                      pm.pool_name,
-                      ash_pricing.ash_id,
-                      grd.pcdi_id,
-                      pcm.invoice_currency_id pay_cur_id,
-                      cm.cur_code pay_cur_code,
-                      cm.decimals pay_cur_decimal,
-                      spq.qty_type,
-                      pdm_conc.base_quantity_unit conc_base_qty_unit_id,
-                      qum_conc.qty_unit  conc_base_qty_unit
-                from grd_goods_record_detail        grd,
-                      gmr_goods_movement_record      gmr,
-                      ak_corporate                   akc,
-                      sld_storage_location_detail    sld,
-                      phd_profileheaderdetails       phd,
-                      pdm_productmaster              pdm,
-                      qat_quality_attributes         qat,
-                      qum_quantity_unit_master       qum_grd,
-                      sam_stock_assay_mapping        sam,
-                      ash_assay_header               ash,
-                      spq_stock_payable_qty          spq,
-                      ash_assay_header               ash_pricing,
-                      asm_assay_sublot_mapping       asm,
-                      aml_attribute_master_list      aml,
-                      pdm_productmaster              pdm_und,
-                      qum_quantity_unit_master       qum_und,
-                      pqca_pq_chemical_attributes    pqca,
-                      pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-                      rm_ratio_master                rm,
-                      qum_quantity_unit_master       qum,
-                      psr_pool_stock_register        psr,
-                      pm_pool_master                 pm,
-                      pcdi_pc_delivery_item          pcdi,
-                      pcm_physical_contract_main     pcm,
-                      cm_currency_master             cm,
-                      pdm_productmaster              pdm_conc,
-                      qum_quantity_unit_master       qum_conc
-               where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and gmr.is_internal_movement = 'Y'
-                 and gmr.is_deleted = 'N'
-                 and grd.status = 'Active'
-                 and gmr.corporate_id = pc_corporate_id
-                 and gmr.corporate_id = akc.corporate_id
-                 and gmr.shed_id = sld.storage_loc_id
-                 and gmr.warehouse_profile_id = phd.profileid
-                 and grd.product_id = pdm.product_id
-                 and grd.quality_id = qat.quality_id
-                 and grd.qty_unit_id = qum_grd.qty_unit_id
-                 and sam.internal_grd_ref_no = grd.internal_grd_ref_no
-                 and sam.is_active = 'Y'
-                 and spq.is_active = 'Y'
-                 and spq.is_stock_split = 'N'
-                 and sam.ash_id = ash.ash_id
-                 and sam.is_latest_pricing_assay = 'Y'
-                 and ash.is_active = 'Y'
-                 and ash_pricing.is_active = 'Y'
-                 and ash.internal_grd_ref_no = spq.internal_grd_ref_no
-                 and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
-                 and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
-                 and asm.ash_id = ash_pricing.ash_id
-                 and spq.element_id = aml.attribute_id
-                 and aml.underlying_product_id = pdm_und.product_id
-                 and pdm_und.base_quantity_unit = qum_und.qty_unit_id
-                 and asm.asm_id = pqca.asm_id
-                 and spq.element_id = pqca.element_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and pqca.pqca_id = pqcapd.pqca_id
-                 and grd.product_id =pdm_conc.product_id
-                 and pdm_conc.base_quantity_unit=qum_conc.qty_unit_id
-                 and qum.qty_unit_id =
-                     (case when rm.ratio_name = '%' then grd.qty_unit_id else
-                      rm.qty_unit_id_numerator end)
-                 and grd.parent_internal_grd_ref_no =
-                     psr.internal_grd_ref_no(+)
-                 and psr.pool_id = pm.pool_id(+)
-                 and grd.pcdi_id = pcdi.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and pcm.process_id = pc_process_id
-                 and pcdi.process_id = pc_process_id
-                 and pcm.invoice_currency_id = cm.cur_id
-                 and grd.product_id=pdm_conc.product_id
-                 and pdm_conc.base_quantity_unit=qum_conc.qty_unit_id
-                 and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
-                 and gmr.eff_date <= pd_trade_date
-                 and rm.is_active = 'Y'
-                 and pdm.is_active = 'Y'
-                 and qat.is_active = 'Y'
-                 and phd.is_active = 'Y'
-                 and sld.is_active = 'Y'
-                 and aml.is_active = 'Y'
-                 and pqca.is_active = 'Y'
-                 and pqcapd.is_active = 'Y'
-                 and gmr.process_id = pc_process_id
-                 and grd.process_id = pc_process_id
-                 and spq.process_id = pc_process_id
-              union all
-              -- Internal Movement penality elements
-              select gmr.gmr_ref_no,
-                     gmr.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     grd.internal_stock_ref_no,
-                     gmr.corporate_id,
-                     akc.corporate_name,
-                     gmr.warehouse_profile_id,
-                     phd.companyname,
-                     gmr.shed_id,
-                     sld.storage_location_name,
-                     grd.product_id,
-                     pdm.product_desc,
-                     grd.quality_id,
-                     qat.quality_name,
-                     grd.qty wet_qty,
-                     (grd.qty * asm.dry_wet_qty_ratio / 100) dry_qty,
-                     grd.qty_unit_id qty_unit_id,
-                     qum_grd.qty_unit qty_unit,
-                     pqca.element_id,
-                     aml.attribute_name,
-                     null underlying_product_id,
-                     null underlying_product_name,
-                     null base_quantity_unit_id,
-                     null base_quantity_unit,
-                     null assay_qty,
-                     null assay_qty_unit_id,
-                     null assay_qty_unit,
-                     null payable_qty,
-                     null payable_qty_unit_id,
-                     null payable_qty_unit,
-                     pm.pool_name,
-                     ash_pricing.ash_id,
-                     grd.pcdi_id,
-                     pcm.invoice_currency_id pay_cur_id,
-                     cm.cur_code pay_cur_code,
-                     cm.decimals pay_cur_decimal,
-                     null qty_type,
-                     pdm_conc.base_quantity_unit conc_base_qty_unit_id,
-                     qum_conc.qty_unit  conc_base_qty_unit
-                from grd_goods_record_detail grd,
-                     gmr_goods_movement_record gmr,
-                     ak_corporate akc,
-                     sld_storage_location_detail sld,
-                     phd_profileheaderdetails phd,
-                     pdm_productmaster pdm,
-                     qat_quality_attributes qat,
-                     qum_quantity_unit_master qum_grd,
-                     sam_stock_assay_mapping sam,
-                     ash_assay_header ash,
-                     (select spq.internal_gmr_ref_no,
-                             spq.internal_grd_ref_no,
-                             spq.assay_header_id
-                        from spq_stock_payable_qty spq
-                       where spq.process_id = pc_process_id
-                         and spq.is_stock_split = 'N'
-                         and spq.is_active = 'Y'
-                       group by spq.internal_gmr_ref_no,
-                                spq.internal_grd_ref_no,
-                                spq.assay_header_id) spq,
-                     ash_assay_header ash_pricing,
-                     asm_assay_sublot_mapping asm,
-                     aml_attribute_master_list aml,
-                     pqca_pq_chemical_attributes pqca,
-                     rm_ratio_master rm,
-                     qum_quantity_unit_master qum,
-                     psr_pool_stock_register psr,
-                     pm_pool_master pm,
-                     pcdi_pc_delivery_item pcdi,
-                     pcm_physical_contract_main pcm,
-                     cm_currency_master cm,
-                     pdm_productmaster pdm_conc,
-                     qum_quantity_unit_master  qum_conc
-               where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 and gmr.is_internal_movement = 'Y'
-                 and gmr.is_deleted = 'N'
-                 and grd.status = 'Active'
-                 and gmr.corporate_id = pc_corporate_id
-                 and gmr.corporate_id = akc.corporate_id
-                 and gmr.shed_id = sld.storage_loc_id
-                 and gmr.warehouse_profile_id = phd.profileid
-                 and grd.product_id = pdm.product_id
-                 and grd.quality_id = qat.quality_id
-                 and grd.qty_unit_id = qum_grd.qty_unit_id
-                 and sam.internal_grd_ref_no = grd.internal_grd_ref_no
-                 and sam.is_active = 'Y'
-                 and sam.ash_id = ash.ash_id
-                 and sam.is_latest_pricing_assay = 'Y'
-                 and ash.is_active = 'Y'
-                 and ash_pricing.is_active = 'Y'
-                 and ash.internal_grd_ref_no = spq.internal_grd_ref_no
-                 and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
-                 and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
-                 and asm.ash_id = ash_pricing.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and pqca.is_elem_for_pricing='N'
-                 and pqca.element_id = aml.attribute_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and qum.qty_unit_id =
-                     (case when rm.ratio_name = '%' then grd.qty_unit_id else
-                      rm.qty_unit_id_numerator end)
-                 and grd.parent_internal_grd_ref_no =
-                     psr.internal_grd_ref_no(+)
-                 and psr.pool_id = pm.pool_id(+)
-                 and grd.pcdi_id = pcdi.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and grd.product_id =pdm_conc.product_id
-                 and pdm_conc.base_quantity_unit=qum_conc.qty_unit_id    
-                 and pcm.process_id = pc_process_id
-                 and pcdi.process_id = pc_process_id
-                 and pcm.invoice_currency_id = cm.cur_id
-                 and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
-                 and gmr.eff_date <= pd_trade_date
-                 and rm.is_active = 'Y'
-                 and pdm.is_active = 'Y'
-                 and qat.is_active = 'Y'
-                 and phd.is_active = 'Y'
-                 and sld.is_active = 'Y'
-                 and aml.is_active = 'Y'
-                 and pqca.is_active = 'Y'
-                 and gmr.process_id = pc_process_id
-                 and grd.process_id = pc_process_id
-              union all
-              --- all supplier stocks payable elements
-              select gmr.gmr_ref_no,
-                     gmr.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     grd.internal_stock_ref_no,
-                     gmr.corporate_id,
-                     akc.corporate_name,
-                     gmr.warehouse_profile_id,
-                     phd.companyname,
-                     gmr.shed_id,
-                     sld.storage_location_name,
-                     grd.product_id,
-                     pdm.product_desc,
-                     grd.quality_id,
-                     qat.quality_name,
-                     grd.qty wet_qty,
-                     (grd.qty * asm.dry_wet_qty_ratio / 100) dry_qty,
-                     grd.qty_unit_id qty_unit_id,
-                     qum_grd.qty_unit qty_unit,
-                     spq.element_id,
-                     aml.attribute_name,
-                     aml.underlying_product_id,
-                     pdm_und.product_desc underlying_product_name,
-                     pdm_und.base_quantity_unit base_quantity_unit_id,
-                     qum_und.qty_unit base_quantity_unit,
-                     pqca.typical * (grd.qty * asm.dry_wet_qty_ratio / 100) assay_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        grd.qty_unit_id
-                       else
-                        rm.qty_unit_id_numerator
-                     end) assay_qty_unit_id,
-                     qum.qty_unit assay_qty_unit,
-                     pqcapd.payable_percentage *
-                     (grd.qty * asm.dry_wet_qty_ratio / 100) payable_qty,
-                     (case
-                       when rm.ratio_name = '%' then
-                        grd.qty_unit_id
-                       else
-                        rm.qty_unit_id_numerator
-                     end) payable_qty_unit_id,
-                     qum.qty_unit payable_qty_unit,
-                     pm.pool_name,
-                     ash.ash_id,
-                     grd.pcdi_id,
-                     pcm.invoice_currency_id pay_cur_id,
-                     cm.cur_code pay_cur_code,
-                     cm.decimals pay_cur_decimal,
-                     spq.qty_type,
-                     pdm_conc.base_quantity_unit conc_base_qty_unit_id,
-                     qum_conc.qty_unit  conc_base_qty_unit
-                from gmr_goods_movement_record      gmr,
-                     grd_goods_record_detail        grd,
-                     ak_corporate                   akc,
-                     sld_storage_location_detail    sld,
-                     phd_profileheaderdetails       phd,
-                     pdm_productmaster              pdm,
-                     qat_quality_attributes         qat,
-                     qum_quantity_unit_master       qum_grd,
-                     spq_stock_payable_qty          spq,
-                     ash_assay_header               ash,
-                     asm_assay_sublot_mapping       asm,
-                     aml_attribute_master_list      aml,
-                     pdm_productmaster              pdm_und,
-                     qum_quantity_unit_master       qum_und,
-                     pqca_pq_chemical_attributes    pqca,
-                     pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-                     rm_ratio_master                rm,
-                     qum_quantity_unit_master       qum,
-                     psr_pool_stock_register        psr,
-                     pm_pool_master                 pm,
-                     pcdi_pc_delivery_item          pcdi,
-                     pcm_physical_contract_main     pcm,
-                     cm_currency_master             cm,
-                     pdm_productmaster              pdm_conc,
-                     qum_quantity_unit_master       qum_conc
-               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and gmr.is_deleted = 'N'
-                 and grd.status = 'Active'
-                 and gmr.corporate_id = pc_corporate_id
-                 and gmr.corporate_id = akc.corporate_id
-                 and gmr.shed_id = sld.storage_loc_id
-                 and gmr.warehouse_profile_id = phd.profileid
-                 and grd.product_id = pdm.product_id
-                 and grd.quality_id = qat.quality_id
-                 and grd.qty_unit_id = qum_grd.qty_unit_id
-                 and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-                 and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-                 and spq.is_stock_split = 'N'
-                 and spq.is_active = 'Y'
-                 and ash.is_active = 'Y'
-                 and asm.is_active = 'Y'
-                 and ash.pricing_assay_ash_id = spq.assay_header_id
-                 and ash.assay_type = 'Weighted Avg Pricing Assay'
-                 and ash.ash_id = asm.ash_id
-                 and spq.element_id = aml.attribute_id
-                 and aml.underlying_product_id = pdm_und.product_id
-                 and pdm_und.base_quantity_unit = qum_und.qty_unit_id
-                 and asm.asm_id = pqca.asm_id
-                 and spq.element_id = pqca.element_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and pqca.pqca_id = pqcapd.pqca_id
-                 and qum.qty_unit_id =
-                     (case when rm.ratio_name = '%' then grd.qty_unit_id else
-                      rm.qty_unit_id_numerator end)
-                 and grd.parent_internal_grd_ref_no =
-                     psr.internal_grd_ref_no(+)
-                 and psr.pool_id = pm.pool_id(+)
-                 and grd.pcdi_id = pcdi.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and pcm.process_id = pc_process_id
-                 and pcdi.process_id = pc_process_id
-                 and pcm.invoice_currency_id = cm.cur_id
-                 and grd.product_id=pdm_conc.product_id
-                 and pdm_conc.base_quantity_unit=qum_conc.qty_unit_id
-                 and rm.is_active = 'Y'
-                 and pdm.is_active = 'Y'
-                 and qat.is_active = 'Y'
-                 and phd.is_active = 'Y'
-                 and sld.is_active = 'Y'
-                 and aml.is_active = 'Y'
-                 and pqca.is_active = 'Y'
-                 and pqcapd.is_active = 'Y'
-                 and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
-                 and gmr.eff_date <= pd_trade_date
-                 and gmr.process_id = pc_process_id
-                 and grd.process_id = pc_process_id
-                 and spq.process_id = pc_process_id
-              union all
-              --- all supplier stocks penality elements
-              select gmr.gmr_ref_no,
-                     gmr.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     grd.internal_stock_ref_no,
-                     gmr.corporate_id,
-                     akc.corporate_name,
-                     gmr.warehouse_profile_id,
-                     phd.companyname,
-                     gmr.shed_id,
-                     sld.storage_location_name,
-                     grd.product_id,
-                     pdm.product_desc,
-                     grd.quality_id,
-                     qat.quality_name,
-                     grd.qty wet_qty,
-                     (grd.qty * asm.dry_wet_qty_ratio / 100) dry_qty,
-                     grd.qty_unit_id qty_unit_id,
-                     qum_grd.qty_unit qty_unit,
-                     pqca.element_id,
-                     aml.attribute_name,
-                     null underlying_product_id,
-                     null underlying_product_name,
-                     null base_quantity_unit_id,
-                     null base_quantity_unit,
-                     null assay_qty,
-                     null assay_qty_unit_id,
-                     null assay_qty_unit,
-                     null payable_qty,
-                     null payable_qty_unit,
-                     null payable_qty_unit,
-                     pm.pool_name,
-                     ash.ash_id,
-                     grd.pcdi_id,
-                     pcm.invoice_currency_id pay_cur_id,
-                     cm.cur_code pay_cur_code,
-                     cm.decimals pay_cur_decimal,
-                     null qty_type,
-                     pdm_conc.base_quantity_unit conc_base_qty_unit_id,
-                     qum_conc.qty_unit  conc_base_qty_unit
-                from gmr_goods_movement_record gmr,
-                     grd_goods_record_detail grd,
-                     ak_corporate akc,
-                     sld_storage_location_detail sld,
-                     phd_profileheaderdetails phd,
-                     pdm_productmaster pdm,
-                     qat_quality_attributes qat,
-                     qum_quantity_unit_master qum_grd,
-                     (select spq.internal_gmr_ref_no,
-                             spq.internal_grd_ref_no,
-                             spq.assay_header_id
-                        from spq_stock_payable_qty spq
-                       where spq.process_id = pc_process_id
-                         and spq.is_stock_split = 'N'
-                         and spq.is_active = 'Y'
-                       group by spq.internal_gmr_ref_no,
-                                spq.internal_grd_ref_no,
-                                spq.assay_header_id) spq,
-                     ash_assay_header ash,
-                     asm_assay_sublot_mapping asm,
-                     pqca_pq_chemical_attributes pqca,
-                     aml_attribute_master_list aml,
-                     rm_ratio_master rm,
-                     qum_quantity_unit_master qum,
-                     psr_pool_stock_register psr,
-                     pm_pool_master pm,
-                     pcdi_pc_delivery_item pcdi,
-                     pcm_physical_contract_main pcm,
-                     cm_currency_master cm,
-                     pdm_productmaster              pdm_conc,
-                     qum_quantity_unit_master       qum_conc
-               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and gmr.is_deleted = 'N'
-                 and grd.status = 'Active'
-                 and gmr.corporate_id = pc_corporate_id
-                 and gmr.corporate_id = akc.corporate_id
-                 and gmr.shed_id = sld.storage_loc_id
-                 and gmr.warehouse_profile_id = phd.profileid
-                 and grd.product_id = pdm.product_id
-                 and grd.quality_id = qat.quality_id
-                 and grd.qty_unit_id = qum_grd.qty_unit_id
-                 and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-                 and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-                 and ash.is_active = 'Y'
-                 and asm.is_active = 'Y'
-                 and ash.pricing_assay_ash_id = spq.assay_header_id
-                 and ash.assay_type = 'Weighted Avg Pricing Assay'
-                 and ash.ash_id = asm.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and pqca.is_elem_for_pricing = 'N'
-                 and pqca.element_id = aml.attribute_id
-                 and pqca.unit_of_measure = rm.ratio_id
-                 and qum.qty_unit_id =
-                     (case when rm.ratio_name = '%' then grd.qty_unit_id else
-                      rm.qty_unit_id_numerator end)
-                 and grd.parent_internal_grd_ref_no =
-                     psr.internal_grd_ref_no(+)
-                 and psr.pool_id = pm.pool_id(+)
-                 and grd.pcdi_id = pcdi.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and pcm.process_id = pc_process_id
-                 and pcdi.process_id = pc_process_id
-                 and pcm.invoice_currency_id = cm.cur_id
-                 and grd.product_id=pdm_conc.product_id
-                 and pdm_conc.base_quantity_unit=qum_conc.qty_unit_id
-                 and rm.is_active = 'Y'
-                 and pdm.is_active = 'Y'
-                 and qat.is_active = 'Y'
-                 and phd.is_active = 'Y'
-                 and sld.is_active = 'Y'
-                 and aml.is_active = 'Y'
-                 and pqca.is_active = 'Y'
-                 and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
-                 and gmr.eff_date <= pd_trade_date
-                 and gmr.process_id = pc_process_id
-                 and grd.process_id = pc_process_id) t;
+procedure sp_closing_balance_report(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_process_id   varchar2,
+                                    pc_process      varchar2,
+                                    pc_dbd_id       varchar2) as
+  cursor cur_closing is
   
-    vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count           number := 1;
-    vn_assay_qty                 number;
-    vn_payable_qty               number;
-    vn_gmr_price                 number;
-    vc_gmr_price_untit_id        varchar2(15);
-    vn_gmr_price_unit_weight     varchar2(15);
-    vn_price_unit_weight_unit_id varchar2(15);
-    vc_gmr_price_unit_cur_id     varchar2(10);
-    vc_gmr_price_unit_cur_code   varchar2(10);
-    vn_gmr_treatment_charge      number;
-    vc_gmr_treatment_cur_id      varchar2(15);
-    vn_base_gmr_treatment_charge number;
-    vn_gmr_refine_charge         number;
-    vc_gmr_refine_cur_id         varchar2(15);
-    vn_base_gmr_refine_charge    number;
-    vn_gmr_penality_charge       number;
-    vc_gmr_penality_cur_id       varchar2(15);
-    vn_base_gmr_penality_charge  number;
-    vn_dry_qty                   number;
-    vn_wet_qty                   number;
+    select t.gmr_ref_no,
+           t.internal_gmr_ref_no,
+           t.internal_grd_ref_no,
+           t.internal_stock_ref_no,
+           t.corporate_id,
+           t.corporate_name,
+           t.warehouse_profile_id,
+           t.companyname,
+           t.shed_id,
+           t.storage_location_name,
+           t.product_id,
+           t.product_desc,
+           t.quality_id,
+           t.quality_name,
+           t.wet_qty,
+           t.dry_qty,
+           t.qty_unit_id,
+           t.qty_unit,
+           t.element_id,
+           t.attribute_name,
+           t.underlying_product_id,
+           t.underlying_product_name,
+           t.base_quantity_unit_id,
+           t.base_quantity_unit,
+           t.assay_qty,
+           t.assay_qty_unit_id,
+           t.assay_qty_unit,
+           t.payable_qty,
+           t.payable_qty_unit_id,
+           t.payable_qty_unit,
+           t.pool_name,
+           dense_rank() over(partition by t.internal_grd_ref_no order by t.element_id) ele_rank,
+           t.ash_id,
+           t.pcdi_id,
+           t.pay_cur_id,
+           t.pay_cur_code,
+           t.pay_cur_decimal,
+           t.qty_type,
+           t.conc_base_qty_unit_id,
+           t.conc_base_qty_unit
+      from (
+            -- Internal Movement payable elements
+            select gmr.gmr_ref_no,
+                    gmr.internal_gmr_ref_no,
+                    grd.internal_grd_ref_no,
+                    grd.internal_stock_ref_no,
+                    gmr.corporate_id,
+                    akc.corporate_name,
+                    gmr.warehouse_profile_id,
+                    phd.companyname,
+                    gmr.shed_id,
+                    sld.storage_location_name,
+                    grd.product_id,
+                    pdm.product_desc,
+                    grd.quality_id,
+                    qat.quality_name,
+                    grd.current_qty wet_qty,
+                    (grd.current_qty * asm.dry_wet_qty_ratio / 100) dry_qty,
+                    grd.qty_unit_id qty_unit_id,
+                    qum_grd.qty_unit qty_unit,
+                    aml.attribute_id element_id,
+                    aml.attribute_name,
+                    aml.underlying_product_id,
+                    pdm_und.product_desc underlying_product_name,
+                    pdm_und.base_quantity_unit base_quantity_unit_id,
+                    qum_und.qty_unit base_quantity_unit,
+                    (case
+                      when rm.ratio_name = '%' then
+                       ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                       (pqca.typical / 100))
+                      else
+                       (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
+                       pqca.typical)
+                    end) assay_qty,
+                    -- pqca.typical * (grd.qty * asm.dry_wet_qty_ratio / 100) assay_qty,
+                    (case
+                      when rm.ratio_name = '%' then
+                       grd.qty_unit_id
+                      else
+                       rm.qty_unit_id_numerator
+                    end) assay_qty_unit_id,
+                    qum.qty_unit assay_qty_unit,
+                    (case
+                      when rm.ratio_name = '%' then
+                       ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                       (pqcapd.payable_percentage / 100))
+                      else
+                       ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                       pqcapd.payable_percentage)
+                    end) payable_qty,
+                    /* pqcapd.payable_percentage *
+                                                              (grd.qty * asm.dry_wet_qty_ratio / 100) payable_qty,*/
+                    (case
+                      when rm.ratio_name = '%' then
+                       grd.qty_unit_id
+                      else
+                       rm.qty_unit_id_numerator
+                    end) payable_qty_unit_id,
+                    qum.qty_unit payable_qty_unit,
+                    pm.pool_name,
+                    ash_pricing.ash_id,
+                    grd.pcdi_id,
+                    pcm.invoice_currency_id pay_cur_id,
+                    cm.cur_code pay_cur_code,
+                    cm.decimals pay_cur_decimal,
+                    'Payable' qty_type,
+                    pdm_conc.base_quantity_unit conc_base_qty_unit_id,
+                    qum_conc.qty_unit conc_base_qty_unit
+              from grd_goods_record_detail        grd,
+                    gmr_goods_movement_record      gmr,
+                    temp_stock_latest_assay        tspq, 
+                    ak_corporate                   akc,
+                    sld_storage_location_detail    sld,
+                    phd_profileheaderdetails       phd,
+                    pdm_productmaster              pdm,
+                    qat_quality_attributes         qat,
+                    qum_quantity_unit_master       qum_grd,
+                    --sam_stock_assay_mapping        sam,
+                  --  ash_assay_header               ash,
+                 --   spq_stock_payable_qty          spq,
+                    ash_assay_header               ash_pricing,
+                    asm_assay_sublot_mapping       asm,
+                    aml_attribute_master_list      aml,
+                    pdm_productmaster              pdm_und,
+                    qum_quantity_unit_master       qum_und,
+                    pqca_pq_chemical_attributes    pqca,
+                    pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+                    rm_ratio_master                rm,
+                    qum_quantity_unit_master       qum,
+                    psr_pool_stock_register        psr,
+                    pm_pool_master                 pm,
+                    pcdi_pc_delivery_item          pcdi,
+                    pcm_physical_contract_main     pcm,
+                    cm_currency_master             cm,
+                    pdm_productmaster              pdm_conc,
+                    qum_quantity_unit_master       qum_conc
+             where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+               and gmr.is_internal_movement = 'Y'
+               and gmr.is_deleted = 'N'
+               and grd.status = 'Active'
+               and gmr.corporate_id = pc_corporate_id
+               and gmr.corporate_id = akc.corporate_id
+               and gmr.shed_id = sld.storage_loc_id
+               and gmr.warehouse_profile_id = phd.profileid
+               and grd.product_id = pdm.product_id
+               and grd.quality_id = qat.quality_id
+               and grd.qty_unit_id = qum_grd.qty_unit_id
+               and grd.internal_grd_ref_no = tspq.internal_grd_ref_no
+               and gmr.corporate_id = tspq.corporate_id
+               and gmr.internal_gmr_ref_no = tspq.internal_gmr_ref_no
+               and tspq.element_id = aml.attribute_id
+               and pqca.element_id = tspq.element_id
+               and tspq.latest_ash_id = ash_pricing.ash_id
+        --       and sam.internal_grd_ref_no = grd.internal_grd_ref_no
+           --    and sam.is_active = 'Y'
+            --   and spq.is_active = 'Y'
+          --     and spq.is_stock_split = 'N'
+         --      and sam.ash_id = ash.ash_id
+           --    and sam.is_latest_pricing_assay = 'Y'
+           --    and ash.is_active = 'Y'
+          --     and ash_pricing.is_active = 'Y'
+          --     and ash.internal_grd_ref_no = spq.internal_grd_ref_no
+         --      and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
+              -- and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
+               and asm.ash_id = ash_pricing.ash_id
+            --   and spq.element_id = aml.attribute_id
+               and aml.underlying_product_id = pdm_und.product_id
+               and pdm_und.base_quantity_unit = qum_und.qty_unit_id
+               and asm.asm_id = pqca.asm_id
+        --       and spq.element_id = pqca.element_id
+               and pqca.unit_of_measure = rm.ratio_id
+               and pqca.pqca_id = pqcapd.pqca_id
+               and grd.product_id = pdm_conc.product_id
+               and grd.current_qty <> 0
+               and grd.tolling_stock_type in ('None Tolling')
+               and pdm_conc.base_quantity_unit = qum_conc.qty_unit_id
+               and qum.qty_unit_id =
+                   (case when rm.ratio_name = '%' then grd.qty_unit_id else
+                    rm.qty_unit_id_numerator end)
+               and grd.internal_grd_ref_no = psr.internal_grd_ref_no(+)
+               and psr.pool_id = pm.pool_id(+)
+               and grd.pcdi_id = pcdi.pcdi_id
+               and pcdi.internal_contract_ref_no =
+                   pcm.internal_contract_ref_no
+               and pcm.process_id = pc_process_id
+               and pcdi.process_id = pc_process_id
+               and pcm.invoice_currency_id = cm.cur_id
+               and grd.product_id = pdm_conc.product_id
+               and pdm_conc.base_quantity_unit = qum_conc.qty_unit_id
+               and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
+               and gmr.eff_date <= pd_trade_date
+               and rm.is_active = 'Y'
+               and pdm.is_active = 'Y'
+               and qat.is_active = 'Y'
+               and phd.is_active = 'Y'
+               and sld.is_active = 'Y'
+               and aml.is_active = 'Y'
+               and pqca.is_active = 'Y'
+               and pqcapd.is_active = 'Y'
+               and gmr.process_id = pc_process_id
+               and grd.process_id = pc_process_id
+              -- and spq.process_id = pc_process_id
+            union all
+            -- Internal Movement penality elements
+            select gmr.gmr_ref_no,
+                   gmr.internal_gmr_ref_no,
+                   grd.internal_grd_ref_no,
+                   grd.internal_stock_ref_no,
+                   gmr.corporate_id,
+                   akc.corporate_name,
+                   gmr.warehouse_profile_id,
+                   phd.companyname,
+                   gmr.shed_id,
+                   sld.storage_location_name,
+                   grd.product_id,
+                   pdm.product_desc,
+                   grd.quality_id,
+                   qat.quality_name,
+                   grd.current_qty wet_qty,
+                   (grd.current_qty * asm.dry_wet_qty_ratio / 100) dry_qty,
+                   grd.qty_unit_id qty_unit_id,
+                   qum_grd.qty_unit qty_unit,
+                   pqca.element_id,
+                   aml.attribute_name,
+                   null underlying_product_id,
+                   null underlying_product_name,
+                   null base_quantity_unit_id,
+                   null base_quantity_unit,
+                   (case
+                     when rm.ratio_name = '%' then
+                      ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                      (pqca.typical / 100))
+                     else
+                      (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
+                      pqca.typical)
+                   end) assay_qty,
+                   --                     null assay_qty_unit_id,
+                   --                     null assay_qty_unit,
+                   (case
+                     when rm.ratio_name = '%' then
+                      grd.qty_unit_id
+                     else
+                      rm.qty_unit_id_numerator
+                   end) assay_qty_unit_id,
+                   qum.qty_unit assay_qty_unit,
+                   null payable_qty,
+                   null payable_qty_unit_id,
+                   null payable_qty_unit,
+                   pm.pool_name,
+                   ash_pricing.ash_id,
+                   grd.pcdi_id,
+                   pcm.invoice_currency_id pay_cur_id,
+                   cm.cur_code pay_cur_code,
+                   cm.decimals pay_cur_decimal,
+                   null qty_type,
+                   pdm_conc.base_quantity_unit conc_base_qty_unit_id,
+                   qum_conc.qty_unit conc_base_qty_unit
+              from grd_goods_record_detail grd,
+                   gmr_goods_movement_record gmr,
+                   ak_corporate akc,
+                   sld_storage_location_detail sld,
+                   phd_profileheaderdetails phd,
+                   pdm_productmaster pdm,
+                   qat_quality_attributes qat,
+                   qum_quantity_unit_master qum_grd,
+                   sam_stock_assay_mapping sam,
+                   ash_assay_header ash,
+                   (select spq.internal_gmr_ref_no,
+                           spq.internal_grd_ref_no,
+                           spq.assay_header_id
+                      from spq_stock_payable_qty spq
+                     where spq.process_id = pc_process_id
+                       and spq.is_stock_split = 'N'
+                       and spq.is_active = 'Y'
+                     group by spq.internal_gmr_ref_no,
+                              spq.internal_grd_ref_no,
+                              spq.assay_header_id) spq,
+                   ash_assay_header ash_pricing,
+                   asm_assay_sublot_mapping asm,
+                   aml_attribute_master_list aml,
+                   pqca_pq_chemical_attributes pqca,
+                   rm_ratio_master rm,
+                   qum_quantity_unit_master qum,
+                   psr_pool_stock_register psr,
+                   pm_pool_master pm,
+                   pcdi_pc_delivery_item pcdi,
+                   pcm_physical_contract_main pcm,
+                   cm_currency_master cm,
+                   pdm_productmaster pdm_conc,
+                   qum_quantity_unit_master qum_conc
+             where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+               and gmr.is_internal_movement = 'Y'
+               and gmr.is_deleted = 'N'
+               and grd.status = 'Active'
+               and gmr.corporate_id = pc_corporate_id
+               and gmr.corporate_id = akc.corporate_id
+               and gmr.shed_id = sld.storage_loc_id
+               and gmr.warehouse_profile_id = phd.profileid
+               and grd.product_id = pdm.product_id
+               and grd.quality_id = qat.quality_id
+               and grd.qty_unit_id = qum_grd.qty_unit_id
+               and sam.internal_grd_ref_no = grd.internal_grd_ref_no
+               and sam.is_active = 'Y'
+               and sam.ash_id = ash.ash_id
+               and sam.is_latest_pricing_assay = 'Y'
+               and ash.is_active = 'Y'
+               and ash_pricing.is_active = 'Y'
+               and ash.internal_grd_ref_no = spq.internal_grd_ref_no
+               and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
+               and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
+               and asm.ash_id = ash_pricing.ash_id
+               and asm.asm_id = pqca.asm_id
+               and pqca.is_elem_for_pricing = 'N'
+               and pqca.element_id = aml.attribute_id
+               and pqca.unit_of_measure = rm.ratio_id
+               and qum.qty_unit_id =
+                   (case when rm.ratio_name = '%' then grd.qty_unit_id else
+                    rm.qty_unit_id_numerator end)
+               and grd.internal_grd_ref_no = psr.internal_grd_ref_no(+)
+               and psr.pool_id = pm.pool_id(+)
+               and grd.pcdi_id = pcdi.pcdi_id
+               and pcdi.internal_contract_ref_no =
+                   pcm.internal_contract_ref_no
+               and grd.product_id = pdm_conc.product_id
+               and pdm_conc.base_quantity_unit = qum_conc.qty_unit_id
+               and pcm.process_id = pc_process_id
+               and pcdi.process_id = pc_process_id
+               and pcm.invoice_currency_id = cm.cur_id
+               and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
+               and gmr.eff_date <= pd_trade_date
+               and rm.is_active = 'Y'
+               and pdm.is_active = 'Y'
+               and qat.is_active = 'Y'
+               and phd.is_active = 'Y'
+               and sld.is_active = 'Y'
+               and aml.is_active = 'Y'
+               and pqca.is_active = 'Y'
+               and grd.current_qty <> 0
+               and grd.tolling_stock_type in ('None Tolling')
+               and gmr.process_id = pc_process_id
+               and grd.process_id = pc_process_id
+            union all
+            --- all supplier stocks payable elements
+            select gmr.gmr_ref_no,
+                   gmr.internal_gmr_ref_no,
+                   grd.internal_grd_ref_no,
+                   grd.internal_stock_ref_no,
+                   gmr.corporate_id,
+                   akc.corporate_name,
+                   gmr.warehouse_profile_id,
+                   phd.companyname,
+                   gmr.shed_id,
+                   sld.storage_location_name,
+                   grd.product_id,
+                   pdm.product_desc,
+                   grd.quality_id,
+                   qat.quality_name,
+                   grd.current_qty wet_qty,
+                   (grd.current_qty * asm.dry_wet_qty_ratio / 100) dry_qty,
+                   grd.qty_unit_id qty_unit_id,
+                   qum_grd.qty_unit qty_unit,
+                   tspq.element_id,
+                   aml.attribute_name,
+                   aml.underlying_product_id,
+                   pdm_und.product_desc underlying_product_name,
+                   pdm_und.base_quantity_unit base_quantity_unit_id,
+                   qum_und.qty_unit base_quantity_unit,
+                   --pqca.typical * (grd.qty * asm.dry_wet_qty_ratio / 100) assay_qty,
+                   (case
+                     when rm.ratio_name = '%' then
+                      ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                      (pqca.typical / 100))
+                     else
+                      (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
+                      pqca.typical)
+                   end) assay_qty,
+                   (case
+                     when rm.ratio_name = '%' then
+                      grd.qty_unit_id
+                     else
+                      rm.qty_unit_id_numerator
+                   end) assay_qty_unit_id,
+                   qum.qty_unit assay_qty_unit,
+                   (case
+                     when rm.ratio_name = '%' then
+                      ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                      (pqcapd.payable_percentage / 100))
+                     else
+                      ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                      pqcapd.payable_percentage)
+                   end) payable_qty,
+                   -- pqcapd.payable_percentage *
+                   --  (grd.qty * asm.dry_wet_qty_ratio / 100) payable_qty,
+                   (case
+                     when rm.ratio_name = '%' then
+                      grd.qty_unit_id
+                     else
+                      rm.qty_unit_id_numerator
+                   end) payable_qty_unit_id,
+                   qum.qty_unit payable_qty_unit,
+                   pm.pool_name,
+                   ash.ash_id,
+                   grd.pcdi_id,
+                   pcm.invoice_currency_id pay_cur_id,
+                   cm.cur_code pay_cur_code,
+                   cm.decimals pay_cur_decimal,
+                   'Payable' qty_type,
+                   pdm_conc.base_quantity_unit conc_base_qty_unit_id,
+                   qum_conc.qty_unit conc_base_qty_unit
+              from gmr_goods_movement_record      gmr,
+                   grd_goods_record_detail        grd,
+                   ak_corporate                   akc,
+                   sld_storage_location_detail    sld,
+                   phd_profileheaderdetails       phd,
+                   pdm_productmaster              pdm,
+                   qat_quality_attributes         qat,
+                   qum_quantity_unit_master       qum_grd,
+                   temp_stock_latest_assay        tspq,
+                --   spq_stock_payable_qty          spq,
+                   ash_assay_header               ash,
+                   asm_assay_sublot_mapping       asm,
+                   aml_attribute_master_list      aml,
+                   pdm_productmaster              pdm_und,
+                   qum_quantity_unit_master       qum_und,
+                   pqca_pq_chemical_attributes    pqca,
+                   pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+                   rm_ratio_master                rm,
+                   qum_quantity_unit_master       qum,
+                   psr_pool_stock_register        psr,
+                   pm_pool_master                 pm,
+                   pcdi_pc_delivery_item          pcdi,
+                   pcm_physical_contract_main     pcm,
+                   cm_currency_master             cm,
+                   pdm_productmaster              pdm_conc,
+                   qum_quantity_unit_master       qum_conc
+             where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+               and gmr.is_deleted = 'N'
+               and grd.status = 'Active'
+               and gmr.is_internal_movement = 'N'
+               and gmr.corporate_id = pc_corporate_id
+               and gmr.corporate_id = akc.corporate_id
+               and gmr.shed_id = sld.storage_loc_id
+               and gmr.warehouse_profile_id = phd.profileid
+               and grd.product_id = pdm.product_id
+               and grd.quality_id = qat.quality_id
+               and grd.qty_unit_id = qum_grd.qty_unit_id
+           --    and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+           --    and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+            --   and spq.is_stock_split = 'N'
+           --    and spq.is_active = 'Y'
+            --   and ash.is_active = 'Y'
+           --    and asm.is_active = 'Y'
+           --    and ash.pricing_assay_ash_id = spq.assay_header_id
+            --   and ash.assay_type = 'Weighted Avg Pricing Assay'
+           and ash.ash_id = asm.ash_id
+           and tspq.corporate_id = gmr.corporate_id
+           and tspq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+           and tspq.internal_grd_ref_no = grd.internal_grd_ref_no
+           and tspq.element_id = aml.attribute_id
+           and tspq.element_id = pqca.element_id
+           and tspq.latest_ash_id = ash.ash_id
+          --     and spq.element_id = aml.attribute_id
+               and aml.underlying_product_id = pdm_und.product_id
+               and pdm_und.base_quantity_unit = qum_und.qty_unit_id
+               and asm.asm_id = pqca.asm_id
+          --     and spq.element_id = pqca.element_id
+               and pqca.unit_of_measure = rm.ratio_id
+               and pqca.pqca_id = pqcapd.pqca_id
+               and qum.qty_unit_id =
+                   (case when rm.ratio_name = '%' then grd.qty_unit_id else
+                    rm.qty_unit_id_numerator end)
+               and grd.parent_internal_grd_ref_no =
+                   psr.internal_grd_ref_no(+)
+               and psr.pool_id = pm.pool_id(+)
+               and grd.pcdi_id = pcdi.pcdi_id
+               and pcdi.internal_contract_ref_no =
+                   pcm.internal_contract_ref_no
+               and pcm.process_id = pc_process_id
+               and pcdi.process_id = pc_process_id
+               and pcm.invoice_currency_id = cm.cur_id
+               and grd.product_id = pdm_conc.product_id
+               and pdm_conc.base_quantity_unit = qum_conc.qty_unit_id
+               and grd.current_qty <> 0
+               and grd.tolling_stock_type in ('None Tolling')
+               and rm.is_active = 'Y'
+               and pdm.is_active = 'Y'
+               and qat.is_active = 'Y'
+               and phd.is_active = 'Y'
+               and sld.is_active = 'Y'
+               and aml.is_active = 'Y'
+               and pqca.is_active = 'Y'
+               and pqcapd.is_active = 'Y'
+               and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
+               and gmr.eff_date <= pd_trade_date
+               and gmr.process_id = pc_process_id
+               and grd.process_id = pc_process_id
+             --  and spq.process_id = pc_process_id
+            union all
+            --- all supplier stocks penality elements
+            select gmr.gmr_ref_no,
+                   gmr.internal_gmr_ref_no,
+                   grd.internal_grd_ref_no,
+                   grd.internal_stock_ref_no,
+                   gmr.corporate_id,
+                   akc.corporate_name,
+                   gmr.warehouse_profile_id,
+                   phd.companyname,
+                   gmr.shed_id,
+                   sld.storage_location_name,
+                   grd.product_id,
+                   pdm.product_desc,
+                   grd.quality_id,
+                   qat.quality_name,
+                   grd.current_qty wet_qty,
+                   (grd.current_qty * asm.dry_wet_qty_ratio / 100) dry_qty,
+                   grd.qty_unit_id qty_unit_id,
+                   qum_grd.qty_unit qty_unit,
+                   pqca.element_id,
+                   aml.attribute_name,
+                   null underlying_product_id,
+                   null underlying_product_name,
+                   null base_quantity_unit_id,
+                   null base_quantity_unit,
+                   (case
+                     when rm.ratio_name = '%' then
+                      ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                      (pqca.typical / 100))
+                     else
+                      (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
+                      pqca.typical)
+                   end) assay_qty,
+                   --                     null assay_qty_unit_id,
+                   --                     null assay_qty_unit,
+                   (case
+                     when rm.ratio_name = '%' then
+                      grd.qty_unit_id
+                     else
+                      rm.qty_unit_id_numerator
+                   end) assay_qty_unit_id,
+                   qum.qty_unit assay_qty_unit,
+                   --  null assay_qty,
+                   --   null assay_qty_unit_id,
+                   --   null assay_qty_unit,
+                   null payable_qty,
+                   null payable_qty_unit,
+                   null payable_qty_unit,
+                   pm.pool_name,
+                   ash.ash_id,
+                   grd.pcdi_id,
+                   pcm.invoice_currency_id pay_cur_id,
+                   cm.cur_code pay_cur_code,
+                   cm.decimals pay_cur_decimal,
+                   null qty_type,
+                   pdm_conc.base_quantity_unit conc_base_qty_unit_id,
+                   qum_conc.qty_unit conc_base_qty_unit
+              from gmr_goods_movement_record gmr,
+                   grd_goods_record_detail grd,
+                   ak_corporate akc,
+                   sld_storage_location_detail sld,
+                   phd_profileheaderdetails phd,
+                   pdm_productmaster pdm,
+                   qat_quality_attributes qat,
+                   qum_quantity_unit_master qum_grd,
+                   (select spq.internal_gmr_ref_no,
+                           spq.internal_grd_ref_no,
+                           spq.assay_header_id
+                      from spq_stock_payable_qty spq
+                     where spq.process_id = pc_process_id
+                       and spq.is_stock_split = 'N'
+                       and spq.is_active = 'Y'
+                     group by spq.internal_gmr_ref_no,
+                              spq.internal_grd_ref_no,
+                              spq.assay_header_id) spq,
+                   ash_assay_header ash,
+                   asm_assay_sublot_mapping asm,
+                   pqca_pq_chemical_attributes pqca,
+                   aml_attribute_master_list aml,
+                   rm_ratio_master rm,
+                   qum_quantity_unit_master qum,
+                   psr_pool_stock_register psr,
+                   pm_pool_master pm,
+                   pcdi_pc_delivery_item pcdi,
+                   pcm_physical_contract_main pcm,
+                   cm_currency_master cm,
+                   pdm_productmaster pdm_conc,
+                   qum_quantity_unit_master qum_conc
+             where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+               and gmr.is_deleted = 'N'
+               and grd.status = 'Active'
+               and gmr.corporate_id = pc_corporate_id
+               and gmr.corporate_id = akc.corporate_id
+               and gmr.shed_id = sld.storage_loc_id
+               and gmr.warehouse_profile_id = phd.profileid
+               and grd.current_qty <> 0
+               and grd.tolling_stock_type in ('None Tolling')
+               and grd.product_id = pdm.product_id
+               and grd.quality_id = qat.quality_id
+               and grd.qty_unit_id = qum_grd.qty_unit_id
+               and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+               and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+               and ash.is_active = 'Y'
+               and asm.is_active = 'Y'
+               and ash.pricing_assay_ash_id = spq.assay_header_id
+               and ash.assay_type = 'Weighted Avg Pricing Assay'
+               and ash.ash_id = asm.ash_id
+               and asm.asm_id = pqca.asm_id
+               and pqca.is_elem_for_pricing = 'N'
+               and pqca.element_id = aml.attribute_id
+               and pqca.unit_of_measure = rm.ratio_id
+               and qum.qty_unit_id =
+                   (case when rm.ratio_name = '%' then grd.qty_unit_id else
+                    rm.qty_unit_id_numerator end)
+               and grd.parent_internal_grd_ref_no =
+                   psr.internal_grd_ref_no(+)
+               and psr.pool_id = pm.pool_id(+)
+               and grd.pcdi_id = pcdi.pcdi_id
+               and pcdi.internal_contract_ref_no =
+                   pcm.internal_contract_ref_no
+               and pcm.process_id = pc_process_id
+               and pcdi.process_id = pc_process_id
+               and pcm.invoice_currency_id = cm.cur_id
+               and grd.product_id = pdm_conc.product_id
+               and pdm_conc.base_quantity_unit = qum_conc.qty_unit_id
+               and rm.is_active = 'Y'
+               and pdm.is_active = 'Y'
+               and qat.is_active = 'Y'
+               and phd.is_active = 'Y'
+               and sld.is_active = 'Y'
+               and aml.is_active = 'Y'
+               and pqca.is_active = 'Y'
+               and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
+               and gmr.eff_date <= pd_trade_date
+               and gmr.process_id = pc_process_id
+               and grd.process_id = pc_process_id) t;
+
+  vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
+  vn_eel_error_count           number := 1;
+  vn_assay_qty                 number;
+  vn_payable_qty               number;
+  vn_gmr_price                 number;
+  vc_gmr_price_untit_id        varchar2(15);
+  vn_gmr_price_unit_weight     varchar2(15);
+  vn_price_unit_weight_unit_id varchar2(15);
+  vc_gmr_price_unit_cur_id     varchar2(10);
+  vc_gmr_price_unit_cur_code   varchar2(10);
+  vn_gmr_treatment_charge      number;
+  vc_gmr_treatment_cur_id      varchar2(15);
+  vn_base_gmr_treatment_charge number;
+  vn_gmr_refine_charge         number;
+  vc_gmr_refine_cur_id         varchar2(15);
+  vn_base_gmr_refine_charge    number;
+  vn_gmr_penality_charge       number;
+  vc_gmr_penality_cur_id       varchar2(15);
+  vn_base_gmr_penality_charge  number;
+  vn_dry_qty                   number;
+  vn_wet_qty                   number;
+  vn_rno                       number;
+
+begin
+  vn_rno := 0;
+  delete from temp_stock_latest_assay where corporate_id = pc_corporate_id;
+  commit;
+  insert into temp_stock_latest_assay
+    (corporate_id,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     element_id,
+     latest_ash_id)
+    select gmr.corporate_id,
+           gmr.internal_gmr_ref_no,
+           grd.internal_grd_ref_no,
+           spq.element_id,
+           ash_pricing.ash_id latest_ash_id
+      from grd_goods_record_detail   grd,
+           gmr_goods_movement_record gmr,
+           sam_stock_assay_mapping   sam,
+           ash_assay_header          ash,
+           spq_stock_payable_qty     spq,
+           ash_assay_header          ash_pricing,
+           asm_assay_sublot_mapping  asm
+     where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and sam.internal_grd_ref_no = grd.internal_grd_ref_no
+       and spq.is_active = 'Y'
+       and gmr.is_deleted = 'N'
+       and grd.status = 'Active'
+       and spq.is_stock_split = 'N'
+       and sam.ash_id = ash.ash_id
+       and ash.internal_grd_ref_no = spq.internal_grd_ref_no
+       and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
+       and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
+       and spq.process_id = pc_process_id
+       and grd.process_id = pc_process_id
+       and gmr.process_id = pc_process_id
+       and gmr.corporate_id = pc_corporate_id
+       and asm.ash_id = ash_pricing.ash_id
+     group by gmr.corporate_id,
+              gmr.internal_gmr_ref_no,
+              grd.internal_grd_ref_no,
+              spq.element_id,
+              ash_pricing.ash_id;
+commit;
+  for cur_closing_rows in cur_closing
+  loop
+    vn_rno                       := vn_rno + 1;
+    vn_assay_qty                 := null;
+    vn_payable_qty               := null;
+    vn_gmr_treatment_charge      := 0;
+    vn_gmr_refine_charge         := 0;
+    vn_gmr_penality_charge       := 0;
+    vn_base_gmr_treatment_charge := 0;
+    vn_base_gmr_refine_charge    := 0;
+    vn_base_gmr_penality_charge  := 0;
   
-  begin
-    for cur_closing_rows in cur_closing
-    loop
+    vn_wet_qty := pkg_general.f_get_converted_quantity(cur_closing_rows.product_id,
+                                                       cur_closing_rows.qty_unit_id,
+                                                       cur_closing_rows.conc_base_qty_unit_id,
+                                                       cur_closing_rows.wet_qty);
+    vn_dry_qty := pkg_general.f_get_converted_quantity(cur_closing_rows.product_id,
+                                                       cur_closing_rows.qty_unit_id,
+                                                       cur_closing_rows.conc_base_qty_unit_id,
+                                                       cur_closing_rows.dry_qty);
+  
+    if cur_closing_rows.qty_type in ('Payable', 'Returnable') then
     
-    vn_assay_qty:=null;
-    vn_payable_qty:=null;
-    vn_gmr_treatment_charge:=null;
-    vn_gmr_refine_charge:=null;
-    vn_gmr_penality_charge:=null;
+      vn_assay_qty   := pkg_general.f_get_converted_quantity(cur_closing_rows.underlying_product_id,
+                                                             cur_closing_rows.assay_qty_unit_id,
+                                                             cur_closing_rows.base_quantity_unit_id,
+                                                             cur_closing_rows.assay_qty);
+      vn_payable_qty := pkg_general.f_get_converted_quantity(cur_closing_rows.underlying_product_id,
+                                                             cur_closing_rows.payable_qty_unit_id,
+                                                             cur_closing_rows.base_quantity_unit_id,
+                                                             cur_closing_rows.payable_qty);
+      --- Price                                                              
+      begin
+        select cgcp.contract_price,
+               cgcp.price_unit_id,
+               cgcp.price_unit_weight_unit_id,
+               cgcp.price_unit_cur_id,
+               cgcp.price_unit_cur_code
+          into vn_gmr_price,
+               vc_gmr_price_untit_id,
+               vn_price_unit_weight_unit_id,
+               vc_gmr_price_unit_cur_id,
+               vc_gmr_price_unit_cur_code
+          from cgcp_conc_gmr_cog_price cgcp
+         where cgcp.internal_gmr_ref_no =
+               cur_closing_rows.internal_gmr_ref_no
+           and cgcp.internal_grd_ref_no =
+               cur_closing_rows.internal_grd_ref_no
+           and cgcp.process_id = pc_process_id
+           and cgcp.element_id = cur_closing_rows.element_id;
+      exception
+        when others then
+          begin
+            select cccp.contract_price,
+                   cccp.price_unit_id,
+                   cccp.price_unit_weight_unit_id,
+                   cccp.price_unit_cur_id,
+                   cccp.price_unit_cur_code
+              into vn_gmr_price,
+                   vc_gmr_price_untit_id,
+                   vn_price_unit_weight_unit_id,
+                   vc_gmr_price_unit_cur_id,
+                   vc_gmr_price_unit_cur_code
+              from cccp_conc_contract_cog_price cccp
+             where cccp.pcdi_id = cur_closing_rows.pcdi_id
+               and cccp.process_id = pc_process_id
+               and cccp.element_id = cur_closing_rows.element_id;
+          
+          exception
+            when others then
+              vn_gmr_price                 := null;
+              vc_gmr_price_untit_id        := null;
+              vn_price_unit_weight_unit_id := null;
+              vc_gmr_price_unit_cur_id     := null;
+              vc_gmr_price_unit_cur_code   := null;
+          end;
+      end;
+      --TC,RC,PC calculation has to use current qty for the closing balance position,
+      -- so new tc,rc,pc proc created in pkg_metals_general by passing assay id and respective qty
+      pkg_metals_general.sp_get_gmr_tc_by_assay(cur_closing_rows.internal_gmr_ref_no,
+                                                cur_closing_rows.internal_grd_ref_no,
+                                                cur_closing_rows.element_id,
+                                                pc_dbd_id,
+                                                vn_gmr_price,
+                                                vc_gmr_price_untit_id,
+                                                cur_closing_rows.ash_id,
+                                                cur_closing_rows.dry_qty,
+                                                cur_closing_rows.qty_unit_id,
+                                                vn_gmr_treatment_charge,
+                                                vc_gmr_treatment_cur_id);
+      pkg_metals_general.sp_get_gmr_rc_by_assay(cur_closing_rows.internal_gmr_ref_no,
+                                                cur_closing_rows.internal_grd_ref_no,
+                                                cur_closing_rows.element_id,
+                                                pc_dbd_id,
+                                                vn_gmr_price,
+                                                vc_gmr_price_untit_id,
+                                                cur_closing_rows.ash_id,
+                                                cur_closing_rows.payable_qty,
+                                                cur_closing_rows.payable_qty_unit_id,
+                                                vn_gmr_refine_charge,
+                                                vc_gmr_refine_cur_id);
     
-    vn_wet_qty:= pkg_general.f_get_converted_quantity(cur_closing_rows.product_id,
-                                                      cur_closing_rows.qty_unit_id,
-                                                      cur_closing_rows.conc_base_qty_unit_id,
-                                                      cur_closing_rows.wet_qty);
-    vn_dry_qty:= pkg_general.f_get_converted_quantity(cur_closing_rows.product_id,
-                                                      cur_closing_rows.qty_unit_id,
-                                                      cur_closing_rows.conc_base_qty_unit_id,
-                                                      cur_closing_rows.dry_qty);                                                      
-    
-      if cur_closing_rows.qty_type in ('Payable', 'Returnable') then
+      if vc_gmr_treatment_cur_id is not null and
+         cur_closing_rows.pay_cur_id is not null and
+         vc_gmr_treatment_cur_id <> cur_closing_rows.pay_cur_id then
       
-        vn_assay_qty   := pkg_general.f_get_converted_quantity(cur_closing_rows.underlying_product_id,
-                                                               cur_closing_rows.assay_qty_unit_id,
-                                                               cur_closing_rows.base_quantity_unit_id,
-                                                               cur_closing_rows.assay_qty);
-        vn_payable_qty := pkg_general.f_get_converted_quantity(cur_closing_rows.underlying_product_id,
-                                                               cur_closing_rows.payable_qty_unit_id,
-                                                               cur_closing_rows.base_quantity_unit_id,
-                                                               cur_closing_rows.payable_qty);
-        --- Price                                                              
-        begin
-          select cgcp.contract_price,
-                 cgcp.price_unit_id,
-                 cgcp.price_unit_weight_unit_id,
-                 cgcp.price_unit_cur_id,
-                 cgcp.price_unit_cur_code
-            into vn_gmr_price,
-                 vc_gmr_price_untit_id,
-                 vn_price_unit_weight_unit_id,
-                 vc_gmr_price_unit_cur_id,
-                 vc_gmr_price_unit_cur_code
-            from cgcp_conc_gmr_cog_price cgcp
-           where cgcp.internal_gmr_ref_no =
-                 cur_closing_rows.internal_gmr_ref_no
-             and cgcp.internal_grd_ref_no =
-                 cur_closing_rows.internal_grd_ref_no
-             and cgcp.process_id = pc_process_id
-             and cgcp.element_id = cur_closing_rows.element_id;
-        exception
-          when others then
-            begin
-              select cccp.contract_price,
-                     cccp.price_unit_id,
-                     cccp.price_unit_weight_unit_id,
-                     cccp.price_unit_cur_id,
-                     cccp.price_unit_cur_code
-                into vn_gmr_price,
-                     vc_gmr_price_untit_id,
-                     vn_price_unit_weight_unit_id,
-                     vc_gmr_price_unit_cur_id,
-                     vc_gmr_price_unit_cur_code
-                from cccp_conc_contract_cog_price cccp
-               where cccp.pcdi_id = cur_closing_rows.pcdi_id
-                 and cccp.process_id = pc_process_id
-                 and cccp.element_id = cur_closing_rows.element_id;
-            
-            exception
-              when others then
-                vn_gmr_price                 := null;
-                vc_gmr_price_untit_id        := null;
-                vn_price_unit_weight_unit_id := null;
-                vc_gmr_price_unit_cur_id     := null;
-                vc_gmr_price_unit_cur_code   := null;
-            end;
-        end;
-        pkg_metals_general.sp_get_gmr_treatment_charge(cur_closing_rows.internal_gmr_ref_no,
-                                                       cur_closing_rows.internal_grd_ref_no,
-                                                       cur_closing_rows.element_id,
-                                                       pc_dbd_id,
-                                                       vn_gmr_price,
-                                                       vc_gmr_price_untit_id,
-                                                       vn_gmr_treatment_charge,
-                                                       vc_gmr_treatment_cur_id);
+        vn_base_gmr_treatment_charge := round(pkg_general.f_get_converted_currency_amt(cur_closing_rows.corporate_id,
+                                                                                       vc_gmr_treatment_cur_id,
+                                                                                       cur_closing_rows.pay_cur_id,
+                                                                                       pd_trade_date,
+                                                                                       vn_gmr_treatment_charge),
+                                              cur_closing_rows.pay_cur_decimal);
       
-        pkg_metals_general.sp_get_gmr_refine_charge(cur_closing_rows.internal_gmr_ref_no,
-                                                    cur_closing_rows.internal_grd_ref_no,
-                                                    cur_closing_rows.element_id,
-                                                    pc_dbd_id,
-                                                    vn_gmr_price,
-                                                    vc_gmr_price_untit_id,
-                                                    vn_gmr_refine_charge,
-                                                    vc_gmr_refine_cur_id);
+      else
+        vn_base_gmr_treatment_charge := vn_gmr_treatment_charge;
       end if;
-      pkg_metals_general.sp_get_gmr_penalty_charge(cur_closing_rows.internal_gmr_ref_no,
-                                                   cur_closing_rows.internal_grd_ref_no,
-                                                   pc_dbd_id,
-                                                   cur_closing_rows.element_id,
-                                                   vn_gmr_penality_charge,
-                                                   vc_gmr_penality_cur_id);
+      if vc_gmr_refine_cur_id is not null and
+         cur_closing_rows.pay_cur_id is not null and
+         vc_gmr_refine_cur_id <> cur_closing_rows.pay_cur_id then
+      
+        vn_base_gmr_refine_charge := round(pkg_general.f_get_converted_currency_amt(cur_closing_rows.corporate_id,
+                                                                                    vc_gmr_refine_cur_id,
+                                                                                    cur_closing_rows.pay_cur_id,
+                                                                                    pd_trade_date,
+                                                                                    vn_gmr_refine_charge),
+                                           cur_closing_rows.pay_cur_decimal);
+      
+      else
+        vn_base_gmr_refine_charge := vn_gmr_refine_charge;
+      end if;
     
-      if cur_closing_rows.ele_rank = 1 then
-        insert into cbr_closing_balance_report
-          (process_id,
-           eod_trade_date,
-           corporate_id,
-           corporate_name,
-           gmr_ref_no,
-           internal_gmr_ref_no,
-           internal_grd_ref_no,
-           stock_ref_no,
-           product_id,
-           product_name,
-           quality_id,
-           quality_name,
-           pile_name,
-           warehouse_id,
-           warehouse_name,
-           shed_id,
-           shed_name,
-           grd_wet_qty,
-           grd_dry_qty,
-           grd_qty_unit_id,
-           grd_qty_unit,
-           pay_cur_id,
-           pay_cur_code,
-           conc_base_qty_unit_id,
-           conc_base_qty_unit)
-        values
-          (pc_process_id,
-           pd_trade_date,
-           cur_closing_rows.corporate_id,
-           cur_closing_rows.corporate_name,
-           cur_closing_rows.gmr_ref_no,
-           cur_closing_rows.internal_gmr_ref_no,
-           cur_closing_rows.internal_grd_ref_no,
-           cur_closing_rows.internal_stock_ref_no,
-           cur_closing_rows.product_id,
-           cur_closing_rows.product_desc,
-           cur_closing_rows.quality_id,
-           cur_closing_rows.quality_name,
-           cur_closing_rows.pool_name,
-           cur_closing_rows.warehouse_profile_id,
-           cur_closing_rows.companyname,
-           cur_closing_rows.shed_id,
-           cur_closing_rows.storage_location_name,
-           vn_wet_qty,
-           vn_dry_qty,
-           cur_closing_rows.qty_unit_id,
-           cur_closing_rows.qty_unit,
-           cur_closing_rows.pay_cur_id,
-           cur_closing_rows.pay_cur_code,
-           cur_closing_rows.conc_base_qty_unit_id,
-           cur_closing_rows.conc_base_qty_unit);
+      --  vn_base_gmr_treatment_charge:=0;
+      --  vn_base_gmr_refine_charge :=0;
+      --   vn_base_gmr_penality_charge :=0;                                                    
+    else
+      --TC,RC,PC calculation has to use current qty for the closing balance position,
+      -- so new tc,rc,pc proc created in pkg_metals_general by passing assay id and respective qty
+    
+      pkg_metals_general.sp_get_gmr_pc_by_assay(cur_closing_rows.internal_gmr_ref_no,
+                                                cur_closing_rows.internal_grd_ref_no,
+                                                pc_dbd_id,
+                                                cur_closing_rows.element_id,
+                                                cur_closing_rows.ash_id,
+                                                cur_closing_rows.dry_qty,
+                                                cur_closing_rows.qty_unit_id,
+                                                vn_gmr_penality_charge,
+                                                vc_gmr_penality_cur_id);
+      vn_base_gmr_penality_charge := 0;
+    
+      if vc_gmr_penality_cur_id is not null and
+         cur_closing_rows.pay_cur_id is not null and
+         vc_gmr_penality_cur_id <> cur_closing_rows.pay_cur_id then
+      
+        vn_base_gmr_penality_charge := round(pkg_general.f_get_converted_currency_amt(cur_closing_rows.corporate_id,
+                                                                                      vc_gmr_penality_cur_id,
+                                                                                      cur_closing_rows.pay_cur_id,
+                                                                                      pd_trade_date,
+                                                                                      vn_gmr_penality_charge),
+                                             cur_closing_rows.pay_cur_decimal);
+      
+      else
+        vn_base_gmr_penality_charge := vn_gmr_penality_charge;
       end if;
-      insert into cbre_closing_bal_report_ele
+    
+    end if;
+    if cur_closing_rows.ele_rank = 1 then
+      insert into cbr_closing_balance_report
         (process_id,
+         eod_trade_date,
+         corporate_id,
+         corporate_name,
+         gmr_ref_no,
          internal_gmr_ref_no,
          internal_grd_ref_no,
-         element_id,
-         element_name,
-         assay_qty,
-         asaay_qty_unit_id,
-         asaay_qty_unit,
-         payable_qty,
-         payable_qty_unit_id,
-         payable_qty_unit,
-         payable_returnable_type,
-         tc_amount,
-         rc_amount,
-         penality_amount)
+         stock_ref_no,
+         product_id,
+         product_name,
+         quality_id,
+         quality_name,
+         pile_name,
+         warehouse_id,
+         warehouse_name,
+         shed_id,
+         shed_name,
+         grd_wet_qty,
+         grd_dry_qty,
+         grd_qty_unit_id,
+         grd_qty_unit,
+         pay_cur_id,
+         pay_cur_code,
+         conc_base_qty_unit_id,
+         conc_base_qty_unit)
       values
         (pc_process_id,
+         pd_trade_date,
+         cur_closing_rows.corporate_id,
+         cur_closing_rows.corporate_name,
+         cur_closing_rows.gmr_ref_no,
          cur_closing_rows.internal_gmr_ref_no,
          cur_closing_rows.internal_grd_ref_no,
-         cur_closing_rows.element_id,
-         cur_closing_rows.attribute_name,
-         vn_assay_qty,
-         cur_closing_rows.base_quantity_unit_id,
-         cur_closing_rows.base_quantity_unit,
-         vn_payable_qty,
-         cur_closing_rows.base_quantity_unit_id,
-         cur_closing_rows.base_quantity_unit,
-         cur_closing_rows.qty_type,
-         nvl(vn_base_gmr_treatment_charge, 0),
-         nvl(vn_base_gmr_refine_charge, 0),
-         nvl(vn_gmr_penality_charge, 0));
-    end loop;
-  exception
-    when others then
-      vobj_error_log.extend;
-      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_closing_balance_report',
-                                                           'M2M-013',
-                                                           'Code:' ||
-                                                           sqlcode ||
-                                                           'Message:' ||
-                                                           sqlerrm,
-                                                           '',
-                                                           pc_process,
-                                                           '',
-                                                           sysdate,
-                                                           pd_trade_date);
-      sp_insert_error_log(vobj_error_log);
-  end;
+         cur_closing_rows.internal_stock_ref_no,
+         cur_closing_rows.product_id,
+         cur_closing_rows.product_desc,
+         cur_closing_rows.quality_id,
+         cur_closing_rows.quality_name,
+         cur_closing_rows.pool_name,
+         cur_closing_rows.warehouse_profile_id,
+         cur_closing_rows.companyname,
+         cur_closing_rows.shed_id,
+         cur_closing_rows.storage_location_name,
+         vn_wet_qty,
+         vn_dry_qty,
+         cur_closing_rows.qty_unit_id,
+         cur_closing_rows.qty_unit,
+         cur_closing_rows.pay_cur_id,
+         cur_closing_rows.pay_cur_code,
+         cur_closing_rows.conc_base_qty_unit_id,
+         cur_closing_rows.conc_base_qty_unit);
+    end if;
+    insert into cbre_closing_bal_report_ele
+      (process_id,
+       internal_gmr_ref_no,
+       internal_grd_ref_no,
+       element_id,
+       element_name,
+       assay_qty,
+       asaay_qty_unit_id,
+       asaay_qty_unit,
+       payable_qty,
+       payable_qty_unit_id,
+       payable_qty_unit,
+       payable_returnable_type,
+       tc_amount,
+       rc_amount,
+       penality_amount)
+    values
+      (pc_process_id,
+       cur_closing_rows.internal_gmr_ref_no,
+       cur_closing_rows.internal_grd_ref_no,
+       cur_closing_rows.element_id,
+       cur_closing_rows.attribute_name,
+       vn_assay_qty,
+       cur_closing_rows.base_quantity_unit_id,
+       cur_closing_rows.base_quantity_unit,
+       vn_payable_qty,
+       cur_closing_rows.base_quantity_unit_id,
+       cur_closing_rows.base_quantity_unit,
+       cur_closing_rows.qty_type,
+       nvl(vn_base_gmr_treatment_charge, 0),
+       nvl(vn_base_gmr_refine_charge, 0),
+       nvl(vn_base_gmr_penality_charge, 0));
+    if vn_rno = 500 then
+      commit;
+      vn_rno := 0;
+    end if;
+  end loop;
+  commit;
+exception
+  when others then
+    vobj_error_log.extend;
+    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                         'procedure sp_closing_balance_report',
+                                                         'M2M-013',
+                                                         'Code:' || sqlcode ||
+                                                         'Message:' ||
+                                                         sqlerrm,
+                                                         '',
+                                                         pc_process,
+                                                         '',
+                                                         sysdate,
+                                                         pd_trade_date);
+    sp_insert_error_log(vobj_error_log);
+end;
 end; 
 /

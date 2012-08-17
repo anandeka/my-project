@@ -1,0 +1,20 @@
+-- Add/modify columns 
+alter table CR_CUSTOMS_REPORT add EXPORT_DATE date;
+alter table CR_CUSTOMS_REPORT add IMPORT_DATE date;
+-- Add/modify columns 
+alter table ISR_INTRASTAT_GRD add EXPORT_DATE date;
+alter table ISR_INTRASTAT_GRD add IMPORT_DATE date;
+
+drop table TEMP_STOCK_LATEST_ASSAY;
+-- Create table
+create table TEMP_STOCK_LATEST_ASSAY
+(
+  CORPORATE_ID        VARCHAR2(15),
+  INTERNAL_GMR_REF_NO VARCHAR2(15),
+  INTERNAL_GRD_REF_NO VARCHAR2(15),
+  ELEMENT_ID          VARCHAR2(15),
+  LATEST_ASH_ID       VARCHAR2(15) not null
+);
+
+create index IDX_TSLA_1 on TEMP_STOCK_LATEST_ASSAY (CORPORATE_ID);
+create index IDX_TSLA_2 on TEMP_STOCK_LATEST_ASSAY (CORPORATE_ID,INTERNAL_GMR_REF_NO,INTERNAL_GRD_REF_NO);
