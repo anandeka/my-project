@@ -52,6 +52,7 @@ Date: 8:23:20 PM, Friday, August 17, 2012
 Message:
 cutover reports bug fixes for closing balance
 ----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/69_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/70_DDL_EODDB_TABLE_ALTER_SCRIPT.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
 
