@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_0983
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Ravi Kumar B
+ 
+Created on*        		:  17-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 101384
+Author: b.ravikumar
+Date: 9:31:36 PM, Friday, August 17, 2012
+Message:
+-for invoice provisional price defaulting.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_312.sql
+
+
+
