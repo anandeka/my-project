@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0982
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Pradeep Kumar
+ 
+Created on*        		:  17-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 101314
+Author: pradeep.kumar
+Date: 6:51:23 PM, Friday, August 17, 2012
+Message:
+-- Added New SLS Entry for Activity Type DropDown in Tolling Input OutPut DropdownAnd Removed The same from Previous Patch To Avoid collision
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_238.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_374.sql
+
