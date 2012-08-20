@@ -1,4 +1,4 @@
-create or replace view v_dim_cash_pricepoint_drid as
+CREATE OR REPLACE VIEW V_DIM_CASH_PRICEPOINT_DRID AS
 select t.dr_id,
        t.instrument_id,
        t.price_point_id,
@@ -20,7 +20,8 @@ select t.dr_id,
                dip_der_instrument_pricing dip,
                ps_price_source            ps
          where drm.price_point_id = pp.price_point_id
-           and upper(pp.price_point_name) = 'CASH'
+           and upper(pp.price_point_name) in
+               ('CASH', 'AM FIXING', 'SILVER FIXING', 'SPOT FIX', 'AM FIX')
            and drm.is_deleted = 'N'
            and drm.instrument_id = dip.instrument_id
            and dip.is_deleted = 'N'
@@ -29,4 +30,3 @@ select t.dr_id,
            and pp.is_active = 'Y'
            and pp.is_deleted = 'N') t
  where t.order_id = 1
-/
