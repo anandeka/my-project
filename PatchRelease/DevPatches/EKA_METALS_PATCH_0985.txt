@@ -1,9 +1,9 @@
-Patch No*          		:  EKA_METALS_PATCH_0972
+Patch No*          		:  EKA_METALS_PATCH_0985
 Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
  
-Created on*        		:  13-Aug-2012
+Created on*        		:  20-Aug-2012
 
 Bug / Enhancement*              :  BUG
 
@@ -14,9 +14,9 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  EOD
+Module  		   	 :  Online Price
 
-Sub-Module  			 :  EOD
+Sub-Module  			 :  
  
 Section   		   	 :  N/A
  
@@ -31,18 +31,11 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* :EOD
+Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
-
-Revision: 100864
-Date: 3:45:44 PM, Monday, August 13, 2012
-Message:
-COG Price for Concentrate GMR used New View Payable Qty at GMR and Element instead of GRD
-Concentrate Contract Price Added DIPQ to Stop records when DIPQ Payable Qty Becomes Zero
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_gmr_payable_qty.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+Revision: 101461
+Date: 3:32:52 PM, Monday, August 20, 2012
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_dim_cash_pricepoint_drid.sql
 
 
