@@ -3987,17 +3987,17 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                       pci.pcpq_id
                  from gmr_goods_movement_record   gmr,
                       grd_goods_record_detail     grd,
-                      sam_stock_assay_mapping     sam,
+                     -- sam_stock_assay_mapping     sam,
                       ash_assay_header            ash,
                       asm_assay_sublot_mapping    asm,
                       pqca_pq_chemical_attributes pqca,
                       rm_ratio_master             rm,
                       aml_attribute_master_list   aml,
                       pci_physical_contract_item  pci,
-                      spq_stock_payable_qty       spq
+                      v_spq_latest_assay          spq
                 where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-                  and sam.ash_id = ash.ash_id
+                --  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+                --  and sam.ash_id = ash.ash_id
                   and ash.ash_id = asm.ash_id
                   and asm.asm_id = pqca.asm_id
                   and rm.ratio_id = pqca.unit_of_measure
@@ -4012,7 +4012,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
                   and grd.internal_grd_ref_no = pc_inter_grd_ref_no
                   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-                  and spq.element_id = pqca.element_id
+                 -- and spq.element_id = pqca.element_id
                   and spq.dbd_id = pc_dbd_id
                   and spq.assay_header_id = ash.ash_id)
     loop
