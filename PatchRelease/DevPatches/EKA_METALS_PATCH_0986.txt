@@ -1,0 +1,41 @@
+Patch No*          		:  EKA_METALS_PATCH_0986
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit Gupta
+ 
+Created on*        		:  20-Aug-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  68138
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Online Price
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 101488
+Date: 6:37:28 PM, Monday, August 20, 2012
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_dim_cash_pricepoint_drid.sql
+
