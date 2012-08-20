@@ -58,9 +58,9 @@ create or replace package pkg_phy_eod_reports is
   procedure sp_misc(pc_corporate_id varchar2,
                     pd_trade_date   date,
                     pc_user_id      varchar2);
- /* procedure sp_daily_position_record(pc_corporate_id varchar2,
+ procedure sp_daily_position_record(pc_corporate_id varchar2,
                                      pd_trade_date   date,
-                                     pc_process_id   varchar2);*/
+                                     pc_process_id   varchar2);
   procedure sp_insert_temp_gmr(pc_corporate_id varchar2,
                                pd_trade_date   date,
                                pc_process_id   varchar2); 
@@ -10883,7 +10883,7 @@ end;
                                                                 pd_trade_date);
             sp_insert_error_log(vobj_error_log);
     END;
- /*procedure sp_daily_position_record ( pc_corporate_id varchar2, pd_trade_date date,pc_process_id   varchar2)
+procedure sp_daily_position_record ( pc_corporate_id varchar2, pd_trade_date date,pc_process_id   varchar2)
 as
 
 begin
@@ -11117,8 +11117,10 @@ select 'Any one day price fix' section_name,
        pdm.product_id,
        pdm.product_desc product_name,
        pfd.as_of_date issue_date,
-       (pfd.qty_fixed * ucm.multiplication_factor) fixed_qty,
-       ((-1) * pfd.qty_fixed * ucm.multiplication_factor) quotational_qty,
+       (CASE WHEN PCM.PURCHASE_SALES = 'S' Then
+            -1 else 1 end)* (pfd.qty_fixed * ucm.multiplication_factor) fixed_qty,
+       ((CASE WHEN PCM.PURCHASE_SALES = 'S' then
+            1 else -1 end) * pfd.qty_fixed * ucm.multiplication_factor) quotational_qty,
        last_eod_dump1.db_dump_end_timestamp,
        qum.qty_unit_id,
        qum.qty_unit base_qty_unit    
@@ -11191,12 +11193,13 @@ select 'Any one day price fix' section_name,
         pdm.product_id,
         pdm.product_desc product_name,
         pfd.as_of_date issue_date,
-        ((-1) * pfd.qty_fixed * ucm.multiplication_factor) fixed_qty,
-        (pfd.qty_fixed * ucm.multiplication_factor) quotational_qty,
+        ((CASE WHEN PCM.PURCHASE_SALES = 'S' then
+            1 else -1 end) * pfd.qty_fixed * ucm.multiplication_factor) fixed_qty,
+        ((CASE WHEN PCM.PURCHASE_SALES = 'S' then
+            -1 else 1 end) * pfd.qty_fixed * ucm.multiplication_factor) quotational_qty,
         last_eod_dump1.db_dump_end_timestamp,
         qum.qty_unit_id,
-        qum.qty_unit base_qty_uni
-        
+        qum.qty_unit base_qty_unit       
  
    from pcm_physical_contract_main@eka_appdb     pcm,
         pcdi_pc_delivery_item@eka_appdb          pcdi,
@@ -11284,8 +11287,10 @@ select 'Any one day price fix' section_name,
          else
           pofhd.priced_date
        end)  issue_date,
-        (pofhd.per_day_pricing_qty * ucm.multiplication_factor) fixed_qty,
-        ((-1) * pofhd.per_day_pricing_qty * ucm.multiplication_factor) quotational_qty,
+         (CASE WHEN PCM.PURCHASE_SALES = 'S' then
+            -1 else 1 end)*(pofhd.per_day_pricing_qty * ucm.multiplication_factor) fixed_qty,
+        ( (CASE WHEN PCM.PURCHASE_SALES = 'S' then
+            1 else -1 end)*  pofhd.per_day_pricing_qty * ucm.multiplication_factor) quotational_qty,
         last_eod_dump1.db_dump_end_timestamp,
         qum.qty_unit_id,
         qum.qty_unit base_qty_unit
@@ -11792,7 +11797,7 @@ t.product_id;
 exception
 when others then
 null;--TODO : need to ad exception handling
-end;*/
+end;
 procedure sp_insert_temp_gmr(pc_corporate_id varchar2,
                              pd_trade_date   date,
                              pc_process_id   varchar2) as
