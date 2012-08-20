@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_0987
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manju
+ 
+Created on*        		:  20-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Additional Charges Listing
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 101508
+Author: manjavva.bevoor
+Date: 8:06:42 PM, Monday, August 20, 2012
+Message:
+Additional Charges Listing DB Scripts
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_375.sql
