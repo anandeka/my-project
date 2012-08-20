@@ -10751,7 +10751,7 @@ end;
                                                                 pd_trade_date);
             sp_insert_error_log(vobj_error_log);
     END;
- /*procedure sp_daily_position_record ( pc_corporate_id varchar2, pd_trade_date date,pc_process_id   varchar2)
+procedure sp_daily_position_record ( pc_corporate_id varchar2, pd_trade_date date,pc_process_id   varchar2)
 as
 
 begin
