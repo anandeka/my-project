@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0992
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  21-Aug-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  63299
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 101633
+Author: mayank.chaturvedi
+Date: 7:50:04 PM, Tuesday, August 21, 2012
+Message:
+-For bug id 63299 list of invoice filter issue
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_377.sql
+
