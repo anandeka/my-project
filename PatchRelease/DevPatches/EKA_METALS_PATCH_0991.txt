@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_0991
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  21-Aug-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  66860,67971
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 101611
+Author: elaiyaraja.nallathambi
+Date: 6:50:52 PM, Tuesday, August 21, 2012
+Message:
+Bug Fixes:66860,67971
+ 
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/GlobalPositionReport.rpt
