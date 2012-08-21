@@ -1,11 +1,11 @@
-Patch No*          		:  EKA_METALS_PATCH_0985
+Patch No*          		:  EKA_METALS_PATCH_0990
 Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
  
-Created on*        		:  20-Aug-2012
+Created on*        		:  21-Aug-2012
 
-Bug / Enhancement*              :  BUG
+Bug / Enhancement*              :  Enhancement*
 
 Bug ID*            		:  
 ==================================================================
@@ -34,8 +34,13 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
-Revision: 101461
-Date: 3:32:52 PM, Monday, August 20, 2012
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_dim_cash_pricepoint_drid.sql
+Revision: 101593
+Author: jana
+Date: 5:22:17 PM, Tuesday, August 21, 2012
+Message:
+Based on Srivani request mail today
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_dim_cash_pricepoint_drid.sql
+
 
 
