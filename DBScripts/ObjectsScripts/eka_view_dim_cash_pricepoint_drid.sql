@@ -22,8 +22,7 @@ AS
                   dip_der_instrument_pricing dip,
                   ps_price_source ps
             WHERE drm.price_point_id = pp.price_point_id
-              AND UPPER (pp.price_point_name) IN
-                                       ('CASH', 'AM FIXING', 'SILVER FIXING')
+              AND UPPER (pp.price_point_name) IN ('CASH','SPOT FIX','AM FIXING','AM FIX','FREEMARKET')
               AND drm.is_deleted = 'N'
               AND drm.instrument_id = dip.instrument_id
               AND dip.is_deleted = 'N'
