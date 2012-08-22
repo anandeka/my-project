@@ -35,7 +35,7 @@ create or replace package pkg_price is
   function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                         pd_trade_date       date) return date;
 
-end;
+end; 
 /
 create or replace package body "PKG_PRICE" is
 
@@ -2775,7 +2775,7 @@ create or replace package body "PKG_PRICE" is
                         grd.product_id) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
-             v_gmr_stockpayable_qty spq,
+             v_gmr_payable_qty spq,
              (select qat.internal_gmr_ref_no,
                      qat.instrument_id,
                      qat.element_id,
@@ -2851,7 +2851,7 @@ create or replace package body "PKG_PRICE" is
                         grd.product_id) grd,
              pdm_productmaster pdm,
              pdtm_product_type_master pdtm,
-             v_gmr_stockpayable_qty spq,
+             v_gmr_payable_qty spq,
              (select qat.internal_gmr_ref_no,
                      qat.instrument_id,
                      qat.element_id,
