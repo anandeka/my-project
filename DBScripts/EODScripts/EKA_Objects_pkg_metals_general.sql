@@ -1052,6 +1052,7 @@ create or replace package body pkg_metals_general is
                                                        0) >= vn_min_range
                                                and nvl(pcerc.position, 'a') <>
                                                    'Base'
+                                               and pcerc.is_active='Y'    
                                                and pcerc.dbd_id = pc_dbd_id)
                   loop
                     --for full Range
@@ -1111,6 +1112,7 @@ create or replace package body pkg_metals_general is
                                                         0) <= vn_min_range
                                                 and nvl(pcerc.position, 'a') <>
                                                     'Base'
+                                                and pcerc.is_active='Y'       
                                                 and pcerc.dbd_id = pc_dbd_id)
                   loop
                     --For the full Range 
@@ -1441,6 +1443,7 @@ create or replace package body pkg_metals_general is
                                                      0) >= vn_min_range
                                              and nvl(pcetc.position, 'a') <>
                                                  'Base'
+                                             and pcetc.is_active='Y'    
                                              and pcetc.dbd_id = pc_dbd_id)
                 loop
                   --for full Range
@@ -1491,6 +1494,7 @@ create or replace package body pkg_metals_general is
                                                       0) <= vn_min_range
                                               and nvl(pcetc.position, 'a') <>
                                                   'Base'
+                                              and pcetc.is_active='Y'     
                                               and pcetc.dbd_id = pc_dbd_id)
                 loop
                   --For the full Range 
@@ -1949,6 +1953,7 @@ create or replace package body pkg_metals_general is
                                                      0) >= vn_min_range
                                              and nvl(pcetc.position, 'a') <>
                                                  'Base'
+                                             and pcetc.is_active='Y'   
                                              and pcetc.dbd_id = pc_dbd_id)
                 loop
                   --for full Range
@@ -1999,6 +2004,7 @@ create or replace package body pkg_metals_general is
                                                       0) <= vn_min_range
                                               and nvl(pcetc.position, 'a') <>
                                                   'Base'
+                                              and pcetc.is_active='Y'      
                                               and pcetc.dbd_id = pc_dbd_id)
                 loop
                   --For the full Range
@@ -2350,6 +2356,7 @@ begin
                                                vn_min_range
                                            and nvl(pcetc.position, 'a') <>
                                                'Base'
+                                           and pcetc.is_active='Y'    
                                            and pcetc.dbd_id = pc_dbd_id)
               loop
                 --for full Range
@@ -2398,6 +2405,7 @@ begin
                                                 vn_min_range
                                             and nvl(pcetc.position, 'a') <>
                                                 'Base'
+                                            and pcetc.is_active='Y'      
                                             and pcetc.dbd_id = pc_dbd_id)
               loop
                 --For the full Range
@@ -2927,6 +2935,7 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                        0) >= vn_min_range
                                                and nvl(pcerc.position, 'a') <>
                                                    'Base'
+                                               and pcerc.is_active='Y'    
                                                and pcerc.dbd_id = pc_dbd_id)
                   loop
                     --for full Range
@@ -2980,6 +2989,7 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                         0) <= vn_min_range
                                                 and nvl(pcerc.position, 'a') <>
                                                     'Base'
+                                                and pcerc.is_active='Y'      
                                                 and pcerc.dbd_id = pc_dbd_id)
                   loop
                     --For the full Range
@@ -3781,6 +3791,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                        0) >= vn_min_range
                                                and nvl(pcerc.position, 'a') <>
                                                    'Base'
+                                               and pcerc.is_active='Y'    
                                                and pcerc.dbd_id = pc_dbd_id)
                   loop
                     --for full Range
@@ -3834,6 +3845,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                         0) <= vn_min_range
                                                 and nvl(pcerc.position, 'a') <>
                                                     'Base'
+                                                and pcerc.is_active='Y'     
                                                 and pcerc.dbd_id = pc_dbd_id)
                   loop
                     --For the full Range

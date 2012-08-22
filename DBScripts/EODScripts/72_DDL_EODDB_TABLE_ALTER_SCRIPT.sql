@@ -1,0 +1,1 @@
+alter table PA_PURCHASE_ACCURAL_GMR add PROVISIONAL_PYMT_PCTG number(10,4);

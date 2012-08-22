@@ -2415,7 +2415,8 @@ commit;
        pay_in_cur_code,
        frightcharges_amount,
        othercharges_amount,
-       tranascation_type)
+       tranascation_type,
+       provisional_pymt_pctg)
       select temp.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -2453,7 +2454,8 @@ commit;
                else
                 0
              end,
-             'Invoiced'
+             'Invoiced',
+             oth_chagres.provisional_pymt_pctg
         from pa_temp temp,
              pdm_productmaster pdm_conc,
              qat_quality_attributes qat,
@@ -2466,7 +2468,8 @@ commit;
              pcpch_pc_payble_content_header pcpch,
              (select gmr.internal_gmr_ref_no,
                      iss.total_other_charge_amount other_charges,
-                     iss.freight_allowance_amt freight_charges
+                     iss.freight_allowance_amt freight_charges,
+                     nvl(iss.provisional_pymt_pctg,100) provisional_pymt_pctg
                 from gmr_goods_movement_record gmr,
                      is_invoice_summary        iss
                where (iss.internal_invoice_ref_no, gmr.internal_gmr_ref_no) in
@@ -2516,7 +2519,8 @@ commit;
                 temp.assay_qty_unit,
                 cm.cur_code,
                 oth_chagres.other_charges,
-                oth_chagres.freight_charges;
+                oth_chagres.freight_charges,
+                oth_chagres.provisional_pymt_pctg;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -5596,8 +5600,8 @@ procedure sp_feed_consumption_report(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_process_id   varchar2) as
   vn_dry_qty number;
-  cursor cur_update is
-    select * from temp_fcr where corporate_id = pc_corporate_id for update;
+  vn_conv number;
+
 begin
   delete from temp_fcr where corporate_id = pc_corporate_id;
   sp_eodeom_process_log(pc_corporate_id,
@@ -5708,8 +5712,8 @@ begin
                and grd.tolling_stock_type = 'Clone Stock'
                and spq.assay_header_id = ash.ash_id
                and ash.ash_id = asm.ash_id
-       --        and ash.is_active ='Y'
-        --       and asm.is_active ='Y'
+              -- and ash.is_active ='Y'
+              -- and asm.is_active ='Y'
                ) t,
            iam_invoice_assay_mapping iam,
            qum_quantity_unit_master qum_payable,
@@ -5724,6 +5728,7 @@ begin
            cm_currency_master cm_invoice,
            cm_currency_master cm_base,
            ak_corporate akc,
+           pdm_productmaster pdm_aml,
            qum_quantity_unit_master qum_gmr,
            qum_quantity_unit_master qum_pdm
      where t.internal_grd_ref_no = iam.internal_grd_ref_no(+)
@@ -5744,8 +5749,9 @@ begin
        and t.invoice_cur_id = cm_invoice.cur_id(+)
        and cm_base.cur_id = akc.base_cur_id
        and akc.corporate_id = pc_corporate_id
+       and aml.underlying_product_id = pdm_aml.product_id
        and t.qty_unit_id = qum_gmr.qty_unit_id
-       and pdm.base_quantity_unit = qum_pdm.qty_unit_id;
+       and pdm_aml.base_quantity_unit = qum_pdm.qty_unit_id;
   commit;
   
    sp_eodeom_process_log(pc_corporate_id,
@@ -5760,6 +5766,30 @@ begin
                           pc_process_id,
                           3003,
                           'Dry Qty update Over');
+--
+  -- Now we have to convert assay qty to product base qty unit
+  --
+  for cur_stock_qty in (select 
+       t.asaay_qty_unit_id,
+       t.product_base_qty_unit_id
+  from temp_fcr t
+ where t.asaay_qty_unit_id <> t.product_base_qty_unit_id
+ and t.corporate_id = pc_corporate_id
+ group by t.asaay_qty_unit_id,
+          t.product_base_qty_unit_id)loop
+       vn_conv :=  pkg_general.f_get_converted_quantity(null,
+                                                              cur_stock_qty.asaay_qty_unit_id,
+                                                              cur_stock_qty.product_base_qty_unit_id,
+                                                              1) ;  
+    update temp_fcr t
+       set t.assay_qty =vn_conv *t.assay_qty,
+       t.payable_qty = t.payable_qty * vn_conv
+     where t.asaay_qty_unit_id = cur_stock_qty.asaay_qty_unit_id
+       and t.product_base_qty_unit_id =
+           cur_stock_qty.product_base_qty_unit_id
+       and t.corporate_id = pc_corporate_id;
+  end loop;
+  commit;
 
   insert into fcr_feed_consumption_report
     (process_id,
@@ -5789,7 +5819,9 @@ begin
      invoice_cur_code,
      base_cur_id,
      base_cur_code,
-     internal_invoice_ref_no)
+     internal_invoice_ref_no,
+     product_base_qty_unit_id,
+     product_base_qty_unit)
     select pc_process_id,
            pd_trade_date,
            corporate_id,
@@ -5817,7 +5849,10 @@ begin
            invoice_cur_code,
            base_cur_id,
            base_cur_code,
-           internal_invoice_ref_no
+           internal_invoice_ref_no,
+           product_base_qty_unit_id,
+           product_base_qty_unit
+
       from temp_fcr
      where corporate_id = pc_corporate_id
      group by corporate_id,
@@ -5842,7 +5877,9 @@ begin
               invoice_cur_code,
               base_cur_id,
               base_cur_code,
-              internal_invoice_ref_no;
+              internal_invoice_ref_no,
+              product_base_qty_unit_id,
+              product_base_qty_unit;
   commit;
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -5946,6 +5983,7 @@ sp_eodeom_process_log(pc_corporate_id,
                             from fcr_feed_consumption_report fcr
                            where fcr.process_id = pc_process_id))
   loop
+  
     update fcr_feed_consumption_report fcr
        set fcr.inv_add_charges = cur_oth.total_other_charge_amount
      where fcr.internal_invoice_ref_no = cur_oth.internal_invoice_ref_no
@@ -5960,57 +5998,11 @@ sp_eodeom_process_log(pc_corporate_id,
                           3008,
                           'Other chanrges Over');
                           
---
-  -- Now we have to convert assay qty to product base qty unit
-  --
-  for cur_stock_qty in (select t.product_id,
-       t.asaay_qty_unit_id,
-       t.product_base_qty_unit_id
-  from temp_fcr t
- where t.asaay_qty_unit_id <> t.product_base_qty_unit_id
- and t.corporate_id = pc_corporate_id
- group by t.product_id,
-          t.asaay_qty_unit_id,
-          t.product_base_qty_unit_id)loop
-    update temp_fcr t
-       set t.assay_qty = pkg_general.f_get_converted_quantity(cur_stock_qty.product_id,
-                                                              cur_stock_qty.asaay_qty_unit_id,
-                                                              cur_stock_qty.product_base_qty_unit_id,
-                                                              1) *
-                         t.assay_qty
-     where t.asaay_qty_unit_id = cur_stock_qty.asaay_qty_unit_id
-       and t.product_base_qty_unit_id =
-           cur_stock_qty.product_base_qty_unit_id
-       and t.product_id = cur_stock_qty.product_id
-       and t.corporate_id = pc_corporate_id;
-  end loop;
-  commit;
+
   
   --
   -- Now we have to convert payable qty to product base qty unit
   --
-  for cur_stock_qty in (select t.product_id,
-       t.payable_qty_unit_id,
-       t.product_base_qty_unit_id
-  from temp_fcr t
- where t.payable_qty_unit_id <> t.product_base_qty_unit_id
- and t.corporate_id = pc_corporate_id
- group by t.product_id,
-          t.payable_qty_unit_id,
-          t.product_base_qty_unit_id)loop
-    update temp_fcr t
-       set t.assay_qty = pkg_general.f_get_converted_quantity(cur_stock_qty.product_id,
-                                                              cur_stock_qty.payable_qty_unit_id,
-                                                              cur_stock_qty.product_base_qty_unit_id,
-                                                              1) *
-                         t.assay_qty
-     where t.payable_qty_unit_id = cur_stock_qty.payable_qty_unit_id
-       and t.product_base_qty_unit_id =
-           cur_stock_qty.product_base_qty_unit_id
-       and t.product_id = cur_stock_qty.product_id
-       and t.corporate_id = pc_corporate_id;
-  end loop;
-  commit;
                             
 end;
   procedure sp_stock_monthly_yeild(pc_corporate_id varchar2,
@@ -9831,13 +9823,7 @@ insert into temp_mas
        end) section_order,
        grd.warehouse_profile_id,
        phd.companyname,
-       case
-         when agmr.eff_date > vd_prev_eom_date and
-              agmr.eff_date <= pd_trade_date then
-        grd.qty 
-       else
-           grd.current_qty
-       end stock_qty,
+       grd.qty stock_qty,
        grd.qty_unit_id,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit
@@ -9902,12 +9888,12 @@ insert into temp_mas
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
-         'Finished Stock For Concentrates',
-         aml.underlying_product_id,
+         'Finished Stock',
+         grd.product_id,
          pdm.product_desc,
          'Inventory' position_type,
-         'Raw Material Stock'  stock_type,
-        case
+         'Raw Material Stock' stock_type,
+         case
            when agmr.eff_date > vd_prev_eom_date and
                 agmr.eff_date <= pd_trade_date then
             'New Stocks'
@@ -9925,35 +9911,12 @@ insert into temp_mas
          phd.companyname,
          case
            when agmr.eff_date > vd_prev_eom_date and
-                agmr.eff_date <= pd_trade_date then 
-         case
-           when rm.ratio_name = '%' then
-            (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
-            pqcapd.payable_percentage / 100)
+                agmr.eff_date <= pd_trade_date then
+            grd.qty
            else
-            (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
-            pqcapd.payable_percentage)
-         end 
-         else
-         case
-           when agmr.eff_date > vd_prev_eom_date and
-                agmr.eff_date <= pd_trade_date then 
-         case
-           when rm.ratio_name = '%' then
-            (((grd.current_qty * asm.dry_wet_qty_ratio / 100)) *
-            pqcapd.payable_percentage / 100)
-           else
-            (((grd.current_qty * asm.dry_wet_qty_ratio / 100)) *
-            pqcapd.payable_percentage)
-         end 
-         end 
+            grd.current_qty
          end stock_qty,
-         (case
-           when rm.ratio_name = '%' then
-            grd.qty_unit_id
-           else
-            rm.qty_unit_id_numerator
-         end) stock_qty_unit_id,
+         grd.qty_unit_id stock_qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
          qum.qty_unit
     from gmr_goods_movement_record gmr,
@@ -9968,16 +9931,9 @@ insert into temp_mas
              and agmr.is_deleted = 'N'
              and gmr.process_id = pc_process_id) agmr,
          phd_profileheaderdetails phd,
-         spq_stock_payable_qty spq,
-         ash_assay_header ash,
-         asm_assay_sublot_mapping asm,
-         aml_attribute_master_list aml,
          pdm_productmaster pdm,
          qum_quantity_unit_master qum,
          ak_corporate akc,
-         pqca_pq_chemical_attributes pqca,
-         pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-         rm_ratio_master rm,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
      and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
@@ -9985,34 +9941,16 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type = 'RM In Process Stock'
+     and grd.tolling_stock_type = 'RM Out Process Stock'
      and grd.warehouse_profile_id = phd.profileid
-     and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-     and spq.is_stock_split = 'N'
-     and spq.element_id = aml.attribute_id
-     and aml.underlying_product_id = pdm.product_id
      and pdm.base_quantity_unit = qum.qty_unit_id
      and gmr.corporate_id = akc.corporate_id
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
-     and spq.process_id = pc_process_id
      and agmr.eff_date <= pd_trade_date
-     and spq.internal_grd_ref_no = ash.internal_grd_ref_no
-     and spq.assay_header_id = ash.ash_id
-     and ash.ash_id = asm.ash_id
-     and ash.is_active = 'Y'
-     and asm.is_active = 'Y'
-     and pqca.element_id = aml.attribute_id
-     and pqca.asm_id = asm.asm_id
-     and pqcapd.pqca_id = pqca.pqca_id
-     and pqcapd.pcdi_id = grd.pcdi_id
-     and pqca.is_active = 'Y'
-     and pqcapd.is_active = 'Y'
-     and pqca.unit_of_measure = rm.ratio_id
-     and rm.is_active = 'Y'
-     and rm.is_deleted = 'N'
      and pdm.product_type_id = pdtm.product_type_id
-     and pdtm.product_type_name ='Composite';
+     and pdtm.product_type_name = 'Composite'
+     and grd.product_id = pdm.product_id;
      commit;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
