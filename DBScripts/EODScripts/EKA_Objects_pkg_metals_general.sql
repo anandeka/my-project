@@ -1018,6 +1018,7 @@ create or replace package body pkg_metals_general is
                          vn_base_refine_charge
                     from pcerc_pc_elem_refining_charge pcerc
                    where pcerc.pcrh_id = cur_ref_charge.pcrh_id
+                     and pcerc.is_active='Y'
                      and pcerc.position = 'Base'
                      and pcerc.charge_type = 'Variable'
                      and pcerc.dbd_id = pc_dbd_id;
@@ -1123,8 +1124,8 @@ create or replace package body pkg_metals_general is
                     elsif cur_backward_price.range_max_value >
                           vn_contract_price then
                       --For the Half  Range 
-                      vn_range_gap := vn_contract_price -
-                                      cur_backward_price.range_min_value;
+                      vn_range_gap := abs(vn_contract_price -
+                                      cur_backward_price.range_max_value);
                     end if;
                     if cur_backward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
@@ -1138,7 +1139,7 @@ create or replace package body pkg_metals_general is
                                                      1)) *
                                                 cur_backward_price.refining_charge;
                     end if;
-                    vn_refine_charge := vn_refine_charge +
+                    vn_refine_charge := vn_refine_charge -
                                         vn_each_tier_rc_charge;
                   end loop;
                 elsif vn_contract_price = vn_min_range and
@@ -1409,6 +1410,7 @@ create or replace package body pkg_metals_general is
                        vn_base_tret_charge
                   from pcetc_pc_elem_treatment_charge pcetc
                  where pcetc.pcth_id = cur_tret_charge.pcth_id
+                   and pcetc.is_active='Y'
                    and pcetc.position = 'Base'
                    and pcetc.charge_type = 'Variable'
                    and pcetc.dbd_id = pc_dbd_id;
@@ -1505,8 +1507,8 @@ create or replace package body pkg_metals_general is
                   elsif cur_backward_price.range_max_value >
                         vn_contract_price then
                     --For the Half  Range 
-                    vn_range_gap := vn_contract_price -
-                                    cur_backward_price.range_min_value;
+                    vn_range_gap := abs(vn_contract_price -
+                                    cur_backward_price.range_max_value);
                   end if;
                   if cur_backward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
@@ -1520,7 +1522,7 @@ create or replace package body pkg_metals_general is
                                                    1)) *
                                               cur_backward_price.treatment_charge;
                   end if;
-                  vn_treatment_charge := vn_treatment_charge +
+                  vn_treatment_charge := vn_treatment_charge -
                                          vn_each_tier_tc_charge;
                 end loop;
               elsif vn_contract_price = vn_min_range and
@@ -1919,6 +1921,7 @@ create or replace package body pkg_metals_general is
                        vn_base_tret_charge
                   from pcetc_pc_elem_treatment_charge pcetc
                  where pcetc.pcth_id = cur_tret_charge.pcth_id
+                   and pcetc.is_active='Y'
                    and pcetc.position = 'Base'
                    and pcetc.charge_type = 'Variable'
                    and pcetc.dbd_id = pc_dbd_id;
@@ -2015,8 +2018,8 @@ create or replace package body pkg_metals_general is
                   elsif cur_backward_price.range_max_value >
                         vn_contract_price then
                     --For the Half  Range
-                    vn_range_gap := vn_contract_price -
-                                    cur_backward_price.range_min_value;
+                    vn_range_gap := abs(vn_contract_price -
+                                    cur_backward_price.range_max_value);
                   end if;
                   if cur_backward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
@@ -2030,7 +2033,7 @@ create or replace package body pkg_metals_general is
                                                    1)) *
                                               cur_backward_price.treatment_charge;
                   end if;
-                  vn_treatment_charge := vn_treatment_charge +
+                  vn_treatment_charge := vn_treatment_charge -
                                          vn_each_tier_tc_charge;
                 end loop;
               elsif vn_contract_price = vn_min_range and
@@ -2322,6 +2325,7 @@ begin
                      vn_base_tret_charge
                 from pcetc_pc_elem_treatment_charge pcetc
                where pcetc.pcth_id = cur_tret_charge.pcth_id
+                 and pcetc.is_active='Y'
                  and pcetc.position = 'Base'
                  and pcetc.charge_type = 'Variable'
                  and pcetc.dbd_id = pc_dbd_id;
@@ -2415,8 +2419,8 @@ begin
                 elsif cur_backward_price.range_max_value >
                       vn_contract_price then
                   --For the Half  Range
-                  vn_range_gap := vn_contract_price -
-                                  cur_backward_price.range_min_value;
+                  vn_range_gap := abs(vn_contract_price -
+                                  cur_backward_price.range_max_value);
                 end if;
                 if cur_backward_price.charge_basis = 'absolute' then
                   vn_each_tier_tc_charge := ceil(vn_range_gap /
@@ -2430,7 +2434,7 @@ begin
                                                  1)) *
                                             cur_backward_price.treatment_charge;
                 end if;
-                vn_treatment_charge := vn_treatment_charge +
+                vn_treatment_charge := vn_treatment_charge -
                                        vn_each_tier_tc_charge;
               end loop;
             elsif vn_contract_price = vn_min_range and
@@ -2901,6 +2905,7 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                          vn_base_refine_charge
                     from pcerc_pc_elem_refining_charge pcerc
                    where pcerc.pcrh_id = cur_ref_charge.pcrh_id
+                     and pcerc.is_active='Y'
                      and pcerc.position = 'Base'
                      and pcerc.charge_type = 'Variable'
                      and pcerc.dbd_id = pc_dbd_id;
@@ -3000,8 +3005,8 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                     elsif cur_backward_price.range_max_value >
                           vn_contract_price then
                       --For the Half  Range
-                      vn_range_gap := vn_contract_price -
-                                      cur_backward_price.range_min_value;
+                      vn_range_gap := abs(vn_contract_price -
+                                      cur_backward_price.range_max_value);
                     end if;
                     if cur_backward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
@@ -3015,7 +3020,7 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                      1)) *
                                                 cur_backward_price.refining_charge;
                     end if;
-                    vn_refine_charge := vn_refine_charge +
+                    vn_refine_charge := vn_refine_charge -
                                         vn_each_tier_rc_charge;
                   end loop;
                 elsif vn_contract_price = vn_min_range and
@@ -3758,6 +3763,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                     from pcerc_pc_elem_refining_charge pcerc
                    where pcerc.pcrh_id = cur_ref_charge.pcrh_id
                      and pcerc.position = 'Base'
+                     and pcerc.is_active='Y'
                      and pcerc.charge_type = 'Variable'
                      and pcerc.dbd_id = pc_dbd_id;
                 exception
@@ -3856,8 +3862,8 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                     elsif cur_backward_price.range_max_value >
                           vn_contract_price then
                       --For the Half  Range
-                      vn_range_gap := vn_contract_price -
-                                      cur_backward_price.range_min_value;
+                      vn_range_gap := abs(vn_contract_price -
+                                      cur_backward_price.range_max_value);
                     end if;
                     if cur_backward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
@@ -3871,7 +3877,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                      1)) *
                                                 cur_backward_price.refining_charge;
                     end if;
-                    vn_refine_charge := vn_refine_charge +
+                    vn_refine_charge := vn_refine_charge -
                                         vn_each_tier_rc_charge;
                   end loop;
                 elsif vn_contract_price = vn_min_range and
