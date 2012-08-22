@@ -1,11 +1,11 @@
-Patch No*          		:  EKA_METALS_PATCH_0990
+Patch No*          		:  EKA_METALS_PATCH_0994
 Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
  
 Created on*        		:  21-Aug-2012
 
-Bug / Enhancement*              :  Enhancement*
+Bug / Enhancement*              :  Bug
 
 Bug ID*            		:  
 ==================================================================
@@ -34,13 +34,14 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
-Revision: 101593
-Author: jana
-Date: 5:22:17 PM, Tuesday, August 21, 2012
+Revision: 101814
+
+Date: 8:20:18 PM, Wednesday, August 22, 2012
 Message:
-Based on Srivani request mail today
+Concentrate GMR Payable Qty Summed in Price Caluculation for Event Based GMRS
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_dim_cash_pricepoint_drid.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_gmr_payable_qty.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
 
 
 
