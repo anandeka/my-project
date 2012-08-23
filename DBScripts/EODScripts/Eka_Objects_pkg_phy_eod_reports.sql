@@ -5534,7 +5534,39 @@ insert into isr_intrastat_grd
                group by pcm.internal_contract_ref_no,
                         poch.element_id
               union all
-              select pcm.internal_contract_ref_no,
+               select pcm.internal_contract_ref_no,
+                         dipq.element_id,
+                         sum(dipq.payable_qty) priced_qty
+                    from pcm_physical_contract_main     pcm,
+                         pcmte_pcm_tolling_ext          pcmte,
+                         pcdi_pc_delivery_item          pcdi,
+                         dipq_delivery_item_payable_qty dipq,
+                         poch_price_opt_call_off_header poch,
+                         pocd_price_option_calloff_dtls pocd,
+                         aml_attribute_master_list      aml
+                   where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+                     and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no
+                     and pcmte.tolling_service_type = 'S'
+                     and dipq.pcdi_id = pcdi.pcdi_id
+                     and pcdi.pcdi_id = poch.pcdi_id
+                     and poch.poch_id = pocd.poch_id
+                     and pocd.price_type = 'Fixed'
+                     and poch.element_id = dipq.element_id
+                     and dipq.element_id = aml.attribute_id -- pqca.element_id ---------
+                     and dipq.process_id = pc_process_id ---------------   
+                     and dipq.is_active = 'Y' -------------
+                    -- and pcm.contract_ref_no = 'SCT-56-BLD'
+                     and pcm.corporate_id = pc_corporate_id
+                     and pcm.is_active = 'Y'
+                     and pcdi.is_active = 'Y'
+                     and poch.is_active = 'Y'
+                     and pocd.is_active = 'Y'
+                     and aml.is_active = 'Y'
+                     and pcm.process_id = pc_process_id
+                     and pcdi.process_id = pc_process_id
+                   group by pcm.internal_contract_ref_no,
+                            dipq.element_id
+              /*select pcm.internal_contract_ref_no,
                      poch.element_id,
                      sum(dipq.payable_qty) priced_qty
                 from pcm_physical_contract_main     pcm,
@@ -5587,7 +5619,7 @@ insert into isr_intrastat_grd
                  and pcdi.process_id = pc_process_id
                  and pcpq.process_id = pc_process_id
                group by pcm.internal_contract_ref_no,
-                        poch.element_id) pfc_data
+                        poch.element_id*/) pfc_data
        where main_table.internal_contract_ref_no =
              stock_table.internal_contract_ref_no(+)
          and main_table.element_id = stock_table.element_id(+)

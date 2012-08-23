@@ -484,6 +484,7 @@ create or replace package body pkg_phy_cog_price is
                     sp_insert_error_log(vobj_error_log);
                   end if;
                 when others then
+                 vobj_error_log.extend; 
                   vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                        'procedure sp_concentrate_congprice',
                                                                        'M2M-013',
@@ -736,6 +737,7 @@ create or replace package body pkg_phy_cog_price is
                   sp_insert_error_log(vobj_error_log);
                 end if;
               when others then
+               vobj_error_log.extend; 
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                      'procedure sp_concentrate_congprice',
                                                                      'M2M-013',
@@ -1294,6 +1296,7 @@ create or replace package body pkg_phy_cog_price is
               sp_insert_error_log(vobj_error_log);
             end if;
           when others then
+           vobj_error_log.extend; 
             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                  'procedure sp_concentrate_congprice',
                                                                  'M2M-013',
@@ -1883,6 +1886,7 @@ create or replace package body pkg_phy_cog_price is
                   sp_insert_error_log(vobj_error_log);
                 end if;
               when others then
+               vobj_error_log.extend; 
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                      'procedure sp_concentrate_congprice',
                                                                      'M2M-013',
@@ -2130,6 +2134,7 @@ create or replace package body pkg_phy_cog_price is
                   sp_insert_error_log(vobj_error_log);
                 end if;
               when others then
+                vobj_error_log.extend;              
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                      'procedure sp_calc_contract_conc_price',
                                                                      'M2M-013',
@@ -2713,6 +2718,7 @@ create or replace package body pkg_phy_cog_price is
               sp_insert_error_log(vobj_error_log);
             end if;
           when others then
+           vobj_error_log.extend; 
             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                  'procedure sp_concentrate_congprice',
                                                                  'M2M-013',

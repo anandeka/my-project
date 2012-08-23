@@ -87,10 +87,10 @@ create or replace package body pkg_phy_physical_process is
     vc_prev_eod_date   date;
     vc_prev_eom_id     varchar2(15);
     vc_prev_eom_date   date;
-    vc_prev_dbd_id     varchar2(15);
+    vn_error_count number;
   begin
     gvc_process := pc_process;
-  
+  vn_error_count :=0;
     vc_err_msg := 'Before gvc_previous_process_id ';
     if gvc_process = 'EOD' then
       begin
@@ -453,6 +453,25 @@ create or replace package body pkg_phy_physical_process is
        'Cancel' then
       goto cancel_process;
     end if;
+    
+------------------DO NOT CONTINUE EOD/EOM IF ANY ERROR UPTO NOW, AS BELOW CALCULATION INVOLVED
+-- IN PNL CALCULATION, OR REPORT CALCULATIO
+--added by siva on 23AUG2012
+   begin
+      select count(*)
+        into vn_error_count
+        from eel_eod_eom_exception_log eel
+       where eel.corporate_id = pc_corporate_id
+         and eel.process = pc_process
+         and nvl(eel.error_type, 'Error') = 'Error'
+         and eel.trade_date = pd_trade_date;
+      
+    exception
+      when others then
+        vn_error_count            := 0;
+    end; 
+----------------  
+if vn_error_count = 0 then  
     vn_logno := vn_logno + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -1100,7 +1119,8 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                           pc_process_id,
                           vn_logno,
                           'pkg_phy_custom_reports.sp_call_custom_reports finished');
-
+    
+    end if;---this end if starts from if vn_error_count = 0 then
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,

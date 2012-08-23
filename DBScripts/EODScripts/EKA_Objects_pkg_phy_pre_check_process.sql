@@ -3084,7 +3084,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
     -------------------- 
-  
+  commit;
     for cc2 in (select t.pcdi_id,
                        t.internal_contract_ref_no,
                        t.internal_contract_item_ref_no,
@@ -3215,7 +3215,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
     -------
-  
+  commit;
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
