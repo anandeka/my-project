@@ -316,23 +316,34 @@ create or replace package body "PKG_EXECUTE_EOD" is
                           pd_trade_date,
                           2);
     --     pc_corporate_id, pd_trade_date  pc_process, pc_action ,pc_eod_status
-    if pc_eod_status in ('EOD Processed Successfully',
-        'EOD Process Success,Awaiting Cost Entry',
-        'EOM Processed Successfully',
-        'EOM Process Success,Awaiting Cost Entry') then
-      insert into eod_eom_process_count
-        (corporate_id,
-         trade_date,
-         process,
-         created_date,
-         processing_status)
-      values
-        (pc_corporate_id,
-         pd_trade_date,
-         pc_process,
-         sysdate,
-         pc_eod_status);
-    end if;
+    begin
+      if pc_eod_status in ('EOD Processed Successfully',
+          'EOD Process Success,Awaiting Cost Entry',
+          'EOM Processed Successfully',
+          'EOM Process Success,Awaiting Cost Entry') then
+      
+        insert into eod_eom_process_count
+          (corporate_id,
+           trade_date,
+           process,
+           created_date,
+           processing_status)
+        values
+          (pc_corporate_id,
+           pd_trade_date,
+           pc_process,
+           sysdate,
+           pc_eod_status);               
+      end if;
+    exception
+      when others then       
+        sp_eodeom_process_log(pc_corporate_id,
+                              pd_trade_date,
+                              'insert into eod_eom_process_count' ||
+                              pc_eod_status || ' ' || pc_process || ' ' ||
+                              sqlerrm,
+                              2);
+    end;
     if pc_action in ('PRECHECK', 'PRECHECK_RUN', 'RUN') then
     
       if pc_process = 'EOD' then
@@ -347,7 +358,18 @@ create or replace package body "PKG_EXECUTE_EOD" is
                   from eod_end_of_day_details eod
                  where eod.corporate_id = pc_corporate_id
                    and eod.as_of_date = pd_trade_date);
-        commit;
+      else
+        update eom_end_of_month_details
+           set processing_status = pc_eod_status
+         where corporate_id = pc_corporate_id
+           and as_of_date = pd_trade_date;
+        update eomh_end_of_month_history eomh
+           set eomh.processing_status = pc_eod_status
+         where eomh.eom_id in
+               (select eom.eom_id
+                  from eom_end_of_month_details eom
+                 where eom.corporate_id = pc_corporate_id
+                   and eom.as_of_date = pd_trade_date);
       end if;
     else
       if pc_process = 'EOD' then
@@ -364,28 +386,55 @@ create or replace package body "PKG_EXECUTE_EOD" is
         delete from eod_end_of_day_details eod
          where corporate_id = pc_corporate_id
            and as_of_date = pd_trade_date;
-        commit;
+      else
+        update eomh_end_of_month_history eomh
+           set eomh.processing_status = pc_eod_status
+         where eomh.eom_id in
+               (select eom.eom_id
+                  from eom_end_of_month_details eom
+                 where eom.corporate_id = pc_corporate_id
+                   and eom.as_of_date = pd_trade_date
+                   and (eom.processing_status like '%Running%' or
+                       eom.processing_status like '%Cancelling%' or
+                       eom.processing_status like '%Rolling%'));
+        delete from eom_end_of_month_details eom
+         where corporate_id = pc_corporate_id
+           and as_of_date = pd_trade_date;
       end if;
     end if;
-  
+    commit;
   exception
     when others then
-      update eod_end_of_day_details
-         set processing_status = pc_eod_status
-       where corporate_id = pc_corporate_id
-         and as_of_date = pd_trade_date;
-      update eodh_end_of_day_history eodh
-         set eodh.processing_status = pc_eod_status
-       where eodh.eod_id in
-             (select eod.eod_id
-                from eod_end_of_day_details eod
-               where eod.corporate_id = pc_corporate_id
-                 and eod.as_of_date = pd_trade_date);
+      if pc_process = 'EOD' then
+        update eod_end_of_day_details
+           set processing_status = pc_eod_status
+         where corporate_id = pc_corporate_id
+           and as_of_date = pd_trade_date;
+        update eodh_end_of_day_history eodh
+           set eodh.processing_status = pc_eod_status
+         where eodh.eod_id in
+               (select eod.eod_id
+                  from eod_end_of_day_details eod
+                 where eod.corporate_id = pc_corporate_id
+                   and eod.as_of_date = pd_trade_date);
+      else
+        update eom_end_of_month_details
+           set processing_status = pc_eod_status
+         where corporate_id = pc_corporate_id
+           and as_of_date = pd_trade_date;
+        update eomh_end_of_month_deta_history eomh
+           set eomh.processing_status = pc_eod_status
+         where eomh.eom_id in
+               (select eom.eom_id
+                  from eom_end_of_month_details eom
+                 where eom.corporate_id = pc_corporate_id
+                   and eom.as_of_date = pd_trade_date);
+      end if;    
       commit;
       sp_eodeom_process_log(pc_corporate_id,
                             pd_trade_date,
                             'Exception when others in sp_mark_process_status as' ||
-                            pc_eod_status,
+                            pc_eod_status || ' ' || sqlerrm,
                             2);
   end;
   procedure sp_insert_eod_error_log(pc_corporate_id     varchar2,
@@ -495,13 +544,13 @@ create or replace package body "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('MV_BI_UPAD', 'c');
     dbms_mview.refresh('MV_FACT_BROKER_MARGIN_UTIL', 'c');
     ------------------------------------------------------------
-  dbms_mview.refresh('MV_BI_DERIVATIVE_JOURNAL_EOM', 'c');
-  dbms_mview.refresh('MV_BI_DERIVATIVE_JOURNAL_EOD', 'c');
-  dbms_mview.refresh('MV_BI_DER_PHY_PFC_JOURNAL_EOM', 'c');
-  dbms_mview.refresh('MV_BI_DER_PHY_PFC_JOURNAL_EOD', 'c');
-  dbms_mview.refresh('MV_BI_DER_BOOK_JOURNAL_EOM', 'c');
-  dbms_mview.refresh('MV_BI_DER_BOOK_JOURNAL_EOD', 'c');
-
+    dbms_mview.refresh('MV_BI_DERIVATIVE_JOURNAL_EOM', 'c');
+    dbms_mview.refresh('MV_BI_DERIVATIVE_JOURNAL_EOD', 'c');
+    dbms_mview.refresh('MV_BI_DER_PHY_PFC_JOURNAL_EOM', 'c');
+    dbms_mview.refresh('MV_BI_DER_PHY_PFC_JOURNAL_EOD', 'c');
+    dbms_mview.refresh('MV_BI_DER_BOOK_JOURNAL_EOM', 'c');
+    dbms_mview.refresh('MV_BI_DER_BOOK_JOURNAL_EOD', 'c');
+  
     commit;
   exception
     when others then
