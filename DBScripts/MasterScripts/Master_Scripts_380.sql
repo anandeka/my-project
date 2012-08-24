@@ -1,0 +1,4 @@
+UPDATE AMC_APP_MENU_CONFIGURATION
+   SET DISPLAY_SEQ_NO = 9
+ WHERE menu_id = 'PPR' AND menu_parent_id = 'F1';
+ COMMIT;
