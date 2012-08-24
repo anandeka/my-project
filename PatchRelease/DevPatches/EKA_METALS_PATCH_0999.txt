@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_0999
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manju
+ 
+Created on*        		:  24-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+Bug ID*            		:   
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Acconting
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 101999
+Author: manjavva.bevoor
+Date: 4:55:11 PM, Friday, August 24, 2012
+Message:
+DB script changed for Provisional Price Record Listing screen
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_380.sql
+
+
+
+
+
+
+
+
