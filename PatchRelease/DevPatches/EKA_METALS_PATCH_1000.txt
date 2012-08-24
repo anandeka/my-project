@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1000
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  24-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+Bug ID*            		:   
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		Invoice 
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice o/p doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 102004
+Author: mayank.chaturvedi
+Date: 6:13:30 PM, Friday, August 24, 2012
+Message:
+-DGM insert Script for free metal utility invoice O/P Enhancement 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_381.sql
+
+
+
+
+
+
+
+
