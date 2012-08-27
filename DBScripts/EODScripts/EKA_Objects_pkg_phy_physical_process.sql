@@ -87,6 +87,8 @@ create or replace package body pkg_phy_physical_process is
     vc_prev_eod_date   date;
     vc_prev_eom_id     varchar2(15);
     vc_prev_eom_date   date;
+    vc_prev_dbd_id     varchar2(15);
+
     vn_error_count number;
   begin
     gvc_process := pc_process;
