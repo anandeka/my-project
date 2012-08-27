@@ -35,7 +35,7 @@ create or replace package pkg_price is
   function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                         pd_trade_date       date) return date;
 
-end; 
+end;
 /
 create or replace package body "PKG_PRICE" is
 
@@ -395,6 +395,7 @@ create or replace package body "PKG_PRICE" is
                      and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
+                     and rownum < 2
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes          dq,
@@ -561,6 +562,7 @@ create or replace package body "PKG_PRICE" is
                        and dq.corporate_id = cur_pcdi_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
+                       and rownum < 2
                        and dq.trade_date =
                            (select max(dq.trade_date)
                               from dq_derivative_quotes        dq,
@@ -602,6 +604,7 @@ create or replace package body "PKG_PRICE" is
                        and dq.corporate_id = cur_pcdi_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
+                       and rownum < 2
                        and dq.trade_date =
                            (select max(dq.trade_date)
                               from dq_derivative_quotes          dq,
@@ -861,6 +864,7 @@ create or replace package body "PKG_PRICE" is
                      and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
+                     and rownum < 2
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes          dq,
@@ -988,6 +992,7 @@ create or replace package body "PKG_PRICE" is
                        and dq.corporate_id = cur_pcdi_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
+                       and rownum < 2
                        and dq.trade_date =
                            (select max(dq.trade_date)
                               from dq_derivative_quotes        dq,
@@ -1029,6 +1034,7 @@ create or replace package body "PKG_PRICE" is
                        and dq.corporate_id = cur_pcdi_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
+                       and rownum < 2
                        and dq.trade_date =
                            (select max(dq.trade_date)
                               from dq_derivative_quotes          dq,
@@ -1354,6 +1360,7 @@ create or replace package body "PKG_PRICE" is
              and dq.corporate_id = cur_gmr_rows.corporate_id
              and dq.is_deleted = 'N'
              and dqd.is_deleted = 'N'
+             and rownum < 2
              and dq.trade_date =
                  (select max(dq.trade_date)
                     from dq_derivative_quotes          dq,
@@ -1508,6 +1515,7 @@ create or replace package body "PKG_PRICE" is
                and dq.corporate_id = cur_gmr_rows.corporate_id
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
+               and rownum < 2
                and dq.trade_date =
                    (select max(dq.trade_date)
                       from dq_derivative_quotes        dq,
@@ -1545,6 +1553,7 @@ create or replace package body "PKG_PRICE" is
                and dq.corporate_id = cur_gmr_rows.corporate_id
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
+               and rownum < 2
                and dq.trade_date =
                    (select max(dq.trade_date)
                       from dq_derivative_quotes          dq,
@@ -2029,6 +2038,7 @@ create or replace package body "PKG_PRICE" is
                      and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
+                     and rownum < 2
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes          dq,
@@ -2199,6 +2209,7 @@ create or replace package body "PKG_PRICE" is
                        and dq.corporate_id = cur_pcdi_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
+                       and rownum < 2
                        and dq.trade_date =
                            (select max(dq.trade_date)
                               from dq_derivative_quotes        dq,
@@ -2240,6 +2251,7 @@ create or replace package body "PKG_PRICE" is
                        and dq.corporate_id = cur_pcdi_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
+                       and rownum < 2
                        and dq.trade_date =
                            (select max(dq.trade_date)
                               from dq_derivative_quotes          dq,
@@ -2517,6 +2529,7 @@ create or replace package body "PKG_PRICE" is
                      and dq.corporate_id = cur_pcdi_rows.corporate_id
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
+                     and rownum < 2
                      and dq.trade_date =
                          (select max(dq.trade_date)
                             from dq_derivative_quotes          dq,
@@ -2647,6 +2660,7 @@ create or replace package body "PKG_PRICE" is
                        and dq.corporate_id = cur_pcdi_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
+                       and rownum < 2
                        and dq.trade_date =
                            (select max(dq.trade_date)
                               from dq_derivative_quotes        dq,
@@ -2688,6 +2702,7 @@ create or replace package body "PKG_PRICE" is
                        and dq.corporate_id = cur_pcdi_rows.corporate_id
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
+                       and rownum < 2
                        and dq.trade_date =
                            (select max(dq.trade_date)
                               from dq_derivative_quotes          dq,
@@ -3088,6 +3103,7 @@ create or replace package body "PKG_PRICE" is
                and dq.corporate_id = cur_gmr_rows.corporate_id
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
+               and rownum < 2
                and dq.trade_date =
                    (select max(dq.trade_date)
                       from dq_derivative_quotes          dq,
@@ -3255,6 +3271,7 @@ create or replace package body "PKG_PRICE" is
                  and dq.corporate_id = cur_gmr_rows.corporate_id
                  and dq.is_deleted = 'N'
                  and dqd.is_deleted = 'N'
+                 and rownum < 2
                  and dq.trade_date =
                      (select max(dq.trade_date)
                         from dq_derivative_quotes        dq,
@@ -3293,6 +3310,7 @@ create or replace package body "PKG_PRICE" is
                  and dq.corporate_id = cur_gmr_rows.corporate_id
                  and dq.is_deleted = 'N'
                  and dqd.is_deleted = 'N'
+                 and rownum < 2
                  and dq.trade_date =
                      (select max(dq.trade_date)
                         from dq_derivative_quotes          dq,
