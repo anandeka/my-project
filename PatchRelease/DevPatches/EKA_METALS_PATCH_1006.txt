@@ -7,7 +7,7 @@ Created on*        		:  27-Aug-2012
 
 Bug / Enhancement*              :  BUG
 
-Bug ID*            		:  
+Bug ID*            		:  68316 68318
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,5 +33,15 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 102148
+Date: 5:38:28 PM, Monday, August 27, 2012
+Message:
+68316 - In purchase accrual report it is showing tolling GMR 
+68318 - Feed consumption report-Issues
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
 
 
