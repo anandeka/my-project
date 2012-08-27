@@ -1589,7 +1589,7 @@ create or replace package body pkg_phy_eod_reports is
          and pcm.invoice_currency_id = cm_pay.cur_id
          and gmr.is_deleted = 'N'
          and gmr.is_internal_movement = 'N'
-         and nvl(gmr.CONTRACT_TYPE,'NA') <> 'Tolling'
+         and nvl(gmr.contract_type,'NA') <> 'Tolling'
          and pcpd.is_active = 'Y'
          and pcm.is_active = 'Y'
          and spq.process_id = pc_process_id
@@ -1701,7 +1701,7 @@ create or replace package body pkg_phy_eod_reports is
              grd.internal_contract_item_ref_no
          and pci.process_id = pc_process_id
          and pqca.element_id = aml.attribute_id
-         and nvl(gmr.CONTRACT_TYPE,'NA') <> 'Tolling'
+         and nvl(gmr.contract_type,'NA') <> 'Tolling'
          and aml.is_active = 'Y'
          and nvl(gmr.is_final_invoiced,'N') ='N';
   
@@ -2026,7 +2026,8 @@ select grd.internal_gmr_ref_no,
    and grd.process_id = pc_process_id
    and gmr.process_id = pc_process_id
    and gmr.is_deleted = 'N'
-   and gmr.corporate_id = pc_corporate_id;
+   and gmr.corporate_id = pc_corporate_id
+   and nvl(gmr.contract_type,'NA') <> 'Tolling';
 commit;
   sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -2122,7 +2123,8 @@ select grd.internal_gmr_ref_no,
    and grd.process_id = pc_process_id
    and gmr.process_id = pc_process_id
    and gmr.is_deleted = 'N'
-   and gmr.corporate_id = pc_corporate_id;
+   and gmr.corporate_id = pc_corporate_id
+    and nvl(gmr.contract_type,'NA') <> 'Tolling';
   sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -5428,48 +5430,54 @@ begin
            qum_pdm.qty_unit_id,
            qum_pdm.qty_unit
       from (select grd.internal_gmr_ref_no,
-                   grd.internal_grd_ref_no,
-                   grd.product_id,
-                   grd.quality_id,
-                   grd.profit_center_id,
-                   spq.element_id,
-                   grd.qty* asm.dry_wet_qty_ratio / 100  current_qty,
-                   grd.qty_unit_id,
-                   spq.assay_content assay_qty,
-                   spq.qty_unit_id assay_qty_unit_id,
-                   spq.payable_qty payable_qty,
-                   spq.qty_unit_id payable_qty_unit_id,
-                   iss.invoice_cur_id,
-                   iss.invoice_issue_date,
-                   gmr.latest_internal_invoice_ref_no internal_invoice_ref_no,
-                   spq.assay_header_id,
-                   grd.internal_contract_item_ref_no,
-                   gmr.gmr_ref_no
-              from gmr_goods_movement_record gmr,
-                   grd_goods_record_detail   grd,
-                   is_invoice_summary        iss,
-                   spq_stock_payable_qty     spq,
-                   ash_assay_header ash,
-                   asm_assay_sublot_mapping asm
-             where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and spq.is_stock_split = 'N'
-               and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-               and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-               and pc_process_id = iss.process_id(+)
-               and gmr.latest_internal_invoice_ref_no =
-                   iss.internal_invoice_ref_no(+)
-               and gmr.process_id = pc_process_id
-               and grd.process_id = pc_process_id
-               and spq.process_id = pc_process_id
-               and gmr.is_deleted = 'N'
-               and grd.status = 'Active'
-               and gmr.is_pass_through = 'Y'
-               and grd.tolling_stock_type = 'Clone Stock'
-               and spq.assay_header_id = ash.ash_id
-               and ash.ash_id = asm.ash_id
-              -- and ash.is_active ='Y'
-              -- and asm.is_active ='Y'
-               ) t,
+       grd.internal_grd_ref_no,
+       grd.product_id,
+       grd.quality_id,
+       grd.profit_center_id,
+       spq.element_id,
+       case
+         when dense_rank() over(partition by spq.internal_grd_ref_no order by
+                   spq.element_id) = 1 then
+          grd.qty * asm.dry_wet_qty_ratio / 100
+         else
+          0
+       end current_qty,
+       grd.qty_unit_id,
+       spq.assay_content assay_qty,
+       spq.qty_unit_id assay_qty_unit_id,
+       spq.payable_qty payable_qty,
+       spq.qty_unit_id payable_qty_unit_id,
+       iss.invoice_cur_id,
+       iss.invoice_issue_date,
+       gmr.latest_internal_invoice_ref_no internal_invoice_ref_no,
+       spq.assay_header_id,
+       grd.internal_contract_item_ref_no,
+       gmr.gmr_ref_no
+  from gmr_goods_movement_record gmr,
+       grd_goods_record_detail   grd,
+       is_invoice_summary        iss,
+       spq_stock_payable_qty     spq,
+       ash_assay_header          ash,
+       asm_assay_sublot_mapping  asm
+ where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+   and spq.is_stock_split = 'N'
+   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+   and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+   and pc_process_id = iss.process_id(+)
+   and gmr.latest_internal_invoice_ref_no = iss.internal_invoice_ref_no(+)
+   and gmr.process_id = pc_process_id
+   and grd.process_id = pc_process_id
+   and spq.process_id = pc_process_id
+   and gmr.is_deleted = 'N'
+   and grd.status = 'Active'
+   and gmr.is_pass_through = 'Y'
+   and grd.tolling_stock_type = 'Clone Stock'
+   and spq.assay_header_id = ash.ash_id
+   and ash.ash_id = asm.ash_id
+   and trunc(gmr.eff_date,'mm') = trunc(pd_trade_date,'mm')
+   -- and ash.is_active ='Y'
+   -- and asm.is_active ='Y'
+   ) t,
            iam_invoice_assay_mapping iam,
            qum_quantity_unit_master qum_payable,
            qum_quantity_unit_master qum_assay,
@@ -12092,6 +12100,7 @@ insert into tgi_temp_gmr_invoice
                           pc_process_id,
                           8003,
                           'Invoice Amt Over For IM GMRS');
+commit;                          
 delete from tgc_temp_gmr_charges t
 where t.corporate_id = pc_corporate_id;
 commit;                          
