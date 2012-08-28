@@ -1,9 +1,9 @@
-Patch No*          		:  EKA_METALS_PATCH_1007
+Patch No*          		:  EKA_METALS_PATCH_1011
 Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
  
-Created on*        		:  27-Aug-2012
+Created on*        		:  28-Aug-2012
 
 Bug / Enhancement*              :  BUG
 
@@ -14,9 +14,9 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Online Price
+Module  		   	 :  EOD
 
-Sub-Module  			 :  Online Price
+Sub-Module  			 :  EOD
  
 Section   		   	 :  N/A
  
@@ -31,15 +31,14 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* :Transaction
+Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
-Revision: 102164
-Author: jana
-Date: 7:48:58 PM, Monday, August 27, 2012
+Revision: 102268
+Date: 8:18:01 PM, Tuesday, August 28, 2012
 Message:
-Quotos issue put rownum < 2
+Conc Unreal Sales Event Based Missing Join Corrected
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
 
 
