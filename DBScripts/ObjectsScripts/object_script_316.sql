@@ -1,0 +1,1 @@
+alter table AS_ASSAY_CHILD_D add(ASH_ID VARCHAR2 (15 Char));
