@@ -10637,9 +10637,9 @@ commit;
            mas.warehouse_profile_id,
            mas.warehousename,
            mas.stock_qty,
-           mas.qty_unit_id,
-           mas.qty_unit
-      from mas_metal_account_summary mas
+           mas.product_base_qty_unit_id qty_unit_id,
+           mas.qty_unit qty_unit
+      from temp_mas mas
      where mas.stock_type = 'In Process Stock'
        and mas.section_name = 'Create Consumed From This'
        and mas.process_id = pc_process_id;
