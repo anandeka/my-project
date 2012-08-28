@@ -9221,10 +9221,10 @@ insert into temp_mas
          phd.companyname,
          case
            when rm.ratio_name = '%' then
-            (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
             pqcapd.payable_percentage / 100)
            else
-            (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
             pqcapd.payable_percentage)
          end stock_qty,
          (case
@@ -9274,11 +9274,9 @@ insert into temp_mas
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
      and spq.process_id = pc_process_id
-    and spq.internal_grd_ref_no = ash.internal_grd_ref_no
+
      and spq.assay_header_id = ash.ash_id
      and ash.ash_id = asm.ash_id
-     and ash.is_active = 'Y'
-     and asm.is_active = 'Y'
      and pqca.element_id = aml.attribute_id
      and pqca.asm_id = asm.asm_id
      and pqcapd.pqca_id = pqca.pqca_id
@@ -9440,10 +9438,10 @@ insert into temp_mas
          phd.companyname,
          case
            when rm.ratio_name = '%' then
-            (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
             pqcapd.payable_percentage / 100)
            else
-            (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
             pqcapd.payable_percentage)
          end stock_qty,
          (case
@@ -10190,7 +10188,7 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type = 'RM In Process Stock'
+     and grd.tolling_stock_type = 'RM Out Process Stock'-- as per prachit, need to test this
      and grd.warehouse_profile_id = phd.profileid
      and pdm.base_quantity_unit = qum.qty_unit_id
      and gmr.corporate_id = akc.corporate_id
@@ -10206,6 +10204,84 @@ insert into temp_mas
                           pc_process_id,
                           3009,
                           'Finished New Stock Standard End');  
+                          
+--
+-- Finished New Stock For Base Metal Products with tolling stock type = 'RM In Process Stock' (Prachir)
+-- This is to create In Process Stock Consumed Section
+--    
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Test ',
+         grd.product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'In Process Stock' stock_type,
+         'Create Consumed From This' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         grd.qty stock_qty,
+         grd.qty_unit_id stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('RECORD_OUT_PUT_TOLLING')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pdtm_product_type_master pdtm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'RM In Process Stock'
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and pdm.product_type_id = pdtm.product_type_id
+     and pdtm.product_type_name = 'Standard'
+     and grd.product_id = pdm.product_id
+     and agmr.eff_date > vd_prev_eom_date
+     and agmr.eff_date <= pd_trade_date;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          3009,
+                          'Create Consumed From This');  
+    commit;
+                                                    
 --
 -- Finished Existing Stock For Base Metal Products
 --  
@@ -10424,7 +10500,8 @@ insert into mas_metal_account_summary
          product_base_qty_unit_id,
          qty_unit
     from temp_mas
-   where corporate_id = pc_corporate_id;
+   where corporate_id = pc_corporate_id
+   and section_name <> 'Create Consumed From This';
   sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -10563,8 +10640,8 @@ commit;
            mas.qty_unit_id,
            mas.qty_unit
       from mas_metal_account_summary mas
-     where mas.stock_type = 'Finished Stock'
-       and mas.section_name = 'New Stocks'
+     where mas.stock_type = 'In Process Stock'
+       and mas.section_name = 'Create Consumed From This'
        and mas.process_id = pc_process_id;
        commit;
        sp_eodeom_process_log(pc_corporate_id,
