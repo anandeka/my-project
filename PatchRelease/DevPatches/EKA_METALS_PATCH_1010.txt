@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1010
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  28-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+Bug ID*            		:   
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		Invoice 
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice Audit Log
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 102269
+Author: b.ravikumar
+Date: 8:19:53 PM, Tuesday, August 28, 2012
+Message:
+-for inovice audit-log
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_385.sql
+
+
+
+
+
+
+
+
+
+
