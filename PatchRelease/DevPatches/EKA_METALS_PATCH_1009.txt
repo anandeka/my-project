@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1009
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  28-Aug-2012
+
+Bug / Enhancement*              :  Bug / 68347
+Bug ID*            		:   
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		Invoice 
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice o/p doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 102208
+Author: mayank.chaturvedi
+Date: 3:33:26 PM, Tuesday, August 28, 2012
+Message:
+-For bug id 68347 'Issue in price fixation summary on final invoice output document'
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_384.sql
+
+
+
+
+
+
+
+
+
+
