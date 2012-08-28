@@ -3026,7 +3026,10 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
                  and gmr.process_id = gscs.process_id(+)
                  and pcdb.inco_term_id = itm.incoterm_id
-                 and pcm.cp_id = phd_cp.profileid(+)) tt;
+                 and pcm.cp_id = phd_cp.profileid(+)
+                  and pci.internal_contract_item_ref_no = dgrd.internal_contract_item_ref_no
+                 and gpd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                 ) tt;
   
     vn_cont_price                  number;
     vc_cont_price_unit_id          varchar2(15);
