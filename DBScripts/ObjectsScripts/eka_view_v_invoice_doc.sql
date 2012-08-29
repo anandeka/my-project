@@ -581,7 +581,7 @@ select        'Invoice' section_name,
            and isd.internal_invoice_ref_no = vat.internal_invoice_ref_no(+)
 union all
 select 'Invoice' section_name,
-       'Penality' sub_section,
+       'Penalty' sub_section,
        rownum record_no,
        akc.corporate_id,
        akc.corporate_name,
