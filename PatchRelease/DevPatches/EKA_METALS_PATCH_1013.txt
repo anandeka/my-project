@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_1013
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Girish
+ 
+Created on*        		:  29-Aug-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  68392
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		Assay 
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Assay o/p doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 102368
+Author: girishkv
+Date: 6:38:59 PM, Wednesday, August 29, 2012
+Message:
+Bug:68392 removed grd mapping.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_387.sql
+
+
+
+
+
+
