@@ -1,0 +1,72 @@
+Patch No*          		:  EKA_METALS_PATCH_1014
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  29-Aug-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		  Documents
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 102373
+Author: elaiyaraja.nallathambi
+Date: 6:49:28 PM, Wednesday, August 29, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TotalInvoiceUtilityReport.rpt
+
+Revision: 102379
+Author: elaiyaraja.nallathambi
+Date: 7:26:23 PM, Wednesday, August 29, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TotalInvoiceUtilityReport.rpt
+
+Revision: 102380
+Author: elaiyaraja.nallathambi
+Date: 7:27:03 PM, Wednesday, August 29, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
+
+
+
+
+
+
+
+
