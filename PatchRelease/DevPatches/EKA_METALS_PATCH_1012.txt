@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1012
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  29-Aug-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  68428 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		Invoice 
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice o/p doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 102314
+Author: mayank.chaturvedi
+Date: 3:10:27 PM, Wednesday, August 29, 2012
+Message:
+-Patch For bug id 68428 ' UAT011: Issue with DFI output doc'
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_386.sql
+
+
+
+
+
+
+
+
