@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1019
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  30-Aug-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Purchase Accrual : If Element is pledge then no penalty Qty and Amount
+Purchase Accrual : If returnabale calcualte TC/RC
+Purchase Accrual : Othr charge and freight only once per GMR
+Metal Balance Summary : Change For In process new stock adn other fix for moving new stock from finished to in process consumed
+Elaya : CP Payable and Penalty tables repopulated for FCR
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/74_DDL_EODDB_TABLE_ALTER_SCRIPT.sqlRevision: 102457
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql (Revision: 102468)
