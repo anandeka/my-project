@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1021
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Manju
+ 
+Created on*        		:  30-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Audit Log 
+
+Sub-Module  			 :  Contract
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 102529
+Author: manjavva.bevoor
+Date: 8:19:22 PM, Thursday, August 30, 2012
+Message:
+DB scripts for Audit Log(Contracts)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_390.sql
+
