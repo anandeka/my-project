@@ -68,19 +68,26 @@ create or replace package body pkg_phy_custom_reports is
     vn_logno           number := 200;
     vc_err_msg         varchar2(200);
   begin
-    vn_logno := vn_logno + 1;
+    vn_logno   := vn_logno + 1;
+    vc_err_msg := 'sp_derivative_booking_journal ';
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           vn_logno,
-                          'sp_calc_contract_price');
+                          'sp_derivative_booking_journal');
     sp_derivative_booking_journal(pc_corporate_id,
                                   pd_trade_date,
                                   pc_process_id,
                                   pc_user_id,
                                   pc_process,
                                   pc_dbd_id);
-    vc_err_msg := 'sp_derivative_journal ';
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_derivative_contract_journal');
+    vc_err_msg := 'sp_derivative_contract_journal ';
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -91,6 +98,25 @@ create or replace package body pkg_phy_custom_reports is
                                    pc_user_id,
                                    pc_dbd_id,
                                    pc_prev_dbd_id); --pc_prev_dbd_id
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_fixation_journal');
+    vc_err_msg := 'sp_fixation_journal ';
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    sp_fixation_journal(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        pc_user_id,
+                        pc_process,
+                        pc_dbd_id,
+                        pc_prev_process_id);
+    commit;
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while journal calculation');
   exception
@@ -2055,7 +2081,7 @@ create or replace package body pkg_phy_custom_reports is
                    and pci.process_id = pc_process_id
                    and pcdb.process_id = pc_process_id
                    and pcpq.process_id = pc_process_id
-                   and pcpd.process_id = pc_process_id                      
+                   and pcpd.process_id = pc_process_id
                    and nvl(pcm.is_tolling_contract, 'N') = 'N'
                    and pci.is_active = 'Y'
                    and pcm.is_active = 'Y'
