@@ -9687,9 +9687,9 @@ insert into temp_mas
             
           (case when grd.tolling_stock_type in
           ('Free Metal IP Stock', 'Delta FM IP Stock') then
-            'New Stock - In Process Stocks'
-            else
             'New Stock - Free Metal Stocks'
+            else
+            'New Stock - In Process Stocks'
             end) 
            else
             'Existing Stock'
