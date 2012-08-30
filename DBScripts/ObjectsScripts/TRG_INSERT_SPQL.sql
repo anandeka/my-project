@@ -41,7 +41,9 @@ BEGIN
                         EXT_PAYABLE_QTY, 
                         VERSION, 
                         ENTRY_TYPE, 
-                        IS_ACTIVE                          
+                        IS_ACTIVE,
+                        WEG_AVG_PRICING_ASSAY_ID,
+                        WEG_AVG_INVOICE_ASSAY_ID                          
                        )
                 VALUES (:NEW.SPQ_ID,
                         :NEW.INTERNAL_GMR_REF_NO,
@@ -71,7 +73,13 @@ BEGIN
                         :NEW.EXT_ASSAY_CONTENT - :OLD.EXT_ASSAY_CONTENT,
                         :NEW.EXT_PAYABLE_QTY - :OLD.EXT_PAYABLE_QTY,  
                         :NEW.VERSION, 
-                        'Update', 'Y'
+                        'Update', 'Y',(select ASH.ASH_ID
+from ASH_ASSAY_HEADER ash
+where ASH.PRICING_ASSAY_ASH_ID = :NEW.ASSAY_HEADER_ID
+and ASH.ASSAY_TYPE='Weighted Avg Pricing Assay'),(select ASH.ASH_ID
+from ASH_ASSAY_HEADER ash
+where ASH.INVOICE_ASH_ID = :NEW.EXT_ASSAY_HEADER_ID
+and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
                        );
          ELSE
             --Qty Unit is Updated
@@ -105,7 +113,9 @@ BEGIN
                         EXT_PAYABLE_QTY, 
                         VERSION, 
                         ENTRY_TYPE,   
-                        IS_ACTIVE 
+                        IS_ACTIVE,
+                        WEG_AVG_PRICING_ASSAY_ID,
+                        WEG_AVG_INVOICE_ASSAY_ID 
                        )
                 VALUES (:NEW.SPQ_ID,
                         :NEW.INTERNAL_GMR_REF_NO,
@@ -165,7 +175,13 @@ BEGIN
                                                              :OLD.EXT_PAYABLE_QTY
                                                             ), 
                         :NEW.VERSION, 
-                        'Update', 'Y'
+                        'Update', 'Y',(select ASH.ASH_ID
+from ASH_ASSAY_HEADER ash
+where ASH.PRICING_ASSAY_ASH_ID = :NEW.ASSAY_HEADER_ID
+and ASH.ASSAY_TYPE='Weighted Avg Pricing Assay'),(select ASH.ASH_ID
+from ASH_ASSAY_HEADER ash
+where ASH.INVOICE_ASH_ID = :NEW.EXT_ASSAY_HEADER_ID
+and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
                        );
          END IF;
       ELSE
@@ -200,7 +216,9 @@ BEGIN
                         EXT_PAYABLE_QTY, 
                         VERSION, 
                         ENTRY_TYPE,   
-                        IS_ACTIVE 
+                        IS_ACTIVE,
+                        WEG_AVG_PRICING_ASSAY_ID ,
+                        WEG_AVG_INVOICE_ASSAY_ID
                        )
                 VALUES (:NEW.SPQ_ID,
                         :NEW.INTERNAL_GMR_REF_NO,
@@ -230,7 +248,13 @@ BEGIN
                         :NEW.EXT_ASSAY_CONTENT - :OLD.EXT_ASSAY_CONTENT,
                         :NEW.EXT_PAYABLE_QTY - :OLD.EXT_PAYABLE_QTY,  
                         :NEW.VERSION, 
-                        'Update', 'N'
+                        'Update', 'N',(select ASH.ASH_ID
+from ASH_ASSAY_HEADER ash
+where ASH.PRICING_ASSAY_ASH_ID = :NEW.ASSAY_HEADER_ID
+and ASH.ASSAY_TYPE='Weighted Avg Pricing Assay'),(select ASH.ASH_ID
+from ASH_ASSAY_HEADER ash
+where ASH.INVOICE_ASH_ID = :NEW.EXT_ASSAY_HEADER_ID
+and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
                        );
       END IF;                               
    ELSE
@@ -267,7 +291,9 @@ BEGIN
                         EXT_PAYABLE_QTY,
                         VERSION, 
                         ENTRY_TYPE,   
-                        IS_ACTIVE 
+                        IS_ACTIVE ,
+                        WEG_AVG_PRICING_ASSAY_ID,
+                        WEG_AVG_INVOICE_ASSAY_ID
                        )
                VALUES (:NEW.SPQ_ID,
                        :NEW.INTERNAL_GMR_REF_NO,
@@ -297,8 +323,18 @@ BEGIN
                        :NEW.EXT_ASSAY_CONTENT,
                        :NEW.EXT_PAYABLE_QTY,  
                        :NEW.VERSION, 
-                       'Insert', 'Y'
+                       'Insert', 'Y',(select ASH.ASH_ID
+from ASH_ASSAY_HEADER ash
+where ASH.PRICING_ASSAY_ASH_ID = :NEW.ASSAY_HEADER_ID
+and ASH.ASSAY_TYPE='Weighted Avg Pricing Assay'),
+(select ASH.ASH_ID
+from ASH_ASSAY_HEADER ash
+where ASH.INVOICE_ASH_ID = :NEW.EXT_ASSAY_HEADER_ID
+and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
                       );
    END IF;
 END;
 /
+
+
+
