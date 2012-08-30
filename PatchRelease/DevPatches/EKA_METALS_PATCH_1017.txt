@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1017
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  girish
+ 
+Created on*        		:  30-Aug-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  68287,68271
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 102494
+Author: girishkv
+Date: 6:59:46 PM, Thursday, August 30, 2012
+Message:
+Bug:68287,68271.Added new column ASH_ID in WNS and WNSD tables.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_317.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_389.sql
