@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1016
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir kumar Pagada
+ 
+Created on*        		:  30-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Fx Exoposure
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 102405
+Author: sishir.pagada
+Date: 11:37:05 AM, Thursday, August 30, 2012
+Message:
+Fx Exposure Filter Scripts.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_388.sql
+
