@@ -1542,7 +1542,8 @@ create or replace package body pkg_phy_eod_reports is
              pcm.invoice_currency_id pay_cur_id,
              cm_pay.cur_code pay_cur_code,
              cm_pay.decimals pay_cur_decimal,
-             pci.pcdi_id
+             pci.pcdi_id,
+             spq.pledge_stock_id
         from gmr_goods_movement_record      gmr,
              grd_goods_record_detail        grd,
              spq_stock_payable_qty          spq,
@@ -1608,14 +1609,14 @@ create or replace package body pkg_phy_eod_reports is
              pqca.element_id,
              null payable_qty,
              null payable_qty_unit_id,
-          (case
-         when rm.ratio_name = '%' then
-          (pqca.typical * (case
-         when pqca.is_deductible = 'Y' then
-          grd.qty
-         else
-          grd.qty * (asm.dry_wet_qty_ratio / 100)
-       end)) / 100 else(grd.qty * (asm.dry_wet_qty_ratio / 100) * pkg_general.f_get_converted_quantity(aml.underlying_product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1) * pqca.typical) end) assay_qty,
+             (case
+               when rm.ratio_name = '%' then
+                (pqca.typical * (case
+               when pqca.is_deductible = 'Y' then
+                grd.qty
+               else
+                grd.qty * (asm.dry_wet_qty_ratio / 100)
+             end)) / 100 else(grd.qty * (asm.dry_wet_qty_ratio / 100) * pkg_general.f_get_converted_quantity(aml.underlying_product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1) * pqca.typical) end) assay_qty,
              (case
                when rm.ratio_name = '%' then
                 grd.qty_unit_id
@@ -1637,13 +1638,14 @@ create or replace package body pkg_phy_eod_reports is
              akc.base_currency_name base_cur_code,
              cm.decimals as base_cur_decimal,
              aml.attribute_name element_name,
-             null payable_type,
+             'Penalty' payable_type,
              pcm.cp_id,
              phd.companyname counterparty_name,
              pcm.invoice_currency_id pay_cur_id,
              cm_pay.cur_code pay_cur_code,
              cm_pay.decimals pay_cur_decimal,
-             pci.pcdi_id
+             pci.pcdi_id,
+             null pledge_stock_id
         from gmr_goods_movement_record   gmr,
              grd_goods_record_detail     grd,
              ak_corporate                akc,
@@ -1701,19 +1703,16 @@ create or replace package body pkg_phy_eod_reports is
              grd.internal_contract_item_ref_no
          and pci.process_id = pc_process_id
          and pqca.element_id = aml.attribute_id
-         and nvl(gmr.contract_type,'NA') <> 'Tolling'
+         and nvl(gmr.contract_type, 'NA') <> 'Tolling'
          and aml.is_active = 'Y'
-         and nvl(gmr.is_final_invoiced,'N') ='N';
+         and nvl(gmr.is_final_invoiced, 'N') = 'N';
   
     vn_gmr_treatment_charge      number;
     vc_gmr_treatment_cur_id      varchar2(15);
-    vn_base_gmr_treatment_charge number;
     vn_gmr_refine_charge         number;
     vc_gmr_refine_cur_id         varchar2(15);
-    vn_base_gmr_refine_charge    number;
     vn_gmr_penality_charge       number;
     vc_gmr_penality_cur_id       varchar2(15);
-    vn_base_gmr_penality_charge  number;
     vn_gmr_price                 number;
     vc_gmr_price_untit_id        varchar2(15);
     vn_gmr_price_unit_weight     varchar2(15);
@@ -1728,24 +1727,24 @@ create or replace package body pkg_phy_eod_reports is
     vn_cont_price_cur_decimals   number;
     vn_fx_rate_price_to_pay      number;
     vn_rno                       number;
-  
+    vn_payable_qty               number;
+    vc_payable_qty_unit_id       varchar2(15);
   begin
   vn_rno := 0;
     for cur_pur_accural_rows in cur_pur_accural
     loop
+    vn_payable_qty := null;
+    vc_payable_qty_unit_id := null;
       vn_gmr_price                 := null;
       vc_gmr_price_untit_id        := null;
       vn_price_unit_weight_unit_id := null;
       vc_gmr_price_unit_cur_id     := null;
       vc_gmr_price_unit_cur_code   := null;
-      vn_base_gmr_treatment_charge := null;
-      vn_base_gmr_refine_charge    := null;
-      vn_base_gmr_penality_charge  := null;
       vn_payable_amt_in_price_cur  := null;
       vn_payable_amt_in_pay_cur    := null;
       vn_fx_rate_price_to_pay      := null;
       -- Price Not event based from CCCP and Event Based from CGCP
-      if cur_pur_accural_rows.payable_type = 'Payable' then
+      if cur_pur_accural_rows.payable_type <> 'Penalty' then
         begin
           select cccp.contract_price,
                  cccp.price_unit_id,
@@ -1791,30 +1790,42 @@ create or replace package body pkg_phy_eod_reports is
             end;
           
         end;
+        
         pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
                                            vc_price_cur_id,
                                            vc_price_cur_code,
                                            vn_cont_price_cur_id_factor,
                                            vn_cont_price_cur_decimals);
-      
-        vn_payable_amt_in_price_cur := round((vn_gmr_price /
-                                             nvl(vn_gmr_price_unit_weight,
-                                                  1)) *
-                                             (pkg_general.f_get_converted_quantity(cur_pur_accural_rows.conc_product_id,
-                                                                                   cur_pur_accural_rows.payable_qty_unit_id,
-                                                                                   vn_price_unit_weight_unit_id,
-                                                                                   cur_pur_accural_rows.payable_qty)) *
-                                             vn_cont_price_cur_id_factor,
-                                             vn_cont_price_cur_decimals);
-      
-        vn_fx_rate_price_to_pay   := pkg_general.f_get_converted_currency_amt(cur_pur_accural_rows.corporate_id,
-                                                                              vc_gmr_price_unit_cur_id,
-                                                                              cur_pur_accural_rows.pay_cur_id,
-                                                                              pd_trade_date,
-                                                                              1);
-        vn_payable_amt_in_pay_cur := round(vn_payable_amt_in_price_cur *
-                                           vn_fx_rate_price_to_pay,
-                                           cur_pur_accural_rows.pay_cur_decimal);
+     --                                       
+     -- Janna 29th Aug 2012
+     -- If the element is pledged we do not want to show the payable qty and payable amount
+     -- This element has to be shown seperately under Pledge GMR Section (Will be done later)
+     --  
+        If cur_pur_accural_rows.pledge_stock_id is null and cur_pur_accural_rows.payable_type ='Payable' then
+            vn_payable_amt_in_price_cur := round((vn_gmr_price /
+                                                 nvl(vn_gmr_price_unit_weight,
+                                                      1)) *
+                                                 (pkg_general.f_get_converted_quantity(cur_pur_accural_rows.conc_product_id,
+                                                                                       cur_pur_accural_rows.payable_qty_unit_id,
+                                                                                       vn_price_unit_weight_unit_id,
+                                                                                       cur_pur_accural_rows.payable_qty)) *
+                                                 vn_cont_price_cur_id_factor,
+                                                 vn_cont_price_cur_decimals);
+          
+            vn_fx_rate_price_to_pay   := pkg_general.f_get_converted_currency_amt(cur_pur_accural_rows.corporate_id,
+                                                                                  vc_gmr_price_unit_cur_id,
+                                                                                  cur_pur_accural_rows.pay_cur_id,
+                                                                                  pd_trade_date,
+                                                                                  1);
+            vn_payable_amt_in_pay_cur := round(vn_payable_amt_in_price_cur *
+                                               vn_fx_rate_price_to_pay,
+                                               cur_pur_accural_rows.pay_cur_decimal);
+            vn_payable_qty := cur_pur_accural_rows.payable_qty;
+            vc_payable_qty_unit_id := cur_pur_accural_rows.payable_qty_unit_id;
+         else
+             vn_payable_qty := null;
+             vc_payable_qty_unit_id := null;
+          end if;
         pkg_metals_general.sp_get_gmr_treatment_charge(cur_pur_accural_rows.internal_gmr_ref_no,
                                                        cur_pur_accural_rows.internal_grd_ref_no,
                                                        cur_pur_accural_rows.element_id,
@@ -1824,12 +1835,7 @@ create or replace package body pkg_phy_eod_reports is
                                                        vn_gmr_treatment_charge,
                                                        vc_gmr_treatment_cur_id);
       
-        -- converted treatment charges to base currency                                           
-        vn_base_gmr_treatment_charge := round(pkg_general.f_get_converted_currency_amt(cur_pur_accural_rows.corporate_id,
-                                                                                       vc_gmr_treatment_cur_id,
-                                                                                       cur_pur_accural_rows.pay_cur_id,
-                                                                                       pd_trade_date,
-                                                                                       vn_gmr_treatment_charge),
+        vn_gmr_treatment_charge := round(vn_gmr_treatment_charge,
                                               cur_pur_accural_rows.base_cur_decimal);
       
         pkg_metals_general.sp_get_gmr_refine_charge(cur_pur_accural_rows.internal_gmr_ref_no,
@@ -1840,31 +1846,20 @@ create or replace package body pkg_phy_eod_reports is
                                                     vc_gmr_price_untit_id,
                                                     vn_gmr_refine_charge,
                                                     vc_gmr_refine_cur_id);
-        --- converted refine charges to base currency                                              
-       vn_base_gmr_refine_charge := round(pkg_general.f_get_converted_currency_amt(cur_pur_accural_rows.corporate_id,
-                                                                                    vc_gmr_refine_cur_id,
-                                                                                    cur_pur_accural_rows.pay_cur_id,
-                                                                                    pd_trade_date,
-                                                                                    vn_gmr_refine_charge),
-                                           cur_pur_accural_rows.base_cur_decimal);
+       vn_gmr_refine_charge := round(vn_gmr_refine_charge,cur_pur_accural_rows.base_cur_decimal);
       end if;
-      if cur_pur_accural_rows.payable_type is null then
-      pkg_metals_general.sp_get_gmr_penalty_charge(cur_pur_accural_rows.internal_gmr_ref_no,
-                                                   cur_pur_accural_rows.internal_grd_ref_no,
-                                                   pc_dbd_id,
-                                                   cur_pur_accural_rows.element_id,
-                                                   vn_gmr_penality_charge,
-                                                   vc_gmr_penality_cur_id);
-    
-      vn_base_gmr_penality_charge := round(pkg_general.f_get_converted_currency_amt(cur_pur_accural_rows.corporate_id,
-                                                                                    vc_gmr_penality_cur_id,
-                                                                                    cur_pur_accural_rows.pay_cur_id,
-                                                                                    pd_trade_date,
-                                                                                    vn_gmr_penality_charge),
-                                           cur_pur_accural_rows.base_cur_decimal);
-       else
-       vn_base_gmr_penality_charge := 0;
-       end if;
+      if cur_pur_accural_rows.payable_type = 'Penalty' then
+          pkg_metals_general.sp_get_gmr_penalty_charge(cur_pur_accural_rows.internal_gmr_ref_no,
+                                                       cur_pur_accural_rows.internal_grd_ref_no,
+                                                       pc_dbd_id,
+                                                       cur_pur_accural_rows.element_id,
+                                                       vn_gmr_penality_charge,
+                                                       vc_gmr_penality_cur_id);
+        
+          vn_gmr_penality_charge := round(vn_gmr_penality_charge,cur_pur_accural_rows.base_cur_decimal);
+      else
+           vn_gmr_penality_charge := 0;
+      end if;
       vn_rno := vn_rno + 1;
       insert into pa_purchase_accural
         (corporate_id,
@@ -1914,9 +1909,8 @@ create or replace package body pkg_phy_eod_reports is
          cur_pur_accural_rows.payable_type,
          cur_pur_accural_rows.assay_qty,
          cur_pur_accural_rows.assay_qty_unit_id,
-         nvl(cur_pur_accural_rows.payable_qty, 0),
-         nvl(cur_pur_accural_rows.payable_qty_unit_id,
-             cur_pur_accural_rows.assay_qty_unit_id),
+         vn_payable_qty,
+        vc_payable_qty_unit_id,
          vn_gmr_price,
          vc_gmr_price_untit_id,
          vc_gmr_price_unit_cur_id,
@@ -1924,13 +1918,13 @@ create or replace package body pkg_phy_eod_reports is
          vn_fx_rate_price_to_pay,
          cur_pur_accural_rows.pay_cur_id,
          cur_pur_accural_rows.pay_cur_code,
-         vn_base_gmr_treatment_charge,
-         vn_base_gmr_refine_charge,
-         vn_base_gmr_penality_charge,
+         vn_gmr_treatment_charge,
+         vn_gmr_refine_charge,
+         vn_gmr_penality_charge ,
          nvl(vn_payable_amt_in_price_cur, 0),
          nvl(vn_payable_amt_in_pay_cur, 0),
-         0, --frightcharges_amount,
-         0 --othercharges_amount    
+         0, -- Fright charges amount,
+         0 -- Other charges amount    
          );
          if vn_rno = 300 then
             commit;
@@ -1943,7 +1937,8 @@ create or replace package body pkg_phy_eod_reports is
                           pc_process_id,
                           1001,
                           'sp_phy_purchase_accural Loop over');
-delete from pa_temp where  corporate_id = pc_corporate_id;
+delete from pa_temp 
+where  corporate_id = pc_corporate_id;
 commit;   
    sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -2227,21 +2222,45 @@ commit;
                           pc_process_id,
                           1005,
                           'sp_phy_purchase_accural GMR Level');
-
--- Need to update Tc Charges,Rc Chargess,penality, Other charges and Freight Charges, Provisional Payment %
+--
+-- Need to update Tc Charges,Rc Chargess,penalityn and Provisional Payment %
+--
 Update pa_purchase_accural_gmr pa_gmr
 set (pa_gmr.tcharges_amount,--
      pa_gmr.rcharges_amount, --
      pa_gmr.penalty_amount,--
-     pa_gmr.othercharges_amount, --
-     pa_gmr.frightcharges_amount,--
-     pa_gmr.provisional_pymt_pctg) =(--
-select t.tc_amt, t.rc_amt, t.penalty_amt, t.other_charges_amt, t.freight_amt, t.provisional_pymt_pctg from tgc_temp_gmr_charges t
+    pa_gmr.provisional_pymt_pctg) =(--
+select t.tc_amt, t.rc_amt, t.penalty_amt, t.provisional_pymt_pctg from tgc_temp_gmr_charges t
 where t.corporate_id = pc_corporate_id
 and t.internal_gmr_ref_no = pa_gmr.internal_gmr_ref_no
 and t.internal_invoice_ref_no = pa_gmr.latest_internal_invoice_ref_no
 AND t.element_id = pa_gmr.element_id)
 where pa_gmr.process_id = pc_process_id;
+-- 
+-- Frieght and Other charges we need to update only once per GMR
+--
+for cur_charges in
+(select t.internal_gmr_ref_no,
+       t.internal_invoice_ref_no,
+       t.other_charges_amt,
+       t.freight_amt
+  from tgc_temp_gmr_charges t
+ where t.corporate_id = pc_corporate_id
+ group by t.internal_gmr_ref_no,
+          t.internal_invoice_ref_no,
+          t.other_charges_amt,
+          t.freight_amt) loop
+          
+update pa_purchase_accural_gmr pa_gmr
+   set pa_gmr.othercharges_amount  = cur_charges.other_charges_amt,
+       pa_gmr.frightcharges_amount = cur_charges.freight_amt
+ where pa_gmr.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no
+   and pa_gmr.latest_internal_invoice_ref_no =
+       cur_charges.internal_invoice_ref_no
+   and pa_gmr.process_id = pc_process_id
+   and rownum < 2;
+end loop;          
+
 commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -6338,8 +6357,8 @@ end;
                                         --        modify description                        :
                                         --------------------------------------------------------------------------------------------------------------------------
                                         ) is
-    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count number := 1;
+    --vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    --vn_eel_error_count number := 1;
     --
     -- New Contract
     --
@@ -9153,6 +9172,7 @@ procedure sp_metal_balance_qty_summary(pc_corporate_id varchar2,
 begin
 --
 -- Financial year for calcualting Existing Stock Start Date
+-- If data is missing we will assume finacial year start from Jan of the EOM Year
 --
 begin
   select start_date
@@ -9274,7 +9294,6 @@ insert into temp_mas
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
      and spq.process_id = pc_process_id
-
      and spq.assay_header_id = ash.ash_id
      and ash.ash_id = asm.ash_id
      and pqca.element_id = aml.attribute_id
@@ -9665,7 +9684,13 @@ insert into temp_mas
          (case
            when agmr.eff_date > vd_prev_eom_date and
                 agmr.eff_date <= pd_trade_date then
-            'New Stocks'
+            
+          (case when grd.tolling_stock_type in
+          ('Free Metal IP Stock', 'Delta FM IP Stock') then
+            'New Stock - In Process Stocks'
+            else
+            'New Stock - Free Metal Stocks'
+            end) 
            else
             'Existing Stock'
          end) section_name,
@@ -9925,7 +9950,6 @@ sp_eodeom_process_log(pc_corporate_id,
 --    
 -- Finsihed For Concentrates Internal Movement Startes
 --
-
 --
 -- Finished New Stock For Concentrate Products IM 
 --    
@@ -10341,7 +10365,7 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type = 'RM In Process Stock'
+     and grd.tolling_stock_type = 'RM Out Process Stock' -- prachir same as finished new stock changed from In to out
      and grd.warehouse_profile_id = phd.profileid
      and pdm.base_quantity_unit = qum.qty_unit_id
      and gmr.corporate_id = akc.corporate_id
@@ -10360,7 +10384,7 @@ commit;
                           3010,
                           'Finished Existing Stock Standard End');       
 --     
--- Finished Stock Existing has to reduce the In Process Open Belance
+-- Finished Stock Existing has to reduce the In Process Open Balance
 -- Due to this we are making In Process Stock Existing Stock with negative qty
 --
 insert into temp_mas
@@ -10418,7 +10442,7 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type = 'RM In Process Stock'
+     and grd.tolling_stock_type = 'RM Out Process Stock' -- same change as above in to out
      and grd.warehouse_profile_id = phd.profileid
      and pdm.base_quantity_unit = qum.qty_unit_id
      and gmr.corporate_id = akc.corporate_id
@@ -10544,7 +10568,7 @@ commit;
            mas.qty_unit
       from mas_metal_account_summary mas
      where mas.stock_type = 'In Process Stock'
-       and mas.section_name = 'New Stocks'
+       and mas.section_name IN ('New Stocks','New Stock - In Process Stocks','New Stock - Free Metal Stocks')
        and mas.process_id = pc_process_id;
        commit;
        sp_eodeom_process_log(pc_corporate_id,
@@ -10969,8 +10993,8 @@ commit;
                      when mas.section_name =
                           'Existing Stock' then
                       mas.stock_qty
-                     when mas.section_name =
-                          'New Stocks' then
+                     when mas.section_name in
+                          ('New Stocks','New Stock - In Process Stocks','New Stock - Free Metal Stocks') then
                       mas.stock_qty
                      when mas.section_name =
                           'Consumed' then
@@ -13424,7 +13448,7 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
   vn_payable_qty               number;
   vn_gmr_price                 number;
   vc_gmr_price_untit_id        varchar2(15);
-  vn_gmr_price_unit_weight     varchar2(15);
+  --vn_gmr_price_unit_weight     varchar2(15);
   vn_price_unit_weight_unit_id varchar2(15);
   vc_gmr_price_unit_cur_id     varchar2(10);
   vc_gmr_price_unit_cur_code   varchar2(10);
