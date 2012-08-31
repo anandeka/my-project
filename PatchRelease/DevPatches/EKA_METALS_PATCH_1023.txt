@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_PATCH_1023
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi.
+ 
+Created on*        		:  31-Aug-2012
+
+Bug / Enhancement*              :  Enhancement & Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :APP
+==================================================================
+Revision: 102549
+Author: elaiyaraja.nallathambi
+Date: 11:46:18 AM, Friday, August 31, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
+
+Revision: 102596
+Author: elaiyaraja.nallathambi
+Date: 6:03:49 PM, Friday, August 31, 2012
+Message:
+Enhancement & Bug Fixes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractStatusReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+
+Revision: 102597
+Author: elaiyaraja.nallathambi
+Date: 6:07:54 PM, Friday, August 31, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+
+
