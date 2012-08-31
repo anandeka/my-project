@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_1022
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  31-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI 
+
+Sub-Module  			 :  BI
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :APP
+==================================================================
+Revision: 102585
+Author: sivachalabathi.s
+Date: 4:43:12 PM, Friday, August 31, 2012
+Message:
+derivative dashbaord files added
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_next_n_days.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_RECENT_TRADES_BY_DER.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_der_position_by_broker.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_der_position_by_product.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_der_position_by_prompt.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_der_upcmoing_expiry.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_der_upcoming_settlements.sql
+
