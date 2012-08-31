@@ -1,4 +1,5 @@
 DROP materialized view MV_BI_DER_PHY_PFC_JOURNAL_EOD;
+DROP table MV_BI_DER_PHY_PFC_JOURNAL_EOD;
 create materialized view MV_BI_DER_PHY_PFC_JOURNAL_EOD
 refresh force on demand
 as

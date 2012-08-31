@@ -1,4 +1,5 @@
 DROP materialized view MV_BI_DER_BOOK_JOURNAL_EOM;
+DROP TABLE MV_BI_DER_BOOK_JOURNAL_EOM;
 create materialized view MV_BI_DER_BOOK_JOURNAL_EOM
 refresh force on demand
 as
