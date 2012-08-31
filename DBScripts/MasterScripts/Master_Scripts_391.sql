@@ -224,12 +224,6 @@ Insert into AXED_ACTION_ENTITY_DETAILS
    (1020, 'shipmentDetail', '', 'totalQtyId', 'Quantity Unit', 
     '1105');
     
-Insert into AXED_ACTION_ENTITY_DETAILS
-   (ID, ACTION_ID, SUB_ENTITY, FIELD_NAME, LABEL, 
-    QUERY_REF_ID)
- Values
-   (1020, 'shipmentDetail', '', 'totalQtyId', 'Quantity Unit', 
-    '1105');
     
 Insert into AXED_ACTION_ENTITY_DETAILS
    (ID, ACTION_ID, SUB_ENTITY, FIELD_NAME, LABEL, 
@@ -3393,19 +3387,19 @@ Insert into AXED_ACTION_ENTITY_DETAILS
     QUERY_REF_ID)
  Values
    (1900, 'weightNote', '', 'activityDate', 'Activity Date', 
-    );
+    '');
 Insert into AXED_ACTION_ENTITY_DETAILS
    (ID, ACTION_ID, SUB_ENTITY, FIELD_NAME, LABEL, 
     QUERY_REF_ID)
  Values
    (1901, 'weightNote', '', 'weighingDate', 'Weighing Date', 
-    );
+    '');
 Insert into AXED_ACTION_ENTITY_DETAILS
    (ID, ACTION_ID, SUB_ENTITY, FIELD_NAME, LABEL, 
     QUERY_REF_ID)
  Values
    (1902, 'weightNote', '', 'issueDate', 'Issue Date', 
-    );
+    '');
 
 Insert into AXED_ACTION_ENTITY_DETAILS
    (ID, ACTION_ID, SUB_ENTITY, FIELD_NAME, LABEL, 
@@ -3804,7 +3798,7 @@ Insert into AXED_ACTION_ENTITY_DETAILS
  Values
    (2829, 'transshipDetail', '', 'totalQty', 'Total Quantity', 
     '');
-------------------
+
 Insert into AXED_ACTION_ENTITY_DETAILS
    (ID, ACTION_ID, SUB_ENTITY, FIELD_NAME, LABEL, 
     QUERY_REF_ID)
