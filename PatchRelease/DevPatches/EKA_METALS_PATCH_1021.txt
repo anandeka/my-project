@@ -33,6 +33,13 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+Revision: 102547
+Author: manjavva.bevoor
+Date: 11:40:15 AM, Friday, August 31, 2012
+Message:
+DB scripts for Audit Log(Contracts)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_392.sql
 Revision: 102529
 Author: manjavva.bevoor
 Date: 8:19:22 PM, Thursday, August 30, 2012
