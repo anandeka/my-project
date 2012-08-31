@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1026
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  31-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  TATA CORAS JOURNALS 
+
+Sub-Module  			 :  TATA CORAS JOURNALS
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 102644
+Author: sivachalabathi.s
+Date: 8:19:11 PM, Friday, August 31, 2012
+Message:
+
+Added   : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_DER_PHYSICAL_BOOKING.sql	                (Revision: 102623)
+Added   : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative.sql		                (Revision: 102623)
+Added   : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative_booking.sql	                (Revision: 102623)
+Added   : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_PHYSICAL_RISK_POS_CONTRACT_JOURNAL.sql	(Revision: 102643)
+Added   : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_DERIVATIVE_UNREALIZED.sql	        (Revision: 102626)
+Modified: /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_EXECUTE_EOD.sql			        (Revision: 102644)
