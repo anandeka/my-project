@@ -163,7 +163,9 @@ select        'Invoice' section_name,
                 api_d.internal_doc_ref_no api_internal_doc_ref_no,
                 api_d.api_invoice_ref_no,
                 api_d.api_amount_adjusted,
-                api_d.invoice_currency api_invoice_currency
+                api_d.invoice_currency api_invoice_currency,
+                ispcd.invoice_currency provisional_amount_unit
+                
   from is_d isd,
        is_child_d isc,
        is_bdp_child_d isp_c1,
@@ -356,7 +358,8 @@ select        'Invoice' section_name,
                 null api_internal_doc_ref_no,
                 null api_invoice_ref_no,
                 null api_amount_adjusted,
-                null api_invoice_currency
+                null api_invoice_currency,
+                null provisional_amount_unit
   from is_d isd,
        is_bdp_child_d isp_c1,
        is_bds_child_d isp_c2,
@@ -550,7 +553,8 @@ select        'Invoice' section_name,
                 null api_internal_doc_ref_no,
                 null api_invoice_ref_no,
                 null api_amount_adjusted,
-                null api_invoice_currency
+                null api_invoice_currency,
+                null provisional_amount_unit
   from is_d isd,
        is_bdp_child_d isp_c1,
        is_bds_child_d isp_c2,
@@ -741,7 +745,8 @@ select 'Invoice' section_name,
        null api_internal_doc_ref_no,
        null api_invoice_ref_no,
        null api_amount_adjusted,
-       null api_invoice_currency
+       null api_invoice_currency,
+       null provisional_amount_unit
   from is_d isd,
        ds_document_summary ds,
        v_ak_corporate akc,
@@ -934,7 +939,8 @@ select         'Other Charges' section_name,
                null api_internal_doc_ref_no,
                null api_invoice_ref_no,
                null api_amount_adjusted,
-               null api_invoice_currency
+               null api_invoice_currency,
+               null provisional_amount_unit
        from ioc_d ioc,
             is_d isd,
             ds_document_summary ds,
@@ -1104,7 +1110,8 @@ select 'Other Taxes' section_name,
        null api_internal_doc_ref_no,
        null api_invoice_ref_no,
        null api_amount_adjusted,
-       null api_invoice_currency
+       null api_invoice_currency,
+       null provisional_amount_unit
      from itd_d itd,
          is_d isd,
          ds_document_summary ds,
