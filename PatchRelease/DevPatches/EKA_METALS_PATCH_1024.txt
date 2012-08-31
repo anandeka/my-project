@@ -1,0 +1,66 @@
+Patch No*          		:  EKA_METALS_PATCH_1024
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Saurabh Raj.
+ 
+Created on*        		:  31-Aug-2012
+
+Bug / Enhancement*              :  Enhancement 
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :APP
+==================================================================
+Revision: 102624
+Author: saurabh.raj
+Date: 7:35:16 PM, Friday, August 31, 2012
+Message:
+Committed new report(DeliveryScheduleReport.rpt,BrokerList.rpt,PromptListByDate.rpt) 
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BrokerList.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DeliveryScheduleReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+Revision: 102631
+Author: saurabh.raj
+Date: 7:46:15 PM, Friday, August 31, 2012
+Message:
+Added new report(DeliveryScheduleReport.rpt,BrokerList.rpt,PromptListByDate.rpt
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_90_DML_RPC_RFP_Scripts.sql
+
+Revision: 102628
+Author: saurabh.raj
+Date: 7:42:22 PM, Friday, August 31, 2012
+Message:
+Added new report(DeliveryScheduleReport.rpt,BrokerList.rpt,PromptListByDate.rpt) 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_393.sql
+
+
+
+
+
+
