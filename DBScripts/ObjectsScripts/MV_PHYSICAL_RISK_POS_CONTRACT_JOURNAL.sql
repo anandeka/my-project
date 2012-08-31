@@ -1,0 +1,221 @@
+DROP materialized view MV_BI_PHYSICAL_RISK_POS_EOD;
+DROP table MV_BI_PHYSICAL_RISK_POS_EOD;
+create materialized view MV_BI_PHYSICAL_RISK_POS_EOD
+refresh force on demand
+as
+select prp.profit_center_id,
+       prp.profit_center_name,
+       prp.profit_center_short_name,
+       prp.del_from_date,
+       prp.del_to_date,
+       prp.cp_id,
+       prp.counter_party,
+       prp.product_id,
+       prp.product_name,
+       prp.di_item_ref_no,
+       prp.trade_type,
+       prp.del_item_qty,
+       prp.priced_qty,
+       prp.priced_qty_unit_id,
+       prp.price_qty_unit,
+       prp.di_price,
+       prp.di_price_unit_id,
+      -- prp.di_price_unit_id,
+       prp.di_price_unit,
+       prp.contract_premium,
+       prp.contract_premium_unit_id,
+       prp.contract_premium_unit,
+       prp.market_price,
+       prp.market_price_unit_id,
+       prp.market_price_unit,
+       prp.market_premium,
+       prp.market_premium_cur_id,
+       prp.market_premium_ccy,
+       prp.total_amount,
+       prp.total_amount_cur_id,
+       prp.total_amount_cur_code,
+       prp.fx_rate,
+       prp.total_in_base_ccy,
+    --   prp.product_name,
+       prp.stock_location,
+       prp.duty_status,
+       prp.corporate_id,
+       prp.corporate,
+       tdc.TRADE_DATE eod_eom_date,
+       prp.product_group,
+       tdc.process,
+       tdc.created_date eod_eom_run_date,
+       tdc.process_run_count eod_eom_run_count
+from prp_physical_risk_position@eka_eoddb prp,
+       tdc_trade_date_closure@eka_eoddb  tdc
+ where prp.corporate_id = tdc.corporate_id
+   and prp.process_id = tdc.process_id
+   and prp.process = 'EOD';
+
+DROP materialized view MV_BI_PHYSICAL_RISK_POS_EOM;
+DROP table MV_BI_PHYSICAL_RISK_POS_EOM;
+create materialized view MV_BI_PHYSICAL_RISK_POS_EOM
+refresh force on demand
+as
+select prp.profit_center_id,
+       prp.profit_center_name,
+       prp.profit_center_short_name,
+       prp.del_from_date,
+       prp.del_to_date,
+       prp.cp_id,
+       prp.counter_party,
+       prp.product_id,
+       prp.product_name,
+       prp.di_item_ref_no,
+       prp.trade_type,
+       prp.del_item_qty,
+       prp.priced_qty,
+       prp.priced_qty_unit_id,
+       prp.price_qty_unit,
+       prp.di_price,
+       prp.di_price_unit_id,
+      -- prp.di_price_unit_id,
+       prp.di_price_unit,
+       prp.contract_premium,
+       prp.contract_premium_unit_id,
+       prp.contract_premium_unit,
+       prp.market_price,
+       prp.market_price_unit_id,
+       prp.market_price_unit,
+       prp.market_premium,
+       prp.market_premium_cur_id,
+       prp.market_premium_ccy,
+       prp.total_amount,
+       prp.total_amount_cur_id,
+       prp.total_amount_cur_code,
+       prp.fx_rate,
+       prp.total_in_base_ccy,
+    --   prp.product_name,
+       prp.stock_location,
+       prp.duty_status,
+       prp.corporate_id,
+       prp.corporate,
+       tdc.TRADE_DATE eod_eom_date,
+       prp.product_group,
+       tdc.process,
+       tdc.created_date eod_eom_run_date,
+       tdc.process_run_count eod_eom_run_count
+from prp_physical_risk_position@eka_eoddb prp,
+       tdc_trade_date_closure@eka_eoddb  tdc
+ where prp.corporate_id = tdc.corporate_id
+   and prp.process_id = tdc.process_id
+   and prp.process = 'EOM';
+--------
+DROP materialized view MV_BI_PHY_CONT_JOURNAL_EOD;
+DROP table MV_BI_PHY_CONT_JOURNAL_EOD;
+create materialized view MV_BI_PHY_CONT_JOURNAL_EOD
+refresh force on demand
+as
+select pcj.catogery,
+       pcj.book_type,
+       pcj.corporate_id,
+       pcj.corporate_name,
+       pcj.contract_ref_no,
+       pcj.del_item_ref_no,
+       pcj.internal_contract_ref_no,
+       pcj.cp_id,
+       pcj.companyname,
+       pcj.trader_id,
+       pcj.trader,
+       pcj.inco_term_id,
+       pcj.inco_term,
+       pcj.inco_term_location,
+       pcj.issue_date,
+       pcj.product_id,
+       pcj.product_desc,
+       pcj.element_id,
+       pcj.element,
+       pcj.del_item_qty,
+       pcj.del_item_qty_unit_id,
+       pcj.del_item_qty_unit,
+       pcj.del_date,
+       pcj.price_basis,
+       pcj.price,
+       pcj.price_unit_id,
+       pcj.price_unit_name,
+       pcj.premium_disc_value,
+       pcj.premium_disc_unit_id,
+       pcj.pd_price_unit_name,
+       pcj.eod_eom_date,
+       pcj.process,
+       tdc.created_date eod_eom_run_date,
+       tdc.process_run_count eod_eom_run_count,
+       'NA' Status,
+       0 contract_item_qty,
+       'NA' contarct_item_qty_uom,
+       sysdate contract_issue_date,
+       'NA' delivery_quota_period,
+       'NA' Profit_Center,
+       'NA' Strategy,
+       'NA' Attribute_1,
+       'NA' Attribute_2,
+       'NA' Attribute_3,
+       'NA' Attribute_4,
+       'NA' Attribute_5
+  from eod_eom_phy_contract_journal@eka_eoddb pcj,
+       tdc_trade_date_closure@eka_eoddb       tdc
+ where pcj.corporate_id = tdc.corporate_id
+   and pcj.process_id = tdc.process_id
+   and pcj.process = 'EOD';
+-----
+DROP materialized view MV_BI_PHY_CONT_JOURNAL_EOM;
+DROP table MV_BI_PHY_CONT_JOURNAL_EOM;
+create materialized view MV_BI_PHY_CONT_JOURNAL_EOM
+refresh force on demand
+as
+select pcj.catogery,
+       pcj.book_type,
+       pcj.corporate_id,
+       pcj.corporate_name,
+       pcj.contract_ref_no,
+       pcj.del_item_ref_no,
+       pcj.internal_contract_ref_no,
+       pcj.cp_id,
+       pcj.companyname,
+       pcj.trader_id,
+       pcj.trader,
+       pcj.inco_term_id,
+       pcj.inco_term,
+       pcj.inco_term_location,
+       pcj.issue_date,
+       pcj.product_id,
+       pcj.product_desc,
+       pcj.element_id,
+       pcj.element,
+       pcj.del_item_qty,
+       pcj.del_item_qty_unit_id,
+       pcj.del_item_qty_unit,
+       pcj.del_date,
+       pcj.price_basis,
+       pcj.price,
+       pcj.price_unit_id,
+       pcj.price_unit_name,
+       pcj.premium_disc_value,
+       pcj.premium_disc_unit_id,
+       pcj.pd_price_unit_name,
+       pcj.eod_eom_date,
+       pcj.process,
+       tdc.created_date eod_eom_run_date,
+       tdc.process_run_count eod_eom_run_count,
+       'NA' Status,
+       0 contract_item_qty,
+       'NA' contarct_item_qty_uom,
+       sysdate contract_issue_date,
+       'NA' delivery_quota_period,
+       'NA' Profit_Center,
+       'NA' Strategy,
+       'NA' Attribute_1,
+       'NA' Attribute_2,
+       'NA' Attribute_3,
+       'NA' Attribute_4,
+       'NA' Attribute_5
+  from eod_eom_phy_contract_journal@eka_eoddb pcj,
+       tdc_trade_date_closure@eka_eoddb       tdc
+ where pcj.corporate_id = tdc.corporate_id
+   and pcj.process_id = tdc.process_id
+   and pcj.process = 'EOM';
