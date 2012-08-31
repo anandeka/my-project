@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1025
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  31-Aug-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD 
+
+Sub-Module  			 :  EOD JOURNALS
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Date: 7:39:43 PM, Friday, August 31, 2012
+Message: TATA CORAS JOURNALS ADDED
+----
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/75_DDL_EODDB_PHYSICAL_RISK.sql			(Revision: 102627)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql		(Revision: 102627)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql		(Revision: 102629)
+
+
+
