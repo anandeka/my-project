@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_1027
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar 
+ 
+Created on*        		:  31-Aug-2012
+
+Bug / Enhancement*              :  Bug / Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay & Logistics 
+
+Sub-Module  			 :  Change Of Terms
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction 
+==================================================================
+Revision: 102689
+Author: anupkumar.agarwal
+Date: 3:54:50 PM, Monday, September 03, 2012
+Message:
+COT Changes Related Scripts 
+1: Added New Coloumn In Spq And Spql 
+2: Changes The Trigger For Spql
+3: Data Correction For All Shipment Assay Gmr First Axs Should Save .
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_14.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_SPQL.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_319.sql
+
+
