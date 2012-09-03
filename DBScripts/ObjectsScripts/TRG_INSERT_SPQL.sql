@@ -43,7 +43,8 @@ BEGIN
                         ENTRY_TYPE, 
                         IS_ACTIVE,
                         WEG_AVG_PRICING_ASSAY_ID,
-                        WEG_AVG_INVOICE_ASSAY_ID                          
+                        WEG_AVG_INVOICE_ASSAY_ID,
+                        COT_INT_ACTION_REF_NO                         
                        )
                 VALUES (:NEW.SPQ_ID,
                         :NEW.INTERNAL_GMR_REF_NO,
@@ -79,7 +80,8 @@ where ASH.PRICING_ASSAY_ASH_ID = :NEW.ASSAY_HEADER_ID
 and ASH.ASSAY_TYPE='Weighted Avg Pricing Assay'),(select ASH.ASH_ID
 from ASH_ASSAY_HEADER ash
 where ASH.INVOICE_ASH_ID = :NEW.EXT_ASSAY_HEADER_ID
-and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
+and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay'),
+                        :NEW.COT_INT_ACTION_REF_NO
                        );
          ELSE
             --Qty Unit is Updated
@@ -115,7 +117,8 @@ and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
                         ENTRY_TYPE,   
                         IS_ACTIVE,
                         WEG_AVG_PRICING_ASSAY_ID,
-                        WEG_AVG_INVOICE_ASSAY_ID 
+                        WEG_AVG_INVOICE_ASSAY_ID,
+                        COT_INT_ACTION_REF_NO
                        )
                 VALUES (:NEW.SPQ_ID,
                         :NEW.INTERNAL_GMR_REF_NO,
@@ -181,7 +184,8 @@ where ASH.PRICING_ASSAY_ASH_ID = :NEW.ASSAY_HEADER_ID
 and ASH.ASSAY_TYPE='Weighted Avg Pricing Assay'),(select ASH.ASH_ID
 from ASH_ASSAY_HEADER ash
 where ASH.INVOICE_ASH_ID = :NEW.EXT_ASSAY_HEADER_ID
-and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
+and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay'),
+                        :NEW.COT_INT_ACTION_REF_NO
                        );
          END IF;
       ELSE
@@ -218,7 +222,8 @@ and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
                         ENTRY_TYPE,   
                         IS_ACTIVE,
                         WEG_AVG_PRICING_ASSAY_ID ,
-                        WEG_AVG_INVOICE_ASSAY_ID
+                        WEG_AVG_INVOICE_ASSAY_ID,
+                        COT_INT_ACTION_REF_NO
                        )
                 VALUES (:NEW.SPQ_ID,
                         :NEW.INTERNAL_GMR_REF_NO,
@@ -254,7 +259,8 @@ where ASH.PRICING_ASSAY_ASH_ID = :NEW.ASSAY_HEADER_ID
 and ASH.ASSAY_TYPE='Weighted Avg Pricing Assay'),(select ASH.ASH_ID
 from ASH_ASSAY_HEADER ash
 where ASH.INVOICE_ASH_ID = :NEW.EXT_ASSAY_HEADER_ID
-and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
+and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay'),
+                        :NEW.COT_INT_ACTION_REF_NO
                        );
       END IF;                               
    ELSE
@@ -293,7 +299,8 @@ and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
                         ENTRY_TYPE,   
                         IS_ACTIVE ,
                         WEG_AVG_PRICING_ASSAY_ID,
-                        WEG_AVG_INVOICE_ASSAY_ID
+                        WEG_AVG_INVOICE_ASSAY_ID,
+                        COT_INT_ACTION_REF_NO
                        )
                VALUES (:NEW.SPQ_ID,
                        :NEW.INTERNAL_GMR_REF_NO,
@@ -330,11 +337,9 @@ and ASH.ASSAY_TYPE='Weighted Avg Pricing Assay'),
 (select ASH.ASH_ID
 from ASH_ASSAY_HEADER ash
 where ASH.INVOICE_ASH_ID = :NEW.EXT_ASSAY_HEADER_ID
-and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay')
+and ASH.ASSAY_TYPE='Weighted Avg Invoice Assay'),
+                        :NEW.COT_INT_ACTION_REF_NO
                       );
    END IF;
 END;
 /
-
-
-
