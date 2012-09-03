@@ -1,10 +1,6 @@
 DROP MATERIALIZED VIEW MV_FACT_DERIVATIVE_UNREALIZED;
 DROP TABLE MV_FACT_DERIVATIVE_UNREALIZED;
 CREATE MATERIALIZED VIEW MV_FACT_DERIVATIVE_UNREALIZED 
-NOCACHE
-LOGGING
-NOCOMPRESS
-NOPARALLEL
 BUILD IMMEDIATE
 REFRESH FORCE ON DEMAND
 WITH PRIMARY KEY
@@ -100,7 +96,6 @@ select dpd.corporate_id,
        tdc_trade_date_closure@eka_eoddb   tdc,
        pdm_productmaster        pdm,
        ak_corporate                       akc,
-       gcd_groupcorporatedetails@eka_eoddb     gcd_group_id,
        cm_currency_master             cm_corp
  where dpd.pnl_type = 'Unrealized'
    and dpd.process_id = tdc.process_id
