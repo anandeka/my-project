@@ -34,10 +34,10 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :APP
 ==================================================================
+Revision: 102720
+Author: saurabh.raj
+Date: 8:10:49 PM, Monday, September 03, 2012
+Message:
+
+----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_DERIVATIVE_UNREALIZED.sql
-
-
-
-
-
-
