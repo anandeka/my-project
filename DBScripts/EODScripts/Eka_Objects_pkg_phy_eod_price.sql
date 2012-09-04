@@ -27,7 +27,7 @@ create or replace package pkg_phy_eod_price is
                                         pc_dbd_id       varchar2,
                                         pc_process      varchar2);
 
-end; 
+end;
 /
 create or replace package body "PKG_PHY_EOD_PRICE" is
 
@@ -794,7 +794,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -972,7 +972,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -1212,7 +1212,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -1579,7 +1579,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -1761,7 +1761,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -1945,7 +1945,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -2707,7 +2707,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              and dq.trade_date = cdim.valid_quote_date
              and dq.is_deleted = 'N'
              and dqd.is_deleted = 'N'
-              and rownum <= 1
+             and rownum <= 1
              and cdim.corporate_id = pc_corporate_id
              and cdim.instrument_id = dq.instrument_id;
         exception
@@ -2939,7 +2939,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              and dqd.price_unit_id = vc_price_unit_id
              and dq.is_deleted = 'N'
              and dqd.is_deleted = 'N'
-              and rownum <= 1
+             and rownum <= 1
              and cdim.corporate_id = pc_corporate_id
              and cdim.instrument_id = dq.instrument_id;
         exception
@@ -3856,7 +3856,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                and dq.trade_date = cdim.valid_quote_date
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
-                and rownum <= 1
+               and rownum <= 1
                and cdim.corporate_id = pc_corporate_id
                and cdim.instrument_id = dq.instrument_id;
           exception
@@ -3910,8 +3910,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                        from poch_price_opt_call_off_header poch,
                             pocd_price_option_calloff_dtls pocd,
                             pofh_price_opt_fixation_header pofh,
-                            pfd_price_fixation_details     pfd,
-                            ppfh_phy_price_formula_header  ppfh
+                            pfd_price_fixation_details     pfd
+                     -- ppfh_phy_price_formula_header  ppfh
                       where poch.poch_id = pocd.poch_id
                         and pocd.pocd_id = pofh.pocd_id
                         and pofh.pofh_id = cur_gmr_ele_rows.pofh_id
@@ -4095,7 +4095,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                and dqd.price_unit_id = vc_price_unit_id
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
-                and rownum <= 1
+               and rownum <= 1
                and cdim.corporate_id = pc_corporate_id
                and cdim.instrument_id = dq.instrument_id;
           exception
@@ -4315,9 +4315,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       vc_exch_rate_string := null;
     end loop;
     commit;
-     exception
+  exception
     when others then
-         null;--TODO siva
+      null; --TODO siva
   end;
   procedure sp_calc_contract_conc_price(pc_corporate_id varchar2,
                                         pd_trade_date   date,
@@ -4952,7 +4952,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -5135,7 +5135,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -5383,7 +5383,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -5761,7 +5761,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -5943,7 +5943,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -6130,7 +6130,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      and dq.trade_date = cdim.valid_quote_date
                      and dq.is_deleted = 'N'
                      and dqd.is_deleted = 'N'
-                      and rownum <= 1
+                     and rownum <= 1
                      and cdim.corporate_id = pc_corporate_id
                      and cdim.instrument_id = dq.instrument_id;
                 exception
@@ -6356,9 +6356,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       vc_exch_rate_string := null;
     end loop;
     commit;
-    exception
+  exception
     when others then
-         null;--TODO siva
+      null; --TODO siva
   end;
-end; 
+end;
 /
