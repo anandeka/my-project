@@ -1733,8 +1733,8 @@ create or replace package body pkg_phy_eod_reports is
   vn_rno := 0;
     for cur_pur_accural_rows in cur_pur_accural
     loop
-    vn_payable_qty := null;
-    vc_payable_qty_unit_id := null;
+      vn_payable_qty := null;
+      vc_payable_qty_unit_id := null;
       vn_gmr_price                 := null;
       vc_gmr_price_untit_id        := null;
       vn_price_unit_weight_unit_id := null;
@@ -1743,6 +1743,9 @@ create or replace package body pkg_phy_eod_reports is
       vn_payable_amt_in_price_cur  := null;
       vn_payable_amt_in_pay_cur    := null;
       vn_fx_rate_price_to_pay      := null;
+      vn_gmr_treatment_charge      :=0;
+      vn_gmr_penality_charge := 0;
+      vn_gmr_refine_charge :=0;
       -- Price Not event based from CCCP and Event Based from CGCP
       if cur_pur_accural_rows.payable_type <> 'Penalty' then
         begin
@@ -2223,42 +2226,49 @@ commit;
                           1005,
                           'sp_phy_purchase_accural GMR Level');
 --
--- Need to update Tc Charges,Rc Chargess,penalityn and Provisional Payment %
+-- Need to update Tc Charges,Rc Chargess, Penality
 --
 Update pa_purchase_accural_gmr pa_gmr
 set (pa_gmr.tcharges_amount,--
      pa_gmr.rcharges_amount, --
-     pa_gmr.penalty_amount,--
-    pa_gmr.provisional_pymt_pctg) =(--
+     pa_gmr.penalty_amount,
+     pa_gmr.provisional_pymt_pctg
+     ) =(--
 select t.tc_amt, t.rc_amt, t.penalty_amt, t.provisional_pymt_pctg from tgc_temp_gmr_charges t
 where t.corporate_id = pc_corporate_id
 and t.internal_gmr_ref_no = pa_gmr.internal_gmr_ref_no
 and t.internal_invoice_ref_no = pa_gmr.latest_internal_invoice_ref_no
 AND t.element_id = pa_gmr.element_id)
 where pa_gmr.process_id = pc_process_id;
+commit;
 -- 
 -- Frieght and Other charges we need to update only once per GMR
 --
 for cur_charges in
-(select t.internal_gmr_ref_no,
-       t.internal_invoice_ref_no,
-       t.other_charges_amt,
-       t.freight_amt
-  from tgc_temp_gmr_charges t
- where t.corporate_id = pc_corporate_id
- group by t.internal_gmr_ref_no,
-          t.internal_invoice_ref_no,
-          t.other_charges_amt,
-          t.freight_amt) loop
-          
+(
+select is1.internal_invoice_ref_no,
+       nvl(is1.freight_allowance_amt, 0) /
+       iid.gmr_count freight_allowance_amt,
+       (nvl(is1.total_other_charge_amount, 0) -
+       nvl(is1.freight_allowance_amt, 0)) /
+       iid.gmr_count total_other_charge_amount,
+       iid.internal_gmr_ref_no
+  from is_invoice_summary          is1,
+       gmr_goods_movement_record   gmr,
+       v_iid_invoice               iid
+ where is1.process_id = pc_process_id
+   and iid.internal_invoice_ref_no = is1.internal_invoice_ref_no
+   and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+   and iid.internal_invoice_ref_no = gmr.latest_internal_invoice_ref_no
+   and gmr.process_id = pc_process_id) loop
+
 update pa_purchase_accural_gmr pa_gmr
-   set pa_gmr.othercharges_amount  = cur_charges.other_charges_amt,
-       pa_gmr.frightcharges_amount = cur_charges.freight_amt
- where pa_gmr.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no
-   and pa_gmr.latest_internal_invoice_ref_no =
-       cur_charges.internal_invoice_ref_no
-   and pa_gmr.process_id = pc_process_id
-   and rownum < 2;
+   set pa_gmr.othercharges_amount = cur_charges.total_other_charge_amount,
+       pa_gmr.frightcharges_amount = cur_charges.freight_allowance_amt
+ where pa_gmr.process_id = pc_process_id
+ and pa_gmr.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no
+ and rownum < 2;
+ 
 end loop;          
 
 commit;
@@ -5668,23 +5678,51 @@ sp_eodeom_process_log(pc_corporate_id,
                           3004,
                           'main insert Over');
   --
-  -- TC/RC/Penalty And Other charges
+  -- TC/RC/Penalty 
   --
     update fcr_feed_consumption_report fcr
-       set (fcr.tc_amount, fcr.rc_amount, fcr.penality_amount, fcr.inv_add_charges)
-       =(select t.tc_amt, t.rc_amt, t.penalty_amt, t.other_charges_amt from tgc_temp_gmr_charges t
+       set (fcr.tc_amount, fcr.rc_amount, fcr.penality_amount)
+       =(select t.tc_amt, t.rc_amt, t.penalty_amt from tgc_temp_gmr_charges t
        where t.corporate_id = pc_corporate_id
        and t.internal_gmr_ref_no = fcr.internal_gmr_ref_no
        and t.internal_invoice_ref_no = fcr.internal_invoice_ref_no
        and t.element_id = fcr.element_id)
      where fcr.process_id = pc_process_id;
+commit;
+--
+-- Update Other charges
+--
+for cur_oc in 
+(select is1.internal_invoice_ref_no,
+       (nvl(is1.total_other_charge_amount, 0) -
+       nvl(is1.freight_allowance_amt, 0)) /
+       count(distinct iid.internal_gmr_ref_no) total_other_charge_amount
+  from is_invoice_summary          is1,
+       gmr_goods_movement_record   gmr,
+       iid_invoicable_item_details iid
+ where is1.process_id = pc_process_id
+   and iid.internal_invoice_ref_no = is1.internal_invoice_ref_no
+   and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+   and iid.internal_invoice_ref_no = gmr.latest_internal_invoice_ref_no
+   and gmr.process_id = pc_process_id
+   and iid.is_active = 'Y'
+ group by is1.internal_invoice_ref_no,
+          nvl(is1.freight_allowance_amt, 0),
+          (nvl(is1.total_other_charge_amount, 0) -
+          nvl(is1.freight_allowance_amt, 0))) loop
+
+update fcr_feed_consumption_report fcr
+       set fcr.inv_add_charges = cur_oc.total_other_charge_amount
+       where  fcr.internal_invoice_ref_no =cur_oc.internal_invoice_ref_no
+       and fcr.process_id = pc_process_id;
+   end loop;    
 
 commit;
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           3008,
-                          'Other chanrges Over');
+                          'Other charges Over');
 end;
   procedure sp_stock_monthly_yeild(pc_corporate_id varchar2,
                                    pd_trade_date   date,
@@ -9316,7 +9354,6 @@ insert into temp_mas
 --
 -- Raw Material Exisitng Stock
 --                          
-                        
 insert into temp_mas
   (process_id,
    corporate_id,
@@ -10461,7 +10498,78 @@ insert into temp_mas
           
 commit;
 --
--- Now we have to convert payable qty to product base qty unit
+-- Raw Material Existing Stock section has to be get reduced by In Process Stock 
+-- Hence marking them with negative only for Tolling Type = 'MFT In Process Stock' and 'Delta MFT IP Stock'
+-- Between Accounting Start Date and Last EOM Date
+-- 
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+    select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Raw Material Stock Negative' query_section_name,
+         aml.underlying_product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'Existing Stock' section_name,
+         1 section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+        -1 * grd.qty stock_qty,
+         grd.qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in ('MARK_FOR_TOLLING')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         qum_quantity_unit_master qum,
+         phd_profileheaderdetails phd,
+         ak_corporate akc
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.product_id = aml.underlying_product_id
+     and aml.underlying_product_id = pdm.product_id
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and grd.warehouse_profile_id = phd.profileid
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and agmr.eff_date >= vd_acc_start_date 
+     and agmr.eff_date <= pd_trade_date
+     and grd.tolling_stock_type in ('MFT In Process Stock', 'Delta MFT IP Stock');
+commit;
+     
+--
+-- Now we have to convert payable qty to Product Base Quantity Unit
 --
 for cur_stock_qty in
 (
@@ -10568,7 +10676,7 @@ commit;
            mas.qty_unit
       from mas_metal_account_summary mas
      where mas.stock_type = 'In Process Stock'
-       and mas.section_name IN ('New Stocks','New Stock - In Process Stocks','New Stock - Free Metal Stocks')
+       and mas.section_name IN ('New Stocks','New Stock - In Process Stocks') -- Should not contain Free Metal
        and mas.process_id = pc_process_id;
        commit;
        sp_eodeom_process_log(pc_corporate_id,
@@ -12192,6 +12300,10 @@ insert into tgi_temp_gmr_invoice
                grd_child.internal_grd_ref_no
            and grd_parent.process_id = pc_process_id
            and grd_child.process_id = pc_process_id
+           and grd_parent.is_deleted ='N'
+           and grd_child.is_deleted ='N'
+           and grd_child.status='Active'
+           and grd_parent.status='Active'
          group by grd_parent.internal_gmr_ref_no,
                   grd_child.internal_gmr_ref_no) gmr
  where t.internal_gmr_ref_no = gmr.internal_gmr_ref_no
@@ -12215,83 +12327,84 @@ insert into tgc_temp_gmr_charges
    element_id,
    tc_amt,
    rc_amt,
-   penalty_amt,
-   freight_amt,
-   other_charges_amt)
+   penalty_amt)
   select pc_corporate_id,
          t.internal_gmr_ref_no,
          t.internal_invoice_ref_no,
          t.element_id,
          nvl(sum(tc_amt),0) tc_amt,
          nvl(sum(rc_amt),0),
-         nvl(sum(penalty_amt),0),
-         0,
-         0
-    from (select t.internal_gmr_ref_no,
-                 intc.internal_invoice_ref_no,
-                 intc.element_id,
-                 sum(tcharges_amount) tc_amt,
-                 0 rc_amt,
-                 0 penalty_amt
-            from gmr_goods_movement_record t,
-                 intc_inv_treatment_charges  intc
-           where t.process_id = pc_process_id
-             and t.latest_internal_invoice_ref_no = intc.internal_invoice_ref_no
-           group by t.internal_gmr_ref_no,
-                    intc.internal_invoice_ref_no,
-                    intc.element_id
-          union all
-          select t.internal_gmr_ref_no,
-                 inrc.internal_invoice_ref_no,
-                 inrc.element_id,
-                 0 tc_amt,
-                 sum(rcharges_amount) rc_amt,
-                 0 penalty_amt
-            from gmr_goods_movement_record t,
-                 inrc_inv_refining_charges   inrc
-           where t.process_id = pc_process_id
-             and t.latest_internal_invoice_ref_no = inrc.internal_invoice_ref_no
-           group by t.internal_gmr_ref_no,
-                    inrc.element_id,
-                    inrc.internal_invoice_ref_no
-          union all
-          select t.internal_gmr_ref_no,
-                 iepd.internal_invoice_ref_no,
-                 iepd.element_id,
-                 0 tc_amt,
-                 0 rc_amt,
-                 sum(iepd.element_penalty_amount) penalty_amt
-            from gmr_goods_movement_record t,
-                 iepd_inv_epenalty_details   iepd
-           where t.process_id = pc_process_id
-             and t.latest_internal_invoice_ref_no = iepd.internal_invoice_ref_no
-           group by t.internal_gmr_ref_no,
-                    iepd.element_id,
-                    iepd.internal_invoice_ref_no) t
+         nvl(sum(penalty_amt),0)
+    from (
+    select gmr.internal_gmr_ref_no,
+       intc.internal_invoice_ref_no,
+       intc.element_id,
+       sum(tcharges_amount) tc_amt,
+       0 rc_amt,
+       0 penalty_amt
+  from gmr_goods_movement_record  gmr,
+       intc_inv_treatment_charges intc,
+       grd_goods_record_detail    grd
+ where gmr.process_id = pc_process_id
+   and gmr.latest_internal_invoice_ref_no = intc.internal_invoice_ref_no
+   and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+   and grd.internal_grd_ref_no = intc.grd_id
+   and grd.process_id = pc_process_id
+ group by gmr.internal_gmr_ref_no,
+          intc.internal_invoice_ref_no,
+          intc.element_id
+union all
+select gmr.internal_gmr_ref_no,
+       inrc.internal_invoice_ref_no,
+       inrc.element_id,
+       0 tc_amt,
+       sum(rcharges_amount) rc_amt,
+       0 penalty_amt
+  from gmr_goods_movement_record gmr,
+       inrc_inv_refining_charges inrc,
+       grd_goods_record_detail   grd
+ where gmr.process_id = pc_process_id
+   and gmr.latest_internal_invoice_ref_no = inrc.internal_invoice_ref_no
+   and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+   and grd.internal_grd_ref_no = inrc.grd_id
+   and grd.process_id = pc_process_id
+ group by gmr.internal_gmr_ref_no,
+          inrc.element_id,
+          inrc.internal_invoice_ref_no
+union all
+select gmr.internal_gmr_ref_no,
+       iepd.internal_invoice_ref_no,
+       iepd.element_id,
+       0 tc_amt,
+       0 rc_amt,
+       sum(iepd.element_penalty_amount) penalty_amt
+  from gmr_goods_movement_record gmr,
+       iepd_inv_epenalty_details iepd,
+       grd_goods_record_detail   grd
+ where gmr.process_id = pc_process_id
+   and gmr.latest_internal_invoice_ref_no = iepd.internal_invoice_ref_no
+   and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+   and grd.internal_grd_ref_no = iepd.stock_id
+   and grd.process_id = pc_process_id
+ group by gmr.internal_gmr_ref_no,
+          iepd.element_id,
+          iepd.internal_invoice_ref_no) t
    group by t.internal_gmr_ref_no,
             t.internal_invoice_ref_no,
             t.element_id;
 commit;
 
+Update tgc_temp_gmr_charges t
+set t.provisional_pymt_pctg =
+(select nvl(is1.provisional_pymt_pctg,100) from is_invoice_summary is1
+where is1.internal_invoice_ref_no = t.internal_invoice_ref_no
+and is1.process_id = pc_process_id)
+where t.corporate_id = pc_corporate_id;
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           8004,
                           'Invoice TC/RC and Penalty Over');
-                     
---          
--- Update Freight Charges, Other Charges and Provisional Invoice % from Invoice
--- This will have issue when one invoice is present across GMRS 
---
-Update tgc_temp_gmr_charges t
-set (t.freight_amt, t.other_charges_amt,t.provisional_pymt_pctg) =( 
-select is1.freight_allowance_amt,
-       is1.total_other_charge_amount - nvl(is1.freight_allowance_amt,0),
-       nvl(is1.provisional_pymt_pctg,100)
-  from is_invoice_summary is1
- where is1.process_id = pc_process_id
-   and is1.internal_invoice_ref_no = t.internal_invoice_ref_no)
-where t.corporate_id = pc_corporate_id;
 commit;
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
