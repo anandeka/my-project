@@ -1,0 +1,68 @@
+Patch No*          		:  EKA_METALS_PATCH_1030
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  04-Sep-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  68487 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+
+Revision: 102741
+Date: 12:32:21 PM, Tuesday, September 04, 2012
+Message:
+1. Bug id: 68487 - Return elements are not showing TC/RC in calculated section of Purchase Accrual
+
+2. Invoice section TC/RC showing by clubbing all GMRs of Purchase Accrual
+
+3. Other and freight charges showing twice one return and one for payable element
+
+4. Metal Balance Summary : Raw Material Existing Section deduct In Process Stock existing qty
+
+5. When one invoice is shared among multiple GMRS, divide the Other and freight charges equally between GMRS(any report where applicable)
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/76_DDL_EODDB_ALTER_SCRIPT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_VIEW_V_IID_INVOICE.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+Revision: 102742
+Date: 12:33:43 PM, Tuesday, September 04, 2012
+Message:
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+
+
+
+
+
+
+
