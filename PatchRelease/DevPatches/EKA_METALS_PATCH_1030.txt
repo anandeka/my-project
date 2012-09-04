@@ -39,13 +39,9 @@ Revision: 102741
 Date: 12:32:21 PM, Tuesday, September 04, 2012
 Message:
 1. Bug id: 68487 - Return elements are not showing TC/RC in calculated section of Purchase Accrual
-
 2. Invoice section TC/RC showing by clubbing all GMRs of Purchase Accrual
-
 3. Other and freight charges showing twice one return and one for payable element
-
 4. Metal Balance Summary : Raw Material Existing Section deduct In Process Stock existing qty
-
 5. When one invoice is shared among multiple GMRS, divide the Other and freight charges equally between GMRS(any report where applicable)
 
 ----
@@ -59,7 +55,6 @@ Date: 12:33:43 PM, Tuesday, September 04, 2012
 Message:
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
-
 
 
 
