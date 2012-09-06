@@ -1509,204 +1509,25 @@ create or replace package body pkg_phy_eod_reports is
                                     pd_trade_date   date,
                                     pc_process_id   varchar2,
                                     pc_dbd_id       varchar2) as
-  
+  -- Cursor For main Loop
     cursor cur_pur_accural is
-    -- Payable Elements  
-      select gmr.internal_gmr_ref_no,
-             grd.internal_grd_ref_no,
-             gmr.gmr_ref_no,
-             grd.product_id,
-             spq.element_id,
-             spq.payable_qty,
-             spq.qty_unit_id payable_qty_unit_id,
-             spq.assay_content assay_qty,
-             spq.qty_unit_id assay_qty_unit_id,
-             gmr.corporate_id,
-             akc.corporate_name,
-             pcpd.product_id conc_product_id,
-             pdm_conc.product_desc conc_product_name,
-             grd.quality_id conc_quality_id,
-             qat.quality_name conc_quality_name,
-             pcpd.profit_center_id profit_center,
-             cpc.profit_center_name,
-             cpc.profit_center_short_name,
-             pc_process_id process_id,
-             gmr.contract_type contract_type,
-             akc.base_cur_id as base_cur_id,
-             akc.base_currency_name base_cur_code,
-             cm.decimals as base_cur_decimal,
-             aml.attribute_name element_name,
-             pcpch.payable_type,
-             pcm.cp_id,
-             phd.companyname counterparty_name,
-             pcm.invoice_currency_id pay_cur_id,
-             cm_pay.cur_code pay_cur_code,
-             cm_pay.decimals pay_cur_decimal,
-             pci.pcdi_id,
-             spq.pledge_stock_id
-        from gmr_goods_movement_record      gmr,
-             grd_goods_record_detail        grd,
-             spq_stock_payable_qty          spq,
-             ak_corporate                   akc,
-             cm_currency_master             cm,
-             pcpd_pc_product_definition     pcpd,
-             pdm_productmaster              pdm_conc,
-             qum_quantity_unit_master       qum_pdm_conc,
-             qat_quality_attributes         qat,
-             cpc_corporate_profit_center    cpc,
-             sac_stock_assay_content        sac,
-             aml_attribute_master_list      aml,
-             pcpch_pc_payble_content_header pcpch,
-             pcm_physical_contract_main     pcm,
-             phd_profileheaderdetails       phd,
-             ii_invoicable_item             ii,
-             cm_currency_master             cm_pay,
-             pci_physical_contract_item     pci
-       where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-         and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-         and spq.is_stock_split = 'N'
-         and grd.status = 'Active'
-         and gmr.corporate_id = akc.corporate_id
-         and akc.base_cur_id = cm.cur_id
-         and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
-         and pcpd.product_id = pdm_conc.product_id
-         and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
-         and grd.quality_id = qat.quality_id(+)
-         and pcpd.profit_center_id = cpc.profit_center_id
-         and grd.internal_grd_ref_no = sac.internal_grd_ref_no
-         and spq.element_id = aml.attribute_id
-         and spq.element_id = sac.element_id
-         and gmr.process_id = pc_process_id
-         and grd.process_id = pc_process_id
-         and pcpd.input_output = 'Input'
-         and pcpd.process_id = pc_process_id
-         and gmr.corporate_id = pc_corporate_id
-         and gmr.internal_contract_ref_no = pcpch.internal_contract_ref_no
-         and spq.element_id = pcpch.element_id
-         and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
-         and pcm.cp_id = phd.profileid
-         and gmr.internal_gmr_ref_no = ii.internal_gmr_ref_no
-         and grd.internal_grd_ref_no = ii.stock_id
-         and pcm.invoice_currency_id = cm_pay.cur_id
-         and gmr.is_deleted = 'N'
-         and gmr.is_internal_movement = 'N'
-         and nvl(gmr.contract_type,'NA') <> 'Tolling'
-         and pcpd.is_active = 'Y'
-         and pcm.is_active = 'Y'
-         and spq.process_id = pc_process_id
-         and pcpch.process_id = pc_process_id
-         and pcm.process_id = pc_process_id
-         and pci.internal_contract_item_ref_no =
-             grd.internal_contract_item_ref_no
-         and pci.process_id = pc_process_id
-          and nvl(gmr.is_final_invoiced,'N') ='N'
-      union all
-      -- Penalty Elements
-      select gmr.internal_gmr_ref_no,
-             grd.internal_grd_ref_no,
-             gmr.gmr_ref_no,
-             grd.product_id,
-             pqca.element_id,
-             null payable_qty,
-             null payable_qty_unit_id,
-             (case
-               when rm.ratio_name = '%' then
-                (pqca.typical * (case
-               when pqca.is_deductible = 'Y' then
-                grd.qty
-               else
-                grd.qty * (asm.dry_wet_qty_ratio / 100)
-             end)) / 100 else(grd.qty * (asm.dry_wet_qty_ratio / 100) * pkg_general.f_get_converted_quantity(aml.underlying_product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1) * pqca.typical) end) assay_qty,
-             (case
-               when rm.ratio_name = '%' then
-                grd.qty_unit_id
-               else
-                rm.qty_unit_id_numerator
-             end) assay_qty_unit_id,
-             gmr.corporate_id,
-             akc.corporate_name,
-             pcpd.product_id conc_product_id,
-             pdm_conc.product_desc conc_product_name,
-             grd.quality_id conc_quality_id,
-             qat.quality_name conc_quality_name,
-             pcpd.profit_center_id profit_center,
-             cpc.profit_center_name,
-             cpc.profit_center_short_name,
-             pc_process_id process_id,
-             gmr.contract_type contract_type,
-             akc.base_cur_id as base_cur_id,
-             akc.base_currency_name base_cur_code,
-             cm.decimals as base_cur_decimal,
-             aml.attribute_name element_name,
-             'Penalty' payable_type,
-             pcm.cp_id,
-             phd.companyname counterparty_name,
-             pcm.invoice_currency_id pay_cur_id,
-             cm_pay.cur_code pay_cur_code,
-             cm_pay.decimals pay_cur_decimal,
-             pci.pcdi_id,
-             null pledge_stock_id
-        from gmr_goods_movement_record   gmr,
-             grd_goods_record_detail     grd,
-             ak_corporate                akc,
-             cm_currency_master          cm,
-             pcpd_pc_product_definition  pcpd,
-             pdm_productmaster           pdm_conc,
-             qum_quantity_unit_master    qum_pdm_conc,
-             qat_quality_attributes      qat,
-             cpc_corporate_profit_center cpc,
-             v_spq_latest_assay          spq,
-             ash_assay_header            ash,
-             asm_assay_sublot_mapping    asm,
-             pqca_pq_chemical_attributes pqca,
-             rm_ratio_master             rm,
-             pcm_physical_contract_main  pcm,
-             phd_profileheaderdetails    phd,
-             ii_invoicable_item          ii,
-             cm_currency_master          cm_pay,
-             pci_physical_contract_item  pci,
-             aml_attribute_master_list   aml
-       where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-         and gmr.corporate_id = akc.corporate_id
-         and akc.base_cur_id = cm.cur_id
-         and grd.status = 'Active'
-         and gmr.process_id = pc_process_id
-         and grd.process_id = pc_process_id
-         and gmr.corporate_id = pc_corporate_id
-         and gmr.is_deleted = 'N'
-         and gmr.is_internal_movement = 'N'
-         and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
-         and pcpd.input_output = 'Input'
-         and pcpd.process_id = pc_process_id
-         and pcpd.is_active = 'Y'
-         and pcpd.product_id = pdm_conc.product_id
-         and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
-         and grd.quality_id = qat.quality_id(+)
-         and pcpd.profit_center_id = cpc.profit_center_id
-         and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-         and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
-         and spq.process_id = pc_process_id
-         and spq.assay_header_id = ash.ash_id
-         and ash.ash_id = asm.ash_id
-         and asm.asm_id = pqca.asm_id
-         and pqca.is_elem_for_pricing = 'N'
-         and pqca.unit_of_measure = rm.ratio_id
-         and rm.is_active = 'Y'
-         and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
-         and pcm.process_id = pc_process_id
-         and pcm.is_active = 'Y'
-         and pcm.cp_id = phd.profileid
-         and gmr.internal_gmr_ref_no = ii.internal_gmr_ref_no
-         and grd.internal_grd_ref_no = ii.stock_id
-         and pcm.invoice_currency_id = cm_pay.cur_id
-         and pci.internal_contract_item_ref_no =
-             grd.internal_contract_item_ref_no
-         and pci.process_id = pc_process_id
-         and pqca.element_id = aml.attribute_id
-         and nvl(gmr.contract_type, 'NA') <> 'Tolling'
-         and aml.is_active = 'Y'
-         and nvl(gmr.is_final_invoiced, 'N') = 'N';
-  
+    select * from patd_pa_temp_data t
+    where t.corporate_id = pc_corporate_id;  
+-- Cursor For Price Update     
+    cursor cur_pur_accural_temp is
+    select * from patd_pa_temp_data t
+    where t.corporate_id = pc_corporate_id;  
+-- For TC/RC    
+    cursor cur_pur_accural_tc_rc is
+    select * from patd_pa_temp_data t
+    where t.corporate_id = pc_corporate_id
+    and t.payable_type <> 'Penalty';  
+-- For Penalty
+    cursor cur_pur_accural_penalty is
+    select * from patd_pa_temp_data t
+    where t.corporate_id = pc_corporate_id
+    and t.payable_type = 'Penalty';  
+    
     vn_gmr_treatment_charge      number;
     vc_gmr_treatment_cur_id      varchar2(15);
     vn_gmr_refine_charge         number;
@@ -1726,28 +1547,314 @@ create or replace package body pkg_phy_eod_reports is
     vn_cont_price_cur_id_factor  number;
     vn_cont_price_cur_decimals   number;
     vn_fx_rate_price_to_pay      number;
-    vn_rno                       number;
     vn_payable_qty               number;
     vc_payable_qty_unit_id       varchar2(15);
   begin
-  vn_rno := 0;
-    for cur_pur_accural_rows in cur_pur_accural
+  delete from patd_pa_temp_data  t
+  where t.corporate_id = pc_corporate_id;
+  commit;
+  
+      sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          971,
+                          'delete from patd_pa_temp_data over');
+
+-- Payable and Returnable elements
+insert into patd_pa_temp_data
+  (internal_gmr_ref_no,
+   internal_grd_ref_no,
+   gmr_ref_no,
+   product_id,
+   element_id,
+   payable_qty,
+   payable_qty_unit_id,
+   assay_qty,
+   assay_qty_unit_id,
+   corporate_id,
+   corporate_name,
+   conc_product_id,
+   conc_product_name,
+   conc_quality_id,
+   conc_quality_name,
+   profit_center_id,
+   profit_center_name,
+   profit_center_short_name,
+   process_id,
+   contract_type,
+   base_cur_id,
+   base_cur_code,
+   base_cur_decimal,
+   element_name,
+   payable_type,
+   cp_id,
+   counterparty_name,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimal,
+   pcdi_id,
+   pledge_stock_id,
+   wet_qty,
+   dry_qty,
+   grd_qty_unit_id,
+   ash_id)
+  select gmr.internal_gmr_ref_no,
+         grd.internal_grd_ref_no,
+         gmr.gmr_ref_no,
+         grd.product_id,
+         spq.element_id,
+         spq.payable_qty,
+         spq.qty_unit_id payable_qty_unit_id,
+         spq.assay_content assay_qty,
+         spq.qty_unit_id assay_qty_unit_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         pcpd.product_id conc_product_id,
+         pdm_conc.product_desc conc_product_name,
+         grd.quality_id conc_quality_id,
+         qat.quality_name conc_quality_name,
+         pcpd.profit_center_id profit_center,
+         cpc.profit_center_name,
+         cpc.profit_center_short_name,
+         pc_process_id process_id,
+         gmr.contract_type contract_type,
+         akc.base_cur_id as base_cur_id,
+         akc.base_currency_name base_cur_code,
+         cm.decimals as base_cur_decimal,
+         aml.attribute_name element_name,
+         pcpch.payable_type,
+         pcm.cp_id,
+         phd.companyname counterparty_name,
+         pcm.invoice_currency_id pay_cur_id,
+         cm_pay.cur_code pay_cur_code,
+         cm_pay.decimals pay_cur_decimal,
+         pci.pcdi_id,
+         spq.pledge_stock_id,
+         grd.qty wet_qty,
+         grd.qty * asm.dry_wet_qty_ratio /100 dry_qty,--is this correct
+         grd.qty_unit_id as dry_wet_qty_unit_id,
+         spq.assay_header_id
+    from gmr_goods_movement_record      gmr,
+         grd_goods_record_detail        grd,
+         spq_stock_payable_qty          spq,
+         ak_corporate                   akc,
+         cm_currency_master             cm,
+         pcpd_pc_product_definition     pcpd,
+         pdm_productmaster              pdm_conc,
+         qum_quantity_unit_master       qum_pdm_conc,
+         qat_quality_attributes         qat,
+         cpc_corporate_profit_center    cpc,
+         sac_stock_assay_content        sac,
+         aml_attribute_master_list      aml,
+         pcpch_pc_payble_content_header pcpch,
+         pcm_physical_contract_main     pcm,
+         phd_profileheaderdetails       phd,
+         ii_invoicable_item             ii,
+         cm_currency_master             cm_pay,
+         pci_physical_contract_item     pci,
+         asm_assay_sublot_mapping asm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+     and spq.is_stock_split = 'N'
+     and grd.status = 'Active'
+     and gmr.corporate_id = akc.corporate_id
+     and akc.base_cur_id = cm.cur_id
+     and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
+     and pcpd.product_id = pdm_conc.product_id
+     and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
+     and grd.quality_id = qat.quality_id(+)
+     and pcpd.profit_center_id = cpc.profit_center_id
+     and grd.internal_grd_ref_no = sac.internal_grd_ref_no
+     and spq.element_id = aml.attribute_id
+     and spq.element_id = sac.element_id
+     and spq.assay_header_id = asm.ash_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and pcpd.input_output = 'Input'
+     and pcpd.process_id = pc_process_id
+     and gmr.corporate_id = pc_corporate_id
+     and gmr.internal_contract_ref_no = pcpch.internal_contract_ref_no
+     and spq.element_id = pcpch.element_id
+     and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+     and pcm.cp_id = phd.profileid
+     and gmr.internal_gmr_ref_no = ii.internal_gmr_ref_no
+     and grd.internal_grd_ref_no = ii.stock_id
+     and pcm.invoice_currency_id = cm_pay.cur_id
+     and gmr.is_deleted = 'N'
+     and gmr.is_internal_movement = 'N'
+     and nvl(gmr.contract_type, 'NA') <> 'Tolling'
+     and pcpd.is_active = 'Y'
+     and pcm.is_active = 'Y'
+     and spq.process_id = pc_process_id
+     and pcpch.process_id = pc_process_id
+     and pcm.process_id = pc_process_id
+     and pci.internal_contract_item_ref_no =
+         grd.internal_contract_item_ref_no
+     and pci.process_id = pc_process_id
+     and nvl(gmr.is_final_invoiced, 'N') = 'N';
+     commit;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          972,
+                          'Insert patd_pa_temp_data 1 over');
+        
+-- Penalty Elements
+  insert into patd_pa_temp_data
+    (internal_gmr_ref_no,
+     internal_grd_ref_no,
+     gmr_ref_no,
+     product_id,
+     element_id,
+     payable_qty,
+     payable_qty_unit_id,
+     assay_qty,
+     assay_qty_unit_id,
+     corporate_id,
+     corporate_name,
+     conc_product_id,
+     conc_product_name,
+     conc_quality_id,
+     conc_quality_name,
+     profit_center_id,
+     profit_center_name,
+     profit_center_short_name,
+     process_id,
+     contract_type,
+     base_cur_id,
+     base_cur_code,
+     base_cur_decimal,
+     element_name,
+     payable_type,
+     cp_id,
+     counterparty_name,
+     pay_cur_id,
+     pay_cur_code,
+     pay_cur_decimal,
+     pcdi_id,
+     pledge_stock_id,
+     wet_qty,
+     dry_qty,
+     grd_qty_unit_id,
+     ash_id)
+   select gmr.internal_gmr_ref_no,
+           grd.internal_grd_ref_no,
+           gmr.gmr_ref_no,
+           grd.product_id,
+           pqca.element_id,
+           null payable_qty,
+           null payable_qty_unit_id,
+           (case
+             when rm.ratio_name = '%' then
+              (pqca.typical * (case
+             when pqca.is_deductible = 'Y' then
+              grd.qty
+             else
+              grd.qty * (asm.dry_wet_qty_ratio / 100)
+           end)) / 100 else(grd.qty * (asm.dry_wet_qty_ratio / 100) * pkg_general.f_get_converted_quantity(aml.underlying_product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1) * pqca.typical) end) assay_qty,
+           (case
+             when rm.ratio_name = '%' then
+              grd.qty_unit_id
+             else
+              rm.qty_unit_id_numerator
+           end) assay_qty_unit_id,
+           gmr.corporate_id,
+           akc.corporate_name,
+           pcpd.product_id conc_product_id,
+           pdm_conc.product_desc conc_product_name,
+           grd.quality_id conc_quality_id,
+           qat.quality_name conc_quality_name,
+           pcpd.profit_center_id profit_center,
+           cpc.profit_center_name,
+           cpc.profit_center_short_name,
+           pc_process_id process_id,
+           gmr.contract_type contract_type,
+           akc.base_cur_id as base_cur_id,
+           akc.base_currency_name base_cur_code,
+           cm.decimals as base_cur_decimal,
+           aml.attribute_name element_name,
+           'Penalty' payable_type,
+           pcm.cp_id,
+           phd.companyname counterparty_name,
+           pcm.invoice_currency_id pay_cur_id,
+           cm_pay.cur_code pay_cur_code,
+           cm_pay.decimals pay_cur_decimal,
+           pci.pcdi_id,
+           null pledge_stock_id,
+           grd.qty wet_qty,
+           grd.qty * asm.dry_wet_qty_ratio /100 dry_qty,--is this correct
+           grd.qty_unit_id as dry_wet_qty_unit_id,
+           spq.assay_header_id
+      from gmr_goods_movement_record   gmr,
+           grd_goods_record_detail     grd,
+           ak_corporate                akc,
+           cm_currency_master          cm,
+           pcpd_pc_product_definition  pcpd,
+           pdm_productmaster           pdm_conc,
+           qum_quantity_unit_master    qum_pdm_conc,
+           qat_quality_attributes      qat,
+           cpc_corporate_profit_center cpc,
+           v_spq_latest_assay          spq,
+           ash_assay_header            ash,
+           asm_assay_sublot_mapping    asm,
+           pqca_pq_chemical_attributes pqca,
+           rm_ratio_master             rm,
+           pcm_physical_contract_main  pcm,
+           phd_profileheaderdetails    phd,
+           ii_invoicable_item          ii,
+           cm_currency_master          cm_pay,
+           pci_physical_contract_item  pci,
+           aml_attribute_master_list   aml
+     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+       and gmr.corporate_id = akc.corporate_id
+       and akc.base_cur_id = cm.cur_id
+       and grd.status = 'Active'
+       and gmr.process_id = pc_process_id
+       and grd.process_id = pc_process_id
+       and gmr.corporate_id = pc_corporate_id
+       and gmr.is_deleted = 'N'
+       and gmr.is_internal_movement = 'N'
+       and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.input_output = 'Input'
+       and pcpd.process_id = pc_process_id
+       and pcpd.is_active = 'Y'
+       and pcpd.product_id = pdm_conc.product_id
+       and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
+       and grd.quality_id = qat.quality_id(+)
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+       and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
+       and spq.process_id = pc_process_id
+       and spq.assay_header_id = ash.ash_id
+       and ash.ash_id = asm.ash_id
+       and asm.asm_id = pqca.asm_id
+       and pqca.is_elem_for_pricing = 'N'
+       and pqca.unit_of_measure = rm.ratio_id
+       and rm.is_active = 'Y'
+       and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pcm.process_id = pc_process_id
+       and pcm.is_active = 'Y'
+       and pcm.cp_id = phd.profileid
+       and gmr.internal_gmr_ref_no = ii.internal_gmr_ref_no
+       and grd.internal_grd_ref_no = ii.stock_id
+       and pcm.invoice_currency_id = cm_pay.cur_id
+       and pci.internal_contract_item_ref_no =
+           grd.internal_contract_item_ref_no
+       and pci.process_id = pc_process_id
+       and pqca.element_id = aml.attribute_id
+       and nvl(gmr.contract_type, 'NA') <> 'Tolling'
+       and aml.is_active = 'Y'
+       and nvl(gmr.is_final_invoiced, 'N') = 'N';
+     commit;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          973,
+                          'Insert patd_pa_temp_data  2 over');
+     -- On Temp Table Update the Price First
+    for cur_pur_accural_temp_rows in cur_pur_accural_temp
     loop
-      vn_payable_qty := null;
-      vc_payable_qty_unit_id := null;
-      vn_gmr_price                 := null;
-      vc_gmr_price_untit_id        := null;
-      vn_price_unit_weight_unit_id := null;
-      vc_gmr_price_unit_cur_id     := null;
-      vc_gmr_price_unit_cur_code   := null;
-      vn_payable_amt_in_price_cur  := null;
-      vn_payable_amt_in_pay_cur    := null;
-      vn_fx_rate_price_to_pay      := null;
-      vn_gmr_treatment_charge      :=0;
-      vn_gmr_penality_charge := 0;
-      vn_gmr_refine_charge :=0;
-      -- Price Not event based from CCCP and Event Based from CGCP
-      if cur_pur_accural_rows.payable_type <> 'Penalty' then
+    if cur_pur_accural_temp_rows.payable_type <> 'Penalty' then
         begin
           select cccp.contract_price,
                  cccp.price_unit_id,
@@ -1760,9 +1867,9 @@ create or replace package body pkg_phy_eod_reports is
                  vc_gmr_price_unit_cur_id,
                  vc_gmr_price_unit_cur_code
             from cccp_conc_contract_cog_price cccp
-           where cccp.pcdi_id = cur_pur_accural_rows.pcdi_id
+           where cccp.pcdi_id = cur_pur_accural_temp_rows.pcdi_id
              and cccp.process_id = pc_process_id
-             and cccp.element_id = cur_pur_accural_rows.element_id;
+             and cccp.element_id = cur_pur_accural_temp_rows.element_id;
         exception
           when others then
             begin
@@ -1778,11 +1885,11 @@ create or replace package body pkg_phy_eod_reports is
                      vc_gmr_price_unit_cur_code
                 from cgcp_conc_gmr_cog_price cgcp
                where cgcp.internal_gmr_ref_no =
-                     cur_pur_accural_rows.internal_gmr_ref_no
+                     cur_pur_accural_temp_rows.internal_gmr_ref_no
                  and cgcp.internal_grd_ref_no =
-                     cur_pur_accural_rows.internal_grd_ref_no
+                     cur_pur_accural_temp_rows.internal_grd_ref_no
                  and cgcp.process_id = pc_process_id
-                 and cgcp.element_id = cur_pur_accural_rows.element_id;
+                 and cgcp.element_id = cur_pur_accural_temp_rows.element_id;
             exception
               when others then
                 vn_gmr_price                 := null;
@@ -1793,8 +1900,131 @@ create or replace package body pkg_phy_eod_reports is
             end;
           
         end;
+        update patd_pa_temp_data t
+           set t.gmr_price                     = vn_gmr_price,
+               t.gmr_price_unit_id             = vc_gmr_price_untit_id,
+               t.gmr_price_unit_weight_unit_id = vn_price_unit_weight_unit_id,
+               t.gmr_price_unit_cur_id         = vc_gmr_price_unit_cur_id,
+               t.gmr_price_unit_cur_code       = vc_gmr_price_unit_cur_code
+         where t.internal_gmr_ref_no =
+               cur_pur_accural_temp_rows.internal_gmr_ref_no
+           and t.element_id = cur_pur_accural_temp_rows.element_id
+           and t.process_id = pc_process_id;
+        end if;
+    end loop;
+ commit;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          974,
+                          'patd_pa_temp_data price updation over');    
+--
+-- Calcualte TC Now
+--         
+
+for cur_pur_accural_temp_rows in cur_pur_accural_tc_rc loop
+pkg_metals_general.sp_get_gmr_tc_by_assay(cur_pur_accural_temp_rows.internal_gmr_ref_no,
+                                                       cur_pur_accural_temp_rows.internal_grd_ref_no,
+                                                       cur_pur_accural_temp_rows.element_id,
+                                                       pc_dbd_id,
+                                                       cur_pur_accural_temp_rows.gmr_price,
+                                                       cur_pur_accural_temp_rows.gmr_price_unit_id,
+                                                       cur_pur_accural_temp_rows.ash_id,
+                                                       cur_pur_accural_temp_rows.dry_qty,
+                                                       cur_pur_accural_temp_rows.grd_qty_unit_id,
+                                                       vn_gmr_treatment_charge,
+                                                       vc_gmr_treatment_cur_id);
+                                                                                                           
+Update patd_pa_temp_data t
+set t.tc_amt = vn_gmr_treatment_charge
+where t.internal_gmr_ref_no =cur_pur_accural_temp_rows.internal_gmr_ref_no
+and t.element_id =   cur_pur_accural_temp_rows.element_id 
+and t.process_id = pc_process_id; 
+end loop;
+commit;
+sp_eodeom_process_log(pc_corporate_id,
+                  pd_trade_date,
+                  pc_process_id,
+                  975,
+                  'TC updation over');    
+
+--
+-- Calcualte RC Now
+--         
+for cur_pur_accural_temp_rows in cur_pur_accural_tc_rc loop
+pkg_metals_general.sp_get_gmr_rc_by_assay (cur_pur_accural_temp_rows.internal_gmr_ref_no,
+                                                    cur_pur_accural_temp_rows.internal_grd_ref_no,
+                                                    cur_pur_accural_temp_rows.element_id,
+                                                    pc_dbd_id,  
+                                                    cur_pur_accural_temp_rows.gmr_price,
+                                                    cur_pur_accural_temp_rows.gmr_price_unit_id,
+                                                    cur_pur_accural_temp_rows.ash_id,
+                                                    cur_pur_accural_temp_rows.payable_qty,
+                                                    cur_pur_accural_temp_rows.payable_qty_unit_id,
+                                                    vn_gmr_refine_charge,
+                                                    vc_gmr_refine_cur_id);
+                                                                                                     
+Update patd_pa_temp_data t
+set t.rc_amt = vn_gmr_refine_charge
+where t.internal_gmr_ref_no =cur_pur_accural_temp_rows.internal_gmr_ref_no
+and t.element_id =   cur_pur_accural_temp_rows.element_id 
+and t.process_id = pc_process_id;                                                      
+end loop;     
+commit;
+sp_eodeom_process_log(pc_corporate_id,
+                  pd_trade_date,
+                  pc_process_id,
+                  976,
+                  'RC updation over');    
+--
+-- Calcualte Penalty Now
+--        
+for cur_pur_accural_temp_rows in cur_pur_accural_penalty loop
+pkg_metals_general.sp_get_gmr_pc_by_assay(cur_pur_accural_temp_rows.internal_gmr_ref_no,
+                                                       cur_pur_accural_temp_rows.internal_grd_ref_no,
+                                                       pc_dbd_id,
+                                                       cur_pur_accural_temp_rows.element_id,
+                                                       cur_pur_accural_temp_rows.ash_id,
+                                                       cur_pur_accural_temp_rows.dry_qty,
+                                                       cur_pur_accural_temp_rows.grd_qty_unit_id,
+                                                       vn_gmr_penality_charge,
+                                                       vc_gmr_penality_cur_id);                                                     
+Update patd_pa_temp_data t
+set t.penalty_amt = vn_gmr_penality_charge
+where t.internal_gmr_ref_no =cur_pur_accural_temp_rows.internal_gmr_ref_no
+and t.element_id =   cur_pur_accural_temp_rows.element_id 
+and t.process_id = pc_process_id;                                                         
+end loop;  
+commit;
+sp_eodeom_process_log(pc_corporate_id,
+                  pd_trade_date,
+                  pc_process_id,
+                  977,
+                  'Penalty updation over');                                                         
+                             
+    for cur_pur_accural_rows in cur_pur_accural
+    loop
+      vn_payable_qty := null;
+      vc_payable_qty_unit_id := null;
+      vn_gmr_price                 := null;
+      vc_gmr_price_untit_id        := null;
+      vn_price_unit_weight_unit_id := null;
+      vc_gmr_price_unit_cur_id     := null;
+      vc_gmr_price_unit_cur_code   := null;
+      vn_payable_amt_in_price_cur  := null;
+      vn_payable_amt_in_pay_cur    := null;
+      vn_fx_rate_price_to_pay      := null;
+      vn_gmr_treatment_charge      :=0;
+      vn_gmr_penality_charge := 0;
+      vn_gmr_refine_charge :=0;
+      if cur_pur_accural_rows.payable_type <> 'Penalty' then
         
-        pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
+                vn_gmr_price                 := cur_pur_accural_rows.gmr_price;
+                vc_gmr_price_untit_id        := cur_pur_accural_rows.gmr_price_unit_id;
+                vn_price_unit_weight_unit_id := cur_pur_accural_rows.gmr_price_unit_weight_unit_id;
+                vc_gmr_price_unit_cur_id     := cur_pur_accural_rows.gmr_price_unit_cur_id;
+                vc_gmr_price_unit_cur_code   := cur_pur_accural_rows.gmr_price_unit_cur_code;
+                pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
                                            vc_price_cur_id,
                                            vc_price_cur_code,
                                            vn_cont_price_cur_id_factor,
@@ -1829,41 +2059,16 @@ create or replace package body pkg_phy_eod_reports is
              vn_payable_qty := null;
              vc_payable_qty_unit_id := null;
           end if;
-        pkg_metals_general.sp_get_gmr_treatment_charge(cur_pur_accural_rows.internal_gmr_ref_no,
-                                                       cur_pur_accural_rows.internal_grd_ref_no,
-                                                       cur_pur_accural_rows.element_id,
-                                                       pc_dbd_id,
-                                                       vn_gmr_price,
-                                                       vc_gmr_price_untit_id,
-                                                       vn_gmr_treatment_charge,
-                                                       vc_gmr_treatment_cur_id);
-      
-        vn_gmr_treatment_charge := round(vn_gmr_treatment_charge,
-                                              cur_pur_accural_rows.base_cur_decimal);
-      
-        pkg_metals_general.sp_get_gmr_refine_charge(cur_pur_accural_rows.internal_gmr_ref_no,
-                                                    cur_pur_accural_rows.internal_grd_ref_no,
-                                                    cur_pur_accural_rows.element_id,
-                                                    pc_dbd_id,
-                                                    vn_gmr_price,
-                                                    vc_gmr_price_untit_id,
-                                                    vn_gmr_refine_charge,
-                                                    vc_gmr_refine_cur_id);
-       vn_gmr_refine_charge := round(vn_gmr_refine_charge,cur_pur_accural_rows.base_cur_decimal);
+        
+       vn_gmr_treatment_charge := round(cur_pur_accural_rows.tc_amt,cur_pur_accural_rows.base_cur_decimal);
+       vn_gmr_refine_charge := round(cur_pur_accural_rows.rc_amt,cur_pur_accural_rows.base_cur_decimal);
       end if;
       if cur_pur_accural_rows.payable_type = 'Penalty' then
-          pkg_metals_general.sp_get_gmr_penalty_charge(cur_pur_accural_rows.internal_gmr_ref_no,
-                                                       cur_pur_accural_rows.internal_grd_ref_no,
-                                                       pc_dbd_id,
-                                                       cur_pur_accural_rows.element_id,
-                                                       vn_gmr_penality_charge,
-                                                       vc_gmr_penality_cur_id);
-        
-          vn_gmr_penality_charge := round(vn_gmr_penality_charge,cur_pur_accural_rows.base_cur_decimal);
+          vn_gmr_penality_charge := round(cur_pur_accural_rows.penalty_amt,cur_pur_accural_rows.base_cur_decimal);
       else
            vn_gmr_penality_charge := 0;
       end if;
-      vn_rno := vn_rno + 1;
+      
       insert into pa_purchase_accural
         (corporate_id,
          process_id,
@@ -1929,16 +2134,12 @@ create or replace package body pkg_phy_eod_reports is
          0, -- Fright charges amount,
          0 -- Other charges amount    
          );
-         if vn_rno = 300 then
-            commit;
-            vn_rno := 0;
-         end if;
     end loop;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          1001,
+                          978,
                           'sp_phy_purchase_accural Loop over');
 delete from pa_temp 
 where  corporate_id = pc_corporate_id;
@@ -1946,7 +2147,7 @@ commit;
    sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          1002,
+                          979,
                           'sp_phy_purchase_accural Loop pa_temp1');                      
 -- Payable Quantity                          
 insert into pa_temp
@@ -1969,7 +2170,8 @@ insert into pa_temp
    tcharges_amount,
    rcharges_amount,
    penalty_amount,
-   latest_internal_invoice_ref_no)
+   latest_internal_invoice_ref_no,
+   invoice_ref_no)
 select grd.internal_gmr_ref_no,
        grd.internal_grd_ref_no,
        gmr.internal_contract_ref_no,
@@ -1994,10 +2196,12 @@ select grd.internal_gmr_ref_no,
        0 tcharges_amount,
        0 rcharges_amount,
        0 penalty_amount,
-       gmr.latest_internal_invoice_ref_no
+       gmr.latest_internal_invoice_ref_no,
+       is1.invoice_ref_no
   from gmr_goods_movement_record     gmr,
        grd_goods_record_detail       grd,
        iid_invoicable_item_details   iid,
+       is_invoice_summary is1,
        iied_inv_item_element_details iied,
        ak_corporate                  akc,
        cm_currency_master            cm,
@@ -2014,6 +2218,9 @@ select grd.internal_gmr_ref_no,
    and gmr.corporate_id = akc.corporate_id
    and akc.base_cur_id = cm.cur_id
    and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
+   and iid.internal_invoice_ref_no = is1.internal_invoice_ref_no
+   and gmr.latest_internal_invoice_ref_no = is1.internal_invoice_ref_no(+)
+   and pc_process_id = is1.process_id(+)
    and iid.stock_id = iam.internal_grd_ref_no
    and iam.ash_id = ash.ash_id
    and ash.ash_id = asm.ash_id
@@ -2030,7 +2237,7 @@ commit;
   sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          1003,
+                          980,
                           'sp_phy_purchase_accural Loop pa_temp2');
 -- assay qty
 insert into pa_temp
@@ -2053,7 +2260,8 @@ insert into pa_temp
    tcharges_amount,
    rcharges_amount,
    penalty_amount,
-   latest_internal_invoice_ref_no)
+   latest_internal_invoice_ref_no,
+   invoice_ref_no)
 select grd.internal_gmr_ref_no,
        grd.internal_grd_ref_no,
        gmr.internal_contract_ref_no,
@@ -2093,10 +2301,12 @@ select grd.internal_gmr_ref_no,
        0 tcharges_amount,
        0 rcharges_amount,
        0 penalty_amount,
-       gmr.latest_internal_invoice_ref_no
+       gmr.latest_internal_invoice_ref_no,
+       is1.invoice_ref_no
   from gmr_goods_movement_record   gmr,
        grd_goods_record_detail     grd,
        iid_invoicable_item_details iid,
+       is_invoice_summary is1,
        ak_corporate                akc,
        cm_currency_master          cm,
        iam_invoice_assay_mapping   iam,
@@ -2111,6 +2321,8 @@ select grd.internal_gmr_ref_no,
    and gmr.corporate_id = akc.corporate_id
    and akc.base_cur_id = cm.cur_id
    and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
+   and gmr.latest_internal_invoice_ref_no = is1.internal_invoice_ref_no(+)
+   and pc_process_id = is1.process_id(+)
    and iid.stock_id = iam.internal_grd_ref_no
    and iam.ash_id = ash.ash_id
    and ash.ash_id = asm.ash_id
@@ -2126,7 +2338,7 @@ select grd.internal_gmr_ref_no,
   sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          1004,
+                          981,
                           'sp_phy_purchase_accural Loop pa_temp3');
 commit;
     -- Invoiced  GMR Level
@@ -2152,7 +2364,8 @@ commit;
        pay_in_cur_code,
        tranascation_type,
        internal_gmr_ref_no,
-       latest_internal_invoice_ref_no)
+       latest_internal_invoice_ref_no,
+       invoice_ref_no)
       select temp.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -2164,7 +2377,7 @@ commit;
              temp.gmr_ref_no,
              temp.element_id,
              aml.attribute_name,
-             pcpch.payable_type,
+             nvl(pcpch.payable_type,'Penalty'),
              sum(temp.assay_qty) payable_qty,
              temp.assay_qty_unit assay_qty_unit,
              sum(temp.payble_qty) payable_qty,
@@ -2174,7 +2387,8 @@ commit;
              cm.cur_code,
              'Invoiced',
              temp.internal_gmr_ref_no,
-             temp.latest_internal_invoice_ref_no
+             temp.latest_internal_invoice_ref_no,
+             temp.invoice_ref_no
         from pa_temp temp,
              pdm_productmaster pdm_conc,
              qat_quality_attributes qat,
@@ -2212,18 +2426,19 @@ commit;
                 temp.gmr_ref_no,
                 temp.element_id,
                 aml.attribute_name,
-                pcpch.payable_type,
+                nvl(pcpch.payable_type,'Penalty'),
                 temp.invoice_currency_id,
                 temp.payable_qty_unit,
                 temp.assay_qty_unit,
                 cm.cur_code,
                 temp.internal_gmr_ref_no,
-                temp.latest_internal_invoice_ref_no;
+                temp.latest_internal_invoice_ref_no,
+                temp.invoice_ref_no;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          1005,
+                          982,
                           'sp_phy_purchase_accural GMR Level');
 --
 -- Need to update Tc Charges,Rc Chargess, Penality
@@ -2231,10 +2446,9 @@ commit;
 Update pa_purchase_accural_gmr pa_gmr
 set (pa_gmr.tcharges_amount,--
      pa_gmr.rcharges_amount, --
-     pa_gmr.penalty_amount,
-     pa_gmr.provisional_pymt_pctg
+     pa_gmr.penalty_amount
      ) =(--
-select t.tc_amt, t.rc_amt, t.penalty_amt, t.provisional_pymt_pctg from tgc_temp_gmr_charges t
+select t.tc_amt, t.rc_amt, t.penalty_amt from tgc_temp_gmr_charges t
 where t.corporate_id = pc_corporate_id
 and t.internal_gmr_ref_no = pa_gmr.internal_gmr_ref_no
 and t.internal_invoice_ref_no = pa_gmr.latest_internal_invoice_ref_no
@@ -2269,13 +2483,21 @@ update pa_purchase_accural_gmr pa_gmr
  and pa_gmr.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no
  and rownum < 2;
  
-end loop;          
+ 
+end loop;  
+commit;
+Update pa_purchase_accural_gmr pa_gmr
+   set pa_gmr.provisional_pymt_pctg =
+       (select is1.provisional_pymt_pctg from is_invoice_summary is1
+       where is1.process_id = pc_process_id
+       and is1.internal_invoice_ref_no = pa_gmr.latest_internal_invoice_ref_no)
+ where pa_gmr.process_id = pc_process_id;        
 
 commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          1006,
+                          983,
                           'sp_phy_purchase_accural Update TC and Others');
 
 --
@@ -2374,7 +2596,7 @@ commit;
    sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          1007,
+                          984,
                           'sp_phy_purchase_accural Calcualted GMR Level');
     -- Difference Section at GMR level
     insert into pa_purchase_accural_gmr
@@ -2535,7 +2757,7 @@ commit;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          1008,
+                          985,
                           'sp_phy_purchase_accural End');
   end;  
 
