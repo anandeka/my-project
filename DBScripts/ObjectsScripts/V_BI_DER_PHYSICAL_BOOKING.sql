@@ -1,3 +1,4 @@
+CREATE OR REPLACE FORCE VIEW v_bi_der_physical_booking
 select iss.corporate_id,
        akc.corporate_name,
        pdm.product_id,
