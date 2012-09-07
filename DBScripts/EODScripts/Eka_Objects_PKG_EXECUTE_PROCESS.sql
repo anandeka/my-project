@@ -1333,6 +1333,25 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                  pd_trade_date,
                  'sp_process_run',
                  'EOD/EOM Process Started.....');
+-- CDC Process call moved first before the Physical process as CDC pnl required in physical module,custom reports in
+-- PTM, and BI domains.                 
+    if vc_cdc_process_appplicable = 'Y' then
+    
+      vc_cdc_execute := 'call  pkg_cdc_derivatives_process.sp_process_run(''' ||
+                        pc_corporate_id || ''',''' || pd_trade_date ||
+                        ''',''' || pc_process_id || ''',''' || pc_user_id ||
+                        ''',''' || pc_process || ''',''' || pc_dbd_id ||
+                        ''')';
+      execute immediate vc_cdc_execute;
+    
+      /*pkg_cdc_derivatives_process.sp_process_run(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_process,
+      pc_dbd_id);*/
+      commit;
+    end if;                 
     if vc_phy_process_applicable = 'Y' then
       vc_cdc_execute := 'call pkg_phy_physical_process.sp_process_run(''' ||
                         pc_corporate_id || ''',''' || pd_trade_date ||
@@ -1354,23 +1373,7 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                  pd_trade_date,
                  'sp_mark_process_id',
                  'Physical Marking Completed.....');
-    if vc_cdc_process_appplicable = 'Y' then
-    
-      vc_cdc_execute := 'call  pkg_cdc_derivatives_process.sp_process_run(''' ||
-                        pc_corporate_id || ''',''' || pd_trade_date ||
-                        ''',''' || pc_process_id || ''',''' || pc_user_id ||
-                        ''',''' || pc_process || ''',''' || pc_dbd_id ||
-                        ''')';
-      execute immediate vc_cdc_execute;
-    
-      /*pkg_cdc_derivatives_process.sp_process_run(pc_corporate_id,
-      pd_trade_date,
-      pc_process_id,
-      pc_user_id,
-      pc_process,
-      pc_dbd_id);*/
-      commit;
-    end if;
+
     --added on 09-Mar-2011
     if vc_cdc_process_appplicable = 'Y' then
     
