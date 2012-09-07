@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1034
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok
+ 
+Created on*        		:  07-Sep-2012
+
+Bug / Enhancement*              :  Bug fixes
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :APP
+==================================================================
+
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_PHY_CONT_JOURNAL_EOD.sql	(Revision: 103015)
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_PHY_CONT_JOURNAL_EOM.sql	(Revision: 103015)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_DER_PHYSICAL_BOOKING.sql        (Revision: 102947)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_DERIVATIVE_UNREALIZED.sql	(Revision: 102720)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
