@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_1032
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  07-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 102995
+Author: elaiyaraja.nallathambi
+Date: 1:14:46 PM, Friday, September 07, 2012
+Message:
+Enhancements for "Wave 1"...
+1.Arrival Report --> GMR Date changed to "BL Date".
+2.Feed Consumption Report --> Summary Added for "Payable & Contained  Column.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FeedConsumptionReport.rpt
+
+
+
+
+
+
+
+
+
+
+
+
