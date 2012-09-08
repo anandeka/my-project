@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_1036
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  08-Sep-2012
+
+Bug / Enhancement*              :  Bug fixes
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  MDM 1.6.3
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Message: Custom reports package changes as per the latest strategy attributes release in MDM 1.6.3
+----
+
+Revision: 103018
+
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/79_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

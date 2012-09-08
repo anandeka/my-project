@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1037
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  08-Sep-2012
+
+Bug / Enhancement*              :  Bug fixes
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  MDM 1.6.3
+
+==================================================================
+Schema type (Transaction / EOD)* :APP
+==================================================================
+Message: Custom reports package changes as per the latest strategy attributes changes in MDM 1.6.3
+----
+
+
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_gmr_strategy_profit.sql	(Revision: 103027)
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_strategy_attribute.sql	(Revision: 103024)
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/mv_bi_strategy_attribute.sql	(Revision: 103024)
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_DERIVATIVE_UNREALIZED.sql	(Revision: 103023)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_PHY_CONT_JOURNAL_EOD.sql	(Revision: 103019)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_PHY_CONT_JOURNAL_EOM.sql	(Revision: 103019)
+
