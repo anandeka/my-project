@@ -47,6 +47,11 @@ create or replace package pkg_phy_custom_reports is
                                       pc_process      varchar2,
                                       pc_process_id   varchar2,
                                       pc_user_id      varchar2);
+  procedure sp_update_strategy_attributes(pc_corporate_id varchar2,
+                                          pd_trade_date   date,
+                                          pc_process      varchar2,
+                                          pc_process_id   varchar2,
+                                          pc_user_id      varchar2);
 
 end;
 /
@@ -147,6 +152,12 @@ create or replace package body pkg_phy_custom_reports is
                               pc_user_id);
   
     commit;
+    ----Note:  keep sp_update_strategy_attributes update procedue at end of custom reports call
+    sp_update_strategy_attributes(pc_corporate_id,
+                                          pd_trade_date,
+                                          pc_process,
+                                          pc_process_id,
+                                          pc_user_id);
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while journal calculation');
   exception
@@ -739,8 +750,8 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
                                 /*and pcqpd.process_id(+) = pc_process_id
-                                                                and pcqpd.dbd_id(+) = 708
-                                                                and pcqpd.premium_disc_unit_id = ppu_pum.product_price_unit_id(+)*/
+                                                                                                                                                                and pcqpd.dbd_id(+) = 708
+                                                                                                                                                                and pcqpd.premium_disc_unit_id = ppu_pum.product_price_unit_id(+)*/
                              and pcm.corporate_id = akc.corporate_id
                              and pcm.internal_contract_ref_no =
                                  pcbph.internal_contract_ref_no
@@ -933,7 +944,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
                                 /*and pcqpd.process_id(+) = pc_process_id
-                                                                and pcqpd.premium_disc_unit_id = ppu_pum.product_price_unit_id(+)*/
+                                                                                                                                                                and pcqpd.premium_disc_unit_id = ppu_pum.product_price_unit_id(+)*/
                              and pcm.corporate_id = akc.corporate_id
                              and pcm.internal_contract_ref_no =
                                  pcbph.internal_contract_ref_no
@@ -1128,8 +1139,8 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
                                 /*and pcqpd.process_id(+) = pc_process_id
-                                                                and pcqpd.dbd_id(+) = 708
-                                                                and pcqpd.premium_disc_unit_id = ppu_pum.product_price_unit_id(+)*/
+                                                                                                                                                                and pcqpd.dbd_id(+) = 708
+                                                                                                                                                                and pcqpd.premium_disc_unit_id = ppu_pum.product_price_unit_id(+)*/
                              and pcm.corporate_id = akc.corporate_id
                              and pcm.internal_contract_ref_no =
                                  pcbph.internal_contract_ref_no
@@ -2611,11 +2622,11 @@ create or replace package body pkg_phy_custom_reports is
              ppu_pum.price_unit_name price_unit,
              pofh.latest_adj_price,
              /*round(pkg_general.f_get_converted_currency_amt(pcm.corporate_id,
-                                                                   ppu_pum.cur_id,
-                                                                   akc.base_cur_id,
-                                                                   sysdate,
-                                                                   1),
-                          10) fx_rate, --price to base*/
+                                                                                                          ppu_pum.cur_id,
+                                                                                                          akc.base_cur_id,
+                                                                                                          sysdate,
+                                                                                                          1),
+                                                                 10) fx_rate, --price to base*/
              cq.close_rate fx_rate,
              0 contract_premium, --inside formula
              ppu_pum.price_unit_name contract_premium_unit, --inside variable
@@ -2753,11 +2764,11 @@ create or replace package body pkg_phy_custom_reports is
              ppu_pum.price_unit_name price_unit,
              pofh.latest_adj_price,
              /*round(pkg_general.f_get_converted_currency_amt(pcm.corporate_id,
-                                                                   ppu_pum.cur_id,
-                                                                   akc.base_cur_id,
-                                                                   sysdate,
-                                                                   1),
-                          10) fx_rate, --price to base*/
+                                                                                                          ppu_pum.cur_id,
+                                                                                                          akc.base_cur_id,
+                                                                                                          sysdate,
+                                                                                                          1),
+                                                                 10) fx_rate, --price to base*/
              cq.close_rate fx_rate,
              0 contract_premium, --inside formula
              ppu_pum.price_unit_name contract_premium_unit, --inside variable
@@ -4060,6 +4071,186 @@ create or replace package body pkg_phy_custom_reports is
     when others then
       null; -- TODO siva
   end;
-
+  procedure sp_update_strategy_attributes(pc_corporate_id varchar2,
+                                          pd_trade_date   date,
+                                          pc_process      varchar2,
+                                          pc_process_id   varchar2,
+                                          pc_user_id      varchar2) is
+    --------------------------------------------------------------------------------------------------------------------------
+    --        Procedure Name                            : sp_update_strategy_attributes
+    --        Author                                    : Siva
+    --        Created Date                              : 01-Aug-2012
+    --        Purpose                                   :
+    --
+    --        Parameters
+    --        pc_corporate_id                           : Corporate ID
+    --        pd_trade_date                             : Trade Date
+    --        pc_user_id                                : User ID
+    --        pc_process                                : Process EOD or EOM
+    --
+    --        Modification History
+    --        Modified Date                             :
+    --        Modified By                               :
+    --        Modify Description                        :
+    --------------------------------------------------------------------------------------------------------------------------
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+    vn_error_no        number := 0;
+  
+    cursor stg is
+      select tt.corporate_startegy_id startegy_id,
+             tt.strategy_name,
+             max(case
+                   when tt.order_seq = 1 then
+                    tt.attribute_name
+                   else
+                    null
+                 end) attribute_name_1,
+             max(case
+                   when tt.order_seq = 1 then
+                    tt.attribute_value
+                   else
+                    null
+                 end) attribute_value_1,
+             ----------            
+             max(case
+                   when tt.order_seq = 2 then
+                    tt.attribute_name
+                   else
+                    null
+                 end) attribute_name_2,
+             max(case
+                   when tt.order_seq = 2 then
+                    tt.attribute_value
+                   else
+                    null
+                 end) attribute_value_2,
+             ---------
+             max(case
+                   when tt.order_seq = 3 then
+                    tt.attribute_name
+                   else
+                    null
+                 end) attribute_name_3,
+             max(case
+                   when tt.order_seq = 3 then
+                    tt.attribute_value
+                   else
+                    null
+                 end) attribute_value_3,
+             ----
+             max(case
+                   when tt.order_seq = 4 then
+                    tt.attribute_name
+                   else
+                    null
+                 end) attribute_name_4,
+             max(case
+                   when tt.order_seq = 4 then
+                    tt.attribute_value
+                   else
+                    null
+                 end) attribute_value_4,
+             max(case
+                   when tt.order_seq = 5 then
+                    tt.attribute_name
+                   else
+                    null
+                 end) attribute_name_5,
+             max(case
+                   when tt.order_seq = 5 then
+                    tt.attribute_value
+                   else
+                    null
+                 end) attribute_value_5
+        from (select eam.entity_value_id corporate_startegy_id,
+                     css.strategy_name,
+                     etm.entity_type_name,
+                     adm.attribute_def_id,
+                     adm.attribute_name,
+                     avm.attribute_value,
+                     nvl(avm.attribute_value_desc, avm.attribute_value) attribute_value_desc,
+                     rank() over(partition by eam.entity_value_id order by adm.attribute_name asc) order_seq
+                from eam_entity_attribute_mapping@eka_appdb eam,
+                     etm_entity_type_master@eka_appdb       etm,
+                     adm_attribute_def_master@eka_appdb     adm,
+                     avm_attribute_value_master@eka_appdb   avm,
+                     css_corporate_strategy_setup           css
+               where upper(etm.entity_type_name) = 'STRATEGY'
+                 and eam.attribute_value_id = avm.attribute_value_id
+                 and eam.attribute_def_id = adm.attribute_def_id
+                 and eam.entity_type_id = etm.entity_type_id
+                 and eam.entity_value_id = css.strategy_id
+                 and css.corporate_id = 'BLD'
+                 and css.is_active = 'Y'
+                 and css.is_deleted = 'N'
+                 and eam.is_deleted = 'N') tt
+       where tt.order_seq <= 5
+       group by tt.corporate_startegy_id,
+                tt.strategy_name;
+  
+  begin
+    for stg_rwo in stg
+    loop
+      update eod_eom_booking_journal eod
+         set eod.attribute_1 = stg_rwo.attribute_value_1,
+             eod.attribute_2 = stg_rwo.attribute_value_2,
+             eod.attribute_3 = stg_rwo.attribute_value_3,
+             eod.attribute_4 = stg_rwo.attribute_value_4,
+             eod.attribute_5 = stg_rwo.attribute_value_5
+       where eod.corporate_id = pc_corporate_id
+         and eod.process_id = pc_process_id
+         and eod.strategy_id = stg_rwo.startegy_id;
+      commit;
+      update eod_eom_derivative_journal eod
+         set eod.attribute_1 = stg_rwo.attribute_value_1,
+             eod.attribute_2 = stg_rwo.attribute_value_2,
+             eod.attribute_3 = stg_rwo.attribute_value_3,
+             eod.attribute_4 = stg_rwo.attribute_value_4,
+             eod.attribute_5 = stg_rwo.attribute_value_5
+       where eod.corporate_id = pc_corporate_id
+         and eod.process_id = pc_process_id
+         and eod.strategy_id = stg_rwo.startegy_id;
+      commit;
+      update eod_eom_fixation_journal eod
+         set eod.attribute_1 = stg_rwo.attribute_value_1,
+             eod.attribute_2 = stg_rwo.attribute_value_2,
+             eod.attribute_3 = stg_rwo.attribute_value_3,
+             eod.attribute_4 = stg_rwo.attribute_value_4,
+             eod.attribute_5 = stg_rwo.attribute_value_5
+       where eod.corporate_id = pc_corporate_id
+         and eod.process_id = pc_process_id
+         and eod.strategy_id = stg_rwo.startegy_id;
+      commit;
+      update eod_eom_phy_contract_journal eod
+         set eod.attribute_1 = stg_rwo.attribute_value_1,
+             eod.attribute_2 = stg_rwo.attribute_value_2,
+             eod.attribute_3 = stg_rwo.attribute_value_3,
+             eod.attribute_4 = stg_rwo.attribute_value_4,
+             eod.attribute_5 = stg_rwo.attribute_value_5
+       where eod.corporate_id = pc_corporate_id
+         and eod.process_id = pc_process_id
+         and eod.strategy_id = stg_rwo.startegy_id;
+      commit;
+    end loop;
+    commit;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_update_strategy_attributes',
+                                                           'GEN-001' ||
+                                                           vn_error_no,
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           ' Message:' ||
+                                                           sqlerrm,
+                                                           null,
+                                                           'EOD',
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
 end;
 /
