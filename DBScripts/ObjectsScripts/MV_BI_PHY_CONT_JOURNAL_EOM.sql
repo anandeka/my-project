@@ -45,11 +45,11 @@ select pcj.catogery,
        pcj.profit_center_short_name profit_center,
        pcj.strategy strategy,
        pcj.del_quota_period,
-       'NA' attribute_1,
-       'NA' attribute_2,
-       'NA' attribute_3,
-       'NA' attribute_4,
-       'NA' attribute_5
+       pcj.attribute_1,
+       pcj.attribute_2,
+       pcj.attribute_3,
+       pcj.attribute_4,
+       pcj.attribute_5
   from eod_eom_phy_contract_journal@eka_eoddb pcj,
        tdc_trade_date_closure@eka_eoddb       tdc
  where pcj.corporate_id = tdc.corporate_id
