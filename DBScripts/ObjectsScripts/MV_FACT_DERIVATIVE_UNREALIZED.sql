@@ -22,7 +22,12 @@ select dpd.corporate_id,
        dpd.quality_name,
        dpd.eod_trade_date eod_date,
        'Derivatives' position_type,
-       dpd.instrument_type || ' ' || (case when dpd.trade_type ='Buy' then 'Long' else 'Short' end)  position_sub_type,
+       dpd.instrument_type || ' ' || (case
+         when dpd.trade_type = 'Buy' then
+          'Long'
+         else
+          'Short'
+       end) position_sub_type,
        dpd.derivative_ref_no contract_ref_no,
        dpd.external_ref_no,
        dpd.trade_date issue_trade_date,
@@ -76,39 +81,46 @@ select dpd.corporate_id,
        dpd.settlement_price net_settlement_price,
        dpd.sett_price_cur_code || '/' || dpd.sett_price_weight ||
        dpd.sett_price_weight_unit settlement_price_unit,
-       dpd.market_value_in_trade_cur  market_value_in_val_ccy,
-       dpd.base_cur_id   market_value_cur_id,
+       dpd.market_value_in_trade_cur market_value_in_val_ccy,
+       dpd.base_cur_id market_value_cur_id,
        dpd.base_cur_code market_value_cur_code,
        dpd.prev_day_unr_pnl_in_base_cur,
        dpd.pnl_in_base_cur unrealized_pnl_in_base_cur,
-       dpd.trade_day_pnl_in_base_cur  PnL_change_in_Base_Currency,
+       dpd.trade_day_pnl_in_base_cur pnl_change_in_base_currency,
        dpd.base_cur_id,
        dpd.base_cur_code,
        dpd.base_qty_unit base_quantity_uom,
-       dpd.average_from_date Average_Period_From,
-       dpd.average_to_date   Average_Period_to,
-       dpd.premium_discount Premium,
-       dpd.premium_discount_price_unit_id Premium_price_unit,
-       dpd.clearer_comm_amt Commision_Value,
-       dpd.clearer_comm_cur_code Commission_Value_Currency,
+       dpd.average_from_date average_period_from,
+       dpd.average_to_date average_period_to,
+       dpd.premium_discount premium,
+       dpd.premium_discount_price_unit_id premium_price_unit,
+       dpd.clearer_comm_amt commision_value,
+       dpd.clearer_comm_cur_code commission_value_currency,
        dpd.expiry_date,
        dpd.prompt_date,
        dpd.dr_id_name prompt_details,
-       to_char( dpd.prompt_date ,'Mon-YYYY') Prompt_Month_Year,
-       to_char(dpd.prompt_date ,'YYYY') Prompt_Year
+       to_char(dpd.prompt_date, 'Mon-YYYY') prompt_month_year,
+       to_char(dpd.prompt_date, 'YYYY') prompt_year,
+       msa.attribute_value_1,
+       msa.attribute_value_2,
+       msa.attribute_value_3,
+       msa.attribute_value_4,
+       msa.attribute_value_5
   from dpd_derivative_pnl_daily@eka_eoddb dpd,
        tdc_trade_date_closure@eka_eoddb   tdc,
-       pdm_productmaster        pdm,
+       pdm_productmaster                  pdm,
        ak_corporate                       akc,
-       cm_currency_master             cm_corp
+       cm_currency_master                 cm_corp,
+       mv_bi_strategy_attribute           msa
  where dpd.pnl_type = 'Unrealized'
    and dpd.process_id = tdc.process_id
    and dpd.corporate_id = tdc.corporate_id
-   and dpd.derivative_prodct_id= pdm.product_id
+   and dpd.derivative_prodct_id = pdm.product_id
    and dpd.corporate_id = akc.corporate_id
    and akc.is_active = 'Y'
    and cm_corp.cur_id = akc.base_cur_id
    and tdc.process = 'EOD'
+   and dpd.strategy_id = msa.startegy_id(+)
 union all
 select cpd.corporate_id,
        cpd.corporate_name,
@@ -167,21 +179,26 @@ select cpd.corporate_id,
        cpd.home_currency market_value_cur_code,
        null prev_day_unr_pnl_in_base_cur,
        cpd.pnl_value_in_home_currency unrealized_pnl_in_base_cur,
-       null PnL_change_in_Base_Currency,
+       null pnl_change_in_base_currency,
        cpd.home_cur_id base_cur_id,
        cpd.home_currency base_cur_code,
        cpd.home_currency base_quantity_uom,
-       null Average_Period_From,
-       null Average_Period_to,
-       null Premium,
-       'NA' Premium_price_unit,
-       null Commision_Value,
-       'NA' Commission_Value_Currency,
+       null average_period_from,
+       null average_period_to,
+       null premium,
+       'NA' premium_price_unit,
+       null commision_value,
+       'NA' commission_value_currency,
        null expiry_date,
        cpd.prompt_date,
        null prompt_details,
-       to_char( cpd.prompt_date ,'Mon-YYYY') Prompt_Month_Year,
-       to_char(cpd.prompt_date ,'YYYY') Prompt_Year
+       to_char(cpd.prompt_date, 'Mon-YYYY') prompt_month_year,
+       to_char(cpd.prompt_date, 'YYYY') prompt_year,
+       msa.attribute_value_1,
+       msa.attribute_value_2,
+       msa.attribute_value_3,
+       msa.attribute_value_4,
+       msa.attribute_value_5
   from cpd_currency_pnl_daily@eka_eoddb        cpd,
        tdc_trade_date_closure@eka_eoddb        tdc,
        ct_currency_trade@eka_eoddb             ct,
@@ -190,8 +207,9 @@ select cpd.corporate_id,
        ak_corporate@eka_eoddb                  ak,
        gcd_groupcorporatedetails@eka_eoddb     gcd_group_id,
        cm_currency_master@eka_eoddb            cm_group_cur,
-       CM_CURRENCY_MASTER                      cm_corp,
-       pdm_productmaster@eka_eoddb             pdm
+       cm_currency_master                      cm_corp,
+       pdm_productmaster@eka_eoddb             pdm,
+       mv_bi_strategy_attribute           msa
  where upper(cpd.pnl_type) = 'UNREALIZED'
    and cpd.process_id = tdc.process_id
    and cpd.corporate_id = tdc.corporate_id
@@ -205,5 +223,6 @@ select cpd.corporate_id,
    and gcd_group_id.groupid = ak.groupid
    and cm_group_cur.cur_id = gcd_group_id.group_cur_id
    and ak.base_cur_id = cm_corp.cur_id
-   and cpd.product_name=pdm.product_desc
+   and cpd.product_name = pdm.product_desc
+   and cpd.strategy_id = msa.startegy_id(+)
 /
