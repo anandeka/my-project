@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_1035
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  08-Sep-2012
+
+Bug / Enhancement*              :  Bug fixes
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Output document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :APP
+==================================================================
+
+Revision: 103020
+Author: anandp
+Date: 16:34:45, 08 September 2012
+Message:
+For output doc issue in PI.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_320.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
