@@ -1,4 +1,4 @@
-CREATE OR REPLACE FORCE VIEW v_bi_der_physical_booking
+CREATE OR REPLACE VIEW v_bi_der_physical_booking AS
 select iss.corporate_id,
        akc.corporate_name,
        pdm.product_id,
