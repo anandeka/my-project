@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_1038
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  08-Sep-2012
+
+Bug / Enhancement*              :  Bug fixes
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* :Reports
+==================================================================
+RPT Files :- Needs to be copied into   "zeka-metals-presentation-8.0.1.war"  folder. 
+==================================================================================== 
+
+MRevision: 103036
+Author: sivachalabathi.s
+Date: 1:17:02 PM, Sunday, September 09, 2012
+Message:
+bug fixes for the bug id : 67353 ,67722
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnL.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnL_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyInventoryUnrealizedPhysicalPnL.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyInventoryUnrealizedPhysicalPnLConc.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyOpenUnrealizedPhysicalPnL.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyOpenUnrealizedPhysicalPnL_Excel.rpt
+
+Revision: 103012
+Author: sivachalabathi.s
+Date: 4:15:05 PM, Friday, September 07, 2012
+Message:
+bug fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DeliveryScheduleReport.rpt
+
