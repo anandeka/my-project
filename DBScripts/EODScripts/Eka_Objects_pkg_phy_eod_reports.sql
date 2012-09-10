@@ -10701,7 +10701,7 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type = 'RM Out Process Stock' -- same change as above in to out
+     and grd.tolling_stock_type = 'RM In Process Stock' -- same change as above in to out
      and grd.warehouse_profile_id = phd.profileid
      and pdm.base_quantity_unit = qum.qty_unit_id
      and gmr.corporate_id = akc.corporate_id
@@ -10786,7 +10786,7 @@ insert into temp_mas
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
      and agmr.eff_date >= vd_acc_start_date 
-     and agmr.eff_date <= pd_trade_date
+     and agmr.eff_date <= vd_prev_eom_date
      and grd.tolling_stock_type in ('MFT In Process Stock', 'Delta MFT IP Stock');
 commit;
      
