@@ -3735,7 +3735,7 @@ commit;
                           1
                          else
                           -1
-                       end) * nvl(abs(ioc.flat_amount), 0)) current_amount,
+                       end) * ioc.amount_in_inv_cur * nvl(invs.fx_to_base, 1)) current_amount,
                        0 previous_realized_qty,
                        0 previous_realized_amount,
                        invs.invoice_issue_date month,
@@ -3810,7 +3810,7 @@ commit;
                           -1
                          else
                           1
-                       end) * nvl(abs(ioc.flat_amount), 0)) current_amount,
+                       end) * ioc.amount_in_inv_cur * nvl(invs.fx_to_base, 1)) current_amount,
                        0 previous_realized_qty,
                        0 previous_realized_amount,
                        invs.invoice_issue_date month,
