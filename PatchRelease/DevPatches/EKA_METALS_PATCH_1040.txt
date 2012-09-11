@@ -34,17 +34,17 @@ Dependent patches:		 :  NA
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
-Revision: 103133
-Author: suresh.gottipati
-Date: 3:12:18 PM, Tuesday, September 11, 2012
+
+Author: suresh.gottipati/Surabh Raj
+
 Message:
-Bug Fixes 67221,67560,68246
+Bug Fixes 67221,67560,68246,67242
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql(Revision:103153)
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
-
-
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/80_DDL_EODDB_ALTER_SCRIPT.sql	        (Revision: 103110)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql	(Revision: 103133)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql    (Revision:103153)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql        (Revision: 103133)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql      (Revision: 103131)
 
 
 
