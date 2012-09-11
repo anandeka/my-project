@@ -15,9 +15,9 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  APP
+Module  		   	 :  EOD
 
-Sub-Module  			 :  APP
+Sub-Module  			 :  EOD
  
 Section   		   	 :  N/A
  
@@ -32,16 +32,19 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  NA
 
 ==================================================================
-Schema type (Transaction / EOD)* :Transaction
+Schema type (Transaction / EOD)* :EOD
 ==================================================================
-Revision: 103108
+Revision: 103133
 Author: suresh.gottipati
-Date: 12:26:27 PM, Tuesday, September 11, 2012
+Date: 3:12:18 PM, Tuesday, September 11, 2012
 Message:
-
+Bug Fixes 67221,67560,68246
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_EXECUTE_EOD.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_EXECUTE_EOM.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql(Revision:103153)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+
+
 
 
 
