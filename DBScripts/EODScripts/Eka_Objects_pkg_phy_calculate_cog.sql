@@ -554,7 +554,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
          and grd.tolling_stock_type = 'None Tolling'
          and grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id;
-  
+     commit;
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -581,6 +581,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
          and t.product_id = cur_conv1.product_id
          and t.process_id = pc_process_id;
     end loop;
+    commit;
     --
     -- Quantity Conversion from Stock Weight Unit to Product Base Unit
     --
@@ -607,6 +608,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
          and t.product_id = cur_conv2.product_id
          and t.process_id = pc_process_id;
     end loop;
+    commit;
     --
     -- Value in Transaction Currency
     --    
@@ -618,6 +620,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                                           t.transformation_ratio /
                                           t.price_weight
      where t.process_id = pc_process_id;
+     commit;
   
     --
     -- Get the Exchange Rate from Transaction Main Currency to Base Currency
@@ -661,7 +664,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
          and t.process_id = pc_process_id;
     
     end loop;
-  
+   commit;
     --
     -- Update Value in Base and Avg Cost in Base Price Unit
     --
@@ -676,6 +679,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                                       (t.stock_to_base_wt_conversion *
                                       t.grd_current_qty)
      where t.process_id = pc_process_id;
+     commit;
     --
     -- All calculations done and ready with data into invm_cog
     --
@@ -893,6 +897,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                 price_unit_weight_unit,
                 weight,
                 gmr_qty;
+        commit;        
     -- Insert Element Price/TC/RC Details
     insert into invme_cog_element
       (process_id,
@@ -980,6 +985,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                 t.element_id,
                 t.payable_qty,
                 t.payable_qty_unit_id;
+         commit;
     update invme_cog_element t
        set (t.mc_price_unit_name, t.mc_price_unit_cur_id, t.mc_price_unit_cur_code, t.mc_price_unit_weight_unit_id, t.mc_price_unit_weight_unit, t.mc_price_unit_weight) = (select ppu.price_unit_name,
                                                                                                                                                                                    cm.cur_id,
@@ -997,13 +1003,14 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                                                                                                                                                                                and qum.qty_unit_id =
                                                                                                                                                                                    ppu.weight_unit_id)
      where t.process_id = pc_process_id;
-  
+   commit;
     update invme_cog_element t
        set (t.tc_price_unit_name) = (select ppu.price_unit_name
                                        from v_ppu_pum ppu
                                       where ppu.product_price_unit_id =
                                             t.tc_price_unit_id)
      where t.process_id = pc_process_id;
+    commit;
   
     update invme_cog_element t
        set (t.rc_price_unit_name) = (select ppu.price_unit_name
@@ -1011,6 +1018,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                                       where ppu.product_price_unit_id =
                                             t.rc_price_unit_id)
      where t.process_id = pc_process_id;
+     
+      commit;
   
     for cur_price_ex_rate in (select t.mc_price_unit_cur_id,
                                      t.mc_price_unit_cur_code
@@ -1042,8 +1051,10 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
       end if;
     
     end loop;
+     commit;
   exception
     when others then
+     commit;
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure pkg_phy_physical_process sp_calc_invm_cog',
@@ -1647,6 +1658,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                  and gmr.is_deleted = 'N'
                  and cigc_in.is_deleted = 'N'
                  and gmr.contract_type = 'Sales');
+     commit;            
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
     --         
@@ -1673,6 +1685,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
          and t.product_id = cur_conv1.product_id
          and t.process_id = pc_process_id;
     end loop;
+    commit;
     --
     -- Quantity Conversion from Stock Weight Unit to Product Base Unit
     --
@@ -1699,6 +1712,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
          and t.product_id = cur_conv2.product_id
          and t.process_id = pc_process_id;
     end loop;
+    commit;
     --
     -- Value in Transaction Currency
     --    
@@ -1710,7 +1724,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                                           t.transformation_ratio /
                                           t.price_weight
      where t.process_id = pc_process_id;
-  
+    commit;
     --
     -- Get the Exchange Rate from Transaction Main Currency to Base Currency
     --
@@ -1754,7 +1768,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
          and t.process_id = pc_process_id;
     
     end loop;
-  
+    commit;
     --
     -- Update Value in Base and Avg Cost in Base Price Unit
     --
@@ -1767,6 +1781,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                                       (t.stock_to_base_wt_conversion *
                                       t.original_inv_qty))
      where t.process_id = pc_process_id;
+     commit;
     --
     -- All calculations done and ready with data into invm_cog
     --
@@ -1924,7 +1939,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                 price_unit_weight_unit_id,
                 price_unit_weight_unit,
                 weight;
-  
+  commit;
  --
  -- Update Average Secondary Cost 
  -- Here we need to take the average of cost Per Cost Componennt first and then aggregate it
@@ -1952,7 +1967,7 @@ where t.process_id = pc_process_id
 and t.internal_grd_ref_no = cur_update.internal_grd_ref_no
 and t.sales_internal_gmr_ref_no = cur_update.sales_internal_gmr_ref_no;
 end loop;
- 
+commit; 
 
 
     -- Insert Element Price/TC/RC Details
@@ -2064,17 +2079,20 @@ end loop;
                                                                                                                                                                                    ppu.cur_id
                                                                                                                                                                                and qum.qty_unit_id =
                                                                                                                                                                                    ppu.weight_unit_id);
+  commit;                                                                                                                                                                                   
     update invme_cogs_element t
        set t.tc_price_unit_name = (select ppu.price_unit_name
                                      from v_ppu_pum ppu
                                     where ppu.product_price_unit_id =
                                           t.tc_price_unit_id);
+   commit;                                          
   
     update invme_cogs_element t
        set t.rc_price_unit_name = (select ppu.price_unit_name
                                      from v_ppu_pum ppu
                                     where ppu.product_price_unit_id =
                                           t.rc_price_unit_id);
+  commit;                                          
   
     for cur_price_ex_rate in (select t.mc_price_unit_cur_id,
                                      t.mc_price_unit_cur_code
@@ -2106,8 +2124,10 @@ end loop;
       end if;
     
     end loop;
+    commit;
   exception
     when others then
+      commit;
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure pkg_phy_physical_process sp_calc_invm_cogs',
@@ -2201,7 +2221,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -2287,7 +2307,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              1,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -2375,7 +2395,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -2461,7 +2481,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -2547,7 +2567,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -2633,7 +2653,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              1,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -2721,7 +2741,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -2807,7 +2827,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -2892,7 +2912,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -2983,7 +3003,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              1,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -3076,7 +3096,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -3167,7 +3187,7 @@ end loop;
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
@@ -3227,6 +3247,7 @@ end loop;
          and scmt.is_deleted = 'N'
          and dgrd.tolling_stock_type = 'None Tolling'
          and scmt.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no;
+     commit;         
     -- Sales GMR Inventory Out Ends Here
     --
     -- Quantity Conversion from Price Weight Unit to Stock Weight Unit
@@ -3254,6 +3275,7 @@ end loop;
          and t.product_id = cur_conv1.product_id
          and t.process_id = pc_process_id;
     end loop;
+    commit;
     --
     -- Quantity Conversion from Stock Weight Unit to Product Base Unit
     --
@@ -3280,6 +3302,7 @@ end loop;
          and t.product_id = cur_conv2.product_id
          and t.process_id = pc_process_id;
     end loop;
+    commit;
     --
     -- Value in Transaction Currency
     --    
@@ -3291,15 +3314,15 @@ end loop;
                                           t.transformation_ratio /
                                           t.price_weight
      where t.process_id = pc_process_id;
+     commit;
   
     --
-    -- Get the Exchange Rate from Transaction Main Currency to Base Currency
+    --update fx rate string 
     --
     for cur_exch_rate in (select t.transaction_amt_main_cur_id,
                                  t.base_cur_id,
                                  cm_base.cur_code base_cur_code,
-                                 cm_trans.cur_code transaction_amt_main_cur_code,
-                                 t.payment_due_date
+                                 cm_trans.cur_code transaction_amt_main_cur_code
                             from tgsc_temp_gmr_sec_cost t,
                                  cm_currency_master     cm_trans,
                                  cm_currency_master     cm_base
@@ -3312,31 +3335,20 @@ end loop;
                            group by t.transaction_amt_main_cur_id,
                                     t.base_cur_id,
                                     cm_base.cur_code,
-                                    cm_trans.cur_code,
-                                    t.payment_due_date)
+                                    cm_trans.cur_code)
     loop
-      pkg_general.sp_bank_fx_rate(pc_corporate_id,
-                                  pd_trade_date,
-                                  cur_exch_rate.payment_due_date,
-                                  cur_exch_rate.transaction_amt_main_cur_id,
-                                  cur_exch_rate.base_cur_id,
-                                  30,
-                                  'procedure pkg_phy_calculate_cog.sp_calc_gms_sec_cost',
-                                  pc_process,
-                                  vn_fw_exch_rate_trans_to_base,
-                                  vn_forward_points);
     
       update tgsc_temp_gmr_sec_cost t
          set t.trans_to_base_fw_exch_rate    = '1 ' ||
                                                cur_exch_rate.transaction_amt_main_cur_code || '=' ||
                                                vn_fw_exch_rate_trans_to_base || ' ' ||
-                                               cur_exch_rate.base_cur_code,
-             t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base
+                                               cur_exch_rate.base_cur_code
        where t.process_id = pc_process_id
          and t.transaction_amt_main_cur_id =
              cur_exch_rate.transaction_amt_main_cur_id;
     
     end loop;
+    commit;
   
     --
     -- Update Value in Base and Avg Cost in Base Price Unit
@@ -3352,6 +3364,7 @@ end loop;
                                       (t.stock_to_base_wt_conversion *
                                       t.grd_current_qty)
      where t.process_id = pc_process_id;
+     commit;
     --
     -- All calculations done and ready with data into invm_cog
     --
@@ -3385,8 +3398,10 @@ end loop;
                 from tgsc_temp_gmr_sec_cost t
                where t.process_id = pc_process_id) t
        group by internal_gmr_ref_no,gmr_grd_qty;
+       commit;
   exception
     when others then
+     commit;
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure pkg_phy_physical_process sp_calc_gmr_sec_cost',

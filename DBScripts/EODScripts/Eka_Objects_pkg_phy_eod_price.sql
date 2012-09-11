@@ -27,7 +27,7 @@ create or replace package pkg_phy_eod_price is
                                         pc_dbd_id       varchar2,
                                         pc_process      varchar2);
 
-end;
+end; 
 /
 create or replace package body "PKG_PHY_EOD_PRICE" is
 
@@ -545,7 +545,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                end) qty_to_be_fixed,
                                pofh.priced_qty,
                                pofh.pofh_id,
-                               nvl(pofh.final_price, 0) final_price
+                               pocd.final_price_unit_id,                               
+                               nvl(pofh.final_price, 0) final_price,
+                               pofh.finalize_date
                           from poch_price_opt_call_off_header poch,
                                pocd_price_option_calloff_dtls pocd,
                                pcbpd_pc_base_price_detail pcbpd,
@@ -1005,7 +1007,16 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                            (vn_qty_to_be_priced / 100) *
                                            vn_before_qp_price;
                 vc_price_unit_id        := cc1.ppu_price_unit_id;
-              elsif (vc_period = 'During QP' or vc_period = 'After QP') then
+              elsif (vc_period = 'During QP' or vc_period = 'After QP') then               
+                   if cc1.final_price<>0 and cc1.finalize_date<=pd_trade_date then
+                    vn_total_quantity       := cur_pcdi_rows.item_qty;
+                    vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
+                   vn_total_contract_value := vn_total_contract_value +
+                                           vn_total_quantity *
+                                           (vn_qty_to_be_priced / 100) *
+                                           cc1.final_price;
+                   vc_price_unit_id := cc1.final_price_unit_id;                        
+             else
                 vd_dur_qp_start_date         := vd_qp_start_date;
                 vd_dur_qp_end_date           := vd_qp_end_date;
                 vn_during_total_set_price    := 0;
@@ -1309,6 +1320,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                   --                  vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
                 end if;
                 vc_price_unit_id := cc1.ppu_price_unit_id;
+               end if;
               end if;
             
             end loop;
@@ -2207,7 +2219,10 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              dim.delivery_calender_id,
              pdc.is_daily_cal_applicable,
              pdc.is_monthly_cal_applicable,
-             grd.payment_due_date
+             grd.payment_due_date,
+             nvl(pofh.final_price,0) final_price,
+             pofh.finalize_date,
+             pocd.final_price_unit_id
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
                      grd.quality_id,
@@ -2296,7 +2311,10 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              dim.delivery_calender_id,
              pdc.is_daily_cal_applicable,
              pdc.is_monthly_cal_applicable,
-             grd.payment_due_date
+             grd.payment_due_date,
+             nvl(pofh.final_price,0) final_price,
+             pofh.finalize_date,
+             pocd.final_price_unit_id
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
                      grd.quality_id,
@@ -2738,6 +2756,12 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                    vn_before_qp_price;
         --  vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
       elsif vc_period = 'During QP' or vc_period = 'After QP' then
+       if cur_gmr_rows.final_price<>0 and cur_gmr_rows.finalize_date<=pd_trade_date then
+       vn_total_contract_value := vn_total_contract_value +
+                                     cur_gmr_rows.final_price;
+       vc_ppu_price_unit_id  :=  cur_gmr_rows.final_price_unit_id;                             
+        else
+      
         vn_error_no               := 'gmr:' ||
                                      cur_gmr_rows.internal_gmr_ref_no ||
                                      ' 2572';
@@ -3011,7 +3035,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
         else
           vn_total_contract_value := 0;
         end if;
-      
+     end if;  
       end if;
       --
       -- Convert the final price into Base Price Unit 
@@ -3555,7 +3579,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              pcbpd.price_basis,
              pcbph.price_description,
              pofh.no_of_prompt_days,
-             pofh.final_price,
+             nvl(pofh.final_price,0) final_price,
+             pofh.finalize_date,
+             pocd.final_price_unit_id,
              pofh.avg_price_in_price_in_cur,
              pocd.pay_in_price_unit_id,
              pdm.product_id,
@@ -3896,6 +3922,18 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
           --- vn_total_contract_value := vn_total_contract_value +vn_before_qp_price;                                   
           --  vc_price_unit_id        := cur_gmr_rows.ppu_price_unit_id;
         elsif vc_period = 'During QP' or vc_period = 'After QP' then
+        
+        if cur_gmr_ele_rows.final_price<>0 and cur_gmr_ele_rows.finalize_date<=pd_trade_date then
+          vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
+                                                                          cur_gmr_rows.payable_qty_unit_id,
+                                                                          cur_gmr_rows.qty_unit_id,
+                                                                          cur_gmr_rows.payable_qty);
+         vn_total_contract_value := vn_total_contract_value +
+                                     vn_total_quantity *
+                                     (vn_qty_to_be_priced / 100) *
+                                     cur_gmr_ele_rows.final_price;
+         vc_ppu_price_unit_id     :=cur_gmr_ele_rows.final_price_unit_id;                           
+        else        
           vd_dur_qp_start_date      := vd_qp_start_date;
           vd_dur_qp_end_date        := vd_qp_end_date;
           vn_during_total_set_price := 0;
@@ -4181,6 +4219,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
           else
             vn_total_contract_value := 0;
           end if;
+        end if;
         end if;
       end loop;
       vn_average_price := round(vn_total_contract_value / vn_total_quantity,
@@ -4705,7 +4744,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                pofh.no_of_prompt_days,
                                pofh.avg_price_in_price_in_cur,
                                nvl(pofh.final_price, 0) final_price,
-                               pocd.pay_in_price_unit_id
+                               pocd.pay_in_price_unit_id,
+                               pofh.finalize_date,
+                               pocd.final_price_unit_id
                           from poch_price_opt_call_off_header poch,
                                pocd_price_option_calloff_dtls pocd,
                                pcbpd_pc_base_price_detail pcbpd,
@@ -5173,7 +5214,18 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                            vn_before_qp_price;
                 vc_price_unit_id        := cc1.ppu_price_unit_id;
               elsif vc_period = 'During QP' or vc_period = 'After QP' then
-              
+                if cc1.final_price<>0 and cc1.finalize_date<=pd_trade_date then
+                   vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
+                                                                                  cur_pcdi_rows.payable_qty_unit_id,
+                                                                                  cur_pcdi_rows.item_qty_unit_id,
+                                                                                  cur_pcdi_rows.payable_qty);
+                    vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
+                   vn_total_contract_value := vn_total_contract_value +
+                                           vn_total_quantity *
+                                           (vn_qty_to_be_priced / 100) *
+                                           cc1.final_price;
+                   vc_price_unit_id := cc1.final_price_unit_id; 
+              else
                 vd_dur_qp_start_date          := vd_qp_start_date;
                 vd_dur_qp_end_date            := vd_qp_end_date;
                 vn_during_total_set_price     := 0;
@@ -5482,7 +5534,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                   vn_total_contract_value := 0;
                   vc_price_unit_id        := cc1.ppu_price_unit_id;
                 end if;
-              
+              end if;
               end if;
             end loop;
           end if;
@@ -6360,5 +6412,5 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     when others then
       null; --TODO siva
   end;
-end;
+end; 
 /

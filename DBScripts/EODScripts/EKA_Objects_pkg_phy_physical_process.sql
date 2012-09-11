@@ -250,7 +250,7 @@ create or replace package body pkg_phy_physical_process is
                                           pd_trade_date,
                                           pc_process_id);
                              
-                                                   
+    commit;                                               
     vc_err_msg := 'sp_calc_contract_price ';
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -269,6 +269,7 @@ create or replace package body pkg_phy_physical_process is
                                              pc_user_id,
                                              pc_dbd_id,
                                              pc_process);
+   commit;                                             
     vc_err_msg := 'sp_calc_gmr_price ';
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -286,6 +287,7 @@ create or replace package body pkg_phy_physical_process is
                                         pc_user_id,
                                         pc_dbd_id,
                                         pc_process);
+    commit;                                        
   
     vc_err_msg := 'sp_calc_contract_conc_price ';
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -304,6 +306,7 @@ create or replace package body pkg_phy_physical_process is
                                                   pc_user_id,
                                                   pc_dbd_id,
                                                   pc_process);
+   commit;                                                 
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -321,6 +324,7 @@ create or replace package body pkg_phy_physical_process is
                                              pc_user_id,
                                              pc_dbd_id,
                                              pc_process);
+   commit;                                             
     vc_err_msg := 'sp_calc_secondary_cost ';
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -337,6 +341,7 @@ create or replace package body pkg_phy_physical_process is
                            pc_process_id,
                            pc_user_id,
                            pd_trade_date);
+   commit;                           
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -355,6 +360,7 @@ create or replace package body pkg_phy_physical_process is
                                            pc_user_id,
                                            pd_trade_date,
                                            pc_process);
+    commit;                                           
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -373,6 +379,7 @@ create or replace package body pkg_phy_physical_process is
                                             pc_user_id,
                                             pd_trade_date,
                                             pc_process);
+   commit;                                           
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -392,6 +399,7 @@ create or replace package body pkg_phy_physical_process is
                                                  pc_user_id,
                                                  pc_dbd_id,
                                                  pc_process);
+   commit;                                                 
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -411,6 +419,7 @@ create or replace package body pkg_phy_physical_process is
                                                  pc_user_id,
                                                  pc_dbd_id,
                                                  pc_process);
+   commit;                                                 
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -431,6 +440,7 @@ create or replace package body pkg_phy_physical_process is
                                             pc_user_id,
                                             pc_dbd_id,
                                             pc_process);
+  commit;                                            
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -450,6 +460,7 @@ create or replace package body pkg_phy_physical_process is
                                             pc_user_id,
                                             pc_dbd_id,
                                             pc_process);
+   commit;                                            
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -487,6 +498,7 @@ if vn_error_count = 0 then
                                                pc_process_id,
                                                pc_user_id,
                                                pc_process);
+   commit;                                               
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -503,6 +515,7 @@ if vn_error_count = 0 then
                      pd_trade_date,
                      pc_process_id,
                      pc_user_id);
+  commit;                     
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -518,6 +531,7 @@ if vn_error_count = 0 then
                           pd_trade_date,
                           pc_process_id,
                           pc_user_id);
+commit;                          
     ----
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -535,6 +549,7 @@ if vn_error_count = 0 then
                                   pd_trade_date,
                                   pc_process_id,
                                   pc_user_id);
+    commit;                                  
     ---
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -550,6 +565,7 @@ if vn_error_count = 0 then
     vc_err_msg := 'Before call of sp_calc_stock_price';
   
     pkg_phy_eod_price.sp_calc_stock_price(pc_process_id);
+    commit;
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -568,6 +584,7 @@ if vn_error_count = 0 then
                                                           pc_user_id,
                                                           pc_process,
                                                           gvc_previous_process_id);
+   commit;                                                          
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -588,6 +605,7 @@ if vn_error_count = 0 then
                                                       pc_user_id,
                                                       pc_process,
                                                       gvc_previous_process_id);
+   commit;                                                      
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -606,6 +624,7 @@ if vn_error_count = 0 then
                                                         pc_user_id,
                                                         pc_process,
                                                         gvc_previous_process_id);
+   commit;                                                        
   
     --- tolling start                                                                
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -626,6 +645,7 @@ if vn_error_count = 0 then
                                                                  pc_dbd_id,
                                                                  pc_process,
                                                                  gvc_previous_process_id);
+   commit;                                                                 
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -644,6 +664,7 @@ if vn_error_count = 0 then
                                                                   pc_user_id,
                                                                   pc_process,
                                                                   gvc_previous_process_id);
+   commit;                                                                  
     -- tolling end             
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -663,6 +684,7 @@ if vn_error_count = 0 then
                                                        pc_process_id,
                                                        pc_user_id,
                                                        pc_process);
+  commit;                                                       
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -681,6 +703,7 @@ if vn_error_count = 0 then
                                                      pc_user_id,
                                                      pc_process,
                                                      gvc_previous_process_id);
+   commit;                                                     
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -699,6 +722,7 @@ if vn_error_count = 0 then
                                                            pc_process,
                                                            pc_process_id,
                                                            pc_user_id);
+   commit;                                                           
     vn_logno := vn_logno + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -712,6 +736,7 @@ if vn_error_count = 0 then
                                                        pc_process_id,
                                                        pc_user_id,
                                                        gvc_previous_process_id);
+   commit;                                                       
     vn_logno := vn_logno + 1;
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -730,6 +755,7 @@ if vn_error_count = 0 then
                                                   pd_trade_date,
                                                   pc_process_id,
                                                   pc_dbd_id);
+   commit;                                                  
     end if;
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -748,6 +774,7 @@ if vn_error_count = 0 then
                                                           pc_process_id,
                                                           pc_user_id,
                                                           pc_process);
+    commit;                                                          
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -766,6 +793,7 @@ if vn_error_count = 0 then
                                                        pc_user_id,
                                                        pc_dbd_id,
                                                        pc_process);
+    commit;                                                       
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -783,6 +811,7 @@ if vn_error_count = 0 then
                                                          pc_process,
                                                          pc_process_id,
                                                          pc_user_id);
+    commit;                                                         
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -799,6 +828,7 @@ if vn_error_count = 0 then
                                           pd_trade_date,
                                           pc_process,
                                           pc_process_id);
+    commit;                                          
     end if;
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -815,6 +845,7 @@ if vn_error_count = 0 then
     pkg_phy_eod_reports.sp_phy_contract_status(pc_corporate_id,
                                                pd_trade_date,
                                                pc_process_id);
+   commit;                                               
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -831,6 +862,7 @@ if vn_error_count = 0 then
       pkg_phy_eod_reports.sp_feed_consumption_report(pc_corporate_id,
                                                      pd_trade_date,
                                                      pc_process_id);
+   commit;                                                     
     end if;
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -847,6 +879,7 @@ if vn_error_count = 0 then
       pkg_phy_eod_reports.sp_stock_monthly_yeild(pc_corporate_id,
                                                  pd_trade_date,
                                                  pc_process_id);
+    commit;                                                 
     end if;
     -- Concentrate PNL Call Start
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -868,6 +901,7 @@ if vn_error_count = 0 then
                                                                pc_user_id,
                                                                pc_process,
                                                                gvc_previous_process_id);
+   commit;                                                               
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -886,6 +920,7 @@ if vn_error_count = 0 then
                                                           pc_user_id,
                                                           pc_process,
                                                           gvc_previous_process_id);
+   commit;                                                          
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -905,6 +940,7 @@ if vn_error_count = 0 then
                                                             pc_process,
                                                             gvc_previous_process_id,
                                                             pc_dbd_id);
+   commit;                                                            
   
     pkg_phy_conc_realized_pnl.sp_calc_phy_conc_realize_today(pc_corporate_id,
                                                              pd_trade_date,
@@ -912,6 +948,7 @@ if vn_error_count = 0 then
                                                              pc_dbd_id,
                                                              pc_user_id,
                                                              pc_process);
+  commit;                                                             
   
     pkg_phy_conc_realized_pnl.sp_calc_phy_conc_pnl_change(pc_corporate_id,
                                                           pd_trade_date,
@@ -919,6 +956,7 @@ if vn_error_count = 0 then
                                                           pc_process_id,
                                                           pc_dbd_id,
                                                           pc_user_id);
+  commit;                                                          
   
     pkg_phy_conc_realized_pnl.sp_calc_phy_conc_reverse_rlzed(pc_corporate_id,
                                                              pd_trade_date,
@@ -926,12 +964,14 @@ if vn_error_count = 0 then
                                                              gvc_previous_process_id,
                                                              pc_user_id,
                                                              pc_process);
+  commit;                                                             
     pkg_phy_conc_realized_pnl.sp_calc_conc_rlzed_not_fixed(pc_corporate_id,
                                                            pd_trade_date,
                                                            pc_process_id,
                                                            gvc_previous_process_id,
                                                            pc_user_id,
                                                            pc_process);
+  commit;                                                           
   
     -- Concentrate PNL Call End
     -- Trade PNL 
@@ -950,6 +990,7 @@ if vn_error_count = 0 then
                                             pc_process_id,
                                             gvc_process,
                                             pc_user_id);
+   commit;                                            
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -966,6 +1007,7 @@ if vn_error_count = 0 then
                                                 pc_process_id,
                                                 gvc_process,
                                                 pc_user_id);
+   commit;                                                
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -982,6 +1024,7 @@ if vn_error_count = 0 then
                                             pc_process_id,
                                             pc_user_id,
                                             pc_process);
+  commit;                                            
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -999,6 +1042,7 @@ if vn_error_count = 0 then
                                                      pc_process_id,
                                                      pc_user_id,
                                                      pc_process);
+   commit;                                                     
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -1017,6 +1061,7 @@ if vn_error_count = 0 then
                                                     pc_process_id,
                                                     gvc_previous_process_id,
                                                     pc_user_id);
+   commit;                                                    
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -1033,6 +1078,7 @@ if vn_error_count = 0 then
       pkg_phy_eod_reports.sp_metal_balance_qty_summary(pc_corporate_id,
                                                        pd_trade_date,
                                                        pc_process_id);
+  commit;                                                       
     end if;
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -1049,6 +1095,7 @@ if vn_error_count = 0 then
     pkg_phy_eod_reports.sp_daily_position_record(pc_corporate_id,
                                                  pd_trade_date,
                                                  pc_process_id);
+  commit;                                                 
 if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -1065,6 +1112,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                                             pd_trade_date,
                                             pc_process_id,
                                             pc_process); 
+  commit;                                            
    end if;
    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -1082,6 +1130,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                                             pd_trade_date,
                                             pc_process_id,
                                             pc_process);  
+  commit;                                            
    end if;
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -1100,6 +1149,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                                                    pc_process_id,
                                                    pc_process,
                                                    pc_dbd_id);
+    commit;                                                   
     end if;
   vn_logno := vn_logno + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -1116,6 +1166,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                                                   pc_dbd_id,
                                                   gvc_previous_process_id,
                                                   vc_prev_dbd_id);
+  commit;                                                  
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -1674,6 +1725,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                                                   pum.price_unit_id)
      where cs.process_id = pc_process_id
        and cs.rate_type = 'Rate';
+      commit;
     --
     -- Update PUM ID for Absolute Type
     -- Currency from CS and Unit from CIGC
@@ -1707,7 +1759,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        where css.internal_cost_id = cc1.internal_cost_id;
     
     end loop;
-  
+   commit;
     insert into cisc_contract_item_sec_cost
       (internal_contract_item_ref_no,
        cost_component_id,
@@ -1728,7 +1780,9 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        base_qty_unit_id,
        base_price_unit_id,
        cost_value,
-       price_qty_unit_id)
+       price_qty_unit_id,
+       fw_rate_trans_to_base_currency,
+       fw_rate_string)
       select pci.internal_contract_item_ref_no,
              cs.cost_component_id,
              cs.cost_in_base_price_unit_id,
@@ -1754,7 +1808,16 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
              pdm.base_quantity_unit,
              pum_base.price_unit_id,
              cs.cost_value,
-             pum_trans.weight_unit_id
+             pum_trans.weight_unit_id,
+             cs.fx_to_base,
+             (case
+               when cs.transaction_amt_cur_id <> cs.base_amt_cur_id then
+                '1 ' || cm_trans.cur_code || '=' || cs.fx_to_base || ' ' ||
+                cm_base.cur_code
+               else
+                null
+             end)
+      
         from cs_cost_store               cs,
              cigc_contract_item_gmr_cost cigc,
              pcdi_pc_delivery_item       pcdi,
@@ -1767,7 +1830,9 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
              pdm_productmaster           pdm,
              scd_sub_currency_detail     scd,
              pum_price_unit_master       pum_base,
-             pum_price_unit_master       pum_trans
+             pum_price_unit_master       pum_trans,
+             cm_currency_master          cm_trans,
+             cm_currency_master          cm_base
        where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcdi.pcdi_id = pci.pcdi_id
          and pci.internal_contract_item_ref_no =
@@ -1796,12 +1861,14 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and pum_base.weight_unit_id = pdm.base_quantity_unit
          and pum_base.cur_id = akc.base_cur_id
          and pum_trans.price_unit_id = cs.transaction_price_unit_id
-         and pcpd.process_id = pc_process_id;
-  
+         and pcpd.process_id = pc_process_id
+         and cs.transaction_amt_cur_id=cm_trans.cur_id
+         and cs.base_amt_cur_id=cm_base.cur_id;
+       commit;
     --
     -- Check the exchange rate from Transaction Currency to Base Currency
     --
-    for cur_cisc in (select cisc.transact_main_cur_id,
+    /*for cur_cisc in (select cisc.transact_main_cur_id,
                             cisc.base_cur_id,
                             cisc.payment_due_date,
                             cm_tran.cur_code transact_main_cur_code,
@@ -1842,7 +1909,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and cisc.base_cur_id = cur_cisc.base_cur_id
            and cisc.payment_due_date = cur_cisc.payment_due_date;
       end if;
-    end loop;
+    end loop;*/
   
     --
     -- Update the Quantity Conversion from Base to Transaction
@@ -1870,7 +1937,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and cisc.base_qty_unit_id = cur_cisc_qty.base_qty_unit_id
          and cisc.process_id = pc_process_id;
     end loop;
-  
+  commit;
     --
     -- Average Price in Base Price Unit ID
     --
@@ -1881,7 +1948,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                                    nvl(cisc.fw_rate_trans_to_base_currency,
                                        1)
      where cisc.process_id = pc_process_id;
-  
+   commit;
     -- For GMR
     pkg_phy_calculate_cog.sp_calc_gmr_sec_cost(pc_corporate_id,
                                                pc_process_id,
@@ -1907,8 +1974,10 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
         from cisc_contract_item_sec_cost cisc
        where cisc.process_id = pc_process_id
        group by cisc.internal_contract_item_ref_no;
+       commit;
   exception
     when others then
+     commit;
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_calc_secondary_cost',
@@ -2108,6 +2177,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            cc.payment_due_date);
         vn_serial_no := vn_serial_no + 1;
       end loop;
+      commit;
       --
       -- Update the Quality premimum
       --
@@ -2154,6 +2224,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.product_type = 'BASEMETAL';
       
       end loop;
+      commit;
       --
       -- Update the product premimum
       --
@@ -2187,6 +2258,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.payment_due_date = cc2.payment_due_date
            and md.process_id = pc_process_id
            and md.product_type = 'BASEMETAL';
+           commit;
       end loop;
       vc_err_msg := 'line 2819';
       update md_m2m_daily md
@@ -2219,6 +2291,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        where md.corporate_id = pc_corporate_id
          and md.valuation_method <> 'FIXED'
          and md.process_id = pc_process_id;
+         commit;
       ----
       vc_err_msg := 'line 2887';
       --
@@ -2256,6 +2329,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.process_id = pc_process_id;
       
       end loop;
+      commit;
     
       vc_err_msg := 'line 3049';
     
@@ -2297,6 +2371,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        where md.corporate_id = pc_corporate_id
          and md.product_type = 'BASEMETAL'
          and md.process_id = pc_process_id;
+         commit;
       --
       -- update m2m main currency and decimals
       --
@@ -2341,6 +2416,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
                   and scd.cur_id = cm_1.cur_id(+))
        where md.process_id = pc_process_id
          and md.product_type = 'BASEMETAL';
+       commit;
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
                    'sp_calc_m2m',
@@ -2428,6 +2504,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
              and tmpc.payment_due_date = c1.payment_due_date;
         end if;
       end loop;
+      commit;
     
       -- Update valuation_location, reference_location and valuation_incoterm
     
@@ -2469,6 +2546,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.product_id = cc.product_id
            and md.process_id = pc_process_id;
       end loop;
+      commit;
     
     end;
     sp_write_log(pc_corporate_id, pd_trade_date, 'sp_calc_m2m', 'Done');
@@ -2691,6 +2769,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            cc.payment_due_date);
         vn_serial_no := vn_serial_no + 1;
       end loop;
+      commit;
       -- 
       -- Updating TC and RC into MD table
       --
@@ -2743,6 +2822,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.mvp_id = cur_update.mvp_id
            and md.element_id = cur_update.element_id;
       end loop;
+      commit;
     
       vc_err_msg := 'line 7913';
       -- Updating exg_id,settlement_price,settlement price avl date of the md table
@@ -2778,7 +2858,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and md.is_tolling_extn = 'N'
          and md.valuation_method <> 'FIXED'
          and md.process_id = pc_process_id;
-    
+    commit;
       vc_err_msg := 'line 2450';
       --
       -- Update the M2M Location Incoterm Deviation    
@@ -2816,6 +2896,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.process_id = pc_process_id;
       
       end loop;
+      commit;
     
       vc_err_msg := 'line 7972';
       update md_m2m_daily md
@@ -2825,6 +2906,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and md.is_tolling_contract = 'N'
          and md.is_tolling_extn = 'N'
          and md.process_id = pc_process_id;
+       commit;
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
                    'sp_calc_m2m',
@@ -2853,6 +2935,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and md.is_tolling_contract = 'N'
          and md.is_tolling_extn = 'N'
          and md.process_id = pc_process_id;
+         commit;
       --get the m2m_price_unit_cur_id
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
@@ -2895,6 +2978,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and md.product_type = 'CONCENTRATES'
          and md.is_tolling_contract = 'N'
          and md.is_tolling_extn = 'N';
+         commit;
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
                    'sp_calc_m2m',
@@ -2996,6 +3080,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
              and tmpc.payment_due_date = c1.payment_due_date;
         end if;
       end loop;
+      commit;
     
       --update valuation_location, reference_location and valuation_incoterm
     
@@ -3041,6 +3126,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.process_id = pc_process_id;
         commit;
       end loop;
+      commit;
     
     end;
     sp_write_log(pc_corporate_id, pd_trade_date, 'sp_calc_m2m', 'Done');
@@ -3261,6 +3347,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            cc.is_tolling_extn);
         vn_serial_no := vn_serial_no + 1;
       end loop;
+      commit;
       --Checking for the treatment  is there or not
       --For this  we are calling the sp_get_treatment_charge
       for cc_tmpc in (select tmpc.corporate_id,
@@ -3329,6 +3416,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.process_id = pc_process_id
            and md.element_id = cc_tmpc.element_id
            and md.process_id = pc_process_id;
+           commit;
         -- end if;
         -- updating refine  charge  to the md table
         pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
@@ -3363,6 +3451,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.process_id = pc_process_id;
         -- end if;
       end loop;
+      commit;
       -- updating penalty  charge  to the md table 
     
       /** End of updatin the Treatment Charge,Refine Charge and  Penalty Charge of the MD table ***/
@@ -3400,7 +3489,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and md.is_tolling_extn = 'Y'
          and md.valuation_method <> 'FIXED'
          and md.process_id = pc_process_id;
-    
+     commit;
       vc_err_msg := 'line 2887';
       --update the m2m location -incoterm deviation for the within region of growth    
       update md_m2m_daily md
@@ -3459,6 +3548,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and md.is_tolling_contract = 'Y'
          and md.is_tolling_extn = 'Y'
          and md.process_id = pc_process_id;
+         commit;
       vc_err_msg := 'line 3049';
       update md_m2m_daily md
          set md.net_m2m_price = nvl(md.m2m_settlement_price, 0)
@@ -3467,6 +3557,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and md.process_id = pc_process_id
          and md.is_tolling_contract = 'Y'
          and md.is_tolling_extn = 'Y';
+         commit;
       --   dbms_output.put_line('after update -5 ');
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
@@ -3502,7 +3593,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and md.is_tolling_contract = 'Y'
          and md.is_tolling_extn = 'Y'
          and md.process_id = pc_process_id;
-    
+    commit;
       --get the m2m_price_unit_cur_id
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
@@ -3545,6 +3636,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
          and md.product_type = 'CONCENTRATES'
          and md.is_tolling_contract = 'Y'
          and md.is_tolling_extn = 'Y';
+         commit;
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
                    'sp_calc_m2m',
@@ -3643,7 +3735,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
              and tmpc.is_tolling_extn = 'Y';
         end if;
       end loop;
-    
+    commit;
       --update valuation_location, reference_location and valuation_incoterm
     
       for cc in (select tmpc.internal_m2m_id,
@@ -3688,7 +3780,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
            and md.process_id = pc_process_id;
         commit;
       end loop;
-    
+    commit;
     end;
     sp_write_log(pc_corporate_id, pd_trade_date, 'sp_calc_m2m', 'Done');
   exception
