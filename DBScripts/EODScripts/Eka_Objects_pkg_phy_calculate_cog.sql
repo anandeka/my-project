@@ -3322,7 +3322,8 @@ commit;
     for cur_exch_rate in (select t.transaction_amt_main_cur_id,
                                  t.base_cur_id,
                                  cm_base.cur_code base_cur_code,
-                                 cm_trans.cur_code transaction_amt_main_cur_code
+                                 cm_trans.cur_code transaction_amt_main_cur_code,
+                                 transact_to_base_fw_exch_rate
                             from tgsc_temp_gmr_sec_cost t,
                                  cm_currency_master     cm_trans,
                                  cm_currency_master     cm_base
@@ -3335,13 +3336,14 @@ commit;
                            group by t.transaction_amt_main_cur_id,
                                     t.base_cur_id,
                                     cm_base.cur_code,
-                                    cm_trans.cur_code)
+                                    cm_trans.cur_code,
+                                    transact_to_base_fw_exch_rate)
     loop
     
       update tgsc_temp_gmr_sec_cost t
          set t.trans_to_base_fw_exch_rate    = '1 ' ||
                                                cur_exch_rate.transaction_amt_main_cur_code || '=' ||
-                                               vn_fw_exch_rate_trans_to_base || ' ' ||
+                                               cur_exch_rate.transact_to_base_fw_exch_rate || ' ' ||
                                                cur_exch_rate.base_cur_code
        where t.process_id = pc_process_id
          and t.transaction_amt_main_cur_id =
