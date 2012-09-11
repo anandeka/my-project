@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_PATCH_1043
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Saurabh Raj
+ 
+Created on*        		:  11-Sep-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  68740,67721
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 103207
+Author: saurabh.raj
+Date: 8:42:00 PM, Tuesday, September 11, 2012
+Message:
+Bug Fixed
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
+
+Revision: 103177
+Author: jana
+Date: 6:59:14 PM, Tuesday, September 11, 2012
+Message:
+Unrealized PNL Price Fixation Status Fix for Inventory M2M
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_unrealized_pnl.sql
+Revision: 103209
+Author: saurabh.raj
+Date: 8:49:52 PM, Tuesday, September 11, 2012
+Message:
+Bug Fixed
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyInventoryUnrealizedPhysicalPnL.rpt
+
+
+
+
+
+
