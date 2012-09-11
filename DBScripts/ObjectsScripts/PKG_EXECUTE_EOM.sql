@@ -13,7 +13,7 @@ create or replace package "PKG_EXECUTE_EOM" is
   procedure sp_mark_dumps_status(pc_corporate_id varchar2,
                                  pd_trade_date   date);
 
-end pkg_execute_eom;
+end pkg_execute_eom; 
 /
 create or replace package body "PKG_EXECUTE_EOM" is
 
@@ -87,7 +87,7 @@ create or replace package body "PKG_EXECUTE_EOM" is
                                                pd_trade_date,
                                                'EOM');
       else
-        pc_eom_status := 'EOM Process Failed';
+        pc_eom_status := 'Precheck Completed, User input required';
       end if;
     end if;
     vc_process_status := pkg_process_status.sp_get@eka_eoddb(pc_corporate_id,
@@ -152,5 +152,5 @@ create or replace package body "PKG_EXECUTE_EOM" is
       null;
   end;
 
-end;
+end; 
 /

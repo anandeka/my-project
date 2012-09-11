@@ -130,7 +130,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
         --Everything OK, Let us settle trades in Transaction Schema
         sp_record_expired_drid(pc_corporate_id, pd_trade_date, 'EOD');
       else
-        pc_eod_status := 'EOD Process Failed';
+        pc_eod_status := 'Precheck Completed, User input required';
       end if;
     end if;
     sp_eodeom_process_log(pc_corporate_id,
