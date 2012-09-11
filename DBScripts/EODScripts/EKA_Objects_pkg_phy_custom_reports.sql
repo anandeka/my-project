@@ -53,7 +53,9 @@ create or replace package pkg_phy_custom_reports is
                                           pc_process_id   varchar2,
                                           pc_user_id      varchar2);
 
-end;
+end; 
+
+ 
 /
 create or replace package body pkg_phy_custom_reports is
 
@@ -165,7 +167,7 @@ create or replace package body pkg_phy_custom_reports is
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure pkg_phy_custom_reports.sp_call_custom_reports',
-                                                           'GEN-001',
+                                                           'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
                                                            ' Message:' ||
@@ -551,7 +553,7 @@ create or replace package body pkg_phy_custom_reports is
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_derivative_journal',
-                                                           'GEN-001',
+                                                           'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
                                                            ' Message:' ||
@@ -1765,7 +1767,7 @@ create or replace package body pkg_phy_custom_reports is
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_pysical_journal',
-                                                           'GEN-001',
+                                                           'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
                                                            ' Message:' ||
@@ -2394,7 +2396,7 @@ create or replace package body pkg_phy_custom_reports is
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_derivative_journal',
-                                                           'GEN-001',
+                                                           'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
                                                            ' Message:' ||
@@ -2635,13 +2637,13 @@ create or replace package body pkg_phy_custom_reports is
                when pocd.is_any_day_pricing = 'N' then
                 to_char(pofh.qp_start_date, 'dd-Mon-yyyy')
                else
-                'NA'
+                NULL
              end) average_from_date,
              (case
                when pocd.is_any_day_pricing = 'N' then
                 to_char(pofh.qp_end_date, 'dd-Mon-yyyy')
                else
-                'NA'
+                NULL
              end) average_to_date,
              round(pofh.final_price_in_pricing_cur, 6) settlement_price,
              pofh.latest_pfc_date settlement_date,
@@ -2778,13 +2780,13 @@ create or replace package body pkg_phy_custom_reports is
                
                 to_char(pofh.qp_start_date, 'dd-Mon-yyyy')
                else
-                'NA'
+                NULL
              end) average_from_date,
              (case
                when pocd.is_any_day_pricing = 'N' then
                 to_char(pofh.qp_end_date, 'dd-Mon-yyyy')
                else
-                'NA'
+                NULL
              end) average_to_date,
              round(pofh.final_price_in_pricing_cur, 6) settlement_price,
              pofh.latest_pfc_date settlement_date,
@@ -3372,6 +3374,7 @@ create or replace package body pkg_phy_custom_reports is
          cr_cdc_row.pay_in_price_unit);
     end loop;
     commit;
+    vn_error_no         := 4;
     for cc1 in (select pcdi.pcdi_id,
                        cpc.profit_center_id,
                        cpc.profit_center_name,
@@ -3503,6 +3506,7 @@ create or replace package body pkg_phy_custom_reports is
          and eod_eom.internal_derivative_ref_no = cr_premium.pcdi_id;
     end loop;
     commit;
+     vn_error_no         := 5;
     for cr_base in (select pum.price_unit_id,
                            pum.price_unit_name,
                            eod_eom.base_cur_id,
@@ -3530,6 +3534,7 @@ create or replace package body pkg_phy_custom_reports is
          and eod_eom.base_qty_unit_id = cr_base.base_qty_unit_id;
     end loop;
     commit;
+    vn_error_no         := 6;
     for cr_eod_eom in (select eod_eom.prem_price_unit_id,
                               eod_eom.base_price_unit_id,
                               eod_eom.trade_price_unit_id,
@@ -3585,12 +3590,12 @@ create or replace package body pkg_phy_custom_reports is
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_fixation_journal',
-                                                           'GEN-001' ||
-                                                           vn_error_no,
+                                                           'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
                                                            ' Message:' ||
-                                                           sqlerrm,
+                                                           sqlerrm || ' No '||
+                                                           vn_error_no ,
                                                            null,
                                                            'EOD',
                                                            pc_user_id,
@@ -4239,12 +4244,12 @@ create or replace package body pkg_phy_custom_reports is
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_update_strategy_attributes',
-                                                           'GEN-001' ||
-                                                           vn_error_no,
+                                                           'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
                                                            ' Message:' ||
-                                                           sqlerrm,
+                                                           sqlerrm  ||
+                                                           vn_error_no,
                                                            null,
                                                            'EOD',
                                                            pc_user_id,
@@ -4252,5 +4257,5 @@ create or replace package body pkg_phy_custom_reports is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /
