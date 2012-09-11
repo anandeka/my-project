@@ -142,7 +142,8 @@ select t.corporate_id,
                 ak_corporate                akc,
                 ak_corporate_user           aku,
                 phd_profileheaderdetails    phd,
-                phd_profileheaderdetails    phd_umpire
+                phd_profileheaderdetails    phd_umpire,
+                v_assay_excahnge            vae
          where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
            and grd.status = 'Active'
@@ -179,6 +180,8 @@ select t.corporate_id,
            and qat.is_active = 'Y'
            and qum.is_active = 'Y'
            and aml.is_active = 'Y'
+           and pcm.internal_contract_ref_no=vae.internal_contract_ref_no
+           and aml.attribute_id=vae.element_id
            and ash.assay_type not in
                ('Pricing Assay', 'Position Assay', 'Self Assay',
                 'Umpire Assay', 'CounterParty Assay',
@@ -278,7 +281,8 @@ select t.corporate_id,
                ak_corporate                akc,
                ak_corporate_user           aku,
                phd_profileheaderdetails    phd,
-               phd_profileheaderdetails    phd_umpire
+               phd_profileheaderdetails    phd_umpire,
+               v_assay_excahnge            vae
          where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
            and dgrd.status = 'Active'
@@ -315,6 +319,8 @@ select t.corporate_id,
            and qat.is_active = 'Y'
            and qum.is_active = 'Y'
            and aml.is_active = 'Y'
+           and pcm.internal_contract_ref_no=vae.internal_contract_ref_no
+           and aml.attribute_id=vae.element_id
            and ash.assay_type not in
                ('Pricing Assay', 'Position Assay', 'Self Assay',
                 'Umpire Assay', 'CounterParty Assay',
@@ -414,7 +420,8 @@ select t.corporate_id,
                ak_corporate                akc,
                ak_corporate_user           aku,
                phd_profileheaderdetails    phd,
-               phd_profileheaderdetails    phd_umpire
+               phd_profileheaderdetails    phd_umpire,
+               v_assay_excahnge            vae
          where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
            and grd.status = 'Active'
@@ -452,6 +459,8 @@ select t.corporate_id,
            and qum.is_active = 'Y'
            and aml.is_active = 'Y'
            and ash.use_for_finalization = 'Y'
+           and pcm.internal_contract_ref_no=vae.internal_contract_ref_no
+           and aml.attribute_id=vae.element_id
            and ash.assay_type in
                ('Self Assay', 'Umpire Assay', 'CounterParty Assay')
         union all  --- multiple self,CP,Umpire assays for sales
@@ -548,7 +557,8 @@ select t.corporate_id,
                ak_corporate                akc,
                ak_corporate_user           aku,
                phd_profileheaderdetails    phd,
-               phd_profileheaderdetails    phd_umpire
+               phd_profileheaderdetails    phd_umpire,
+               v_assay_excahnge            vae
          where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
            and dgrd.status = 'Active'
@@ -586,5 +596,7 @@ select t.corporate_id,
            and qum.is_active = 'Y'
            and aml.is_active = 'Y'
            and ash.use_for_finalization = 'Y'
+           and pcm.internal_contract_ref_no=vae.internal_contract_ref_no
+           and aml.attribute_id=vae.element_id
            and ash.assay_type in
                ('Self Assay', 'Umpire Assay', 'CounterParty Assay')) t;
