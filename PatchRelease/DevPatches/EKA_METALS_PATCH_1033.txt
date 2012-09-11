@@ -39,7 +39,9 @@ Author: sivachalabathi.s
 Date: 4:17:22 PM, Friday, September 07, 2012
 Message:
 bugfixes in journals
+
 ----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/77_DDL_EODDB_ALTER_SCRIPT.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/78_DDL_EODDB_ALTER_SCRIPT.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_PKG_EXECUTE_PROCESS.sql
