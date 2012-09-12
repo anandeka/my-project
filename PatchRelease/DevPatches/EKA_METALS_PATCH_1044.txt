@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1044
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+
+Created on*        		:  12-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Price Fixation Document, Dashboards
+
+Sub-Module  			 :  N?A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103277
+Author: sriveenam
+Date: Wednesday, September 12, 2012 7:08:41 PM
+Message:
+Tata chorus enhancements 
+for pfd doc and alerts dashboard
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_396.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_321.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+
+
+
+
+
+
+
+
+
