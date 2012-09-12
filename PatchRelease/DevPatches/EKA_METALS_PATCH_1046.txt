@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1046
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar reddy
+
+Created on*        		:  12-Sep-2012
+
+Bug / Enhancement*              :  Data correction
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Setup
+
+Sub-Module  			 :  N?A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+
+Revision: 103294
+Author: rajeshwar.reddy
+Date: 21:14:10, 12 September 2012
+Message:
+Cost components(Setup)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_15.sql
+
+
+
+
+
+
+
+
+
+
+
