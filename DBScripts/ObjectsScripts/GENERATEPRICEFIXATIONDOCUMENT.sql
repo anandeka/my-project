@@ -1,6 +1,7 @@
-CREATE OR REPLACE PROCEDURE "GENERATEPRICEFIXATIONDOCUMENT"(p_pfd_id      VARCHAR2,
-                                                            p_docrefno    VARCHAR2,
-                                                            p_activity_id VARCHAR2,
+
+CREATE OR REPLACE PROCEDURE "GENERATEPRICEFIXATIONDOCUMENT"(p_pfd_id         VARCHAR2,
+                                                            p_docrefno       VARCHAR2,
+                                                            p_activity_id    VARCHAR2,
                                                             p_doc_issue_date VARCHAR2) IS
 
   corporate_name       VARCHAR2(100);
@@ -27,6 +28,7 @@ CREATE OR REPLACE PROCEDURE "GENERATEPRICEFIXATIONDOCUMENT"(p_pfd_id      VARCHA
   price_type           VARCHAR2(20);
   p_pofh_id            VARCHAR2(20);
   is_delta_pricing     VARCHAR2(10);
+  purchase_sales       VARCHAR2(30);
 
 BEGIN
 
@@ -104,20 +106,41 @@ BEGIN
          aml.attribute_name,
          (pcbpd.qty_to_be_priced || '% of ' || (CASE
            WHEN pcbpd.price_basis = 'Formula' THEN
-            ppfh.formula_name
+            ppfh.formula_name || ' - ' ||
+            (SELECT stragg(dim.instrument_name || ' - ' ||
+                           PS.PRICE_SOURCE_NAME || ' ' || PP.PRICE_POINT_NAME || ' ' ||
+                           APM.AVAILABLE_PRICE_DISPLAY_NAME)
+               FROM dim_der_instrument_master      dim,
+                    ppfd_phy_price_formula_details ppfd,
+                    PP_PRICE_POINT                 pp,
+                    PS_PRICE_SOURCE                ps,
+                    APM_AVAILABLE_PRICE_MASTER     apm
+              WHERE dim.instrument_id = ppfd.instrument_id
+                AND ppfd.is_active = 'Y'
+                AND ppfh.ppfh_id = ppfd.ppfh_id
+                and PPFD.PRICE_POINT_ID = PP.PRICE_POINT_ID(+)
+                and PPFD.PRICE_SOURCE_ID = PS.PRICE_SOURCE_ID
+                and PPFD.AVAILABLE_PRICE_TYPE_ID = APM.AVAILABLE_PRICE_ID
+              group by ppfh.ppfh_id)
            WHEN pcbpd.price_basis = 'Index' THEN
-           
-            (select dim.instrument_name
-               from dim_der_instrument_master      dim,
-                    ppfd_phy_price_formula_details ppfd
-              where dim.instrument_id = ppfd.instrument_id
-                and ppfd.is_active = 'Y'
-                AND ppfh.ppfh_id = ppfd.ppfh_id)
-         
-         END) || (case
-           when pocd.qp_period_type = 'Event' then
+            (SELECT dim.instrument_name || ' - ' || PS.PRICE_SOURCE_NAME || ' ' ||
+                    PP.PRICE_POINT_NAME || ' ' ||
+                    APM.AVAILABLE_PRICE_DISPLAY_NAME
+               FROM dim_der_instrument_master      dim,
+                    ppfd_phy_price_formula_details ppfd,
+                    PP_PRICE_POINT                 pp,
+                    PS_PRICE_SOURCE                ps,
+                    APM_AVAILABLE_PRICE_MASTER     apm
+              WHERE dim.instrument_id = ppfd.instrument_id
+                AND ppfd.is_active = 'Y'
+                AND ppfh.ppfh_id = ppfd.ppfh_id
+                and PPFD.PRICE_POINT_ID = PP.PRICE_POINT_ID(+)
+                and PPFD.PRICE_SOURCE_ID = PS.PRICE_SOURCE_ID
+                and PPFD.AVAILABLE_PRICE_TYPE_ID = APM.AVAILABLE_PRICE_ID)
+         END) || (CASE
+           WHEN pocd.qp_period_type = 'Event' THEN
             ', ' || pfqpp.no_of_event_months || ' ' || pfqpp.event_name
-         end)),
+         END)),
          (CASE
            WHEN pcdi.delivery_period_type = 'Month' THEN
             CASE
@@ -139,7 +162,20 @@ BEGIN
          (to_char(POFH.QP_START_DATE, 'dd-Mon-YYYY') || ' to ' ||
          to_char(POFH.QP_END_DATE, 'dd-Mon-YYYY')),
          pdm_curr.product_desc,
-         qum.qty_unit
+         qum.qty_unit,
+         (CASE
+           WHEN pcm.is_tolling_contract = 'Y' THEN
+            CASE
+           WHEN pcm.purchase_sales = 'P' THEN
+            'Sell Tolling'
+           ELSE
+            'Buy Tolling'
+         END ELSE CASE
+            WHEN pcm.purchase_sales = 'P' THEN
+             'Purchase'
+            ELSE
+             'Sales'
+          END END)
     INTO corporate_name,
          cp_address,
          cp_city,
@@ -160,7 +196,8 @@ BEGIN
          gmr_ref_no,
          qp,
          currency_product,
-         quantity_unit
+         quantity_unit,
+         purchase_sales
     FROM pfd_price_fixation_details     pfd,
          pofh_price_opt_fixation_header pofh,
          pocd_price_option_calloff_dtls pocd,
@@ -238,7 +275,8 @@ BEGIN
      QP,
      CURRENCY_PRODUCT,
      QUANTITY_UNIT,
-     DOC_ISSUE_DATE)
+     DOC_ISSUE_DATE,
+     PURCHASE_SALES)
   VALUES
     (p_docrefno,
      corporate_name,
@@ -262,10 +300,11 @@ BEGIN
      qp,
      currency_product,
      quantity_unit,
-     p_doc_issue_date);
+     p_doc_issue_date,
+     purchase_sales);
 
   /** Check if delta pricing exist for that pfd  */
-  select nvl(pfd.is_delta_pricing,'N')
+  select nvl(pfd.is_delta_pricing, 'N')
     into is_delta_pricing
     from pfd_price_fixation_details pfd
    where pfd.pfd_id = p_pfd_id;
