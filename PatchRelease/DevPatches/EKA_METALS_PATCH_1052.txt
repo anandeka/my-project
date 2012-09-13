@@ -1,0 +1,67 @@
+Patch No*          		:  EKA_METALS_PATCH_1052
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+
+Created on*        		:  13-Sep-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports & Documents
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103364
+Author: elaiyaraja.nallathambi
+Date: 7:28:51 PM, Thursday, September 13, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+
+Revision: 103365
+Author: elaiyaraja.nallathambi
+Date: 7:29:21 PM, Thursday, September 13, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/Reports/PriceFixationDocument.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
