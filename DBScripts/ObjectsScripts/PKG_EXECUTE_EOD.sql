@@ -35,7 +35,7 @@ create or replace package "PKG_EXECUTE_EOD" is
                                   pd_trade_date   date);
 
   procedure sp_refresh_mv;
-end pkg_execute_eod; 
+end pkg_execute_eod;
 /
 create or replace package body "PKG_EXECUTE_EOD" is
 
@@ -154,7 +154,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
         'EOD Process Success,Awaiting Cost Entry',
         'EOM Processed Successfully',
         'EOM Process Success,Awaiting Cost Entry') then
-    sp_mark_process_count(pc_corporate_id,'EOD',pd_trade_date);
+      sp_mark_process_count(pc_corporate_id, 'EOD', pd_trade_date);
     end if;
   exception
     when others then
@@ -333,10 +333,10 @@ create or replace package body "PKG_EXECUTE_EOD" is
            pd_trade_date,
            pc_process,
            sysdate,
-           pc_eod_status);               
+           pc_eod_status);
       end if;
     exception
-      when others then       
+      when others then
         sp_eodeom_process_log(pc_corporate_id,
                               pd_trade_date,
                               'insert into eod_eom_process_count' ||
@@ -429,7 +429,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
                   from eom_end_of_month_details eom
                  where eom.corporate_id = pc_corporate_id
                    and eom.as_of_date = pd_trade_date);
-      end if;    
+      end if;
       commit;
       sp_eodeom_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -554,12 +554,18 @@ create or replace package body "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('mv_bi_physical_risk_pos_eom', 'c');
     dbms_mview.refresh('mv_bi_phy_cont_journal_eod', 'c');
     dbms_mview.refresh('mv_bi_phy_cont_journal_eom', 'c');
+    dbms_mview.refresh('MV_BI_PHY_BOOK_JOURNAL_EOD', 'c');
+    dbms_mview.refresh('MV_BI_PHY_BOOK_JOURNAL_EOM', 'c');
     commit;
   exception
     when others then
-      sp_eodeom_process_log('NA',sysdate,'Exception when refresh sp_refresh_mv as' || sqlerrm, 2);
+      sp_eodeom_process_log('NA',
+                            sysdate,
+                            'Exception when refresh sp_refresh_mv as' ||
+                            sqlerrm,
+                            2);
       commit;
     
   end;
-end; 
+end;
 /
