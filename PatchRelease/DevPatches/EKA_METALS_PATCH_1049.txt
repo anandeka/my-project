@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1049
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit Gupta
+
+Created on*        		:  13-Sep-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  61794
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Alert/Reminder
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 103340
+Author: mohitkumar.gupta
+Date: 3:51:57 PM, Thursday, September 13, 2012
+Message:
+For the Bug 61794.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_398.sql
+
+
+
+
+
+
+
+
+
+
+
+
