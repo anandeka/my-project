@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1051
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  13-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Fx Exposure
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103362
+Author: sishir.pagada
+Date: 6:32:20 PM, Thursday, September 13, 2012
+Message:
+Fx Exposure listing Screen Changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_400.sql
+
+
+
+
+
+
+
+
+
+
+
+
