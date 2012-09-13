@@ -132,6 +132,19 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                        pn_premium                  out number,
                                        pc_exch_rate_string         out varchar2);
 
+  function f_get_tc_min_value(pn_price  in number,
+                           pc_dbd_id in varchar2,
+                           pn_pcth_id   in number) return number;
+   function f_get_tc_max_value(pn_price  in number,
+                           pc_dbd_id in varchar2,
+                           pn_pcth_id   in number) return number; 
+   function f_get_rc_min_value(pn_price  in number,
+                           pc_dbd_id in varchar2,
+                           pn_pcrh_id   in number) return number;
+   function f_get_rc_max_value(pn_price  in number,
+                           pc_dbd_id in varchar2,
+                           pn_pcrh_id   in number) return number;                                                                 
+
 end; 
 /
 create or replace package body pkg_metals_general is
@@ -746,6 +759,8 @@ create or replace package body pkg_metals_general is
     vc_rc_weight_unit_id   varchar2(15);
     vn_pricable_qty        number;
     vc_include_ref_charge  char(1);
+    vn_min_price           number;
+    vn_max_price           number;
   begin
     vn_refine_charge  := 0;
     vn_contract_price := pn_cp_price;
@@ -1033,7 +1048,10 @@ create or replace package body pkg_metals_general is
                 --Both vn_max_range and vn_min_range are same in case if base
                 if vn_contract_price > vn_max_range then
                   --go forward for the price range
-                  vn_refine_charge := vn_base_refine_charge;
+                  vn_refine_charge := vn_base_refine_charge;                  
+                  vn_max_price:=f_get_rc_max_value(vn_contract_price,
+                                                   pc_dbd_id,
+                                                   cur_ref_charge.pcrh_id);
                   for cur_forward_price in (select pcerc.range_min_value,
                                                    pcerc.range_min_op,
                                                    pcerc.range_max_value,
@@ -1046,27 +1064,25 @@ create or replace package body pkg_metals_general is
                                               from pcerc_pc_elem_refining_charge pcerc
                                              where pcerc.pcrh_id =
                                                    cur_ref_charge.pcrh_id
-                                               and nvl(pcerc.range_min_value,
-                                                       0) <
-                                                   vn_contract_price
-                                               and nvl(pcerc.range_min_value,
-                                                       0) >= vn_min_range
+                                               and nvl(pcerc.range_max_value,1000000)<=
+                                                    vn_max_price 
+                                                and nvl(pcerc.range_min_value, 0) >=
+                                                    vn_min_range 
                                                and nvl(pcerc.position, 'a') <>
                                                    'Base'
                                                and pcerc.is_active='Y'    
                                                and pcerc.dbd_id = pc_dbd_id)
-                  loop
-                    --for full Range
-                    if cur_forward_price.range_max_value <=
-                       vn_contract_price then
-                      vn_range_gap := cur_forward_price.range_max_value -
-                                      cur_forward_price.range_min_value;
-                    elsif nvl(cur_forward_price.range_max_value,
-                              vn_contract_price + 1) > vn_contract_price then
-                      --For the Half  Range 
-                      vn_range_gap := vn_contract_price -
-                                      cur_forward_price.range_min_value;
-                    end if;
+                  loop                    
+                -- if price is in the range take diff of price and max range
+                if cur_forward_price.range_min_value <= vn_contract_price
+                   and  cur_forward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_forward_price.range_max_value);
+                else  
+                  -- else diff range               
+                  vn_range_gap := cur_forward_price.range_max_value -
+                                  cur_forward_price.range_min_value;
+                 end if;
                     /* vn_each_tier_rc_charge := (vn_range_gap /
                                               nvl(cur_forward_price.esc_desc_value,
                                                    1)) *
@@ -1093,6 +1109,9 @@ create or replace package body pkg_metals_general is
                 elsif vn_contract_price < vn_min_range then
                   --go back ward for the price range
                   vn_refine_charge := vn_base_refine_charge;
+                  vn_min_price:=f_get_rc_min_value(vn_contract_price,
+                                                   pc_dbd_id,
+                                                   cur_ref_charge.pcrh_id);
                   for cur_backward_price in (select nvl(pcerc.range_min_value,
                                                         0) range_min_value,
                                                     pcerc.range_min_op,
@@ -1106,27 +1125,25 @@ create or replace package body pkg_metals_general is
                                                from pcerc_pc_elem_refining_charge pcerc
                                               where pcerc.pcrh_id =
                                                     cur_ref_charge.pcrh_id
-                                                and nvl(pcerc.range_min_value,
-                                                        0) <
-                                                    vn_contract_price
-                                                and nvl(pcerc.range_min_value,
-                                                        0) <= vn_min_range
+                                                and nvl(pcerc.range_min_value, 0)>=
+                                                    vn_min_price 
+                                                and nvl(pcerc.range_max_value, 100000000) <=
+                                                     vn_min_range
                                                 and nvl(pcerc.position, 'a') <>
                                                     'Base'
                                                 and pcerc.is_active='Y'       
                                                 and pcerc.dbd_id = pc_dbd_id)
                   loop
-                    --For the full Range 
-                    if cur_backward_price.range_max_value <=
-                       vn_contract_price then
-                      vn_range_gap := cur_backward_price.range_max_value -
-                                      cur_backward_price.range_min_value;
-                    elsif cur_backward_price.range_max_value >
-                          vn_contract_price then
-                      --For the Half  Range 
-                      vn_range_gap := abs(vn_contract_price -
-                                      cur_backward_price.range_max_value);
-                    end if;
+                    -- if price is in the range take diff of price and max range
+                  if cur_backward_price.range_min_value <= vn_contract_price
+                   and  cur_backward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_backward_price.range_max_value);
+                  else  
+                  -- else diff range               
+                  vn_range_gap := cur_backward_price.range_max_value -
+                                  cur_backward_price.range_min_value;
+                  end if;
                     if cur_backward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
                                                      nvl(cur_backward_price.esc_desc_value,
@@ -1265,6 +1282,8 @@ create or replace package body pkg_metals_general is
     vc_cur_id              varchar2(10);
     vn_converted_qty       number;
     vc_rc_weight_unit_id   varchar2(15);
+    vn_min_price           number;
+    vn_max_price           number;
   begin
     vn_contract_price   := pn_cp_price;
     vn_treatment_charge := 0;
@@ -1426,6 +1445,9 @@ create or replace package body pkg_metals_general is
               --in case if base
               if vn_contract_price > vn_max_range then
                 vn_treatment_charge := vn_base_tret_charge;
+                vn_max_price:=f_get_tc_max_value(vn_contract_price,
+                                                 pc_dbd_id,
+                                                 cur_tret_charge.pcth_id);
                 --go forward for the price range
                 for cur_forward_price in (select pcetc.range_min_value,
                                                  pcetc.range_min_op,
@@ -1439,24 +1461,24 @@ create or replace package body pkg_metals_general is
                                             from pcetc_pc_elem_treatment_charge pcetc
                                            where pcetc.pcth_id =
                                                  cur_tret_charge.pcth_id
-                                             and nvl(pcetc.range_min_value,
-                                                     0) < vn_contract_price
-                                             and nvl(pcetc.range_min_value,
-                                                     0) >= vn_min_range
+                                            and nvl(pcetc.range_max_value,1000000)<=
+                                                 vn_max_price 
+                                            and nvl(pcetc.range_min_value, 0) >=
+                                                 vn_min_range  
                                              and nvl(pcetc.position, 'a') <>
                                                  'Base'
                                              and pcetc.is_active='Y'    
                                              and pcetc.dbd_id = pc_dbd_id)
                 loop
-                  --for full Range
-                  if cur_forward_price.range_max_value <= vn_contract_price then
-                    vn_range_gap := cur_forward_price.range_max_value -
-                                    cur_forward_price.range_min_value;
-                  elsif nvl(cur_forward_price.range_max_value,
-                            vn_contract_price + 1) > vn_contract_price then
-                    --For the Half  Range 
-                    vn_range_gap := vn_contract_price -
-                                    cur_forward_price.range_min_value;
+                   -- if price is in the range take diff of price and max range
+                if cur_forward_price.range_min_value <= vn_contract_price
+                   and  cur_forward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_forward_price.range_max_value);
+                  else  
+                  -- else diff range               
+                  vn_range_gap := cur_forward_price.range_max_value -
+                                  cur_forward_price.range_min_value;
                   end if;
                   if cur_forward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
@@ -1476,6 +1498,10 @@ create or replace package body pkg_metals_general is
                 end loop;
               elsif vn_contract_price < vn_min_range then
                 vn_treatment_charge := vn_base_tret_charge;
+                vn_min_price:=f_get_tc_min_value(vn_contract_price,
+                                                 pc_dbd_id,
+                                                 cur_tret_charge.pcth_id);
+
                 --go back ward for the price range
                 for cur_backward_price in (select nvl(pcetc.range_min_value,
                                                       0) range_min_value,
@@ -1490,26 +1516,25 @@ create or replace package body pkg_metals_general is
                                              from pcetc_pc_elem_treatment_charge pcetc
                                             where pcetc.pcth_id =
                                                   cur_tret_charge.pcth_id
-                                              and nvl(pcetc.range_min_value,
-                                                      0) < vn_contract_price
-                                              and nvl(pcetc.range_min_value,
-                                                      0) <= vn_min_range
+                                              and nvl(pcetc.range_min_value, 0)>=
+                                                  vn_min_price 
+                                              and nvl(pcetc.range_max_value, 100000000) <=
+                                                  vn_min_range
                                               and nvl(pcetc.position, 'a') <>
                                                   'Base'
                                               and pcetc.is_active='Y'     
                                               and pcetc.dbd_id = pc_dbd_id)
                 loop
-                  --For the full Range 
-                  if cur_backward_price.range_max_value <=
-                     vn_contract_price then
-                    vn_range_gap := cur_backward_price.range_max_value -
-                                    cur_backward_price.range_min_value;
-                  elsif cur_backward_price.range_max_value >
-                        vn_contract_price then
-                    --For the Half  Range 
-                    vn_range_gap := abs(vn_contract_price -
-                                    cur_backward_price.range_max_value);
-                  end if;
+                  -- if price is in the range take diff of price and max range
+                if cur_backward_price.range_min_value <= vn_contract_price
+                   and  cur_backward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_backward_price.range_max_value);
+                  else  
+                  -- else diff range               
+                  vn_range_gap := cur_backward_price.range_max_value -
+                                  cur_backward_price.range_min_value;
+                end if;
                   if cur_backward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
                                                    nvl(cur_backward_price.esc_desc_value,
@@ -1727,6 +1752,8 @@ create or replace package body pkg_metals_general is
     vn_converted_qty       number;
     vc_rc_weight_unit_id   varchar2(15);
     vn_total_gmr_tc_value  number := 0;
+    vn_min_price           number;
+    vn_max_price           number;
   begin
     vn_contract_price   := pn_cp_price;
     vn_treatment_charge := 0;
@@ -1937,6 +1964,9 @@ create or replace package body pkg_metals_general is
               --in case if base
               if vn_contract_price > vn_max_range then
                 vn_treatment_charge := vn_base_tret_charge;
+                vn_max_price:=f_get_tc_max_value(vn_contract_price,
+                                                 pc_dbd_id,
+                                                 cur_tret_charge.pcth_id);
                 --go forward for the price range
                 for cur_forward_price in (select pcetc.range_min_value,
                                                  pcetc.range_min_op,
@@ -1950,24 +1980,24 @@ create or replace package body pkg_metals_general is
                                             from pcetc_pc_elem_treatment_charge pcetc
                                            where pcetc.pcth_id =
                                                  cur_tret_charge.pcth_id
-                                             and nvl(pcetc.range_min_value,
-                                                     0) < vn_contract_price
-                                             and nvl(pcetc.range_min_value,
-                                                     0) >= vn_min_range
+                                            and nvl(pcetc.range_max_value,1000000)<=
+                                                 vn_max_price 
+                                            and nvl(pcetc.range_min_value, 0) >=
+                                                vn_min_range      
                                              and nvl(pcetc.position, 'a') <>
                                                  'Base'
                                              and pcetc.is_active='Y'   
                                              and pcetc.dbd_id = pc_dbd_id)
                 loop
-                  --for full Range
-                  if cur_forward_price.range_max_value <= vn_contract_price then
-                    vn_range_gap := cur_forward_price.range_max_value -
-                                    cur_forward_price.range_min_value;
-                  elsif nvl(cur_forward_price.range_max_value,
-                            vn_contract_price + 1) > vn_contract_price then
-                    --For the Half  Range
-                    vn_range_gap := vn_contract_price -
-                                    cur_forward_price.range_min_value;
+                    -- if price is in the range take diff of price and max range
+                if cur_forward_price.range_min_value <= vn_contract_price
+                   and  cur_forward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_forward_price.range_max_value);
+                  else  
+                  -- else diff range               
+                  vn_range_gap := cur_forward_price.range_max_value -
+                                  cur_forward_price.range_min_value;
                   end if;
                   if cur_forward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
@@ -1987,6 +2017,9 @@ create or replace package body pkg_metals_general is
                 end loop;
               elsif vn_contract_price < vn_min_range then
                 vn_treatment_charge := vn_base_tret_charge;
+                vn_min_price:=f_get_tc_min_value(vn_contract_price,
+                                                 pc_dbd_id,
+                                                 cur_tret_charge.pcth_id);
                 --go back ward for the price range
                 for cur_backward_price in (select nvl(pcetc.range_min_value,
                                                       0) range_min_value,
@@ -2001,26 +2034,25 @@ create or replace package body pkg_metals_general is
                                              from pcetc_pc_elem_treatment_charge pcetc
                                             where pcetc.pcth_id =
                                                   cur_tret_charge.pcth_id
-                                              and nvl(pcetc.range_min_value,
-                                                      0) < vn_contract_price
-                                              and nvl(pcetc.range_min_value,
-                                                      0) <= vn_min_range
+                                              and nvl(pcetc.range_min_value, 0)>=
+                                                  vn_min_price 
+                                              and nvl(pcetc.range_max_value, 100000000) <=
+                                                  vn_min_range
                                               and nvl(pcetc.position, 'a') <>
                                                   'Base'
                                               and pcetc.is_active='Y'      
                                               and pcetc.dbd_id = pc_dbd_id)
                 loop
-                  --For the full Range
-                  if cur_backward_price.range_max_value <=
-                     vn_contract_price then
-                    vn_range_gap := cur_backward_price.range_max_value -
-                                    cur_backward_price.range_min_value;
-                  elsif cur_backward_price.range_max_value >
-                        vn_contract_price then
-                    --For the Half  Range
-                    vn_range_gap := abs(vn_contract_price -
-                                    cur_backward_price.range_max_value);
-                  end if;
+                  -- if price is in the range take diff of price and max range
+                  if cur_backward_price.range_min_value <= vn_contract_price
+                   and  cur_backward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_backward_price.range_max_value);
+                  else  
+                  -- else diff range               
+                  vn_range_gap := cur_backward_price.range_max_value -
+                                  cur_backward_price.range_min_value;
+                   end if;
                   if cur_backward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
                                                    nvl(cur_backward_price.esc_desc_value,
@@ -2150,9 +2182,11 @@ procedure sp_get_gmr_tc_by_assay(pc_inter_gmr_ref_no varchar2,
   vn_converted_qty       number;
   vc_rc_weight_unit_id   varchar2(15);
   vn_total_gmr_tc_value  number := 0;
+  vn_min_price           number;
+  vn_max_price           number;
 begin
   vn_contract_price   := pn_cp_price;
-  vn_treatment_charge := 0;
+  vn_treatment_charge := 0;     
   for cc in (select pc_inter_gmr_ref_no internal_gmr_ref_no,
                     pc_inter_grd_ref_no internal_grd_ref_no,
                     ash.ash_id,
@@ -2341,6 +2375,9 @@ begin
             --in case if base
             if vn_contract_price > vn_max_range then
               vn_treatment_charge := vn_base_tret_charge;
+              vn_max_price:=f_get_tc_max_value(vn_contract_price,
+                                               pc_dbd_id,
+                                               cur_tret_charge.pcth_id);
               --go forward for the price range
               for cur_forward_price in (select pcetc.range_min_value,
                                                pcetc.range_min_op,
@@ -2354,23 +2391,23 @@ begin
                                           from pcetc_pc_elem_treatment_charge pcetc
                                          where pcetc.pcth_id =
                                                cur_tret_charge.pcth_id
-                                           and nvl(pcetc.range_min_value, 0) <
-                                               vn_contract_price
+                                           and nvl(pcetc.range_max_value,1000000)<=
+                                                vn_max_price 
                                            and nvl(pcetc.range_min_value, 0) >=
-                                               vn_min_range
+                                                vn_min_range                                           
                                            and nvl(pcetc.position, 'a') <>
                                                'Base'
                                            and pcetc.is_active='Y'    
                                            and pcetc.dbd_id = pc_dbd_id)
               loop
-                --for full Range
-                if cur_forward_price.range_max_value <= vn_contract_price then
+                 -- if price is in the range take diff of price and max range
+                if cur_forward_price.range_min_value <= vn_contract_price
+                   and  cur_forward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_forward_price.range_max_value);
+                  else  
+                  -- else diff range               
                   vn_range_gap := cur_forward_price.range_max_value -
-                                  cur_forward_price.range_min_value;
-                elsif nvl(cur_forward_price.range_max_value,
-                          vn_contract_price + 1) > vn_contract_price then
-                  --For the Half  Range
-                  vn_range_gap := vn_contract_price -
                                   cur_forward_price.range_min_value;
                 end if;
                 if cur_forward_price.charge_basis = 'absolute' then
@@ -2389,7 +2426,10 @@ begin
                                        vn_each_tier_tc_charge;
               end loop;
             elsif vn_contract_price < vn_min_range then
-              vn_treatment_charge := vn_base_tret_charge;
+              vn_treatment_charge := vn_base_tret_charge;              --
+              vn_min_price:=f_get_tc_min_value(vn_contract_price,
+                                               pc_dbd_id,
+                                               cur_tret_charge.pcth_id);
               --go back ward for the price range
               for cur_backward_price in (select nvl(pcetc.range_min_value, 0) range_min_value,
                                                 pcetc.range_min_op,
@@ -2403,24 +2443,24 @@ begin
                                            from pcetc_pc_elem_treatment_charge pcetc
                                           where pcetc.pcth_id =
                                                 cur_tret_charge.pcth_id
-                                            and nvl(pcetc.range_min_value, 0) <
-                                                vn_contract_price
-                                            and nvl(pcetc.range_min_value, 0) <=
+                                            and nvl(pcetc.range_min_value, 0)>=
+                                                vn_min_price 
+                                            and nvl(pcetc.range_max_value, 100000000) <=
                                                 vn_min_range
                                             and nvl(pcetc.position, 'a') <>
                                                 'Base'
                                             and pcetc.is_active='Y'      
                                             and pcetc.dbd_id = pc_dbd_id)
-              loop
-                --For the full Range
-                if cur_backward_price.range_max_value <= vn_contract_price then
+              loop             
+                -- if price is in the range take diff of price and max range
+                if cur_backward_price.range_min_value <= vn_contract_price
+                   and  cur_backward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_backward_price.range_max_value);
+                  else  
+                  -- else diff range               
                   vn_range_gap := cur_backward_price.range_max_value -
                                   cur_backward_price.range_min_value;
-                elsif cur_backward_price.range_max_value >
-                      vn_contract_price then
-                  --For the Half  Range
-                  vn_range_gap := abs(vn_contract_price -
-                                  cur_backward_price.range_max_value);
                 end if;
                 if cur_backward_price.charge_basis = 'absolute' then
                   vn_each_tier_tc_charge := ceil(vn_range_gap /
@@ -2550,6 +2590,8 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
     vn_pricable_qty        number;
     vc_include_ref_charge  char(1);
     vn_gmr_rc_charges      number := 0;
+    vn_min_price           number;
+    vn_max_price           number;
   begin
     vn_refine_charge  := 0;
     vn_contract_price := pn_cp_price;
@@ -2921,6 +2963,9 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                 if vn_contract_price > vn_max_range then
                   --go forward for the price range
                   vn_refine_charge := vn_base_refine_charge;
+                  vn_max_price:=f_get_rc_max_value(vn_contract_price,
+                                                   pc_dbd_id,
+                                                   cur_ref_charge.pcrh_id);
                   for cur_forward_price in (select pcerc.range_min_value,
                                                    pcerc.range_min_op,
                                                    pcerc.range_max_value,
@@ -2933,27 +2978,25 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                                               from pcerc_pc_elem_refining_charge pcerc
                                              where pcerc.pcrh_id =
                                                    cur_ref_charge.pcrh_id
-                                               and nvl(pcerc.range_min_value,
-                                                       0) <
-                                                   vn_contract_price
-                                               and nvl(pcerc.range_min_value,
-                                                       0) >= vn_min_range
+                                               and nvl(pcerc.range_max_value,1000000)<=
+                                                   vn_max_price 
+                                               and nvl(pcerc.range_min_value, 0) >=
+                                                   vn_min_range  
                                                and nvl(pcerc.position, 'a') <>
                                                    'Base'
                                                and pcerc.is_active='Y'    
                                                and pcerc.dbd_id = pc_dbd_id)
                   loop
-                    --for full Range
-                    if cur_forward_price.range_max_value <=
-                       vn_contract_price then
-                      vn_range_gap := cur_forward_price.range_max_value -
-                                      cur_forward_price.range_min_value;
-                    elsif nvl(cur_forward_price.range_max_value,
-                              vn_contract_price + 1) > vn_contract_price then
-                      --For the Half  Range
-                      vn_range_gap := vn_contract_price -
-                                      cur_forward_price.range_min_value;
-                    end if;
+                     -- if price is in the range take diff of price and max range
+                  if cur_forward_price.range_min_value <= vn_contract_price
+                   and  cur_forward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_forward_price.range_max_value);
+                  else  
+                  -- else diff range               
+                  vn_range_gap := cur_forward_price.range_max_value -
+                                  cur_forward_price.range_min_value;
+                   end if;
                   
                     if cur_forward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
@@ -2974,6 +3017,9 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                 elsif vn_contract_price < vn_min_range then
                   --go back ward for the price range
                   vn_refine_charge := vn_base_refine_charge;
+                  vn_min_price:=f_get_rc_min_value(vn_contract_price,
+                                                   pc_dbd_id,
+                                                   cur_ref_charge.pcrh_id);
                   for cur_backward_price in (select nvl(pcerc.range_min_value,
                                                         0) range_min_value,
                                                     pcerc.range_min_op,
@@ -2987,27 +3033,26 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                from pcerc_pc_elem_refining_charge pcerc
                                               where pcerc.pcrh_id =
                                                     cur_ref_charge.pcrh_id
-                                                and nvl(pcerc.range_min_value,
-                                                        0) <
-                                                    vn_contract_price
-                                                and nvl(pcerc.range_min_value,
-                                                        0) <= vn_min_range
+                                                and nvl(pcerc.range_min_value, 0)>=
+                                                    vn_min_price 
+                                                and nvl(pcerc.range_max_value, 100000000) <=
+                                                    vn_min_range
                                                 and nvl(pcerc.position, 'a') <>
                                                     'Base'
                                                 and pcerc.is_active='Y'      
                                                 and pcerc.dbd_id = pc_dbd_id)
                   loop
-                    --For the full Range
-                    if cur_backward_price.range_max_value <=
-                       vn_contract_price then
-                      vn_range_gap := cur_backward_price.range_max_value -
-                                      cur_backward_price.range_min_value;
-                    elsif cur_backward_price.range_max_value >
-                          vn_contract_price then
-                      --For the Half  Range
-                      vn_range_gap := abs(vn_contract_price -
-                                      cur_backward_price.range_max_value);
-                    end if;
+                   -- if price is in the range take diff of price and max range 
+                  if cur_backward_price.range_min_value <= vn_contract_price
+                   and  cur_backward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_backward_price.range_max_value);
+                  else  
+                  -- else diff range               
+                  vn_range_gap := cur_backward_price.range_max_value -
+                                  cur_backward_price.range_min_value;
+                  end if;
+                  
                     if cur_backward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
                                                      nvl(cur_backward_price.esc_desc_value,
@@ -3406,6 +3451,8 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
     vn_pricable_qty        number;
     vc_include_ref_charge  char(1);
     vn_gmr_rc_charges      number := 0;
+    vn_min_price           number;
+    vn_max_price           number;
   begin
     vn_refine_charge  := 0;
     vn_contract_price := pn_cp_price;
@@ -3778,6 +3825,9 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                 if vn_contract_price > vn_max_range then
                   --go forward for the price range
                   vn_refine_charge := vn_base_refine_charge;
+                  vn_max_price:=f_get_rc_max_value(vn_contract_price,
+                                                   pc_dbd_id,
+                                                   cur_ref_charge.pcrh_id);
                   for cur_forward_price in (select pcerc.range_min_value,
                                                    pcerc.range_min_op,
                                                    pcerc.range_max_value,
@@ -3790,26 +3840,24 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                               from pcerc_pc_elem_refining_charge pcerc
                                              where pcerc.pcrh_id =
                                                    cur_ref_charge.pcrh_id
-                                               and nvl(pcerc.range_min_value,
-                                                       0) <
-                                                   vn_contract_price
-                                               and nvl(pcerc.range_min_value,
-                                                       0) >= vn_min_range
+                                               and nvl(pcerc.range_max_value,1000000)<=
+                                                   vn_max_price 
+                                                and nvl(pcerc.range_min_value, 0) >=
+                                                    vn_min_range 
                                                and nvl(pcerc.position, 'a') <>
                                                    'Base'
                                                and pcerc.is_active='Y'    
                                                and pcerc.dbd_id = pc_dbd_id)
                   loop
-                    --for full Range
-                    if cur_forward_price.range_max_value <=
-                       vn_contract_price then
-                      vn_range_gap := cur_forward_price.range_max_value -
-                                      cur_forward_price.range_min_value;
-                    elsif nvl(cur_forward_price.range_max_value,
-                              vn_contract_price + 1) > vn_contract_price then
-                      --For the Half  Range
-                      vn_range_gap := vn_contract_price -
-                                      cur_forward_price.range_min_value;
+                     -- if price is in the range take diff of price and max range
+                   if cur_forward_price.range_min_value <= vn_contract_price
+                   and  cur_forward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_forward_price.range_max_value);
+                  else  
+                  -- else diff range               
+                  vn_range_gap := cur_forward_price.range_max_value -
+                                  cur_forward_price.range_min_value;
                     end if;
                   
                     if cur_forward_price.charge_basis = 'absolute' then
@@ -3831,6 +3879,9 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                 elsif vn_contract_price < vn_min_range then
                   --go back ward for the price range
                   vn_refine_charge := vn_base_refine_charge;
+                  vn_min_price:=f_get_rc_min_value(vn_contract_price,
+                                                   pc_dbd_id,
+                                                   cur_ref_charge.pcrh_id);
                   for cur_backward_price in (select nvl(pcerc.range_min_value,
                                                         0) range_min_value,
                                                     pcerc.range_min_op,
@@ -3844,27 +3895,25 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                from pcerc_pc_elem_refining_charge pcerc
                                               where pcerc.pcrh_id =
                                                     cur_ref_charge.pcrh_id
-                                                and nvl(pcerc.range_min_value,
-                                                        0) <
-                                                    vn_contract_price
-                                                and nvl(pcerc.range_min_value,
-                                                        0) <= vn_min_range
+                                                and nvl(pcerc.range_min_value, 0)>=
+                                                    vn_min_price 
+                                                and nvl(pcerc.range_max_value, 100000000) <=
+                                                    vn_min_range
                                                 and nvl(pcerc.position, 'a') <>
                                                     'Base'
                                                 and pcerc.is_active='Y'     
                                                 and pcerc.dbd_id = pc_dbd_id)
                   loop
-                    --For the full Range
-                    if cur_backward_price.range_max_value <=
-                       vn_contract_price then
-                      vn_range_gap := cur_backward_price.range_max_value -
-                                      cur_backward_price.range_min_value;
-                    elsif cur_backward_price.range_max_value >
-                          vn_contract_price then
-                      --For the Half  Range
-                      vn_range_gap := abs(vn_contract_price -
-                                      cur_backward_price.range_max_value);
-                    end if;
+                    -- if price is in the range take diff of price and max range
+                    if cur_backward_price.range_min_value <= vn_contract_price
+                   and  cur_backward_price.range_max_value>vn_contract_price then
+                   vn_range_gap := abs(vn_contract_price -
+                                  cur_backward_price.range_max_value);
+                   else  
+                  -- else diff range               
+                  vn_range_gap := cur_backward_price.range_max_value -
+                                  cur_backward_price.range_min_value;
+                   end if;
                     if cur_backward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
                                                      nvl(cur_backward_price.esc_desc_value,
@@ -4780,5 +4829,89 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
     end loop;
     pn_premium := vn_total_premium;
   end;
+ function f_get_tc_min_value(pn_price  in number,
+                           pc_dbd_id in varchar2,
+                           pn_pcth_id   in number) return number as
+   vn_min_vale number;
+   
+ begin
+ 
+   select nvl(pcetc.range_min_value,pn_price)
+     into vn_min_vale
+     from pcetc_pc_elem_treatment_charge pcetc
+    where pcetc.pcth_id = pn_pcth_id
+      and nvl(pcetc.position, 'a') <> 'Base'
+      and pcetc.is_active = 'Y'
+      and nvl(pcetc.range_min_value,10000000) <= pn_price
+      and pcetc.range_max_value > pn_price
+      and pcetc.dbd_id = pc_dbd_id;
+      return(vn_min_vale);
+  exception
+  when others then
+  vn_min_vale:=null;
+ end;
+ function f_get_tc_max_value(pn_price  in number,
+                           pc_dbd_id in varchar2,
+                           pn_pcth_id   in number) return number as
+   vn_max_vale number;
+   
+ begin
+ 
+   select nvl(pcetc.range_max_value,pn_price)
+     into vn_max_vale
+     from pcetc_pc_elem_treatment_charge pcetc
+    where pcetc.pcth_id = pn_pcth_id
+      and nvl(pcetc.position, 'a') <> 'Base'
+      and pcetc.is_active = 'Y'
+      and pcetc.range_min_value <= pn_price
+      and nvl(pcetc.range_max_value,10000000) > pn_price
+      and pcetc.dbd_id = pc_dbd_id;
+      return(vn_max_vale);
+  exception
+  when others then
+  vn_max_vale:=null;
+ end;
+ function f_get_rc_min_value(pn_price  in number,
+                           pc_dbd_id in varchar2,
+                           pn_pcrh_id   in number) return number as
+   vn_min_vale number;
+   
+ begin
+ 
+   select nvl(pcerc.range_min_value,pn_price)
+     into vn_min_vale
+     from pcerc_pc_elem_refining_charge pcerc
+    where pcerc.pcrh_id = pn_pcrh_id
+      and nvl(pcerc.position, 'a') <> 'Base'
+      and pcerc.is_active = 'Y'
+      and nvl(pcerc.range_min_value,10000000) <= pn_price
+      and pcerc.range_max_value > pn_price
+      and pcerc.dbd_id = pc_dbd_id;
+      return(vn_min_vale);
+  exception
+  when others then
+  vn_min_vale:=null;
+ end;
+ function f_get_rc_max_value(pn_price  in number,
+                           pc_dbd_id in varchar2,
+                           pn_pcrh_id   in number) return number as
+   vn_max_vale number;
+   
+ begin
+ 
+   select nvl(pcerc.range_max_value,pn_price)
+     into vn_max_vale
+     from pcerc_pc_elem_refining_charge pcerc
+    where pcerc.pcrh_id = pn_pcrh_id
+      and nvl(pcerc.position, 'a') <> 'Base'
+      and pcerc.is_active = 'Y'
+      and pcerc.range_min_value <= pn_price
+      and nvl(pcerc.range_max_value,10000000) > pn_price
+      and pcerc.dbd_id = pc_dbd_id;
+      return(vn_max_vale);
+  exception
+  when others then
+  vn_max_vale:=null;
+ end;
 end; 
 /

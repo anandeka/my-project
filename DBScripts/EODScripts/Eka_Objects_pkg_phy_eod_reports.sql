@@ -78,7 +78,7 @@ create or replace package pkg_phy_eod_reports is
                                       pc_process      varchar2,
                                       pc_dbd_id       varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -2754,6 +2754,25 @@ commit;
                 pa.pay_in_cur_code,
                 pa.internal_gmr_ref_no;
     commit;
+      -- purchase accrual update statements here
+  for cc in (select gmr.internal_gmr_ref_no,
+                    gmr.warehouse_profile_id,
+                    phd.companyname
+               from gmr_goods_movement_record gmr,
+                    phd_profileheaderdetails  phd
+              where gmr.warehouse_profile_id is not null
+                and gmr.warehouse_profile_id = phd.profileid
+                and gmr.corporate_id = pc_corporate_id
+                and gmr.is_deleted = 'N'
+                and gmr.process_id = pc_process_id)
+  loop
+    update pa_purchase_accural_gmr pa
+       set pa.warehouse_profile_id = cc.warehouse_profile_id,
+           pa.warehouse_name       = cc.companyname
+     where pa.internal_gmr_ref_no = cc.internal_gmr_ref_no
+       and pa.process_id = pc_process_id;
+  end loop;
+  commit;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -5291,12 +5310,12 @@ commit;
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_calc_daily_trade_pnl',
+                                                           'procedure sp_phy_intrsstat',
                                                            'M2M-013',
                                                            'Code:' ||
                                                            sqlcode ||
                                                            'Message:' ||
-                                                           sqlerrm,
+                                                           sqlerrm ,
                                                            '',
                                                            pc_process,
                                                            '',
@@ -14644,9 +14663,11 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                and sam.internal_grd_ref_no = grd.internal_grd_ref_no
                and sam.is_active = 'Y'
                and sam.ash_id = ash.ash_id
-               and sam.is_latest_pricing_assay = 'Y'
-               and ash.is_active = 'Y'
-               and ash_pricing.is_active = 'Y'
+              -- and sam.is_latest_pricing_assay = 'Y'
+              -- and ash.is_active = 'Y'
+              -- and ash_pricing.is_active = 'Y'
+               and ash.assay_type='pricing assay'
+               and spq.assay_header_id = ash.ash_id
                and ash.internal_grd_ref_no = spq.internal_grd_ref_no
                and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
                and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
