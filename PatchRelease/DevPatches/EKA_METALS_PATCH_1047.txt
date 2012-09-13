@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1047
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+
+Created on*        		:  13-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Dashboards
+
+Sub-Module  			 :  N?A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103310
+Author: sriveenam
+Date: Thursday, September 13, 2012 11:55:22 AM
+Message:
+amc script for dashboard corrected
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_397.sql
+
+
+
+
+
+
+
+
+
+
+
