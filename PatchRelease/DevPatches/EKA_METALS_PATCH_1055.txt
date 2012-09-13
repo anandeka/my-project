@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1055
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok/Siva
+
+Created on*        		:  13-Sep-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : APP
+==================================================================
+
+Revision: 103376
+Author: sivachalabathi.s
+Date: 8:42:54 PM, Thursday, September 13, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_323_MV_AND_VIEWS.SQL
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_EXECUTE_EOD.sql
