@@ -1,0 +1,64 @@
+Patch No*          		:  EKA_METALS_PATCH_1050
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+
+Created on*        		:  13-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103358
+Author: pradeep.kumar
+Date: 6:07:02 PM, Thursday, September 13, 2012
+Message:
+-- Create New Table TBD_Transport_Booking_Detail 
+-- Added column TBD_ID(Transport Booking Id) into VD & VD_UL Table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_322.sql
+
+Revision: 103359
+Author: pradeep.kumar
+Date: 6:09:31 PM, Thursday, September 13, 2012
+Message:
+-- SLS/SLV Entries For BooingBasis (Added For Transport Booking)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_399.sql
+
+
+
+
+
+
+
+
+
+
+
+
