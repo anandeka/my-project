@@ -49,7 +49,31 @@ select test.supp_internal_gmr_ref_no,
                   from iepd_inv_epenalty_details iepd
                  group by iepd.stock_id,
                           iepd.internal_invoice_ref_no) iepd,
-               v_bi_latest_gmr_invoice invoice,
+               -- v_bi_latest_gmr_invoice invoice,
+               (select iid.internal_gmr_ref_no,
+                      substr(max(to_char(axs.created_date,
+                                         'yyyymmddhh24missff9') ||
+                                 iam.internal_invoice_ref_no),
+                             24) internal_invoice_ref_no
+                 from is_invoice_summary          is1,
+                      iid_invoicable_item_details iid,
+                      iam_invoice_action_mapping  iam,
+                      axs_action_summary          axs,
+                      gmr_goods_movement_record   gmr,
+                      grd_goods_record_detail     grd
+                where is1.is_active = 'Y'
+                  and is1.internal_invoice_ref_no =
+                      iid.internal_invoice_ref_no
+                  and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+                  and iam.internal_invoice_ref_no =
+                      is1.internal_invoice_ref_no
+                  and iam.invoice_action_ref_no =
+                      axs.internal_action_ref_no
+                  and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                  and grd.tolling_stock_type = 'Clone Stock'
+                  and grd.is_deleted = 'N'
+                  and grd.internal_grd_ref_no = iid.stock_id
+                group by iid.internal_gmr_ref_no) invoice,
                cm_currency_master cm,
                ak_corporate akc
          where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
@@ -57,6 +81,8 @@ select test.supp_internal_gmr_ref_no,
            and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
            and grd.internal_grd_ref_no = iid.stock_id
            and iid.internal_invoice_ref_no = iss.internal_invoice_ref_no
+           and gmr.internal_gmr_ref_no = invoice.internal_gmr_ref_no
+           and iss.internal_invoice_ref_no = invoice.internal_invoice_ref_no
            and iss.is_active = 'Y'
            and pcm.is_active = 'Y'
            and gmr.is_deleted = 'N'
@@ -70,7 +96,7 @@ select test.supp_internal_gmr_ref_no,
            and iid.internal_invoice_ref_no = inrc.internal_invoice_ref_no(+)
            and iid.stock_id = iepd.stock_id(+)
            and iid.internal_invoice_ref_no = iepd.internal_invoice_ref_no(+)
-           and gmr.internal_gmr_ref_no = invoice.internal_gmr_ref_no
+              
            and iid.invoice_currency_id = cm.cur_id
            and pcm.cp_id = phd.profileid
            and gmr.corporate_id = akc.corporate_id) test
@@ -82,4 +108,4 @@ select test.supp_internal_gmr_ref_no,
           test.supp_internal_gmr_ref_no,
           test.smelter_id,
           test.corporate_id,
-          test.corporate_name
+          test.corporate_name;
