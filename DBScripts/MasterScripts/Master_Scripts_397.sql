@@ -1,0 +1,1 @@
+update AMC_APP_MENU_CONFIGURATION set DISPLAY_SEQ_NO = '26' where menu_id ='IEKA-19';
