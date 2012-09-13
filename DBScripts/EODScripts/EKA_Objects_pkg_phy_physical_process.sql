@@ -4029,6 +4029,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from eod_eom_booking_journal where process_id = pc_process_id;
     delete from eod_eom_phy_contract_journal where process_id = pc_process_id;
     delete from prp_physical_risk_position where process_id = pc_process_id;
+    delete from eod_eom_phy_booking_journal where process_id = pc_process_id;
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
     --
