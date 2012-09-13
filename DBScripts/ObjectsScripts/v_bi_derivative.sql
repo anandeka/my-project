@@ -48,7 +48,7 @@ select temp.derivative_ref_no,
        temp.clearer_commission,
        temp.clearer_commission_unit,
        temp.clearer_comm_to_base_fx_rate,
-       round(nvl(temp.clearer_commission, 1) *
+       round(nvl(temp.clearer_commission, 0) *
              nvl(temp.clearer_comm_to_base_fx_rate, 1),
              4) clearer_commission_in_base_ccy,
        temp.broker,
@@ -56,7 +56,7 @@ select temp.derivative_ref_no,
        temp.broker_commission,
        temp.broker_commission_ccy,
        temp.broker_comm_to_base_fx_rate,
-       round(nvl(temp.broker_commission, 1) *
+       round(nvl(temp.broker_commission, 0) *
              nvl(temp.broker_comm_to_base_fx_rate, 1),
              4) broker_commission_in_base_ccy,
        temp.option_type,
