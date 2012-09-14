@@ -1,0 +1,72 @@
+Patch No*          		:  EKA_METALS_PATCH_1059
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj
+
+Created on*        		:  14-Sep-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103472
+Author: elaiyaraja.nallathambi
+Date: 5:20:04 PM, Friday, September 14, 2012
+Message:
+Bug Fixes:- 68788,68797
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BrokerList.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+
+Revision: 103515
+Author: saurabh.raj
+Date: 8:15:05 PM, Friday, September 14, 2012
+Message:
+Bug Fixed 68679,68845,68846,68847
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DeliveryScheduleReport.rpt
+
+Revision: 103518
+Author: saurabh.raj
+Date: 8:20:18 PM, Friday, September 14, 2012
+Message:
+Change Parameter Name in Delivery schedule report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_90.sql
+
+
+
+
+
+
+
+
+
+
+
+
