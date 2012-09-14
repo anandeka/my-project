@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1057
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  14-Sep-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  68450
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 103510
+Author: suresh.gottipati
+Date: 7:59:44 PM, Friday, September 14, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/83_DDL_EODDB_cdc_process.sql
+
+
