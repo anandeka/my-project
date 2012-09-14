@@ -1,0 +1,67 @@
+Patch No*          		:  EKA_METALS_PATCH_1058
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja N
+
+Created on*        		:  14-Sep-2012
+
+Bug / Enhancement*              :  BUG/Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents & Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 103508
+Author: elaiyaraja.nallathambi
+Date: 7:44:49 PM, Friday, September 14, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TotalInvoiceUtilityReport.rpt
+
+Revision: 103507
+Author: elaiyaraja.nallathambi
+Date: 7:44:07 PM, Friday, September 14, 2012
+Message:
+Sorting Taken care as per Chaitanya's Instruction and he will be Updating the FS Shortly.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractStatusReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyPositionBalanceReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FeedConsumptionReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyContractStatusReport.rpt
+
+Revision: 103517
+Author: elaiyaraja.nallathambi
+Date: 8:20:02 PM, Friday, September 14, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/Reports/TotalInvoiceUtilityReport.rpt
+
+
+
+
