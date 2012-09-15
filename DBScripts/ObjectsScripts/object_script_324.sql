@@ -41,6 +41,14 @@ ALTER TABLE evd_economic_value_details  ADD (dry_weight  NUMBER(25,10));
 
 ALTER TABLE evd_economic_value_details ADD (wet_weight  NUMBER(25,10));
 
-ALTER TABLE evd_economic_value_details ADD (wet_wight_unit_id  VARCHAR2(15));
+ALTER TABLE evd_economic_value_details ADD (wet_weight_unit_id  VARCHAR2(15));
 
 ALTER TABLE evd_economic_value_details ADD (element_type  VARCHAR2(30));
+
+ALTER TABLE EVD_ECONOMIC_VALUE_DETAILS ADD (IS_DEDUCTABLE  CHAR(1));
+ 
+ ALTER TABLE EVD_ECONOMIC_VALUE_DETAILS ADD (INTERNAL_CONTRACT_REF_NO  VARCHAR2(15));
+ 
+ ALTER TABLE EVD_ECONOMIC_VALUE_DETAILS ADD (INTERNAL_GMR_REF_NO  VARCHAR2(15));
+ 
+ ALTER TABLE EVD_ECONOMIC_VALUE_DETAILS ADD (CORPORATE_ID  VARCHAR2(15));
