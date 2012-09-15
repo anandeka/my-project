@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1060
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek  Vijay
+
+Created on*        		:  14-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103542
+Author: abhishek.vijay
+Date: 2:11:14 PM, Saturday, September 15, 2012
+Message:
+price fixation listing add new fields 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_402.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
