@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_1063
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+
+Created on*        		:  15-Sep-2012
+
+Bug / Enhancement*              :  Bug Fixes
+
+Bug ID*            		:  68789,68781,68780
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Invoice
+==================================================================
+Module  		   	 :  Invocie
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103578
+Author: elaiyaraja.nallathambi
+Date: 7:40:07 PM, Saturday, September 15, 2012
+Message:
+Bug Fixes:- 68789,68781,68780
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
+
+Revision: 103579
+Author: elaiyaraja.nallathambi
+Date: 7:40:29 PM, Saturday, September 15, 2012
+Message:
+Bug Fixes:- 68789,68781,68780
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+
+Revision: 103580
+Author: elaiyaraja.nallathambi
+Date: 7:41:29 PM, Saturday, September 15, 2012
+Message:
+Bug Fixes:- 68789,68781,68780
+----
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+
+
+
