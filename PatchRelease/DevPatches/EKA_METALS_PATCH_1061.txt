@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1061
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+
+Created on*        		:  15-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Economic Value Details
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103545
+Author: anupkumar.agarwal
+Date: 2:56:23 PM, Saturday, September 15, 2012
+Message:
+Added New Table EVD (Economic Value Details) For New Development.
+Alter Table PQCA .. 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_324.sql
+
+
+
+
+
+
+
+
+
+
+
+
