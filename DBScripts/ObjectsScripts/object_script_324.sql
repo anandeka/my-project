@@ -36,3 +36,11 @@ CREATE SEQUENCE SEQ_EVD
   NOORDER;
 
 ALTER TABLE PQCA_PQ_CHEMICAL_ATTRIBUTES ADD (SPLIT_LIMIT  NUMBER(25,10));
+
+ALTER TABLE evd_economic_value_details  ADD (dry_weight  NUMBER(25,10));
+
+ALTER TABLE evd_economic_value_details ADD (wet_weight  NUMBER(25,10));
+
+ALTER TABLE evd_economic_value_details ADD (wet_wight_unit_id  VARCHAR2(15));
+
+ALTER TABLE evd_economic_value_details ADD (element_type  VARCHAR2(30));
