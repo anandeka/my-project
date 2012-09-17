@@ -547,7 +547,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                pofh.pofh_id,
                                pocd.final_price_unit_id,                               
                                nvl(pofh.final_price, 0) final_price,
-                               pofh.finalize_date
+                               pofh.finalize_date,
+                               pocd.pay_in_price_unit_id
                           from poch_price_opt_call_off_header poch,
                                pocd_price_option_calloff_dtls pocd,
                                pcbpd_pc_base_price_detail pcbpd,
@@ -1015,7 +1016,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                            vn_total_quantity *
                                            (vn_qty_to_be_priced / 100) *
                                            cc1.final_price;
-                   vc_price_unit_id := cc1.final_price_unit_id;                        
+                   vc_price_unit_id := cc1.pay_in_price_unit_id;                        
              else
                 vd_dur_qp_start_date         := vd_qp_start_date;
                 vd_dur_qp_end_date           := vd_qp_end_date;
@@ -2222,7 +2223,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              grd.payment_due_date,
              nvl(pofh.final_price,0) final_price,
              pofh.finalize_date,
-             pocd.final_price_unit_id
+             pocd.final_price_unit_id,
+             pocd.pay_in_price_unit_id
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
                      grd.quality_id,
@@ -2314,7 +2316,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              grd.payment_due_date,
              nvl(pofh.final_price,0) final_price,
              pofh.finalize_date,
-             pocd.final_price_unit_id
+             pocd.final_price_unit_id,
+             pocd.pay_in_price_unit_id
         from gmr_goods_movement_record gmr,
              (select grd.internal_gmr_ref_no,
                      grd.quality_id,
@@ -2759,7 +2762,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
        if cur_gmr_rows.final_price<>0 and cur_gmr_rows.finalize_date<=pd_trade_date then
        vn_total_contract_value := vn_total_contract_value +
                                      cur_gmr_rows.final_price;
-       vc_ppu_price_unit_id  :=  cur_gmr_rows.final_price_unit_id;                             
+       vc_ppu_price_unit_id  :=  cur_gmr_rows.pay_in_price_unit_id;                             
         else
       
         vn_error_no               := 'gmr:' ||
@@ -3932,7 +3935,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                      vn_total_quantity *
                                      (vn_qty_to_be_priced / 100) *
                                      cur_gmr_ele_rows.final_price;
-         vc_ppu_price_unit_id     :=cur_gmr_ele_rows.final_price_unit_id;                           
+         vc_ppu_price_unit_id     :=cur_gmr_ele_rows.pay_in_price_unit_id;                           
         else        
           vd_dur_qp_start_date      := vd_qp_start_date;
           vd_dur_qp_end_date        := vd_qp_end_date;
@@ -5224,7 +5227,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                            vn_total_quantity *
                                            (vn_qty_to_be_priced / 100) *
                                            cc1.final_price;
-                   vc_price_unit_id := cc1.final_price_unit_id; 
+                   vc_price_unit_id := cc1.pay_in_price_unit_id; 
               else
                 vd_dur_qp_start_date          := vd_qp_start_date;
                 vd_dur_qp_end_date            := vd_qp_end_date;

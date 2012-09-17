@@ -1,0 +1,1 @@
+alter table CS_COST_STORE modify FX_TO_BASE number(25,10);
