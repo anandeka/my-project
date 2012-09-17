@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1064
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  15-Sep-2012
+
+Bug / Enhancement*              :  Bug Fixes
+
+Bug ID*            		:  67221,67560
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    EOD
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 103630
+Author: suresh.gottipati
+Date: 3:44:46 PM, Monday, September 17, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/84_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+
+
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+
+
+
