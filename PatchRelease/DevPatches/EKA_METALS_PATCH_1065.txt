@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1065
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mohit Gupta
+
+Created on*        		:  17-Sep-2012
+
+Bug / Enhancement*              :  Bug Fix
+
+Bug ID*            		:  68887
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    EOD
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 103658
+Author: mohitkumar.gupta
+Date: 5:27:23 PM, Monday, September 17, 2012
+Message:
+For bug 68887.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_403.sql
+
+
+
+
+
