@@ -4,7 +4,7 @@ Insert into AMC_APP_MENU_CONFIGURATION
     ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID, 
     IS_DELETED)
  Values
-   ('AS4', 'List Of Assay Exchange Elements', 4, 2, '/metals/loadListOfAssayExchangeElement.action?gridId=EVD_LIST', 
+   ('AS4', 'Assay Exchange Elements', 4, 2, '/metals/loadListOfAssayExchangeElement.action?gridId=EVD_LIST', 
     NULL, 'AS1', NULL, 'Assay', 'APP-PFL-N-160', 
     'N');
 
