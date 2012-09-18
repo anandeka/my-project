@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1066
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Afarwal
+
+Created on*        		:  18-Sep-2012
+
+Bug / Enhancement*              : Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Assay 
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103728
+Author: anupkumar.agarwal
+Date: 4:21:14 PM, Tuesday, September 18, 2012
+Message:
+1: AMC,GM,GMC Scripts For List Of Assay Exchange 
+2: Added Action Entry In Axm For Update Economic Value
+2: Added some More Column In EVD Table
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_404.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_326.sql
+
+
+
+
+
+
