@@ -1,34 +1,34 @@
-
 CREATE OR REPLACE PROCEDURE "GENERATEPRICEFIXATIONDOCUMENT"(p_pfd_id         VARCHAR2,
-                                                            p_docrefno       VARCHAR2,
-                                                            p_activity_id    VARCHAR2,
-                                                            p_doc_issue_date VARCHAR2) IS
+                                                                           p_docrefno       VARCHAR2,
+                                                                           p_activity_id    VARCHAR2,
+                                                                           p_doc_issue_date VARCHAR2) IS
 
-  corporate_name       VARCHAR2(100);
-  cp_address           VARCHAR2(100);
-  cp_city              VARCHAR2(100);
-  cp_country           VARCHAR2(100);
-  cp_zip               VARCHAR2(100);
-  cp_state             VARCHAR2(100);
-  cp_name              VARCHAR2(100);
-  cp_person_in_charge  VARCHAR2(100);
-  contract_type        VARCHAR2(30);
-  contract_ref_no      VARCHAR2(30);
-  delivery_item_ref_no VARCHAR2(80);
-  pay_in_currency      VARCHAR2(15);
-  product              VARCHAR2(100);
-  quality              VARCHAR2(200);
-  element_name         VARCHAR2(30);
-  pricing_formula      VARCHAR2(200);
-  quota_period         VARCHAR2(50);
-  gmr_ref_no           VARCHAR2(30);
-  qp                   VARCHAR2(50);
-  currency_product     VARCHAR2(30);
-  quantity_unit        VARCHAR2(30);
-  price_type           VARCHAR2(20);
-  p_pofh_id            VARCHAR2(20);
-  is_delta_pricing     VARCHAR2(10);
-  purchase_sales       VARCHAR2(30);
+  corporate_name        VARCHAR2(100);
+  cp_address            VARCHAR2(100);
+  cp_city               VARCHAR2(100);
+  cp_country            VARCHAR2(100);
+  cp_zip                VARCHAR2(100);
+  cp_state              VARCHAR2(100);
+  cp_name               VARCHAR2(100);
+  cp_person_in_charge   VARCHAR2(100);
+  contract_type         VARCHAR2(30);
+  contract_ref_no       VARCHAR2(30);
+  delivery_item_ref_no  VARCHAR2(80);
+  pay_in_currency       VARCHAR2(15);
+  product               VARCHAR2(100);
+  quality               VARCHAR2(200);
+  element_name          VARCHAR2(30);
+  pricing_formula       VARCHAR2(200);
+  quota_period          VARCHAR2(50);
+  gmr_ref_no            VARCHAR2(30);
+  qp                    VARCHAR2(50);
+  currency_product      VARCHAR2(30);
+  quantity_unit         VARCHAR2(30);
+  price_type            VARCHAR2(20);
+  p_pofh_id             VARCHAR2(20);
+  is_delta_pricing      VARCHAR2(10);
+  purchase_sales        VARCHAR2(30);
+  is_payin_pricing_same VARCHAR2(10);
 
 BEGIN
 
@@ -175,7 +175,13 @@ BEGIN
              'Purchase'
             ELSE
              'Sales'
-          END END)
+          END END),
+         (CASE
+           WHEN pocd.pay_in_cur_id = pocd.pricing_cur_id THEN
+            'Y'
+           ELSE
+            'N'
+         END)
     INTO corporate_name,
          cp_address,
          cp_city,
@@ -197,7 +203,8 @@ BEGIN
          qp,
          currency_product,
          quantity_unit,
-         purchase_sales
+         purchase_sales,
+         is_payin_pricing_same
     FROM pfd_price_fixation_details     pfd,
          pofh_price_opt_fixation_header pofh,
          pocd_price_option_calloff_dtls pocd,
@@ -355,7 +362,12 @@ BEGIN
               PUM.PRICE_UNIT_NAME as PRICE_UNIT,
               TO_CHAR(PFD.AS_OF_DATE, 'dd-Mon-YYYY') as PRICE_FIXATION_DATE,
               PFD.QTY_FIXED as PRICED_QUANTITY,
-              PFD.FX_RATE as FX_RATE,
+              (case
+                when is_payin_pricing_same = 'Y' then
+                 '1'
+                else
+                 PFD.FX_RATE || ''          
+              end) as FX_RATE,
               price_type
          from pfd_price_fixation_details     pfd,
               pofh_price_opt_fixation_header pofh,
@@ -391,7 +403,12 @@ BEGIN
               PUM.PRICE_UNIT_NAME as PRICE_UNIT,
               TO_CHAR(PFD.AS_OF_DATE, 'dd-Mon-YYYY') as PRICE_FIXATION_DATE,
               PFD.QTY_FIXED as PRICED_QUANTITY,
-              PFD.FX_RATE as FX_RATE,
+              (case
+                when is_payin_pricing_same = 'Y' then
+                 '1'
+                else
+                 PFD.FX_RATE || ''
+              end) as FX_RATE,
               price_type
          from pfd_price_fixation_details    pfd,
               PPU_PRODUCT_PRICE_UNITS       ppu,
