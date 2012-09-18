@@ -1,0 +1,66 @@
+Patch No*          		:  EKA_METALS_PATCH_1067
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+
+Created on*        		:  18-Sep-2012
+
+Bug / Enhancement*              : Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Logistics
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103757
+Author: pradeep.kumar
+Date: 6:01:55 PM, Tuesday, September 18, 2012
+Message:
+-- ADDED FOR RELEASE ORDER DOCUMENT
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_91.sql
+
+Revision: 103759
+Author: pradeep.kumar
+Date: 6:04:06 PM, Tuesday, September 18, 2012
+Message:
+-- ADDED FOR RELEASE ORDER DOCUMENT -- NEW COLUMNS ADDED in SAD_D Table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_327.sql
+
+Revision: 103760
+Author: pradeep.kumar
+Date: 6:06:35 PM, Tuesday, September 18, 2012
+Message:
+-- ADDED FOR RELEASE ORDER DOCUMENT -- Entry in DKM & DGM 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_405.sql
+
+
+
+
+
+
+
