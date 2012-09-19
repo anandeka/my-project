@@ -155,6 +155,19 @@ create or replace package body pkg_phy_custom_reports is
                                  pc_prev_process_id);
   
     vc_err_msg := 'sp_derivative_contract_journal';
+    vn_logno   := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_derivative_contract_journal');
+  
+    sp_derivative_contract_journal(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date,
+                                   pc_user_id,
+                                   pc_dbd_id,
+                                   pc_prev_dbd_id);
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -189,9 +202,9 @@ create or replace package body pkg_phy_custom_reports is
                                                            'Code:' ||
                                                            sqlcode ||
                                                            ' Message:' ||
-                                                           sqlerrm,
+                                                           sqlerrm || ' '||vc_err_msg,
                                                            null,
-                                                           'EOD',
+                                                           pc_process,
                                                            pc_user_id,
                                                            sysdate,
                                                            pd_trade_date);
@@ -577,7 +590,7 @@ create or replace package body pkg_phy_custom_reports is
                                                            ' Message:' ||
                                                            sqlerrm,
                                                            null,
-                                                           'EOD',
+                                                           pc_process,
                                                            pc_user_id,
                                                            sysdate,
                                                            pd_trade_date);
@@ -1435,7 +1448,7 @@ create or replace package body pkg_phy_custom_reports is
                                                            ' Message:' ||
                                                            sqlerrm,
                                                            null,
-                                                           'EOD',
+                                                           pc_process,
                                                            pc_user_id,
                                                            sysdate,
                                                            pd_trade_date);
@@ -1451,7 +1464,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_dbd_id     varchar2,
                                          pc_prev_process_id varchar2) is
     --------------------------------------------------------------------------------------------------------------------------
-    --        Procedure Name                            : sp_derivative_contract_journal
+    --        Procedure Name                            : sp_physical_contract_journal
     --        Author                                    : saurabraj
     --        Created Date                              : 25-Jul-2012
     --        Purpose                                   :
@@ -1482,8 +1495,8 @@ create or replace package body pkg_phy_custom_reports is
                                  phd.companyname,
                                  pcm.trader_id,
                                  ak_trader.login_name trader,
-                                 pcdb.inco_term_id,
-                                 itm.incoterm inco_term,
+                                 null inco_term_id,
+                                 null inco_term,
                                  null inco_term_location,
                                  pcm.issue_date,
                                  pcpd.product_id,
@@ -1505,7 +1518,7 @@ create or replace package body pkg_phy_custom_reports is
                                    when pcbpd.price_basis = 'Fixed' then
                                     pcbpd.price_value
                                    else
-                                    null
+                                    0
                                  end) price,
                                  (case
                                    when pcbpd.price_basis = 'Fixed' then
@@ -1516,7 +1529,7 @@ create or replace package body pkg_phy_custom_reports is
                                  ppu_pum_price.price_unit_name,
                                  pcqpd.premium_disc_value,
                                  pcqpd.premium_disc_unit_id,
-                                 pcqpd. pd_price_unit_name,
+                                 pcqpd.pd_price_unit_name,
                                  cqs.total_qty contract_qty,
                                  cqs.item_qty_unit_id cont_qty_unit_id,
                                  qum_cont.qty_unit contract_qty_unit,
@@ -1542,9 +1555,7 @@ create or replace package body pkg_phy_custom_reports is
                                  pcdi_pc_delivery_item         pcdi,
                                  phd_profileheaderdetails      phd,
                                  ak_corporate_user             ak_trader,
-                                 pcdb_pc_delivery_basis        pcdb,
                                  pcpd_pc_product_definition    pcpd,
-                                 itm_incoterm_master           itm,
                                  pdm_productmaster             pdm,
                                  diqs_delivery_item_qty_status diqs,
                                  qum_quantity_unit_master      qum_del,
@@ -1556,7 +1567,6 @@ create or replace package body pkg_phy_custom_reports is
                                          sum(pci.item_qty *
                                              pcqpd.premium_disc_value) /
                                          sum(pci.item_qty) premium_disc_value
-                                  
                                     from pcm_physical_contract_main     pcm,
                                          pcdi_pc_delivery_item          pcdi,
                                          pci_physical_contract_item     pci,
@@ -1609,15 +1619,9 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.cp_id = phd.profileid
                              and pcm.trader_id = ak_trader.user_id
                              and pcm.internal_contract_ref_no =
-                                 pcdb.internal_contract_ref_no
-                             and pcdb.process_id = pc_process_id
-                             and pcm.internal_contract_ref_no =
                                  pcpd.internal_contract_ref_no
                              and pcpd.process_id = pc_process_id
                              and pcpd.is_active = 'Y'
-                             and pcdb.inco_term_id = itm.incoterm_id
-                             and itm.is_active = 'Y'
-                             and itm.is_deleted = 'N'
                              and pcpd.product_id = pdm.product_id
                              and pdm.is_active = 'Y'
                              and pcdi.pcdi_id = diqs.pcdi_id
@@ -1628,9 +1632,6 @@ create or replace package body pkg_phy_custom_reports is
                              and qum_del.is_active = 'Y'
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
-                                /*and pcqpd.process_id(+) = pc_process_id
-                                                                                                                                                                                                and pcqpd.dbd_id(+) = 708
-                                                                                                                                                                                                and pcqpd.premium_disc_unit_id = ppu_pum.product_price_unit_id(+)*/
                              and pcm.corporate_id = akc.corporate_id
                              and pcm.internal_contract_ref_no =
                                  pcbph.internal_contract_ref_no
@@ -1675,8 +1676,8 @@ create or replace package body pkg_phy_custom_reports is
                                  phd.companyname,
                                  pcm.trader_id,
                                  ak_trader.login_name trader,
-                                 pcdb.inco_term_id,
-                                 itm.incoterm inco_term,
+                                 null inco_term_id,
+                                 null inco_term,
                                  null inco_term_location,
                                  pcm.issue_date,
                                  pcpd.product_id,
@@ -1698,7 +1699,7 @@ create or replace package body pkg_phy_custom_reports is
                                    when pcbpd.price_basis = 'Fixed' then
                                     pcbpd.price_value
                                    else
-                                    null
+                                    0
                                  end) price,
                                  (case
                                    when pcbpd.price_basis = 'Fixed' then
@@ -1730,14 +1731,11 @@ create or replace package body pkg_phy_custom_reports is
                                  end) del_quota_period,
                                  pcpd.strategy_id,
                                  css.strategy_name strategy
-                          
                             from pcm_physical_contract_main    pcm,
                                  pcdi_pc_delivery_item         pcdi,
                                  phd_profileheaderdetails      phd,
                                  ak_corporate_user             ak_trader,
-                                 pcdb_pc_delivery_basis        pcdb,
                                  pcpd_pc_product_definition    pcpd,
-                                 itm_incoterm_master           itm,
                                  pdm_productmaster             pdm,
                                  diqs_delivery_item_qty_status diqs,
                                  qum_quantity_unit_master      qum_del,
@@ -1791,7 +1789,6 @@ create or replace package body pkg_phy_custom_reports is
                                  qum_quantity_unit_master     qum_cont,
                                  cpc_corporate_profit_center  cpc,
                                  css_corporate_strategy_setup css
-                          
                            where pcm.contract_type = 'BASEMETAL'
                              and pcm.process_id = pc_process_id
                              and pcm.is_active = 'Y'
@@ -1803,15 +1800,9 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.cp_id = phd.profileid
                              and pcm.trader_id = ak_trader.user_id
                              and pcm.internal_contract_ref_no =
-                                 pcdb.internal_contract_ref_no
-                             and pcdb.process_id = pc_process_id
-                             and pcm.internal_contract_ref_no =
                                  pcpd.internal_contract_ref_no
                              and pcpd.process_id = pc_process_id
                              and pcpd.is_active = 'Y'
-                             and pcdb.inco_term_id = itm.incoterm_id
-                             and itm.is_active = 'Y'
-                             and itm.is_deleted = 'N'
                              and pcpd.product_id = pdm.product_id
                              and pdm.is_active = 'Y'
                              and pcdi.pcdi_id = diqs.pcdi_id
@@ -1822,8 +1813,6 @@ create or replace package body pkg_phy_custom_reports is
                              and qum_del.is_active = 'Y'
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
-                                /*and pcqpd.process_id(+) = pc_process_id
-                                                                                                                                                                                                and pcqpd.premium_disc_unit_id = ppu_pum.product_price_unit_id(+)*/
                              and pcm.corporate_id = akc.corporate_id
                              and pcm.internal_contract_ref_no =
                                  pcbph.internal_contract_ref_no
@@ -1870,8 +1859,8 @@ create or replace package body pkg_phy_custom_reports is
                                  phd.companyname,
                                  pcm.trader_id,
                                  ak_trader.login_name trader,
-                                 pcdb.inco_term_id,
-                                 itm.incoterm inco_term,
+                                 null inco_term_id,
+                                 null inco_term,
                                  null inco_term_location,
                                  pcm.issue_date,
                                  pcpd.product_id,
@@ -1893,7 +1882,7 @@ create or replace package body pkg_phy_custom_reports is
                                    when pcbpd.price_basis = 'Fixed' then
                                     pcbpd.price_value
                                    else
-                                    null
+                                    0
                                  end) price,
                                  (case
                                    when pcbpd.price_basis = 'Fixed' then
@@ -1925,14 +1914,11 @@ create or replace package body pkg_phy_custom_reports is
                                  end) del_quota_period,
                                  pcpd.strategy_id,
                                  css.strategy_name strategy
-                          
                             from pcm_physical_contract_main    pcm,
                                  pcdi_pc_delivery_item         pcdi,
                                  phd_profileheaderdetails      phd,
                                  ak_corporate_user             ak_trader,
-                                 pcdb_pc_delivery_basis        pcdb,
                                  pcpd_pc_product_definition    pcpd,
-                                 itm_incoterm_master           itm,
                                  pdm_productmaster             pdm,
                                  diqs_delivery_item_qty_status diqs,
                                  qum_quantity_unit_master      qum_del,
@@ -1944,7 +1930,6 @@ create or replace package body pkg_phy_custom_reports is
                                          sum(pci.item_qty *
                                              pcqpd.premium_disc_value) /
                                          sum(pci.item_qty) premium_disc_value
-                                  
                                     from pcm_physical_contract_main     pcm,
                                          pcdi_pc_delivery_item          pcdi,
                                          pci_physical_contract_item     pci,
@@ -1986,7 +1971,6 @@ create or replace package body pkg_phy_custom_reports is
                                  qum_quantity_unit_master     qum_cont,
                                  cpc_corporate_profit_center  cpc,
                                  css_corporate_strategy_setup css
-                          
                            where pcm.contract_type = 'BASEMETAL'
                              and pcm.process_id = pc_process_id
                              and pcm.contract_status = 'In Position'
@@ -1998,15 +1982,9 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.cp_id = phd.profileid
                              and pcm.trader_id = ak_trader.user_id
                              and pcm.internal_contract_ref_no =
-                                 pcdb.internal_contract_ref_no
-                             and pcdb.process_id = pc_process_id
-                             and pcm.internal_contract_ref_no =
                                  pcpd.internal_contract_ref_no
                              and pcpd.process_id = pc_process_id
                              and pcpd.is_active = 'Y'
-                             and pcdb.inco_term_id = itm.incoterm_id
-                             and itm.is_active = 'Y'
-                             and itm.is_deleted = 'N'
                              and pcpd.product_id = pdm.product_id
                              and pdm.is_active = 'Y'
                              and pcdi.pcdi_id = diqs.pcdi_id
@@ -2017,9 +1995,6 @@ create or replace package body pkg_phy_custom_reports is
                              and qum_del.is_active = 'Y'
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
-                                /*and pcqpd.process_id(+) = pc_process_id
-                                                                                                                                                                                                and pcqpd.dbd_id(+) = 708
-                                                                                                                                                                                                and pcqpd.premium_disc_unit_id = ppu_pum.product_price_unit_id(+)*/
                              and pcm.corporate_id = akc.corporate_id
                              and pcm.internal_contract_ref_no =
                                  pcbph.internal_contract_ref_no
@@ -2068,7 +2043,7 @@ create or replace package body pkg_phy_custom_reports is
                                  ak_trader.login_name trader,
                                  pcdb.inco_term_id,
                                  itm.incoterm inco_term,
-                                 null inco_term_location,
+                                 cim_inco.city_name inco_term_location,
                                  pcm.issue_date,
                                  pcpd.product_id,
                                  pdm.product_desc,
@@ -2089,7 +2064,7 @@ create or replace package body pkg_phy_custom_reports is
                                    when pcbpd.price_basis = 'Fixed' then
                                     pcbpd.price_value
                                    else
-                                    null
+                                    0
                                  end) price,
                                  (case
                                    when pcbpd.price_basis = 'Fixed' then
@@ -2098,7 +2073,7 @@ create or replace package body pkg_phy_custom_reports is
                                     null
                                  end) price_unit_id,
                                  ppu_pum_price.price_unit_name,
-                                 pcqpd.premium_disc_value,
+                                 pcqpd.premium_disc_value, ---here we need to sum  premium of all delivery_item for a contract,same for inco_term
                                  pcqpd.premium_disc_unit_id,
                                  ppu_pum.price_unit_name,
                                  cqs.total_qty contract_qty,
@@ -2121,7 +2096,6 @@ create or replace package body pkg_phy_custom_reports is
                                  end) del_quota_period,
                                  pcpd.strategy_id,
                                  css.strategy_name strategy
-                          
                             from pcm_physical_contract_main     pcm,
                                  pcdi_pc_delivery_item          pcdi,
                                  phd_profileheaderdetails       phd,
@@ -2143,8 +2117,8 @@ create or replace package body pkg_phy_custom_reports is
                                  cqs_contract_qty_status        cqs,
                                  qum_quantity_unit_master       qum_cont,
                                  cpc_corporate_profit_center    cpc,
-                                 css_corporate_strategy_setup   css
-                          
+                                 css_corporate_strategy_setup   css,
+                                 cim_citymaster                 cim_inco
                            where pcm.contract_type = 'CONCENTRATES'
                              and pcm.is_tolling_contract = 'N'
                              and pcm.process_id = pc_process_id
@@ -2205,6 +2179,7 @@ create or replace package body pkg_phy_custom_reports is
                                  cpc.profit_center_id
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
+                             and cim_inco.city_id = pcdb.city_id
                              and css.is_active = 'Y'
                              and not exists
                            (select pcm_in.internal_contract_ref_no
@@ -2228,7 +2203,7 @@ create or replace package body pkg_phy_custom_reports is
                                  ak_trader.login_name trader,
                                  pcdb.inco_term_id,
                                  itm.incoterm inco_term,
-                                 null inco_term_location,
+                                 cim_inco.city_name inco_term_location,
                                  pcm.issue_date,
                                  pcpd.product_id,
                                  pdm.product_desc,
@@ -2249,7 +2224,7 @@ create or replace package body pkg_phy_custom_reports is
                                    when pcbpd.price_basis = 'Fixed' then
                                     pcbpd.price_value
                                    else
-                                    null
+                                    0
                                  end) price,
                                  (case
                                    when pcbpd.price_basis = 'Fixed' then
@@ -2281,7 +2256,6 @@ create or replace package body pkg_phy_custom_reports is
                                  end) del_quota_period,
                                  pcpd.strategy_id,
                                  css.strategy_name strategy
-                          
                             from pcm_physical_contract_main     pcm,
                                  pcmul_phy_contract_main_ul     pcmul,
                                  axs_action_summary             axs,
@@ -2305,8 +2279,8 @@ create or replace package body pkg_phy_custom_reports is
                                  cqs_contract_qty_status        cqs,
                                  qum_quantity_unit_master       qum_cont,
                                  cpc_corporate_profit_center    cpc,
-                                 css_corporate_strategy_setup   css
-                          
+                                 css_corporate_strategy_setup   css,
+                                 cim_citymaster                 cim_inco
                            where pcm.internal_contract_ref_no =
                                  pcmul.internal_contract_ref_no
                              and pcm.contract_type = 'CONCENTRATES'
@@ -2376,6 +2350,7 @@ create or replace package body pkg_phy_custom_reports is
                                  cpc.profit_center_id
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
+                             and cim_inco.city_id = pcdb.city_id
                              and css.is_active = 'Y'
                              and exists
                            (select pcmul.internal_contract_ref_no
@@ -2401,7 +2376,7 @@ create or replace package body pkg_phy_custom_reports is
                                  ak_trader.login_name trader,
                                  pcdb.inco_term_id,
                                  itm.incoterm inco_term,
-                                 null inco_term_location,
+                                 cim_inco.city_name inco_term_location,
                                  pcm.issue_date,
                                  pcpd.product_id,
                                  pdm.product_desc,
@@ -2422,7 +2397,7 @@ create or replace package body pkg_phy_custom_reports is
                                    when pcbpd.price_basis = 'Fixed' then
                                     pcbpd.price_value
                                    else
-                                    null
+                                    0
                                  end) price,
                                  (case
                                    when pcbpd.price_basis = 'Fixed' then
@@ -2454,7 +2429,6 @@ create or replace package body pkg_phy_custom_reports is
                                  end) del_quota_period,
                                  pcpd.strategy_id,
                                  css.strategy_name strategy
-                          
                             from pcm_physical_contract_main     pcm,
                                  pcdi_pc_delivery_item          pcdi,
                                  phd_profileheaderdetails       phd,
@@ -2476,8 +2450,8 @@ create or replace package body pkg_phy_custom_reports is
                                  cqs_contract_qty_status        cqs,
                                  qum_quantity_unit_master       qum_cont,
                                  cpc_corporate_profit_center    cpc,
-                                 css_corporate_strategy_setup   css
-                          
+                                 css_corporate_strategy_setup   css,
+                                 cim_citymaster                 cim_inco
                            where pcm.contract_type = 'CONCENTRATES'
                              and pcm.is_tolling_contract = 'N'
                              and pcm.process_id = pc_process_id
@@ -2538,6 +2512,7 @@ create or replace package body pkg_phy_custom_reports is
                                  cpc.profit_center_id
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
+                             and cim_inco.city_id = pcdb.city_id
                              and css.is_active = 'Y'
                              and exists (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
@@ -2639,6 +2614,51 @@ create or replace package body pkg_phy_custom_reports is
     
     end loop;
     commit;
+    --update incoterm and incoterm location
+    for cc in (select pcm.internal_contract_ref_no,
+                      stragg(itm.incoterm_id) incoterm_id,
+                      stragg(itm.incoterm) incoterm,
+                      stragg(cim.city_name) city_name
+                 from pcm_physical_contract_main pcm,
+                      pcdb_pc_delivery_basis     pcdb,
+                      itm_incoterm_master        itm,
+                      cim_citymaster             cim,
+                      pcdi_pc_delivery_item      pcdi,
+                      pci_physical_contract_item pci
+                where pcdb.internal_contract_ref_no =
+                      pcm.internal_contract_ref_no
+                  and pcdb.inco_term_id = itm.incoterm_id
+                  and pcdb.city_id = cim.city_id
+                  and pcdi.internal_contract_ref_no =
+                      pcm.internal_contract_ref_no
+                  and pcdi.pcdi_id = pci.pcdi_id
+                  and pci.pcdb_id = pcdb.pcdb_id
+                  and pcm.internal_contract_ref_no in
+                      (select tt.internal_contract_ref_no
+                         from eod_eom_phy_contract_journal tt
+                        where tt.process_id = pc_process_id
+                          and tt.corporate_id = pc_corporate_id
+                        group by tt.internal_contract_ref_no)
+                  and pcdi.process_id = pc_process_id
+                  and pci.process_id = pc_process_id
+                  and pcm.process_id = pc_process_id
+                  and pcdb.process_id = pc_process_id
+                  and pcm.corporate_id = pc_corporate_id
+                  and itm.is_active = 'Y'
+                  and itm.is_deleted = 'N'
+                group by pcm.internal_contract_ref_no)
+    loop
+    
+      update eod_eom_phy_contract_journal t1
+         set t1.inco_term_id       = cc.incoterm_id,
+             t1.inco_term          = cc.incoterm,
+             t1.inco_term_location = cc.city_name
+       where t1.internal_contract_ref_no = cc.internal_contract_ref_no
+         and t1.corporate_id = pc_corporate_id
+         and t1.process_id = pc_process_id
+         and t1.process = pc_process;
+    end loop;
+  commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -2650,7 +2670,7 @@ create or replace package body pkg_phy_custom_reports is
                                                            ' Message:' ||
                                                            sqlerrm,
                                                            null,
-                                                           'EOD',
+                                                           pc_process,
                                                            pc_user_id,
                                                            sysdate,
                                                            pd_trade_date);
@@ -3279,7 +3299,7 @@ create or replace package body pkg_phy_custom_reports is
                                                            ' Message:' ||
                                                            sqlerrm,
                                                            null,
-                                                           'EOD',
+                                                           pc_process,
                                                            pc_user_id,
                                                            sysdate,
                                                            pd_trade_date);
@@ -3387,9 +3407,8 @@ create or replace package body pkg_phy_custom_reports is
          and dpd.instrument_type = 'Average'
          and dpd.corporate_id = pc_corporate_id
          and dpd.process_id = pc_process_id
-         and dpd.internal_derivative_ref_no =
-             fsh.internal_derivative_ref_no
-         and dpd.settlement_ref_no = fsh.settlement_ref_no
+         and dpd.internal_derivative_ref_no =fsh.internal_derivative_ref_no(+)
+         and dpd.settlement_ref_no = fsh.settlement_ref_no(+)
       union all
       select 'Deleted' journal_type, -- Section name
              'Derivative' book_type, --Price Fixation Type
@@ -3458,7 +3477,7 @@ create or replace package body pkg_phy_custom_reports is
                      fsh.settlement_date
                 from fsh_fin_settlement_header fsh
                where fsh.process_id = pc_process_id
-                 and fsh.is_settled = 'Y'
+                 --and fsh.is_settled = 'Y'
                group by fsh.internal_derivative_ref_no,
                         fsh.settlement_ref_no,
                         fsh.settlement_date) fsh
@@ -3466,9 +3485,8 @@ create or replace package body pkg_phy_custom_reports is
          and dpd.instrument_type = 'Average'
          and dpd.corporate_id = pc_corporate_id
          and dpd.process_id = pc_process_id
-         and dpd.internal_derivative_ref_no =
-             fsh.internal_derivative_ref_no
-         and dpd.settlement_ref_no = fsh.settlement_ref_no;
+         and dpd.internal_derivative_ref_no = fsh.internal_derivative_ref_no(+)
+         and dpd.settlement_ref_no = fsh.settlement_ref_no(+);
     cursor cr_phy_fixation is
       select 'New' journal_type,
              'Physical' book_type,
@@ -3496,15 +3514,15 @@ create or replace package body pkg_phy_custom_reports is
              pofh.finalize_date price_fixation_date,
              pofh.latest_fixed_qty fixed_quantity,
              qum_fxd.qty_unit quantity_unit,
-             pofh.latest_avg_price trade_price,
-             ppu_pum.price_unit_name price_unit,
+             pofh.final_price trade_price, --has to use finalized price stored in pay-in currency for calculation, not the avg price
+             ppu_pum_pay.price_unit_name price_unit, --pay in currency unit
              pofh.latest_adj_price,
              round(pkg_general.f_get_converted_currency_amt(pcm.corporate_id,
-                                                            pcm.invoice_currency_id,
+                                                            ppu_pum_pay.cur_id,
                                                             akc.base_cur_id,
                                                             pd_trade_date,
                                                             1),
-                   10) fx_rate, --price to base
+                   10) pay_to_base_fx_rate, --payin currency to base
              0 contract_premium, --inside formula
              ppu_pum.price_unit_name contract_premium_unit, --inside variable
              pcm.issue_date contract_issue_date,
@@ -3531,13 +3549,13 @@ create or replace package body pkg_phy_custom_reports is
              null attribute_5,
              akc.base_cur_id,
              cm_base.cur_code base_cur_code,
-             ppu_pum.price_unit_id trade_price_unit_id,
+             ppu_pum_pay.price_unit_id trade_price_unit_id,
              ppu_pum.price_unit_id premium_discount_price_unit_id,
-             ppu_pum.cur_id trade_price_cur_id,
-             cm_ppu.cur_code trade_price_cur_code,
-             ppu_pum.weight trade_price_weight,
-             ppu_pum.weight_unit_id trade_price_weight_unit_id,
-             qum_ppu.qty_unit trade_price_weight_unit,
+             ppu_pum_pay.cur_id trade_price_cur_id,
+             cm_pay.cur_code trade_price_cur_code,
+             ppu_pum_pay.weight trade_price_weight,
+             ppu_pum_pay.weight_unit_id trade_price_weight_unit_id,
+             qum_pay.qty_unit trade_price_weight_unit,
              ppu_pum.cur_id pd_price_cur_id,
              cm_ppu.cur_code pd_price_cur_code,
              ppu_pum.weight pd_price_weight,
@@ -3546,10 +3564,10 @@ create or replace package body pkg_phy_custom_reports is
              pofh.pofh_id,
              aml.attribute_id,
              aml.attribute_name,
-             pofh.final_price,
-             pocd.pay_in_price_unit_id,
-             ppu_pum_pay.price_unit_name pay_in_price_unit,
-             cm_pay.cur_code
+             pofh.final_price, -- this price has to be used for calculation
+             pocd.pay_in_price_unit_id, -- this price has to be used for calculation
+             ppu_pum_pay.price_unit_name pay_in_price_unit, -- this price has to be used for calculation
+             cm_pay.cur_code pay_in_cur_code
         from pofh_history                   pofh,
              pocd_price_option_calloff_dtls pocd,
              pcdi_pc_delivery_item          pcdi,
@@ -3568,10 +3586,11 @@ create or replace package body pkg_phy_custom_reports is
              cm_currency_master             cm_base,
              aml_attribute_master_list      aml,
              v_ppu_pum                      ppu_pum_pay,
-             cm_currency_master             cm_pay
+             cm_currency_master             cm_pay,
+             qum_quantity_unit_master       qum_pay
        where pofh.is_new = 'Y'
          and pofh.is_active = 'Y'
-       --  and pofh.is_deleted is null
+            --  and pofh.is_deleted is null
          and pofh.pcdi_id = pcdi.pcdi_id
          and pofh.pocd_id = pocd.pocd_id
          and pofh.pcdi_id = diqs.pcdi_id
@@ -3598,8 +3617,9 @@ create or replace package body pkg_phy_custom_reports is
          and pcdi.process_id = pc_process_id
          and diqs.process_id = pc_process_id
          and pocd.pay_in_price_unit_id = ppu_pum_pay.product_price_unit_id
+         and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id(+)
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
-        -- and cm_pay.is_active = 'Y'
+      -- and cm_pay.is_active = 'Y'
       union all
       select 'Deleted' journal_type,
              'Physical' book_type,
@@ -3627,15 +3647,15 @@ create or replace package body pkg_phy_custom_reports is
              pofh.finalize_date price_fixation_date,
              pofh.latest_fixed_qty fixed_quantity,
              qum_fxd.qty_unit quantity_unit,
-             pofh.latest_avg_price trade_price,
-             ppu_pum.price_unit_name price_unit,
+             pofh.final_price trade_price, --has to use finalized price stored in pay-in currency for calculation, not the avg price
+             ppu_pum_pay.price_unit_name price_unit,
              pofh.latest_adj_price,
              round(pkg_general.f_get_converted_currency_amt(pcm.corporate_id,
-                                                            pcm.invoice_currency_id,
+                                                            ppu_pum_pay.cur_id,
                                                             akc.base_cur_id,
                                                             pd_trade_date,
                                                             1),
-                   10) fx_rate,
+                   10) pay_to_base_fx_rate,
              0 contract_premium, --inside formula
              ppu_pum.price_unit_name contract_premium_unit, --inside variable
              pcm.issue_date contract_issue_date,
@@ -3680,7 +3700,7 @@ create or replace package body pkg_phy_custom_reports is
              pofh.final_price,
              pocd.pay_in_price_unit_id,
              ppu_pum_pay.price_unit_name,
-             cm_pay.cur_code      
+             cm_pay.cur_code pay_in_cur_code
         from pofh_history                   pofh,
              pocd_price_option_calloff_dtls pocd,
              aml_attribute_master_list      aml,
@@ -4017,7 +4037,7 @@ create or replace package body pkg_phy_custom_reports is
          set ppf.latest_pfc_no            = cc.price_fixation_no,
              ppf.latest_pfc_date          = cc.price_fixation_date,
              ppf.latest_fixed_qty         = cc.fixed_qty,
-             ppf.latest_avg_price         = cc.avg_price,
+             ppf.latest_avg_price         = cc.avg_price, -- latest_avg_price this column should not be used for any calculation, as this logic changed to use the finalied price recorded in app
              ppf.latest_price_unit_id     = cc.price_unit,
              ppf.latest_adj_price         = nvl(cc.adjustment_price, 0),
              ppf.latest_adj_price_unit_id = cc.price_unit
@@ -4027,13 +4047,13 @@ create or replace package body pkg_phy_custom_reports is
          and ppf.pofh_id = cc.pofh_id;
     end loop;
     commit;
-    
+  
     update pofh_history ppf
-       set ppf.is_new = null,ppf.is_deleted=null
+       set ppf.is_new = null, ppf.is_deleted = null
      where ppf.process_id = pc_process_id
        and ppf.corporate_id = pc_corporate_id
        and ppf.process = pc_process;
-       
+  
     commit;
     update pofh_history ppf
        set ppf.is_new = 'Y'
@@ -4060,7 +4080,7 @@ create or replace package body pkg_phy_custom_reports is
              where ppf1.process_id = pc_prev_process_id
                and ppf1.corporate_id = pc_corporate_id
                and ppf1.process = pc_process
-               and ppf1.pofh_id = ppf.pofh_id    );
+               and ppf1.pofh_id = ppf.pofh_id);
     commit;
     update pofh_history ppf
        set ppf.is_deleted = 'Y'
@@ -4171,7 +4191,7 @@ create or replace package body pkg_phy_custom_reports is
          cr_cdc_row.trade_price,
          cr_cdc_row.price_unit,
          cr_cdc_row.latest_adj_price,
-         cr_cdc_row.fx_rate,
+         cr_cdc_row.pay_to_base_fx_rate,
          cr_cdc_row.contract_premium,
          cr_cdc_row.contract_premium_unit,
          null, --cr_cdc_row.total_price, -- be a variable
@@ -4190,7 +4210,7 @@ create or replace package body pkg_phy_custom_reports is
          cr_cdc_row.attribute_5,
          cr_cdc_row.base_cur_id,
          cr_cdc_row.base_cur_code,
-         null, --price_to_base_conv_rate,
+         cr_cdc_row.pay_to_base_fx_rate, --price_to_base_conv_rate,
          null, --prem_to_base_conv_rate,
          null, --price_in_base_unit,
          null, --premium_in_base_unit,
@@ -4201,7 +4221,7 @@ create or replace package body pkg_phy_custom_reports is
          cr_cdc_row.attribute_id,
          cr_cdc_row.attribute_name,
          cr_cdc_row.final_price,
-         cr_cdc_row.cur_code,
+         cr_cdc_row.pay_in_cur_code,
          cr_cdc_row.pay_in_price_unit);
     end loop;
     commit;
@@ -4366,18 +4386,22 @@ create or replace package body pkg_phy_custom_reports is
     end loop;
     commit;
     vn_error_no := 6;
-    for cr_eod_eom in (select eod_eom.prem_price_unit_id,
+    for cr_eod_eom in (select eod_eom.journal_type,
+                              eod_eom.book_type,
+                              eod_eom.prem_price_unit_id,
                               eod_eom.base_price_unit_id,
                               eod_eom.trade_price_unit_id,
                               eod_eom.product_id,
                               eod_eom.contract_premium,
-                              eod_eom.trade_price,
+                              eod_eom.trade_price, -- this price also in pay in currency
                               eod_eom.price_in_pay_in_currency,
                               eod_eom.internal_derivative_ref_no,
                               eod_eom.base_price_unit
                          from eod_eom_fixation_journal eod_eom
                         where eod_eom.corporate_id = pc_corporate_id
-                          and eod_eom.process_id = pc_process_id)
+                          and eod_eom.process_id = pc_process_id
+                       --and eod_eom.book_type = 'Physical'
+                       )
     loop
     
       vn_prem_base_conv_rate := round(pkg_phy_custom_reports.f_get_converted_price_pum(pc_corporate_id,
@@ -4400,24 +4424,38 @@ create or replace package body pkg_phy_custom_reports is
       /*vn_tp_in_base          := nvl(vn_tp_conv_rate *
       cr_eod_eom.trade_price,
       0);*/
-      vn_tp_in_base := nvl(vn_tp_conv_rate *
-                           cr_eod_eom.price_in_pay_in_currency,
+      -- Note: here the trade price considered for physical is in pay-incurrency
+      vn_tp_in_base := nvl(vn_tp_conv_rate * cr_eod_eom.trade_price, --don't use price_in_pay_in_currency column, this will not have data for derivative section
                            0); --bug id 68531,6859
     
       vn_total_price      := vn_tp_in_base + vn_prem_in_base;
       vc_total_price_unit := cr_eod_eom.base_price_unit;
-    
-      update eod_eom_fixation_journal eod_eom
-         set eod_eom.prem_to_base_conv_rate  = vn_prem_base_conv_rate,
-             eod_eom.price_to_base_conv_rate = vn_tp_conv_rate,
-             eod_eom.premium_in_base_unit    = vn_prem_in_base,
-             eod_eom.price_in_base_unit      = vn_tp_in_base,
-             eod_eom.total_price             = vn_total_price,
-             eod_eom.total_price_unit        = vc_total_price_unit
-       where eod_eom.internal_derivative_ref_no =
-             cr_eod_eom.internal_derivative_ref_no
-         and eod_eom.process_id = pc_process_id
-         and eod_eom.corporate_id = pc_corporate_id;
+      if cr_eod_eom.book_type = 'Physical' then
+        update eod_eom_fixation_journal eod_eom
+           set eod_eom.prem_to_base_conv_rate = vn_prem_base_conv_rate,
+               --eod_eom.price_to_base_conv_rate = vn_tp_conv_rate,-- already added in insert query
+               eod_eom.premium_in_base_unit = vn_prem_in_base,
+               eod_eom.price_in_base_unit   = vn_tp_in_base,
+               eod_eom.total_price          = vn_total_price,
+               eod_eom.total_price_unit     = vc_total_price_unit
+         where eod_eom.internal_derivative_ref_no =
+               cr_eod_eom.internal_derivative_ref_no
+           and eod_eom.process_id = pc_process_id
+           and eod_eom.corporate_id = pc_corporate_id;
+      else
+        update eod_eom_fixation_journal eod_eom
+           set eod_eom.prem_to_base_conv_rate  = vn_prem_base_conv_rate,
+               eod_eom.fx_rate                 = vn_tp_conv_rate,
+               eod_eom.price_to_base_conv_rate = vn_tp_conv_rate,
+               eod_eom.premium_in_base_unit    = vn_prem_in_base,
+               eod_eom.price_in_base_unit      = vn_tp_in_base,
+               eod_eom.total_price             = vn_total_price,
+               eod_eom.total_price_unit        = vc_total_price_unit
+         where eod_eom.internal_derivative_ref_no =
+               cr_eod_eom.internal_derivative_ref_no
+           and eod_eom.process_id = pc_process_id
+           and eod_eom.corporate_id = pc_corporate_id;
+      end if;
     end loop;
     commit;
   exception
@@ -4432,7 +4470,7 @@ create or replace package body pkg_phy_custom_reports is
                                                            sqlerrm || ' No ' ||
                                                            vn_error_no,
                                                            null,
-                                                           'EOD',
+                                                           pc_process,
                                                            pc_user_id,
                                                            sysdate,
                                                            pd_trade_date);
@@ -5086,7 +5124,7 @@ create or replace package body pkg_phy_custom_reports is
                                                            sqlerrm ||
                                                            vn_error_no,
                                                            null,
-                                                           'EOD',
+                                                           pc_process,
                                                            pc_user_id,
                                                            sysdate,
                                                            pd_trade_date);
