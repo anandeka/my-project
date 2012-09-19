@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1069
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj
+
+Created on*        		:  17-Sep-2012
+
+Bug / Enhancement*              :  Bug Fixes
+
+Bug ID*            		:  68851,68694
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    EOD
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103788
+Author: saurabh.raj
+Date: 12:52:24 PM, Wednesday, September 19, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative_booking.sql
+
+Revision: 103755
+Author: sivachalabathi.s
+Date: 5:54:08 PM, Tuesday, September 18, 2012
+Message:
+Delivery item no shown with internal id, changed with delivery item no
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_DER_PHYSICAL_BOOKING.sql
+
+
+
