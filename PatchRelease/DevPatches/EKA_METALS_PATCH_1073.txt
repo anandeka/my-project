@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1073
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+
+Created on*        		:  19-Sep-2012
+
+Bug / Enhancement*              :  Bug 
+
+Bug ID*            		:  68925,68428,68860
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Documents
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 103804
+Author: elaiyaraja.nallathambi
+Date: 6:25:57 PM, Wednesday, September 19, 2012
+Message:
+Bug Fixes:- 68925,68428,68860
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationDocument.rpt
+
+Revision: 103805
+Author: elaiyaraja.nallathambi
+Date: 6:26:43 PM, Wednesday, September 19, 2012
+Message:
+Bug Fixes:- 68925,68428,68860
+----
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/PriceFixationDocument.rpt
+
