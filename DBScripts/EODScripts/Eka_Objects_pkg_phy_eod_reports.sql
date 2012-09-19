@@ -14666,7 +14666,7 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
               -- and sam.is_latest_pricing_assay = 'Y'
               -- and ash.is_active = 'Y'
               -- and ash_pricing.is_active = 'Y'
-               and ash.assay_type='pricing assay'
+               and ash.assay_type='Pricing Assay'
                and spq.assay_header_id = ash.ash_id
                and ash.internal_grd_ref_no = spq.internal_grd_ref_no
                and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
