@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1072
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+
+Created on*        		:  19-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Logistics
+==================================================================
+Module  		   	 :  logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 103799
+Author: pradeep.kumar
+Date: 5:18:18 PM, Wednesday, September 19, 2012
+Message:
+-- for doc tab in sales landing (only upload doc will be shown)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_92.sql
+
+Revision: 103800
+Author: pradeep.kumar
+Date: 5:20:44 PM, Wednesday, September 19, 2012
+Message:
+-- SLS/SLV Entries for Element Type (Payable/Returnable/None)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_406.sql
+
