@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1074
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chatauvedi
+
+Created on*        		:  19-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  -
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Invocie
+==================================================================
+Module  		   	 :  Invocie
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+Revision: 103811
+Author: mayank.chaturvedi
+Date: 7:01:34 PM, Wednesday, September 19, 2012
+Message:
+-Patch for Invoice Due Date calculation setup table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_407.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_328.sql
+
