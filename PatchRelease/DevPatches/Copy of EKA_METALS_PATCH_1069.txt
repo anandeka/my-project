@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_1070
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj
+
+Created on*        		:  19-Sep-2012
+
+Bug / Enhancement*              :  Bug Fixes
+
+Bug ID*            		:  68816,68812,68807,68518,68531,68533,68590,68591,68694
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    EOD
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 103790
+Author: sivachalabathi.s
+Date: 12:57:55 PM, Wednesday, September 19, 2012
+Message:
+Metals Main branch bug fixes in coras jouranls/pfc
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/85_DDL_EODDB_PHY_CONT_JOURNAL.SQL
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
+
+
+
+
+
