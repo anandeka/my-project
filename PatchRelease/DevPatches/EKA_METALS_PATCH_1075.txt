@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1075
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  19-Sep-2012
+
+Bug / Enhancement*              :  BUD
+
+Bug ID*            		:  68899,68920,68917,68929
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    EOD
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* EOD
+==================================================================
+Revision: 103842
+Author: suresh.gottipati
+Date: 11:13:33 AM, Friday, September 21, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql
+
+Revision: 103813
+Date: 7:28:24 PM, Wednesday, September 19, 2012
+Message:
+Bug Fixed 68917
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyRealizedPNLReport.rpt
+
+
+
