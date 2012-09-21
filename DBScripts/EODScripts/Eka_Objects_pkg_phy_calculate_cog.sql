@@ -783,7 +783,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                      t.gmr_qty,
                      case
                        when t.cost_type = 'Price' then
-                        t.avg_cost
+                        t.cost_value
                        else
                         0
                      end as material_cost_per_unit,
@@ -920,14 +920,26 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                        else
                         null
                      end as pc_to_base_fw_exch_rate,
-                     base_price_unit_id_in_ppu price_unit_id,
+                    /* base_price_unit_id_in_ppu price_unit_id,
                      base_cur_id price_unit_cur_id,
                      base_cur_code price_unit_cur_code,
                      base_qty_unit_id price_unit_weight_unit_id,
-                     base_qty_unit price_unit_weight_unit,
+                     base_qty_unit price_unit_weight_unit, */ 
+                     pum.product_price_unit_id price_unit_id,
+                     pum.cur_id  price_unit_cur_id,
+                     cm.cur_code  price_unit_cur_code,
+                     pum.weight_unit_id  price_unit_weight_unit_id,                     
+                     qum.qty_unit price_unit_weight_unit,                
                      1 weight
-                from tinvp_temp_invm_cog t
-               where t.process_id = pc_process_id) t
+                from tinvp_temp_invm_cog t,
+                     v_ppu_pum           pum,
+                     cm_currency_master  cm,
+                     qum_quantity_unit_master qum
+               where t.process_id = pc_process_id
+                 and t.transaction_price_unit_id=pum.price_unit_id
+                 and t.product_id=pum.product_id
+                 and pum.cur_id=cm.cur_id
+                 and pum.weight_unit_id=qum.qty_unit_id) t
        group by internal_grd_ref_no,
                 price_unit_id,
                 price_unit_cur_id,
@@ -2002,14 +2014,26 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                        else
                         null
                      end as accrual_to_base_fw_exch_rate,
-                     base_price_unit_id_in_ppu price_unit_id,
+                   /*base_price_unit_id_in_ppu price_unit_id,
                      base_cur_id price_unit_cur_id,
                      base_cur_code price_unit_cur_code,
                      base_qty_unit_id price_unit_weight_unit_id,
-                     base_qty_unit price_unit_weight_unit,
+                     base_qty_unit price_unit_weight_unit,*/  
+                     pum.product_price_unit_id price_unit_id,
+                     pum.cur_id  price_unit_cur_id,
+                     cm.cur_code  price_unit_cur_code,
+                     pum.weight_unit_id  price_unit_weight_unit_id,                     
+                     qum.qty_unit price_unit_weight_unit,                                        
                      1 weight
-                from tinvs_temp_invm_cogs t
-               where t.process_id = pc_process_id)
+                from tinvs_temp_invm_cogs t,
+                     v_ppu_pum           pum,
+                     cm_currency_master  cm,
+                     qum_quantity_unit_master qum
+               where t.process_id = pc_process_id
+                 and t.product_id=pum.product_id
+                 and t.transaction_price_unit_id=pum.price_unit_id
+                 and pum.cur_id=cm.cur_id
+                 and pum.weight_unit_id=qum.qty_unit_id)
        group by internal_grd_ref_no,
                 sales_internal_gmr_ref_no,
                 price_unit_id,

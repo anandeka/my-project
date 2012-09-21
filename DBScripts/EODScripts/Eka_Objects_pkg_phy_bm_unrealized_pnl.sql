@@ -20,7 +20,7 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_BM_UNREALIZED_PNL" is
                                       pc_process             varchar2,
                                       pc_previous_process_id varchar2);
 
-end;
+end; 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
   procedure sp_calc_phy_open_unreal_pnl(pc_corporate_id        varchar2,
@@ -3193,7 +3193,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
         --
         -- Contract Value in Base Currency
         --
-        vn_contract_value_in_base_cur := round((vn_cont_price *
+        vn_contract_value_in_base_cur := round((vn_cont_price *cur_grd_rows.price_to_base_fw_exch_rate_act*
                                                vn_qty_in_base),
                                                2);
 
@@ -3767,5 +3767,5 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /

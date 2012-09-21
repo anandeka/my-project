@@ -812,15 +812,34 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
       -- 
       vc_error_msg := '5.1';
       if cur_realized_rows.contract_type = 'P' then
-        vn_contract_value_in_base_cur  := vn_qty_in_base_qty_unit_id *
+       /* vn_contract_value_in_base_cur  := vn_qty_in_base_qty_unit_id *
                                           vn_contract_price;
-        vn_contract_value_in_price_cur := vn_contract_value_in_base_cur;
+        vn_contract_value_in_price_cur := vn_contract_value_in_base_cur;*/
         vc_price_to_base_fw_rate       := cur_realized_rows.price_to_base_fw_exch_rate;
+        vn_price_to_base_fw_exch_rate  := cur_realized_rows.price_to_base_fw_exch_rate_act;
         select ppu.product_price_unit_id
           into vc_contract_price_unit_id
           from v_ppu_pum ppu
          where ppu.product_price_unit_id = vc_price_unit_id
-           and ppu.product_id = cur_realized_rows.product_id;
+           and ppu.product_id = cur_realized_rows.product_id;  
+       
+        vn_contract_value_in_price_cur := (vn_contract_price /
+                                          nvl(vn_price_unit_weight, 1)) *
+                                          vn_cont_price_cur_id_factor *
+                                          pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                                               cur_realized_rows.qty_unit_id,
+                                                                               cur_realized_rows.base_qty_unit_id,
+                                                                               cur_realized_rows.item_qty);  
+      
+        vn_contract_value_in_base_cur := (vn_contract_price /
+                                         nvl(vn_price_unit_weight, 1)) *
+                                         vn_cont_price_cur_id_factor *
+                                         vn_price_to_base_fw_exch_rate *
+                                         pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                                              cur_realized_rows.qty_unit_id,
+                                                                              cur_realized_rows.base_qty_unit_id,
+                                                                              cur_realized_rows.item_qty);       
+                                
       else
         vc_error_msg              := '6';
         vc_contract_price_unit_id := vc_price_unit_id;
