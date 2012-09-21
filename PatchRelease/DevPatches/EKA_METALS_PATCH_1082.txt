@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1082
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  SUresh GOttipati
+
+Created on*        		:  21-Sep-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   EOD
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 103922
+Author: suresh.gottipati
+Date: 5:21:32 PM, Friday, September 21, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_unrealized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql
+
+Revision: 103923
+Author: suresh.gottipati
+Date: 5:22:21 PM, Friday, September 21, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt
+
