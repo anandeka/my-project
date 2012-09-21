@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1080
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+
+Created on*        		:  21-Sep-2012
+
+Bug / Enhancement*              : Enhancement
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Assay 
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103908
+Author: anupkumar.agarwal
+Date: 3:40:01 PM, Friday, September 21, 2012
+Message:
+Added FK And Check Constraint To the Evd Table And Changed The Format 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_331.sql
+
