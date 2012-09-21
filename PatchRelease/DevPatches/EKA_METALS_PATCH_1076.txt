@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1076
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Pagada
+
+Created on*        		:  21-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Physicals
+==================================================================
+Module  		   	 :  Phiscals
+
+Sub-Module  			 :  Cost
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103862
+Author: sishir.pagada
+Date: 12:30:45 PM, Friday, September 21, 2012
+Message:
+Income/Expense Dropdown added...
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_408.sql
+
+
+
