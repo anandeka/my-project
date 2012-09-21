@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1079
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+
+Created on*        		:  21-Sep-2012
+
+Bug / Enhancement*              : Enhancement
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Logistics
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103906
+Author: pradeep.kumar
+Date: 3:26:51 PM, Friday, September 21, 2012
+Message:
+-- Populate SADC_CHILD_DGRD_D for ReleaseOrder Document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_410.sql
+
+Revision: 103905
+Author: pradeep.kumar
+Date: 3:25:17 PM, Friday, September 21, 2012
+Message:
+-- Added some extra columns in SADC_CHILD_DGRD_D for ReleaseOrder Document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_330.sql
+
