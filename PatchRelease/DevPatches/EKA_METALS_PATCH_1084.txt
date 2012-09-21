@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1084
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Pagada
+
+Created on*        		:  21-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103956
+Author: sishir.pagada
+Date: 7:00:27 PM, Friday, September 21, 2012
+Message:
+Data Correction patch for Hedge amount. 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_17.sql
+
+
