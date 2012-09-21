@@ -2043,6 +2043,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                  and prd.corporate_id = pc_corporate_id
                  and prd.process_id = tdc.process_id
                  and tdc.process = pc_process
+                 and prd.item_qty<>dgrdul.current_qty
                  and prd.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                  and prd.trade_date < pd_trade_date
                  and agh.int_alloc_group_id = prd.int_alloc_group_id

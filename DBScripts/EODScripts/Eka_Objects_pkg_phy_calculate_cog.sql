@@ -92,7 +92,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign transact_amt_sign,
              gmr.stock_current_qty
@@ -182,7 +182,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              1,
              gmr.stock_current_qty
@@ -386,7 +386,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              case
                when scms.cost_display_name = 'Treatment Charges' then
@@ -485,7 +485,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              case
                when scms.cost_display_name = 'Treatment Charges' then
@@ -638,6 +638,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                              and t.transaction_amt_main_cur_id =
                                  cm_trans.cur_id
                              and t.base_cur_id = cm_base.cur_id
+                             and t.cost_type<>'Secondary Cost'
                            group by t.transaction_amt_main_cur_id,
                                     t.base_cur_id,
                                     cm_base.cur_code,
@@ -661,7 +662,45 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base
        where t.transaction_amt_main_cur_id =
              cur_exch_rate.transaction_amt_main_cur_id
-         and t.process_id = pc_process_id;
+         and t.process_id = pc_process_id
+         and t.cost_type<>'Secondary Cost';
+    
+    end loop;
+   commit;
+   
+     --
+    -- Get the Exchange Rate from Transaction Main Currency to Base Currency for seconday cost
+    --
+    for cur_exch_rate in (select t.transaction_amt_main_cur_id,
+                                 t.base_cur_id,
+                                 cm_base.cur_code base_cur_code,
+                                 cm_trans.cur_code transaction_amt_main_cur_code,
+                                 t.transact_to_base_fw_exch_rate
+                            from tinvp_temp_invm_cog t,
+                                 cm_currency_master  cm_trans,
+                                 cm_currency_master  cm_base
+                           where t.transaction_amt_main_cur_id <>
+                                 t.base_cur_id
+                             and t.process_id = pc_process_id
+                             and t.transaction_amt_main_cur_id =
+                                 cm_trans.cur_id
+                             and t.base_cur_id = cm_base.cur_id
+                             and t.cost_type='Secondary Cost'
+                           group by t.transaction_amt_main_cur_id,
+                                    t.base_cur_id,
+                                    cm_base.cur_code,
+                                    cm_trans.cur_code,
+                                    t.transact_to_base_fw_exch_rate)
+    loop  
+      update tinvp_temp_invm_cog t
+         set t.trans_to_base_fw_exch_rate    = '1 ' ||
+                                               cur_exch_rate.transaction_amt_main_cur_code || '=' ||
+                                               cur_exch_rate.transact_to_base_fw_exch_rate || ' ' ||
+                                               cur_exch_rate.base_cur_code
+       where t.transaction_amt_main_cur_id =
+             cur_exch_rate.transaction_amt_main_cur_id
+         and t.process_id = pc_process_id
+         and t.cost_type='Secondary Cost';
     
     end loop;
    commit;
@@ -1151,7 +1190,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              cs.transact_amt_sign transact_amt_sign
         from scm_stock_cost_mapping      scm,
@@ -1251,7 +1290,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              1
         from scm_stock_cost_mapping      scm,
@@ -1473,7 +1512,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              case
                when scms.cost_display_name = 'Treatment Charges' then
@@ -1581,7 +1620,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             cs.fx_to_base,
              ppu.product_price_unit_id,
              case
                when scms.cost_display_name = 'Treatment Charges' then
@@ -1726,7 +1765,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
      where t.process_id = pc_process_id;
     commit;
     --
-    -- Get the Exchange Rate from Transaction Main Currency to Base Currency
+    -- Get the Exchange Rate from Transaction Main Currency to Base Currency with out seconday cost
     --
     for cur_exch_rate in (select t.transaction_amt_main_cur_id,
                                  t.base_cur_id,
@@ -1741,6 +1780,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                              and t.transaction_amt_main_cur_id =
                                  cm_trans.cur_id
                              and t.base_cur_id = cm_base.cur_id
+                             and t.cost_type<>'Secondary Cost'
                            group by t.transaction_amt_main_cur_id,
                                     t.base_cur_id,
                                     cm_base.cur_code,
@@ -1765,10 +1805,49 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              t.transact_to_base_fw_exch_rate = vn_fw_exch_rate_trans_to_base
        where t.transaction_amt_main_cur_id =
              cur_exch_rate.transaction_amt_main_cur_id
-         and t.process_id = pc_process_id;
+         and t.process_id = pc_process_id
+         and t.cost_type<>'Secondary Cost';
     
     end loop;
     commit;
+    
+    
+     --
+    -- Get the Exchange Rate from Transaction Main Currency to Base Currency for seconday cost
+    --
+    for cur_exch_rate in (select t.transaction_amt_main_cur_id,
+                                 t.base_cur_id,
+                                 cm_base.cur_code base_cur_code,
+                                 cm_trans.cur_code transaction_amt_main_cur_code,
+                                 t.transact_to_base_fw_exch_rate
+                            from tinvp_temp_invm_cog t,
+                                 cm_currency_master  cm_trans,
+                                 cm_currency_master  cm_base
+                           where t.transaction_amt_main_cur_id <>
+                                 t.base_cur_id
+                             and t.process_id = pc_process_id
+                             and t.transaction_amt_main_cur_id =
+                                 cm_trans.cur_id
+                             and t.base_cur_id = cm_base.cur_id
+                             and t.cost_type='Secondary Cost'
+                           group by t.transaction_amt_main_cur_id,
+                                    t.base_cur_id,
+                                    cm_base.cur_code,
+                                    cm_trans.cur_code,
+                                    t.transact_to_base_fw_exch_rate)
+    loop  
+      update tinvs_temp_invm_cogs t
+         set t.trans_to_base_fw_exch_rate    = '1 ' ||
+                                               cur_exch_rate.transaction_amt_main_cur_code || '=' ||
+                                               cur_exch_rate.transact_to_base_fw_exch_rate || ' ' ||
+                                               cur_exch_rate.base_cur_code
+       where t.transaction_amt_main_cur_id =
+             cur_exch_rate.transaction_amt_main_cur_id
+         and t.process_id = pc_process_id
+         and t.cost_type='Secondary Cost';
+    
+    end loop;
+   commit;
     --
     -- Update Value in Base and Avg Cost in Base Price Unit
     --
