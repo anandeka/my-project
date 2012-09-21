@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1078
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+
+Created on*        		:  21-Sep-2012
+
+Bug / Enhancement*              :  Both 
+
+Bug ID*            		:  68616,68832
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Invoice
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103883
+Author: mayank.chaturvedi
+Date: 1:28:20 PM, Friday, September 21, 2012
+Message:
+-Master_Scripts for DGM IOC, O/P DOC issues in Bugs.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_409.sql
+
+Revision: 103880
+Author: mayank.chaturvedi
+Date: 1:23:40 PM, Friday, September 21, 2012
+Message:
+-Object Alter script for Due Date setup table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_329.sql
+
