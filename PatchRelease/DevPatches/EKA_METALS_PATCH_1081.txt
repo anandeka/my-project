@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1081
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+
+Created on*        		:  21-Sep-2012
+
+Bug / Enhancement*              : Bug
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   Physical trading 
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103920
+Author: sriveenam
+Date: Friday, September 21, 2012 5:18:02 PM
+Message:
+68001 fix
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_16.sql
