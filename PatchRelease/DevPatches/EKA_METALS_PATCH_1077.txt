@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1077
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sivachalabathi
+
+Created on*        		:  21-Sep-2012
+
+Bug / Enhancement*              :  Bug fixes
+
+Bug ID*            		:  68955,66695,66975
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    BI/Dashboard Reports
+==================================================================
+Module  		   	 :  BI/Dashboard Reports
+
+Sub-Module  			 :  BI/Dashboard Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103891
+Author: sivachalabathi.s
+Date: 2:11:19 PM, Friday, September 21, 2012
+Message:
+bug fixes
+----
+01) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_DER_PHYSICAL_BOOKING.sql
+02) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_LOGISTICS.sql
+03) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_LOGISTICS.sql
+04) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_debt.sql
+05) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_feed.sql
+06) Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_mb_recent5_by_stock.sql
+
