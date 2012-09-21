@@ -9,7 +9,7 @@ select tt.corporate_id,
        tt.quantity,
        tt.base_qty_unit_id,
        tt.base_qty_unit,
-       tt.internal_grd_ref_no,
+       null internal_grd_ref_no,
        tt.created_date,
        tt.order_id
   from (select t.corporate_id,
@@ -19,10 +19,10 @@ select tt.corporate_id,
                axm.action_name activity,
                phd.profileid cp_id,
                phd.companyname cpname,
-               t.qty quantity,
+               sum(t.qty) quantity,
                t.qty_unit_id base_qty_unit_id,
                qum.qty_unit base_qty_unit,
-               t.internal_grd_ref_no,
+              -- t.internal_grd_ref_no,
                t.created_date,
                row_number() over(partition by t.corporate_id, t.product_id order by t.created_date desc) order_id
           from (select grd.internal_grd_ref_no,
@@ -98,6 +98,17 @@ select tt.corporate_id,
            and t.product_id = pdm.product_id
            and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
            and pcm.cp_id = phd.profileid
-           and t.qty_unit_id = qum.qty_unit_id) tt
+           and t.qty_unit_id = qum.qty_unit_id
+           group by t.corporate_id,
+               t.product_id,
+               pdm.product_desc,
+               t.action_ref_no,
+               axm.action_name,
+               phd.profileid,
+               phd.companyname,
+               t.qty_unit_id,
+               qum.qty_unit,
+               t.created_date
+           
+           ) tt
  where tt.order_id <= 5 
-/

@@ -58,7 +58,7 @@ select iss.corporate_id,
        iss.payment_due_date invoice_due_date,
        iss.invoice_type_name invoice_type,
        'NA' bill_to_cp_country,
-       pcdi.delivery_item_no delivery_item_ref_no,
+       idcm.delivery_item_no delivery_item_ref_no,
        ivd.vat_amount_in_vat_cur vat_amount,
        ivd.vat_remit_cur_id,
        cm_vat.cur_code vat_remit_currency,
@@ -72,27 +72,35 @@ select iss.corporate_id,
        null attribute3,
        null attribute4,
        null attribute5
-  from is_invoice_summary            iss,
-       cm_currency_master            cm_p,
+  from is_invoice_summary iss,
+       cm_currency_master cm_p,
+       (select max(pcdi.delivery_item_no) delivery_item_no,
+               iid.internal_invoice_ref_no
+          from pcdi_pc_delivery_item       pcdi,
+               iid_invoicable_item_details iid,
+               pci_physical_contract_item  pci
+         where pcdi.pcdi_id = pci.pcdi_id
+           and iid.internal_contract_item_ref_no =
+               pci.internal_contract_item_ref_no
+         group by iid.internal_invoice_ref_no) idcm,
        incm_invoice_contract_mapping incm,
-       ivd_invoice_vat_details       ivd,
-       pcm_physical_contract_main    pcm,
-       pcdi_pc_delivery_item         pcdi,
-       ak_corporate                  akc,
-       cpc_corporate_profit_center   cpc,
-       cpc_corporate_profit_center   cpc1,
-       pcpd_pc_product_definition    pcpd,
-       cm_currency_master            cm_akc_base_cur,
-       cm_currency_master            cm_vat,
-       pdm_productmaster             pdm,
-       phd_profileheaderdetails      phd_contract_cp,
-       qum_quantity_unit_master      qum
+       ivd_invoice_vat_details ivd,
+       pcm_physical_contract_main pcm,
+       ak_corporate akc,
+       cpc_corporate_profit_center cpc,
+       cpc_corporate_profit_center cpc1,
+       pcpd_pc_product_definition pcpd,
+       cm_currency_master cm_akc_base_cur,
+       cm_currency_master cm_vat,
+       pdm_productmaster pdm,
+       phd_profileheaderdetails phd_contract_cp,
+       qum_quantity_unit_master qum
  where iss.is_active = 'Y'
    and iss.corporate_id is not null
-   and iss.internal_invoice_ref_no = incm.internal_invoice_ref_no(+)
+   and iss.internal_invoice_ref_no = idcm.internal_invoice_ref_no(+)
    and iss.internal_invoice_ref_no = ivd.internal_invoice_ref_no(+)
+   and iss.internal_invoice_ref_no = incm.internal_invoice_ref_no(+)
    and incm.internal_contract_ref_no = pcm.internal_contract_ref_no(+)
-   and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    and iss.corporate_id = akc.corporate_id
    and iss.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and iss.profit_center_id = cpc.profit_center_id(+)
@@ -101,7 +109,7 @@ select iss.corporate_id,
    and pcpd.product_id = pdm.product_id(+)
    and phd_contract_cp.profileid(+) = iss.cp_id
    and nvl(pcm.partnership_type, 'Normal') = 'Normal'
-   and qum.qty_unit_id = pcdi.qty_unit_id
+   and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
    and iss.is_inv_draft = 'N'
    and iss.invoice_type_name <> 'Profoma'
    and cm_akc_base_cur.cur_id = akc.base_cur_id

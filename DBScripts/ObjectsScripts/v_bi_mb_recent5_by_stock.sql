@@ -1,6 +1,7 @@
 create or replace view v_bi_mb_recent5_by_stock as
 select t2.corporate_id,
        t2.product_id,
+     --  t2.section_name,
        t2.product_desc product_name,
        t2.action_ref_no reference_no,
        t2.activity,
@@ -11,11 +12,12 @@ select t2.corporate_id,
        t2.qty_unit base_qty_unit,
        t2.order_seq order_id--Bug 63266 Fix added column
   from (select t1.product_id,
+               t1.section_name,
                t1.corporate_id,
-               t1.internal_grd_ref_no,
+               null internal_grd_ref_no,
                t1.activity,
                t1.action_ref_no,
-               t1.qty,
+               sum(t1.qty)qty,
                t1.qty_unit_id,
                t1.created_date,
                t1.product_desc,
@@ -24,6 +26,7 @@ select t2.corporate_id,
                t1.cpname,
                row_number() over(partition by t1.corporate_id, t1.product_id order by t1.created_date desc) order_seq
           from (select t.product_id,
+                   'DGRD Log' section_name,
                        t.internal_grd_ref_no,
                        t.corporate_id,
                        axm.action_name activity,
@@ -120,11 +123,12 @@ select t2.corporate_id,
                    and pcm.cp_id = phd.profileid
                 union all
                 select t.product_id,
+                      'GRD Log' section_name,
                        t.internal_grd_ref_no,
                        t.corporate_id,
                        axm.action_name activity,
                        t.action_ref_no,
-                       t.qty,
+                       (t.qty)qty,
                        t.qty_unit_id,
                        t.created_date,
                        pdm.product_desc,
@@ -217,6 +221,7 @@ select t2.corporate_id,
                    and t.qty_unit_id = qum.qty_unit_id
        union all--Receive Material
        select  t.product_id,
+       'Receive Material' section_name,
            t.internal_grd_ref_no,
            t.corporate_id,
            axm.action_name activity,
@@ -289,7 +294,6 @@ select t2.corporate_id,
                                gmr.internal_gmr_ref_no
                            and gmr.is_deleted='N'--Bug 65543
                            and axs.status='Active'
-                           --and gmr.gmr_ref_no='GMR-380-BLD'
                            group by grdul.internal_grd_ref_no) t,
                        grd_goods_record_detail grd,
                        axm_action_master axm,
@@ -297,7 +301,6 @@ select t2.corporate_id,
                        qum_quantity_unit_master qum,
                        wrd_warehouse_receipt_detail wrd,
                        phd_profileheaderdetails phd
-
                  where t.internal_grd_ref_no = grd.internal_grd_ref_no
                    and grd.internal_gmr_ref_no=wrd.internal_gmr_ref_no
                    and wrd.smelter_cp_id=phd.profileid
@@ -309,6 +312,7 @@ select t2.corporate_id,
                    and pdm.is_active='Y'
  union all --Return Material
  select  t.product_id,
+         'Return Material' section_name,
            t.internal_grd_ref_no,
            t.corporate_id,
            axm.action_name activity,
@@ -389,7 +393,6 @@ select t2.corporate_id,
                        qum_quantity_unit_master qum,
                        wrd_warehouse_receipt_detail wrd,
                        phd_profileheaderdetails phd
-
                  where t.internal_grd_ref_no = dgrd.internal_dgrd_ref_no
                    and dgrd.internal_gmr_ref_no=wrd.internal_gmr_ref_no
                    and wrd.smelter_cp_id=phd.profileid
@@ -398,6 +401,17 @@ select t2.corporate_id,
                    and t.product_id = pdm.product_id
                    and t.qty_unit_id = qum.qty_unit_id
                    and dgrd.status='Active'
-                   and pdm.is_active='Y' ) t1) t2
- where t2.order_seq < 6
-
+                   and pdm.is_active='Y' ) t1
+group by t1.product_id,
+               t1.section_name,
+               t1.corporate_id,
+               t1.activity,
+               t1.action_ref_no,
+               t1.qty_unit_id,
+               t1.created_date,
+               t1.product_desc,
+               t1.qty_unit,
+               t1.cp_id,
+               t1.cpname
+                   ) t2
+ where t2.order_seq < 6 

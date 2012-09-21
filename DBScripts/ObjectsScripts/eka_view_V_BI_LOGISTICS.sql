@@ -1,7 +1,8 @@
-CREATE OR REPLACE VIEW V_BI_LOGISTICS as
+create or replace view v_bi_logistics as
 with v_ash as(select ash.ash_id,
        sum(asm.net_weight) wet_weight,
-       sum(asm.dry_weight)dry_weight
+       sum(asm.dry_weight) dry_weight,
+       round((sum(asm.dry_weight) / sum(asm.net_weight)) * 100, 10) dry_wet_qty_ratio
   from ash_assay_header         ash,
        asm_assay_sublot_mapping asm
  where ash.ash_id = asm.ash_id
@@ -17,7 +18,17 @@ select agrd.qty                 qty,
    and agrd.action_no = 1
    and ash.assay_type = 'Shipment Assay'
    and ash.is_active = 'Y'
-   and agrd.status = 'Active')
+   and agrd.status = 'Active'),
+v_agrd_gmr_qty as(select agrd.internal_gmr_ref_no,
+       sum(agrd.qty) qty
+  from ash_assay_header ash,
+       agrd_action_grd  agrd
+ where agrd.internal_grd_ref_no = ash.internal_grd_ref_no
+   and agrd.action_no = 1
+   and ash.assay_type = 'Shipment Assay'
+   and ash.is_active = 'Y'
+   and agrd.status = 'Active'
+ group by agrd.internal_gmr_ref_no)
 select t.groupid,
        t.corporate_group,
        t.corporate_id,
@@ -67,18 +78,56 @@ select t.groupid,
        t.warehouse_city_name,
        t.assay_status,
        t.bl_product_base_uom,
-       t.bl_wet_weight,
-       t.bl_dry_weight,
+       --Note: t.bl_wet_weight is null added to handle the stock re-arrangement
+       (case
+         when t.bl_wet_weight is null then
+          t.gmr_bl_qty
+         else
+          t.bl_wet_weight
+       end) bl_wet_weight,
+       (case
+         when t.bl_wet_weight is null then
+          t.gmr_bl_qty * (t.actual_dry_weight / t.actual_wet_weight)
+         else
+          t.bl_dry_weight
+       end) bl_dry_weight,
        t.actual_product_base_uom,
        t.actual_wet_weight,
        t.actual_dry_weight,
-       (t.actual_wet_weight-t.bl_wet_weight  ) wet_qty_diff,
-       (t.actual_dry_weight-t.bl_dry_weight ) dry_qty_diff,
-       (t.actual_wet_weight-t.bl_wet_weight ) / t.bl_wet_weight * 100 wet_ratio,
-       (t.actual_dry_weight-t.bl_dry_weight ) / t.bl_dry_weight * 100 dry_ratio
+       -- (t.actual_dry_weight/t.actual_wet_weight) DRY_WET_QTY_RATIO,
+       --  t.gmr_bl_qty,
+       (case
+         when t.bl_wet_weight is null then
+          t.actual_wet_weight - t.gmr_bl_qty
+         else
+          t.actual_wet_weight - t.bl_wet_weight
+       end) wet_qty_diff,
+       --  (t.actual_wet_weight-t.bl_wet_weight  ) wet_qty_diff,
+      (case
+         when t.bl_wet_weight is null then --added to handle the stock re-arrangement
+         t.actual_dry_weight - ( t.gmr_bl_qty * (t.actual_dry_weight / t.actual_wet_weight))
+         else
+        t.actual_dry_weight-  t.bl_dry_weight
+       end)dry_qty_diff,
+       
+       round((case
+         when t.bl_wet_weight is null then
+          (t.actual_wet_weight - t.gmr_bl_qty) / t.gmr_bl_qty * 100 
+         else
+          (t.actual_wet_weight - t.bl_wet_weight) / t.bl_wet_weight * 100
+       end),10)wet_ratio,
+       round((case
+         when t.bl_wet_weight is null then --added to handle the stock re-arrangement
+         (t.actual_dry_weight -( t.gmr_bl_qty * (t.actual_dry_weight / t.actual_wet_weight))) / ( t.gmr_bl_qty * (t.actual_dry_weight / t.actual_wet_weight)) * 100
+         else
+        (t.actual_dry_weight - t.bl_dry_weight) / t.bl_dry_weight * 100
+       end),10)dry_ratio
+       --(t.actual_wet_weight - t.bl_wet_weight) / t.bl_wet_weight * 100 wet_ratio,
+      -- (t.actual_dry_weight - t.bl_dry_weight) / t.bl_dry_weight * 100 dry_ratio
   from (select gcd.groupid,
+               --ash.ash_id,
                gcd.groupname corporate_group,
-               gmr.corporate_id,
+               gmr.corporate_id, --asm.DRY_WET_QTY_RATIO,
                akc.corporate_name,
                pcpd.profit_center_id,
                cpc.profit_center_name,
@@ -134,15 +183,7 @@ select t.groupid,
                ash.assay_type assay_status,
                qum.qty_unit bl_product_base_uom,
                sum(agrd.qty) bl_wet_weight,
-               sum(case
-                     when pcpq.unit_of_measure = 'Wet' then
-                      pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
-                                                              sam.ash_id,
-                                                              agrd.qty,
-                                                              grd.qty_unit_id)
-                     else
-                      agrd.qty
-                   end) bl_dry_weight,
+               sum((agrd.qty * nvl(asm.dry_wet_qty_ratio, 100)) / 100) bl_dry_weight,
                qum.qty_unit actual_product_base_uom,
                (case
                  when ash.assay_type = 'Weighing and Sampling Assay' then
@@ -154,15 +195,9 @@ select t.groupid,
                  when ash.assay_type = 'Weighing and Sampling Assay' then
                   sum(asm.dry_weight)
                  else
-                  sum(case
-                 when pcpq.unit_of_measure = 'Wet' then
-                  pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
-                                                          sam.ash_id,
-                                                          grd.qty,
-                                                          grd.qty_unit_id)
-                 else
-                  agrd.qty
-               end) end) actual_dry_weight
+                  sum((grd.qty * nvl(asm.dry_wet_qty_ratio, 100)) / 100)
+               end) actual_dry_weight,
+               agrd_gmr.qty gmr_bl_qty
           from gmr_goods_movement_record gmr,
                ak_corporate akc,
                grd_goods_record_detail grd,
@@ -211,6 +246,7 @@ select t.groupid,
                v_ash asm,
                sam_stock_assay_mapping sam,
                axs_action_summary axs,
+               v_agrd_gmr_qty agrd_gmr,
                v_agrd_qty agrd
          where gmr.corporate_id = akc.corporate_id
            and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -262,13 +298,15 @@ select t.groupid,
            and sam.is_latest_pricing_assay = 'Y'
            and pcpd.input_output = 'Input'
            and grd.status = 'Active'
-           and grd.internal_grd_ref_no = agrd.internal_grd_ref_no
+           and grd.internal_grd_ref_no = agrd.internal_grd_ref_no(+) -- to handle the stock re-arrangement case, use the agrd_gmr table gmr qty
+           and gmr.internal_gmr_ref_no = agrd_gmr.internal_gmr_ref_no
+          -- and gmr.internal_gmr_ref_no = 'GMR-1559'
            and grd.tolling_stock_type = 'None Tolling'
          group by gcd.groupid,
                   gcd.groupname,
                   gmr.corporate_id,
                   akc.corporate_name,
-                  pcpd.profit_center_id,
+                  pcpd.profit_center_id, 
                   cpc.profit_center_name,
                   cpc.profit_center_short_name,
                   css.strategy_id,
@@ -309,6 +347,7 @@ select t.groupid,
                   sld.state_id,
                   sm_sld.state_name,
                   sld.city_id,
+                  agrd_gmr.qty,
                   cim_sld.city_name,
                   ash.assay_type,
                   qum.qty_unit,
