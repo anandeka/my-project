@@ -2027,6 +2027,16 @@ create or replace package body pkg_phy_custom_reports is
                                      and pcmul.entry_type = 'Update'
                                      and nvl(pcmul.contract_status, 'none') <>
                                          'Cancelled')
+                             and exists (select pcm_in.internal_contract_ref_no
+                                    from pcm_physical_contract_main pcm_in
+                                   where pcm_in.internal_contract_ref_no =
+                                         pcm.internal_contract_ref_no
+                                     and pcm_in.process_id =
+                                         pc_prev_process_id -------prev
+                                     and pcm_in.corporate_id =
+                                         pc_corporate_id
+                                     and pcm_in.contract_status <>
+                                         'Cancelled')
                           --for Concentrate
                           union all
                           select 'New' catogery,
@@ -2360,6 +2370,16 @@ create or replace package body pkg_phy_custom_reports is
                                          pcm.internal_contract_ref_no
                                      and pcmul.entry_type = 'Update'
                                      and nvl(pcmul.contract_status, 'none') <>
+                                         'Cancelled')
+                             and exists (select pcm_in.internal_contract_ref_no
+                                    from pcm_physical_contract_main pcm_in
+                                   where pcm_in.internal_contract_ref_no =
+                                         pcm.internal_contract_ref_no
+                                     and pcm_in.process_id =
+                                         pc_prev_process_id -------prev
+                                     and pcm_in.corporate_id =
+                                         pc_corporate_id
+                                     and pcm_in.contract_status <>
                                          'Cancelled')
                           union all
                           select 'Deleted' catogery,
