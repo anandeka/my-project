@@ -1045,7 +1045,7 @@ select   ak.corporate_id,
        null price_unit_id,
        null price_unit,
        decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
-       pofh.per_day_pricing_qty *
+       (nvl(pofh.per_day_hedge_correction_qty,0)+ nvl(pofh.per_day_pricing_qty,0)) *
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             qum.qty_unit_id,
                                             pdm.base_quantity_unit,
@@ -1172,7 +1172,7 @@ select   ak.corporate_id,
        null price_unit_id,
        null price_unit,
        decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
-       pofh.per_day_pricing_qty *
+       (nvl(pofh.per_day_hedge_correction_qty,0)+ nvl(pofh.per_day_pricing_qty,0)) *
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             qum.qty_unit_id,
                                             pdm.base_quantity_unit,
@@ -1657,7 +1657,7 @@ select ak.corporate_id,
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and qum.qty_unit_id = pocd.qty_to_be_fixed_unit_id
    and pfd.is_price_request = 'Y'
-   and pfd.as_of_date > trunc(sysdate) --siva
+   and /*pfd.as_of_date*/pfd.hedge_correction_date > trunc(sysdate) --siva
 --and ak.corporate_id = '{?CorporateID}'
  group by ak.corporate_id,
           ak.corporate_name,
@@ -1830,7 +1830,7 @@ select ak.corporate_id,
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and qum.qty_unit_id = pocd.qty_to_be_fixed_unit_id
    and pfd.is_price_request = 'Y'
-   and pfd.as_of_date > trunc(sysdate)
+   and /*pfd.as_of_date*/pfd.hedge_correction_date > trunc(sysdate)
  group by ak.corporate_id,
           ak.corporate_name,
           cpc.profit_center_id,

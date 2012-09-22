@@ -1165,7 +1165,7 @@ select ak.corporate_id,
        pcqpd.premium_disc_unit_id price_unit_id,
        pum.price_unit_name price_unit,
        decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
-       pofh.per_day_pricing_qty *
+       (nvl(pofh.per_day_hedge_correction_qty,0)+ nvl(pofh.per_day_pricing_qty,0)) *
        pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                 pdm.product_id),
                                             qum.qty_unit_id,
@@ -1321,7 +1321,7 @@ select ak.corporate_id,
        pcqpd.premium_disc_unit_id price_unit_id,
        pum.price_unit_name price_unit,
        decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
-       pofh.per_day_pricing_qty *
+       (nvl(pofh.per_day_hedge_correction_qty,0)+ nvl(pofh.per_day_pricing_qty,0)) *
        pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                 pdm.product_id),
                                             qum.qty_unit_id,
@@ -1611,7 +1611,7 @@ select ak.corporate_id,
       --and ak.corporate_id = '{?CorporateID}'
       --  and  pfd.as_of_date >= sysdate
    and pfd.is_price_request = 'Y'
-   and pfd.as_of_date > trunc(sysdate)
+   and /*pfd.as_of_date*/pfd.hedge_correction_date > trunc(sysdate)
    --and pcm.contract_ref_no='SCT-105-BLD'
  group by ak.corporate_id,
           ak.corporate_name,
@@ -2133,7 +2133,7 @@ select ak.corporate_id,
       --and ak.corporate_id = '{?CorporateID}'
       --  and  pfd.as_of_date >= sysdate
    and pfd.is_price_request = 'Y'
-   and pfd.as_of_date > trunc(sysdate)
+   and /*pfd.as_of_date*/pfd.hedge_correction_date > trunc(sysdate)
    --and pcm.contract_ref_no='SCT-105-BLD'
  group by ak.corporate_id,
           ak.corporate_name,
