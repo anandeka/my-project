@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1086
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek  Vijay
+
+Created on*        		:  22-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103974
+Author: abhishek.vijay
+Date: 1:19:26 PM, Saturday, September 22, 2012
+Message:
+change spql  log 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_SPQL.sql
+
+Revision: 103973
+Author: abhishek.vijay
+Date: 1:17:25 PM, Saturday, September 22, 2012
+Message:
+cancel  price fixation 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_332.sql
+
+
+
