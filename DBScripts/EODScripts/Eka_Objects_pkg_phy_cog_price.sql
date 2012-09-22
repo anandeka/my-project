@@ -865,7 +865,7 @@ create or replace package body pkg_phy_cog_price is
            vc_price_basis);
       end if;
     end loop;
-  
+    commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -885,6 +885,7 @@ create or replace package body pkg_phy_cog_price is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
+      commit;
   end;
   procedure sp_base_gmr_cog_price(pc_corporate_id varchar2,
                                   pd_trade_date   date,
@@ -1423,6 +1424,7 @@ create or replace package body pkg_phy_cog_price is
            cur_gmr_rows.internal_grd_ref_no);
       end if;
     end loop;
+    commit;
   end;
   procedure sp_conc_contract_cog_price(pc_corporate_id varchar2,
                                        pd_trade_date   date,
@@ -1472,8 +1474,6 @@ create or replace package body pkg_phy_cog_price is
              ak_corporate akc,
              pcpd_pc_product_definition pcpd,
              aml_attribute_master_list aml,
-             dipch_di_payablecontent_header dipch,
-             pcpch_pc_payble_content_header pcpch,
              (select qat.pcdi_id,
                      qat.element_id,
                      qat.instrument_id,
@@ -1508,10 +1508,7 @@ create or replace package body pkg_phy_cog_price is
                  and qat.corporate_id = pc_corporate_id) tt
        where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-         and pcdi.pcdi_id = dipch.pcdi_id
-         and dipch.pcpch_id = pcpch.pcpch_id
-         and pcpch.element_id = aml.attribute_id
-         and nvl(pcpch.payable_type, 'Payable') = 'Payable'
+         and nvl(dipq.qty_type, 'Payable') = 'Payable'
          and pcm.corporate_id = akc.corporate_id
          and pcm.contract_status = 'In Position'
          and pcm.contract_type = 'CONCENTRATES'
@@ -1519,20 +1516,15 @@ create or replace package body pkg_phy_cog_price is
          and dipq.element_id = aml.attribute_id
          and dipq.pcdi_id = tt.pcdi_id(+)
          and dipq.element_id = tt.element_id(+)
-            --and dipq.process_id = tt.process_id(+)
          and pcdi.process_id = pc_process_id
          and pcm.process_id = pc_process_id
          and pcpd.process_id = pc_process_id
          and dipq.process_id = pc_process_id
-         and dipch.process_id = pc_process_id
-         and pcpch.process_id = pc_process_id
          and pcdi.pcdi_id = dipq.pcdi_id
          and dipq.payable_qty > 0
          and pcpd.is_active = 'Y'
          and pcdi.is_active = 'Y'
          and pcm.is_active = 'Y'
-         and dipch.is_active = 'Y'
-         and pcpch.is_active = 'Y'
          and dipq.is_active = 'Y';
     cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
       select poch.poch_id,
@@ -2240,7 +2232,7 @@ create or replace package body pkg_phy_cog_price is
            vc_price_basis);
       end if;
     end loop;
-  
+    commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -2259,6 +2251,7 @@ create or replace package body pkg_phy_cog_price is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
+      commit;
   end;
   procedure sp_conc_gmr_cog_price(pc_corporate_id varchar2,
                                   pd_trade_date   date,
@@ -2842,6 +2835,7 @@ create or replace package body pkg_phy_cog_price is
            cur_gmr_rows.internal_grd_ref_no);
       end if;
     end loop;
+    commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -2859,6 +2853,7 @@ create or replace package body pkg_phy_cog_price is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
+      commit;
   end;
 end;
 /

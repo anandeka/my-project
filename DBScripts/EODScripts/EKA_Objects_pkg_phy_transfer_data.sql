@@ -40,7 +40,6 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_process      varchar2);
 
 end pkg_phy_transfer_data; 
- 
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -3655,6 +3654,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        assay_header_id,
        is_final_assay,
        corporate_id,
+       weg_avg_pricing_assay_id,
+       weg_avg_invoice_assay_id,
        dbd_id)
       select ul.spq_id,
              ul.internal_action_ref_no,
@@ -3683,6 +3684,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.assay_header_id,
              ul.is_final_assay,
              ul.corporate_id,
+             ul.weg_avg_pricing_assay_id,
+             ul.weg_avg_invoice_assay_id,
              pc_dbd_id
         from spql_stock_payable_qty_log@eka_appdb ul,
              axs_action_summary@eka_appdb         axs

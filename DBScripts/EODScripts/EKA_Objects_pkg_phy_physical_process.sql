@@ -484,7 +484,44 @@ create or replace package body pkg_phy_physical_process is
         vn_error_count            := 0;
     end; 
 ----------------  
-if vn_error_count = 0 then  
+if vn_error_count = 0 then 
+ 
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_treatment_charge');
+      pkg_phy_eod_reports.sp_calc_treatment_charge(pc_corporate_id,
+                                                   pd_trade_date,
+                                                   pc_process_id,
+                                                   pc_process,
+                                                   pc_dbd_id);
+      commit;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_refining_charge');
+      pkg_phy_eod_reports.sp_calc_refining_charge(pc_corporate_id,
+                                                  pd_trade_date,
+                                                  pc_process_id,
+                                                  pc_process,
+                                                  pc_dbd_id);
+      commit;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_penalty_charge');
+      pkg_phy_eod_reports.sp_calc_penalty_charge(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 pc_process_id,
+                                                 pc_process,
+                                                 pc_dbd_id);
+      commit;
     vn_logno := vn_logno + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -4030,6 +4067,10 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from eod_eom_phy_contract_journal where process_id = pc_process_id;
     delete from prp_physical_risk_position where process_id = pc_process_id;
     delete from eod_eom_phy_booking_journal where process_id = pc_process_id;
+    delete from getc_gmr_element_tc_charges where process_id = pc_process_id;
+    delete from gerc_gmr_element_rc_charges where process_id = pc_process_id;
+    delete from gepc_gmr_element_pc_charges where process_id = pc_process_id;
+
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
     --

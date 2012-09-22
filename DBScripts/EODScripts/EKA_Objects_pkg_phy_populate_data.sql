@@ -12700,6 +12700,8 @@ where gmr.dbd_id = gvc_dbd_id;
        is_final_assay,
        corporate_id,
        internal_action_ref_no,
+       weg_avg_pricing_assay_id,
+       weg_avg_invoice_assay_id,
        dbd_id)
       select spqul.spq_id,
              substr(max(case
@@ -12836,7 +12838,19 @@ where gmr.dbd_id = gvc_dbd_id;
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                            spqul.internal_action_ref_no
                         end),
-                    24) internal_action_ref_no,                                     
+                    24) internal_action_ref_no,  
+              substr(max(case
+                          when spqul.weg_avg_pricing_assay_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.weg_avg_pricing_assay_id
+                        end),
+                    24) weg_avg_pricing_assay_id, 
+              substr(max(case
+                          when spqul.weg_avg_invoice_assay_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           spqul.weg_avg_invoice_assay_id
+                        end),
+                    24) weg_avg_invoice_assay_id,                                          
              gvc_dbd_id
         from spql_stock_payable_qty_log spqul,
              axs_action_summary         axs,

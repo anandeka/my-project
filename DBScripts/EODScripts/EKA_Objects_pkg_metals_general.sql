@@ -1800,7 +1800,7 @@ create or replace package body pkg_metals_general is
                   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                   and spq.element_id = pqca.element_id
                   and spq.dbd_id = pc_dbd_id
-                  and spq.assay_header_id = ash.ash_id
+                  and spq.weg_avg_pricing_assay_id = ash.ash_id
                union all
                select gmr.internal_gmr_ref_no,
                       dgrd.internal_dgrd_ref_no,
@@ -1845,7 +1845,7 @@ create or replace package body pkg_metals_general is
                   and spq.internal_grd_ref_no = dgrd.internal_dgrd_ref_no
                   and spq.element_id = pqca.element_id
                   and spq.dbd_id = pc_dbd_id
-                  and spq.assay_header_id = ash.ash_id)
+                  and spq.weg_avg_pricing_assay_id = ash.ash_id)
     loop
       begin
         for cur_tret_charge in (select pcth.range_type,
@@ -3506,7 +3506,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                   and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
                   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                   and spq.element_id = pc_element_id
-                  and spq.assay_header_id = ash.ash_id
+                  and spq.weg_avg_pricing_assay_id = ash.ash_id
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
                   and rm.ratio_id = pqca.unit_of_measure
@@ -3569,7 +3569,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                   and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                   and spq.internal_dgrd_ref_no = dgrd.internal_gmr_ref_no
                   and spq.element_id = pc_element_id
-                  and spq.assay_header_id = ash.ash_id
+                   and spq.weg_avg_pricing_assay_id = ash.ash_id
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
                   and rm.ratio_id = pqca.unit_of_measure
@@ -4081,7 +4081,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                  -- and spq.element_id = pqca.element_id
                   and spq.dbd_id = pc_dbd_id
-                  and spq.assay_header_id = ash.ash_id)
+                   and spq.weg_avg_pricing_assay_id = ash.ash_id)
     loop
       vn_element_pc_charge := 0;
       vn_tier_penalty      := 0;
@@ -4356,7 +4356,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                   and spq.element_id = pqca.element_id
                   and spq.dbd_id = pc_dbd_id
-                  and spq.assay_header_id = ash.ash_id
+                  and spq.weg_avg_pricing_assay_id = ash.ash_id
                union
                select gmr.internal_gmr_ref_no,
                       dgrd.internal_grd_ref_no,
@@ -4401,7 +4401,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                   and spq.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
                   and spq.element_id = pqca.element_id
                   and spq.dbd_id = pc_dbd_id
-                  and spq.assay_header_id = ash.ash_id)
+                  and spq.weg_avg_pricing_assay_id = ash.ash_id)
     loop
       vn_element_pc_charge := 0;
       vn_tier_penalty      := 0;
