@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_1089
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  22-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 103999
+Author: suresh.gottipati
+Date: 6:14:42 PM, Saturday, September 22, 2012
+Message:
+WAVE2 released
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/87_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_spq_latest_assay.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+
+
+
+
+
+
+
+
