@@ -35,47 +35,34 @@ Dependent patches:		 :  NA
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 103948
-Author: elaiyaraja.nallathambi
-Date: 6:37:28 PM, Friday, September 21, 2012
-Message:
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_93_DML_RPC_RFP_Scripts.sql (Revision: 103948)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql (Revision: 103949)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt (Revision: 103950)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport_Excel.rpt (Revision: 103950)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt (Revision: 103950)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt (Revision: 103950)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt (Revision: 103950)
 
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_93_DML_RPC_RFP_Scripts.sql
 
-Revision: 103949
-Author: elaiyaraja.nallathambi
-Date: 6:40:57 PM, Friday, September 21, 2012
-Message:
-Wave 1 items..Modified by Suresh.Handled CP Name , Changed the Logic for "Invoice Date" & Handled "Hedge Correction" Logic.
-----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport.rpt  (Revision: 104001)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport_Excel.rpt (Revision: 104001)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt (Revision: 104001)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt (Revision: 104001)
 
-Revision: 103950
-Author: elaiyaraja.nallathambi
-Date: 6:42:05 PM, Friday, September 21, 2012
-Message:
-Wave 1 item Changes
-----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalReport_Excel.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
 
-Revision: 103951
-Author: elaiyaraja.nallathambi
-Date: 6:42:41 PM, Friday, September 21, 2012
-Message:
-New Release for "Wave 1".
-----
-Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ReleaseOrder.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport.rpt  (Revision: 104003)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport_Excel.rpt  (Revision: 104003)
 
-Revision: 103952
-Author: elaiyaraja.nallathambi
-Date: 6:44:00 PM, Friday, September 21, 2012
-Message:
-New Release for "Wave 1".
-----
-Added : /7.3/Engg/Metals/Code/Reports/ReleaseOrder.rpt
+
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ReleaseOrder.rpt  (Revision: 103988)
+
+
+Modified : /7.3/Engg/Metals/Code/Reports/ReleaseOrder.rpt   (Revision: 103989)
+
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_daily_hedge_correction.sql  (Revision: 104004)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exp_conc.sql  (Revision: 104004)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql  (Revision: 104004)
+
+
 
