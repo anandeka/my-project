@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1085
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+
+Created on*        		:  22-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 103968
+Author: pradeep.kumar
+Date: 12:07:22 PM, Saturday, September 22, 2012
+Message:
+-- corrected sls script
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_411.sql
+
