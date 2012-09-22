@@ -3705,13 +3705,13 @@ create or replace package body pkg_phy_custom_reports is
              null attribute_5,
              akc.base_cur_id,
              cm_base.cur_code base_cur_code,
-             ppu_pum.price_unit_id trade_price_unit_id,
+             ppu_pum_pay.price_unit_id trade_price_unit_id,
              ppu_pum.price_unit_id premium_discount_price_unit_id,
-             ppu_pum.cur_id trade_price_cur_id,
-             cm_ppu.cur_code trade_price_cur_code,
-             ppu_pum.weight trade_price_weight,
-             ppu_pum.weight_unit_id trade_price_weight_unit_id,
-             qum_ppu.qty_unit trade_price_weight_unit,
+             ppu_pum_pay.cur_id trade_price_cur_id,
+             cm_pay.cur_code trade_price_cur_code,
+             ppu_pum_pay.weight trade_price_weight,
+             ppu_pum_pay.weight_unit_id trade_price_weight_unit_id,
+             qum_pay.qty_unit trade_price_weight_unit,
              ppu_pum.cur_id pd_price_cur_id,
              cm_ppu.cur_code pd_price_cur_code,
              ppu_pum.weight pd_price_weight,
@@ -3742,6 +3742,7 @@ create or replace package body pkg_phy_custom_reports is
              ak_corporate                   akc,
              cm_currency_master             cm_base,
              v_ppu_pum                      ppu_pum_pay,
+             qum_quantity_unit_master       qum_pay,
              cm_currency_master             cm_pay
        where pofh.is_deleted = 'Y'
          and pofh.pcdi_id = pcdi.pcdi_id
@@ -3771,6 +3772,7 @@ create or replace package body pkg_phy_custom_reports is
          and diqs.process_id = pc_process_id
          and pocd.pay_in_price_unit_id = ppu_pum_pay.product_price_unit_id
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
+         and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id
          and cm_pay.is_active = 'Y'
      union all
       select 'Modified' journal_type,
@@ -3834,13 +3836,13 @@ create or replace package body pkg_phy_custom_reports is
              null attribute_5,
              akc.base_cur_id,
              cm_base.cur_code base_cur_code,
-             ppu_pum.price_unit_id trade_price_unit_id,
+             ppu_pum_pay.price_unit_id trade_price_unit_id,
              ppu_pum.price_unit_id premium_discount_price_unit_id,
-             ppu_pum.cur_id trade_price_cur_id,
-             cm_ppu.cur_code trade_price_cur_code,
-             ppu_pum.weight trade_price_weight,
-             ppu_pum.weight_unit_id trade_price_weight_unit_id,
-             qum_ppu.qty_unit trade_price_weight_unit,
+             ppu_pum_pay.cur_id trade_price_cur_id,
+             cm_pay.cur_code trade_price_cur_code,
+             ppu_pum_pay.weight trade_price_weight,
+             ppu_pum_pay.weight_unit_id trade_price_weight_unit_id,
+             qum_pay.qty_unit trade_price_weight_unit,
              ppu_pum.cur_id pd_price_cur_id,
              cm_ppu.cur_code pd_price_cur_code,
              ppu_pum.weight pd_price_weight,
@@ -3871,7 +3873,8 @@ create or replace package body pkg_phy_custom_reports is
              ak_corporate                   akc,
              cm_currency_master             cm_base,
              v_ppu_pum                      ppu_pum_pay,
-             cm_currency_master             cm_pay
+             cm_currency_master             cm_pay,
+             qum_quantity_unit_master       qum_pay
        where pofh.is_modified = 'Y'
          and pofh.pcdi_id = pcdi.pcdi_id
          and pofh.pocd_id = pocd.pocd_id
@@ -3900,6 +3903,7 @@ create or replace package body pkg_phy_custom_reports is
          and diqs.process_id = pc_process_id
          and pocd.pay_in_price_unit_id = ppu_pum_pay.product_price_unit_id
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
+         and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id
          and cm_pay.is_active = 'Y'  ;
   
     vc_trade_cur_id        varchar2(15);
@@ -4181,7 +4185,7 @@ create or replace package body pkg_phy_custom_reports is
                       axs.internal_action_ref_no
                   and pfd.is_active = 'Y'
                   and pfam.is_active = 'Y'
-                  and pfd.user_price is not null
+                --  and pfd.user_price is not null -- removed this check, as latest avg price not used, only qty fixed, pfc no to be shown
                   and axs.corporate_id = pc_corporate_id
                 group by pfd.pofh_id)
     loop
