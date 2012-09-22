@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1088
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+
+Created on*        		:  22-Sep-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 103995
+Author: sivachalabathi.s
+Date: 6:08:29 PM, Saturday, September 22, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/86_DDL_EODDB_PHY_PFC_JOURNAL.SQL
+
+
+
+Revision: 103996
+Author: sivachalabathi.s
+Date: 6:09:21 PM, Saturday, September 22, 2012
+Message:
+bug fixes PFC journal
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
+
