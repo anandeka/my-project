@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_1091
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj
+
+Created on*        		:  22-Sep-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		: 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 104009
+Author: saurabh.raj
+Date: 7:13:39 PM, Saturday, September 22, 2012
+Message:
+Bug Fixed 68972
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+
+Revision: 103962
+Author: saurabh.raj
+Date: 8:20:48 PM, Friday, September 21, 2012
+Message:
+Bug Fixed 68936
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DeliveryScheduleReport.rpt
+
+
+
+
+
+
+
+
+
