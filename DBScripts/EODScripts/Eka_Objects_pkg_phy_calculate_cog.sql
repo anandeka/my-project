@@ -744,13 +744,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
        accrual_to_base_fw_exch_rate,
        tc_to_base_fw_exch_rate,
        rc_to_base_fw_exch_rate,
-       pc_to_base_fw_exch_rate,
-       price_unit_id,
-       price_unit_cur_id,
-       price_unit_cur_code,
-       price_unit_weight_unit_id,
-       price_unit_weight_unit,
-       price_unit_weight)
+       pc_to_base_fw_exch_rate)
       select pc_process_id,
              internal_grd_ref_no,
              nvl(sum(nvl(material_cost_per_unit,0)),0) ,
@@ -772,15 +766,9 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              f_string_aggregate(accrual_to_base_fw_exch_rate),
              f_string_aggregate(tc_to_base_fw_exch_rate),
              f_string_aggregate(rc_to_base_fw_exch_rate),
-             f_string_aggregate(pc_to_base_fw_exch_rate),
-             price_unit_id,
-             price_unit_cur_id,
-             price_unit_cur_code,
-             price_unit_weight_unit_id,
-             price_unit_weight_unit,
-             weight
+             f_string_aggregate(pc_to_base_fw_exch_rate)
         from (select t.internal_grd_ref_no,
-                     t.gmr_qty,
+                    /* t.gmr_qty,*/
                      case
                        when t.cost_type = 'Price' then
                         t.cost_value
@@ -919,36 +907,43 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                         t.trans_to_base_fw_exch_rate
                        else
                         null
-                     end as pc_to_base_fw_exch_rate,
-                    /* base_price_unit_id_in_ppu price_unit_id,
-                     base_cur_id price_unit_cur_id,
-                     base_cur_code price_unit_cur_code,
-                     base_qty_unit_id price_unit_weight_unit_id,
-                     base_qty_unit price_unit_weight_unit, */ 
-                     pum.product_price_unit_id price_unit_id,
-                     pum.cur_id  price_unit_cur_id,
-                     cm.cur_code  price_unit_cur_code,
-                     pum.weight_unit_id  price_unit_weight_unit_id,                     
-                     qum.qty_unit price_unit_weight_unit,                
-                     1 weight
-                from tinvp_temp_invm_cog t,
-                     v_ppu_pum           pum,
-                     cm_currency_master  cm,
-                     qum_quantity_unit_master qum
-               where t.process_id = pc_process_id
-                 and t.transaction_price_unit_id=pum.price_unit_id
-                 and t.product_id=pum.product_id
-                 and pum.cur_id=cm.cur_id
-                 and pum.weight_unit_id=qum.qty_unit_id) t
-       group by internal_grd_ref_no,
-                price_unit_id,
-                price_unit_cur_id,
-                price_unit_cur_code,
-                price_unit_weight_unit_id,
-                price_unit_weight_unit,
-                weight,
-                gmr_qty;
-        commit;        
+                     end as pc_to_base_fw_exch_rate
+                from tinvp_temp_invm_cog t
+               where t.process_id = pc_process_id) t
+       group by internal_grd_ref_no;
+        commit; 
+        
+    -- update price unit
+      for cc_update in (select t.internal_grd_ref_no,
+                           pum.product_price_unit_id price_unit_id,
+                           pum.cur_id price_unit_cur_id,
+                           cm.cur_code price_unit_cur_code,
+                           pum.weight_unit_id price_unit_weight_unit_id,
+                           qum.qty_unit price_unit_weight_unit,
+                           1 weight
+                      from tinvp_temp_invm_cog      t,
+                           v_ppu_pum                pum,
+                           cm_currency_master       cm,
+                           qum_quantity_unit_master qum
+                     where t.process_id = pc_process_id
+                       and t.cost_type = 'Price'
+                       and t.transaction_price_unit_id = pum.price_unit_id
+                       and t.product_id = pum.product_id
+                       and pum.cur_id = cm.cur_id
+                       and pum.weight_unit_id = qum.qty_unit_id)
+  loop
+    update invm_cog invm
+       set invm.price_unit_id             = cc_update.price_unit_id,
+           invm.price_unit_cur_id         = cc_update.price_unit_cur_id,
+           invm.price_unit_cur_code       = cc_update.price_unit_cur_code,
+           invm.price_unit_weight_unit_id = cc_update.price_unit_weight_unit_id,
+           invm.price_unit_weight_unit    = cc_update.price_unit_weight_unit,
+           invm.price_unit_weight         = cc_update.weight
+     where invm.process_id = pc_process_id
+       and invm.internal_grd_ref_no = cc_update.internal_grd_ref_no;  
+  end loop;          
+  commit;           
+                 
     -- Insert Element Price/TC/RC Details
     insert into invme_cog_element
       (process_id,
@@ -1899,13 +1894,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
        accrual_to_base_fw_exch_rate,
        tc_to_base_fw_exch_rate,
        rc_to_base_fw_exch_rate,
-       pc_to_base_fw_exch_rate,
-       price_unit_id,
-       price_unit_cur_id,
-       price_unit_cur_code,
-       price_unit_weight_unit_id,
-       price_unit_weight_unit,
-       price_unit_weight)
+       pc_to_base_fw_exch_rate)
       select pc_process_id,
              sales_internal_gmr_ref_no,
              internal_grd_ref_no,
@@ -1937,13 +1926,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              f_string_aggregate(accrual_to_base_fw_exch_rate),
              null,--f_string_aggregate(tc_to_base_fw_exch_rate),
              null,--f_string_aggregate(rc_to_base_fw_exch_rate),
-             null, --f_string_aggregate(pc_to_base_fw_exch_rate),
-             price_unit_id,
-             price_unit_cur_id,
-             price_unit_cur_code,
-             price_unit_weight_unit_id,
-             price_unit_weight_unit,
-             weight
+             null --f_string_aggregate(pc_to_base_fw_exch_rate),
+            
         from (select t.internal_grd_ref_no,
                      t.original_inv_qty,
                      sales_internal_gmr_ref_no,
@@ -2013,35 +1997,41 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                         t.trans_to_base_fw_exch_rate
                        else
                         null
-                     end as accrual_to_base_fw_exch_rate,
-                   /*base_price_unit_id_in_ppu price_unit_id,
-                     base_cur_id price_unit_cur_id,
-                     base_cur_code price_unit_cur_code,
-                     base_qty_unit_id price_unit_weight_unit_id,
-                     base_qty_unit price_unit_weight_unit,*/  
-                     pum.product_price_unit_id price_unit_id,
-                     pum.cur_id  price_unit_cur_id,
-                     cm.cur_code  price_unit_cur_code,
-                     pum.weight_unit_id  price_unit_weight_unit_id,                     
-                     qum.qty_unit price_unit_weight_unit,                                        
-                     1 weight
-                from tinvs_temp_invm_cogs t,
-                     v_ppu_pum           pum,
-                     cm_currency_master  cm,
-                     qum_quantity_unit_master qum
-               where t.process_id = pc_process_id
-                 and t.product_id=pum.product_id
-                 and t.transaction_price_unit_id=pum.price_unit_id
-                 and pum.cur_id=cm.cur_id
-                 and pum.weight_unit_id=qum.qty_unit_id)
-       group by internal_grd_ref_no,
-                sales_internal_gmr_ref_no,
-                price_unit_id,
-                price_unit_cur_id,
-                price_unit_cur_code,
-                price_unit_weight_unit_id,
-                price_unit_weight_unit,
-                weight;
+                     end as accrual_to_base_fw_exch_rate
+                from tinvs_temp_invm_cogs t
+               where t.process_id = pc_process_id)
+       group by internal_grd_ref_no;
+  commit;
+  
+  --- update price unit
+  for cc_update in (select t.internal_grd_ref_no,
+                           pum.product_price_unit_id price_unit_id,
+                           pum.cur_id price_unit_cur_id,
+                           cm.cur_code price_unit_cur_code,
+                           pum.weight_unit_id price_unit_weight_unit_id,
+                           qum.qty_unit price_unit_weight_unit,
+                           1 weight
+                      from tinvs_temp_invm_cogs     t,
+                           v_ppu_pum                pum,
+                           cm_currency_master       cm,
+                           qum_quantity_unit_master qum
+                     where t.process_id = pc_process_id
+                       and t.cost_type = 'Price'
+                       and t.transaction_price_unit_id = pum.price_unit_id
+                       and t.product_id = pum.product_id
+                       and pum.cur_id = cm.cur_id
+                       and pum.weight_unit_id = qum.qty_unit_id)
+  loop
+    update invm_cogs invm
+       set invm.price_unit_id             = cc_update.price_unit_id,
+           invm.price_unit_cur_id         = cc_update.price_unit_cur_id,
+           invm.price_unit_cur_code       = cc_update.price_unit_cur_code,
+           invm.price_unit_weight_unit_id = cc_update.price_unit_weight_unit_id,
+           invm.price_unit_weight_unit    = cc_update.price_unit_weight_unit,
+           invm.price_unit_weight         = cc_update.weight
+     where invm.process_id = pc_process_id
+       and invm.internal_grd_ref_no = cc_update.internal_grd_ref_no;  
+  end loop;  
   commit;
  --
  -- Update Average Secondary Cost 
