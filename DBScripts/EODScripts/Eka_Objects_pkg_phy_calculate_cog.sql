@@ -2000,7 +2000,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                      end as accrual_to_base_fw_exch_rate
                 from tinvs_temp_invm_cogs t
                where t.process_id = pc_process_id)
-       group by internal_grd_ref_no;
+       group by internal_grd_ref_no,sales_internal_gmr_ref_no;
   commit;
   
   --- update price unit
