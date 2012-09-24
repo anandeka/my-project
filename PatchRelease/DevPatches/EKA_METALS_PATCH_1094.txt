@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1094
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  SUresh Gottipati
+
+Created on*        		:  24-Sep-2012
+
+Bug / Enhancement*              :  Bug fix 
+
+Bug ID*            		:  69046
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 104074
+Author: suresh.gottipati
+Date: 5:20:06 PM, Monday, September 24, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql
+
+
+
+
+
+
+
+
+
+
+
+
