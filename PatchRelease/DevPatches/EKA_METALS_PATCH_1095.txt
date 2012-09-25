@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1095
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+
+Created on*        		:  25-Sep-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		   
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Doc Generation
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  NA
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 104100
+Author: pradeep.kumar
+Date: 12:43:29 PM, Tuesday, September 25, 2012
+Message:
+-- update drf script
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_94.sql
+
+
+
+
+
+
+
+
+
+
