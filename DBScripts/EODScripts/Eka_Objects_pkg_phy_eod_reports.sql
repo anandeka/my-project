@@ -94,9 +94,8 @@ create or replace package pkg_phy_eod_reports is
                                    pc_process_id   varchar2,
                                    pc_process      varchar2,
                                    pc_dbd_id       varchar2);
-                                      
 
-end; 
+end;
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -1946,6 +1945,7 @@ pkg_metals_general.sp_get_gmr_tc_by_assay(cur_pur_accural_temp_rows.internal_gmr
 Update patd_pa_temp_data t
 set t.tc_amt = vn_gmr_treatment_charge
 where t.internal_gmr_ref_no =cur_pur_accural_temp_rows.internal_gmr_ref_no
+and t.internal_grd_ref_no = cur_pur_accural_temp_rows.internal_grd_ref_no
 and t.element_id =   cur_pur_accural_temp_rows.element_id 
 and t.process_id = pc_process_id; 
 end loop;
@@ -1975,6 +1975,7 @@ pkg_metals_general.sp_get_gmr_rc_by_assay (cur_pur_accural_temp_rows.internal_gm
 Update patd_pa_temp_data t
 set t.rc_amt = vn_gmr_refine_charge
 where t.internal_gmr_ref_no =cur_pur_accural_temp_rows.internal_gmr_ref_no
+and t.internal_grd_ref_no = cur_pur_accural_temp_rows.internal_grd_ref_no
 and t.element_id =   cur_pur_accural_temp_rows.element_id 
 and t.process_id = pc_process_id;                                                      
 end loop;     
@@ -2000,6 +2001,7 @@ pkg_metals_general.sp_get_gmr_pc_by_assay(cur_pur_accural_temp_rows.internal_gmr
 Update patd_pa_temp_data t
 set t.penalty_amt = vn_gmr_penality_charge
 where t.internal_gmr_ref_no =cur_pur_accural_temp_rows.internal_gmr_ref_no
+and t.internal_grd_ref_no = cur_pur_accural_temp_rows.internal_grd_ref_no
 and t.element_id =   cur_pur_accural_temp_rows.element_id 
 and t.process_id = pc_process_id;                                                         
 end loop;  
@@ -2240,7 +2242,8 @@ select grd.internal_gmr_ref_no,
    and gmr.process_id = pc_process_id
    and gmr.is_deleted = 'N'
    and gmr.corporate_id = pc_corporate_id
-   and nvl(gmr.contract_type,'NA') <> 'Tolling';
+   and nvl(gmr.contract_type,'NA') <> 'Tolling'
+   and nvl(gmr.is_final_invoiced, 'N') = 'N';
 commit;
   sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -2340,7 +2343,8 @@ select grd.internal_gmr_ref_no,
    and gmr.process_id = pc_process_id
    and gmr.is_deleted = 'N'
    and gmr.corporate_id = pc_corporate_id
-   and nvl(gmr.contract_type,'NA') <> 'Tolling';
+   and nvl(gmr.contract_type,'NA') <> 'Tolling'
+   and nvl(gmr.is_final_invoiced, 'N') = 'N';
   sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
