@@ -1,0 +1,45 @@
+
+Patch No*          		:  EKA_METALS_PATCH_1100
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  26-Sep-2012
+
+Bug / Enhancement*              :  NA
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 104333
+Author: anupkumar.agarwal
+Date: 5:37:33 PM, Wednesday, September 26, 2012
+Message:
+ If multiple movement to piles is recorded on same day , MFT may consume any stock from any internal movement GMR. – Issue Resolved By Changing The FiFo Logic And Adding a new Coloumn In PSR Table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_334.sql
+
