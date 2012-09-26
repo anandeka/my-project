@@ -1,0 +1,74 @@
+Patch No*          		:  EKA_METALS_PATCH_1098
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  26-Sep-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 104207
+Author: elaiyaraja.nallathambi
+Date: 10:17:37 AM, Wednesday, September 26, 2012
+Message:
+Bug Fixes.
+----
+Modified : /7.3/Engg/Metals/Code/Reports/AssayDocument.rpt
+
+Revision: 104206
+Author: elaiyaraja.nallathambi
+Date: 10:17:14 AM, Wednesday, September 26, 2012
+Message:
+Bug Fixes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+
+Revision: 104205
+Author: elaiyaraja.nallathambi
+Date: 10:16:55 AM, Wednesday, September 26, 2012
+Message:
+Bug Fixes.
+ 1.Other charges - comma is not there for amount for details (summary by warehouse section)
+ 2.Subtotal logic needs to be checked (summary by warehouse section)
+ 3.Freight and Other charges - 0 is showing on first row
+
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+
+Revision: 104208
+Author: elaiyaraja.nallathambi
+Date: 10:18:43 AM, Wednesday, September 26, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
+
