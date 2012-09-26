@@ -531,7 +531,7 @@ select        'Invoice' section_name,
                 null api_amount_adjusted,
                 null api_invoice_currency,
                 null provisional_amount_unit,
-                null is_api_pi
+                'N' is_api_pi
   from is_d isd,
        is_bdp_child_d isp_c1,
        is_bds_child_d isp_c2,
@@ -727,7 +727,7 @@ select        'Invoice' section_name,
                 null api_amount_adjusted,
                 null api_invoice_currency,
                 null provisional_amount_unit,
-                null is_api_pi
+                'N' is_api_pi
   from is_d isd,
        is_bdp_child_d isp_c1,
        is_bds_child_d isp_c2,
@@ -920,7 +920,7 @@ select 'Invoice' section_name,
        null api_amount_adjusted,
        null api_invoice_currency,
        null provisional_amount_unit,
-       null is_api_pi
+       'N' is_api_pi
   from is_d isd,
        ds_document_summary ds,
        v_ak_corporate akc,
