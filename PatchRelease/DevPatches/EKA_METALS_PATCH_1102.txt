@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1102
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  27-Sep-2012
+
+Bug / Enhancement*              :  NA
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 104420
+Author: anandp
+Date: 16:41:01, 27 September 2012
+Message:
+For adding activity date as the payment term base date.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_416.sql
+
