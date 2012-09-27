@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1105
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Saurabh Raj
+ 
+Created on*        		:  27-Sep-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 104464
+Author: saurabh.raj
+Date: 7:16:30 PM, Thursday, September 27, 2012
+Message:
+Bug Fixed 69089,69091,68969,68967
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BrokerList.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DeliveryScheduleReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+
+Revision: 104467
+Author: saurabh.raj
+Date: 7:20:21 PM, Thursday, September 27, 2012
+Message:
+Currency and Instrument Type added in broker report and prompt list report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_96_DML_RPC_RFP_Scripts.sql
+
+
+
