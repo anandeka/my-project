@@ -156,6 +156,7 @@ SELECT akc.corporate_id,
    AND pcbpd.is_active = 'Y'
    AND ppfh.is_active(+) = 'Y'
    AND pfqpp.is_active(+) = 'Y'
+   and pfd.is_active = 'Y'
    AND pfd.is_hedge_correction = 'Y'
    and nvl(pfd.is_cancel,'N')='N'
 /*and akc.corporate_id = '{?CorporateID}'
@@ -313,5 +314,5 @@ SELECT akc.corporate_id,
    AND pcbpd.is_active = 'Y'
    AND ppfh.is_active(+) = 'Y'
    AND pfqpp.is_active(+) = 'Y'
-   --and pfd.is_cancel='Y'
+   and pfd.is_cancel='Y'
 
