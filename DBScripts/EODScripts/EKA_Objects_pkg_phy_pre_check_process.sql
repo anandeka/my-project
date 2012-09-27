@@ -132,7 +132,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
-end;
+end; 
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -723,7 +723,11 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      to_char(pd_trade_date, 'Mon') shipment_month,
                      to_char(pd_trade_date, 'yyyy') shipment_year,
                      pd_trade_date shipment_date,
-                     payment_due_date
+                     (case when nvl(temp.payment_due_date,pd_trade_date) <= pd_trade_date then
+                          pd_trade_date
+                          else
+                          temp.payment_due_date
+                     end) payment_due_date
                 from (select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
                                     nvl(grd.inventory_status, 'NA') in
@@ -7542,5 +7546,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end;
+end; 
 /
