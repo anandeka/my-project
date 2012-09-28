@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1109
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+Created on*        		:  28-Sep-2012
+
+Bug / Enhancement*              :  BUg
+
+Bug ID*            		:  69204
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Invoice
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/p Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 104616
+Author: mayank.chaturvedi
+Date: 1:40:11 PM, Friday, September 28, 2012
+Message:
+-Patch for O/P doc issue Bug :- 69204
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_335.sql
+
+
+
+
+
