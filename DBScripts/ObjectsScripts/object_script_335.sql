@@ -1,0 +1,1 @@
+alter table IS_D modify NOTIFY_PARTY varchar2(500);
