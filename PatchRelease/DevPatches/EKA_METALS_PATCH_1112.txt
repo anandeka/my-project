@@ -1,0 +1,68 @@
+Patch No*          		:  EKA_METALS_PATCH_1112
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  28-Sep-2012
+
+Bug / Enhancement*              :  BUg
+
+Bug ID*            		:  69117,69119,69126,69127,69136,69143
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    
+==================================================================
+Module  		   	 :  EOD/Reports
+
+Sub-Module  			 :  EOD/Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD/Reports
+==================================================================
+
+Revision: 104693
+Author: jana
+Date: 6:41:45 PM, Friday, September 28, 2012
+Message:
+Suresha added this colum for pnl
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/88_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql(Revision:104606)
+
+
+Revision: 104697
+Author: suresh.gottipati
+Date: 7:01:37 PM, Friday, September 28, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+
+
+Revision: 104698
+Author: suresh.gottipati
+Date: 7:04:11 PM, Friday, September 28, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyInventoryUnrealizedPhysicalPnL_cog.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyRealizedPNLReport.rpt
+
+
