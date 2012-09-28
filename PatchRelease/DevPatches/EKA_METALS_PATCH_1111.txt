@@ -1,0 +1,42 @@
+Patch No*          		:  EKA_METALS_PATCH_1111
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok Kumar
+Created on*        		:  28-Sep-2012
+
+Bug / Enhancement*              :  BUg
+
+Bug ID*            		:  68851
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:		    Reports
+==================================================================
+Module  		   	 :  BI
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 104659
+Author: ashokkumar.l
+Date: 5:09:19 PM, Friday, September 28, 2012
+Message:
+Fixes Bug id 68851,(clearer comm. for both rtn and htn).
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative_booking.sql
