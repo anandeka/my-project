@@ -14754,7 +14754,8 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
            t.pay_cur_decimal,
            t.qty_type,
            t.conc_base_qty_unit_id,
-           t.conc_base_qty_unit
+           t.conc_base_qty_unit,
+           t.gmr_ref_no_for_price
       from (
             -- Internal Movement payable elements
             select gmr.gmr_ref_no,
@@ -14792,7 +14793,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                        (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
                        pqca.typical)
                     end) assay_qty,
-                    -- pqca.typical * (grd.qty * asm.dry_wet_qty_ratio / 100) assay_qty,
                     (case
                       when rm.ratio_name = '%' then
                        grd.qty_unit_id
@@ -14808,8 +14808,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                        ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
                        pqcapd.payable_percentage)
                     end) payable_qty,
-                    /* pqcapd.payable_percentage *
-                                                              (grd.qty * asm.dry_wet_qty_ratio / 100) payable_qty,*/
                     (case
                       when rm.ratio_name = '%' then
                        grd.qty_unit_id
@@ -14825,7 +14823,8 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                     cm.decimals pay_cur_decimal,
                     'Payable' qty_type,
                     pdm_conc.base_quantity_unit conc_base_qty_unit_id,
-                    qum_conc.qty_unit conc_base_qty_unit
+                    qum_conc.qty_unit conc_base_qty_unit,
+                    grd.supp_internal_gmr_ref_no gmr_ref_no_for_price
               from grd_goods_record_detail        grd,
                     gmr_goods_movement_record      gmr,
                     temp_stock_latest_assay        tspq, 
@@ -14835,9 +14834,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                     pdm_productmaster              pdm,
                     qat_quality_attributes         qat,
                     qum_quantity_unit_master       qum_grd,
-                    --sam_stock_assay_mapping        sam,
-                  --  ash_assay_header               ash,
-                 --   spq_stock_payable_qty          spq,
                     ash_assay_header               ash_pricing,
                     asm_assay_sublot_mapping       asm,
                     aml_attribute_master_list      aml,
@@ -14872,23 +14868,10 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                and tspq.element_id = aml.attribute_id
                and pqca.element_id = tspq.element_id
                and tspq.latest_ash_id = ash_pricing.ash_id
-        --       and sam.internal_grd_ref_no = grd.internal_grd_ref_no
-           --    and sam.is_active = 'Y'
-            --   and spq.is_active = 'Y'
-          --     and spq.is_stock_split = 'N'
-         --      and sam.ash_id = ash.ash_id
-           --    and sam.is_latest_pricing_assay = 'Y'
-           --    and ash.is_active = 'Y'
-          --     and ash_pricing.is_active = 'Y'
-          --     and ash.internal_grd_ref_no = spq.internal_grd_ref_no
-         --      and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
-              -- and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
                and asm.ash_id = ash_pricing.ash_id
-            --   and spq.element_id = aml.attribute_id
                and aml.underlying_product_id = pdm_und.product_id
                and pdm_und.base_quantity_unit = qum_und.qty_unit_id
                and asm.asm_id = pqca.asm_id
-        --       and spq.element_id = pqca.element_id
                and pqca.unit_of_measure = rm.ratio_id
                and pqca.pqca_id = pqcapd.pqca_id
                and grd.product_id = pdm_conc.product_id
@@ -14908,7 +14891,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                and pcm.invoice_currency_id = cm.cur_id
                and grd.product_id = pdm_conc.product_id
                and pdm_conc.base_quantity_unit = qum_conc.qty_unit_id
-               and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
                and gmr.eff_date <= pd_trade_date
                and rm.is_active = 'Y'
                and pdm.is_active = 'Y'
@@ -14922,7 +14904,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                and grd.process_id = pc_process_id
                and grd.parent_internal_grd_ref_no=grd_parent.internal_grd_ref_no(+)
                and grd.process_id=grd_parent.process_id(+)
-              -- and spq.process_id = pc_process_id
             union all
             -- Internal Movement penality elements
             select gmr.gmr_ref_no,
@@ -14960,8 +14941,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                       (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
                       pqca.typical)
                    end) assay_qty,
-                   --                     null assay_qty_unit_id,
-                   --                     null assay_qty_unit,
                    (case
                      when rm.ratio_name = '%' then
                       grd.qty_unit_id
@@ -14980,7 +14959,8 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                    cm.decimals pay_cur_decimal,
                    null qty_type,
                    pdm_conc.base_quantity_unit conc_base_qty_unit_id,
-                   qum_conc.qty_unit conc_base_qty_unit
+                   qum_conc.qty_unit conc_base_qty_unit,
+                   grd.supp_internal_gmr_ref_no gmr_ref_no_for_price
               from grd_goods_record_detail grd,
                    gmr_goods_movement_record gmr,
                    ak_corporate akc,
@@ -15029,9 +15009,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                and sam.internal_grd_ref_no = grd.internal_grd_ref_no
                and sam.is_active = 'Y'
                and sam.ash_id = ash.ash_id
-              -- and sam.is_latest_pricing_assay = 'Y'
-              -- and ash.is_active = 'Y'
-              -- and ash_pricing.is_active = 'Y'
                and ash.assay_type='Pricing Assay'
                and spq.assay_header_id = ash.ash_id
                and ash.internal_grd_ref_no = spq.internal_grd_ref_no
@@ -15055,7 +15032,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                and pcm.process_id = pc_process_id
                and pcdi.process_id = pc_process_id
                and pcm.invoice_currency_id = cm.cur_id
-               and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
                and gmr.eff_date <= pd_trade_date
                and rm.is_active = 'Y'
                and pdm.is_active = 'Y'
@@ -15099,7 +15075,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                    pdm_und.product_desc underlying_product_name,
                    pdm_und.base_quantity_unit base_quantity_unit_id,
                    qum_und.qty_unit base_quantity_unit,
-                   --pqca.typical * (grd.qty * asm.dry_wet_qty_ratio / 100) assay_qty,
                    (case
                      when rm.ratio_name = '%' then
                       ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
@@ -15123,9 +15098,7 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                       ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
                       pqcapd.payable_percentage)
                    end) payable_qty,
-                   -- pqcapd.payable_percentage *
-                   --  (grd.qty * asm.dry_wet_qty_ratio / 100) payable_qty,
-                   (case
+                  (case
                      when rm.ratio_name = '%' then
                       grd.qty_unit_id
                      else
@@ -15140,7 +15113,8 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                    cm.decimals pay_cur_decimal,
                    'Payable' qty_type,
                    pdm_conc.base_quantity_unit conc_base_qty_unit_id,
-                   qum_conc.qty_unit conc_base_qty_unit
+                   qum_conc.qty_unit conc_base_qty_unit,
+                   gmr.internal_gmr_ref_no
               from gmr_goods_movement_record      gmr,
                    grd_goods_record_detail        grd,
                    ak_corporate                   akc,
@@ -15150,7 +15124,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                    qat_quality_attributes         qat,
                    qum_quantity_unit_master       qum_grd,
                    temp_stock_latest_assay        tspq,
-                --   spq_stock_payable_qty          spq,
                    ash_assay_header               ash,
                    asm_assay_sublot_mapping       asm,
                    aml_attribute_master_list      aml,
@@ -15179,14 +15152,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                and grd.product_id = pdm.product_id
                and grd.quality_id = qat.quality_id
                and grd.qty_unit_id = qum_grd.qty_unit_id
-           --    and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-           --    and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-            --   and spq.is_stock_split = 'N'
-           --    and spq.is_active = 'Y'
-            --   and ash.is_active = 'Y'
-           --    and asm.is_active = 'Y'
-           --    and ash.pricing_assay_ash_id = spq.assay_header_id
-            --   and ash.assay_type = 'Weighted Avg Pricing Assay'
            and ash.ash_id = asm.ash_id
            and tspq.corporate_id = gmr.corporate_id
            and tspq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
@@ -15194,11 +15159,9 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
            and tspq.element_id = aml.attribute_id
            and tspq.element_id = pqca.element_id
            and tspq.latest_ash_id = ash.ash_id
-          --     and spq.element_id = aml.attribute_id
                and aml.underlying_product_id = pdm_und.product_id
                and pdm_und.base_quantity_unit = qum_und.qty_unit_id
                and asm.asm_id = pqca.asm_id
-          --     and spq.element_id = pqca.element_id
                and pqca.unit_of_measure = rm.ratio_id
                and pqca.pqca_id = pqcapd.pqca_id
                and qum.qty_unit_id =
@@ -15225,13 +15188,11 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                and aml.is_active = 'Y'
                and pqca.is_active = 'Y'
                and pqcapd.is_active = 'Y'
-               and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
                and gmr.eff_date <= pd_trade_date
                and gmr.process_id = pc_process_id
                and grd.process_id = pc_process_id
                and grd.parent_internal_grd_ref_no=grd_parent.internal_grd_ref_no(+)
                and grd.process_id=grd_parent.process_id(+)
-             --  and spq.process_id = pc_process_id
             union all
             --- all supplier stocks penality elements
             select gmr.gmr_ref_no,
@@ -15269,8 +15230,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                       (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
                       pqca.typical)
                    end) assay_qty,
-                   --                     null assay_qty_unit_id,
-                   --                     null assay_qty_unit,
                    (case
                      when rm.ratio_name = '%' then
                       grd.qty_unit_id
@@ -15278,9 +15237,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                       rm.qty_unit_id_numerator
                    end) assay_qty_unit_id,
                    qum.qty_unit assay_qty_unit,
-                   --  null assay_qty,
-                   --   null assay_qty_unit_id,
-                   --   null assay_qty_unit,
                    null payable_qty,
                    null payable_qty_unit,
                    null payable_qty_unit,
@@ -15292,7 +15248,8 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                    cm.decimals pay_cur_decimal,
                    null qty_type,
                    pdm_conc.base_quantity_unit conc_base_qty_unit_id,
-                   qum_conc.qty_unit conc_base_qty_unit
+                   qum_conc.qty_unit conc_base_qty_unit,
+                   gmr.internal_gmr_ref_no
               from gmr_goods_movement_record gmr,
                    grd_goods_record_detail grd,
                    ak_corporate akc,
@@ -15369,7 +15326,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                and sld.is_active = 'Y'
                and aml.is_active = 'Y'
                and pqca.is_active = 'Y'
-               and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
                and gmr.eff_date <= pd_trade_date
                and gmr.process_id = pc_process_id
                and grd.process_id = pc_process_id
@@ -15382,7 +15338,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
   vn_payable_qty               number;
   vn_gmr_price                 number;
   vc_gmr_price_untit_id        varchar2(15);
-  --vn_gmr_price_unit_weight     varchar2(15);
   vn_price_unit_weight_unit_id varchar2(15);
   vc_gmr_price_unit_cur_id     varchar2(10);
   vc_gmr_price_unit_cur_code   varchar2(10);
@@ -15604,10 +15559,7 @@ commit;
         vn_base_gmr_refine_charge := vn_gmr_refine_charge;
       end if;
     
-      --  vn_base_gmr_treatment_charge:=0;
-      --  vn_base_gmr_refine_charge :=0;
-      --   vn_base_gmr_penality_charge :=0;                                                    
-    else
+      else
       --TC,RC,PC calculation has to use current qty for the closing balance position,
       -- so new tc,rc,pc proc created in pkg_metals_general by passing assay id and respective qty
       if cur_closing_rows.is_internal_movement='Y' then
@@ -15719,7 +15671,10 @@ commit;
        payable_returnable_type,
        tc_amount,
        rc_amount,
-       penality_amount)
+       penality_amount,
+       contract_price,
+       price_unit_id,
+       parent_internal_gmr_ref_no)
     values
       (pc_process_id,
        cur_closing_rows.internal_gmr_ref_no,
@@ -15735,7 +15690,10 @@ commit;
        cur_closing_rows.qty_type,
        nvl(vn_base_gmr_treatment_charge, 0),
        nvl(vn_base_gmr_refine_charge, 0),
-       nvl(vn_base_gmr_penality_charge, 0));
+       nvl(vn_base_gmr_penality_charge, 0),
+       vn_gmr_price,
+       vc_gmr_price_untit_id,
+       cur_closing_rows.gmr_ref_no_for_price);
     if vn_rno = 500 then
       commit;
       vn_rno := 0;
@@ -16061,11 +16019,13 @@ begin
               vn_treatment_charge := vn_base_tret_charge;
               vn_max_price        := pkg_metals_general.f_get_tc_max_value(vn_contract_price,
                                                                            pc_dbd_id,
-                                                                           cur_tret_charge.pcth_id);
+                                                                           cur_tret_charge.pcth_id,
+                                                                           cur_tret_charge.range_min_op,
+                                                                           cur_tret_charge.range_max_op);
               --go forward for the price range
               for cur_forward_price in (select pcetc.range_min_value,
-                                               pcetc.range_min_op,
-                                               pcetc.range_max_value,
+                                               pcetc.range_min_op,                                            
+                                               nvl(pcetc.range_max_value,vn_max_price) range_max_value,
                                                pcetc.range_max_op,
                                                pcetc.esc_desc_value,
                                                pcetc.esc_desc_unit_id,
@@ -16075,20 +16035,20 @@ begin
                                           from pcetc_pc_elem_treatment_charge pcetc
                                          where pcetc.pcth_id =
                                                cur_tret_charge.pcth_id
+                                           and nvl(pcetc.range_min_value,
+                                                      0) >= vn_max_range 
                                            and nvl(pcetc.range_max_value,
-                                                   1000000) <= vn_max_price
-                                           and nvl(pcetc.range_min_value, 0) >=
-                                               vn_min_range
+                                                      vn_max_price) <=vn_max_price 
                                            and nvl(pcetc.position, 'a') <>
                                                'Base'
                                            and pcetc.is_active = 'Y'
                                            and pcetc.dbd_id = pc_dbd_id)
               loop
                 -- if price is in the range take diff of price and max range
-                if cur_forward_price.range_min_value <= vn_contract_price and
-                   cur_forward_price.range_max_value > vn_contract_price then
-                  vn_range_gap := abs(vn_contract_price -
-                                      cur_forward_price.range_max_value);
+                if vn_contract_price>=cur_forward_price.range_min_value and
+                       vn_contract_price<=cur_forward_price.range_max_value then
+                      vn_range_gap := abs(vn_contract_price -
+                                        cur_forward_price.range_min_value);  
                 else
                   -- else diff range               
                   vn_range_gap := cur_forward_price.range_max_value -
@@ -16113,9 +16073,12 @@ begin
               vn_treatment_charge := vn_base_tret_charge; --
               vn_min_price        := pkg_metals_general.f_get_tc_min_value(vn_contract_price,
                                                                            pc_dbd_id,
-                                                                           cur_tret_charge.pcth_id);
+                                                                           cur_tret_charge.pcth_id,
+                                                                           cur_tret_charge.range_min_op,
+                                                                           cur_tret_charge.range_max_op);
               --go back ward for the price range
-              for cur_backward_price in (select nvl(pcetc.range_min_value, 0) range_min_value,
+              for cur_backward_price in (select nvl(pcetc.range_min_value,
+                                                      vn_min_price) range_min_value,
                                                 pcetc.range_min_op,
                                                 pcetc.range_max_value,
                                                 pcetc.range_max_op,
@@ -16127,21 +16090,21 @@ begin
                                            from pcetc_pc_elem_treatment_charge pcetc
                                           where pcetc.pcth_id =
                                                 cur_tret_charge.pcth_id
-                                            and nvl(pcetc.range_min_value, 0) >=
-                                                vn_min_price
+                                            and nvl(pcetc.range_min_value,
+                                                      vn_min_price) >= vn_min_price
                                             and nvl(pcetc.range_max_value,
-                                                    100000000) <=
-                                                vn_min_range
+                                                      100000000) <=
+                                                  vn_min_range
                                             and nvl(pcetc.position, 'a') <>
                                                 'Base'
                                             and pcetc.is_active = 'Y'
                                             and pcetc.dbd_id = pc_dbd_id)
               loop
                 -- if price is in the range take diff of price and max range
-                if cur_backward_price.range_min_value <= vn_contract_price and
-                   cur_backward_price.range_max_value > vn_contract_price then
-                  vn_range_gap := abs(vn_contract_price -
-                                      cur_backward_price.range_max_value);
+                if   vn_contract_price>=  cur_backward_price.range_min_value  and
+                          vn_contract_price<= cur_backward_price.range_max_value then
+                     vn_range_gap := abs(vn_contract_price -
+                                        cur_backward_price.range_max_value);
                 else
                   -- else diff range               
                   vn_range_gap := cur_backward_price.range_max_value -
@@ -16704,10 +16667,12 @@ from pcrh_pc_refining_header       pcrh,
                 vn_refine_charge := vn_base_refine_charge;
                 vn_max_price     := pkg_metals_general.f_get_rc_max_value(vn_contract_price,
                                                                           pc_dbd_id,
-                                                                          cur_ref_charge.pcrh_id);
+                                                                          cur_ref_charge.pcrh_id,
+                                                                          cur_ref_charge.range_min_op,
+                                                                          cur_ref_charge.range_max_op);
                 for cur_forward_price in (select pcerc.range_min_value,
                                                  pcerc.range_min_op,
-                                                 pcerc.range_max_value,
+                                                 nvl(pcerc.range_max_value,vn_max_price)range_max_value, 
                                                  pcerc.range_max_op,
                                                  pcerc.esc_desc_value,
                                                  pcerc.esc_desc_unit_id,
@@ -16717,21 +16682,20 @@ from pcrh_pc_refining_header       pcrh,
                                             from pcerc_pc_elem_refining_charge pcerc
                                            where pcerc.pcrh_id =
                                                  cur_ref_charge.pcrh_id
-                                             and nvl(pcerc.range_max_value,
-                                                     1000000) <=
-                                                 vn_max_price
                                              and nvl(pcerc.range_min_value,
-                                                     0) >= vn_min_range
+                                                      0) >= vn_max_range 
+                                             and nvl(pcerc.range_max_value,
+                                                      vn_max_price) <=vn_max_price 
                                              and nvl(pcerc.position, 'a') <>
                                                  'Base'
                                              and pcerc.is_active = 'Y'
                                              and pcerc.dbd_id = pc_dbd_id)
                 loop
                   -- if price is in the range take diff of price and max range
-                  if cur_forward_price.range_min_value <= vn_contract_price and
-                     cur_forward_price.range_max_value > vn_contract_price then
-                    vn_range_gap := abs(vn_contract_price -
-                                        cur_forward_price.range_max_value);
+                  if vn_contract_price>=cur_forward_price.range_min_value and
+                       vn_contract_price<=cur_forward_price.range_max_value then
+                      vn_range_gap := abs(vn_contract_price -
+                                        cur_forward_price.range_min_value); 
                   else
                     -- else diff range               
                     vn_range_gap := cur_forward_price.range_max_value -
@@ -16759,9 +16723,11 @@ from pcrh_pc_refining_header       pcrh,
                 vn_refine_charge := vn_base_refine_charge;
                 vn_min_price     := pkg_metals_general.f_get_rc_min_value(vn_contract_price,
                                                                           pc_dbd_id,
-                                                                          cur_ref_charge.pcrh_id);
+                                                                          cur_ref_charge.pcrh_id,
+                                                                          cur_ref_charge.range_min_op,
+                                                                          cur_ref_charge.range_max_op);
                 for cur_backward_price in (select nvl(pcerc.range_min_value,
-                                                      0) range_min_value,
+                                                        vn_min_price) range_min_value,
                                                   pcerc.range_min_op,
                                                   pcerc.range_max_value,
                                                   pcerc.range_max_op,
@@ -16774,8 +16740,8 @@ from pcrh_pc_refining_header       pcrh,
                                             where pcerc.pcrh_id =
                                                   cur_ref_charge.pcrh_id
                                               and nvl(pcerc.range_min_value,
-                                                      0) >= vn_min_price
-                                              and nvl(pcerc.range_max_value,
+                                                      vn_min_price) >= vn_min_price
+                                               and nvl(pcerc.range_max_value,
                                                       100000000) <=
                                                   vn_min_range
                                               and nvl(pcerc.position, 'a') <>
@@ -16784,11 +16750,10 @@ from pcrh_pc_refining_header       pcrh,
                                               and pcerc.dbd_id = pc_dbd_id)
                 loop
                   -- if price is in the range take diff of price and max range 
-                  if cur_backward_price.range_min_value <=
-                     vn_contract_price and
-                     cur_backward_price.range_max_value > vn_contract_price then
-                    vn_range_gap := abs(vn_contract_price -
-                                        cur_backward_price.range_max_value);
+                 if   vn_contract_price>=  cur_backward_price.range_min_value  and
+                          vn_contract_price<= cur_backward_price.range_max_value then
+                     vn_range_gap := abs(vn_contract_price -
+                                        cur_backward_price.range_max_value);  
                   else
                     -- else diff range               
                     vn_range_gap := cur_backward_price.range_max_value -

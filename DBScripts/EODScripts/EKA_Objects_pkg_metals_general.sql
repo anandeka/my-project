@@ -61,37 +61,37 @@ create or replace package pkg_metals_general is
                                         pn_total_tc_charge  out number,
                                         pc_tc_cur_id        out varchar2);
 
- procedure sp_get_gmr_tc_by_assay(pc_inter_gmr_ref_no varchar2,
-                                        pc_inter_grd_ref_no varchar2,
-                                        pc_element_id       varchar2,
-                                        pc_dbd_id           varchar2,
-                                        pn_cp_price         number,
-                                        pc_cp_unit_id       varchar2,
-                                        pc_ash_id           varchar2,
-                                        pn_dry_qty          number,
-                                        pc_qty_unit_id      varchar2,
-                                        pn_total_tc_charge  out number,
-                                        pc_tc_cur_id        out varchar2);
- procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
-                                     pc_inter_grd_ref_no varchar2,
-                                     pc_element_id       varchar2,
-                                     pc_dbd_id           varchar2,
-                                     pn_cp_price         number,
-                                     pc_cp_unit_id       varchar2,
-                                     pc_ash_id           varchar2,
-                                     pn_payable_qty          number,
-                                     pc_qty_unit_id      varchar2,
-                                     pn_total_rc_charge  out number,
-                                     pc_rc_cur_id        out varchar2);
-procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
-                                      pc_inter_grd_ref_no varchar2,
-                                      pc_dbd_id           varchar2,
-                                      pc_element_id       varchar2,
-                                      pc_ash_id           varchar2,
-                                      pn_dry_qty          number,
-                                      pc_qty_unit_id      varchar2,
-                                      pn_total_pc_charge  out number,
-                                      pc_pc_cur_id        out varchar2);
+  procedure sp_get_gmr_tc_by_assay(pc_inter_gmr_ref_no varchar2,
+                                   pc_inter_grd_ref_no varchar2,
+                                   pc_element_id       varchar2,
+                                   pc_dbd_id           varchar2,
+                                   pn_cp_price         number,
+                                   pc_cp_unit_id       varchar2,
+                                   pc_ash_id           varchar2,
+                                   pn_dry_qty          number,
+                                   pc_qty_unit_id      varchar2,
+                                   pn_total_tc_charge  out number,
+                                   pc_tc_cur_id        out varchar2);
+  procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
+                                   pc_inter_grd_ref_no varchar2,
+                                   pc_element_id       varchar2,
+                                   pc_dbd_id           varchar2,
+                                   pn_cp_price         number,
+                                   pc_cp_unit_id       varchar2,
+                                   pc_ash_id           varchar2,
+                                   pn_payable_qty      number,
+                                   pc_qty_unit_id      varchar2,
+                                   pn_total_rc_charge  out number,
+                                   pc_rc_cur_id        out varchar2);
+  procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
+                                   pc_inter_grd_ref_no varchar2,
+                                   pc_dbd_id           varchar2,
+                                   pc_element_id       varchar2,
+                                   pc_ash_id           varchar2,
+                                   pn_dry_qty          number,
+                                   pc_qty_unit_id      varchar2,
+                                   pn_total_pc_charge  out number,
+                                   pc_pc_cur_id        out varchar2);
   procedure sp_get_gmr_refine_charge(pc_inter_gmr_ref_no varchar2,
                                      pc_inter_grd_ref_no varchar2,
                                      pc_element_id       varchar2,
@@ -132,18 +132,26 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                        pn_premium                  out number,
                                        pc_exch_rate_string         out varchar2);
 
-  function f_get_tc_min_value(pn_price  in number,
-                           pc_dbd_id in varchar2,
-                           pn_pcth_id   in number) return number;
-   function f_get_tc_max_value(pn_price  in number,
-                           pc_dbd_id in varchar2,
-                           pn_pcth_id   in number) return number; 
-   function f_get_rc_min_value(pn_price  in number,
-                           pc_dbd_id in varchar2,
-                           pn_pcrh_id   in number) return number;
-   function f_get_rc_max_value(pn_price  in number,
-                           pc_dbd_id in varchar2,
-                           pn_pcrh_id   in number) return number;                                                                 
+  function f_get_tc_min_value(pn_price        in number,
+                              pc_dbd_id       in varchar2,
+                              pn_pcth_id      in number,
+                              pc_min_range_op in varchar2,
+                              pc_max_range_op in varchar2) return number;
+  function f_get_tc_max_value(pn_price        in number,
+                              pc_dbd_id       in varchar2,
+                              pn_pcth_id      in number,
+                              pc_min_range_op in varchar2,
+                              pc_max_range_op in varchar2) return number;
+  function f_get_rc_min_value(pn_price        in number,
+                              pc_dbd_id       in varchar2,
+                              pn_pcrh_id      in number,
+                              pc_min_range_op in varchar2,
+                              pc_max_range_op in varchar2) return number;
+  function f_get_rc_max_value(pn_price        in number,
+                              pc_dbd_id       in varchar2,
+                              pn_pcrh_id      in number,
+                              pc_min_range_op in varchar2,
+                              pc_max_range_op in varchar2) return number;
 
 end; 
 /
@@ -695,7 +703,7 @@ create or replace package body pkg_metals_general is
                 vn_tier_penalty := vn_tier_penalty + vn_penalty_charge;
                 /** vn_range_gap;*/
               /* dbms_output.put_line(' Variable  Penalty charge for this ' ||                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     vn_penalty_charge);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  dbms_output.put_line('---------------------------');*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                dbms_output.put_line('---------------------------');*/
               --calculate total Penalty charge
               end loop;
             end if;
@@ -1020,7 +1028,7 @@ create or replace package body pkg_metals_general is
                    vn_contract_price >= cur_ref_charge.range_min_value and
                    vn_contract_price <= cur_ref_charge.range_max_value) then
                   vn_refine_charge := cur_ref_charge.refining_charge;
-              --    dbms_output.put_line(vn_refine_charge);
+                  --    dbms_output.put_line(vn_refine_charge);
                 end if;
               elsif cur_ref_charge.charge_type = 'Variable' then
                 --Take the base price and its min and max range
@@ -1033,7 +1041,7 @@ create or replace package body pkg_metals_general is
                          vn_base_refine_charge
                     from pcerc_pc_elem_refining_charge pcerc
                    where pcerc.pcrh_id = cur_ref_charge.pcrh_id
-                     and pcerc.is_active='Y'
+                     and pcerc.is_active = 'Y'
                      and pcerc.position = 'Base'
                      and pcerc.charge_type = 'Variable'
                      and pcerc.dbd_id = pc_dbd_id;
@@ -1048,13 +1056,15 @@ create or replace package body pkg_metals_general is
                 --Both vn_max_range and vn_min_range are same in case if base
                 if vn_contract_price > vn_max_range then
                   --go forward for the price range
-                  vn_refine_charge := vn_base_refine_charge;                  
-                  vn_max_price:=f_get_rc_max_value(vn_contract_price,
-                                                   pc_dbd_id,
-                                                   cur_ref_charge.pcrh_id);
+                  vn_refine_charge := vn_base_refine_charge;
+                  vn_max_price     := f_get_rc_max_value(vn_contract_price,
+                                                         pc_dbd_id,
+                                                         cur_ref_charge.pcrh_id,
+                                                         cur_ref_charge.range_min_op,
+                                                         cur_ref_charge.range_max_op);
                   for cur_forward_price in (select pcerc.range_min_value,
                                                    pcerc.range_min_op,
-                                                   pcerc.range_max_value,
+                                                   nvl(pcerc.range_max_value,vn_max_price)range_max_value, 
                                                    pcerc.range_max_op,
                                                    pcerc.esc_desc_value,
                                                    pcerc.esc_desc_unit_id,
@@ -1064,25 +1074,25 @@ create or replace package body pkg_metals_general is
                                               from pcerc_pc_elem_refining_charge pcerc
                                              where pcerc.pcrh_id =
                                                    cur_ref_charge.pcrh_id
-                                               and nvl(pcerc.range_max_value,1000000)<=
-                                                    vn_max_price 
-                                                and nvl(pcerc.range_min_value, 0) >=
-                                                    vn_min_range 
+                                               and nvl(pcerc.range_min_value,
+                                                      0) >= vn_max_range 
+                                              and nvl(pcerc.range_max_value,
+                                                      vn_max_price) <=vn_max_price          
                                                and nvl(pcerc.position, 'a') <>
                                                    'Base'
-                                               and pcerc.is_active='Y'    
+                                               and pcerc.is_active = 'Y'
                                                and pcerc.dbd_id = pc_dbd_id)
-                  loop                    
-                -- if price is in the range take diff of price and max range
-                if cur_forward_price.range_min_value <= vn_contract_price
-                   and  cur_forward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_forward_price.range_max_value);
-                else  
-                  -- else diff range               
-                  vn_range_gap := cur_forward_price.range_max_value -
-                                  cur_forward_price.range_min_value;
-                 end if;
+                  loop
+                    -- if price is in the range take diff of price and max range                   
+                      if vn_contract_price>=cur_forward_price.range_min_value and
+                       vn_contract_price<=cur_forward_price.range_max_value then
+                      vn_range_gap := abs(vn_contract_price -
+                                        cur_forward_price.range_min_value);                       
+                    else
+                      -- else diff range               
+                      vn_range_gap := cur_forward_price.range_max_value -
+                                      cur_forward_price.range_min_value;
+                    end if;
                     /* vn_each_tier_rc_charge := (vn_range_gap /
                                               nvl(cur_forward_price.esc_desc_value,
                                                    1)) *
@@ -1109,11 +1119,13 @@ create or replace package body pkg_metals_general is
                 elsif vn_contract_price < vn_min_range then
                   --go back ward for the price range
                   vn_refine_charge := vn_base_refine_charge;
-                  vn_min_price:=f_get_rc_min_value(vn_contract_price,
-                                                   pc_dbd_id,
-                                                   cur_ref_charge.pcrh_id);
+                  vn_min_price     := f_get_rc_min_value(vn_contract_price,
+                                                         pc_dbd_id,
+                                                         cur_ref_charge.pcrh_id,
+                                                         cur_ref_charge.range_min_op,
+                                                         cur_ref_charge.range_max_op);
                   for cur_backward_price in (select nvl(pcerc.range_min_value,
-                                                        0) range_min_value,
+                                                        vn_min_price) range_min_value,
                                                     pcerc.range_min_op,
                                                     pcerc.range_max_value,
                                                     pcerc.range_max_op,
@@ -1125,25 +1137,26 @@ create or replace package body pkg_metals_general is
                                                from pcerc_pc_elem_refining_charge pcerc
                                               where pcerc.pcrh_id =
                                                     cur_ref_charge.pcrh_id
-                                                and nvl(pcerc.range_min_value, 0)>=
-                                                    vn_min_price 
-                                                and nvl(pcerc.range_max_value, 100000000) <=
-                                                     vn_min_range
+                                              and nvl(pcerc.range_min_value,
+                                                      vn_min_price) >= vn_min_price
+                                              and nvl(pcerc.range_max_value,
+                                                      100000000) <=
+                                                  vn_min_range
                                                 and nvl(pcerc.position, 'a') <>
                                                     'Base'
-                                                and pcerc.is_active='Y'       
+                                                and pcerc.is_active = 'Y'
                                                 and pcerc.dbd_id = pc_dbd_id)
                   loop
                     -- if price is in the range take diff of price and max range
-                  if cur_backward_price.range_min_value <= vn_contract_price
-                   and  cur_backward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_backward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_backward_price.range_max_value -
-                                  cur_backward_price.range_min_value;
-                  end if;
+                   if   vn_contract_price>=  cur_backward_price.range_min_value  and
+                          vn_contract_price<= cur_backward_price.range_max_value then
+                     vn_range_gap := abs(vn_contract_price -
+                                        cur_backward_price.range_max_value);                      
+                    else
+                      -- else diff range               
+                      vn_range_gap := cur_backward_price.range_max_value -
+                                      cur_backward_price.range_min_value;
+                    end if;
                     if cur_backward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
                                                      nvl(cur_backward_price.esc_desc_value,
@@ -1212,11 +1225,11 @@ create or replace package body pkg_metals_general is
               exit;
             end if;
           end loop;
-       --   dbms_output.put_line('The typical value is  ' || vn_typical_val);
-       --   dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
-       --                        vn_min_range || ' --' || vn_max_range);
-       --   dbms_output.put_line('The Refine charge for this assay Range is  ' ||
-        --                       vn_refine_charge);
+          --   dbms_output.put_line('The typical value is  ' || vn_typical_val);
+          --   dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
+          --                        vn_min_range || ' --' || vn_max_range);
+          --   dbms_output.put_line('The Refine charge for this assay Range is  ' ||
+          --                       vn_refine_charge);
         exception
           when others then
             vn_refine_charge := 0;
@@ -1245,7 +1258,7 @@ create or replace package body pkg_metals_general is
                                                                    vc_rc_weight_unit_id,
                                                                    vn_item_qty);
       vn_tot_refine_charge := vn_pricable_qty * vn_refine_charge;
-     -- dbms_output.put_line('The refine  quantity is ' || vn_element_qty);
+      -- dbms_output.put_line('The refine  quantity is ' || vn_element_qty);
     end loop;
     pn_total_rc_charge := vn_tot_refine_charge;
     pc_rc_cur_id       := vc_cur_id;
@@ -1416,7 +1429,7 @@ create or replace package body pkg_metals_general is
                  vn_contract_price >= cur_tret_charge.range_min_value and
                  vn_contract_price <= cur_tret_charge.range_max_value) then
                 vn_treatment_charge := cur_tret_charge.treatment_charge;
-              --  dbms_output.put_line(vn_treatment_charge);
+                --  dbms_output.put_line(vn_treatment_charge);
               end if;
             elsif cur_tret_charge.charge_type = 'Variable' then
               -- Take the base price and its min and max range
@@ -1429,7 +1442,7 @@ create or replace package body pkg_metals_general is
                        vn_base_tret_charge
                   from pcetc_pc_elem_treatment_charge pcetc
                  where pcetc.pcth_id = cur_tret_charge.pcth_id
-                   and pcetc.is_active='Y'
+                   and pcetc.is_active = 'Y'
                    and pcetc.position = 'Base'
                    and pcetc.charge_type = 'Variable'
                    and pcetc.dbd_id = pc_dbd_id;
@@ -1445,13 +1458,15 @@ create or replace package body pkg_metals_general is
               --in case if base
               if vn_contract_price > vn_max_range then
                 vn_treatment_charge := vn_base_tret_charge;
-                vn_max_price:=f_get_tc_max_value(vn_contract_price,
-                                                 pc_dbd_id,
-                                                 cur_tret_charge.pcth_id);
+                vn_max_price        := f_get_tc_max_value(vn_contract_price,
+                                                          pc_dbd_id,
+                                                          cur_tret_charge.pcth_id,
+                                                          cur_tret_charge.range_min_op,
+                                                          cur_tret_charge.range_max_op);
                 --go forward for the price range
                 for cur_forward_price in (select pcetc.range_min_value,
                                                  pcetc.range_min_op,
-                                                 pcetc.range_max_value,
+                                                 nvl(pcetc.range_max_value,vn_max_price) range_max_value,
                                                  pcetc.range_max_op,
                                                  pcetc.esc_desc_value,
                                                  pcetc.esc_desc_unit_id,
@@ -1461,24 +1476,24 @@ create or replace package body pkg_metals_general is
                                             from pcetc_pc_elem_treatment_charge pcetc
                                            where pcetc.pcth_id =
                                                  cur_tret_charge.pcth_id
-                                            and nvl(pcetc.range_max_value,1000000)<=
-                                                 vn_max_price 
-                                            and nvl(pcetc.range_min_value, 0) >=
-                                                 vn_min_range  
+                                              and nvl(pcetc.range_min_value,
+                                                      0) >= vn_max_range 
+                                              and nvl(pcetc.range_max_value,
+                                                      vn_max_price) <=vn_max_price 
                                              and nvl(pcetc.position, 'a') <>
                                                  'Base'
-                                             and pcetc.is_active='Y'    
+                                             and pcetc.is_active = 'Y'
                                              and pcetc.dbd_id = pc_dbd_id)
                 loop
-                   -- if price is in the range take diff of price and max range
-                if cur_forward_price.range_min_value <= vn_contract_price
-                   and  cur_forward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_forward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_forward_price.range_max_value -
-                                  cur_forward_price.range_min_value;
+                  -- if price is in the range take diff of price and max range                 
+                   if vn_contract_price>=cur_forward_price.range_min_value and
+                       vn_contract_price<=cur_forward_price.range_max_value then
+                      vn_range_gap := abs(vn_contract_price -
+                                        cur_forward_price.range_min_value);                       
+                  else
+                    -- else diff range               
+                    vn_range_gap := cur_forward_price.range_max_value -
+                                    cur_forward_price.range_min_value;
                   end if;
                   if cur_forward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
@@ -1498,13 +1513,15 @@ create or replace package body pkg_metals_general is
                 end loop;
               elsif vn_contract_price < vn_min_range then
                 vn_treatment_charge := vn_base_tret_charge;
-                vn_min_price:=f_get_tc_min_value(vn_contract_price,
-                                                 pc_dbd_id,
-                                                 cur_tret_charge.pcth_id);
-
+                vn_min_price        := f_get_tc_min_value(vn_contract_price,
+                                                          pc_dbd_id,
+                                                          cur_tret_charge.pcth_id,
+                                                          cur_tret_charge.range_min_op,
+                                                          cur_tret_charge.range_max_op);
+              
                 --go back ward for the price range
                 for cur_backward_price in (select nvl(pcetc.range_min_value,
-                                                      0) range_min_value,
+                                                      vn_min_price) range_min_value,
                                                   pcetc.range_min_op,
                                                   pcetc.range_max_value,
                                                   pcetc.range_max_op,
@@ -1516,25 +1533,26 @@ create or replace package body pkg_metals_general is
                                              from pcetc_pc_elem_treatment_charge pcetc
                                             where pcetc.pcth_id =
                                                   cur_tret_charge.pcth_id
-                                              and nvl(pcetc.range_min_value, 0)>=
-                                                  vn_min_price 
-                                              and nvl(pcetc.range_max_value, 100000000) <=
+                                               and nvl(pcetc.range_min_value,
+                                                      vn_min_price) >= vn_min_price
+                                              and nvl(pcetc.range_max_value,
+                                                      100000000) <=
                                                   vn_min_range
                                               and nvl(pcetc.position, 'a') <>
                                                   'Base'
-                                              and pcetc.is_active='Y'     
+                                              and pcetc.is_active = 'Y'
                                               and pcetc.dbd_id = pc_dbd_id)
                 loop
-                  -- if price is in the range take diff of price and max range
-                if cur_backward_price.range_min_value <= vn_contract_price
-                   and  cur_backward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_backward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_backward_price.range_max_value -
-                                  cur_backward_price.range_min_value;
-                end if;
+                  -- if price is in the range take diff of price and max range              
+                  if   vn_contract_price>=  cur_backward_price.range_min_value  and
+                          vn_contract_price<= cur_backward_price.range_max_value then
+                     vn_range_gap := abs(vn_contract_price -
+                                        cur_backward_price.range_max_value);                       
+                  else
+                    -- else diff range               
+                    vn_range_gap := cur_backward_price.range_max_value -
+                                    cur_backward_price.range_min_value;
+                  end if;
                   if cur_backward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
                                                    nvl(cur_backward_price.esc_desc_value,
@@ -1606,11 +1624,11 @@ create or replace package body pkg_metals_general is
             exit;
           end if;
         end loop;
-      --  dbms_output.put_line('The typical value is  ' || vn_typical_val);
-     --   dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
-     --  --                      vn_min_range || ' --' || vn_max_range);
-       -- dbms_output.put_line('The Treatment  charge for this assay Range is  ' ||
-       --                      vn_treatment_charge);
+        --  dbms_output.put_line('The typical value is  ' || vn_typical_val);
+        --   dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
+        --  --                      vn_min_range || ' --' || vn_max_range);
+        -- dbms_output.put_line('The Treatment  charge for this assay Range is  ' ||
+        --                      vn_treatment_charge);
         if vn_treatment_charge <> 0 then
           --Converting from wet to dry
           -- vn_item_qty := pn_qty;
@@ -1629,10 +1647,10 @@ create or replace package body pkg_metals_general is
                                                                  vc_rc_weight_unit_id,
                                                                  vn_item_qty);
         --Here no need of the typicla value as penalty is on item level   not on the element level                                           
-       -- dbms_output.put_line('The Item  Quantity is   :-- ' ||
-       --                      vn_converted_qty);
+        -- dbms_output.put_line('The Item  Quantity is   :-- ' ||
+        --                      vn_converted_qty);
         vn_total_treat_charge := vn_converted_qty * vn_treatment_charge;
-      --  dbms_output.put_line('the treatment  charge is ' ||
+        --  dbms_output.put_line('the treatment  charge is ' ||
         --                     vn_total_treat_charge);
       exception
         when no_data_found then
@@ -1707,7 +1725,7 @@ create or replace package body pkg_metals_general is
                                             to_char(pc_start_date, 'YYYY')),
                                             'dd/mm/yyyy');
       --------------------
---      dbms_output.put_line('pc_month_prompt_start_date ' || pc_month_prompt_start_date);
+      --      dbms_output.put_line('pc_month_prompt_start_date ' || pc_month_prompt_start_date);
       if (pc_month_prompt_start_date >=
          to_date(('01-' || to_char(pc_start_date, 'Mon-YYYY')),
                   'dd/mm/yyyy') and
@@ -1719,8 +1737,8 @@ create or replace package body pkg_metals_general is
         end if;
       end if;
       exit when pn_month_count > 1;
---      dbms_output.put_line('pc_month pc_year ' || pc_month || '-' || pc_year);
-      ---------------
+      --      dbms_output.put_line('pc_month pc_year ' || pc_month || '-' || pc_year);
+    ---------------
     end loop;
     close cr_monthly_prompt_rule;
     if pc_month is not null and pc_year is not null then
@@ -1935,7 +1953,7 @@ create or replace package body pkg_metals_general is
                  vn_contract_price >= cur_tret_charge.range_min_value and
                  vn_contract_price <= cur_tret_charge.range_max_value) then
                 vn_treatment_charge := cur_tret_charge.treatment_charge;
-             --   dbms_output.put_line(vn_treatment_charge);
+                --   dbms_output.put_line(vn_treatment_charge);
               end if;
             elsif cur_tret_charge.charge_type = 'Variable' then
               --Take the base price and its min and max range
@@ -1948,7 +1966,7 @@ create or replace package body pkg_metals_general is
                        vn_base_tret_charge
                   from pcetc_pc_elem_treatment_charge pcetc
                  where pcetc.pcth_id = cur_tret_charge.pcth_id
-                   and pcetc.is_active='Y'
+                   and pcetc.is_active = 'Y'
                    and pcetc.position = 'Base'
                    and pcetc.charge_type = 'Variable'
                    and pcetc.dbd_id = pc_dbd_id;
@@ -1964,13 +1982,15 @@ create or replace package body pkg_metals_general is
               --in case if base
               if vn_contract_price > vn_max_range then
                 vn_treatment_charge := vn_base_tret_charge;
-                vn_max_price:=f_get_tc_max_value(vn_contract_price,
-                                                 pc_dbd_id,
-                                                 cur_tret_charge.pcth_id);
+                vn_max_price        := f_get_tc_max_value(vn_contract_price,
+                                                          pc_dbd_id,
+                                                          cur_tret_charge.pcth_id,
+                                                          cur_tret_charge.range_min_op,
+                                                          cur_tret_charge.range_max_op);
                 --go forward for the price range
                 for cur_forward_price in (select pcetc.range_min_value,
                                                  pcetc.range_min_op,
-                                                 pcetc.range_max_value,
+                                                 nvl(pcetc.range_max_value,vn_max_price)range_max_value,
                                                  pcetc.range_max_op,
                                                  pcetc.esc_desc_value,
                                                  pcetc.esc_desc_unit_id,
@@ -1980,24 +2000,24 @@ create or replace package body pkg_metals_general is
                                             from pcetc_pc_elem_treatment_charge pcetc
                                            where pcetc.pcth_id =
                                                  cur_tret_charge.pcth_id
-                                            and nvl(pcetc.range_max_value,1000000)<=
-                                                 vn_max_price 
-                                            and nvl(pcetc.range_min_value, 0) >=
-                                                vn_min_range      
+                                              and nvl(pcetc.range_min_value,
+                                                      0) >= vn_max_range 
+                                              and nvl(pcetc.range_max_value,
+                                                      vn_max_price) <=vn_max_price  
                                              and nvl(pcetc.position, 'a') <>
                                                  'Base'
-                                             and pcetc.is_active='Y'   
+                                             and pcetc.is_active = 'Y'
                                              and pcetc.dbd_id = pc_dbd_id)
                 loop
-                    -- if price is in the range take diff of price and max range
-                if cur_forward_price.range_min_value <= vn_contract_price
-                   and  cur_forward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_forward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_forward_price.range_max_value -
-                                  cur_forward_price.range_min_value;
+                  -- if price is in the range take diff of price and max range           
+                    if vn_contract_price>=cur_forward_price.range_min_value and
+                       vn_contract_price<=cur_forward_price.range_max_value then
+                      vn_range_gap := abs(vn_contract_price -
+                                        cur_forward_price.range_min_value);                       
+                  else
+                    -- else diff range               
+                    vn_range_gap := cur_forward_price.range_max_value -
+                                    cur_forward_price.range_min_value;
                   end if;
                   if cur_forward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
@@ -2017,12 +2037,14 @@ create or replace package body pkg_metals_general is
                 end loop;
               elsif vn_contract_price < vn_min_range then
                 vn_treatment_charge := vn_base_tret_charge;
-                vn_min_price:=f_get_tc_min_value(vn_contract_price,
-                                                 pc_dbd_id,
-                                                 cur_tret_charge.pcth_id);
+                vn_min_price        := f_get_tc_min_value(vn_contract_price,
+                                                          pc_dbd_id,
+                                                          cur_tret_charge.pcth_id,
+                                                          cur_tret_charge.range_min_op,
+                                                          cur_tret_charge.range_max_op);
                 --go back ward for the price range
                 for cur_backward_price in (select nvl(pcetc.range_min_value,
-                                                      0) range_min_value,
+                                                      vn_min_price) range_min_value,
                                                   pcetc.range_min_op,
                                                   pcetc.range_max_value,
                                                   pcetc.range_max_op,
@@ -2034,25 +2056,26 @@ create or replace package body pkg_metals_general is
                                              from pcetc_pc_elem_treatment_charge pcetc
                                             where pcetc.pcth_id =
                                                   cur_tret_charge.pcth_id
-                                              and nvl(pcetc.range_min_value, 0)>=
-                                                  vn_min_price 
-                                              and nvl(pcetc.range_max_value, 100000000) <=
+                                              and nvl(pcetc.range_min_value,
+                                                      vn_min_price) >= vn_min_price
+                                              and nvl(pcetc.range_max_value,
+                                                      100000000) <=
                                                   vn_min_range
                                               and nvl(pcetc.position, 'a') <>
                                                   'Base'
-                                              and pcetc.is_active='Y'      
+                                              and pcetc.is_active = 'Y'
                                               and pcetc.dbd_id = pc_dbd_id)
                 loop
-                  -- if price is in the range take diff of price and max range
-                  if cur_backward_price.range_min_value <= vn_contract_price
-                   and  cur_backward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_backward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_backward_price.range_max_value -
-                                  cur_backward_price.range_min_value;
-                   end if;
+                  -- if price is in the range take diff of price and max range              
+                   if   vn_contract_price>=  cur_backward_price.range_min_value  and
+                          vn_contract_price<= cur_backward_price.range_max_value then
+                     vn_range_gap := abs(vn_contract_price -
+                                        cur_backward_price.range_max_value);                      
+                  else
+                    -- else diff range               
+                    vn_range_gap := cur_backward_price.range_max_value -
+                                    cur_backward_price.range_min_value;
+                  end if;
                   if cur_backward_price.charge_basis = 'absolute' then
                     vn_each_tier_tc_charge := ceil(vn_range_gap /
                                                    nvl(cur_backward_price.esc_desc_value,
@@ -2124,11 +2147,11 @@ create or replace package body pkg_metals_general is
             exit;
           end if;
         end loop;
-       -- dbms_output.put_line('The typical value is  ' || vn_typical_val);
-       -- dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
+        -- dbms_output.put_line('The typical value is  ' || vn_typical_val);
+        -- dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
         --                     vn_min_range || ' --' || vn_max_range);
-      --  dbms_output.put_line('The Treatment  charge for this assay Range is  ' ||
-         --                    vn_treatment_charge);
+        --  dbms_output.put_line('The Treatment  charge for this assay Range is  ' ||
+        --                    vn_treatment_charge);
       
         --For TC , it is calculated on item Qty not on the element Qty
         vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
@@ -2136,11 +2159,11 @@ create or replace package body pkg_metals_general is
                                                                  vc_rc_weight_unit_id,
                                                                  cc.dry_weight);
         --Here no need of the typicla value as penalty is on item level   not on the element level
-      --  dbms_output.put_line('The Item  Quantity is   :-- ' ||
-       --                      vn_converted_qty);
+        --  dbms_output.put_line('The Item  Quantity is   :-- ' ||
+        --                      vn_converted_qty);
         vn_total_treat_charge := vn_converted_qty * vn_treatment_charge;
-       -- dbms_output.put_line('the treatment  charge is ' ||
-         --                    vn_total_treat_charge);
+        -- dbms_output.put_line('the treatment  charge is ' ||
+        --                    vn_total_treat_charge);
       exception
         when no_data_found then
           dbms_output.put_line(sqlerrm);
@@ -2156,425 +2179,435 @@ create or replace package body pkg_metals_general is
       pn_total_tc_charge := -1;
       pc_tc_cur_id       := null;
   end;
-procedure sp_get_gmr_tc_by_assay(pc_inter_gmr_ref_no varchar2,
-                                 pc_inter_grd_ref_no varchar2,
-                                 pc_element_id       varchar2,
-                                 pc_dbd_id           varchar2,
-                                 pn_cp_price         number,
-                                 pc_cp_unit_id       varchar2,
-                                 pc_ash_id           varchar2,
-                                 pn_dry_qty          number,
-                                 pc_qty_unit_id      varchar2,
-                                 pn_total_tc_charge  out number,
-                                 pc_tc_cur_id        out varchar2) is
-  vn_treatment_charge    number;
-  vn_total_treat_charge  number;
-  vn_max_range           number;
-  vn_min_range           number;
-  vn_typical_val         number;
-  vc_weight_type         varchar2(20);
-  vn_contract_price      number;
-  vn_base_tret_charge    number;
-  vn_each_tier_tc_charge number;
-  vn_range_gap           number;
-  vc_price_unit_id       varchar2(10);
-  vc_cur_id              varchar2(10);
-  vn_converted_qty       number;
-  vc_rc_weight_unit_id   varchar2(15);
-  vn_total_gmr_tc_value  number := 0;
-  vn_min_price           number;
-  vn_max_price           number;
-begin
-  vn_contract_price   := pn_cp_price;
-  vn_treatment_charge := 0;     
-  for cc in (select pc_inter_gmr_ref_no internal_gmr_ref_no,
-                    pc_inter_grd_ref_no internal_grd_ref_no,
-                    ash.ash_id,
-                    ash.assay_type,
-                    asm.sub_lot_no,
-                    pqca.typical,
-                    rm.qty_unit_id_numerator,
-                    rm.qty_unit_id_denominator,
-                    rm.ratio_name,
-                    pqca.element_id,
-                    aml.underlying_product_id,
-                    pci.pcpq_id
-               from grd_goods_record_detail     grd,
-                    ash_assay_header            ash,
-                    asm_assay_sublot_mapping    asm,
-                    pqca_pq_chemical_attributes pqca,
-                    rm_ratio_master             rm,
-                    aml_attribute_master_list   aml,
-                    pci_physical_contract_item  pci
-              where ash.ash_id = asm.ash_id
-                and asm.asm_id = pqca.asm_id
-                and rm.ratio_id = pqca.unit_of_measure
-                and aml.attribute_id = pqca.element_id
-                and pqca.element_id = pc_element_id
-                and grd.dbd_id = pc_dbd_id
-                and pci.dbd_id = pc_dbd_id
-                and grd.internal_contract_item_ref_no =
-                    pci.internal_contract_item_ref_no
-                and grd.internal_gmr_ref_no = pc_inter_gmr_ref_no
-                and grd.internal_grd_ref_no = pc_inter_grd_ref_no
-                and ash.ash_id = pc_ash_id
-             union all
-             select gmr.internal_gmr_ref_no,
-                    dgrd.internal_dgrd_ref_no,
-                    ash.ash_id,
-                    ash.assay_type,
-                    asm.sub_lot_no,
-                    pqca.typical,
-                    rm.qty_unit_id_numerator,
-                    rm.qty_unit_id_denominator,
-                    rm.ratio_name,
-                    pqca.element_id,
-                    aml.underlying_product_id,
-                    pci.pcpq_id
-               from gmr_goods_movement_record   gmr,
-                    dgrd_delivered_grd          dgrd,
-                    ash_assay_header            ash,
-                    asm_assay_sublot_mapping    asm,
-                    pqca_pq_chemical_attributes pqca,
-                    rm_ratio_master             rm,
-                    aml_attribute_master_list   aml,
-                    pci_physical_contract_item  pci
-              where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-                   --    and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
-                   --  and sam.ash_id = ash.ash_id
-                and ash.ash_id = asm.ash_id
-                and asm.asm_id = pqca.asm_id
-                and rm.ratio_id = pqca.unit_of_measure
-                and aml.attribute_id = pqca.element_id
-                and pqca.element_id = pc_element_id
-                and gmr.dbd_id = pc_dbd_id
-                and dgrd.dbd_id = pc_dbd_id
-                and pci.dbd_id = pc_dbd_id
-                and dgrd.internal_contract_item_ref_no =
-                    pci.internal_contract_item_ref_no
-                and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
-                and dgrd.internal_dgrd_ref_no = pc_inter_grd_ref_no
-                   --    and spq.internal_grd_ref_no = dgrd.internal_dgrd_ref_no
-                   --     and spq.element_id = pqca.element_id
-                   --    and spq.dbd_id = pc_dbd_id
-                and ash.ash_id = pc_ash_id)
-  loop
-    begin
-      for cur_tret_charge in (select pcth.range_type,
-                                     pcetc.treatment_charge,
-                                     pcetc.treatment_charge_unit_id,
-                                     pcetc.charge_type,
-                                     pcetc.charge_basis,
-                                     pcetc.weight_type,
-                                     pcetc.position,
-                                     pcetc.range_min_op,
-                                     nvl(pcetc.range_min_value, 0) range_min_value,
-                                     pcetc.range_max_op,
-                                     pcetc.range_max_value,
-                                     pcth.pcth_id,
-                                     pum.price_unit_id,
-                                     nvl(pcetc.esc_desc_unit_id, pum.cur_id) cur_id,
-                                     pum.weight_unit_id
-                                from pcth_pc_treatment_header       pcth,
-                                     ted_treatment_element_details  red,
-                                     pcetc_pc_elem_treatment_charge pcetc,
-                                     tqd_treatment_quality_details  tqd,
-                                     ppu_product_price_units        ppu,
-                                     pum_price_unit_master          pum,
-                                     gth_gmr_treatment_header       gth
-                               where pcth.pcth_id = red.pcth_id
-                                 and pcth.pcth_id = pcetc.pcth_id
-                                 and pcth.pcth_id = tqd.pcth_id
-                                 and tqd.pcpq_id = cc.pcpq_id
-                                 and pcth.dbd_id = pc_dbd_id
-                                 and red.dbd_id = pc_dbd_id
-                                 and pcetc.dbd_id = pc_dbd_id
-                                 and tqd.dbd_id = pc_dbd_id
-                                 and red.element_id = cc.element_id
-                                 and pcetc.treatment_charge_unit_id =
-                                     ppu.internal_price_unit_id
-                                 and ppu.price_unit_id = pum.price_unit_id
-                                 and gth.internal_gmr_ref_no =
-                                     pc_inter_gmr_ref_no
-                                 and gth.pcth_id = pcth.pcth_id
-                                 and gth.is_active = 'Y'
-                                 and pcetc.is_active = 'Y'
-                                 and pcth.is_active = 'Y'
-                                 and red.is_active = 'Y'
-                                 and tqd.is_active = 'Y')
-      loop
-        vc_cur_id            := cur_tret_charge.cur_id;
-        vc_price_unit_id     := cur_tret_charge.price_unit_id;
-        vc_rc_weight_unit_id := cur_tret_charge.weight_unit_id;
-        vc_weight_type       := cur_tret_charge.weight_type;
-        if cur_tret_charge.range_type = 'Price Range' then
-          --if the CHARGE_TYPE is fixed then it will
-          --behave as the slab as same as the assay range
-          --No base concept is here
-          vn_total_gmr_tc_value := 0;
-          if cur_tret_charge.charge_type = 'Fixed' then
+  procedure sp_get_gmr_tc_by_assay(pc_inter_gmr_ref_no varchar2,
+                                   pc_inter_grd_ref_no varchar2,
+                                   pc_element_id       varchar2,
+                                   pc_dbd_id           varchar2,
+                                   pn_cp_price         number,
+                                   pc_cp_unit_id       varchar2,
+                                   pc_ash_id           varchar2,
+                                   pn_dry_qty          number,
+                                   pc_qty_unit_id      varchar2,
+                                   pn_total_tc_charge  out number,
+                                   pc_tc_cur_id        out varchar2) is
+    vn_treatment_charge    number;
+    vn_total_treat_charge  number;
+    vn_max_range           number;
+    vn_min_range           number;
+    vn_typical_val         number;
+    vc_weight_type         varchar2(20);
+    vn_contract_price      number;
+    vn_base_tret_charge    number;
+    vn_each_tier_tc_charge number;
+    vn_range_gap           number;
+    vc_price_unit_id       varchar2(10);
+    vc_cur_id              varchar2(10);
+    vn_converted_qty       number;
+    vc_rc_weight_unit_id   varchar2(15);
+    vn_total_gmr_tc_value  number := 0;
+    vn_min_price           number;
+    vn_max_price           number;
+  begin
+    vn_contract_price   := pn_cp_price;
+    vn_treatment_charge := 0;
+    for cc in (select pc_inter_gmr_ref_no internal_gmr_ref_no,
+                      pc_inter_grd_ref_no internal_grd_ref_no,
+                      ash.ash_id,
+                      ash.assay_type,
+                      asm.sub_lot_no,
+                      pqca.typical,
+                      rm.qty_unit_id_numerator,
+                      rm.qty_unit_id_denominator,
+                      rm.ratio_name,
+                      pqca.element_id,
+                      aml.underlying_product_id,
+                      pci.pcpq_id
+                 from grd_goods_record_detail     grd,
+                      ash_assay_header            ash,
+                      asm_assay_sublot_mapping    asm,
+                      pqca_pq_chemical_attributes pqca,
+                      rm_ratio_master             rm,
+                      aml_attribute_master_list   aml,
+                      pci_physical_contract_item  pci
+                where ash.ash_id = asm.ash_id
+                  and asm.asm_id = pqca.asm_id
+                  and rm.ratio_id = pqca.unit_of_measure
+                  and aml.attribute_id = pqca.element_id
+                  and pqca.element_id = pc_element_id
+                  and grd.dbd_id = pc_dbd_id
+                  and pci.dbd_id = pc_dbd_id
+                  and grd.internal_contract_item_ref_no =
+                      pci.internal_contract_item_ref_no
+                  and grd.internal_gmr_ref_no = pc_inter_gmr_ref_no
+                  and grd.internal_grd_ref_no = pc_inter_grd_ref_no
+                  and ash.ash_id = pc_ash_id
+               union all
+               select gmr.internal_gmr_ref_no,
+                      dgrd.internal_dgrd_ref_no,
+                      ash.ash_id,
+                      ash.assay_type,
+                      asm.sub_lot_no,
+                      pqca.typical,
+                      rm.qty_unit_id_numerator,
+                      rm.qty_unit_id_denominator,
+                      rm.ratio_name,
+                      pqca.element_id,
+                      aml.underlying_product_id,
+                      pci.pcpq_id
+                 from gmr_goods_movement_record   gmr,
+                      dgrd_delivered_grd          dgrd,
+                      ash_assay_header            ash,
+                      asm_assay_sublot_mapping    asm,
+                      pqca_pq_chemical_attributes pqca,
+                      rm_ratio_master             rm,
+                      aml_attribute_master_list   aml,
+                      pci_physical_contract_item  pci
+                where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+                     --    and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
+                     --  and sam.ash_id = ash.ash_id
+                  and ash.ash_id = asm.ash_id
+                  and asm.asm_id = pqca.asm_id
+                  and rm.ratio_id = pqca.unit_of_measure
+                  and aml.attribute_id = pqca.element_id
+                  and pqca.element_id = pc_element_id
+                  and gmr.dbd_id = pc_dbd_id
+                  and dgrd.dbd_id = pc_dbd_id
+                  and pci.dbd_id = pc_dbd_id
+                  and dgrd.internal_contract_item_ref_no =
+                      pci.internal_contract_item_ref_no
+                  and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
+                  and dgrd.internal_dgrd_ref_no = pc_inter_grd_ref_no
+                     --    and spq.internal_grd_ref_no = dgrd.internal_dgrd_ref_no
+                     --     and spq.element_id = pqca.element_id
+                     --    and spq.dbd_id = pc_dbd_id
+                  and ash.ash_id = pc_ash_id)
+    loop
+      begin
+        for cur_tret_charge in (select pcth.range_type,
+                                       pcetc.treatment_charge,
+                                       pcetc.treatment_charge_unit_id,
+                                       pcetc.charge_type,
+                                       pcetc.charge_basis,
+                                       pcetc.weight_type,
+                                       pcetc.position,
+                                       pcetc.range_min_op,
+                                       nvl(pcetc.range_min_value, 0) range_min_value,
+                                       pcetc.range_max_op,
+                                       pcetc.range_max_value,
+                                       pcth.pcth_id,
+                                       pum.price_unit_id,
+                                       nvl(pcetc.esc_desc_unit_id,
+                                           pum.cur_id) cur_id,
+                                       pum.weight_unit_id
+                                  from pcth_pc_treatment_header       pcth,
+                                       ted_treatment_element_details  red,
+                                       pcetc_pc_elem_treatment_charge pcetc,
+                                       tqd_treatment_quality_details  tqd,
+                                       ppu_product_price_units        ppu,
+                                       pum_price_unit_master          pum,
+                                       gth_gmr_treatment_header       gth
+                                 where pcth.pcth_id = red.pcth_id
+                                   and pcth.pcth_id = pcetc.pcth_id
+                                   and pcth.pcth_id = tqd.pcth_id
+                                   and tqd.pcpq_id = cc.pcpq_id
+                                   and pcth.dbd_id = pc_dbd_id
+                                   and red.dbd_id = pc_dbd_id
+                                   and pcetc.dbd_id = pc_dbd_id
+                                   and tqd.dbd_id = pc_dbd_id
+                                   and red.element_id = cc.element_id
+                                   and pcetc.treatment_charge_unit_id =
+                                       ppu.internal_price_unit_id
+                                   and ppu.price_unit_id = pum.price_unit_id
+                                   and gth.internal_gmr_ref_no =
+                                       pc_inter_gmr_ref_no
+                                   and gth.pcth_id = pcth.pcth_id
+                                   and gth.is_active = 'Y'
+                                   and pcetc.is_active = 'Y'
+                                   and pcth.is_active = 'Y'
+                                   and red.is_active = 'Y'
+                                   and tqd.is_active = 'Y')
+        loop
+          vc_cur_id            := cur_tret_charge.cur_id;
+          vc_price_unit_id     := cur_tret_charge.price_unit_id;
+          vc_rc_weight_unit_id := cur_tret_charge.weight_unit_id;
+          vc_weight_type       := cur_tret_charge.weight_type;
+          if cur_tret_charge.range_type = 'Price Range' then
+            --if the CHARGE_TYPE is fixed then it will
+            --behave as the slab as same as the assay range
+            --No base concept is here
+            vn_total_gmr_tc_value := 0;
+            if cur_tret_charge.charge_type = 'Fixed' then
+              if (cur_tret_charge.position = 'Range Begining' and
+                 cur_tret_charge.range_max_op = '<=' and
+                 vn_contract_price <= cur_tret_charge.range_max_value) or
+                 (cur_tret_charge.position = 'Range Begining' and
+                 cur_tret_charge.range_max_op = '<' and
+                 vn_contract_price < cur_tret_charge.range_max_value) or
+                 (cur_tret_charge.position = 'Range End' and
+                 cur_tret_charge.range_min_op = '>=' and
+                 vn_contract_price >= cur_tret_charge.range_min_value) or
+                 (cur_tret_charge.position = 'Range End' and
+                 cur_tret_charge.range_min_op = '>' and
+                 vn_contract_price > cur_tret_charge.range_min_value) or
+                 (cur_tret_charge.position is null and
+                 cur_tret_charge.range_min_op = '>' and
+                 cur_tret_charge.range_max_op = '<' and
+                 vn_contract_price > cur_tret_charge.range_min_value and
+                 vn_contract_price < cur_tret_charge.range_max_value) or
+                 (cur_tret_charge.position is null and
+                 cur_tret_charge.range_min_op = '>=' and
+                 cur_tret_charge.range_max_op = '<' and
+                 vn_contract_price >= cur_tret_charge.range_min_value and
+                 vn_contract_price < cur_tret_charge.range_max_value) or
+                 (cur_tret_charge.position is null and
+                 cur_tret_charge.range_min_op = '>' and
+                 cur_tret_charge.range_max_op = '<=' and
+                 vn_contract_price > cur_tret_charge.range_min_value and
+                 vn_contract_price <= cur_tret_charge.range_max_value) or
+                 (cur_tret_charge.position is null and
+                 cur_tret_charge.range_min_op = '>=' and
+                 cur_tret_charge.range_max_op = '<=' and
+                 vn_contract_price >= cur_tret_charge.range_min_value and
+                 vn_contract_price <= cur_tret_charge.range_max_value) then
+                vn_treatment_charge := cur_tret_charge.treatment_charge;
+                --   dbms_output.put_line(vn_treatment_charge);
+              end if;
+            elsif cur_tret_charge.charge_type = 'Variable' then
+              --Take the base price and its min and max range
+              begin
+                select pcetc.range_min_value,
+                       pcetc.range_max_value,
+                       pcetc.treatment_charge
+                  into vn_min_range,
+                       vn_max_range,
+                       vn_base_tret_charge
+                  from pcetc_pc_elem_treatment_charge pcetc
+                 where pcetc.pcth_id = cur_tret_charge.pcth_id
+                   and pcetc.is_active = 'Y'
+                   and pcetc.position = 'Base'
+                   and pcetc.charge_type = 'Variable'
+                   and pcetc.dbd_id = pc_dbd_id;
+              exception
+                when no_data_found then
+                  vn_max_range        := 0;
+                  vn_min_range        := 0;
+                  vn_base_tret_charge := 0;
+              end;
+              --according to the contract price , the price tier
+              --will be find out, it may forward or back ward
+              --Both vn_max_range and vn_min_range are same
+              --in case if base
+              if vn_contract_price > vn_max_range then
+                vn_treatment_charge := vn_base_tret_charge;
+                vn_max_price        := f_get_tc_max_value(vn_contract_price,
+                                                          pc_dbd_id,
+                                                          cur_tret_charge.pcth_id,
+                                                          cur_tret_charge.range_min_op,
+                                                          cur_tret_charge.range_max_op);
+                --go forward for the price range
+                for cur_forward_price in (select pcetc.range_min_value,
+                                                 pcetc.range_min_op,
+                                                 nvl(pcetc.range_max_value,vn_max_price) range_max_value,
+                                                 pcetc.range_max_op,
+                                                 pcetc.esc_desc_value,
+                                                 pcetc.esc_desc_unit_id,
+                                                 pcetc.treatment_charge,
+                                                 pcetc.treatment_charge_unit_id,
+                                                 pcetc.charge_basis
+                                            from pcetc_pc_elem_treatment_charge pcetc
+                                           where pcetc.pcth_id =
+                                                 cur_tret_charge.pcth_id                                           
+                                             and nvl(pcetc.range_min_value,
+                                                      0) >= vn_max_range 
+                                              and nvl(pcetc.range_max_value,
+                                                      vn_max_price) <=vn_max_price                                                        
+                                             and nvl(pcetc.position, 'a') <>
+                                                 'Base'
+                                             and pcetc.is_active = 'Y'
+                                             and pcetc.dbd_id = pc_dbd_id)
+                loop
+                  -- if price is in the range take diff of price and max range                                                       
+                                        
+                    if vn_contract_price>=cur_forward_price.range_min_value and
+                       vn_contract_price<=cur_forward_price.range_max_value then
+                      vn_range_gap := abs(vn_contract_price -
+                                        cur_forward_price.range_min_value);  
+                  else
+                    -- else diff range               
+                    vn_range_gap := cur_forward_price.range_max_value -
+                                    cur_forward_price.range_min_value;
+                  end if;
+                  if cur_forward_price.charge_basis = 'absolute' then
+                    vn_each_tier_tc_charge := ceil(vn_range_gap /
+                                                   nvl(cur_forward_price.esc_desc_value,
+                                                       1)) *
+                                              cur_forward_price.treatment_charge;
+                  elsif cur_forward_price.charge_basis =
+                        'fractions Pro-Rata' then
+                    vn_each_tier_tc_charge := (vn_range_gap /
+                                              nvl(cur_forward_price.esc_desc_value,
+                                                   1)) *
+                                              cur_forward_price.treatment_charge;
+                  end if;
+                
+                  vn_treatment_charge := vn_treatment_charge +
+                                         vn_each_tier_tc_charge;
+                end loop;
+              elsif vn_contract_price < vn_min_range then
+                vn_treatment_charge := vn_base_tret_charge; --
+                vn_min_price        := f_get_tc_min_value(vn_contract_price,
+                                                          pc_dbd_id,
+                                                          cur_tret_charge.pcth_id,
+                                                          cur_tret_charge.range_min_op,
+                                                          cur_tret_charge.range_max_op);
+                --go back ward for the price range
+                for cur_backward_price in (select nvl(pcetc.range_min_value,
+                                                      vn_min_price) range_min_value,
+                                                  pcetc.range_min_op,
+                                                  pcetc.range_max_value,
+                                                  pcetc.range_max_op,
+                                                  pcetc.esc_desc_value,
+                                                  pcetc.esc_desc_unit_id,
+                                                  pcetc.treatment_charge,
+                                                  pcetc.treatment_charge_unit_id,
+                                                  pcetc.charge_basis
+                                             from pcetc_pc_elem_treatment_charge pcetc
+                                            where pcetc.pcth_id =
+                                                  cur_tret_charge.pcth_id
+                                              and nvl(pcetc.range_min_value,
+                                                      vn_min_price) >= vn_min_price
+                                              and nvl(pcetc.range_max_value,
+                                                      100000000) <=
+                                                  vn_min_range
+                                              and nvl(pcetc.position, 'a') <>
+                                                  'Base'
+                                              and pcetc.is_active = 'Y'
+                                              and pcetc.dbd_id = pc_dbd_id)
+                loop
+                  -- if price is in the range take diff of price and max range                 
+                    if   vn_contract_price>=  cur_backward_price.range_min_value  and
+                          vn_contract_price<= cur_backward_price.range_max_value then
+                     vn_range_gap := abs(vn_contract_price -
+                                        cur_backward_price.range_max_value);              
+                  else
+                    -- else diff range               
+                    vn_range_gap := cur_backward_price.range_max_value -
+                                    cur_backward_price.range_min_value;
+                  end if;
+                  if cur_backward_price.charge_basis = 'absolute' then
+                    vn_each_tier_tc_charge := ceil(vn_range_gap /
+                                                   nvl(cur_backward_price.esc_desc_value,
+                                                       1)) *
+                                              cur_backward_price.treatment_charge;
+                  elsif cur_backward_price.charge_basis =
+                        'fractions Pro-Rata' then
+                    vn_each_tier_tc_charge := (vn_range_gap /
+                                              nvl(cur_backward_price.esc_desc_value,
+                                                   1)) *
+                                              cur_backward_price.treatment_charge;
+                  end if;
+                  vn_treatment_charge := vn_treatment_charge -
+                                         vn_each_tier_tc_charge;
+                end loop;
+              elsif vn_contract_price = vn_min_range and
+                    vn_contract_price = vn_max_range then
+                vn_treatment_charge := vn_base_tret_charge;
+                --take the base price only
+              
+              end if;
+            end if;
+          elsif cur_tret_charge.range_type = 'Assay Range' then
+            --Make sure the range for the element is mentation properly.
+            --Only Slab basics charge
             if (cur_tret_charge.position = 'Range Begining' and
                cur_tret_charge.range_max_op = '<=' and
-               vn_contract_price <= cur_tret_charge.range_max_value) or
+               cc.typical <= cur_tret_charge.range_max_value) or
                (cur_tret_charge.position = 'Range Begining' and
                cur_tret_charge.range_max_op = '<' and
-               vn_contract_price < cur_tret_charge.range_max_value) or
+               cc.typical < cur_tret_charge.range_max_value) or
                (cur_tret_charge.position = 'Range End' and
                cur_tret_charge.range_min_op = '>=' and
-               vn_contract_price >= cur_tret_charge.range_min_value) or
+               cc.typical >= cur_tret_charge.range_min_value) or
                (cur_tret_charge.position = 'Range End' and
                cur_tret_charge.range_min_op = '>' and
-               vn_contract_price > cur_tret_charge.range_min_value) or
+               cc.typical > cur_tret_charge.range_min_value) or
                (cur_tret_charge.position is null and
                cur_tret_charge.range_min_op = '>' and
                cur_tret_charge.range_max_op = '<' and
-               vn_contract_price > cur_tret_charge.range_min_value and
-               vn_contract_price < cur_tret_charge.range_max_value) or
+               cc.typical > cur_tret_charge.range_min_value and
+               cc.typical < cur_tret_charge.range_max_value) or
                (cur_tret_charge.position is null and
                cur_tret_charge.range_min_op = '>=' and
                cur_tret_charge.range_max_op = '<' and
-               vn_contract_price >= cur_tret_charge.range_min_value and
-               vn_contract_price < cur_tret_charge.range_max_value) or
+               cc.typical >= cur_tret_charge.range_min_value and
+               cc.typical < cur_tret_charge.range_max_value) or
                (cur_tret_charge.position is null and
                cur_tret_charge.range_min_op = '>' and
                cur_tret_charge.range_max_op = '<=' and
-               vn_contract_price > cur_tret_charge.range_min_value and
-               vn_contract_price <= cur_tret_charge.range_max_value) or
+               cc.typical > cur_tret_charge.range_min_value and
+               cc.typical <= cur_tret_charge.range_max_value) or
                (cur_tret_charge.position is null and
                cur_tret_charge.range_min_op = '>=' and
                cur_tret_charge.range_max_op = '<=' and
-               vn_contract_price >= cur_tret_charge.range_min_value and
-               vn_contract_price <= cur_tret_charge.range_max_value) then
+               cc.typical >= cur_tret_charge.range_min_value and
+               cc.typical <= cur_tret_charge.range_max_value) then
               vn_treatment_charge := cur_tret_charge.treatment_charge;
-              --   dbms_output.put_line(vn_treatment_charge);
-            end if;
-          elsif cur_tret_charge.charge_type = 'Variable' then
-            --Take the base price and its min and max range
-            begin
-              select pcetc.range_min_value,
-                     pcetc.range_max_value,
-                     pcetc.treatment_charge
-                into vn_min_range,
-                     vn_max_range,
-                     vn_base_tret_charge
-                from pcetc_pc_elem_treatment_charge pcetc
-               where pcetc.pcth_id = cur_tret_charge.pcth_id
-                 and pcetc.is_active='Y'
-                 and pcetc.position = 'Base'
-                 and pcetc.charge_type = 'Variable'
-                 and pcetc.dbd_id = pc_dbd_id;
-            exception
-              when no_data_found then
-                vn_max_range        := 0;
-                vn_min_range        := 0;
-                vn_base_tret_charge := 0;
-            end;
-            --according to the contract price , the price tier
-            --will be find out, it may forward or back ward
-            --Both vn_max_range and vn_min_range are same
-            --in case if base
-            if vn_contract_price > vn_max_range then
-              vn_treatment_charge := vn_base_tret_charge;
-              vn_max_price:=f_get_tc_max_value(vn_contract_price,
-                                               pc_dbd_id,
-                                               cur_tret_charge.pcth_id);
-              --go forward for the price range
-              for cur_forward_price in (select pcetc.range_min_value,
-                                               pcetc.range_min_op,
-                                               pcetc.range_max_value,
-                                               pcetc.range_max_op,
-                                               pcetc.esc_desc_value,
-                                               pcetc.esc_desc_unit_id,
-                                               pcetc.treatment_charge,
-                                               pcetc.treatment_charge_unit_id,
-                                               pcetc.charge_basis
-                                          from pcetc_pc_elem_treatment_charge pcetc
-                                         where pcetc.pcth_id =
-                                               cur_tret_charge.pcth_id
-                                           and nvl(pcetc.range_max_value,1000000)<=
-                                                vn_max_price 
-                                           and nvl(pcetc.range_min_value, 0) >=
-                                                vn_min_range                                           
-                                           and nvl(pcetc.position, 'a') <>
-                                               'Base'
-                                           and pcetc.is_active='Y'    
-                                           and pcetc.dbd_id = pc_dbd_id)
-              loop
-                 -- if price is in the range take diff of price and max range
-                if cur_forward_price.range_min_value <= vn_contract_price
-                   and  cur_forward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_forward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_forward_price.range_max_value -
-                                  cur_forward_price.range_min_value;
-                end if;
-                if cur_forward_price.charge_basis = 'absolute' then
-                  vn_each_tier_tc_charge := ceil(vn_range_gap /
-                                                 nvl(cur_forward_price.esc_desc_value,
-                                                     1)) *
-                                            cur_forward_price.treatment_charge;
-                elsif cur_forward_price.charge_basis = 'fractions Pro-Rata' then
-                  vn_each_tier_tc_charge := (vn_range_gap /
-                                            nvl(cur_forward_price.esc_desc_value,
-                                                 1)) *
-                                            cur_forward_price.treatment_charge;
-                end if;
-              
-                vn_treatment_charge := vn_treatment_charge +
-                                       vn_each_tier_tc_charge;
-              end loop;
-            elsif vn_contract_price < vn_min_range then
-              vn_treatment_charge := vn_base_tret_charge;              --
-              vn_min_price:=f_get_tc_min_value(vn_contract_price,
-                                               pc_dbd_id,
-                                               cur_tret_charge.pcth_id);
-              --go back ward for the price range
-              for cur_backward_price in (select nvl(pcetc.range_min_value, 0) range_min_value,
-                                                pcetc.range_min_op,
-                                                pcetc.range_max_value,
-                                                pcetc.range_max_op,
-                                                pcetc.esc_desc_value,
-                                                pcetc.esc_desc_unit_id,
-                                                pcetc.treatment_charge,
-                                                pcetc.treatment_charge_unit_id,
-                                                pcetc.charge_basis
-                                           from pcetc_pc_elem_treatment_charge pcetc
-                                          where pcetc.pcth_id =
-                                                cur_tret_charge.pcth_id
-                                            and nvl(pcetc.range_min_value, 0)>=
-                                                vn_min_price 
-                                            and nvl(pcetc.range_max_value, 100000000) <=
-                                                vn_min_range
-                                            and nvl(pcetc.position, 'a') <>
-                                                'Base'
-                                            and pcetc.is_active='Y'      
-                                            and pcetc.dbd_id = pc_dbd_id)
-              loop             
-                -- if price is in the range take diff of price and max range
-                if cur_backward_price.range_min_value <= vn_contract_price
-                   and  cur_backward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_backward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_backward_price.range_max_value -
-                                  cur_backward_price.range_min_value;
-                end if;
-                if cur_backward_price.charge_basis = 'absolute' then
-                  vn_each_tier_tc_charge := ceil(vn_range_gap /
-                                                 nvl(cur_backward_price.esc_desc_value,
-                                                     1)) *
-                                            cur_backward_price.treatment_charge;
-                elsif cur_backward_price.charge_basis =
-                      'fractions Pro-Rata' then
-                  vn_each_tier_tc_charge := (vn_range_gap /
-                                            nvl(cur_backward_price.esc_desc_value,
-                                                 1)) *
-                                            cur_backward_price.treatment_charge;
-                end if;
-                vn_treatment_charge := vn_treatment_charge -
-                                       vn_each_tier_tc_charge;
-              end loop;
-            elsif vn_contract_price = vn_min_range and
-                  vn_contract_price = vn_max_range then
-              vn_treatment_charge := vn_base_tret_charge;
-              --take the base price only
-            
+              vn_max_range        := cur_tret_charge.range_max_value;
+              vn_min_range        := cur_tret_charge.range_min_value;
+              vn_typical_val      := cc.typical;
+              vc_weight_type      := cur_tret_charge.weight_type;
             end if;
           end if;
-        elsif cur_tret_charge.range_type = 'Assay Range' then
-          --Make sure the range for the element is mentation properly.
-          --Only Slab basics charge
-          if (cur_tret_charge.position = 'Range Begining' and
-             cur_tret_charge.range_max_op = '<=' and
-             cc.typical <= cur_tret_charge.range_max_value) or
-             (cur_tret_charge.position = 'Range Begining' and
-             cur_tret_charge.range_max_op = '<' and
-             cc.typical < cur_tret_charge.range_max_value) or
-             (cur_tret_charge.position = 'Range End' and
-             cur_tret_charge.range_min_op = '>=' and
-             cc.typical >= cur_tret_charge.range_min_value) or
-             (cur_tret_charge.position = 'Range End' and
-             cur_tret_charge.range_min_op = '>' and
-             cc.typical > cur_tret_charge.range_min_value) or
-             (cur_tret_charge.position is null and
-             cur_tret_charge.range_min_op = '>' and
-             cur_tret_charge.range_max_op = '<' and
-             cc.typical > cur_tret_charge.range_min_value and
-             cc.typical < cur_tret_charge.range_max_value) or
-             (cur_tret_charge.position is null and
-             cur_tret_charge.range_min_op = '>=' and
-             cur_tret_charge.range_max_op = '<' and
-             cc.typical >= cur_tret_charge.range_min_value and
-             cc.typical < cur_tret_charge.range_max_value) or
-             (cur_tret_charge.position is null and
-             cur_tret_charge.range_min_op = '>' and
-             cur_tret_charge.range_max_op = '<=' and
-             cc.typical > cur_tret_charge.range_min_value and
-             cc.typical <= cur_tret_charge.range_max_value) or
-             (cur_tret_charge.position is null and
-             cur_tret_charge.range_min_op = '>=' and
-             cur_tret_charge.range_max_op = '<=' and
-             cc.typical >= cur_tret_charge.range_min_value and
-             cc.typical <= cur_tret_charge.range_max_value) then
-            vn_treatment_charge := cur_tret_charge.treatment_charge;
-            vn_max_range        := cur_tret_charge.range_max_value;
-            vn_min_range        := cur_tret_charge.range_min_value;
-            vn_typical_val      := cc.typical;
-            vc_weight_type      := cur_tret_charge.weight_type;
+          --I will exit from the loop when it is tier base ,
+          --as the inner loop is done the calculation.
+          if cur_tret_charge.range_type = 'Price Range' and
+             cur_tret_charge.charge_type = 'Variable' then
+            exit;
           end if;
-        end if;
-        --I will exit from the loop when it is tier base ,
-        --as the inner loop is done the calculation.
-        if cur_tret_charge.range_type = 'Price Range' and
-           cur_tret_charge.charge_type = 'Variable' then
-          exit;
-        end if;
-      end loop;
-      -- dbms_output.put_line('The typical value is  ' || vn_typical_val);
-      -- dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
-      --                     vn_min_range || ' --' || vn_max_range);
-      --  dbms_output.put_line('The Treatment  charge for this assay Range is  ' ||
-      --                    vn_treatment_charge);
+        end loop;
+        -- dbms_output.put_line('The typical value is  ' || vn_typical_val);
+        -- dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
+        --                     vn_min_range || ' --' || vn_max_range);
+        --  dbms_output.put_line('The Treatment  charge for this assay Range is  ' ||
+        --                    vn_treatment_charge);
+      
+        --For TC , it is calculated on item Qty not on the element Qty
+        vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
+                                                                 pc_qty_unit_id,
+                                                                 vc_rc_weight_unit_id,
+                                                                 pn_dry_qty);
+        --Here no need of the typicla value as penalty is on item level   not on the element level
+        --  dbms_output.put_line('The Item  Quantity is   :-- ' ||
+        --                      vn_converted_qty);
+        vn_total_treat_charge := vn_converted_qty * vn_treatment_charge;
+        -- dbms_output.put_line('the treatment  charge is ' ||
+        --                    vn_total_treat_charge);
+      exception
+        when no_data_found then
+          dbms_output.put_line(sqlerrm);
+      end;
     
-      --For TC , it is calculated on item Qty not on the element Qty
-      vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
-                                                               pc_qty_unit_id,
-                                                               vc_rc_weight_unit_id,
-                                                               pn_dry_qty);
-      --Here no need of the typicla value as penalty is on item level   not on the element level
-      --  dbms_output.put_line('The Item  Quantity is   :-- ' ||
-      --                      vn_converted_qty);
-      vn_total_treat_charge := vn_converted_qty * vn_treatment_charge;
-      -- dbms_output.put_line('the treatment  charge is ' ||
-      --                    vn_total_treat_charge);
-    exception
-      when no_data_found then
-        dbms_output.put_line(sqlerrm);
-    end;
-  
-    vn_total_gmr_tc_value := vn_total_gmr_tc_value + vn_total_treat_charge;
-  end loop;
-  pn_total_tc_charge := vn_total_gmr_tc_value;
-  pc_tc_cur_id       := vc_cur_id;
-exception
-  when others then
-    pn_total_tc_charge := -1;
-    pc_tc_cur_id       := null;
-end;
-procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
-                                     pc_inter_grd_ref_no varchar2,
-                                     pc_element_id       varchar2,
-                                     pc_dbd_id           varchar2,
-                                     pn_cp_price         number,
-                                     pc_cp_unit_id       varchar2,
-                                     pc_ash_id           varchar2,
-                                     pn_payable_qty      number,
-                                     pc_qty_unit_id      varchar2,
-                                     pn_total_rc_charge  out number,
-                                     pc_rc_cur_id        out varchar2) is
+      vn_total_gmr_tc_value := vn_total_gmr_tc_value +
+                               vn_total_treat_charge;
+    end loop;
+    pn_total_tc_charge := vn_total_gmr_tc_value;
+    pc_tc_cur_id       := vc_cur_id;
+  exception
+    when others then
+      pn_total_tc_charge := -1;
+      pc_tc_cur_id       := null;
+  end;
+  procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
+                                   pc_inter_grd_ref_no varchar2,
+                                   pc_element_id       varchar2,
+                                   pc_dbd_id           varchar2,
+                                   pn_cp_price         number,
+                                   pc_cp_unit_id       varchar2,
+                                   pc_ash_id           varchar2,
+                                   pn_payable_qty      number,
+                                   pc_qty_unit_id      varchar2,
+                                   pn_total_rc_charge  out number,
+                                   pc_rc_cur_id        out varchar2) is
     vn_refine_charge       number;
     vc_price_unit_id       varchar2(100);
     vn_tot_refine_charge   number;
@@ -2609,26 +2642,26 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                       rm.ratio_name,
                       pqca.element_id,
                       aml.underlying_product_id,
-                  --    grd.qty net_weight,
-                    --  grd.qty_unit_id net_weight_unit,
+                      --    grd.qty net_weight,
+                      --  grd.qty_unit_id net_weight_unit,
                       pci.pcpq_id,
-                     /* case
-                        when rm.ratio_name = '%' then
-                         (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
-                         pqcapd.payable_percentage / 100)
-                        else
-                         (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
-                         pqcapd.payable_percentage)
-                      end payable_qty,*/
+                      /* case
+                                              when rm.ratio_name = '%' then
+                                               (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
+                                               pqcapd.payable_percentage / 100)
+                                              else
+                                               (((grd.qty * asm.dry_wet_qty_ratio / 100)) *
+                                               pqcapd.payable_percentage)
+                                            end payable_qty,*/
                       (case
                         when rm.ratio_name = '%' then
                          ash.net_weight_unit
                         else
                          rm.qty_unit_id_numerator
                       end) payable_qty_unit
-                 from gmr_goods_movement_record      gmr,
-                      grd_goods_record_detail        grd,
---                      sam_stock_assay_mapping        sam,
+                 from gmr_goods_movement_record gmr,
+                      grd_goods_record_detail   grd,
+                      --                      sam_stock_assay_mapping        sam,
                       ash_assay_header               ash,
                       asm_assay_sublot_mapping       asm,
                       pqca_pq_chemical_attributes    pqca,
@@ -2637,13 +2670,13 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                       aml_attribute_master_list      aml,
                       pci_physical_contract_item     pci
                 where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               --   and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-              --    and sam.ash_id = ash.ash_id
+                     --   and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+                     --    and sam.ash_id = ash.ash_id
                   and ash.ash_id = asm.ash_id
-              --    and spq.dbd_id = pc_dbd_id
-              --    and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
-              --    and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-                --  and spq.element_id = pc_element_id
+                     --    and spq.dbd_id = pc_dbd_id
+                     --    and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                     --    and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                     --  and spq.element_id = pc_element_id
                   and ash.ash_id = pc_ash_id
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
@@ -2671,26 +2704,26 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                       rm.ratio_name,
                       pqca.element_id,
                       aml.underlying_product_id,
-                   --   asm.net_weight,
-                    --  asm.net_weight_unit,
+                      --   asm.net_weight,
+                      --  asm.net_weight_unit,
                       pci.pcpq_id,
-                    /*  case
-                        when rm.ratio_name = '%' then
-                         (((dgrd.net_weight * asm.dry_wet_qty_ratio / 100)) *
-                         pqcapd.payable_percentage / 100)
-                        else
-                         (((dgrd.net_weight * asm.dry_wet_qty_ratio / 100)) *
-                         pqcapd.payable_percentage)
-                      end payable_qty,*/
+                      /*  case
+                                              when rm.ratio_name = '%' then
+                                               (((dgrd.net_weight * asm.dry_wet_qty_ratio / 100)) *
+                                               pqcapd.payable_percentage / 100)
+                                              else
+                                               (((dgrd.net_weight * asm.dry_wet_qty_ratio / 100)) *
+                                               pqcapd.payable_percentage)
+                                            end payable_qty,*/
                       (case
                         when rm.ratio_name = '%' then
                          ash.net_weight_unit
                         else
                          rm.qty_unit_id_numerator
                       end) payable_qty_unit
-                 from gmr_goods_movement_record      gmr,
-                      dgrd_delivered_grd             dgrd,
-                    --  sam_stock_assay_mapping        sam,
+                 from gmr_goods_movement_record gmr,
+                      dgrd_delivered_grd        dgrd,
+                      --  sam_stock_assay_mapping        sam,
                       ash_assay_header               ash,
                       asm_assay_sublot_mapping       asm,
                       pqca_pq_chemical_attributes    pqca,
@@ -2698,15 +2731,15 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                       rm_ratio_master                rm,
                       aml_attribute_master_list      aml,
                       pci_physical_contract_item     pci
-                    --  spq_stock_payable_qty          spq
+               --  spq_stock_payable_qty          spq
                 where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-                 -- and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
-             --     and sam.ash_id = ash.ash_id
+                     -- and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
+                     --     and sam.ash_id = ash.ash_id
                   and ash.ash_id = asm.ash_id
-                --  and spq.dbd_id = pc_dbd_id
-                --  and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-                --  and spq.internal_dgrd_ref_no = dgrd.internal_gmr_ref_no
-                 -- and spq.element_id = pc_element_id
+                     --  and spq.dbd_id = pc_dbd_id
+                     --  and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+                     --  and spq.internal_dgrd_ref_no = dgrd.internal_gmr_ref_no
+                     -- and spq.element_id = pc_element_id
                   and ash.ash_id = pc_ash_id
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
@@ -2727,9 +2760,9 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
       --include refine charge from the contract creation.
       --If Yes then take the conract include_ref_charge 
       --else go for the Charge Range
-   --   dbms_output.put_line('payable qty ' || cc.sub_lot_no || ' payable ' ||
-               --            cc.payable_qty || ' qty unit ' ||
-                --           cc.payable_qty_unit);
+      --   dbms_output.put_line('payable qty ' || cc.sub_lot_no || ' payable ' ||
+      --            cc.payable_qty || ' qty unit ' ||
+      --           cc.payable_qty_unit);
     
       begin
         select pcepc.include_ref_charges
@@ -2934,7 +2967,7 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                    vn_contract_price >= cur_ref_charge.range_min_value and
                    vn_contract_price <= cur_ref_charge.range_max_value) then
                   vn_refine_charge := cur_ref_charge.refining_charge;
-               --   dbms_output.put_line(vn_refine_charge);
+                  --   dbms_output.put_line(vn_refine_charge);
                 end if;
               elsif cur_ref_charge.charge_type = 'Variable' then
                 --Take the base price and its min and max range
@@ -2947,7 +2980,7 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                          vn_base_refine_charge
                     from pcerc_pc_elem_refining_charge pcerc
                    where pcerc.pcrh_id = cur_ref_charge.pcrh_id
-                     and pcerc.is_active='Y'
+                     and pcerc.is_active = 'Y'
                      and pcerc.position = 'Base'
                      and pcerc.charge_type = 'Variable'
                      and pcerc.dbd_id = pc_dbd_id;
@@ -2963,12 +2996,14 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                 if vn_contract_price > vn_max_range then
                   --go forward for the price range
                   vn_refine_charge := vn_base_refine_charge;
-                  vn_max_price:=f_get_rc_max_value(vn_contract_price,
-                                                   pc_dbd_id,
-                                                   cur_ref_charge.pcrh_id);
+                  vn_max_price     := f_get_rc_max_value(vn_contract_price,
+                                                         pc_dbd_id,
+                                                         cur_ref_charge.pcrh_id,
+                                                         cur_ref_charge.range_min_op,
+                                                         cur_ref_charge.range_max_op);
                   for cur_forward_price in (select pcerc.range_min_value,
                                                    pcerc.range_min_op,
-                                                   pcerc.range_max_value,
+                                                   nvl(pcerc.range_max_value,vn_max_price)range_max_value, 
                                                    pcerc.range_max_op,
                                                    pcerc.esc_desc_value,
                                                    pcerc.esc_desc_unit_id,
@@ -2977,26 +3012,27 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                    pcerc.charge_basis
                                               from pcerc_pc_elem_refining_charge pcerc
                                              where pcerc.pcrh_id =
-                                                   cur_ref_charge.pcrh_id
-                                               and nvl(pcerc.range_max_value,1000000)<=
-                                                   vn_max_price 
-                                               and nvl(pcerc.range_min_value, 0) >=
-                                                   vn_min_range  
+                                                   cur_ref_charge.pcrh_id                                                                                                  
+                                              and nvl(pcerc.range_min_value,
+                                                      0) >= vn_max_range 
+                                              and nvl(pcerc.range_max_value,
+                                                      vn_max_price) <=vn_max_price          
                                                and nvl(pcerc.position, 'a') <>
                                                    'Base'
-                                               and pcerc.is_active='Y'    
+                                               and pcerc.is_active = 'Y'
                                                and pcerc.dbd_id = pc_dbd_id)
                   loop
-                     -- if price is in the range take diff of price and max range
-                  if cur_forward_price.range_min_value <= vn_contract_price
-                   and  cur_forward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_forward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_forward_price.range_max_value -
-                                  cur_forward_price.range_min_value;
-                   end if;
+                    -- if price is in the range take diff of price and max range                  
+                     if vn_contract_price>=cur_forward_price.range_min_value and
+                       vn_contract_price<=cur_forward_price.range_max_value then
+                      vn_range_gap := abs(vn_contract_price -
+                                        cur_forward_price.range_min_value);                      
+                                          
+                    else
+                      -- else diff range               
+                      vn_range_gap := cur_forward_price.range_max_value -
+                                      cur_forward_price.range_min_value;
+                    end if;
                   
                     if cur_forward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
@@ -3017,11 +3053,13 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                 elsif vn_contract_price < vn_min_range then
                   --go back ward for the price range
                   vn_refine_charge := vn_base_refine_charge;
-                  vn_min_price:=f_get_rc_min_value(vn_contract_price,
-                                                   pc_dbd_id,
-                                                   cur_ref_charge.pcrh_id);
+                  vn_min_price     := f_get_rc_min_value(vn_contract_price,
+                                                         pc_dbd_id,
+                                                         cur_ref_charge.pcrh_id,
+                                                         cur_ref_charge.range_min_op,
+                                                         cur_ref_charge.range_max_op);
                   for cur_backward_price in (select nvl(pcerc.range_min_value,
-                                                        0) range_min_value,
+                                                        vn_min_price) range_min_value,
                                                     pcerc.range_min_op,
                                                     pcerc.range_max_value,
                                                     pcerc.range_max_op,
@@ -3032,26 +3070,27 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                     pcerc.charge_basis
                                                from pcerc_pc_elem_refining_charge pcerc
                                               where pcerc.pcrh_id =
-                                                    cur_ref_charge.pcrh_id
-                                                and nvl(pcerc.range_min_value, 0)>=
-                                                    vn_min_price 
-                                                and nvl(pcerc.range_max_value, 100000000) <=
-                                                    vn_min_range
+                                                    cur_ref_charge.pcrh_id                                              
+                                               and nvl(pcerc.range_min_value,
+                                                      vn_min_price) >= vn_min_price
+                                               and nvl(pcerc.range_max_value,
+                                                      100000000) <=
+                                                  vn_min_range
                                                 and nvl(pcerc.position, 'a') <>
                                                     'Base'
-                                                and pcerc.is_active='Y'      
+                                                and pcerc.is_active = 'Y'
                                                 and pcerc.dbd_id = pc_dbd_id)
                   loop
-                   -- if price is in the range take diff of price and max range 
-                  if cur_backward_price.range_min_value <= vn_contract_price
-                   and  cur_backward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_backward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_backward_price.range_max_value -
-                                  cur_backward_price.range_min_value;
-                  end if;
+                    -- if price is in the range take diff of price and max range 
+                     if   vn_contract_price>=  cur_backward_price.range_min_value  and
+                          vn_contract_price<= cur_backward_price.range_max_value then
+                     vn_range_gap := abs(vn_contract_price -
+                                        cur_backward_price.range_max_value);                       
+                    else
+                      -- else diff range               
+                      vn_range_gap := cur_backward_price.range_max_value -
+                                      cur_backward_price.range_min_value;
+                    end if;
                   
                     if cur_backward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
@@ -3121,11 +3160,11 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
               exit;
             end if;
           end loop;
-       --   dbms_output.put_line('The typical value is  ' || vn_typical_val);
-       --   dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
-        --                       vn_min_range || ' --' || vn_max_range);
-       --   dbms_output.put_line('The Refine charge for this assay Range is  ' ||
-        --                       vn_refine_charge);
+          --   dbms_output.put_line('The typical value is  ' || vn_typical_val);
+          --   dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
+          --                       vn_min_range || ' --' || vn_max_range);
+          --   dbms_output.put_line('The Refine charge for this assay Range is  ' ||
+          --                       vn_refine_charge);
         exception
           when others then
             vn_refine_charge := 0;
@@ -3138,10 +3177,10 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                                    vc_rc_weight_unit_id,
                                                                    pn_payable_qty);
       vn_tot_refine_charge := vn_pricable_qty * vn_refine_charge;
-    --  dbms_output.put_line('The refine  quantity is ' || vn_pricable_qty);
+      --  dbms_output.put_line('The refine  quantity is ' || vn_pricable_qty);
       vn_gmr_rc_charges := vn_gmr_rc_charges + vn_tot_refine_charge;
-    --  dbms_output.put_line('The refine  Amount is ' ||
-       --                    vn_tot_refine_charge);
+      --  dbms_output.put_line('The refine  Amount is ' ||
+    --                    vn_tot_refine_charge);
     end loop;
     pn_total_rc_charge := vn_gmr_rc_charges;
     pc_rc_cur_id       := vc_cur_id;
@@ -3152,15 +3191,15 @@ procedure sp_get_gmr_rc_by_assay(pc_inter_gmr_ref_no varchar2,
       vc_price_unit_id     := null;
     
   end;
-procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
-                                      pc_inter_grd_ref_no varchar2,
-                                      pc_dbd_id           varchar2,
-                                      pc_element_id       varchar2,
-                                      pc_ash_id           varchar2,
-                                      pn_dry_qty          number,
-                                      pc_qty_unit_id      varchar2,
-                                      pn_total_pc_charge  out number,
-                                      pc_pc_cur_id        out varchar2) is
+  procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
+                                   pc_inter_grd_ref_no varchar2,
+                                   pc_dbd_id           varchar2,
+                                   pc_element_id       varchar2,
+                                   pc_ash_id           varchar2,
+                                   pn_dry_qty          number,
+                                   pc_qty_unit_id      varchar2,
+                                   pn_total_pc_charge  out number,
+                                   pc_pc_cur_id        out varchar2) is
     vn_penalty_charge      number;
     vc_penalty_weight_type varchar2(20);
     vn_max_range           number;
@@ -3190,9 +3229,9 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                       pqca.element_id,
                       aml.underlying_product_id,
                       pci.pcpq_id
-                 from gmr_goods_movement_record   gmr,
-                      grd_goods_record_detail     grd,
-                    --  sam_stock_assay_mapping     sam,
+                 from gmr_goods_movement_record gmr,
+                      grd_goods_record_detail   grd,
+                      --  sam_stock_assay_mapping     sam,
                       ash_assay_header            ash,
                       asm_assay_sublot_mapping    asm,
                       pqca_pq_chemical_attributes pqca,
@@ -3200,8 +3239,8 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                       aml_attribute_master_list   aml,
                       pci_physical_contract_item  pci
                 where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-             --     and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-                --  and sam.ash_id = ash.ash_id
+                     --     and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+                     --  and sam.ash_id = ash.ash_id
                   and ash.ash_id = asm.ash_id
                   and asm.asm_id = pqca.asm_id
                   and rm.ratio_id = pqca.unit_of_measure
@@ -3215,9 +3254,9 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                       pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
                   and grd.internal_grd_ref_no = pc_inter_grd_ref_no
-               --   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-                 -- and spq.element_id = pqca.element_id
-                --  and spq.dbd_id = pc_dbd_id
+                     --   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                     -- and spq.element_id = pqca.element_id
+                     --  and spq.dbd_id = pc_dbd_id
                   and ash.ash_id = pc_ash_id)
     loop
       vn_element_pc_charge := 0;
@@ -3318,7 +3357,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
             vn_typical_val    := cc.typical;
           
             vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
-                                                                  pc_qty_unit_id,
+                                                                     pc_qty_unit_id,
                                                                      cur_pc_charge.weight_unit_id,
                                                                      pn_dry_qty);
           
@@ -3427,7 +3466,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
     when others then
       pn_total_pc_charge := -1;
       pc_pc_cur_id       := null;
-  end;  
+  end;
   procedure sp_get_gmr_refine_charge(pc_inter_gmr_ref_no varchar2,
                                      pc_inter_grd_ref_no varchar2,
                                      pc_element_id       varchar2,
@@ -3506,7 +3545,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                   and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
                   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                   and spq.element_id = pc_element_id
-                  and spq.weg_avg_pricing_assay_id = ash.ash_id
+                  and spq.weg_avg_pricing_assay_id= ash.ash_id
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
                   and rm.ratio_id = pqca.unit_of_measure
@@ -3569,7 +3608,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                   and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                   and spq.internal_dgrd_ref_no = dgrd.internal_gmr_ref_no
                   and spq.element_id = pc_element_id
-                   and spq.weg_avg_pricing_assay_id = ash.ash_id
+                  and spq.weg_avg_pricing_assay_id = ash.ash_id
                   and asm.asm_id = pqca.asm_id
                   and pqca.pqca_id = pqcapd.pqca_id
                   and rm.ratio_id = pqca.unit_of_measure
@@ -3589,9 +3628,9 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
       --include refine charge from the contract creation.
       --If Yes then take the conract include_ref_charge 
       --else go for the Charge Range
-   --   dbms_output.put_line('payable qty ' || cc.sub_lot_no || ' payable ' ||
-               --            cc.payable_qty || ' qty unit ' ||
-                --           cc.payable_qty_unit);
+      --   dbms_output.put_line('payable qty ' || cc.sub_lot_no || ' payable ' ||
+      --            cc.payable_qty || ' qty unit ' ||
+      --           cc.payable_qty_unit);
     
       begin
         select pcepc.include_ref_charges
@@ -3796,7 +3835,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                    vn_contract_price >= cur_ref_charge.range_min_value and
                    vn_contract_price <= cur_ref_charge.range_max_value) then
                   vn_refine_charge := cur_ref_charge.refining_charge;
-               --   dbms_output.put_line(vn_refine_charge);
+                  --   dbms_output.put_line(vn_refine_charge);
                 end if;
               elsif cur_ref_charge.charge_type = 'Variable' then
                 --Take the base price and its min and max range
@@ -3810,7 +3849,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                     from pcerc_pc_elem_refining_charge pcerc
                    where pcerc.pcrh_id = cur_ref_charge.pcrh_id
                      and pcerc.position = 'Base'
-                     and pcerc.is_active='Y'
+                     and pcerc.is_active = 'Y'
                      and pcerc.charge_type = 'Variable'
                      and pcerc.dbd_id = pc_dbd_id;
                 exception
@@ -3825,12 +3864,14 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                 if vn_contract_price > vn_max_range then
                   --go forward for the price range
                   vn_refine_charge := vn_base_refine_charge;
-                  vn_max_price:=f_get_rc_max_value(vn_contract_price,
-                                                   pc_dbd_id,
-                                                   cur_ref_charge.pcrh_id);
+                  vn_max_price     := f_get_rc_max_value(vn_contract_price,
+                                                         pc_dbd_id,
+                                                         cur_ref_charge.pcrh_id,
+                                                         cur_ref_charge.range_min_op,
+                                                         cur_ref_charge.range_max_op);
                   for cur_forward_price in (select pcerc.range_min_value,
                                                    pcerc.range_min_op,
-                                                   pcerc.range_max_value,
+                                                   nvl(pcerc.range_max_value,vn_max_price) range_max_value,
                                                    pcerc.range_max_op,
                                                    pcerc.esc_desc_value,
                                                    pcerc.esc_desc_unit_id,
@@ -3840,24 +3881,24 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                               from pcerc_pc_elem_refining_charge pcerc
                                              where pcerc.pcrh_id =
                                                    cur_ref_charge.pcrh_id
-                                               and nvl(pcerc.range_max_value,1000000)<=
-                                                   vn_max_price 
-                                                and nvl(pcerc.range_min_value, 0) >=
-                                                    vn_min_range 
+                                               and nvl(pcerc.range_min_value,
+                                                      0) >= vn_max_range 
+                                               and nvl(pcerc.range_max_value,
+                                                      vn_max_price) <=vn_max_price         
                                                and nvl(pcerc.position, 'a') <>
                                                    'Base'
-                                               and pcerc.is_active='Y'    
+                                               and pcerc.is_active = 'Y'
                                                and pcerc.dbd_id = pc_dbd_id)
                   loop
-                     -- if price is in the range take diff of price and max range
-                   if cur_forward_price.range_min_value <= vn_contract_price
-                   and  cur_forward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_forward_price.range_max_value);
-                  else  
-                  -- else diff range               
-                  vn_range_gap := cur_forward_price.range_max_value -
-                                  cur_forward_price.range_min_value;
+                    -- if price is in the range take diff of price and max range
+                    if vn_contract_price>=cur_forward_price.range_min_value and
+                       vn_contract_price<=cur_forward_price.range_max_value then
+                      vn_range_gap := abs(vn_contract_price -
+                                        cur_forward_price.range_min_value);  
+                    else
+                      -- else diff range               
+                      vn_range_gap := cur_forward_price.range_max_value -
+                                      cur_forward_price.range_min_value;
                     end if;
                   
                     if cur_forward_price.charge_basis = 'absolute' then
@@ -3879,11 +3920,13 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                 elsif vn_contract_price < vn_min_range then
                   --go back ward for the price range
                   vn_refine_charge := vn_base_refine_charge;
-                  vn_min_price:=f_get_rc_min_value(vn_contract_price,
-                                                   pc_dbd_id,
-                                                   cur_ref_charge.pcrh_id);
+                  vn_min_price     := f_get_rc_min_value(vn_contract_price,
+                                                         pc_dbd_id,
+                                                         cur_ref_charge.pcrh_id,
+                                                         cur_ref_charge.range_min_op,
+                                                         cur_ref_charge.range_max_op);
                   for cur_backward_price in (select nvl(pcerc.range_min_value,
-                                                        0) range_min_value,
+                                                        vn_min_price) range_min_value,
                                                     pcerc.range_min_op,
                                                     pcerc.range_max_value,
                                                     pcerc.range_max_op,
@@ -3895,25 +3938,26 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                from pcerc_pc_elem_refining_charge pcerc
                                               where pcerc.pcrh_id =
                                                     cur_ref_charge.pcrh_id
-                                                and nvl(pcerc.range_min_value, 0)>=
-                                                    vn_min_price 
-                                                and nvl(pcerc.range_max_value, 100000000) <=
-                                                    vn_min_range
+                                                and nvl(pcerc.range_min_value,
+                                                      vn_min_price) >= vn_min_price
+                                                and nvl(pcerc.range_max_value,
+                                                      100000000) <=
+                                                  vn_min_range    
                                                 and nvl(pcerc.position, 'a') <>
                                                     'Base'
-                                                and pcerc.is_active='Y'     
+                                                and pcerc.is_active = 'Y'
                                                 and pcerc.dbd_id = pc_dbd_id)
                   loop
                     -- if price is in the range take diff of price and max range
-                    if cur_backward_price.range_min_value <= vn_contract_price
-                   and  cur_backward_price.range_max_value>vn_contract_price then
-                   vn_range_gap := abs(vn_contract_price -
-                                  cur_backward_price.range_max_value);
-                   else  
-                  -- else diff range               
-                  vn_range_gap := cur_backward_price.range_max_value -
-                                  cur_backward_price.range_min_value;
-                   end if;
+                    if   vn_contract_price>=  cur_backward_price.range_min_value  and
+                          vn_contract_price<= cur_backward_price.range_max_value then
+                     vn_range_gap := abs(vn_contract_price -
+                                        cur_backward_price.range_max_value);                   
+                    else
+                      -- else diff range               
+                      vn_range_gap := cur_backward_price.range_max_value -
+                                      cur_backward_price.range_min_value;
+                    end if;
                     if cur_backward_price.charge_basis = 'absolute' then
                       vn_each_tier_rc_charge := ceil(vn_range_gap /
                                                      nvl(cur_backward_price.esc_desc_value,
@@ -3982,11 +4026,11 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
               exit;
             end if;
           end loop;
-       --   dbms_output.put_line('The typical value is  ' || vn_typical_val);
-       --   dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
-        --                       vn_min_range || ' --' || vn_max_range);
-       --   dbms_output.put_line('The Refine charge for this assay Range is  ' ||
-        --                       vn_refine_charge);
+          --   dbms_output.put_line('The typical value is  ' || vn_typical_val);
+          --   dbms_output.put_line('The Assay Range Applicable for this typical is ' ||
+          --                       vn_min_range || ' --' || vn_max_range);
+          --   dbms_output.put_line('The Refine charge for this assay Range is  ' ||
+          --                       vn_refine_charge);
         exception
           when others then
             vn_refine_charge := 0;
@@ -3999,10 +4043,10 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                                                                    vc_rc_weight_unit_id,
                                                                    cc.payable_qty);
       vn_tot_refine_charge := vn_pricable_qty * vn_refine_charge;
-    --  dbms_output.put_line('The refine  quantity is ' || vn_pricable_qty);
+      --  dbms_output.put_line('The refine  quantity is ' || vn_pricable_qty);
       vn_gmr_rc_charges := vn_gmr_rc_charges + vn_tot_refine_charge;
-    --  dbms_output.put_line('The refine  Amount is ' ||
-       --                    vn_tot_refine_charge);
+      --  dbms_output.put_line('The refine  Amount is ' ||
+    --                    vn_tot_refine_charge);
     end loop;
     pn_total_rc_charge := vn_gmr_rc_charges;
     pc_rc_cur_id       := vc_cur_id;
@@ -4013,7 +4057,7 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
       vc_price_unit_id     := null;
     
   end;
-  
+
   procedure sp_get_gmr_penalty_charge(pc_inter_gmr_ref_no varchar2,
                                       pc_inter_grd_ref_no varchar2,
                                       pc_dbd_id           varchar2,
@@ -4052,9 +4096,9 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                       grd.qty * asm.dry_wet_qty_ratio / 100 dry_weight,
                       grd.qty_unit_id net_weight_unit,
                       pci.pcpq_id
-                 from gmr_goods_movement_record   gmr,
-                      grd_goods_record_detail     grd,
-                     -- sam_stock_assay_mapping     sam,
+                 from gmr_goods_movement_record gmr,
+                      grd_goods_record_detail   grd,
+                      -- sam_stock_assay_mapping     sam,
                       ash_assay_header            ash,
                       asm_assay_sublot_mapping    asm,
                       pqca_pq_chemical_attributes pqca,
@@ -4063,8 +4107,8 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                       pci_physical_contract_item  pci,
                       v_spq_latest_assay          spq
                 where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                --  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-                --  and sam.ash_id = ash.ash_id
+                     --  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+                     --  and sam.ash_id = ash.ash_id
                   and ash.ash_id = asm.ash_id
                   and asm.asm_id = pqca.asm_id
                   and rm.ratio_id = pqca.unit_of_measure
@@ -4079,9 +4123,9 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
                   and grd.internal_grd_ref_no = pc_inter_grd_ref_no
                   and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-                 -- and spq.element_id = pqca.element_id
+                     -- and spq.element_id = pqca.element_id
                   and spq.dbd_id = pc_dbd_id
-                   and spq.weg_avg_pricing_assay_id = ash.ash_id)
+                  and spq.weg_avg_pricing_assay_id = ash.ash_id)
     loop
       vn_element_pc_charge := 0;
       vn_tier_penalty      := 0;
@@ -4829,89 +4873,192 @@ procedure sp_get_gmr_pc_by_assay(pc_inter_gmr_ref_no varchar2,
     end loop;
     pn_premium := vn_total_premium;
   end;
- function f_get_tc_min_value(pn_price  in number,
-                           pc_dbd_id in varchar2,
-                           pn_pcth_id   in number) return number as
-   vn_min_vale number;
-   
- begin
- 
-   select nvl(pcetc.range_min_value,pn_price)
-     into vn_min_vale
-     from pcetc_pc_elem_treatment_charge pcetc
-    where pcetc.pcth_id = pn_pcth_id
-      and nvl(pcetc.position, 'a') <> 'Base'
-      and pcetc.is_active = 'Y'
-      and nvl(pcetc.range_min_value,10000000) <= pn_price
-      and pcetc.range_max_value > pn_price
-      and pcetc.dbd_id = pc_dbd_id;
-      return(vn_min_vale);
+  function f_get_tc_min_value(pn_price        in number,
+                              pc_dbd_id       in varchar2,
+                              pn_pcth_id      in number,
+                              pc_min_range_op in varchar2,
+                              pc_max_range_op in varchar2) return number as
+    vn_min_vale number;
+  
+  begin
+    select nvl(pcetc.range_min_value, pn_price)
+      into vn_min_vale
+      from pcetc_pc_elem_treatment_charge pcetc
+     where pcetc.pcth_id = pn_pcth_id
+       and nvl(pcetc.position, 'a') <> 'Base'
+       and pcetc.is_active = 'Y'
+       and 'TRUE' =
+           (case when pc_min_range_op = '>' and pc_max_range_op = '<' and
+            (pn_price > nvl(pcetc.range_min_value, 0) and
+            pn_price < nvl(pcetc.range_max_value, 100000000)) then 'TRUE'                      
+            when pc_min_range_op = '>' and pc_max_range_op = '<=' and
+            (pn_price > nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE'                       
+            when pc_min_range_op = '>' and pc_max_range_op is null and
+            (pn_price > nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE'                       
+            when pc_min_range_op = '>=' and pc_max_range_op = '<' and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price < nvl(pcetc.range_max_value, 10000000)) then 'TRUE'                       
+            when pc_min_range_op = '>=' and pc_max_range_op = '<=' and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE'                       
+            when pc_min_range_op = '>=' and pc_max_range_op is null and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE'                      
+            when pc_min_range_op is null and pc_max_range_op = '<' and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price < nvl(pcetc.range_max_value, 10000000)) then 'TRUE'                       
+            when pc_min_range_op is null and pc_max_range_op = '<=' and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE'
+             else
+            'FALSE' end)
+       and pcetc.dbd_id = pc_dbd_id;
+    return(vn_min_vale);
   exception
-  when others then
-  vn_min_vale:=null;
- end;
- function f_get_tc_max_value(pn_price  in number,
-                           pc_dbd_id in varchar2,
-                           pn_pcth_id   in number) return number as
-   vn_max_vale number;
-   
- begin
- 
-   select nvl(pcetc.range_max_value,pn_price)
-     into vn_max_vale
-     from pcetc_pc_elem_treatment_charge pcetc
-    where pcetc.pcth_id = pn_pcth_id
-      and nvl(pcetc.position, 'a') <> 'Base'
-      and pcetc.is_active = 'Y'
-      and pcetc.range_min_value <= pn_price
-      and nvl(pcetc.range_max_value,10000000) > pn_price
-      and pcetc.dbd_id = pc_dbd_id;
-      return(vn_max_vale);
+    when others then
+    return null;     
+  end;
+  function f_get_tc_max_value(pn_price        in number,
+                              pc_dbd_id       in varchar2,
+                              pn_pcth_id      in number,
+                              pc_min_range_op in varchar2,
+                              pc_max_range_op in varchar2) return number as
+    vn_max_vale number;
+  
+  begin
+  
+    select nvl(pcetc.range_max_value, pn_price)
+      into vn_max_vale
+      from pcetc_pc_elem_treatment_charge pcetc
+     where pcetc.pcth_id = pn_pcth_id
+       and nvl(pcetc.position, 'a') <> 'Base'
+       and pcetc.is_active = 'Y'
+       and 'TRUE' =
+           (case when pc_min_range_op = '>' and pc_max_range_op = '<' and
+            (pn_price > nvl(pcetc.range_min_value, 0) and
+            pn_price < nvl(pcetc.range_max_value, 100000000)) then 'TRUE'           
+            when pc_min_range_op = '>' and pc_max_range_op = '<=' and
+            (pn_price > nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>' and pc_max_range_op is null and
+            (pn_price > nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>=' and pc_max_range_op = '<' and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price < nvl(pcetc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>=' and pc_max_range_op = '<=' and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>=' and pc_max_range_op is null and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op is null and pc_max_range_op = '<' and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price < nvl(pcetc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op is null and pc_max_range_op = '<=' and
+            (pn_price >= nvl(pcetc.range_min_value, 0) and
+            pn_price <= nvl(pcetc.range_max_value, 10000000)) then 'TRUE' else
+            'FALSE' end)
+       and pcetc.dbd_id = pc_dbd_id;
+    return(vn_max_vale);
   exception
-  when others then
-  vn_max_vale:=null;
- end;
- function f_get_rc_min_value(pn_price  in number,
-                           pc_dbd_id in varchar2,
-                           pn_pcrh_id   in number) return number as
-   vn_min_vale number;
-   
- begin
- 
-   select nvl(pcerc.range_min_value,pn_price)
-     into vn_min_vale
-     from pcerc_pc_elem_refining_charge pcerc
-    where pcerc.pcrh_id = pn_pcrh_id
-      and nvl(pcerc.position, 'a') <> 'Base'
-      and pcerc.is_active = 'Y'
-      and nvl(pcerc.range_min_value,10000000) <= pn_price
-      and pcerc.range_max_value > pn_price
-      and pcerc.dbd_id = pc_dbd_id;
-      return(vn_min_vale);
+    when others then
+     return null;
+  end;
+  function f_get_rc_min_value(pn_price        in number,
+                              pc_dbd_id       in varchar2,
+                              pn_pcrh_id      in number,
+                              pc_min_range_op in varchar2,
+                              pc_max_range_op in varchar2) return number as
+    vn_min_vale number;
+  
+  begin
+    select nvl(pcerc.range_min_value, pn_price)
+      into vn_min_vale
+      from pcerc_pc_elem_refining_charge pcerc
+     where pcerc.pcrh_id = pn_pcrh_id
+       and nvl(pcerc.position, 'a') <> 'Base'
+       and pcerc.is_active = 'Y'
+       and 'TRUE' =
+           (case when pc_min_range_op = '>' and pc_max_range_op = '<' and
+            (pn_price > nvl(pcerc.range_min_value, 0) and
+            pn_price < nvl(pcerc.range_max_value, 100000000)) then 'TRUE'           
+            when pc_min_range_op = '>' and pc_max_range_op = '<=' and
+            (pn_price > nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>' and pc_max_range_op is null and
+            (pn_price > nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>=' and pc_max_range_op = '<' and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price < nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>=' and pc_max_range_op = '<=' and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>=' and pc_max_range_op is null and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op is null and pc_max_range_op = '<' and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price < nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op is null and pc_max_range_op = '<=' and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE' else
+            'FALSE' end)
+       and pcerc.dbd_id = pc_dbd_id;
+    return(vn_min_vale);
   exception
-  when others then
-  vn_min_vale:=null;
- end;
- function f_get_rc_max_value(pn_price  in number,
-                           pc_dbd_id in varchar2,
-                           pn_pcrh_id   in number) return number as
-   vn_max_vale number;
-   
- begin
- 
-   select nvl(pcerc.range_max_value,pn_price)
-     into vn_max_vale
-     from pcerc_pc_elem_refining_charge pcerc
-    where pcerc.pcrh_id = pn_pcrh_id
-      and nvl(pcerc.position, 'a') <> 'Base'
-      and pcerc.is_active = 'Y'
-      and pcerc.range_min_value <= pn_price
-      and nvl(pcerc.range_max_value,10000000) > pn_price
-      and pcerc.dbd_id = pc_dbd_id;
-      return(vn_max_vale);
+    when others then
+     return null;
+  end;
+  function f_get_rc_max_value(pn_price        in number,
+                              pc_dbd_id       in varchar2,
+                              pn_pcrh_id      in number,
+                              pc_min_range_op in varchar2,
+                              pc_max_range_op in varchar2) return number as
+    vn_max_vale number;
+  
+  begin
+  
+    select nvl(pcerc.range_max_value, pn_price)
+      into vn_max_vale
+      from pcerc_pc_elem_refining_charge pcerc
+     where pcerc.pcrh_id = pn_pcrh_id
+       and nvl(pcerc.position, 'a') <> 'Base'
+       and pcerc.is_active = 'Y'
+       and 'TRUE' =
+           (case when pc_min_range_op = '>' and pc_max_range_op = '<' and
+            (pn_price > nvl(pcerc.range_min_value, 0) and
+            pn_price < nvl(pcerc.range_max_value, 100000000)) then 'TRUE'           
+            when pc_min_range_op = '>' and pc_max_range_op = '<=' and
+            (pn_price > nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>' and pc_max_range_op is null and
+            (pn_price > nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>=' and pc_max_range_op = '<' and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price < nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>=' and pc_max_range_op = '<=' and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op = '>=' and pc_max_range_op is null and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op is null and pc_max_range_op = '<' and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price < nvl(pcerc.range_max_value, 10000000)) then 'TRUE'           
+            when pc_min_range_op is null and pc_max_range_op = '<=' and
+            (pn_price >= nvl(pcerc.range_min_value, 0) and
+            pn_price <= nvl(pcerc.range_max_value, 10000000)) then 'TRUE' else
+            'FALSE' end)
+       and pcerc.dbd_id = pc_dbd_id;
+    return(vn_max_vale);
   exception
-  when others then
-  vn_max_vale:=null;
- end;
+    when others then
+      return null;
+  end;
 end; 
 /
