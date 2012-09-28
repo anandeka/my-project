@@ -1,5 +1,3 @@
-DROP VIEW V_BI_DERIVATIVE_BOOKING;
-
 CREATE OR REPLACE VIEW v_bi_derivative_booking 
 AS
 select cpc.profit_center_id,
@@ -48,8 +46,24 @@ select cpc.profit_center_id,
                                4) amont_in_base_cur,
        cm_base.cur_id as base_cur_id,
        cm_base.cur_code base_cur_code,
-       dcod.clearer_comm_amt commission_value,
-       cm_commission.cur_code commission_value_ccy,
+       (case
+         when dcod.clearer_comm_amt is null or
+              nvl(dcod.clearer_comm_amt, 0) = 0 then
+          (case
+         when dt.clearer_comm_amt is not null then
+          round((dt.clearer_comm_amt / dt.total_quantity) *
+                dcod.quantity_closed,
+                4)
+         else
+          0
+       end) else dt.clearer_comm_amt end) commission_value,
+       (case
+         when dcod.clearer_comm_amt is null or
+              nvl(dcod.clearer_comm_amt, 0) = 0 then
+          cm_comm_dt.cur_code
+         else
+          cm_commission.cur_code
+       end) commission_value_ccy,
        (gab.firstname || ' ' || gab.lastname) created_by,
        bst.attribute_value_1 attribute1,
        bst.attribute_value_2 attribute2,
@@ -77,8 +91,11 @@ select cpc.profit_center_id,
        ak_corporate_user           created_akc,
        dtm_deal_type_master        dtm,
        cm_currency_master          cm_commission,
+       cm_currency_master          cm_comm_dt,
        gab_globaladdressbook       gab,
-       v_bi_strategy_attribute     bst
+       bct_broker_commission_types bct,
+       
+       v_bi_strategy_attribute bst
  where dt.corporate_id = ak.corporate_id
    and dt.profit_center_id = cpc.profit_center_id
    and dt.dr_id = drm.dr_id(+)
@@ -100,5 +117,7 @@ select cpc.profit_center_id,
    and dt.created_by = created_akc.user_id
    and dt.deal_type_id = dtm.deal_type_id
    and dcod.clearer_comm_cur_id = cm_commission.cur_id(+)
+   and dt.clearer_comm_type_id = bct.commission_type_id(+)
+   and bct.currency_id = cm_comm_dt.cur_id(+)
    and created_akc.gabid = gab.gabid
    and dt.strategy_id = bst.startegy_id(+)
