@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1097
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  26-Sep-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 104203
+Date: 10:06:14 AM, Wednesday, September 26, 2012
+Message:
+Purchase Accrual TC/RC/Penalty Updating for Calculated Section fixed to do by Stock Instead of GMR
+Purchase Accrual Invoiced Section Data Should be restricted to GMRs which are not final invoiced as Difference Section was showing data,
+though Calcualted section was restricted for this condition
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
