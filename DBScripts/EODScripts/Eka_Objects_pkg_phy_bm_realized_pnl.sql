@@ -23,6 +23,8 @@ create or replace package "PKG_PHY_BM_REALIZED_PNL" is
                                        pc_user_id             varchar2,
                                        pc_previous_process_id varchar2);
 end; 
+
+ 
 /
 create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
   procedure sp_calc_phy_realized_today(pc_corporate_id varchar2,
@@ -2329,8 +2331,6 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
       -- Calcualte the New Quality Premium (Sales from Contract and Purchase from INVS)
       --
       vc_error_msg := '12';
-    
-      if cur_realized_rows.contract_type = 'S' then
         pkg_metals_general.sp_quality_premium_fw_rate(cur_realized_rows.internal_contract_item_ref_no,
                                                       pc_corporate_id,
                                                       pd_trade_date,
@@ -2348,23 +2348,15 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
       
         vn_quality_premium := round((vn_quality_premium_per_unit *
                                     vn_qty_in_base_qty_unit_id),
-                                    2);
-      else
-        vn_quality_premium_per_unit := cur_realized_rows.quality_premium_per_unit;
-        vn_quality_premium          := vn_quality_premium_per_unit *
-                                       vn_qty_in_base_qty_unit_id;
-        vc_contract_qp_fw_exch_rate := cur_realized_rows.contract_qp_fw_exch_rate;
-      end if;
+                                    2);     
       vc_error_msg := '13';
     
       --
       -- Calcualte the new  Product Premium (Sales from Contract and Purchase from INVS)
-      --
-      if cur_realized_rows.contract_type = 'S' then
+      --     
         if cur_realized_rows.product_premium <> 0 then
           if cur_realized_rows.product_premium_unit_id <>
-             cur_realized_rows.base_price_unit_id then
-          
+             cur_realized_rows.base_price_unit_id then          
             --
             -- Get the Main Currency of the Delivery Premium Price Unit
             --
@@ -2424,13 +2416,6 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
           vn_product_premium          := 0;
           vn_product_premium_per_unit := 0;
         end if;
-      else
-        vn_product_premium_per_unit := cur_realized_rows.product_premium_per_unit;
-        vn_product_premium          := vn_product_premium_per_unit *
-                                       vn_qty_in_base_qty_unit_id;
-        vc_contract_pp_fw_exch_rate := cur_realized_rows.contract_pp_fw_exch_rate;
-      end if;
-    
       vc_error_msg := '14';
     
       --
@@ -2441,30 +2426,19 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
     
       --
       -- Pricing Main Currency Details
-      --
-      if cur_realized_rows.contract_type = 'S' then
+      --    
         pkg_general.sp_get_main_cur_detail(vc_price_unit_cur_id,
                                            vc_price_cur_id,
                                            vc_price_cur_code,
                                            vn_cont_price_cur_id_factor,
                                            vn_cont_price_cur_decimals);
-      else
-        -- It is from COG and has to be in Base Currency
-        vc_price_cur_id             := cur_realized_rows.base_cur_id;
-        vc_price_cur_code           := cur_realized_rows.base_cur_code;
-        vn_cont_price_cur_id_factor := 1;
-        vn_cont_price_cur_decimals  := 2;
-      end if;
+     
+   
       vc_error_msg := '15';
       --  
       -- Contratc value in base cur = Price Per Unit in Base * Qty in Base
       -- 
-      if cur_realized_rows.contract_type = 'P' then
-        vn_contract_value_in_price_cur := vn_qty_in_base_qty_unit_id *
-                                          vn_contract_price;
-        vn_contract_value_in_base_cur  := vn_contract_value_in_price_cur;
-      
-      else
+     
         vc_error_msg := '16';
         --
         -- Contract Value in Price Currency
@@ -2476,11 +2450,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
         --
         -- Get the Contract Value in Base Currency
         --
-        vc_error_msg := '17';
-        if cur_realized_rows.contract_type = 'P' then
-          vc_price_to_base_fw_rate      := cur_realized_rows.price_to_base_fw_exch_rate;
-          vn_price_to_base_fw_exch_rate := cur_realized_rows.price_to_base_fw_exch_rate_act;
-        else
+        vc_error_msg := '17';       
           pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
                                                   pd_trade_date,
                                                   cur_realized_rows.payment_due_date,
@@ -2518,8 +2488,6 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                                         vn_price_to_base_fw_exch_rate || ' ' ||
                                         vc_price_cur_code;
           end if;
-        
-        end if;
       
         vc_error_msg := '18';
       
@@ -2529,7 +2497,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                                          vn_price_to_base_fw_exch_rate *
                                          vn_qty_in_base_qty_unit_id;
       
-      end if;
+     -- end if;
       vc_error_msg := '19';
       --
       -- Total COG/Sale Value = Contract Value + Quality Premium + Product Premium + Secondary Cost
@@ -2981,12 +2949,18 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
              prd.delivery_item_no,
              prd.contract_invoice_value,
              prd.internal_stock_ref_no,
-             prd.sales_gmr_ref_no
+             prd.sales_gmr_ref_no,
+             (case when cipd.payment_due_date<pd_trade_date then
+             pd_trade_date
+             else
+             cipd.payment_due_date
+             end) payment_due_date 
         from prd_physical_realized_daily    prd,
              cipd_contract_item_price_daily cipd,
              agh_alloc_group_header         agh,
              gmr_goods_movement_record      gmr,
-             gpd_gmr_price_daily            gpd
+             gpd_gmr_price_daily            gpd,
+             tdc_trade_date_closure         tdc
        where (prd.sales_internal_gmr_ref_no, prd.int_alloc_group_id,
               prd.trade_date) in
              (select prd.sales_internal_gmr_ref_no,
@@ -3017,6 +2991,9 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
              ('Realized Today', 'Previously Realized PNL Change')
          and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
          and gmr.process_id = gpd.process_id(+)
+         and tdc.corporate_id = pc_corporate_id
+         and tdc.process_id = prd.process_id
+         and tdc.process = pc_process
       -- For Variable contracts only
       union
       select prd.corporate_id,
@@ -3102,12 +3079,18 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
              prd.delivery_item_no,
              prd.contract_invoice_value,
              prd.internal_stock_ref_no,
-             prd.sales_gmr_ref_no
+             prd.sales_gmr_ref_no,
+             (case when cipd.payment_due_date<pd_trade_date then
+             pd_trade_date
+             else
+             cipd.payment_due_date
+             end) payment_due_date 
         from prd_physical_realized_daily    prd,
              cipd_contract_item_price_daily cipd,
              agh_alloc_group_header         agh,
              gmr_goods_movement_record      gmr,
-             gpd_gmr_price_daily            gpd
+             gpd_gmr_price_daily            gpd,
+             tdc_trade_date_closure         tdc
        where (prd.sales_internal_gmr_ref_no, prd.int_alloc_group_id,
               prd.trade_date) in
              (select prd.sales_internal_gmr_ref_no,
@@ -3137,7 +3120,10 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
          and prd.realized_type in
              ('Realized Today', 'Previously Realized PNL Change')
          and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
-         and gmr.process_id = gpd.process_id(+);
+         and gmr.process_id = gpd.process_id(+)
+         and tdc.corporate_id = pc_corporate_id
+         and tdc.process_id = prd.process_id
+         and tdc.process = pc_process;
   
     vobj_error_log                 tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count             number := 1;
@@ -3156,6 +3142,13 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
     vn_price_to_base_fw_rate       number;
     vc_price_to_base_fw_rate       varchar2(100);
     vn_forward_points              number;
+    vc_real_price_cur_id           varchar2(10);
+    vc_real_price_cur_code         varchar2(10);          
+    vn_real_price_cur_id_factor    number;
+    vn_real_price_cur_decimals     number;
+    vn_real_value_in_price_cur      number;
+    vn_real_price_to_base_fw_rate   number;
+    vc_real_price_to_base_fw_rate   varchar2(100);
   begin
     vc_error_msg := '1';
     for cur_not_fixed_rows in cur_not_fixed
@@ -3185,7 +3178,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
       vc_error_msg := '3';
       pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
                                               pd_trade_date,
-                                              pd_trade_date,
+                                              cur_not_fixed_rows.payment_due_date,
                                               vc_price_cur_id,
                                               cur_not_fixed_rows.base_cur_id,
                                               30,
@@ -3226,8 +3219,73 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
       --
       -- Value in Base Price Currency
       --
+      
+       -- Calculate the Current Realized  value in Price Currency  start
+      --
+      pkg_general.sp_get_main_cur_detail(cur_not_fixed_rows.realized_price_cur_id,
+                                         vc_real_price_cur_id,
+                                         vc_real_price_cur_code,
+                                         vn_real_price_cur_id_factor,
+                                         vn_real_price_cur_decimals);
+                                         
+      
+      vn_real_value_in_price_cur := (cur_not_fixed_rows.realized_price /
+                                        nvl(cur_not_fixed_rows.realized_price_weight ,
+                                             1)) *
+                                        (pkg_general.f_get_converted_quantity(cur_not_fixed_rows.product_id,
+                                                                              cur_not_fixed_rows.realized_qty_unit_id,
+                                                                              cur_not_fixed_rows.realized_price_weight_unit,                                                                             
+                                                                              cur_not_fixed_rows.realized_qty)) *
+                                        vn_real_price_cur_id_factor;
+                                        
+      vn_real_value_in_price_cur := round(vn_real_value_in_price_cur,
+                                              vn_real_price_cur_decimals);
+      --
+      -- Convert contract value in Price Currency to Base Currency
+      --
+      vc_error_msg := '3';
+      
+      pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+                                              pd_trade_date,
+                                              cur_not_fixed_rows.payment_due_date,
+                                              vc_real_price_cur_id,
+                                              cur_not_fixed_rows.base_cur_id,
+                                              30,
+                                              vn_real_price_to_base_fw_rate,
+                                              vn_forward_points);
+      if vc_real_price_cur_id <> cur_not_fixed_rows.base_cur_id then
+        if vn_real_price_to_base_fw_rate is null or vn_real_price_to_base_fw_rate = 0 then
+          vobj_error_log.extend;
+          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                               'procedure pkg_phy_physical_process-sp_calc_realized not fixed ',
+                                                               'PHY-005',
+                                                               cur_not_fixed_rows.base_cur_code ||
+                                                               ' to ' ||
+                                                               vc_real_price_cur_code || ' (' ||
+                                                               to_char(pd_trade_date,
+                                                                       'dd-Mon-yyyy') || ') ',
+                                                               '',
+                                                               pc_process,
+                                                               null, -- pc_user_id,
+                                                               sysdate,
+                                                               pd_trade_date);
+          sp_insert_error_log(vobj_error_log);
+        end if;
+      end if;
     
-      vn_realized_amount_in_base_cur := cur_not_fixed_rows.contract_invoice_value;
+      if vn_real_price_to_base_fw_rate <> 0 or vn_real_price_to_base_fw_rate <> 1 or
+         vn_real_price_to_base_fw_rate is not null then
+        vc_real_price_to_base_fw_rate := '1 ' || vc_real_price_cur_code || '=' ||
+                                    vn_real_price_to_base_fw_rate || ' ' ||
+                                    cur_not_fixed_rows.base_cur_code;
+      else
+        vc_real_price_to_base_fw_rate := null;
+      end if;
+      vn_realized_amount_in_base_cur := round((vn_real_value_in_price_cur *
+                                             vn_real_price_to_base_fw_rate),
+                                             2);
+    -----------------------------------    
+    --  vn_realized_amount_in_base_cur := cur_not_fixed_rows.contract_invoice_value;
     
       vc_error_msg := '4';
       --
@@ -3426,7 +3484,8 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
          sales_internal_gmr_ref_no,
          sales_gmr_ref_no,
          price_to_base_fw_exch_rate,
-         internal_stock_ref_no)
+         internal_stock_ref_no,
+         real_price_to_base_fw_rate)
       values
         (pc_corporate_id,
          cur_not_fixed_rows.corporate_name,
@@ -3578,7 +3637,8 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
          cur_not_fixed_rows.sales_internal_gmr_ref_no,
          cur_not_fixed_rows.sales_gmr_ref_no,
          vc_price_to_base_fw_rate,
-         cur_not_fixed_rows.internal_stock_ref_no);
+         cur_not_fixed_rows.internal_stock_ref_no,
+         vc_real_price_to_base_fw_rate);
     end loop;
   exception
     when others then

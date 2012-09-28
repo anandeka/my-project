@@ -4831,14 +4831,14 @@ create or replace package body pkg_metals_general is
                                                 vn_premium_to_base_fw_rate,
                                                 vn_forward_points);
         if pc_exch_rate_string is null then
-          pc_exch_rate_string := '1 ' || vc_base_cur_code || '=' ||
+          pc_exch_rate_string := '1 ' || vc_premium_main_cur_code || '=' ||
                                  vn_premium_to_base_fw_rate || ' ' ||
-                                 vc_premium_main_cur_code;
+                                 vc_base_cur_code;
         else
           pc_exch_rate_string := pc_exch_rate_string || ',' || '1 ' ||
-                                 vc_base_cur_code || '=' ||
+                                 vc_premium_main_cur_code || '=' ||
                                  vn_premium_to_base_fw_rate || ' ' ||
-                                 vc_premium_main_cur_code;
+                                 vc_base_cur_code;
         end if;
       
         if vc_premium_main_cur_code <> vc_base_cur_code then
