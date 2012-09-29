@@ -274,7 +274,7 @@ select akc.corporate_id,
           and iid.invoicable_item_id = ii.invoicable_item_id
           and ii.is_active = 'Y'
          group by iid.internal_contract_item_ref_no,
-                  iid.internal_contract_ref_no,
+                  iid.internal_contract_ref_no,ii.delivery_item_ref_no,
                   iid.internal_gmr_ref_no,
                   iid.internal_invoice_ref_no) iid,
        is_invoice_summary iis,
@@ -800,5 +800,6 @@ select akc.corporate_id,
    and pym.is_active = 'Y'
    and pym.is_deleted = 'N'
    and pfd.is_cancel='Y'
+/
 -- and akc.corporate_id = '{?CorporateID}'
 -- and to_char(pfd.as_of_date, 'dd-Mon-yyyy') = '{?AsOfDate}'
