@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1115
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  01-Oct-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  69244
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/p Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 104797
+Author: mayank.chaturvedi
+Date: 3:13:51 PM, Monday, October 01, 2012
+Message:
+-Data Correction script for Bug :- 69244
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_19.sql
+
