@@ -1637,7 +1637,7 @@ insert into patd_pa_temp_data
          akc.base_currency_name base_cur_code,
          cm.decimals as base_cur_decimal,
          aml.attribute_name element_name,
-         pcpch.payable_type,
+         nvl(dipq.qty_type,'Payable') payable_type,
          pcm.cp_id,
          phd.companyname counterparty_name,
          pcm.invoice_currency_id pay_cur_id,
@@ -1660,13 +1660,14 @@ insert into patd_pa_temp_data
          cpc_corporate_profit_center    cpc,
          sac_stock_assay_content        sac,
          aml_attribute_master_list      aml,
-         pcpch_pc_payble_content_header pcpch,
          pcm_physical_contract_main     pcm,
          phd_profileheaderdetails       phd,
          ii_invoicable_item             ii,
          cm_currency_master             cm_pay,
          pci_physical_contract_item     pci,
-         asm_assay_sublot_mapping asm
+         asm_assay_sublot_mapping asm,
+         pcdi_pc_delivery_item pcdi,
+         dipq_delivery_item_payable_qty dipq
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
      and grd.internal_grd_ref_no = spq.internal_grd_ref_no
      and spq.is_stock_split = 'N'
@@ -1686,8 +1687,7 @@ insert into patd_pa_temp_data
      and pcpd.input_output = 'Input'
      and pcpd.process_id = pc_process_id
      and gmr.corporate_id = pc_corporate_id
-     and gmr.internal_contract_ref_no = pcpch.internal_contract_ref_no
-     and spq.element_id = pcpch.element_id
+     and spq.element_id = dipq.element_id
      and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
      and pcm.cp_id = phd.profileid
      and gmr.internal_gmr_ref_no = ii.internal_gmr_ref_no
@@ -1699,12 +1699,17 @@ insert into patd_pa_temp_data
      and pcpd.is_active = 'Y'
      and pcm.is_active = 'Y'
      and spq.process_id = pc_process_id
-     and pcpch.process_id = pc_process_id
      and pcm.process_id = pc_process_id
      and pci.internal_contract_item_ref_no =
          grd.internal_contract_item_ref_no
      and pci.process_id = pc_process_id
-     and nvl(gmr.is_final_invoiced, 'N') = 'N';
+     and nvl(gmr.is_final_invoiced, 'N') = 'N'
+     and pci.pcdi_id = pcdi.pcdi_id
+     and pcdi.process_id =pc_process_id
+     and pcdi.is_active ='Y'
+     and pcdi.pcdi_id = dipq.pcdi_id
+     and dipq.process_id =pc_process_id
+     and dipq.is_active ='Y';
      commit;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
