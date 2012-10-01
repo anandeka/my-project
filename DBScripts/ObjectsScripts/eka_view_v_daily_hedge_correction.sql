@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_DAILY_HEDGE_CORRECTION AS
+CREATE OR REPLACE VIEW V_DAILY_HEDGE_CORRECTION AS 
 SELECT akc.corporate_id,
        akc.corporate_name,
        'Hedge Correction' section,
@@ -47,16 +47,16 @@ SELECT akc.corporate_id,
        pum.price_unit_name price_unit,
        DECODE(pcm.purchase_sales, 'P', 1, 'S', -1) * pfd.qty_fixed *
        pkg_general.f_get_converted_quantity(pcpd.product_id,
-                                            qum.qty_unit_id,
+                                            pocd.qty_to_be_fixed_unit_id,
                                             pdm.base_quantity_unit,
                                             1) qty,
        qum.qty_unit_id,
        qum.qty_unit,
        qum.decimals qty_decimals,
        NULL instrument,
-       cast(null as date) prompt_date,
-       cast(null as number) lots,
-       (NVL(pfd.user_price, 0) + NVL(pfd.adjustment_price, 0)) price,
+       CAST(NULL AS DATE) prompt_date,
+       CAST(NULL AS NUMBER) lots,
+       pfd.user_price price,
        cm_pay.cur_code pay_in_ccy,
        (CASE
          WHEN pfd.is_hedge_correction_during_qp = 'Y' THEN
@@ -121,8 +121,8 @@ SELECT akc.corporate_id,
        phd_profileheaderdetails phd
  WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    AND pcdi.pcdi_id = poch.pcdi_id
-   and poch.element_id = aml.attribute_id
-   and aml.is_active = 'Y'
+   AND poch.element_id = aml.attribute_id
+   AND aml.is_active = 'Y'
    AND poch.poch_id = pocd.poch_id
    AND pocd.pocd_id = pofh.pocd_id
    AND pofh.pofh_id = pfd.pofh_id
@@ -141,7 +141,7 @@ SELECT akc.corporate_id,
    AND pocd.pay_in_cur_id = cm_pay.cur_id
    AND pfd.price_unit_id = ppu.product_price_unit_id(+)
    AND ppu.price_unit_id = pum.price_unit_id(+)
-   AND pocd.qty_to_be_fixed_unit_id = qum.qty_unit_id
+   AND pdm.base_quantity_unit = qum.qty_unit_id
    AND pfd.hedge_correction_action_ref_no = axs.internal_action_ref_no
    AND pcm.cp_id = phd.profileid
    AND pcbpd.price_basis <> 'Fixed'
@@ -156,12 +156,12 @@ SELECT akc.corporate_id,
    AND pcbpd.is_active = 'Y'
    AND ppfh.is_active(+) = 'Y'
    AND pfqpp.is_active(+) = 'Y'
-   and pfd.is_active = 'Y'
+   AND pfd.is_active = 'Y'
    AND pfd.is_hedge_correction = 'Y'
-   and nvl(pfd.is_cancel,'N')='N'
+   AND NVL(pfd.is_cancel, 'N') = 'N'
 /*and akc.corporate_id = '{?CorporateID}'
    and pfd.hedge_correction_date = to_date('{?AsOfDate}', 'dd-Mon-yyyy')*/
-union all
+UNION ALL
 SELECT akc.corporate_id,
        akc.corporate_name,
        'Cancelled Fixations' section,
@@ -210,18 +210,18 @@ SELECT akc.corporate_id,
        pum.price_unit_name price_unit,
        DECODE(pcm.purchase_sales, 'P', 1, 'S', -1) * pfd.qty_fixed *
        pkg_general.f_get_converted_quantity(pcpd.product_id,
-                                            qum.qty_unit_id,
+                                            pocd.qty_to_be_fixed_unit_id,
                                             pdm.base_quantity_unit,
                                             1) qty,
        qum.qty_unit_id,
        qum.qty_unit,
        qum.decimals qty_decimals,
        NULL instrument,
-       cast(null as date) prompt_date,
-       cast(null as number) lots,
-       (NVL(pfd.user_price, 0) + NVL(pfd.adjustment_price, 0)) price,
+       CAST(NULL AS DATE) prompt_date,
+       CAST(NULL AS NUMBER) lots,
+       pfd.user_price price,
        cm_pay.cur_code pay_in_ccy,
-       null sub_section,
+       NULL sub_section,
        pfd.hedge_correction_date,
        axs.action_id activity_type,
        axs.eff_date activity_date,
@@ -279,8 +279,8 @@ SELECT akc.corporate_id,
        phd_profileheaderdetails phd
  WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    AND pcdi.pcdi_id = poch.pcdi_id
-   and poch.element_id = aml.attribute_id
-   and aml.is_active = 'Y'
+   AND poch.element_id = aml.attribute_id
+   AND aml.is_active = 'Y'
    AND poch.poch_id = pocd.poch_id
    AND pocd.pocd_id = pofh.pocd_id
    AND pofh.pofh_id = pfd.pofh_id
@@ -294,12 +294,12 @@ SELECT akc.corporate_id,
    AND pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
    AND pcpd.strategy_id = css.strategy_id
    AND pcpd.profit_center_id = cpc.profit_center_id
-   AND aml.underlying_product_id  = pdm.product_id
+   AND aml.underlying_product_id = pdm.product_id
    AND akc.base_cur_id = cm_base.cur_id
    AND pocd.pay_in_cur_id = cm_pay.cur_id
    AND pfd.price_unit_id = ppu.product_price_unit_id(+)
    AND ppu.price_unit_id = pum.price_unit_id(+)
-   AND pocd.qty_to_be_fixed_unit_id = qum.qty_unit_id
+   AND pdm.base_quantity_unit = qum.qty_unit_id
    AND pfd.hedge_correction_action_ref_no = axs.internal_action_ref_no
    AND pcm.cp_id = phd.profileid
    AND pcbpd.price_basis <> 'Fixed'
@@ -314,5 +314,4 @@ SELECT akc.corporate_id,
    AND pcbpd.is_active = 'Y'
    AND ppfh.is_active(+) = 'Y'
    AND pfqpp.is_active(+) = 'Y'
-   and pfd.is_cancel='Y'
-
+   AND pfd.is_cancel = 'Y'
