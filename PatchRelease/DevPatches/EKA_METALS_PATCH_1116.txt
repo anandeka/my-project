@@ -35,4 +35,20 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 
+Revision: 104834
+Author: elaiyaraja.nallathambi
+Date: 7:28:50 PM, Monday, October 01, 2012
+Message:
+Bug Fixes;- 69199,69219,69212
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_daily_hedge_correction.sql
+
+Revision: 104835
+Author: elaiyaraja.nallathambi
+Date: 7:30:10 PM, Monday, October 01, 2012
+Message:
+Bug Fixes;- 69199,69219,69212
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt
 
