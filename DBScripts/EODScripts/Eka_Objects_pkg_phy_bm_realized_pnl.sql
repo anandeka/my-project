@@ -2331,6 +2331,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
       -- Calcualte the New Quality Premium (Sales from Contract and Purchase from INVS)
       --
       vc_error_msg := '12';
+      if cur_realized_rows.contract_type = 'S' then
         pkg_metals_general.sp_quality_premium_fw_rate(cur_realized_rows.internal_contract_item_ref_no,
                                                       pc_corporate_id,
                                                       pd_trade_date,
@@ -2348,12 +2349,19 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
       
         vn_quality_premium := round((vn_quality_premium_per_unit *
                                     vn_qty_in_base_qty_unit_id),
-                                    2);     
+                                    2);    
+        else
+        vn_quality_premium_per_unit := cur_realized_rows.quality_premium_per_unit;
+        vn_quality_premium          := vn_quality_premium_per_unit *
+                                       vn_qty_in_base_qty_unit_id;
+        vc_contract_qp_fw_exch_rate := cur_realized_rows.contract_qp_fw_exch_rate;
+      end if;                            
       vc_error_msg := '13';
     
       --
       -- Calcualte the new  Product Premium (Sales from Contract and Purchase from INVS)
-      --     
+      --   
+        if cur_realized_rows.contract_type = 'S' then
         if cur_realized_rows.product_premium <> 0 then
           if cur_realized_rows.product_premium_unit_id <>
              cur_realized_rows.base_price_unit_id then          
@@ -2416,6 +2424,12 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
           vn_product_premium          := 0;
           vn_product_premium_per_unit := 0;
         end if;
+         else
+        vn_product_premium_per_unit := cur_realized_rows.product_premium_per_unit;
+        vn_product_premium          := vn_product_premium_per_unit *
+                                       vn_qty_in_base_qty_unit_id;
+        vc_contract_pp_fw_exch_rate := cur_realized_rows.contract_pp_fw_exch_rate;
+      end if;
       vc_error_msg := '14';
     
       --
@@ -3193,7 +3207,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                                                                cur_not_fixed_rows.base_cur_code ||
                                                                ' to ' ||
                                                                vc_price_cur_code || ' (' ||
-                                                               to_char(pd_trade_date,
+                                                               to_char( cur_not_fixed_rows.payment_due_date,
                                                                        'dd-Mon-yyyy') || ') ',
                                                                '',
                                                                pc_process,
@@ -3262,7 +3276,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                                                                cur_not_fixed_rows.base_cur_code ||
                                                                ' to ' ||
                                                                vc_real_price_cur_code || ' (' ||
-                                                               to_char(pd_trade_date,
+                                                               to_char(cur_not_fixed_rows.payment_due_date,
                                                                        'dd-Mon-yyyy') || ') ',
                                                                '',
                                                                pc_process,

@@ -28,6 +28,7 @@ create or replace package pkg_phy_eod_price is
                                         pc_process      varchar2);
 
 end; 
+ 
 /
 create or replace package body "PKG_PHY_EOD_PRICE" is
 
@@ -3104,7 +3105,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                                                'PHY-005',
                                                                vc_base_main_cur_code ||
                                                                ' to ' ||
-                                                               vc_contract_main_cur_id || ' (' ||
+                                                               vc_contract_main_cur_code || ' (' ||
                                                                to_char(cur_gmr_rows.payment_due_date,
                                                                        'dd-Mon-yyyy') || ') ',
                                                                '',
