@@ -1,0 +1,3 @@
+UPDATE PCMAC_PCM_ADDN_CHARGES pcmac set PCMAC.ADDN_CHARGE_NAME = 'Sampling Charge' where PCMAC.ADDN_CHARGE_NAME = 'SamplingCharge';
+
+UPDATE PCMAC_PCM_ADDN_CHARGES pcmac set PCMAC.ADDN_CHARGE_NAME = 'Assay Charge' where PCMAC.ADDN_CHARGE_NAME = 'AssayCharge';
