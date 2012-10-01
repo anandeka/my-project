@@ -60,7 +60,7 @@ create or replace package pkg_phy_custom_reports is
                                           pc_process_id   varchar2,
                                           pc_user_id      varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_phy_custom_reports is
 
@@ -202,7 +202,8 @@ create or replace package body pkg_phy_custom_reports is
                                                            'Code:' ||
                                                            sqlcode ||
                                                            ' Message:' ||
-                                                           sqlerrm || ' '||vc_err_msg,
+                                                           sqlerrm || ' ' ||
+                                                           vc_err_msg,
                                                            null,
                                                            pc_process,
                                                            pc_user_id,
@@ -1599,6 +1600,197 @@ create or replace package body pkg_phy_custom_reports is
                                             pcm.internal_contract_ref_no,
                                             pum.price_unit_name) pcqpd,
                                  --v_ppu_pum                      ppu_pum,
+                                 ak_corporate                   akc,
+                                 pcbph_pc_base_price_header     pcbph,
+                                 poch_price_opt_call_off_header poch,
+                                 pcbpd_pc_base_price_detail     pcbpd,
+                                 pocd_price_option_calloff_dtls pocd,
+                                 pffxd_phy_formula_fx_details   pffxd,
+                                 v_ppu_pum                      ppu_pum_price,
+                                 cqs_contract_qty_status        cqs,
+                                 qum_quantity_unit_master       qum_cont,
+                                 cpc_corporate_profit_center    cpc,
+                                 css_corporate_strategy_setup   css
+                          
+                           where pcm.contract_type = 'BASEMETAL'
+                             and pcm.process_id = pc_process_id
+                             and pcm.is_active = 'Y'
+                             and pcm.internal_contract_ref_no =
+                                 pcdi.internal_contract_ref_no
+                             and pcdi.process_id = pc_process_id
+                             and pcdi.is_active = 'Y'
+                             and pcm.cp_id = phd.profileid
+                             and pcm.trader_id = ak_trader.user_id
+                             and pcm.internal_contract_ref_no =
+                                 pcpd.internal_contract_ref_no
+                             and pcpd.process_id = pc_process_id
+                             and pcpd.is_active = 'Y'
+                             and pcpd.product_id = pdm.product_id
+                             and pdm.is_active = 'Y'
+                             and pcdi.pcdi_id = diqs.pcdi_id
+                             and diqs.process_id = pc_process_id
+                             and diqs.is_active = 'Y'
+                             and diqs.item_qty_unit_id = qum_del.qty_unit_id
+                             and qum_del.is_deleted = 'N'
+                             and qum_del.is_active = 'Y'
+                             and pcm.internal_contract_ref_no =
+                                 pcqpd.internal_contract_ref_no(+)
+                             and pcm.corporate_id = akc.corporate_id
+                             and pcm.internal_contract_ref_no =
+                                 pcbph.internal_contract_ref_no
+                             and pcbph.process_id = pc_process_id
+                             and pcdi.pcdi_id = poch.pcdi_id
+                             and poch.pcbph_id = pcbph.pcbph_id
+                             and poch.is_active = 'Y'
+                             and pcbph.pcbph_id = pcbpd.pcbph_id
+                             and pcbpd.process_id = pc_process_id
+                             and poch.poch_id = pocd.poch_id
+                             and pocd.pcbpd_id = pcbpd.pcbpd_id
+                             and pocd.is_active = 'Y'
+                             and pcm.internal_contract_ref_no =
+                                 pffxd.internal_contract_ref_no
+                             and pffxd.pffxd_id = pcbpd.pffxd_id
+                             and pffxd.process_id = pc_process_id
+                             and pffxd.is_active = 'Y'
+                             and pcbpd.price_unit_id =
+                                 ppu_pum_price.product_price_unit_id(+)
+                             and pcm.contract_status <> 'Cancelled'
+                             and pcm.internal_contract_ref_no =
+                                 cqs.internal_contract_ref_no
+                             and cqs.process_id = pc_process_id
+                             and cqs.item_qty_unit_id = qum_cont.qty_unit_id
+                             and qum_cont.is_active = 'Y'
+                             and pcpd.profit_center_id =
+                                 cpc.profit_center_id
+                             and cpc.is_active = 'Y'
+                             and pcpd.strategy_id = css.strategy_id
+                             and css.is_active = 'Y'
+                             and pcdi.price_option_call_off_status in
+                                 ('Not Applicable', 'Called Off')
+                             and not exists
+                           (select pcm_in.internal_contract_ref_no
+                                    from pcm_physical_contract_main pcm_in
+                                   where pcm.internal_contract_ref_no =
+                                         pcm_in.internal_contract_ref_no
+                                     and pcm_in.process_id =
+                                         pc_prev_process_id)
+                          union all
+                          select 'New' catogery,
+                                 'Physical' book_type,
+                                 pcm.corporate_id,
+                                 akc.corporate_name,
+                                 pcm.contract_ref_no,
+                                 pcm.contract_ref_no || '-' ||
+                                 pcdi.delivery_item_no del_item_ref_no,
+                                 pcm.internal_contract_ref_no,
+                                 pcm.cp_id,
+                                 phd.companyname,
+                                 pcm.trader_id,
+                                 ak_trader.login_name trader,
+                                 null inco_term_id,
+                                 null inco_term,
+                                 null inco_term_location,
+                                 pcm.issue_date,
+                                 pcpd.product_id,
+                                 pdm.product_desc,
+                                 null element_id,
+                                 null element,
+                                 diqs.total_qty del_item_qty,
+                                 diqs.item_qty_unit_id del_item_qty_unit_id,
+                                 qum_del.qty_unit del_item_qty_unit,
+                                 (case
+                                   when pcdi.delivery_to_date is null then
+                                    last_day('01-' || pcdi.delivery_to_month || '-' ||
+                                             pcdi.delivery_to_year)
+                                   else
+                                    pcdi.delivery_to_date
+                                 end) del_date,
+                                 pcbpd.price_basis,
+                                 (case
+                                   when pcbpd.price_basis = 'Fixed' then
+                                    pcbpd.price_value
+                                   else
+                                    0
+                                 end) price,
+                                 (case
+                                   when pcbpd.price_basis = 'Fixed' then
+                                    pcbpd.price_unit_id
+                                   else
+                                    null
+                                 end) price_unit_id,
+                                 ppu_pum_price.price_unit_name,
+                                 pcqpd.premium_disc_value,
+                                 pcqpd.premium_disc_unit_id,
+                                 pcqpd.pd_price_unit_name,
+                                 cqs.total_qty contract_qty,
+                                 cqs.item_qty_unit_id cont_qty_unit_id,
+                                 qum_cont.qty_unit contract_qty_unit,
+                                 pcpd.profit_center_id,
+                                 cpc.profit_center_short_name,
+                                 cpc.profit_center_name,
+                                 (case
+                                   when pcdi.delivery_period_type = 'Month' then
+                                    pcdi.delivery_from_month || '-' ||
+                                    pcdi.delivery_from_year || 'To ' ||
+                                    pcdi.delivery_to_month || '-' ||
+                                    pcdi.delivery_to_year
+                                   when pcdi.delivery_period_type = 'Date' then
+                                    to_char(pcdi.delivery_from_date,
+                                            'dd-Mon-yyyy') || ' To ' ||
+                                    to_char(pcdi.delivery_to_date,
+                                            'dd-Mon-yyyy')
+                                 end) del_quota_period,
+                                 pcpd.strategy_id,
+                                 css.strategy_name strategy
+                          
+                            from pcm_physical_contract_main    pcm,
+                                 pcdi_pc_delivery_item         pcdi,
+                                 phd_profileheaderdetails      phd,
+                                 ak_corporate_user             ak_trader,
+                                 pcpd_pc_product_definition    pcpd,
+                                 pdm_productmaster             pdm,
+                                 diqs_delivery_item_qty_status diqs,
+                                 qum_quantity_unit_master      qum_del,
+                                 /*pcqpd_pc_qual_premium_discount pcqpd,*/
+                                 (select pcm.contract_ref_no,
+                                         pcm.internal_contract_ref_no,
+                                         pum.price_unit_id premium_disc_unit_id,
+                                         pum.price_unit_name pd_price_unit_name,
+                                         sum(pci.item_qty *
+                                             pcqpd.premium_disc_value) /
+                                         sum(pci.item_qty) premium_disc_value
+                                    from pcm_physical_contract_main     pcm,
+                                         pcdi_pc_delivery_item          pcdi,
+                                         pci_physical_contract_item     pci,
+                                         pcqpd_pc_qual_premium_discount pcqpd,
+                                         ppu_product_price_units        ppu,
+                                         pum_price_unit_master          pum,
+                                         pcpdqd_pd_quality_details      pcpdqd
+                                   where pcm.internal_contract_ref_no =
+                                         pcdi.internal_contract_ref_no
+                                     and pcdi.pcdi_id = pci.pcdi_id
+                                     and pci.pcpq_id = pcpdqd.pcpq_id
+                                     and pcpdqd.pcqpd_id = pcqpd.pcqpd_id
+                                     and pcm.internal_contract_ref_no =
+                                         pcqpd.internal_contract_ref_no(+)
+                                     and pcqpd.premium_disc_unit_id =
+                                         ppu.internal_price_unit_id(+)
+                                     and ppu.price_unit_id =
+                                         pum.price_unit_id(+)
+                                     and pcpdqd.pcqpd_id = pcqpd.pcqpd_id
+                                     and pcm.process_id = pc_process_id
+                                     and pcdi.process_id = pc_process_id
+                                     and pci.process_id = pc_process_id
+                                     and pcqpd.process_id = pc_process_id
+                                     and pcm.corporate_id = pc_corporate_id
+                                     and pcm.is_active = 'Y'
+                                     and pcqpd.is_active = 'Y'
+                                   group by pcm.contract_ref_no,
+                                            pcm.internal_contract_ref_no,
+                                            pum.price_unit_id,
+                                            pcm.internal_contract_ref_no,
+                                            pum.price_unit_name) pcqpd,
+                                 --v_ppu_pum                      ppu_pum,
                                  ak_corporate                 akc,
                                  pcbph_pc_base_price_header   pcbph,
                                  pcbpd_pc_base_price_detail   pcbpd,
@@ -1656,6 +1848,8 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
+                             and pcdi.price_option_call_off_status in
+                                 ('Not Called Off')
                              and not exists
                            (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
@@ -1836,6 +2030,201 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
+                             and pcdi.price_option_call_off_status in
+                                 ('Not Called Off')
+                             and exists (select pcm_in.internal_contract_ref_no
+                                    from pcm_physical_contract_main pcm_in
+                                   where pcm_in.internal_contract_ref_no =
+                                         pcm.internal_contract_ref_no
+                                     and pcm_in.process_id =
+                                         pc_prev_process_id
+                                     and pcm_in.corporate_id =
+                                         pc_corporate_id
+                                     and pcm_in.contract_status <>
+                                         'Cancelled')
+                          union all
+                          select 'Deleted' catogery,
+                                 'Physical' book_type,
+                                 pcm.corporate_id,
+                                 akc.corporate_name,
+                                 pcm.contract_ref_no,
+                                 pcm.contract_ref_no || '-' ||
+                                 pcdi.delivery_item_no del_item_ref_no,
+                                 pcm.internal_contract_ref_no,
+                                 pcm.cp_id,
+                                 phd.companyname,
+                                 pcm.trader_id,
+                                 ak_trader.login_name trader,
+                                 null inco_term_id,
+                                 null inco_term,
+                                 null inco_term_location,
+                                 pcm.issue_date,
+                                 pcpd.product_id,
+                                 pdm.product_desc,
+                                 null element_id,
+                                 null element,
+                                 diqs.total_qty del_item_qty,
+                                 diqs.item_qty_unit_id del_item_qty_unit_id,
+                                 qum_del.qty_unit del_item_qty_unit,
+                                 (case
+                                   when pcdi.delivery_to_date is null then
+                                    last_day('01-' || pcdi.delivery_to_month || '-' ||
+                                             pcdi.delivery_to_year)
+                                   else
+                                    pcdi.delivery_to_date
+                                 end) del_date,
+                                 pcbpd.price_basis,
+                                 (case
+                                   when pcbpd.price_basis = 'Fixed' then
+                                    pcbpd.price_value
+                                   else
+                                    0
+                                 end) price,
+                                 (case
+                                   when pcbpd.price_basis = 'Fixed' then
+                                    pcbpd.price_unit_id
+                                   else
+                                    null
+                                 end) price_unit_id,
+                                 ppu_pum_price.price_unit_name,
+                                 pcqpd.premium_disc_value,
+                                 pcqpd.premium_disc_unit_id,
+                                 pcqpd.pd_price_unit_name,
+                                 cqs.total_qty contract_qty,
+                                 cqs.item_qty_unit_id cont_qty_unit_id,
+                                 qum_cont.qty_unit contract_qty_unit,
+                                 pcpd.profit_center_id,
+                                 cpc.profit_center_short_name,
+                                 cpc.profit_center_name,
+                                 (case
+                                   when pcdi.delivery_period_type = 'Month' then
+                                    pcdi.delivery_from_month || '-' ||
+                                    pcdi.delivery_from_year || 'To ' ||
+                                    pcdi.delivery_to_month || '-' ||
+                                    pcdi.delivery_to_year
+                                   when pcdi.delivery_period_type = 'Date' then
+                                    to_char(pcdi.delivery_from_date,
+                                            'dd-Mon-yyyy') || ' To ' ||
+                                    to_char(pcdi.delivery_to_date,
+                                            'dd-Mon-yyyy')
+                                 end) del_quota_period,
+                                 pcpd.strategy_id,
+                                 css.strategy_name strategy
+                            from pcm_physical_contract_main    pcm,
+                                 pcdi_pc_delivery_item         pcdi,
+                                 phd_profileheaderdetails      phd,
+                                 ak_corporate_user             ak_trader,
+                                 pcpd_pc_product_definition    pcpd,
+                                 pdm_productmaster             pdm,
+                                 diqs_delivery_item_qty_status diqs,
+                                 qum_quantity_unit_master      qum_del,
+                                 /*pcqpd_pc_qual_premium_discount pcqpd,*/
+                                 (select pcm.contract_ref_no,
+                                         pcm.internal_contract_ref_no,
+                                         pum.price_unit_id premium_disc_unit_id,
+                                         pum.price_unit_name pd_price_unit_name,
+                                         sum(pci.item_qty *
+                                             pcqpd.premium_disc_value) /
+                                         sum(pci.item_qty) premium_disc_value
+                                  
+                                    from pcm_physical_contract_main     pcm,
+                                         pcdi_pc_delivery_item          pcdi,
+                                         pci_physical_contract_item     pci,
+                                         pcqpd_pc_qual_premium_discount pcqpd,
+                                         ppu_product_price_units        ppu,
+                                         pum_price_unit_master          pum,
+                                         pcpdqd_pd_quality_details      pcpdqd
+                                   where pcm.internal_contract_ref_no =
+                                         pcdi.internal_contract_ref_no
+                                     and pcdi.pcdi_id = pci.pcdi_id
+                                     and pci.pcpq_id = pcpdqd.pcpq_id
+                                     and pcpdqd.pcqpd_id = pcqpd.pcqpd_id
+                                     and pcm.internal_contract_ref_no =
+                                         pcqpd.internal_contract_ref_no(+)
+                                     and pcqpd.premium_disc_unit_id =
+                                         ppu.internal_price_unit_id(+)
+                                     and ppu.price_unit_id =
+                                         pum.price_unit_id(+)
+                                     and pcpdqd.pcqpd_id = pcqpd.pcqpd_id
+                                     and pcm.process_id = pc_process_id
+                                     and pcdi.process_id = pc_process_id
+                                     and pci.process_id = pc_process_id
+                                     and pcqpd.process_id = pc_process_id
+                                     and pcm.corporate_id = pc_corporate_id
+                                     and pcm.is_active = 'Y'
+                                     and pcqpd.is_active = 'Y'
+                                   group by pcm.contract_ref_no,
+                                            pcm.internal_contract_ref_no,
+                                            pum.price_unit_id,
+                                            pcm.internal_contract_ref_no,
+                                            pum.price_unit_name) pcqpd,
+                                 --v_ppu_pum                      ppu_pum,
+                                 ak_corporate                   akc,
+                                 pcbph_pc_base_price_header     pcbph,
+                                 poch_price_opt_call_off_header poch,
+                                 pcbpd_pc_base_price_detail     pcbpd,
+                                 pocd_price_option_calloff_dtls pocd,
+                                 pffxd_phy_formula_fx_details   pffxd,
+                                 v_ppu_pum                      ppu_pum_price,
+                                 cqs_contract_qty_status        cqs,
+                                 qum_quantity_unit_master       qum_cont,
+                                 cpc_corporate_profit_center    cpc,
+                                 css_corporate_strategy_setup   css
+                           where pcm.contract_type = 'BASEMETAL'
+                             and pcm.process_id = pc_process_id
+                             and pcm.is_active = 'Y'
+                             and pcm.contract_status = 'Cancelled'
+                             and pcm.internal_contract_ref_no =
+                                 pcdi.internal_contract_ref_no
+                             and pcdi.process_id = pc_process_id
+                             and pcdi.is_active = 'Y'
+                             and pcm.cp_id = phd.profileid
+                             and pcm.trader_id = ak_trader.user_id
+                             and pcm.internal_contract_ref_no =
+                                 pcpd.internal_contract_ref_no
+                             and pcpd.process_id = pc_process_id
+                             and pcpd.is_active = 'Y'
+                             and pcpd.product_id = pdm.product_id
+                             and pdm.is_active = 'Y'
+                             and pcdi.pcdi_id = diqs.pcdi_id
+                             and diqs.process_id = pc_process_id
+                             and diqs.is_active = 'Y'
+                             and diqs.item_qty_unit_id = qum_del.qty_unit_id
+                             and qum_del.is_deleted = 'N'
+                             and qum_del.is_active = 'Y'
+                             and pcm.internal_contract_ref_no =
+                                 pcqpd.internal_contract_ref_no(+)
+                             and pcm.corporate_id = akc.corporate_id
+                             and pcm.internal_contract_ref_no =
+                                 pcbph.internal_contract_ref_no
+                             and pcbph.process_id = pc_process_id
+                             and pcdi.pcdi_id = poch.pcdi_id
+                             and poch.pcbph_id = pcbph.pcbph_id
+                             and poch.is_active = 'Y'
+                             and pcbph.pcbph_id = pcbpd.pcbph_id
+                             and pcbpd.process_id = pc_process_id
+                             and poch.poch_id = pocd.poch_id
+                             and pocd.pcbpd_id = pcbpd.pcbpd_id
+                             and pocd.is_active = 'Y'
+                             and pcm.internal_contract_ref_no =
+                                 pffxd.internal_contract_ref_no
+                             and pffxd.pffxd_id = pcbpd.pffxd_id
+                             and pffxd.process_id = pc_process_id
+                             and pffxd.is_active = 'Y'
+                             and pcbpd.price_unit_id =
+                                 ppu_pum_price.product_price_unit_id(+)
+                             and pcm.internal_contract_ref_no =
+                                 cqs.internal_contract_ref_no
+                             and cqs.process_id = pc_process_id
+                             and cqs.item_qty_unit_id = qum_cont.qty_unit_id
+                             and qum_cont.is_active = 'Y'
+                             and pcpd.profit_center_id =
+                                 cpc.profit_center_id
+                             and cpc.is_active = 'Y'
+                             and pcpd.strategy_id = css.strategy_id
+                             and css.is_active = 'Y'
+                             and pcdi.price_option_call_off_status in
+                                 ('Not Applicable', 'Called Off')
                              and exists (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm_in.internal_contract_ref_no =
@@ -1990,8 +2379,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcdi.pcdi_id = diqs.pcdi_id
                              and diqs.process_id = pc_process_id
                              and diqs.is_active = 'Y'
-                             and diqs.item_qty_unit_id =
-                                 qum_del.qty_unit_id
+                             and diqs.item_qty_unit_id = qum_del.qty_unit_id
                              and qum_del.is_deleted = 'N'
                              and qum_del.is_active = 'Y'
                              and pcm.internal_contract_ref_no =
@@ -2012,14 +2400,216 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  cqs.internal_contract_ref_no
                              and cqs.process_id = pc_process_id
-                             and cqs.item_qty_unit_id =
-                                 qum_cont.qty_unit_id
+                             and cqs.item_qty_unit_id = qum_cont.qty_unit_id
                              and qum_cont.is_active = 'Y'
                              and pcpd.profit_center_id =
                                  cpc.profit_center_id
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
+                             and pcdi.price_option_call_off_status in
+                                 ('Not Called Off')
+                             and exists
+                           (select pcmul.internal_contract_ref_no
+                                    from pcmul_phy_contract_main_ul pcmul
+                                   where pcmul.dbd_id = pc_dbd_id
+                                     and pcmul.internal_contract_ref_no =
+                                         pcm.internal_contract_ref_no
+                                     and pcmul.entry_type = 'Update'
+                                     and nvl(pcmul.contract_status, 'none') <>
+                                         'Cancelled')
+                             and exists (select pcm_in.internal_contract_ref_no
+                                    from pcm_physical_contract_main pcm_in
+                                   where pcm_in.internal_contract_ref_no =
+                                         pcm.internal_contract_ref_no
+                                     and pcm_in.process_id =
+                                         pc_prev_process_id -------prev
+                                     and pcm_in.corporate_id =
+                                         pc_corporate_id
+                                     and pcm_in.contract_status <>
+                                         'Cancelled')
+                          union all
+                          select 'Modified' catogery,
+                                 'Physical' book_type,
+                                 pcm.corporate_id,
+                                 akc.corporate_name,
+                                 pcm.contract_ref_no,
+                                 pcm.contract_ref_no || '-' ||
+                                 pcdi.delivery_item_no del_item_ref_no,
+                                 pcm.internal_contract_ref_no,
+                                 pcm.cp_id,
+                                 phd.companyname,
+                                 pcm.trader_id,
+                                 ak_trader.login_name trader,
+                                 null inco_term_id,
+                                 null inco_term,
+                                 null inco_term_location,
+                                 pcm.issue_date,
+                                 pcpd.product_id,
+                                 pdm.product_desc,
+                                 null element_id,
+                                 null element,
+                                 diqs.total_qty del_item_qty,
+                                 diqs.item_qty_unit_id del_item_qty_unit_id,
+                                 qum_del.qty_unit del_item_qty_unit,
+                                 (case
+                                   when pcdi.delivery_to_date is null then
+                                    last_day('01-' || pcdi.delivery_to_month || '-' ||
+                                             pcdi.delivery_to_year)
+                                   else
+                                    pcdi.delivery_to_date
+                                 end) del_date,
+                                 pcbpd.price_basis,
+                                 (case
+                                   when pcbpd.price_basis = 'Fixed' then
+                                    pcbpd.price_value
+                                   else
+                                    0
+                                 end) price,
+                                 (case
+                                   when pcbpd.price_basis = 'Fixed' then
+                                    pcbpd.price_unit_id
+                                   else
+                                    null
+                                 end) price_unit_id,
+                                 ppu_pum_price.price_unit_name,
+                                 pcqpd.premium_disc_value,
+                                 pcqpd.premium_disc_unit_id,
+                                 pcqpd.pd_price_unit_name,
+                                 cqs.total_qty contract_qty,
+                                 cqs.item_qty_unit_id cont_qty_unit_id,
+                                 qum_cont.qty_unit contract_qty_unit,
+                                 pcpd.profit_center_id,
+                                 cpc.profit_center_short_name,
+                                 cpc.profit_center_name,
+                                 (case
+                                   when pcdi.delivery_period_type = 'Month' then
+                                    pcdi.delivery_from_month || '-' ||
+                                    pcdi.delivery_from_year || 'To ' ||
+                                    pcdi.delivery_to_month || '-' ||
+                                    pcdi.delivery_to_year
+                                   when pcdi.delivery_period_type = 'Date' then
+                                    to_char(pcdi.delivery_from_date,
+                                            'dd-Mon-yyyy') || ' To ' ||
+                                    to_char(pcdi.delivery_to_date,
+                                            'dd-Mon-yyyy')
+                                 end) del_quota_period,
+                                 pcpd.strategy_id,
+                                 css.strategy_name strategy
+                            from pcm_physical_contract_main    pcm,
+                                 pcdi_pc_delivery_item         pcdi,
+                                 phd_profileheaderdetails      phd,
+                                 ak_corporate_user             ak_trader,
+                                 pcpd_pc_product_definition    pcpd,
+                                 pdm_productmaster             pdm,
+                                 diqs_delivery_item_qty_status diqs,
+                                 qum_quantity_unit_master      qum_del,
+                                 /*pcqpd_pc_qual_premium_discount pcqpd,*/
+                                 (select pcm.contract_ref_no,
+                                         pcm.internal_contract_ref_no,
+                                         pum.price_unit_id premium_disc_unit_id,
+                                         pum.price_unit_name pd_price_unit_name,
+                                         sum(pci.item_qty *
+                                             pcqpd.premium_disc_value) /
+                                         sum(pci.item_qty) premium_disc_value
+                                    from pcm_physical_contract_main     pcm,
+                                         pcdi_pc_delivery_item          pcdi,
+                                         pci_physical_contract_item     pci,
+                                         pcqpd_pc_qual_premium_discount pcqpd,
+                                         ppu_product_price_units        ppu,
+                                         pum_price_unit_master          pum,
+                                         pcpdqd_pd_quality_details      pcpdqd
+                                   where pcm.internal_contract_ref_no =
+                                         pcdi.internal_contract_ref_no
+                                     and pcdi.pcdi_id = pci.pcdi_id
+                                     and pci.pcpq_id = pcpdqd.pcpq_id
+                                     and pcpdqd.pcqpd_id = pcqpd.pcqpd_id
+                                     and pcm.internal_contract_ref_no =
+                                         pcqpd.internal_contract_ref_no(+)
+                                     and pcqpd.premium_disc_unit_id =
+                                         ppu.internal_price_unit_id(+)
+                                     and ppu.price_unit_id =
+                                         pum.price_unit_id(+)
+                                     and pcpdqd.pcqpd_id = pcqpd.pcqpd_id
+                                     and pcm.process_id = pc_process_id
+                                     and pcdi.process_id = pc_process_id
+                                     and pci.process_id = pc_process_id
+                                     and pcqpd.process_id = pc_process_id
+                                     and pcm.corporate_id = pc_corporate_id
+                                     and pcm.is_active = 'Y'
+                                     and pcqpd.is_active = 'Y'
+                                   group by pcm.contract_ref_no,
+                                            pcm.internal_contract_ref_no,
+                                            pum.price_unit_id,
+                                            pcm.internal_contract_ref_no,
+                                            pum.price_unit_name) pcqpd,
+                                 --v_ppu_pum                      ppu_pum,
+                                 ak_corporate                   akc,
+                                 pcbph_pc_base_price_header     pcbph,
+                                 poch_price_opt_call_off_header poch,
+                                 pcbpd_pc_base_price_detail     pcbpd,
+                                 pocd_price_option_calloff_dtls pocd,
+                                 pffxd_phy_formula_fx_details   pffxd,
+                                 v_ppu_pum                      ppu_pum_price,
+                                 cqs_contract_qty_status        cqs,
+                                 qum_quantity_unit_master       qum_cont,
+                                 cpc_corporate_profit_center    cpc,
+                                 css_corporate_strategy_setup   css
+                           where pcm.contract_type = 'BASEMETAL'
+                             and pcm.process_id = pc_process_id
+                             and pcm.contract_status = 'In Position'
+                             and pcm.is_active = 'Y'
+                             and pcm.internal_contract_ref_no =
+                                 pcdi.internal_contract_ref_no
+                             and pcdi.process_id = pc_process_id
+                             and pcdi.is_active = 'Y'
+                             and pcm.cp_id = phd.profileid
+                             and pcm.trader_id = ak_trader.user_id
+                             and pcm.internal_contract_ref_no =
+                                 pcpd.internal_contract_ref_no
+                             and pcpd.process_id = pc_process_id
+                             and pcpd.is_active = 'Y'
+                             and pcpd.product_id = pdm.product_id
+                             and pdm.is_active = 'Y'
+                             and pcdi.pcdi_id = diqs.pcdi_id
+                             and diqs.process_id = pc_process_id
+                             and diqs.is_active = 'Y'
+                             and diqs.item_qty_unit_id = qum_del.qty_unit_id
+                             and qum_del.is_deleted = 'N'
+                             and qum_del.is_active = 'Y'
+                             and pcm.internal_contract_ref_no =
+                                 pcqpd.internal_contract_ref_no(+)
+                             and pcm.corporate_id = akc.corporate_id
+                             and pcm.internal_contract_ref_no =
+                                 pcbph.internal_contract_ref_no
+                             and pcbph.process_id = pc_process_id
+                             and pcdi.pcdi_id = poch.pcdi_id
+                             and poch.pcbph_id = pcbph.pcbph_id
+                             and poch.is_active = 'Y'
+                             and pcbph.pcbph_id = pcbpd.pcbph_id
+                             and pcbpd.process_id = pc_process_id
+                             and poch.poch_id = pocd.poch_id
+                             and pocd.pcbpd_id = pcbpd.pcbpd_id
+                             and pocd.is_active = 'Y'
+                             and pcm.internal_contract_ref_no =
+                                 pffxd.internal_contract_ref_no
+                             and pffxd.pffxd_id = pcbpd.pffxd_id
+                             and pffxd.process_id = pc_process_id
+                             and pffxd.is_active = 'Y'
+                             and pcbpd.price_unit_id =
+                                 ppu_pum_price.product_price_unit_id(+)
+                             and pcm.internal_contract_ref_no =
+                                 cqs.internal_contract_ref_no
+                             and cqs.process_id = pc_process_id
+                             and cqs.item_qty_unit_id = qum_cont.qty_unit_id
+                             and qum_cont.is_active = 'Y'
+                             and pcpd.profit_center_id =
+                                 cpc.profit_center_id
+                             and cpc.is_active = 'Y'
+                             and pcpd.strategy_id = css.strategy_id
+                             and css.is_active = 'Y'
+                             and pcdi.price_option_call_off_status in
+                                 ('Not Applicable', 'Called Off')
                              and exists
                            (select pcmul.internal_contract_ref_no
                                     from pcmul_phy_contract_main_ul pcmul
@@ -2356,8 +2946,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  cqs.internal_contract_ref_no
                              and cqs.process_id = pc_process_id
-                             and cqs.item_qty_unit_id =
-                                 qum_cont.qty_unit_id
+                             and cqs.item_qty_unit_id = qum_cont.qty_unit_id
                              and qum_cont.is_active = 'Y'
                              and pcpd.profit_center_id =
                                  cpc.profit_center_id
@@ -2681,7 +3270,7 @@ create or replace package body pkg_phy_custom_reports is
          and t1.process_id = pc_process_id
          and t1.process = pc_process;
     end loop;
-  commit;
+    commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -3430,7 +4019,8 @@ create or replace package body pkg_phy_custom_reports is
          and dpd.instrument_type = 'Average'
          and dpd.corporate_id = pc_corporate_id
          and dpd.process_id = pc_process_id
-         and dpd.internal_derivative_ref_no =fsh.internal_derivative_ref_no(+)
+         and dpd.internal_derivative_ref_no =
+             fsh.internal_derivative_ref_no(+)
          and dpd.settlement_ref_no = fsh.settlement_ref_no(+)
       union all
       select 'Deleted' journal_type, -- Section name
@@ -3500,7 +4090,7 @@ create or replace package body pkg_phy_custom_reports is
                      fsh.settlement_date
                 from fsh_fin_settlement_header fsh
                where fsh.process_id = pc_process_id
-                 --and fsh.is_settled = 'Y'
+              --and fsh.is_settled = 'Y'
                group by fsh.internal_derivative_ref_no,
                         fsh.settlement_ref_no,
                         fsh.settlement_date) fsh
@@ -3508,7 +4098,8 @@ create or replace package body pkg_phy_custom_reports is
          and dpd.instrument_type = 'Average'
          and dpd.corporate_id = pc_corporate_id
          and dpd.process_id = pc_process_id
-         and dpd.internal_derivative_ref_no = fsh.internal_derivative_ref_no(+)
+         and dpd.internal_derivative_ref_no =
+             fsh.internal_derivative_ref_no(+)
          and dpd.settlement_ref_no = fsh.settlement_ref_no(+);
     cursor cr_phy_fixation is
       select 'New' journal_type,
@@ -3522,15 +4113,21 @@ create or replace package body pkg_phy_custom_reports is
              null profit_center_short_name,
              pofh.latest_pfc_no price_fixation_refno,
              pofh.pcdi_id internal_derivative_ref_no,
-             pcm.contract_ref_no || '-' || pcdi.delivery_item_no delivery_item_ref_no,
-             diqs.total_qty delivery_item_qty,
-             qum_diqs.qty_unit delivery_item_qty_unit,
              (case
                when gmr.gmr_ref_no is not null then
                 gmr.gmr_ref_no
                else
-                pcm.contract_ref_no
-             end) contract_ref_no,
+                pcm.contract_ref_no || '-' || pcdi.delivery_item_no
+             end) delivery_item_ref_no, --bug id 69221
+             diqs.total_qty delivery_item_qty,
+             qum_diqs.qty_unit delivery_item_qty_unit,
+             /*(case
+                            when gmr.gmr_ref_no is not null then
+                             gmr.gmr_ref_no
+                            else
+                             pcm.contract_ref_no
+                          end) contract_ref_no,*/
+             pcm.contract_ref_no, --bug id 69221
              pcm.cp_id clearer_profile_id,
              phd_cp.companyname clearer_name,
              gab.firstname || ' ' || gab.lastname trader_name,
@@ -3655,15 +4252,21 @@ create or replace package body pkg_phy_custom_reports is
              null profit_center_short_name,
              pofh.latest_pfc_no price_fixation_refno,
              pofh.pcdi_id internal_derivative_ref_no,
-             pcm.contract_ref_no || '-' || pcdi.delivery_item_no delivery_item_ref_no,
-             diqs.total_qty delivery_item_qty,
-             qum_diqs.qty_unit delivery_item_qty_unit,
              (case
                when gmr.gmr_ref_no is not null then
                 gmr.gmr_ref_no
                else
-                pcm.contract_ref_no
-             end) contract_ref_no,
+                pcm.contract_ref_no || '-' || pcdi.delivery_item_no
+             end) delivery_item_ref_no, --bug id 69221
+             diqs.total_qty delivery_item_qty,
+             qum_diqs.qty_unit delivery_item_qty_unit,
+             /*(case
+                            when gmr.gmr_ref_no is not null then
+                             gmr.gmr_ref_no
+                            else
+                             pcm.contract_ref_no
+                          end) contract_ref_no,*/
+             pcm.contract_ref_no, --bug id 69221
              pcm.cp_id clearer_profile_id,
              phd_cp.companyname clearer_name,
              gab.firstname || ' ' || gab.lastname trader_name,
@@ -3774,7 +4377,7 @@ create or replace package body pkg_phy_custom_reports is
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
          and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id
          and cm_pay.is_active = 'Y'
-     union all
+      union all
       select 'Modified' journal_type,
              'Physical' book_type,
              pofh.corporate_id,
@@ -3786,15 +4389,21 @@ create or replace package body pkg_phy_custom_reports is
              null profit_center_short_name,
              pofh.latest_pfc_no price_fixation_refno,
              pofh.pcdi_id internal_derivative_ref_no,
-             pcm.contract_ref_no || '-' || pcdi.delivery_item_no delivery_item_ref_no,
-             diqs.total_qty delivery_item_qty,
-             qum_diqs.qty_unit delivery_item_qty_unit,
              (case
                when gmr.gmr_ref_no is not null then
                 gmr.gmr_ref_no
                else
-                pcm.contract_ref_no
-             end) contract_ref_no,
+                pcm.contract_ref_no || '-' || pcdi.delivery_item_no
+             end) delivery_item_ref_no, --bug id 69221
+             diqs.total_qty delivery_item_qty,
+             qum_diqs.qty_unit delivery_item_qty_unit,
+             /*(case
+                            when gmr.gmr_ref_no is not null then
+                             gmr.gmr_ref_no
+                            else
+                             pcm.contract_ref_no
+                          end) contract_ref_no,*/
+             pcm.contract_ref_no, --bug id 69221
              pcm.cp_id clearer_profile_id,
              phd_cp.companyname clearer_name,
              gab.firstname || ' ' || gab.lastname trader_name,
@@ -3904,7 +4513,7 @@ create or replace package body pkg_phy_custom_reports is
          and pocd.pay_in_price_unit_id = ppu_pum_pay.product_price_unit_id
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
          and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id
-         and cm_pay.is_active = 'Y'  ;
+         and cm_pay.is_active = 'Y';
   
     vc_trade_cur_id        varchar2(15);
     vn_total_price         number(35, 5);
@@ -4185,7 +4794,7 @@ create or replace package body pkg_phy_custom_reports is
                       axs.internal_action_ref_no
                   and pfd.is_active = 'Y'
                   and pfam.is_active = 'Y'
-                --  and pfd.user_price is not null -- removed this check, as latest avg price not used, only qty fixed, pfc no to be shown
+                     --  and pfd.user_price is not null -- removed this check, as latest avg price not used, only qty fixed, pfc no to be shown
                   and axs.corporate_id = pc_corporate_id
                 group by pfd.pofh_id)
     loop
@@ -4253,7 +4862,7 @@ create or replace package body pkg_phy_custom_reports is
                and ppf1.final_price is not null);
     commit;
     --- check final price updated between last eod and current eod
-     update pofh_history ppf
+    update pofh_history ppf
        set ppf.is_modified = 'Y'
      where ppf.process_id = pc_process_id
        and ppf.corporate_id = pc_corporate_id
@@ -4266,7 +4875,7 @@ create or replace package body pkg_phy_custom_reports is
                and ppf1.process = pc_process
                and ppf1.pofh_id = ppf.pofh_id
                and ppf1.final_price is not null
-               and ppf1.final_price <> ppf.final_price );
+               and ppf1.final_price <> ppf.final_price);
     ---Physical price fixation starts here
     for cr_cdc_row in cr_phy_fixation
     loop
@@ -4718,7 +5327,12 @@ create or replace package body pkg_phy_custom_reports is
                                 qum_priced.qty_unit price_qty_unit,
                                 ak.base_cur_id,
                                 cm_base.cur_code base_ccy,
-                                cq.close_rate
+                                /*cq.close_rate*/
+                                pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                         pcm.invoice_currency_id,
+                                                                         ak.base_cur_id,
+                                                                         pd_trade_date,
+                                                                         1) close_rate
                          
                            from pofh_history                   pofh,
                                 pocd_price_option_calloff_dtls pocd,
@@ -4737,8 +5351,8 @@ create or replace package body pkg_phy_custom_reports is
                                 cim_citymaster                 cm_city,
                                 qum_quantity_unit_master       qum_di,
                                 qum_quantity_unit_master       qum_priced,
-                                cm_currency_master             cm_base,
-                                cq_currency_quote              cq
+                                cm_currency_master             cm_base
+                         --cq_currency_quote              cq
                          
                           where pofh.pocd_id = pocd.pocd_id
                             and pocd.poch_id = poch.poch_id
@@ -4766,7 +5380,7 @@ create or replace package body pkg_phy_custom_reports is
                             and pcdb.state_id = sm.state_id
                             and pcdb.city_id = cm_city.city_id
                             and cym.country_id = sm.country_id
-                            and sm.state_id = cm_city.state_id
+                               --and sm.state_id = cm_city.state_id --Bugid 69246
                             and diqs.item_qty_unit_id = qum_di.qty_unit_id
                             and diqs.process_id = pc_process_id
                             and pocd.qty_to_be_fixed_unit_id =
@@ -4774,15 +5388,15 @@ create or replace package body pkg_phy_custom_reports is
                             and ak.base_cur_id = cm_base.cur_id
                             and pcm.corporate_id = pc_corporate_id
                             and pcm.contract_type = 'BASEMETAL'
-                            and cq.corporate_id = pc_corporate_id
-                            and cq.cur_date = pd_trade_date
-                            and cq.cur_id = pcm.invoice_currency_id
+                               --and cq.corporate_id = pc_corporate_id
+                               --and cq.cur_date = pd_trade_date
+                               --and cq.cur_id = pcm.invoice_currency_id
                             and pcm.is_active = 'Y'
                             and pcdi.is_active = 'Y'
                             and poch.is_active = 'Y'
                             and pocd.is_active = 'Y'
                             and pofh.is_active = 'Y'
-                            and cq.is_deleted = 'N'
+                               --and cq.is_deleted = 'N'
                             and pcm.contract_status = 'In Position'
                           group by pcm.corporate_id,
                                    pofh.process_id,
@@ -4817,12 +5431,12 @@ create or replace package body pkg_phy_custom_reports is
                                    qum_priced.qty_unit,
                                    ak.base_cur_id,
                                    cm_base.cur_code,
-                                   cq.close_rate,
-                                   
+                                   --cq.close_rate,
                                    cym.country_name,
                                    sm.state_name,
                                    cm_city.city_name,
-                                   pcdb.duty_status)
+                                   pcdb.duty_status,
+                                   pcm.invoice_currency_id)
     loop
     
       insert into prp_physical_risk_position
@@ -5301,5 +5915,5 @@ create or replace package body pkg_phy_custom_reports is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end; 
+end;
 /
