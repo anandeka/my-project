@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1119
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ashok
+ 
+Created on*        		:  01-Oct-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  bug Fixes 69221,69225,69246
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 104843
+Author: ashokkumar.l
+Date: 8:00:29 PM, Monday, October 01, 2012
+Message:
+bug Fixes 69221,69225,69246
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
