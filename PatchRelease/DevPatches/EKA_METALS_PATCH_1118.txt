@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_1118
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  01-Oct-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  69177,68386
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 104837
+Author: elaiyaraja.nallathambi
+Date: 7:38:59 PM, Monday, October 01, 2012
+Message:
+Bug Fixes:- 69177,68386
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TotalInvoiceUtilityReport.rpt
+
+Revision: 104838
+Author: elaiyaraja.nallathambi
+Date: 7:39:36 PM, Monday, October 01, 2012
+Message:
+Bug Fixes:- 69177,68386
+----
+Modified : /7.3/Engg/Metals/Code/Reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/TotalInvoiceUtilityReport.rpt
+
+
+
