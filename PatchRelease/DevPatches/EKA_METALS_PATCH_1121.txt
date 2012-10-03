@@ -1,0 +1,63 @@
+Patch No*          		:  EKA_METALS_PATCH_1121
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  03-Oct-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 104939
+Author: elaiyaraja.nallathambi
+Date: 7:46:33 PM, Wednesday, October 03, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+
+Revision: 104938
+Author: elaiyaraja.nallathambi
+Date: 7:29:15 PM, Wednesday, October 03, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ReleaseOrder.rpt
+
+Revision: 104943
+Author: elaiyaraja.nallathambi
+Date: 8:00:21 PM, Wednesday, October 03, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/Reports/PurchaseDebitCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/Reports/ReleaseOrder.rpt
+
+
