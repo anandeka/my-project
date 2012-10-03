@@ -315,10 +315,10 @@ select temp.derivative_ref_no,
                cm_currency_master cm_comm,
                cm_currency_master cm_cl_comm,
                cm_currency_master cm_val,
-               (select cm.cur_code    main_cur_code,
-                       cm.decimals    main_cur_decimal,
+               (select cm.cur_code main_cur_code,
+                       cm.decimals main_cur_decimal,
                        scd.sub_cur_id,
-                       scd.cur_id     main_cur_id,
+                       scd.cur_id main_cur_id,
                        scd.factor
                   from scd_sub_currency_detail scd,
                        cm_currency_master      cm
@@ -329,14 +329,14 @@ select temp.derivative_ref_no,
                dpm_derivative_purpose_master dpm,
                cm_currency_master cmak,
                bct_broker_commission_types bct,
-               bcs_broker_commission_setup bcs,
-               ps_price_source ps,
-               pp_price_point pp,
-               pum_price_unit_master pum_sett,
-               phd_profileheaderdetails phd_nomine,
-               phd_profileheaderdetails phd_cp,
+               --bcs_broker_commission_setup bcs,
+               ps_price_source            ps,
+               pp_price_point             pp,
+               pum_price_unit_master      pum_sett,
+               phd_profileheaderdetails   phd_nomine,
+               phd_profileheaderdetails   phd_cp,
                ucm_unit_conversion_master ucm,
-               pum_price_unit_master pum_clear,
+               --pum_price_unit_master pum_clear,
                dtm_deal_type_master dtm,
                (select dt_inner.internal_derivative_ref_no,
                        dt_inner.swap_type_1,
@@ -402,8 +402,9 @@ select temp.derivative_ref_no,
            and dpm.purpose_id = dt.purpose_id
            and cmak.cur_id = ak.base_cur_id
            and dt.clearer_comm_type_id = bct.commission_type_id(+)
-           and bct.commission_type_id = bcs.commission_type_id(+)
-           and dim.instrument_type_id = bcs.future_option_type
+              /*and bct.commission_type_id = bcs.commission_type_id(+)
+                                       and dim.instrument_type_id = bcs.future_option_type*/
+           and bct.is_active = 'Y'
            and dt.price_source_id = ps.price_source_id(+)
            and dt.price_point_id = pp.price_point_id(+)
            and dt.settlement_price_unit_id = pum_sett.price_unit_id(+)
@@ -414,7 +415,7 @@ select temp.derivative_ref_no,
            and dt.cp_profile_id = phd_cp.profileid(+)
            and dt.quantity_unit_id = ucm.from_qty_unit_id
            and pdm.base_quantity_unit = ucm.to_qty_unit_id
-           and bcs.price_unit_id = pum_clear.price_unit_id(+)
+              --and bcs.price_unit_id = pum_clear.price_unit_id(+)
            and dt.deal_type_id = dtm.deal_type_id
            and dt.internal_derivative_ref_no =
                dt_fb2.internal_derivative_ref_no(+)
@@ -456,7 +457,7 @@ select temp.derivative_ref_no,
                t.trade_year_month,
                t.prompt_year,
                t.clearer,
-               t.commission_type_name          clearer_comm_type,
+               t.commission_type_name clearer_comm_type,
                t.account_name,
                t.clearer_commission,
                t.clearer_commission_unit,
@@ -490,13 +491,13 @@ select temp.derivative_ref_no,
                t.instrument_type,
                t.nominee,
                t.purpose_name,
-               t.corporate_id                  cor_id,
+               t.corporate_id cor_id,
                t.corporate_name,
                t.business_line_name,
                t.strategy_id,
                t.strategy_name,
                t.remarks,
-               null                            exchnage_name,
+               null exchnage_name,
                t.contract_value,
                t.contract_value_unit,
                t.base_ccy,
@@ -726,10 +727,10 @@ select temp.derivative_ref_no,
                        cm_currency_master cm_comm,
                        cm_currency_master cm_cl_comm,
                        cm_currency_master cm_val,
-                       (select cm.cur_code    main_cur_code,
-                               cm.decimals    main_cur_decimal,
+                       (select cm.cur_code main_cur_code,
+                               cm.decimals main_cur_decimal,
                                scd.sub_cur_id,
-                               scd.cur_id     main_cur_id,
+                               scd.cur_id main_cur_id,
                                scd.factor
                           from scd_sub_currency_detail scd,
                                cm_currency_master      cm
@@ -761,11 +762,11 @@ select temp.derivative_ref_no,
                                dt_inner.swap_type_2,
                                dt_inner.swap_trade_price_2,
                                dt_inner.swap_index_instrument_id_2,
-                               null                                period_type,
-                               null                                period,
-                               null                                off_day_price,
-                               null                                basics,
-                               null                                basics_unit
+                               null period_type,
+                               null period,
+                               null off_day_price,
+                               null basics,
+                               null basics_unit
                           from dt_derivative_trade dt_inner
                          where dt_inner.leg_no = 2) dt_leg2,
                        (select dt_fbi.internal_derivative_ref_no,
@@ -836,13 +837,14 @@ select temp.derivative_ref_no,
                    and dt.internal_derivative_ref_no =
                        dt_leg2.internal_derivative_ref_no(+)
                    and dt.internal_derivative_ref_no =
-                       dt_fbi.internal_derivative_ref_no(+)) t,
-               bcs_broker_commission_setup bcs,
-               pum_price_unit_master pum_clear
-         where t.commission_type_id = bcs.commission_type_id(+)
-           and bcs.price_unit_id = pum_clear.price_unit_id(+)
-           and t.corporate_id = bcs.corporate_id(+)
-           and bcs.future_option_type(+) = t.instrument_type_id) temp,
+                       dt_fbi.internal_derivative_ref_no(+)) t
+        /*bcs_broker_commission_setup bcs,
+                       pum_price_unit_master pum_clear
+                 where t.commission_type_id = bcs.commission_type_id(+)
+                   and bcs.price_unit_id = pum_clear.price_unit_id(+)
+                   and t.corporate_id = bcs.corporate_id(+)
+                   and bcs.future_option_type(+) = t.instrument_type_id*/
+        ) temp,
        (select dtavg.internal_derivative_ref_no,
                round(sum((case
                            when dtavg.period_date <= trunc(sysdate) then
