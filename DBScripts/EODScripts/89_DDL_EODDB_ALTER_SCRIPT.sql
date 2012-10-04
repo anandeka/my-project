@@ -1,0 +1,9 @@
+ALTER TABLE EOD_EOM_PHY_CONTRACT_JOURNAL MODIFY(
+CORPORATE_NAME                           VARCHAR2(100),
+CONTRACT_REF_NO                          VARCHAR2(30),
+COMPANYNAME                              VARCHAR2(100),
+TRADER                                   VARCHAR2(100),
+PRODUCT_DESC                             VARCHAR2(100));
+
+ALTER TABLE POUE_PHY_OPEN_UNREAL_ELEMENT MODIFY PRICE_STRING VARCHAR2(4000);
+
