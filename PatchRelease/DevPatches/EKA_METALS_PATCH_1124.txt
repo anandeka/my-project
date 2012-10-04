@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1124
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  04-Oct-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 104978
+
+Date: 11:34:33 AM, Thursday, October 04, 2012
+Message:
+Table alters for length fro Journal Report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/89_DDL_EODDB_ALTER_SCRIPT.sql
+
+
