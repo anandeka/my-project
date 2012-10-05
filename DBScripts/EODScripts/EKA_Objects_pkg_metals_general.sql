@@ -1138,7 +1138,7 @@ create or replace package body pkg_metals_general is
                                               where pcerc.pcrh_id =
                                                     cur_ref_charge.pcrh_id
                                               and nvl(pcerc.range_min_value,
-                                                      vn_min_price) >= vn_min_price
+                                                      0) >= vn_min_price
                                               and nvl(pcerc.range_max_value,
                                                       100000000) <=
                                                   vn_min_range
@@ -1534,7 +1534,7 @@ create or replace package body pkg_metals_general is
                                             where pcetc.pcth_id =
                                                   cur_tret_charge.pcth_id
                                                and nvl(pcetc.range_min_value,
-                                                      vn_min_price) >= vn_min_price
+                                                      0) >= vn_min_price
                                               and nvl(pcetc.range_max_value,
                                                       100000000) <=
                                                   vn_min_range
@@ -2057,7 +2057,7 @@ create or replace package body pkg_metals_general is
                                             where pcetc.pcth_id =
                                                   cur_tret_charge.pcth_id
                                               and nvl(pcetc.range_min_value,
-                                                      vn_min_price) >= vn_min_price
+                                                      0) >= vn_min_price
                                               and nvl(pcetc.range_max_value,
                                                       100000000) <=
                                                   vn_min_range
@@ -2475,7 +2475,7 @@ create or replace package body pkg_metals_general is
                                             where pcetc.pcth_id =
                                                   cur_tret_charge.pcth_id
                                               and nvl(pcetc.range_min_value,
-                                                      vn_min_price) >= vn_min_price
+                                                      0) >= vn_min_price
                                               and nvl(pcetc.range_max_value,
                                                       100000000) <=
                                                   vn_min_range
@@ -3072,7 +3072,7 @@ create or replace package body pkg_metals_general is
                                               where pcerc.pcrh_id =
                                                     cur_ref_charge.pcrh_id                                              
                                                and nvl(pcerc.range_min_value,
-                                                      vn_min_price) >= vn_min_price
+                                                      0) >= vn_min_price
                                                and nvl(pcerc.range_max_value,
                                                       100000000) <=
                                                   vn_min_range
@@ -3939,7 +3939,7 @@ create or replace package body pkg_metals_general is
                                               where pcerc.pcrh_id =
                                                     cur_ref_charge.pcrh_id
                                                 and nvl(pcerc.range_min_value,
-                                                      vn_min_price) >= vn_min_price
+                                                      0) >= vn_min_price
                                                 and nvl(pcerc.range_max_value,
                                                       100000000) <=
                                                   vn_min_range    
