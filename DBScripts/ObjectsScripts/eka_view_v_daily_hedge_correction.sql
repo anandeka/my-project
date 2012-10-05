@@ -1,6 +1,7 @@
-CREATE OR REPLACE VIEW V_DAILY_HEDGE_CORRECTION AS 
+CREATE OR REPLACE VIEW V_DAILY_HEDGE_CORRECTION AS
 SELECT akc.corporate_id,
        akc.corporate_name,
+       pcdi.pcdi_id,
        'Hedge Correction' section,
        7 section_id,
        cpc.profit_center_id,
@@ -164,6 +165,7 @@ SELECT akc.corporate_id,
 UNION ALL
 SELECT akc.corporate_id,
        akc.corporate_name,
+       pcdi.pcdi_id,
        'Cancelled Fixations' section,
        9 section_id,
        cpc.profit_center_id,
@@ -315,3 +317,4 @@ SELECT akc.corporate_id,
    AND ppfh.is_active(+) = 'Y'
    AND pfqpp.is_active(+) = 'Y'
    AND pfd.is_cancel = 'Y'
+
