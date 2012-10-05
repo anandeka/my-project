@@ -674,27 +674,33 @@ create or replace package body pkg_phy_custom_reports is
                              else
                               1
                            end) end) else 1 end) amount_in_base_cur,
-                          round(iss.total_amount_to_pay, 4) * case
-                            when (iss.invoice_type = 'Commercial' or
-                                 iss.invoice_type = 'DebitCredit') then
-                             1
-                            when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                 nvl(iss.recieved_raised_type, 'NA') =
-                                 'Received' then
-                             -1
-                            when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                 nvl(iss.recieved_raised_type, 'NA') =
-                                 'Raised' then
-                             1
-                            when nvl(iss.invoice_type_name, 'NA') =
-                                 'AdvancePayment' and
-                                 pcm.purchase_sales = 'P' then
-                             -1
-                            when nvl(iss.invoice_type_name, 'NA') =
-                                 'AdvancePayment' and
-                                 pcm.purchase_sales = 'S' then
-                             1
-                          end invoice_amt,
+                          round(iss.total_amount_to_pay, 4) *
+                          (case
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Payable' then
+                              -1
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Receivable' then
+                              1
+                             when nvl(iss.payable_receivable, 'NA') = 'NA' then
+                              (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) else 1 end) invoice_amt,
                           iss.invoice_issue_date invoice_date,
                           iss.payment_due_date invoice_due_date,
                           iss.invoice_type_name invoice_type,
@@ -831,16 +837,25 @@ create or replace package body pkg_phy_custom_reports is
                              else
                               1
                            end) end) amount_in_base_cur,
-                          round(iss.total_amount_to_pay, 4) * case
-                            when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                 nvl(iss.recieved_raised_type, 'NA') =
-                                 'Received' then
-                             -1
-                            when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                 nvl(iss.recieved_raised_type, 'NA') =
-                                 'Raised' then
-                             1
-                          end invoice_amt,
+                          round(iss.total_amount_to_pay, 4) *
+                          (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) invoice_amt,
                           iss.invoice_issue_date invoice_date,
                           iss.payment_due_date invoice_due_date,
                           nvl(iss.invoice_type_name, 'NA') invoice_type,
@@ -1034,27 +1049,33 @@ create or replace package body pkg_phy_custom_reports is
                              else
                               1
                            end) end) else 1 end) amount_in_base_cur,
-                          round(iss.total_amount_to_pay, 4) * case
-                            when (iss.invoice_type = 'Commercial' or
-                                 iss.invoice_type = 'DebitCredit') then
-                             1
-                            when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                 nvl(iss.recieved_raised_type, 'NA') =
-                                 'Received' then
-                             -1
-                            when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                 nvl(iss.recieved_raised_type, 'NA') =
-                                 'Raised' then
-                             1
-                            when nvl(iss.invoice_type_name, 'NA') =
-                                 'AdvancePayment' and
-                                 pcm.purchase_sales = 'P' then
-                             -1
-                            when nvl(iss.invoice_type_name, 'NA') =
-                                 'AdvancePayment' and
-                                 pcm.purchase_sales = 'S' then
-                             1
-                          end invoice_amt,
+                          round(iss.total_amount_to_pay, 4) *
+                          (case
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Payable' then
+                              -1
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Receivable' then
+                              1
+                             when nvl(iss.payable_receivable, 'NA') = 'NA' then
+                              (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) else 1 end) invoice_amt,
                           iss.invoice_issue_date invoice_date,
                           iss.payment_due_date invoice_due_date,
                           iss.invoice_type_name invoice_type,
@@ -1192,16 +1213,25 @@ create or replace package body pkg_phy_custom_reports is
                              else
                               1
                            end) end) amount_in_base_cur,
-                          round(iss.total_amount_to_pay, 4) * case
-                            when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                 nvl(iss.recieved_raised_type, 'NA') =
-                                 'Received' then
-                             -1
-                            when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                 nvl(iss.recieved_raised_type, 'NA') =
-                                 'Raised' then
-                             1
-                          end invoice_amt,
+                          round(iss.total_amount_to_pay, 4) *
+                          (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) invoice_amt,
                           iss.invoice_issue_date invoice_date,
                           iss.payment_due_date invoice_due_date,
                           nvl(iss.invoice_type_name, 'NA') invoice_type,
@@ -1705,20 +1735,25 @@ create or replace package body pkg_phy_custom_reports is
                                    else
                                     pcdi.delivery_to_date
                                  end) del_date,
-                                 pcbpd.price_basis,
-                                 (case
-                                   when pcbpd.price_basis = 'Fixed' then
-                                    pcbpd.price_value
-                                   else
-                                    0
-                                 end) price,
-                                 (case
-                                   when pcbpd.price_basis = 'Fixed' then
-                                    pcbpd.price_unit_id
-                                   else
-                                    null
-                                 end) price_unit_id,
-                                 ppu_pum_price.price_unit_name,
+                                 --For not called off , no need to show the pricing details
+                                 /*pcbpd.price_basis,
+                                                                                                                                    (case
+                                                                                                                                      when pcbpd.price_basis = 'Fixed' then
+                                                                                                                                       pcbpd.price_value
+                                                                                                                                      else
+                                                                                                                                       0
+                                                                                                                                    end) price,
+                                                                                                                                    (case
+                                                                                                                                      when pcbpd.price_basis = 'Fixed' then
+                                                                                                                                       pcbpd.price_unit_id
+                                                                                                                                      else
+                                                                                                                                       null
+                                                                                                                                    end) price_unit_id,
+                                                                                                                                    ppu_pum_price.price_unit_name,*/
+                                 null price_basis,
+                                 0 price,
+                                 null price_unit_id,
+                                 null price_unit_name,
                                  pcqpd.premium_disc_value,
                                  pcqpd.premium_disc_unit_id,
                                  pcqpd.pd_price_unit_name,
@@ -1791,11 +1826,11 @@ create or replace package body pkg_phy_custom_reports is
                                             pcm.internal_contract_ref_no,
                                             pum.price_unit_name) pcqpd,
                                  --v_ppu_pum                      ppu_pum,
-                                 ak_corporate                 akc,
-                                 pcbph_pc_base_price_header   pcbph,
-                                 pcbpd_pc_base_price_detail   pcbpd,
-                                 pffxd_phy_formula_fx_details pffxd,
-                                 v_ppu_pum                    ppu_pum_price,
+                                 ak_corporate akc,
+                                 --pcbph_pc_base_price_header   pcbph,
+                                 --pcbpd_pc_base_price_detail   pcbpd,
+                                 --pffxd_phy_formula_fx_details pffxd,
+                                 --v_ppu_pum                    ppu_pum_price,
                                  cqs_contract_qty_status      cqs,
                                  qum_quantity_unit_master     qum_cont,
                                  cpc_corporate_profit_center  cpc,
@@ -1825,18 +1860,18 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
                              and pcm.corporate_id = akc.corporate_id
-                             and pcm.internal_contract_ref_no =
-                                 pcbph.internal_contract_ref_no
-                             and pcbph.process_id = pc_process_id
-                             and pcbph.pcbph_id = pcbpd.pcbph_id
-                             and pcbpd.process_id = pc_process_id
-                             and pcm.internal_contract_ref_no =
-                                 pffxd.internal_contract_ref_no
-                             and pffxd.pffxd_id = pcbpd.pffxd_id
-                             and pffxd.process_id = pc_process_id
-                             and pffxd.is_active = 'Y'
-                             and pcbpd.price_unit_id =
-                                 ppu_pum_price.product_price_unit_id(+)
+                                /*and pcm.internal_contract_ref_no =
+                                                                                                                                 pcbph.internal_contract_ref_no
+                                                                                                                             and pcbph.process_id = pc_process_id
+                                                                                                                             and pcbph.pcbph_id = pcbpd.pcbph_id
+                                                                                                                             and pcbpd.process_id = pc_process_id
+                                                                                                                             and pcm.internal_contract_ref_no =
+                                                                                                                                 pffxd.internal_contract_ref_no
+                                                                                                                             and pffxd.pffxd_id = pcbpd.pffxd_id
+                                                                                                                             and pffxd.process_id = pc_process_id
+                                                                                                                             and pffxd.is_active = 'Y'
+                                                                                                                             and pcbpd.price_unit_id =
+                                                                                                                                 ppu_pum_price.product_price_unit_id(+)*/
                              and pcm.contract_status <> 'Cancelled'
                              and pcm.internal_contract_ref_no =
                                  cqs.internal_contract_ref_no
@@ -1888,20 +1923,25 @@ create or replace package body pkg_phy_custom_reports is
                                    else
                                     pcdi.delivery_to_date
                                  end) del_date,
-                                 pcbpd.price_basis,
-                                 (case
-                                   when pcbpd.price_basis = 'Fixed' then
-                                    pcbpd.price_value
-                                   else
-                                    0
-                                 end) price,
-                                 (case
-                                   when pcbpd.price_basis = 'Fixed' then
-                                    pcbpd.price_unit_id
-                                   else
-                                    null
-                                 end) price_unit_id,
-                                 ppu_pum_price.price_unit_name,
+                                 --For not called off , no need to show the pricing
+                                 /*pcbpd.price_basis,
+                                                                                                   (case
+                                                                                                     when pcbpd.price_basis = 'Fixed' then
+                                                                                                      pcbpd.price_value
+                                                                                                     else
+                                                                                                      0
+                                                                                                   end) price,
+                                                                                                   (case
+                                                                                                     when pcbpd.price_basis = 'Fixed' then
+                                                                                                      pcbpd.price_unit_id
+                                                                                                     else
+                                                                                                      null
+                                                                                                   end) price_unit_id,
+                                                                                                   ppu_pum_price.price_unit_name,*/
+                                 null price_basis,
+                                 0 price,
+                                 null price_unit_id,
+                                 null price_unit_name,
                                  pcqpd.premium_disc_value,
                                  pcqpd.premium_disc_unit_id,
                                  pcqpd.pd_price_unit_name,
@@ -1974,11 +2014,12 @@ create or replace package body pkg_phy_custom_reports is
                                             pcm.internal_contract_ref_no,
                                             pum.price_unit_name) pcqpd,
                                  --v_ppu_pum                      ppu_pum,
-                                 ak_corporate                 akc,
-                                 pcbph_pc_base_price_header   pcbph,
-                                 pcbpd_pc_base_price_detail   pcbpd,
-                                 pffxd_phy_formula_fx_details pffxd,
-                                 v_ppu_pum                    ppu_pum_price,
+                                 ak_corporate akc,
+                                 --for not called off no need to show the price details
+                                 /*pcbph_pc_base_price_header   pcbph,
+                                                                                                   pcbpd_pc_base_price_detail   pcbpd,
+                                                                                                   pffxd_phy_formula_fx_details pffxd,
+                                                                                                   v_ppu_pum                    ppu_pum_price,*/
                                  cqs_contract_qty_status      cqs,
                                  qum_quantity_unit_master     qum_cont,
                                  cpc_corporate_profit_center  cpc,
@@ -2008,18 +2049,18 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
                              and pcm.corporate_id = akc.corporate_id
-                             and pcm.internal_contract_ref_no =
-                                 pcbph.internal_contract_ref_no
-                             and pcbph.process_id = pc_process_id
-                             and pcbph.pcbph_id = pcbpd.pcbph_id
-                             and pcbpd.process_id = pc_process_id
-                             and pcm.internal_contract_ref_no =
-                                 pffxd.internal_contract_ref_no
-                             and pffxd.pffxd_id = pcbpd.pffxd_id
-                             and pffxd.process_id = pc_process_id
-                             and pffxd.is_active = 'Y'
-                             and pcbpd.price_unit_id =
-                                 ppu_pum_price.product_price_unit_id(+)
+                                /*and pcm.internal_contract_ref_no =
+                                                                                                 pcbph.internal_contract_ref_no
+                                                                                             and pcbph.process_id = pc_process_id
+                                                                                             and pcbph.pcbph_id = pcbpd.pcbph_id
+                                                                                             and pcbpd.process_id = pc_process_id
+                                                                                             and pcm.internal_contract_ref_no =
+                                                                                                 pffxd.internal_contract_ref_no
+                                                                                             and pffxd.pffxd_id = pcbpd.pffxd_id
+                                                                                             and pffxd.process_id = pc_process_id
+                                                                                             and pffxd.is_active = 'Y'
+                                                                                             and pcbpd.price_unit_id =
+                                                                                                 ppu_pum_price.product_price_unit_id(+)*/
                              and pcm.internal_contract_ref_no =
                                  cqs.internal_contract_ref_no
                              and cqs.process_id = pc_process_id
@@ -2266,20 +2307,25 @@ create or replace package body pkg_phy_custom_reports is
                                    else
                                     pcdi.delivery_to_date
                                  end) del_date,
-                                 pcbpd.price_basis,
-                                 (case
-                                   when pcbpd.price_basis = 'Fixed' then
-                                    pcbpd.price_value
-                                   else
-                                    0
-                                 end) price,
-                                 (case
-                                   when pcbpd.price_basis = 'Fixed' then
-                                    pcbpd.price_unit_id
-                                   else
-                                    null
-                                 end) price_unit_id,
-                                 ppu_pum_price.price_unit_name,
+                                 --Not called off So no price details
+                                 /*pcbpd.price_basis,
+                                                                                                   (case
+                                                                                                     when pcbpd.price_basis = 'Fixed' then
+                                                                                                      pcbpd.price_value
+                                                                                                     else
+                                                                                                      0
+                                                                                                   end) price,
+                                                                                                   (case
+                                                                                                     when pcbpd.price_basis = 'Fixed' then
+                                                                                                      pcbpd.price_unit_id
+                                                                                                     else
+                                                                                                      null
+                                                                                                   end) price_unit_id,
+                                                                                                   ppu_pum_price.price_unit_name,*/
+                                 null price_basis,
+                                 0 price,
+                                 null price_unit_id,
+                                 null price_unit_name,
                                  pcqpd.premium_disc_value,
                                  pcqpd.premium_disc_unit_id,
                                  pcqpd.pd_price_unit_name,
@@ -2351,11 +2397,11 @@ create or replace package body pkg_phy_custom_reports is
                                             pcm.internal_contract_ref_no,
                                             pum.price_unit_name) pcqpd,
                                  --v_ppu_pum                      ppu_pum,
-                                 ak_corporate                 akc,
-                                 pcbph_pc_base_price_header   pcbph,
-                                 pcbpd_pc_base_price_detail   pcbpd,
-                                 pffxd_phy_formula_fx_details pffxd,
-                                 v_ppu_pum                    ppu_pum_price,
+                                 ak_corporate akc,
+                                 /*pcbph_pc_base_price_header   pcbph,
+                                                                                                   pcbpd_pc_base_price_detail   pcbpd,
+                                                                                                   pffxd_phy_formula_fx_details pffxd,
+                                                                                                   v_ppu_pum                    ppu_pum_price,*/
                                  cqs_contract_qty_status      cqs,
                                  qum_quantity_unit_master     qum_cont,
                                  cpc_corporate_profit_center  cpc,
@@ -2385,18 +2431,18 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
                              and pcm.corporate_id = akc.corporate_id
-                             and pcm.internal_contract_ref_no =
-                                 pcbph.internal_contract_ref_no
-                             and pcbph.process_id = pc_process_id
-                             and pcbph.pcbph_id = pcbpd.pcbph_id
-                             and pcbpd.process_id = pc_process_id
-                             and pcm.internal_contract_ref_no =
-                                 pffxd.internal_contract_ref_no
-                             and pffxd.pffxd_id = pcbpd.pffxd_id
-                             and pffxd.process_id = pc_process_id
-                             and pffxd.is_active = 'Y'
-                             and pcbpd.price_unit_id =
-                                 ppu_pum_price.product_price_unit_id(+)
+                                /*and pcm.internal_contract_ref_no =
+                                                                                                 pcbph.internal_contract_ref_no
+                                                                                             and pcbph.process_id = pc_process_id
+                                                                                             and pcbph.pcbph_id = pcbpd.pcbph_id
+                                                                                             and pcbpd.process_id = pc_process_id
+                                                                                             and pcm.internal_contract_ref_no =
+                                                                                                 pffxd.internal_contract_ref_no
+                                                                                             and pffxd.pffxd_id = pcbpd.pffxd_id
+                                                                                             and pffxd.process_id = pc_process_id
+                                                                                             and pffxd.is_active = 'Y'
+                                                                                             and pcbpd.price_unit_id =
+                                                                                                 ppu_pum_price.product_price_unit_id(+)*/
                              and pcm.internal_contract_ref_no =
                                  cqs.internal_contract_ref_no
                              and cqs.process_id = pc_process_id
@@ -4122,11 +4168,11 @@ create or replace package body pkg_phy_custom_reports is
              diqs.total_qty delivery_item_qty,
              qum_diqs.qty_unit delivery_item_qty_unit,
              /*(case
-                            when gmr.gmr_ref_no is not null then
-                             gmr.gmr_ref_no
-                            else
-                             pcm.contract_ref_no
-                          end) contract_ref_no,*/
+                                                                   when gmr.gmr_ref_no is not null then
+                                                                    gmr.gmr_ref_no
+                                                                   else
+                                                                    pcm.contract_ref_no
+                                                                 end) contract_ref_no,*/
              pcm.contract_ref_no, --bug id 69221
              pcm.cp_id clearer_profile_id,
              phd_cp.companyname clearer_name,
@@ -4261,11 +4307,11 @@ create or replace package body pkg_phy_custom_reports is
              diqs.total_qty delivery_item_qty,
              qum_diqs.qty_unit delivery_item_qty_unit,
              /*(case
-                            when gmr.gmr_ref_no is not null then
-                             gmr.gmr_ref_no
-                            else
-                             pcm.contract_ref_no
-                          end) contract_ref_no,*/
+                                                                   when gmr.gmr_ref_no is not null then
+                                                                    gmr.gmr_ref_no
+                                                                   else
+                                                                    pcm.contract_ref_no
+                                                                 end) contract_ref_no,*/
              pcm.contract_ref_no, --bug id 69221
              pcm.cp_id clearer_profile_id,
              phd_cp.companyname clearer_name,
@@ -4398,11 +4444,11 @@ create or replace package body pkg_phy_custom_reports is
              diqs.total_qty delivery_item_qty,
              qum_diqs.qty_unit delivery_item_qty_unit,
              /*(case
-                            when gmr.gmr_ref_no is not null then
-                             gmr.gmr_ref_no
-                            else
-                             pcm.contract_ref_no
-                          end) contract_ref_no,*/
+                                                                   when gmr.gmr_ref_no is not null then
+                                                                    gmr.gmr_ref_no
+                                                                   else
+                                                                    pcm.contract_ref_no
+                                                                 end) contract_ref_no,*/
              pcm.contract_ref_no, --bug id 69221
              pcm.cp_id clearer_profile_id,
              phd_cp.companyname clearer_name,
