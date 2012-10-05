@@ -40,7 +40,7 @@ Date: 6:00:42 PM, Thursday, October 04, 2012
 Message:
 Bug Fixes
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_LOGISTICS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_LOGISTICS.sql (Revision: 105143)
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_LOGISTICS.sql
 
 
