@@ -8,7 +8,7 @@ Created on*        		:  05-Oct-2012
 
 Bug / Enhancement*              :  BUG
 
-Bug ID*            		:  Menu name updated, monthly unrealized pnl rpt name updated 
+Bug ID*            		:  Menu name updated, monthly unrealized pnl rpt name updated,physical booking 
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -34,10 +34,9 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 105124
-Author: sivachalabathi.s
-Date: 6:12:12 PM, Friday, October 05, 2012
-Message: Menu name updated, monthly unrealized pnl rpt name updated
 
+Message: Menu name updated, monthly unrealized pnl rpt name updated,physical booking
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_421_RPT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_421_RPT.sql		(Revision: 105124)
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_DER_PHYSICAL_BOOKING.sql	(Revision: 105135)
