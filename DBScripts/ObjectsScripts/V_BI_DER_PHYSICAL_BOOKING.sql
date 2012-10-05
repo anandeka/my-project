@@ -37,23 +37,27 @@ select iss.corporate_id,
           else
            1
         end) end) else 1 end) amount_in_base_cur,
-       round(iss.total_amount_to_pay, 4) * case
-         when (iss.invoice_type = 'Commercial' or
-              iss.invoice_type = 'DebitCredit') then
-          1
-         when nvl(iss.invoice_type, 'NA') = 'Service' and
-              nvl(iss.recieved_raised_type, 'NA') = 'Received' then
-          -1
-         when nvl(iss.invoice_type, 'NA') = 'Service' and
-              nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
-          1
-         when nvl(iss.invoice_type_name, 'NA') = 'AdvancePayment' and
-              pcm.purchase_sales = 'P' then
-          -1
-         when nvl(iss.invoice_type_name, 'NA') = 'AdvancePayment' and
-              pcm.purchase_sales = 'S' then
-          1
-       end invoice_amt,
+       round(iss.total_amount_to_pay, 4) *
+       (case
+          when nvl(iss.payable_receivable, 'NA') = 'Payable' then
+           -1
+          when nvl(iss.payable_receivable, 'NA') = 'Receivable' then
+           1
+          when nvl(iss.payable_receivable, 'NA') = 'NA' then
+           (case
+          when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' then
+           -1
+          when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' then
+           1
+          else
+           (case
+          when nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+           1
+          when nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+           -1
+          else
+           1
+        end) end) else 1 end) invoice_amt,
        iss.invoice_issue_date invoice_date,
        iss.payment_due_date invoice_due_date,
        iss.invoice_type_name invoice_type,
@@ -152,14 +156,21 @@ select iss.corporate_id,
           else
            1
         end) end) amount_in_base_cur,
-       round(iss.total_amount_to_pay, 4) * case
-         when nvl(iss.invoice_type, 'NA') = 'Service' and
-              nvl(iss.recieved_raised_type, 'NA') = 'Received' then
-          -1
-         when nvl(iss.invoice_type, 'NA') = 'Service' and
-              nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
-          1
-       end invoice_amt,
+       round(iss.total_amount_to_pay, 4) * 
+       (case
+          when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceReceived' then
+           -1
+          when nvl(iss.invoice_type_name, 'NA') = 'ServiceInvoiceRaised' then
+           1
+          else
+           (case
+          when nvl(iss.recieved_raised_type, 'NA') = 'Raised' then
+           1
+          when nvl(iss.recieved_raised_type, 'NA') = 'Received' then
+           -1
+          else
+           1
+        end) end) invoice_amt,
        iss.invoice_issue_date invoice_date,
        iss.payment_due_date invoice_due_date,
        nvl(iss.invoice_type_name, 'NA') invoice_type,
