@@ -1,42 +1,26 @@
 create or replace view v_bi_logistics as
-with v_ash as(select gmr.internal_gmr_ref_no,
-       grd.internal_grd_ref_no,
-       gmr.wns_status,
-       ash.ash_id,
-       ash.assay_type,
+with v_ash as(select ash.internal_gmr_ref_no,
+       ash.internal_grd_ref_no,
        sum(asm.net_weight) actual_wet_weight,
        sum(asm.dry_weight) actual_dry_weight
-  from gmr_goods_movement_record gmr,
-       grd_goods_record_detail   grd,
-       ash_assay_header          ash,
+  from ash_assay_header          ash,
        asm_assay_sublot_mapping  asm
- where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-   and gmr.internal_gmr_ref_no = ash.internal_gmr_ref_no
-   and grd.internal_grd_ref_no = ash.internal_grd_ref_no
-   and ash.assay_type = 'Weighing and Sampling Assay'
+ where ash.assay_type = 'Weighing and Sampling Assay'
    and ash.ash_id = asm.ash_id
    and asm.is_active = 'Y'
-   and ash.is_active = 'Y'
-   and gmr.is_deleted = 'N'
-   and grd.status = 'Active'
- group by gmr.internal_gmr_ref_no,
-          grd.internal_grd_ref_no,
-          ash.ash_id,
-          ash.assay_type,
-          gmr.wns_status), 
- v_agrd_qty as(select gmr.internal_gmr_ref_no,
+   and ash.is_active = 'Y'  
+ group by ash.internal_gmr_ref_no,
+          ash.internal_grd_ref_no), 
+ v_agrd_qty as(select ash.internal_gmr_ref_no,
        sum(asm.net_weight) bl_wet_weight,
        sum(asm.dry_weight) bl_dry_weight
-  from gmr_goods_movement_record gmr,
-       ash_assay_header          ash,
+  from  ash_assay_header          ash,
        asm_assay_sublot_mapping  asm
- where gmr.internal_gmr_ref_no = ash.internal_gmr_ref_no
-   and ash.assay_type = 'Shipment Assay'
+ where ash.assay_type = 'Shipment Assay'
    and ash.ash_id = asm.ash_id
    and ash.is_active = 'Y'
    and asm.is_active = 'Y'
-   and gmr.is_deleted='N'
- group by gmr.internal_gmr_ref_no)
+ group by ash.internal_gmr_ref_no)
 select t.groupid,
        t.corporate_group,
        t.corporate_id,
@@ -155,12 +139,12 @@ select t.groupid,
                agrd.bl_wet_weight bl_wet_weight,
                agrd.bl_dry_weight bl_dry_weight,
                qum.qty_unit actual_product_base_uom,               
-               (case when asm.wns_status='Completed' then
+               (case when gmr.wns_status='Completed' then
                 sum(asm.actual_wet_weight)
                 else
                 null
                 end) actual_wet_weight,
-                 (case when asm.wns_status='Completed' then
+                 (case when gmr.wns_status='Completed' then
                 sum(asm.actual_dry_weight)
                 else
                 null
@@ -309,7 +293,7 @@ select t.groupid,
                   agrd.bl_dry_weight,
                   sld.city_id,              
                   cim_sld.city_name, 
-                  asm.wns_status,
+                  gmr.wns_status,
                   qum.qty_unit,
                   pcpq.unit_of_measure,
                   qum.qty_unit) t
