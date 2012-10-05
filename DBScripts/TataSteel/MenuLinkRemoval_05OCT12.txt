@@ -1,0 +1,4 @@
+--Report
+-- Monthly contract status report
+update amc_app_menu_configuration set is_deleted = 'Y' where menu_id = 'RPT-D260';
+
