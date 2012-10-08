@@ -42,3 +42,11 @@ Migrated Go Live Issue : GMR-762-BLD shows exactly double the Payable Quantity f
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
 
 
+Revision: 105170
+Date: 12:14:11 PM, Monday, October 08, 2012
+Message:
+YTD calculation corrected in query
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/YTDMTDYIELD.rpt
+
+
