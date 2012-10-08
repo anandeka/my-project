@@ -2413,7 +2413,15 @@ commit;
              aml_attribute_master_list aml,
              pcm_physical_contract_main pcm,
              phd_profileheaderdetails phd,
-             pcpch_pc_payble_content_header pcpch
+             (select pcp.internal_contract_ref_no,
+                  pcp.element_id,
+                  pcp.payable_type
+             from pcpch_pc_payble_content_header pcp
+            where pcp.process_id = pc_process_id
+              and pcp.is_active = 'Y'
+            group by pcp.internal_contract_ref_no,
+                     pcp.element_id,
+                     pcp.payable_type) pcpch
        where temp.product_id = pdm_conc.product_id
          and temp.quality_id = qat.quality_id(+)
          and temp.profit_center_id = cpc.profit_center_id
@@ -2428,10 +2436,8 @@ commit;
              pcpch.internal_contract_ref_no(+)
          and temp.element_id = pcpch.element_id(+)
          and pcm.process_id = pc_process_id
-         and pcpch.process_id(+) = pc_process_id
          and pcm.is_active = 'Y'
-         and pcpch.is_active(+) = 'Y'
-       group by temp.corporate_id,
+         group by temp.corporate_id,
                 pc_process_id,
                 temp.product_id,
                 pdm_conc.product_desc,
