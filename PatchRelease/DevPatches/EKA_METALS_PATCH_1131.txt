@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_1131
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  08-Oct-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  66851,69039
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 105227
+Author: suresh.gottipati
+Date: 6:14:55 PM, Monday, October 08, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_report_general.sql
+
+Revision: 105228
+Author: elaiyaraja.nallathambi
+Date: 6:15:29 PM, Monday, October 08, 2012
+Message:
+Bug Fixes :- 66851
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details_by_qp.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/f_get_pricing_month.sql
+
+
+
+
+
+
