@@ -1,10 +1,14 @@
 create or replace view v_daily_fx_exposure_vat as
+-- VAT Exposure in VAT CURRENCY( for Invoice CCY <> VAT Remit With VAT as "Same Invoice" :-
 select akc.corporate_id,
        akc.corporate_name,
        cm_base.cur_code base_currency,
        'Physicals' main_section,
        'Vat' section,
        null sub_section,
+       ivd.internal_invoice_ref_no,
+       ivd.vat_amount_in_inv_cur,
+       ivd.vat_amount_in_vat_cur,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm.product_id,
@@ -13,12 +17,8 @@ select akc.corporate_id,
        gab.firstname || ' ' || gab.lastname trader,
        cm_pay.cur_id exposure_cur_id,
        cm_pay.cur_code exposure_currency,
-       iis.invoice_issue_date trade_date, --pcm.issue_date trade_date,
-       pkg_general.f_get_converted_currency_amt(akc.corporate_id,
-                                                cm_base.cur_id,
-                                                cm_pay.cur_id,
-                                                iis.invoice_issue_date,
-                                                1) fx_rate,
+       iis.invoice_issue_date trade_date,
+       ivd.fx_rate_vc_ic fx_rate, -- fx rate used for invoice currency to vat currency - -siva
        pcm.contract_ref_no,
        iis.invoice_ref_no,
        iis.vat_parent_ref_no parent_invoice_no,
@@ -40,9 +40,9 @@ select akc.corporate_id,
        null price,
        null price_unit_id,
        null price_unit,
-       iis.payable_receivable,
-       (decode(iis.payable_receivable, 'Payable', -1, 'Receivable', 1) *
-       ivd.vat_amount_in_vat_cur )*ivd.fx_rate_vc_ic hedging_amount,
+       iis.payable_receivable payable_receivable,
+       (decode(iis.payable_receivable, 'Payable', 1, 'Receivable', -1) *
+       ivd.vat_amount_in_vat_cur) hedging_amount,
        '' cost_type,
        null effective_date,
        '' buy_sell,
@@ -57,10 +57,10 @@ select akc.corporate_id,
                ii.delivery_item_ref_no,
                iid.internal_invoice_ref_no,
                iid.internal_gmr_ref_no,
-               sum(iid.invoiced_qty) invoiced_qty
+               sum(iid.invoiced_qty)
           from iid_invoicable_item_details iid,
-          ii_invoicable_item ii
-           where iid.is_active = 'Y'
+               ii_invoicable_item          ii
+         where iid.is_active = 'Y'
            and iid.invoicable_item_id = ii.invoicable_item_id
            and ii.is_active = 'Y'
          group by iid.internal_contract_item_ref_no,
@@ -69,9 +69,7 @@ select akc.corporate_id,
                   iid.internal_invoice_ref_no,
                   ii.delivery_item_ref_no) iid,
        is_invoice_summary iis,
-       is_invoice_summary iis1,
        gmr_goods_movement_record gmr,
-       --pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        ak_corporate akc,
        ak_corporate_user akcu,
@@ -82,14 +80,12 @@ select akc.corporate_id,
        pdm_productmaster pdm,
        cm_currency_master cm_base,
        cm_currency_master cm_pay
- where ivd.internal_invoice_ref_no = iis.internal_invoice_ref_no
-   and iis.vat_parent_ref_no = iis1.invoice_ref_no
-   and iis1.internal_invoice_ref_no = iid.internal_invoice_ref_no
-   and ivd.is_separate_invoice = 'Y'
-   and pcm.purchase_sales = 'P'
+ where ivd.internal_invoice_ref_no = iid.internal_invoice_ref_no
+   and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and iid.internal_contract_ref_no = pcm.internal_contract_ref_no
-   --and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and ivd.is_separate_invoice = 'N'
+   and ivd.vat_remit_cur_id <> ivd.invoice_cur_id
    and pcm.corporate_id = akc.corporate_id
    and pcm.trader_id = akcu.user_id(+)
    and akcu.gabid = gab.gabid
@@ -101,17 +97,20 @@ select akc.corporate_id,
    and akc.base_cur_id = cm_base.cur_id
    and ivd.vat_remit_cur_id = cm_pay.cur_id
    and akc.base_cur_id = cm_base.cur_id
-   and nvl(ivd.vat_amount_in_vat_cur, 0) <> 0
    and iis.is_active = 'Y'
-   and iis1.is_active = 'Y'
    and gmr.is_deleted = 'N'
+   and nvl(ivd.vat_amount_in_vat_cur,0)<>0
 union all
+-- VAT Exposure in INVOICE CURRENCY( for Invoice CCY <> VAT Remit With VAT as "Same Invoice" :-
 select akc.corporate_id,
        akc.corporate_name,
        cm_base.cur_code base_currency,
        'Physicals' main_section,
        'Vat' section,
        null sub_section,
+       ivd.internal_invoice_ref_no,
+       ivd.vat_amount_in_inv_cur,
+       ivd.vat_amount_in_vat_cur,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm.product_id,
@@ -120,15 +119,11 @@ select akc.corporate_id,
        gab.firstname || ' ' || gab.lastname trader,
        cm_pay.cur_id exposure_cur_id,
        cm_pay.cur_code exposure_currency,
-       iis.invoice_issue_date trade_date, --pcm.issue_date trade_date,
-       pkg_general.f_get_converted_currency_amt(akc.corporate_id,
-                                                cm_base.cur_id,
-                                                cm_pay.cur_id,
-                                                iis.invoice_issue_date,
-                                                1) fx_rate,
+       iis.invoice_issue_date trade_date,
+       1 fx_rate, -- no fx rate to show the vat amt in invoice currency - -siva       
        pcm.contract_ref_no,
        iis.invoice_ref_no,
-       iis.invoice_ref_no parent_invoice_no,
+       iis.vat_parent_ref_no parent_invoice_no,
        pcm.contract_ref_no || ' - ' || iid.delivery_item_ref_no delivery_item_ref_no,
        pcm.contract_ref_no || ' Item No. ' || iid.delivery_item_ref_no contract_item_ref_no,
        gmr.gmr_ref_no gmr_ref_no,
@@ -147,112 +142,9 @@ select akc.corporate_id,
        null price,
        null price_unit_id,
        null price_unit,
-       iis.payable_receivable,
-       ((decode(iis.payable_receivable, 'Payable', -1, 'Receivable', 1) *
-     (case when PCM.PURCHASE_SALES = 'S' then ivd.vat_amount_in_inv_cur else nvl(IVD.VAT_AMOUNT_IN_VAT_CUR,ivd.vat_amount_in_inv_cur) end) )*ivd.fx_rate_vc_ic) hedging_amount,
-
-       '' cost_type,
-       null effective_date,
-       '' buy_sell,
-       null value_date,
-       iis.invoice_created_date correction_date,
-       null activity_type,
-       null activity_date,
-       null cpname
-  from ivd_invoice_vat_details ivd,
-       (select iid.internal_contract_item_ref_no,
-               iid.internal_contract_ref_no,
-               ii.delivery_item_ref_no,
-               iid.internal_invoice_ref_no,
-               iid.internal_gmr_ref_no,
-               sum(iid.invoiced_qty) invoiced_qty
-          from iid_invoicable_item_details iid,
-               ii_invoicable_item ii
-          where iid.is_active = 'Y'
-          and iid.invoicable_item_id = ii.invoicable_item_id
-          and ii.is_active = 'Y'
-         group by iid.internal_contract_item_ref_no,
-                  iid.internal_contract_ref_no,
-                  iid.internal_gmr_ref_no,
-                  iid.internal_invoice_ref_no,
-                  ii.delivery_item_ref_no) iid,
-       is_invoice_summary iis,
-       gmr_goods_movement_record gmr,
-       --pcdi_pc_delivery_item pcdi,
-       pcm_physical_contract_main pcm,
-       ak_corporate akc,
-       ak_corporate_user akcu,
-       gab_globaladdressbook gab,
-       pcpd_pc_product_definition pcpd,
-       pym_payment_terms_master pym,
-       cpc_corporate_profit_center cpc,
-       pdm_productmaster pdm,
-       cm_currency_master cm_base,
-       cm_currency_master cm_pay
- where ivd.internal_invoice_ref_no = iid.internal_invoice_ref_no
-   and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
-   and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and iid.internal_contract_ref_no = pcm.internal_contract_ref_no
-   --and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
-   and pcm.corporate_id = akc.corporate_id
-   and pcm.trader_id = akcu.user_id(+)
-   and akcu.gabid = gab.gabid
-   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
-   and pcpd.input_output = 'Input'
-   and pcm.payment_term_id = pym.payment_term_id
-   and pcpd.profit_center_id = cpc.profit_center_id
-   and pcpd.product_id = pdm.product_id
-   and akc.base_cur_id = cm_base.cur_id
-   and (case when PCM.PURCHASE_SALES = 'S' then ivd.invoice_cur_id else nvl(IVD.VAT_REMIT_CUR_ID,ivd.invoice_cur_id) end ) = cm_pay.cur_id --for purchase exposure in vat cur and
-                                                                                                                    --     for sales  eposure in invoice cur
-   and akc.base_cur_id = cm_base.cur_id
-   and iis.is_active = 'Y'
-   and gmr.is_deleted = 'N'
-union all ---for sales contract when invoice cur and vat cur are not same   outflow
-select akc.corporate_id,
-       akc.corporate_name,
-       cm_base.cur_code base_currency,
-       'Physicals' main_section,
-       'Vat' section,
-       '' sub_section,
-       cpc.profit_center_id,
-       cpc.profit_center_short_name profit_center,
-       pdm.product_id,
-       pdm.product_desc product,
-       pcm.trader_id trader_id,
-       gab.firstname || ' ' || gab.lastname trader,
-       cm_pay.cur_id exposure_cur_id,
-       cm_pay.cur_code exposure_currency,
-       iis.invoice_issue_date trade_date, --pcm.issue_date trade_date,
-       pkg_general.f_get_converted_currency_amt(akc.corporate_id,
-                                                cm_base.cur_id,
-                                                cm_pay.cur_id,
-                                                iis.invoice_issue_date,
-                                                1) fx_rate,
-       pcm.contract_ref_no,
-       iis.invoice_ref_no,
-       iis.invoice_ref_no parent_invoice_no,
-       pcm.contract_ref_no || ' - ' || iid.delivery_item_ref_no delivery_item_ref_no,
-       pcm.contract_ref_no || ' Item No. ' ||iid.delivery_item_ref_no contract_item_ref_no,
-       gmr.gmr_ref_no gmr_ref_no,
-       null element_name,
-       null currency_pair,
-       iis.payment_due_date expected_payment_due_date,
-       null qp_start_date,
-       null qp_end_date,
-       null qp,
-       null delivery_month,
-       pym.payment_term payment_terms,
-       null qty,
-       null qty_unit,
-       null qty_unit_id,
-       null qty_decimals,
-       null price,
-       null price_unit_id,
-       null price_unit,
-       'Payable' payable_receivable,
-       ((decode(iis.payable_receivable, 'Payable', 1, 'Receivable', -1) *  ---for make outflow sales amount
-      ivd.vat_amount_in_vat_cur )*ivd.fx_rate_vc_ic) hedging_amount,
+       iis.payable_receivable payable_receivable,
+       (decode(iis.payable_receivable, 'Payable', -1, 'Receivable', 1) *
+       ivd.vat_amount_in_inv_cur) hedging_amount,
        '' cost_type,
        null effective_date,
        '' buy_sell,
@@ -269,17 +161,17 @@ select akc.corporate_id,
                iid.internal_gmr_ref_no,
                sum(iid.invoiced_qty)
           from iid_invoicable_item_details iid,
-          ii_invoicable_item ii
-          where iid.is_active = 'Y'
-          and iid.invoicable_item_id = ii.invoicable_item_id
-          and ii.is_active = 'Y'
+               ii_invoicable_item          ii
+         where iid.is_active = 'Y'
+           and iid.invoicable_item_id = ii.invoicable_item_id
+           and ii.is_active = 'Y'
          group by iid.internal_contract_item_ref_no,
-                  iid.internal_contract_ref_no,ii.delivery_item_ref_no,
+                  iid.internal_contract_ref_no,
                   iid.internal_gmr_ref_no,
-                  iid.internal_invoice_ref_no) iid,
+                  iid.internal_invoice_ref_no,
+                  ii.delivery_item_ref_no) iid,
        is_invoice_summary iis,
        gmr_goods_movement_record gmr,
-       --pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        ak_corporate akc,
        ak_corporate_user akcu,
@@ -294,8 +186,8 @@ select akc.corporate_id,
    and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and iid.internal_contract_ref_no = pcm.internal_contract_ref_no
-   --and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
-   and ivd.vat_remit_cur_id <> ivd.invoice_cur_id --for invoice exposure of sales
+   and ivd.is_separate_invoice = 'N'
+   and ivd.vat_remit_cur_id <> ivd.invoice_cur_id
    and pcm.corporate_id = akc.corporate_id
    and pcm.trader_id = akcu.user_id(+)
    and akcu.gabid = gab.gabid
@@ -305,11 +197,11 @@ select akc.corporate_id,
    and pcpd.profit_center_id = cpc.profit_center_id
    and pcpd.product_id = pdm.product_id
    and akc.base_cur_id = cm_base.cur_id
-   and ivd.vat_remit_cur_id = cm_pay.cur_id
-   and pcm.purchase_sales = 'S'
+   and ivd.invoice_cur_id = cm_pay.cur_id
    and akc.base_cur_id = cm_base.cur_id
    and iis.is_active = 'Y'
    and gmr.is_deleted = 'N'
+   and nvl(ivd.vat_amount_in_inv_cur,0)<>0
 union all --- Free Metal
 select akc.corporate_id,
        akc.corporate_name,
@@ -322,6 +214,9 @@ select akc.corporate_id,
          else
           'Average Fixations'
        end) sub_section,
+       null internal_invoice_ref_no,
+       null vat_amount_in_inv_cur,
+       null vat_amount_in_vat_cur,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        pdm_under.product_id,
@@ -512,6 +407,9 @@ select akc.corporate_id,
          else
           'After QP'
        end) sub_section,
+       null internal_invoice_ref_no,
+       null vat_amount_in_inv_cur,
+       null vat_amount_in_vat_cur,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        aml.underlying_product_id product_id,
@@ -661,6 +559,9 @@ select akc.corporate_id,
        'Physicals' main_section,
        'CANCELLED FIXATION' section,
        null sub_section,
+       null internal_invoice_ref_no,
+       null vat_amount_in_inv_cur,
+       null vat_amount_in_vat_cur,
        cpc.profit_center_id,
        cpc.profit_center_short_name profit_center,
        aml.underlying_product_id product_id,
