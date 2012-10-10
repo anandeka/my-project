@@ -4321,6 +4321,7 @@ create or replace package body pkg_phy_custom_reports is
          and pocd.pay_in_price_unit_id = ppu_pum_pay.product_price_unit_id
          and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id(+)
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
+	     and pcm.contract_status = 'In Position'
       -- and cm_pay.is_active = 'Y'
       union all
       select 'Deleted' journal_type,
@@ -4459,6 +4460,7 @@ create or replace package body pkg_phy_custom_reports is
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
          and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id
          and cm_pay.is_active = 'Y'
+	     and pcm.contract_status = 'In Position'
       union all
       select 'Modified' journal_type,
              'Physical' book_type,
@@ -4595,6 +4597,7 @@ create or replace package body pkg_phy_custom_reports is
          and pocd.pay_in_price_unit_id = ppu_pum_pay.product_price_unit_id
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
          and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id
+	     and pcm.contract_status = 'In Position'
          and cm_pay.is_active = 'Y';
   
     vc_trade_cur_id        varchar2(15);
