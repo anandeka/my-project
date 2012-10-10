@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1137
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  10-Oct-2012
+
+Bug / Enhancement*              :  BUG/Enhancement
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Jasper domain
+
+Sub-Module  			 :  Jasper domain
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :APP
+==================================================================
+
+Message: 
+1. added new columns as per the tata coras requirement
+2. Audit Trail Log domain released for Tata Coras.
+3. Bug fixes in Derivative Domain
+==============================
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_DERIVATIVE_UNREALIZED.sql	(Revision: 105437)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative.sql			(Revision: 105380)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_corporate_user.sql			(Revision: 105436)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_AUDIT_LOG_HISTORY.sql		(Revision: 105436)
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_audit_log_details.sql		(Revision: 105436)
