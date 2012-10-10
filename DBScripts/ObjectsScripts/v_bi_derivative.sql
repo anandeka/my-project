@@ -392,8 +392,8 @@ select temp.derivative_ref_no,
            and cpc.business_line_id = blm.business_line_id(+)
            and cm_val.cur_id = scd.sub_cur_id(+)
            and dt.strategy_id = css.strategy_id(+)
-           and irmf.is_active = 'Y'
-           and irmf.is_deleted = 'N'
+         --  and irmf.is_active = 'Y'
+       --    and irmf.is_deleted = 'N'
            and dt.status = 'Verified'
               /*and emt.exchange_code = 'LME' */
            and pdd.exchange_id = emt.exchange_id
@@ -404,7 +404,7 @@ select temp.derivative_ref_no,
            and dt.clearer_comm_type_id = bct.commission_type_id(+)
               /*and bct.commission_type_id = bcs.commission_type_id(+)
                                        and dim.instrument_type_id = bcs.future_option_type*/
-           and bct.is_active = 'Y'
+         --  and bct.is_active = 'Y'
            and dt.price_source_id = ps.price_source_id(+)
            and dt.price_point_id = pp.price_point_id(+)
            and dt.settlement_price_unit_id = pum_sett.price_unit_id(+)
@@ -809,8 +809,8 @@ select temp.derivative_ref_no,
                    and cpc.business_line_id = blm.business_line_id(+)
                    and cm_val.cur_id = scd.sub_cur_id(+)
                    and dt.strategy_id = css.strategy_id(+)
-                   and irmf.is_active = 'Y'
-                   and irmf.is_deleted = 'N'
+                --   and irmf.is_active = 'Y'
+                --   and irmf.is_deleted = 'N'
                    and dt.status = 'Verified'
                    and akcu.user_id = dt.trader_id
                    and dt.clearer_account_id = bca.account_id(+)
