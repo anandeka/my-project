@@ -939,7 +939,7 @@ create or replace package body pkg_phy_custom_reports is
                       /*  and pcm.internal_contract_ref_no =
                             pcdi.internal_contract_ref_no(+)*/
                       --  and qum.qty_unit_id(+) = pcdi.qty_unit_id
-                        and qum.qty_unit_id(+) = iss.invoiced_qty_unit_id(+)
+                        and qum.qty_unit_id= iss.invoiced_qty_unit_id(+)
                         and pcm.trader_id = akcu.user_id(+)
                         and pcpd.input_output(+) = 'Input'
                         and iss.invoice_type_name ='Service'
@@ -1311,7 +1311,7 @@ create or replace package body pkg_phy_custom_reports is
                         and ii.internal_invoice_ref_no=iss.internal_invoice_ref_no
                         and ii.corporate_id=iss.corporate_id
                            -- and qum.qty_unit_id(+) = pcdi.qty_unit_id
-                        and qum.qty_unit_id(+) =iss.invoiced_qty_unit_id(+)
+                        and qum.qty_unit_id =iss.invoiced_qty_unit_id(+)
                         and pcm.trader_id = akcu.user_id(+)
                         and pcpd.input_output(+) = 'Input'
                          and iss.invoice_type_name='Service'
