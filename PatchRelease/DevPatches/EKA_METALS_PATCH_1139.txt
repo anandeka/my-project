@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1139
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  12-Oct-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  Contract Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :APP
+==================================================================
+Revision: 105599
+Author: sriveenam
+Date: Friday, October 12, 2012 2:27:10 PM
+Message:
+Bug 69381 fix
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETASSAYINRULES.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETCONTRACTQUALITYDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETTOLPAYABLECONTENTDETAILS.sql
+
+
