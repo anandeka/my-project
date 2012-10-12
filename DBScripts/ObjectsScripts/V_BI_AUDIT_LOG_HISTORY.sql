@@ -1,5 +1,6 @@
-create or replace view V_BI_AUDIT_LOG_HISTORY AS
+create or replace view v_bi_audit_log_history as
 select axs.corporate_id,
+       'DERIVATIVE' log_type,
        axs.internal_action_ref_no,
        to_char(axs.created_date, 'DD-MM-YYYY') as activitydate,
        to_char(axs.created_date, 'hh24:mi') as activitytime,
@@ -21,6 +22,7 @@ select axs.corporate_id,
 --   QUERY_STR_CCT =         
 union all
 select axs.corporate_id,
+       'FX' log_type,
        axs.internal_action_ref_no,
        to_char(axs.created_date, 'DD-MM-YYYY') as activitydate,
        to_char(axs.created_date, 'hh24:mi') as activitytime,
@@ -42,6 +44,7 @@ select axs.corporate_id,
 -- QUERY_STR_INV =  
 union all
 select axs.corporate_id,
+       'PHYSICAL' log_type,
        axs.internal_action_ref_no,
        to_char(axs.created_date, 'DD-MM-YYYY') as activitydate,
        to_char(axs.created_date, 'hh24:mi') as activitytime,
@@ -65,6 +68,7 @@ select axs.corporate_id,
 --QUERY_STR_FOR_PC =  
 union all
 select axs.corporate_id,
+       'PHYSICAL' log_type,
        axs.internal_action_ref_no,
        to_char(axs.created_date, 'DD-MM-YYYY') as activitydate,
        to_char(axs.created_date, 'hh24:mi') as activitytime,
@@ -86,6 +90,7 @@ select axs.corporate_id,
 --QUERY_LOGISTICS =  
 union all
 select axs.corporate_id,
+       'PHYSICAL' log_type,
        axs.internal_action_ref_no,
        to_char(axs.created_date, 'DD-MM-YYYY') as activitydate,
        to_char(axs.created_date, 'hh24:mi') as activitytime,
@@ -109,6 +114,7 @@ select axs.corporate_id,
 -- QUERY_PHYSICAL_CALLOFF =  
 union all
 select axs.corporate_id,
+       'PHYSICAL' log_type,
        axs.internal_action_ref_no,
        to_char(axs.created_date, 'DD-MM-YYYY') as activitydate,
        to_char(axs.created_date, 'hh24:mi') as activitytime,
@@ -132,6 +138,7 @@ select axs.corporate_id,
 --QUERY_PRICING_CALLOFF =  
 union all
 select axs.corporate_id,
+       'PHYSICAL' log_type,
        axs.internal_action_ref_no,
        to_char(axs.created_date, 'DD-MM-YYYY') as activitydate,
        to_char(axs.created_date, 'hh24:mi') as activitytime,
@@ -160,6 +167,7 @@ select axs.corporate_id,
 --QUERY_PRICING_FIXATION_CREATE =  
 union all
 select distinct axs.corporate_id,
+       'PHYSICAL' log_type,
                 axs.internal_action_ref_no,
                 to_char(axs.created_date, 'DD-MM-YYYY') as activitydate,
                 to_char(axs.created_date, 'hh24:mi') as activitytime,
@@ -184,6 +192,7 @@ select distinct axs.corporate_id,
 --QUERY_PRICING_FIXATION_CANCEL =  
 union all
 select distinct axs.corporate_id,
+       'PHYSICAL' log_type,
                 axs.internal_action_ref_no,
                 to_char(axs.created_date, 'DD-MM-YYYY') as activitydate,
                 to_char(axs.created_date, 'hh24:mi') as activitytime,

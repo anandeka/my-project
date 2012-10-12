@@ -1,5 +1,6 @@
 create or replace view v_bi_audit_log_details as
 select vbi.corporate_id,
+       vbi.log_type,
        akc.corporate_name,
        vbi.internal_action_ref_no,
        vbi.activitydate,
