@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION GETCONTRACTQUALITYDETAILS (
 p_contractNo VARCHAR2 
 )
-return VARCHAR2 is
+return CLOB is
 
     cursor cr_quality 
     IS
@@ -30,7 +30,7 @@ return VARCHAR2 is
      AND PCPQ.IS_ACTIVE = 'Y'
      AND PCPD.INTERNAL_CONTRACT_REF_NO =p_contractNo;   
     
-    qualityDescription VARCHAR2(4000) :='';  
+    qualityDescription CLOB :='';  
     begin
             for quality_rec in cr_quality
             loop

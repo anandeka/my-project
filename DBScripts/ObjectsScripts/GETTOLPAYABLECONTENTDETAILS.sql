@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION "GETTOLPAYABLECONTENTDETAILS" (pContractNo number)
-   RETURN VARCHAR2
+   RETURN CLOB
 IS
     
     cursor cr_pc_quality          
@@ -91,7 +91,7 @@ IS
      AND pcpch.payable_type = 'Payable'
      AND pcm.internal_contract_ref_no = pContractNo;
  
-   PC_DETAILS   VARCHAR2(4000) :='';     
+   PC_DETAILS  CLOB :='';     
     begin
             for pc_quality_rec in cr_pc_quality
             loop

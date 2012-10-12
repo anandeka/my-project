@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION GETASSAYINRULES (pContractNo number)
-   RETURN VARCHAR2
+   RETURN CLOB
 IS
     
     cursor cr_assay_quality          
@@ -74,7 +74,7 @@ IS
     and PCU.IS_ACTIVE = 'Y'
     AND pcm.internal_contract_ref_no = pContractNo;
    
-   ASSAY_RULES   VARCHAR2(4000) :=''; 
+   ASSAY_RULES   CLOB :=''; 
    umpires_list  VARCHAR2 (500) := ''; 
    begin
             for assay_quality_rec in cr_assay_quality
