@@ -114,7 +114,7 @@ create or replace package body pkg_phy_custom_reports is
                           pc_process_id,
                           vn_logno,
                           'sp_physical_booking_journal');
-    sp_physical_booking_journal(pc_corporate_id,
+   sp_physical_booking_journal(pc_corporate_id,
                                 pd_trade_date,
                                 pc_process_id,
                                 pc_user_id,
@@ -747,7 +747,6 @@ create or replace package body pkg_phy_custom_reports is
                             ivd_invoice_vat_details@eka_appdb       ivd,
                             pcm_physical_contract_main              pcm,
                             temp_ii                                 ii,
-                          --  pcdi_pc_delivery_item                   pcdi,
                             ak_corporate                            akc,
                             cpc_corporate_profit_center             cpc,
                             cpc_corporate_profit_center             cpc1,
@@ -767,8 +766,6 @@ create or replace package body pkg_phy_custom_reports is
                             ivd.internal_invoice_ref_no(+)
                         and incm.internal_contract_ref_no =
                             pcm.internal_contract_ref_no(+)
-                        /*and pcdi.internal_contract_ref_no =
-                            pcm.internal_contract_ref_no*/
                         and ii.internal_invoice_ref_no=iss.internal_invoice_ref_no 
                         and ii.corporate_id=iss.corporate_id 
                         and iss.corporate_id = akc.corporate_id
@@ -780,8 +777,7 @@ create or replace package body pkg_phy_custom_reports is
                         and pcpd.product_id = pdm.product_id(+)
                         and phd_contract_cp.profileid(+) = iss.cp_id
                         and nvl(pcm.partnership_type, 'Normal') = 'Normal'
-                       -- and qum.qty_unit_id = pcdi.qty_unit_id
-                        and qum.qty_unit_id=iss.invoiced_qty_unit_id(+)
+                        and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
                         and iss.is_inv_draft = 'N'
                         and iss.invoice_type_name not in('Profoma','Service')
                         and cm_akc_base_cur.cur_id = akc.base_cur_id
@@ -795,7 +791,6 @@ create or replace package body pkg_phy_custom_reports is
                         and iss.process_id = pc_process_id
                         and cm_p.is_active = 'Y'
                         and pcm.process_id = pc_process_id
-                      --  and pcdi.process_id = pc_process_id
                         and pcpd.process_id = pc_process_id
                         and cm_akc_base_cur.is_active = 'Y'
                         and nvl(cm_vat.is_active, 'Y') = 'Y'
@@ -807,8 +802,7 @@ create or replace package body pkg_phy_custom_reports is
                         and pcm.corporate_id = pc_corporate_id
                         and tdc.process = pc_process
                         and tdc.corporate_id = pc_corporate_id
-                        and iss.corporate_id = pc_corporate_id
-                     
+                        and iss.corporate_id = pc_corporate_id                     
                      ---2 Service invoices
                      union all
                      select 'New' section_name,
@@ -902,7 +896,6 @@ create or replace package body pkg_phy_custom_reports is
                             pcpd_pc_product_definition        pcpd,
                             pcm_physical_contract_main        pcm,
                             temp_ii                           ii,
-                           -- pcdi_pc_delivery_item             pcdi,
                             ak_corporate                      ak,
                             ak_corporate_user                 akcu,
                             cpc_corporate_profit_center       cpc,
@@ -936,10 +929,8 @@ create or replace package body pkg_phy_custom_reports is
                             pcm.internal_contract_ref_no(+)
                         and ii.internal_invoice_ref_no=iss.internal_invoice_ref_no
                         and ii.corporate_id=iss.corporate_id    
-                      /*  and pcm.internal_contract_ref_no =
-                            pcdi.internal_contract_ref_no(+)*/
-                      --  and qum.qty_unit_id(+) = pcdi.qty_unit_id
-                        and qum.qty_unit_id= iss.invoiced_qty_unit_id(+)
+--                        and qum.qty_unit_id(+) = iss.invoiced_qty_unit_id(+)
+                        and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)                        
                         and pcm.trader_id = akcu.user_id(+)
                         and pcpd.input_output(+) = 'Input'
                         and iss.invoice_type_name ='Service'
@@ -950,7 +941,7 @@ create or replace package body pkg_phy_custom_reports is
                         and cm_akc_base_cur.cur_id = ak.base_cur_id
                         and iss.invoice_cur_id = cm_p.cur_id(+)
                         and pcpd.product_id = pdm.product_id(+)
-                        and cm_vat.cur_id(+) = ivd.vat_remit_cur_id
+                        and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
                         and pcpd.strategy_id = css.strategy_id
                         and css.is_active = 'Y'
                         and iss.process_id = tdc.process_id
@@ -958,7 +949,6 @@ create or replace package body pkg_phy_custom_reports is
                         and iss.process_id = pc_process_id
                         and cm_p.is_active = 'Y'
                         and pcm.process_id = pc_process_id
-                      --  and pcdi.process_id = pc_process_id
                         and pcpd.process_id = pc_process_id
                         and cm_akc_base_cur.is_active = 'Y'
                         and nvl(cm_vat.is_active, 'Y') = 'Y'
@@ -970,8 +960,7 @@ create or replace package body pkg_phy_custom_reports is
                         and pcm.corporate_id = pc_corporate_id
                         and tdc.process = pc_process
                         and tdc.corporate_id = pc_corporate_id
-                        and iss.corporate_id = pc_corporate_id
-                     
+                        and iss.corporate_id = pc_corporate_id                     
                       group by pdm.product_id,
                                pdm.product_desc,
                                iss.corporate_id,
@@ -980,7 +969,6 @@ create or replace package body pkg_phy_custom_reports is
                                iss.fx_to_base,
                                pcm.contract_ref_no,
                                pcm.internal_contract_ref_no,
-                               --pcdi.pcdi_id,
                                iss.invoice_type,
                                iss.invoice_ref_no,
                                iss.total_amount_to_pay,
@@ -1009,7 +997,6 @@ create or replace package body pkg_phy_custom_reports is
                                tdc.trade_date,
                                tdc.process_run_count,
                                tdc.process_id,
-                               --pcdi.delivery_item_no,
                                ii.delivery_item_ref_no,
                                pcpd.strategy_id,
                                css.strategy_name
@@ -1117,7 +1104,6 @@ create or replace package body pkg_phy_custom_reports is
                             ivd_invoice_vat_details@eka_appdb       ivd,
                             pcm_physical_contract_main              pcm,
                             temp_ii                                 ii,
-                           -- pcdi_pc_delivery_item                   pcdi,
                             ak_corporate                            akc,
                             cpc_corporate_profit_center             cpc,
                             cpc_corporate_profit_center             cpc1,
@@ -1138,8 +1124,6 @@ create or replace package body pkg_phy_custom_reports is
                             ivd.internal_invoice_ref_no(+)
                         and incm.internal_contract_ref_no =
                             pcm.internal_contract_ref_no(+)
-                        /*and pcdi.internal_contract_ref_no =
-                            pcm.internal_contract_ref_no*/
                         and iss.internal_invoice_ref_no=ii.internal_invoice_ref_no
                         and iss.corporate_id=ii.corporate_id    
                         and iss.corporate_id = akc.corporate_id
@@ -1149,14 +1133,13 @@ create or replace package body pkg_phy_custom_reports is
                         and pcpd.profit_center_id = cpc1.profit_center_id(+)
                         and iss.invoice_cur_id = cm_p.cur_id(+)
                         and pcpd.product_id = pdm.product_id(+)
-                        and phd_contract_cp.profileid(+) = iss.cp_id
+                        and iss.cp_id = phd_contract_cp.profileid(+)
                         and nvl(pcm.partnership_type, 'Normal') = 'Normal'
-                        --and qum.qty_unit_id = pcdi.qty_unit_id
-                        and qum.qty_unit_id = iss.invoiced_qty_unit_id(+)
+                        and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
                         and iss.is_inv_draft = 'N'
                         and iss.invoice_type_name not in('Profoma','Service')
-                        and cm_akc_base_cur.cur_id = akc.base_cur_id
-                        and cm_vat.cur_id(+) = ivd.vat_remit_cur_id
+                        and akc.base_cur_id = cm_akc_base_cur.cur_id
+                        and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
                         and pcpd.input_output = 'Input'
                         and nvl(iss.total_amount_to_pay, 0) <> 0
                         and pcpd.strategy_id = css.strategy_id
@@ -1166,7 +1149,6 @@ create or replace package body pkg_phy_custom_reports is
                         and iss.process_id = pc_process_id
                         and cm_p.is_active = 'Y'
                         and pcm.process_id = pc_process_id
-                       -- and pcdi.process_id = pc_process_id
                         and pcpd.process_id = pc_process_id
                         and cm_akc_base_cur.is_active = 'Y'
                         and nvl(cm_vat.is_active, 'Y') = 'Y'
@@ -1177,8 +1159,7 @@ create or replace package body pkg_phy_custom_reports is
                         and pcm.corporate_id = pc_corporate_id
                         and tdc.process = pc_process
                         and tdc.corporate_id = pc_corporate_id
-                        and iss.corporate_id = pc_corporate_id
-                     
+                        and iss.corporate_id = pc_corporate_id                     
                      ---2 Service invoices
                      --For Cancelled INV
                      union all
@@ -1272,7 +1253,6 @@ create or replace package body pkg_phy_custom_reports is
                             gmr_goods_movement_record         gmr,
                             pcpd_pc_product_definition        pcpd,
                             pcm_physical_contract_main        pcm,
-                           -- pcdi_pc_delivery_item             pcdi,
                             temp_ii                           ii,
                             ak_corporate                      ak,
                             ak_corporate_user                 akcu,
@@ -1306,12 +1286,9 @@ create or replace package body pkg_phy_custom_reports is
                             pcpd.internal_contract_ref_no(+)
                         and pcpd.internal_contract_ref_no =
                             pcm.internal_contract_ref_no(+)
-                        /*and pcm.internal_contract_ref_no =
-                            pcdi.internal_contract_ref_no(+)*/                    
                         and ii.internal_invoice_ref_no=iss.internal_invoice_ref_no
                         and ii.corporate_id=iss.corporate_id
-                           -- and qum.qty_unit_id(+) = pcdi.qty_unit_id
-                        and qum.qty_unit_id =iss.invoiced_qty_unit_id(+)
+                        and iss.invoiced_qty_unit_id = qum.qty_unit_id
                         and pcm.trader_id = akcu.user_id(+)
                         and pcpd.input_output(+) = 'Input'
                          and iss.invoice_type_name='Service'
@@ -1322,7 +1299,7 @@ create or replace package body pkg_phy_custom_reports is
                         and cm_akc_base_cur.cur_id = ak.base_cur_id
                         and iss.invoice_cur_id = cm_p.cur_id(+)
                         and pcpd.product_id = pdm.product_id(+)
-                        and cm_vat.cur_id(+) = ivd.vat_remit_cur_id
+                        and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
                         and pcpd.strategy_id = css.strategy_id
                         and css.is_active = 'Y'
                         and iss.process_id = tdc.process_id
@@ -1330,7 +1307,6 @@ create or replace package body pkg_phy_custom_reports is
                         and iss.process_id = pc_process_id
                         and cm_p.is_active = 'Y'
                         and pcm.process_id = pc_process_id
-                      --  and pcdi.process_id = pc_process_id
                         and pcpd.process_id = pc_process_id
                         and cm_akc_base_cur.is_active = 'Y'
                         and nvl(cm_vat.is_active, 'Y') = 'Y'
@@ -1341,8 +1317,7 @@ create or replace package body pkg_phy_custom_reports is
                         and pcm.corporate_id = pc_corporate_id
                         and tdc.process = pc_process
                         and tdc.corporate_id = pc_corporate_id
-                        and iss.corporate_id = pc_corporate_id
-                     
+                        and iss.corporate_id = pc_corporate_id                     
                       group by pdm.product_id,
                                pdm.product_desc,
                                iss.corporate_id,
@@ -1381,7 +1356,6 @@ create or replace package body pkg_phy_custom_reports is
                                tdc.process_run_count,
                                tdc.process_id,
                                ii.delivery_item_ref_no,
-                            --   pcdi.delivery_item_no,
                                pcpd.strategy_id,
                                css.strategy_name) loop 
      insert into eod_eom_phy_booking_journal
@@ -4321,7 +4295,7 @@ create or replace package body pkg_phy_custom_reports is
          and pocd.pay_in_price_unit_id = ppu_pum_pay.product_price_unit_id
          and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id(+)
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
-	     and pcm.contract_status = 'In Position'
+         and pcm.contract_status = 'In Position'
       -- and cm_pay.is_active = 'Y'
       union all
       select 'Deleted' journal_type,
@@ -4460,7 +4434,7 @@ create or replace package body pkg_phy_custom_reports is
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
          and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id
          and cm_pay.is_active = 'Y'
-	     and pcm.contract_status = 'In Position'
+         and pcm.contract_status = 'In Position'
       union all
       select 'Modified' journal_type,
              'Physical' book_type,
@@ -4597,7 +4571,7 @@ create or replace package body pkg_phy_custom_reports is
          and pocd.pay_in_price_unit_id = ppu_pum_pay.product_price_unit_id
          and pocd.pay_in_cur_id = cm_pay.cur_id(+)
          and ppu_pum_pay.weight_unit_id = qum_pay.qty_unit_id
-	     and pcm.contract_status = 'In Position'
+         and pcm.contract_status = 'In Position'
          and cm_pay.is_active = 'Y';
   
     vc_trade_cur_id        varchar2(15);
