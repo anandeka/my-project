@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1141
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Pradeep Kumar
+ 
+Created on*        		:  16-Oct-2012
+
+Bug / Enhancement*              :  Enh
+
+Bug ID*            		: N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Doc Generation
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 105937
+Author: pradeep.kumar
+Date: 4:40:19 PM, Tuesday, October 16, 2012
+Message:
+-- CorporateScript for sales landing : previously corporate id was hardcoded
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_98.sql
+
+
+
+
