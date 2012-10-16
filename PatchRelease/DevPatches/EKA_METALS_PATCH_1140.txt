@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_PATCH_1139
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  ABhishek vijay
+ 
+Created on*        		:  16-Oct-2012
+
+Bug / Enhancement*              :  Enh
+
+Bug ID*            		: N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Assay Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :APP
+==================================================================
+
+Revision: 105860
+Author: abhishek.vijay
+Date: 11:23:40 AM, Tuesday, October 16, 2012
+Message:
+assay document layout change 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_336.sql
+
+Revision: 105861
+Author: abhishek.vijay
+Date: 11:24:27 AM, Tuesday, October 16, 2012
+Message:
+assay document layout change 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_424.sql
+
+
+
+
+
+
