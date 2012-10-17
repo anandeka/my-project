@@ -79,7 +79,8 @@ select pcdi.pcdi_id,
        1 contract_row,
        ucm.multiplication_factor compqty_base_conv_rate,
        qum.qty_unit comp_base_qty_unit,
-       qum.qty_unit_id comp_base_qty_unit_id
+       qum.qty_unit_id comp_base_qty_unit_id,
+       nvl(pcm.approval_status,'Approved') approval_status
   from pcm_physical_contract_main    pcm,
        ciqs_contract_item_qty_status ciqs,
        ak_corporate                  akc,
@@ -145,7 +146,7 @@ select pcdi.pcdi_id,
    and pcdb.is_active = 'Y'
    and pci.item_qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
-/*union all
+union all
 select pcdi.pcdi_id,
        pci.internal_contract_item_ref_no,
        gcd.groupname corporate_group,
@@ -255,7 +256,8 @@ select pcdi.pcdi_id,
                                              pdm.base_quantity_unit,
                                              1)) compqty_base_conv_rate,
        qum.qty_unit comp_base_qty_unit,
-       qum.qty_unit_id comp_base_qty_unit_id
+       qum.qty_unit_id comp_base_qty_unit_id,
+       nvl(pcm.approval_status,'Approved') approval_status
   from pcm_physical_contract_main     pcm,
        ciqs_contract_item_qty_status  ciqs,
        ak_corporate                   akc,
@@ -336,4 +338,4 @@ select pcdi.pcdi_id,
    and pcm.is_active = 'Y'
    and pcdi.is_active = 'Y'
    and ciqs.is_active = 'Y'
-   and pcdb.is_active = 'Y' */
+   and pcdb.is_active = 'Y' 

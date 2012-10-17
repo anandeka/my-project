@@ -58,7 +58,8 @@ select subsectionname,
        underlying_product_id,
        base_quantity_unit_id,
        position_type,
-       assay_convertion_rate
+       assay_convertion_rate,
+       approval_status
   from (select (case
                  when grd.is_afloat = 'Y' then
                   'Afloat'
@@ -219,7 +220,8 @@ select subsectionname,
                                                            sam.ash_id,
                                                            'Wet',
                                                            1,
-                                                           grd.qty_unit_id) assay_convertion_rate
+                                                           grd.qty_unit_id) assay_convertion_rate,
+               pci.approval_status
           from grd_goods_record_detail        grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
@@ -445,7 +447,8 @@ select subsectionname,
                                                            sam.ash_id,
                                                            'Wet',
                                                            1,
-                                                           grd.net_weight_unit_id) assay_convertion_rate
+                                                           grd.net_weight_unit_id) assay_convertion_rate,
+               pci.approval_status
           from dgrd_delivered_grd             grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
@@ -687,7 +690,8 @@ select subsectionname,
                                                            sam.ash_id,
                                                            'Wet',
                                                            1,
-                                                           grd.qty_unit_id) assay_convertion_rate
+                                                           grd.qty_unit_id) assay_convertion_rate,
+               pci.approval_status
           from grd_goods_record_detail        grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
@@ -913,7 +917,8 @@ select subsectionname,
                                                            sam.ash_id,
                                                            'Wet',
                                                            1,
-                                                           grd.net_weight_unit_id) assay_convertion_rate
+                                                           grd.net_weight_unit_id) assay_convertion_rate,
+               pci.approval_status
           from dgrd_delivered_grd             grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
@@ -1046,5 +1051,6 @@ select subsectionname,
           underlying_product_id,
           base_quantity_unit_id,
           position_type,
-          assay_convertion_rate
+          assay_convertion_rate,
+          approval_status
 

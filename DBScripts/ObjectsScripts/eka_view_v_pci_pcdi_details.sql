@@ -13,7 +13,8 @@ SELECT pcdi.pcdi_id, pci.internal_contract_item_ref_no,
           pcm.cp_contract_ref_no, pci.m2m_country_id, pci.m2m_city_id, pcdb.pcdb_id,
           pci.delivery_period_type, pci.is_called_off, pcpq.pcpq_id, pcdi.item_price_type,
       NVL (pcm.is_tolling_contract, 'N') is_tolling_contract,
-      pci.item_qty_unit_id
+      pci.item_qty_unit_id,
+      nvl(pcm.approval_status,'Approved') approval_status
      FROM pci_physical_contract_item pci,
           pcdi_pc_delivery_item pcdi,
           pcdb_pc_delivery_basis pcdb,
@@ -33,4 +34,3 @@ SELECT pcdi.pcdi_id, pci.internal_contract_item_ref_no,
       AND pcm.contract_status <> 'Cancelled'
       AND pcm.is_active = 'Y'
       and pcpd.input_output = 'Input'
-

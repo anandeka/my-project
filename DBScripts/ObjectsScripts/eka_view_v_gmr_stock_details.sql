@@ -98,7 +98,8 @@ select (case
                                             1) compqty_base_conv_rate,
        qum.qty_unit comp_base_qty_unit,
        pdm.base_quantity_unit comp_base_qty_unit_id,
-       1 assay_convertion_rate
+       1 assay_convertion_rate,
+       pci.approval_status
   from grd_goods_record_detail      grd,
        gmr_goods_movement_record    gmr,
        sld_storage_location_detail  sld,
@@ -219,7 +220,8 @@ select (case
           gab.gabid,
           pdd.derivative_def_id,
           qat.instrument_id,
-          pdtm.product_type_id
+          pdtm.product_type_id,
+          pci.approval_status
 union all
 select (case
          when grd.is_afloat = 'Y' then
@@ -320,7 +322,8 @@ select (case
                                             1) compqty_base_conv_rate,
        qum.qty_unit comp_base_qty_unit,
        pdm.base_quantity_unit comp_base_qty_unit_id,
-       1 assay_convertion_rate
+       1 assay_convertion_rate,
+       pci.approval_status
   from grd_goods_record_detail      grd,
        gmr_goods_movement_record    gmr,
        sld_storage_location_detail  sld,
@@ -443,7 +446,8 @@ select (case
           gab.gabid,
           pdd.derivative_def_id,
           qat.instrument_id,
-          pdtm.product_type_id
+          pdtm.product_type_id,
+          pci.approval_status 
 union all
 select (case
          when dgrd.is_afloat = 'Y' then
@@ -542,7 +546,8 @@ select (case
                                             1) compqty_base_conv_rate,
        qum.qty_unit comp_base_qty_unit,
        pdm.base_quantity_unit comp_base_qty_unit_id,
-       1 assay_convertion_rate
+       1 assay_convertion_rate,
+       pci.approval_status
   from dgrd_delivered_grd           dgrd,
        gmr_goods_movement_record    gmr,
        sld_storage_location_detail  sld,
@@ -663,7 +668,8 @@ select (case
           gab.gabid,
           pdd.derivative_def_id,
           qat.instrument_id,
-          pdtm.product_type_id
+          pdtm.product_type_id,
+          pci.approval_status
 union all
 select subsectionname,
        internal_contract_ref_no,
@@ -724,6 +730,7 @@ select subsectionname,
        compqty_base_conv_rate,
        comp_base_qty_unit,
        comp_base_qty_unit_id,
-       vgmr.assay_convertion_rate
+       vgmr.assay_convertion_rate,
+       approval_status
   from v_gmr_concentrate_details vgmr
 /
