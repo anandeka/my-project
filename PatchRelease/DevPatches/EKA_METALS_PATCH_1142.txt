@@ -1,0 +1,75 @@
+Patch No*          		:  EKA_METALS_PATCH_1142
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  17-Oct-2012
+
+Bug / Enhancement*              :  Enh
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 106005
+Author: elaiyaraja.nallathambi
+Date: 12:41:49 PM, Wednesday, October 17, 2012
+Message:
+Enhancement:-
+New Filter Added to Go with Un-Approved Contracts (Y/N) Flag.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOpenUnrealizedPhysicalPnl_Cog.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DeliveryScheduleReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DeliveryScheduleReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyOpenUnrealizedPhysicalPnl_Cog.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TradersPositionReport.rpt
+
+Revision: 106006
+Author: elaiyaraja.nallathambi
+Date: 12:44:30 PM, Wednesday, October 17, 2012
+Message:
+Added New Column "Approval Status" to handle Un-Approved Contracts (Y/N) Flag.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_concentrate_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_stock_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_pcdi_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details.sql
+
+Revision: 106007
+Author: elaiyaraja.nallathambi
+Date: 12:46:02 PM, Wednesday, October 17, 2012
+Message:
+New Filter added to handle Un-Approved Contracts (Y/N) Flag.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_99_DML_RPC_RFP_Scripts.sql
+
+
+
+
+
+
