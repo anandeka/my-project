@@ -1,3 +1,4 @@
+
 DECLARE
    fetchqry1   CLOB
       := 'INSERT INTO as_assay_d
@@ -7,7 +8,7 @@ DECLARE
              shipment_date, weighing_and_sampling_ref_no, product_and_quality,
              assayer, assay_type, exchange_of_assays, lot_no, no_of_sublots,
              bl_no, bl_date, vessel_name, mode_of_transport, container_no,
-             internal_doc_ref_no)
+             cp_address, internal_doc_ref_no)
    SELECT vpci.internal_contract_item_ref_no AS internal_contract_item_ref_no,
           ash.assay_ref_no AS assay_refno,
           ash.internal_gmr_ref_no AS internal_gmr_ref_no,
@@ -62,7 +63,7 @@ DECLARE
               AND ash1.internal_gmr_ref_no = gmr.internal_gmr_ref_no
               AND ash1.internal_grd_ref_no = ash.internal_grd_ref_no)
                                                  weighing_and_sampling_ref_no,
-          (vpci.product_name || '' ,'' || vpci.quality_name
+          (vpci.product_name || '','' || vpci.quality_name
           ) product_and_quality,
           bgm.bp_group_name AS assayer,
           (CASE
@@ -81,7 +82,25 @@ DECLARE
           gmr.bl_no AS bl_no, gmr.bl_date AS bl_date,
           gmr.vessel_name AS vessel_name,
           gmr.mode_of_transport AS mode_of_transport,
-          grdcontainer.containernostring AS container_no, ?
+          grdcontainer.containernostring AS container_no,
+          (SELECT    pad.address
+                  || '' ''
+                  || cim.city_name
+                  || '' ''
+                  || sm.state_name
+                  || '' ''
+                  || cym.country_name
+             FROM pad_profile_addresses pad,
+                  cym_countrymaster cym,
+                  cim_citymaster cim,
+                  sm_state_master sm
+            WHERE pad.profile_id = vpci.cp_id
+              AND pad.address_type = ''Main''
+              AND pad.is_deleted = ''N''
+              AND pad.country_id = cym.country_id
+              AND pad.state_id = sm.state_id(+)
+              AND pad.city_id = cim.city_id(+)),
+          ?
      FROM ash_assay_header ash,
           axs_action_summary axs,
           v_pci vpci,
@@ -90,8 +109,9 @@ DECLARE
           (SELECT   stragg (grd.container_no) AS containernostring,
                     grd.internal_gmr_ref_no AS intgmr
                FROM grd_goods_record_detail grd
-              WHERE grd.container_no IS NOT NULL AND grd.is_deleted = ''N''
-              and grd.STATUS=''Active''
+              WHERE grd.container_no IS NOT NULL
+                AND grd.is_deleted = ''N''
+                AND grd.status = ''Active''
            GROUP BY grd.internal_gmr_ref_no
            UNION ALL
            SELECT   stragg (dgrd.container_no) AS containernostring,
@@ -110,5 +130,6 @@ BEGIN
    UPDATE dgm_document_generation_master dgm
       SET dgm.fetch_query = fetchqry1
     WHERE dgm.dgm_id = 'DGM-AS';
-    commit;
+
+   COMMIT;
 END;
