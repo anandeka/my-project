@@ -197,7 +197,7 @@ create or replace package pkg_phy_populate_data is
                                pd_trade_date   date,
                                pc_user_id      varchar2);
 
-end pkg_phy_populate_data; 
+end pkg_phy_populate_data;
 /
 create or replace package body PKG_PHY_POPULATE_DATA is
 
@@ -12990,18 +12990,12 @@ where gmr.dbd_id = gvc_dbd_id;
        inv_qty_id,
        is_active,
        dbd_id,
-       product_premium,
-       quality_premium,
        price_unit_id,
        price_unit_cur_id,
        price_unit_cur_code,
        price_unit_weight_unit_id,
        price_unit_weight_unit,
        price_unit_weight,
-       material_cost_per_unit,
-       secondary_cost_per_unit,
-       product_premium_per_unit,
-       quality_premium_per_unit,
        process_id,
        stock_qty)
       select t.inv_id,
@@ -13018,72 +13012,17 @@ where gmr.dbd_id = gvc_dbd_id;
              invm.inv_qty_id,
              invm.is_active,
              gvc_dbd_id,
-             t.total_product_premium,
-             t.total_quality_premium,
              pum.price_unit_id,
              pum.cur_id,
              cm.cur_code,
              pum.weight_unit_id,
              qum.qty_unit,
              pum.weight,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_mc / t.cur_inv_qty)
-             
-               else
-                0
-             end as material_cost_per_unit,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_sc / t.cur_inv_qty)
-               else
-                0
-             end as secondary_cost_per_unit,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_product_premium / t.cur_inv_qty)
-               else
-                0
-             end as product_premium_per_unit,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_quality_premium / t.cur_inv_qty)
-               else
-                0
-             end as quality_premium_per_unit,
              gvc_process_id,
              null --agd.qty
         from (select invd.inv_id,
-                     nvl(sum(invd.transaction_qty), 0) cur_inv_qty,
-                     nvl(sum(case
-                               when invd.is_direct_cost = 'Y' and
-                                    scm.cost_component_name = 'Material Cost' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_mc,
-                     nvl(sum(case
-                               when scm.cost_type = 'SECONDARY_COST' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_sc,
-                     nvl(sum(case
-                               when scm.cost_component_name = 'Location Premium' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_product_premium,
-                     nvl(sum(case
-                               when scm.cost_component_name = 'Quality Premium' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_quality_premium
+                     nvl(sum(invd.transaction_qty), 0) cur_inv_qty
+                     
                 from invd_inventory_detail     invd,
                      scm_service_charge_master scm
                where invd.transaction_date <= pd_trade_date

@@ -39,7 +39,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -3844,9 +3844,9 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
   
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-  
+    vn_no              number;
   begin
-  
+    vn_no := 1;
     insert into invd_inventory_detail
       (inv_detail_id,
        inv_id,
@@ -3871,7 +3871,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        dbd_id)
       select inv_detail_id,
              inv_id,
-             internal_action_ref_no,
+             invd.internal_action_ref_no,
              event_seq,
              inv_event,
              cost_type,
@@ -3890,8 +3890,17 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              is_cancelled,
              version,
              pc_dbd_id
-        from invd_inventory_detail@eka_appdb;
+        from invd_inventory_detail@eka_appdb invd,
+             axs_action_summary              axs,
+             dbd_database_dump               dbd
+       where axs.internal_action_ref_no = invd.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.dbd_id = dbd.dbd_id
+         and dbd.process = pc_process
+         and dbd.corporate_id = pc_corporate_id
+         and axs.eff_date <= pd_trade_date;
     commit;
+    vn_no := 2;
     insert into invm_inventory_master
       (internal_inv_id,
        inv_ref_no,
@@ -3904,115 +3913,39 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        original_inv_qty,
        current_inv_qty,
        inv_qty_id,
-       cog,
-       avg_cog,
        cog_cur_id,
-       material_cost,
-       secondary_cost,
        is_active,
        version,
        dbd_id,
-       product_premium,
-       quality_premium,
        price_unit_id,
        price_unit_cur_id,
        price_unit_cur_code,
        price_unit_weight_unit_id,
        price_unit_weight_unit,
-       price_unit_weight,
-       material_cost_per_unit,
-       secondary_cost_per_unit,
-       product_premium_per_unit,
-       quality_premium_per_unit)
+       price_unit_weight)
       select t.inv_id,
              invm.inv_ref_no,
              invm.internal_gmr_ref_no,
              invm.internal_grd_ref_no,
              internal_dgrd_ref_no,
-             
              invm.internal_contract_item_ref_no,
              invm.inv_in_action_ref_no,
              invm.inv_status,
              invm.original_inv_qty,
              t.cur_inv_qty current_inv_qty,
              invm.inv_qty_id,
-             t.total_mc + t.total_sc cog,
-             (case
-               when t.cur_inv_qty <> 0 then
-                ((t.total_mc + t.total_sc) / t.cur_inv_qty)
-               else
-                0
-             end) avg_cog,
              invm.cog_cur_id,
-             t.total_mc material_cost,
-             t.total_sc secondary_cost,
              invm.is_active,
              invm.version,
              pc_dbd_id,
-             t.total_product_premium,
-             t.total_quality_premium,
              pum.price_unit_id,
              pum.cur_id,
              cm.cur_code,
              pum.weight_unit_id,
              qum.qty_unit,
-             pum.weight,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_mc / t.cur_inv_qty)
-             
-               else
-                0
-             end as material_cost_per_unit,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_sc / t.cur_inv_qty)
-               else
-                0
-             end as secondary_cost_per_unit,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_product_premium / t.cur_inv_qty)
-               else
-                0
-             end as product_premium_per_unit,
-             case
-               when t.cur_inv_qty <> 0 then
-                (t.total_quality_premium / t.cur_inv_qty)
-               else
-                0
-             end as quality_premium_per_unit
+             pum.weight
         from (select invd.inv_id,
-                     nvl(sum(invd.transaction_qty), 0) cur_inv_qty,
-                     nvl(sum(case
-                               when invd.is_direct_cost = 'Y' and
-                                    scm.cost_component_name = 'Material Cost' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_mc,
-                     nvl(sum(case
-                               when scm.cost_type = 'SECONDARY_COST' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_sc,
-                     nvl(sum(case
-                               when scm.cost_component_name = 'Location Premium' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_product_premium,
-                     nvl(sum(case
-                               when scm.cost_component_name = 'Quality Premium' then
-                                invd.transaction_cost
-                               else
-                                0
-                             end),
-                         0) as total_quality_premium
+                     nvl(sum(invd.transaction_qty), 0) cur_inv_qty
                 from invd_inventory_detail     invd,
                      scm_service_charge_master scm
                where invd.transaction_date <= pd_trade_date
@@ -4031,7 +3964,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
          and pum.cur_id = cm.cur_id
          and pum.weight_unit_id = qum.qty_unit_id
          and invm.internal_dgrd_ref_no is null;
-  
+    commit;
+    vn_no := 3;
     insert into is_invoice_summary
       (internal_invoice_ref_no,
        invoice_type,
@@ -4087,10 +4021,10 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        is_inv_draft,
        dbd_id,
        is_cancelled_today,
-       is_pledge,		
-       is_receive_material,	
-       payable_receivable,		
-       invoiced_qty_unit_id,	
+       is_pledge,
+       is_receive_material,
+       payable_receivable,
+       invoiced_qty_unit_id,
        freight_allowance_amt)
       select internal_invoice_ref_no,
              invoice_type,
@@ -4153,7 +4087,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              freight_allowance_amt
         from is_invoice_summary@eka_appdb is1
        where is1.invoice_issue_date <= pd_trade_date;
-  
+    commit;
+    vn_no := 4;
     update is_invoice_summary is1
        set is1.is_cancelled_today = 'Y'
      where is1.is_active = 'N'
@@ -4163,7 +4098,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
               from is_invoice_summary is2
              where is2.dbd_id = gvc_previous_dbd_id
                and is2.is_active = 'Y');
-  
+    commit;
+    vn_no := 5;
     update is_invoice_summary is1
        set is1.is_invoice_new = 'Y'
      where is1.is_active = 'Y'
@@ -4172,10 +4108,16 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
            (select is2.internal_invoice_ref_no
               from is_invoice_summary is2
              where is2.dbd_id = gvc_previous_dbd_id);
-  
+    vn_no := 6;
     commit;
   exception
     when others then
+      sp_precheck_process_log(pc_corporate_id,
+                              pd_trade_date,
+                              00000,
+                              00000,
+                              'code:' || sqlcode || 'message:' || sqlerrm ||
+                              'at ' || vn_no);
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure sp_phy_insert_costing_data',
@@ -4183,7 +4125,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
                                                            'code:' ||
                                                            sqlcode ||
                                                            'message:' ||
-                                                           sqlerrm,
+                                                           sqlerrm || 'at ' ||
+                                                           vn_no,
                                                            '',
                                                            pc_process,
                                                            pc_user_id,
@@ -4193,5 +4136,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
