@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_1143
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  18-Oct-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+
+Revision: 106131
+Date: 5:52:16 PM, Thursday, October 18, 2012
+Message:
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+
+
+
+Revision: 106121
+Date: 4:57:22 PM, Thursday, October 18, 2012
+Message:
+Transfer :
+INVD pulled for corporate 
+INVM All Price/QP/PP/SC columns removed as it is not used
+is_invoice_summary added corporate_id filter
+Populate
+INVS All Price/QP/PP/SC columns removed as it is not used
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+
+
+
+
