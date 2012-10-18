@@ -4086,7 +4086,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              invoiced_qty_unit_id,
              freight_allowance_amt
         from is_invoice_summary@eka_appdb is1
-       where is1.invoice_issue_date <= pd_trade_date;
+       where is1.invoice_issue_date <= pd_trade_date
+         and is1.corporate_id = pc_corporate_id;
     commit;
     vn_no := 4;
     update is_invoice_summary is1
