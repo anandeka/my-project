@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1144
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  19-Oct-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  Output doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 106179
+Author: sriveenam
+Date: Friday, October 19, 2012 3:43:39 PM
+Message:
+combopricing fix for 68794
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETPRICINGFORMULADETAILS.sql
+
