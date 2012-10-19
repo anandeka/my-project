@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION GETPRICINGFORMULADETAILS(p_pcbph_id VARCHAR2)
 IS
    formuladescription   VARCHAR2 (4000) := '';
 BEGIN
-   SELECT (CASE
+   SELECT stragg((CASE
               WHEN pcbpd.price_basis = 'Formula'
                  THEN    ppfh.formula_description
                       || ' - '
@@ -48,7 +48,7 @@ BEGIN
                                                         apm.available_price_id)
               ELSE ''
            END
-          )
+          ))
      INTO formuladescription
      FROM pcbpd_pc_base_price_detail pcbpd,
           pcbph_pc_base_price_header pcbph,
