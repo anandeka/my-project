@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1147
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  22-Oct-2012
+
+Bug / Enhancement*              :  Bug fixes
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD Domain
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : APP
+==================================================================
+Revision: 106304
+Author: sivachalabathi.s
+Date: 6:50:19 PM, Monday, October 22, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_JOURNALS_DOMAIN.sql
