@@ -95,7 +95,7 @@ create or replace package pkg_phy_eod_reports is
                                    pc_process      varchar2,
                                    pc_dbd_id       varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -1331,7 +1331,7 @@ create or replace package body pkg_phy_eod_reports is
         from poud_phy_open_unreal_daily poud
        where poud.corporate_id = pc_corporate_id
          and poud.process_id = pc_process_id
-         and poud.unrealized_type in ('Unrealized')
+         and poud.unrealized_type in ('Unrealized','Realized Not Final Invoiced')
        group by poud.corporate_id,
                 poud.corporate_name,
                 poud.profit_center_id,
@@ -1401,7 +1401,7 @@ create or replace package body pkg_phy_eod_reports is
         from poue_phy_open_unreal_element poue
        where poue.corporate_id = pc_corporate_id
          and poue.process_id = pc_process_id
-         and poue.unrealized_type in ('Unrealized')
+         and poue.unrealized_type in ('Unrealized','Realized Not Final Invoiced')
        group by poue.corporate_id,
                 poue.corporate_name,
                 poue.profit_center_id,

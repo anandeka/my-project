@@ -39,7 +39,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -4021,6 +4021,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        is_inv_draft,
        dbd_id,
        is_cancelled_today,
+       is_invoice_new,
        is_pledge,
        is_receive_material,
        payable_receivable,
@@ -4080,6 +4081,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              is_inv_draft,
              pc_dbd_id,
              'N',
+             'N',
              is_pledge,
              is_receive_material,
              payable_receivable,
@@ -4090,7 +4092,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
          and is1.corporate_id = pc_corporate_id;
     commit;
     vn_no := 4;
-    update is_invoice_summary is1
+    /*update is_invoice_summary is1
        set is1.is_cancelled_today = 'Y'
      where is1.is_active = 'N'
        and is1.dbd_id = pc_dbd_id
@@ -4098,19 +4100,61 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
            (select is1.internal_invoice_ref_no
               from is_invoice_summary is2
              where is2.dbd_id = gvc_previous_dbd_id
-               and is2.is_active = 'Y');
+               and is2.is_active = 'Y');*/
+    update is_invoice_summary is1
+       set is1.is_cancelled_today = 'Y'
+     where is1.is_active = 'N'
+       and is1.dbd_id = pc_dbd_id
+       and exists
+     (select is2.internal_invoice_ref_no
+              from is_invoice_summary is2
+             where is2.dbd_id = gvc_previous_dbd_id
+               and is2.internal_invoice_ref_no = is1.internal_invoice_ref_no
+               and is2.is_active = 'Y');               
     commit;
     vn_no := 5;
     update is_invoice_summary is1
+       set is1.is_invoice_new = 'Y'
+     where is1.dbd_id = pc_dbd_id
+       and not exists
+     (select is2.internal_invoice_ref_no
+              from is_invoice_summary is2
+             where is2.dbd_id = gvc_previous_dbd_id
+               and is2.internal_invoice_ref_no = is1.internal_invoice_ref_no);
+               
+    /*update is_invoice_summary is1
        set is1.is_invoice_new = 'Y'
      where is1.is_active = 'Y'
        and is1.dbd_id = pc_dbd_id
        and is1.internal_invoice_ref_no not in
            (select is2.internal_invoice_ref_no
               from is_invoice_summary is2
-             where is2.dbd_id = gvc_previous_dbd_id);
+             where is2.dbd_id = gvc_previous_dbd_id);*/
     vn_no := 6;
     commit;
+    for cc in (select is1.internal_invoice_ref_no,
+                      is1.corporate_id,
+                      is1.payment_due_date,
+                      nvl(is1.cp_ref_no, 'NA') cp_ref_no,
+                      nvl(is1.bill_to_address, 'NA') bill_to_address
+                 from is_invoice_summary is1
+                where is1.dbd_id = gvc_previous_dbd_id
+                  and is1.is_active = 'Y')
+    loop
+      update is_invoice_summary is2
+         set is2.is_modified_today = 'Y'
+       where is2.internal_invoice_ref_no = cc.internal_invoice_ref_no
+         and is2.dbd_id = pc_dbd_id
+         and (is2.payment_due_date <> cc.payment_due_date or
+             nvl(is2.cp_ref_no, 'NA') <> cc.cp_ref_no or
+             nvl(is2.bill_to_address, 'NA') <> cc.bill_to_address)
+         and is2.is_active = 'Y'
+         and is2.is_invoice_new = 'N'
+         and is2.is_cancelled_today = 'N';
+    end loop;
+    vn_no := 7;
+    commit;
+
   exception
     when others then
       sp_precheck_process_log(pc_corporate_id,
@@ -4137,5 +4181,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
