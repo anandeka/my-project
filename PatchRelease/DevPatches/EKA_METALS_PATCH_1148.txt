@@ -1,0 +1,70 @@
+Patch No*          		:  EKA_METALS_PATCH_1148
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  23-Oct-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics 
+
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 106361
+Author: anupkumar.agarwal
+Date: 12:45:54 PM, Tuesday, October 23, 2012
+Message:
+1:For Pledge Qty Calculation based on Invoice Assay Changes.
+2:II aad column For Fisrt Gmr activity TT 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_337.sql
+
+Revision: 106362
+Author: anupkumar.agarwal
+Date: 12:46:24 PM, Tuesday, October 23, 2012
+Message:
+1:For Pledge Qty Calculation based on Invoice Assay Changes.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_20.sql
+
+Revision: 106363
+Author: anupkumar.agarwal
+Date: 12:46:44 PM, Tuesday, October 23, 2012
+Message:
+For Pledge Qty Calculation based on Invoice Assay Changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_338.sql
+
+Revision: 106364
+Author: anupkumar.agarwal
+Date: 12:46:53 PM, Tuesday, October 23, 2012
+Message:
+For Pledge Qty Calculation based on Invoice Assay Changes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_PLEDGE_GMR.sql
+
+
