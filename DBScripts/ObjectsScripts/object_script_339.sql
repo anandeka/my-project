@@ -1,0 +1,1 @@
+alter table PFD_PRICE_FIXATION_DETAILS add allocated_gmr_ref_no varchar2(1000);
