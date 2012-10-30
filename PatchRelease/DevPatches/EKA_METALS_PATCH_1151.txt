@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1151
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Veera Prakash
+ 
+Created on*        		:  30-Oct-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  69338
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical and Accounting 
+
+Sub-Module  			 :  filters  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 106960
+Author: kotipalli.prakash
+Date: 5:39:26 PM, Tuesday, October 30, 2012
+Message:
+Bug_id : 69338 . filters issues fixed.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_427.sql
+
+
+
+
+
