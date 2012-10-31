@@ -1,0 +1,60 @@
+Patch No*          		:  EKA_METALS_PATCH_1153
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Gaurav Kumar
+ 
+Created on*        		:  31-Oct-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice 
+
+Sub-Module  			 :  Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 107134
+Author: gaurav.kumar
+Date: 8:02:29 PM, Wednesday, October 31, 2012
+Message:
+-Bug # 69252 and 69138 Fix: Invoice output doc issues resolved.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_340.sql
+
+
+
+Revision: 107133
+Author: gaurav.kumar
+Date: 8:00:20 PM, Wednesday, October 31, 2012
+Message:
+-Bug # 69252 and 69138 Fix: Invoice output doc issues resolved.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_428.sql
+
+
+
+
+
+
+
