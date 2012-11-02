@@ -28,7 +28,6 @@ create or replace package pkg_phy_eod_price is
                                         pc_process      varchar2);
 
 end; 
- 
 /
 create or replace package body "PKG_PHY_EOD_PRICE" is
 
@@ -4489,8 +4488,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and ceqs.internal_contract_item_ref_no =
              tt.internal_contract_item_ref_no(+)
          and ceqs.element_id = tt.element_id(+)
-         and pci.item_qty > 0
-         and ceqs.payable_qty > 0
+       --  and pci.item_qty > 0
+       --  and ceqs.payable_qty > 0
          and pcdi.process_id = pc_process_id
          and pci.process_id = pc_process_id
          and pcm.process_id = pc_process_id
@@ -4662,28 +4661,29 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                  and cipq.is_active = 'Y'
                  and cipq.process_id = pc_process_id
               union all
-              select /*+ ordered */
-               pci.internal_contract_item_ref_no,
-               spq.element_id,
-               spq.payable_qty,
-               spq.qty_unit_id,
-               pci.process_id
-                from pci_physical_contract_item pci,
-                     pcdi_pc_delivery_item      pcdi,
-                     grd_goods_record_detail    grd,
-                     spq_stock_payable_qty      spq
-               where pci.pcdi_id = pcdi.pcdi_id
-                 and pci.internal_contract_item_ref_no =
-                     grd.internal_contract_item_ref_no
-                    --and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-                 and pci.process_id = pcdi.process_id
-                 and pcdi.process_id = spq.process_id
-                 and spq.process_id = grd.process_id
-                 and pci.is_active = 'Y'
-                 and pcdi.is_active = 'Y'
+              select grd.internal_contract_item_ref_no,
+                     spq.element_id,
+                     spq.payable_qty,
+                     spq.qty_unit_id,
+                     spq.process_id
+                from grd_goods_record_detail grd,
+                     spq_stock_payable_qty   spq
+               where spq.internal_grd_ref_no = grd.internal_grd_ref_no
+                 and spq.process_id = pc_process_id
                  and spq.is_active = 'Y'
-                 and grd.process_id = pc_process_id) t
+                 and grd.process_id = pc_process_id
+              union all
+              select dgrd.internal_contract_item_ref_no,
+                     spq.element_id,
+                     spq.payable_qty,
+                     spq.qty_unit_id,
+                     spq.process_id
+                from dgrd_delivered_grd    dgrd,
+                     spq_stock_payable_qty spq
+               where spq.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+                 and spq.process_id = pc_process_id
+                 and spq.is_active = 'Y'
+                 and dgrd.process_id = pc_process_id) t
        group by t.internal_contract_item_ref_no,
                 t.element_id,
                 t.qty_unit_id;
