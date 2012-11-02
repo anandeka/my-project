@@ -1,14 +1,5 @@
-delete from DGM_DOCUMENT_GENERATION_MASTER
-where DGM_ID = '11';
-
-SET DEFINE OFF;
-
-Insert into DGM_DOCUMENT_GENERATION_MASTER
-   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
-    FETCH_QUERY, IS_CONCENTRATE)
- Values
-   ('11', 'CREATE_PI', 'Provisional Invoice', 'CREATE_PI', 1, 
-    'INSERT INTO IS_D (
+declare
+fetchqry clob := 'INSERT INTO IS_D (
 INVOICE_REF_NO,
 INVOICE_TYPE_NAME,
 INVOICE_CREATION_DATE,
@@ -186,19 +177,19 @@ INVS.INVOICE_STATUS,
 INVS.IS_FREE_METAL,
 INVS.IS_PLEDGE,
 INVS.INTERNAL_COMMENTS,
-invs.total_premium_amount', 'N');
+invs.total_premium_amount';
+
+begin
+  
+ update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID IN ('11');
+  
+end;
 
 
-delete from DGM_DOCUMENT_GENERATION_MASTER
-where DGM_ID = '10';
-
-
-Insert into DGM_DOCUMENT_GENERATION_MASTER
-   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
-    FETCH_QUERY, IS_CONCENTRATE)
- Values
-   ('10', 'CREATE_FI', 'Final Invoice', 'CREATE_FI', 1, 
-    'INSERT INTO is_d
+--
+--
+declare
+fetchqry clob := 'INSERT INTO is_d
             (invoice_ref_no, invoice_type_name, invoice_creation_date,
              invoice_quantity, invoiced_qty_unit, internal_invoice_ref_no,
              invoice_amount, material_cost, addditional_charges, taxes,
@@ -333,19 +324,18 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
             invs.is_free_metal,
             invs.is_pledge,
             invs.internal_comments,
-            invs.total_premium_amount', 'N');
+            invs.total_premium_amount';
 
+begin
+  
+ update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID IN ('10');
+  
+end;
 
-delete from DGM_DOCUMENT_GENERATION_MASTER
-where DGM_ID = '12';
-
-
-Insert into DGM_DOCUMENT_GENERATION_MASTER
-   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
-    FETCH_QUERY, IS_CONCENTRATE)
- Values
-   ('12', 'CREATE_DFI', 'Direct Final Invoice', 'CREATE_DFI', 1, 
-    'INSERT INTO IS_D (
+--
+--
+declare
+fetchqry clob := 'INSERT INTO IS_D (
 INVOICE_REF_NO,
 INVOICE_TYPE_NAME,
 INVOICE_CREATION_DATE,
@@ -523,18 +513,18 @@ INVS.INVOICE_STATUS,
 INVS.IS_FREE_METAL,
 INVS.IS_PLEDGE,
 INVS.INTERNAL_COMMENTS,
-invs.total_premium_amount', 'N');
+invs.total_premium_amount';
 
+begin
+  
+ update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID IN ('12');
+  
+end;
 
-delete from DGM_DOCUMENT_GENERATION_MASTER
-where DGM_ID = 'DGM-PI-C3';
-
-Insert into DGM_DOCUMENT_GENERATION_MASTER
-   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
-    FETCH_QUERY, IS_CONCENTRATE)
- Values
-   ('DGM-PI-C3', 'CREATE_PI', 'Provisional Invoice', 'CREATE_PI', 3, 
-    'INSERT INTO is_bds_child_d
+--
+--
+declare
+fetchqry clob := 'INSERT INTO is_bds_child_d
             (internal_invoice_ref_no, beneficiary_name, bank_name, account_no,
              aba_rtn, instruction, remarks, internal_doc_ref_no)
    SELECT invs.internal_invoice_ref_no AS internal_invoice_ref_no,
@@ -549,20 +539,19 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
     WHERE invs.internal_invoice_ref_no = oipi.internal_invoice_ref_no
       AND oba.bank_id = phd.profileid
       AND oba.bank_id = oipi.bank_id
-      AND invs.internal_invoice_ref_no = ?', 'N');
+      AND invs.internal_invoice_ref_no = ?';
 
+begin
+  
+ update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID IN ('DGM-PI-C3');
+  
+end;
 
+--
+--
 
-delete from DGM_DOCUMENT_GENERATION_MASTER
-where DGM_ID = 'DGM-PI-C4' ;
-
-
-Insert into DGM_DOCUMENT_GENERATION_MASTER
-   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
-    FETCH_QUERY, IS_CONCENTRATE)
- Values
-   ('DGM-PI-C4', 'CREATE_PI', 'Provisional Invoice', 'CREATE_PI', 4, 
-    'INSERT INTO is_bdp_child_d
+declare
+fetchqry clob := 'INSERT INTO is_bdp_child_d
             (internal_invoice_ref_no, beneficiary_name, bank_name, account_no,
              aba_rtn, instruction, remarks, internal_doc_ref_no)
    SELECT invs.internal_invoice_ref_no AS internal_invoice_ref_no,
@@ -577,18 +566,18 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
     WHERE invs.internal_invoice_ref_no = cpipi.internal_invoice_ref_no
       AND cpipi.bank_id = bpa.bank_id
       AND bpa.bank_id = bpb.bank_id
-      AND invs.internal_invoice_ref_no = ?', 'N');
+      AND invs.internal_invoice_ref_no = ?';
 
+begin
+  
+ update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID IN ('DGM-PI-C4');
+  
+end;
 
-delete from DGM_DOCUMENT_GENERATION_MASTER
-where DGM_ID in ('DGM-FI-C4','DGM-FI-C3') ;
-
-Insert into DGM_DOCUMENT_GENERATION_MASTER
-   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
-    FETCH_QUERY, IS_CONCENTRATE)
- Values
-   ('DGM-FI-C3', 'CREATE_FI', 'Final Invoice', 'CREATE_FI', 3, 
-    'INSERT INTO is_bds_child_d
+--
+--
+declare
+fetchqry clob := 'INSERT INTO is_bds_child_d
             (internal_invoice_ref_no, beneficiary_name, bank_name, account_no,
              aba_rtn, instruction,remarks,internal_doc_ref_no)
    SELECT invs.internal_invoice_ref_no AS internal_invoice_ref_no,
@@ -602,14 +591,17 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
     WHERE invs.internal_invoice_ref_no = oipi.internal_invoice_ref_no
       AND oba.bank_id = phd.profileid
       AND oba.bank_id = oipi.bank_id
-      AND invs.internal_invoice_ref_no = ?', 'N');
-      
-Insert into DGM_DOCUMENT_GENERATION_MASTER
-   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
-    FETCH_QUERY, IS_CONCENTRATE)
- Values
-   ('DGM-FI-C4', 'CREATE_FI', 'Final Invoice', 'CREATE_FI', 4, 
-    'INSERT INTO is_bdp_child_d
+      AND invs.internal_invoice_ref_no = ?';
+
+begin
+  
+ update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID IN ('DGM-FI-C3');
+  
+end;
+--
+--
+declare
+fetchqry clob := 'INSERT INTO is_bdp_child_d
             (internal_invoice_ref_no, beneficiary_name, bank_name, account_no,
              aba_rtn, instruction,remarks,internal_doc_ref_no)
    SELECT invs.internal_invoice_ref_no AS internal_invoice_ref_no,
@@ -623,19 +615,18 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
     WHERE invs.internal_invoice_ref_no = cpipi.internal_invoice_ref_no
       AND cpipi.bank_id = bpa.bank_id
       AND bpa.bank_id = bpb.bank_id
-      AND invs.internal_invoice_ref_no = ?', 'N');
+      AND invs.internal_invoice_ref_no = ?';
 
+begin
+  
+ update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID IN ('DGM-FI-C4');
+  
+end;
 
-delete from DGM_DOCUMENT_GENERATION_MASTER
-where DGM_ID in ('DGM-DFI-C3','DGM-DFI-C4') ;
-
-SET DEFINE OFF;
-Insert into DGM_DOCUMENT_GENERATION_MASTER
-   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
-    FETCH_QUERY, IS_CONCENTRATE)
- Values
-   ('DGM-DFI-C3', 'CREATE_DFI', 'Direct Invoice', 'CREATE_DFI', 3, 
-    'INSERT INTO is_bds_child_d
+--
+--
+declare
+fetchqry clob := 'INSERT INTO is_bds_child_d
             (internal_invoice_ref_no, beneficiary_name, bank_name, account_no,
              aba_rtn, instruction,remarks,internal_doc_ref_no)
    SELECT invs.internal_invoice_ref_no AS internal_invoice_ref_no,
@@ -649,14 +640,17 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
     WHERE invs.internal_invoice_ref_no = oipi.internal_invoice_ref_no
       AND oba.bank_id = phd.profileid
       AND oba.bank_id = oipi.bank_id
-      AND invs.internal_invoice_ref_no = ?', 'N');
-      
-Insert into DGM_DOCUMENT_GENERATION_MASTER
-   (DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, 
-    FETCH_QUERY, IS_CONCENTRATE)
- Values
-   ('DGM-DFI-C4', 'CREATE_DFI', 'Direct Invoice', 'CREATE_DFI', 4, 
-    'INSERT INTO is_bdp_child_d
+      AND invs.internal_invoice_ref_no = ?';
+
+begin
+  
+ update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID IN ('DGM-DFI-C3');
+  
+end;
+--
+--
+declare
+fetchqry clob := 'INSERT INTO is_bdp_child_d
             (internal_invoice_ref_no, beneficiary_name, bank_name, account_no,
              aba_rtn, instruction,remarks,internal_doc_ref_no)
    SELECT invs.internal_invoice_ref_no AS internal_invoice_ref_no,
@@ -670,8 +664,11 @@ Insert into DGM_DOCUMENT_GENERATION_MASTER
     WHERE invs.internal_invoice_ref_no = cpipi.internal_invoice_ref_no
       AND cpipi.bank_id = bpa.bank_id
       AND bpa.bank_id = bpb.bank_id
-      AND invs.internal_invoice_ref_no = ?', 'N');
+      AND invs.internal_invoice_ref_no = ?';
 
+begin
+  
+ update DGM_DOCUMENT_GENERATION_MASTER  set FETCH_QUERY=fetchqry where DGM_ID IN ('DGM-DFI-C4');
+  
+end;
 
-      
-      
