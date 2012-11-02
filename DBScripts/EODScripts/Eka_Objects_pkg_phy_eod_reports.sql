@@ -95,7 +95,7 @@ create or replace package pkg_phy_eod_reports is
                                    pc_process      varchar2,
                                    pc_dbd_id       varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -1528,10 +1528,16 @@ create or replace package body pkg_phy_eod_reports is
                                     pd_trade_date   date,
                                     pc_process_id   varchar2,
                                     pc_dbd_id       varchar2) as
--- Cursor For main Loop
+  -- Cursor For main Loop Only For Non Pledge GMRS
     cursor cur_pur_accural is
     select * from patd_pa_temp_data t
-    where t.corporate_id = pc_corporate_id;  
+    where t.corporate_id = pc_corporate_id
+    and t.is_pledge ='N';  
+  -- Cursor For main Loop Only For  Pledge GMRS
+    cursor cur_pur_accural_pledge is
+    select * from patd_pa_temp_data t
+    where t.corporate_id = pc_corporate_id
+    and t.is_pledge ='Y';  
 -- Cursor For Price Update     
     cursor cur_pur_accural_temp is
     select * from patd_pa_temp_data t
@@ -1540,12 +1546,14 @@ create or replace package body pkg_phy_eod_reports is
     cursor cur_pur_accural_tc_rc is
     select * from patd_pa_temp_data t
     where t.corporate_id = pc_corporate_id
-    and t.payable_type <> 'Penalty';  
+    and t.payable_type <> 'Penalty'
+    and t.is_pledge ='N';  
 -- For Penalty
     cursor cur_pur_accural_penalty is
     select * from patd_pa_temp_data t
     where t.corporate_id = pc_corporate_id
-    and t.payable_type = 'Penalty';  
+    and t.payable_type = 'Penalty'
+    and t.is_pledge ='N';  
     
     vn_gmr_treatment_charge      number;
     vc_gmr_treatment_cur_id      varchar2(15);
@@ -1568,15 +1576,89 @@ create or replace package body pkg_phy_eod_reports is
     vn_fx_rate_price_to_pay      number;
     vn_payable_qty               number;
     vc_payable_qty_unit_id       varchar2(15);
+    vn_counter                   number :=0;
+    vc_gmr_ref_no_for_price      varchar2(15);
+    vn_log_counter                   number :=960;
   begin
+  delete from tsq_temp_stock_quality t
+  where t.corporate_id = pc_corporate_id;
+  commit;
+   sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'delete from tsq_temp_stock_quality over');
+                            
+ insert into tsq_temp_stock_quality
+   (corporate_id,
+    internal_grd_ref_no,
+    internal_contract_item_ref_no,
+    internal_contract_ref_no,
+    pcpq_id)
+   select pc_corporate_id,
+          grd.internal_grd_ref_no,
+          pci.internal_contract_item_ref_no,
+          pcdi.internal_contract_ref_no,
+          pci.pcpq_id
+     from grd_goods_record_detail    grd,
+          pci_physical_contract_item pci,
+          pcdi_pc_delivery_item      pcdi
+    where grd.internal_contract_item_ref_no =
+          pci.internal_contract_item_ref_no
+      and pci.pcdi_id = pcdi.pcdi_id
+      and grd.process_id = pci.process_id
+      and pci.process_id = pcdi.process_id
+      and pcdi.process_id = pc_process_id
+      and grd.is_deleted = 'N'
+      and grd.status = 'Active'
+      and pci.is_active = 'Y'
+      and pcdi.is_active = 'Y';
+commit;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'insert grd to tsq_temp_stock_quality over');  
+ insert into tsq_temp_stock_quality
+   (corporate_id,
+    internal_grd_ref_no,
+    internal_contract_item_ref_no,
+    internal_contract_ref_no,
+    pcpq_id)
+   select pc_corporate_id,
+          dgrd.internal_grd_ref_no,
+          pci.internal_contract_item_ref_no,
+          pcdi.internal_contract_ref_no,
+          pci.pcpq_id
+     from dgrd_delivered_grd    dgrd,
+          pci_physical_contract_item pci,
+          pcdi_pc_delivery_item      pcdi
+    where dgrd.internal_contract_item_ref_no =
+          pci.internal_contract_item_ref_no
+      and pci.pcdi_id = pcdi.pcdi_id
+      and dgrd.process_id = pci.process_id
+      and pci.process_id = pcdi.process_id
+      and pcdi.process_id = pc_process_id
+      and dgrd.status = 'Active'
+      and pci.is_active = 'Y'
+      and pcdi.is_active = 'Y';
+commit;   
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'insert dgrd to tsq_temp_stock_quality over');     
+
   delete from patd_pa_temp_data  t
   where t.corporate_id = pc_corporate_id;
   commit;
-  
+  vn_log_counter := vn_log_counter + 1;
       sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          971,
+                          vn_log_counter,
                           'delete from patd_pa_temp_data over');
 
 -- Payable and Returnable elements
@@ -1594,6 +1676,8 @@ insert into patd_pa_temp_data
    corporate_name,
    conc_product_id,
    conc_product_name,
+   conc_quality_id,
+   conc_quality_name,
    profit_center_id,
    profit_center_name,
    profit_center_short_name,
@@ -1614,7 +1698,9 @@ insert into patd_pa_temp_data
    wet_qty,
    dry_qty,
    grd_qty_unit_id,
-   ash_id)
+   ash_id,
+   is_afloat ,
+   is_pledge)
   select gmr.internal_gmr_ref_no,
          grd.internal_grd_ref_no,
          gmr.gmr_ref_no,
@@ -1628,6 +1714,8 @@ insert into patd_pa_temp_data
          akc.corporate_name,
          pcpd.product_id conc_product_id,
          pdm_conc.product_desc conc_product_name,
+         grd.quality_id conc_quality_id,
+         qat.quality_name conc_quality_name,
          pcpd.profit_center_id profit_center,
          cpc.profit_center_name,
          cpc.profit_center_short_name,
@@ -1648,7 +1736,9 @@ insert into patd_pa_temp_data
          grd.qty wet_qty,
          grd.qty * asm.dry_wet_qty_ratio /100 dry_qty,
          grd.qty_unit_id as dry_wet_qty_unit_id,
-         spq.weg_avg_pricing_assay_id
+         spq.weg_avg_pricing_assay_id,
+         grd.is_afloat,
+         'N'-- This is Not Pledge Section Data
     from gmr_goods_movement_record      gmr,
          grd_goods_record_detail        grd,
          spq_stock_payable_qty          spq,
@@ -1657,6 +1747,7 @@ insert into patd_pa_temp_data
          pcpd_pc_product_definition     pcpd,
          pdm_productmaster              pdm_conc,
          qum_quantity_unit_master       qum_pdm_conc,
+         qat_quality_attributes         qat,
          cpc_corporate_profit_center    cpc,
          sac_stock_assay_content        sac,
          aml_attribute_master_list      aml,
@@ -1677,6 +1768,7 @@ insert into patd_pa_temp_data
      and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
      and pcpd.product_id = pdm_conc.product_id
      and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
+     and grd.quality_id = qat.quality_id(+)
      and pcpd.profit_center_id = cpc.profit_center_id
      and grd.internal_grd_ref_no = sac.internal_grd_ref_no
      and spq.element_id = aml.attribute_id
@@ -1686,7 +1778,6 @@ insert into patd_pa_temp_data
      and grd.process_id = pc_process_id
      and pcpd.input_output = 'Input'
      and pcpd.process_id = pc_process_id
-     and gmr.corporate_id = pc_corporate_id
      and spq.element_id = dipq.element_id
      and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
      and pcm.cp_id = phd.profileid
@@ -1711,10 +1802,11 @@ insert into patd_pa_temp_data
      and dipq.process_id =pc_process_id
      and dipq.is_active ='Y';
      commit;
+     vn_log_counter := vn_log_counter + 1;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          972,
+                          vn_log_counter,
                           'Insert patd_pa_temp_data 1 over');
         
 -- Penalty Elements
@@ -1732,6 +1824,8 @@ insert into patd_pa_temp_data
      corporate_name,
      conc_product_id,
      conc_product_name,
+     conc_quality_id,
+     conc_quality_name,
      profit_center_id,
      profit_center_name,
      profit_center_short_name,
@@ -1752,7 +1846,9 @@ insert into patd_pa_temp_data
      wet_qty,
      dry_qty,
      grd_qty_unit_id,
-     ash_id)
+     ash_id,
+     is_afloat,
+     is_pledge)
    select gmr.internal_gmr_ref_no,
            grd.internal_grd_ref_no,
            gmr.gmr_ref_no,
@@ -1767,7 +1863,9 @@ insert into patd_pa_temp_data
               grd.qty
              else
               grd.qty * (asm.dry_wet_qty_ratio / 100)
-           end)) / 100 else(grd.qty * (asm.dry_wet_qty_ratio / 100) * pkg_general.f_get_converted_quantity(aml.underlying_product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1) * pqca.typical) end) assay_qty,
+           end)) / 100 else(grd.qty * (asm.dry_wet_qty_ratio / 100) * 
+           ucm.multiplication_factor
+           * pqca.typical) end) assay_qty,
            (case
              when rm.ratio_name = '%' then
               grd.qty_unit_id
@@ -1778,6 +1876,8 @@ insert into patd_pa_temp_data
            akc.corporate_name,
            pcpd.product_id conc_product_id,
            pdm_conc.product_desc conc_product_name,
+           grd.quality_id conc_quality_id,
+           qat.quality_name conc_quality_name,
            pcpd.profit_center_id profit_center,
            cpc.profit_center_name,
            cpc.profit_center_short_name,
@@ -1798,7 +1898,9 @@ insert into patd_pa_temp_data
            grd.qty wet_qty,
            grd.qty * asm.dry_wet_qty_ratio /100 dry_qty,
            grd.qty_unit_id as dry_wet_qty_unit_id,
-           spq.weg_avg_pricing_assay_id
+           spq.weg_avg_pricing_assay_id,
+           grd.is_afloat,
+           'N'-- This is Not Pledge Section Data
       from gmr_goods_movement_record   gmr,
            grd_goods_record_detail     grd,
            ak_corporate                akc,
@@ -1806,6 +1908,7 @@ insert into patd_pa_temp_data
            pcpd_pc_product_definition  pcpd,
            pdm_productmaster           pdm_conc,
            qum_quantity_unit_master    qum_pdm_conc,
+           qat_quality_attributes      qat,
            cpc_corporate_profit_center cpc,
            v_spq_latest_assay          spq,
            ash_assay_header            ash,
@@ -1817,14 +1920,14 @@ insert into patd_pa_temp_data
            ii_invoicable_item          ii,
            cm_currency_master          cm_pay,
            pci_physical_contract_item  pci,
-           aml_attribute_master_list   aml
+           aml_attribute_master_list   aml,
+           ucm_unit_conversion_master ucm
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
        and gmr.corporate_id = akc.corporate_id
        and akc.base_cur_id = cm.cur_id
        and grd.status = 'Active'
        and gmr.process_id = pc_process_id
        and grd.process_id = pc_process_id
-       and gmr.corporate_id = pc_corporate_id
        and gmr.is_deleted = 'N'
        and gmr.is_internal_movement = 'N'
        and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
@@ -1833,6 +1936,7 @@ insert into patd_pa_temp_data
        and pcpd.is_active = 'Y'
        and pcpd.product_id = pdm_conc.product_id
        and qum_pdm_conc.qty_unit_id = pdm_conc.base_quantity_unit
+       and grd.quality_id = qat.quality_id(+)
        and pcpd.profit_center_id = cpc.profit_center_id
        and grd.internal_grd_ref_no = spq.internal_grd_ref_no
        and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
@@ -1856,17 +1960,157 @@ insert into patd_pa_temp_data
        and pqca.element_id = aml.attribute_id
        and nvl(gmr.contract_type, 'NA') <> 'Tolling'
        and aml.is_active = 'Y'
-       and nvl(gmr.is_final_invoiced, 'N') = 'N';
+       and nvl(gmr.is_final_invoiced, 'N') = 'N'
+       and ucm.from_qty_unit_id = grd.qty_unit_id
+       and ucm.to_qty_unit_id = (case when rm.ratio_name = '%' then ash.net_weight_unit
+       else rm.qty_unit_id_numerator end);
      commit;
+     vn_log_counter := vn_log_counter + 1;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          973,
+                          vn_log_counter,
                           'Insert patd_pa_temp_data  2 over');
-     -- On Temp Table Update the Price First
+
+-- Pledge GMR here    
+insert into patd_pa_temp_data
+  (internal_gmr_ref_no,
+   internal_grd_ref_no,
+   gmr_ref_no,
+   product_id,
+   element_id,
+   ash_id,
+   payable_qty,
+   payable_qty_unit_id,
+   assay_qty,
+   assay_qty_unit_id,
+   dry_qty,
+   wet_qty,
+   grd_qty_unit_id,
+   corporate_id,
+   corporate_name,
+   conc_product_id,
+   conc_product_name,
+   conc_quality_id,
+   conc_quality_name,
+   profit_center_id,
+   profit_center_name,
+   profit_center_short_name,
+   process_id,
+   contract_type,
+   base_cur_id,
+   base_cur_code,
+   base_cur_decimal,
+   element_name,
+   payable_type,
+   cp_id,
+   counterparty_name,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimal,
+   pcdi_id,
+   pledge_stock_id,
+   is_afloat,
+   is_pledge,
+   supp_internal_gmr_ref_no,
+   supp_gmr_ref_no)
+  select grd.internal_gmr_ref_no,
+         grd.internal_grd_ref_no,
+         gmr.gmr_ref_no,
+         gepd.product_id,
+         gepd.element_id,
+         null,
+         grd.current_qty payable_qty, -- Base Metal Qty in Base Unit
+         qum.qty_unit_id payable_qty_unit_id, -- Base Metal Unit
+         0,
+         null, -- assay_qty,
+         null, -- assay_qty_unit_id,
+         null, -- dry_qty,
+         null, -- wet_qty,
+         gmr.corporate_id,
+         akc.corporate_name,
+         pdm.product_id, --null,-- conc_product_id
+         pdm.product_desc,-- conc_product_name
+         grd.quality_id conc_quality_id,
+         qat.quality_name conc_quality_name,
+         grd.profit_center_id,
+         cpc.profit_center_name,
+         cpc.profit_center_short_name,
+         pc_process_id,
+         gmr.contract_type contract_type,
+         akc.base_cur_id,
+         akc.base_currency_name,
+         cm.decimals base_cur_decimal,
+         aml.attribute_name,
+         gepd.element_type,
+         gepd.supplier_cp_id cp_id,
+         phd.companyname cp_name,
+         cm_pay.cur_id pay_cur_id,
+         cm_pay.cur_code pay_cur_code,
+         cm_pay.decimals pay_cur_decimal,
+         grd.pcdi_id,
+         null,--pledge_stock_id
+         grd.is_afloat, -- Currently this flag will not be used in Pledge Section, Can use later if we want to biforcate data
+         'Y',
+         gepd.pledge_input_gmr supp_internal_gmr_ref_no,
+         gmr_supp.gmr_ref_no supp_gmr_ref_no
+    from ii_invoicable_item             ii,
+         grd_goods_record_detail        grd,
+         gepd_gmr_element_pledge_detail gepd,
+         gmr_goods_movement_record      gmr,
+         gmr_goods_movement_record      gmr_supp,
+         ak_corporate                   akc,
+         qat_quality_attributes         qat,
+         cpc_corporate_profit_center    cpc,
+         aml_attribute_master_list      aml,
+         phd_profileheaderdetails       phd,
+         pdm_productmaster              pdm,
+         qum_quantity_unit_master       qum,
+         cm_currency_master             cm,
+         pcm_physical_contract_main     pcm,
+         cm_currency_master             cm_pay
+   where ii.is_pledge = 'Y'
+     and ii.stock_id = grd.internal_grd_ref_no
+     and grd.internal_gmr_ref_no = gepd.internal_gmr_ref_no
+     and ii.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+     and gmr.corporate_id = akc.corporate_id
+     and grd.quality_id = qat.quality_id
+     and grd.profit_center_id = cpc.profit_center_id(+) -- No Profit Centre Updated For Pledge Stocks
+     and gepd.element_id = aml.attribute_id
+     and gepd.supplier_cp_id = phd.profileid
+     and gmr_supp.internal_gmr_ref_no = gepd.pledge_input_gmr
+     and gmr.process_id = pc_process_id
+     and ii.is_active = 'Y'
+     and grd.process_id = pc_process_id
+     and gepd.process_id = pc_process_id
+     and gepd.is_active = 'Y'
+     and gmr_supp.process_id = pc_process_id
+     and grd.product_id = pdm.product_id
+     and grd.qty_unit_id = qum.qty_unit_id
+     and akc.base_cur_id = cm.cur_id
+     and ii.internal_contract_ref_no = pcm.internal_contract_ref_no
+     and pcm.process_id = pc_process_id
+     and pcm.invoice_currency_id = cm_pay.cur_id
+     and nvl(gmr.is_final_invoiced, 'N') = 'N';
+     commit;                          
+     vn_log_counter := vn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'Insert patd_pa_temp_data  3 over');
+
+     -- On Temp Table Update the Price First, If it is Pledge GMR get the price from Supplier GMR
     for cur_pur_accural_temp_rows in cur_pur_accural_temp
     loop
     if cur_pur_accural_temp_rows.payable_type <> 'Penalty' then
+    If cur_pur_accural_temp_rows.is_pledge ='N' Then
+       vc_gmr_ref_no_for_price := cur_pur_accural_temp_rows.internal_gmr_ref_no;
+    else
+        vc_gmr_ref_no_for_price := cur_pur_accural_temp_rows.supp_internal_gmr_ref_no;
+    end if;-- This is fine Pledge GMRs will always be Event Based
+    
         begin
          select cgcp.contract_price,
                      cgcp.price_unit_id,
@@ -1880,15 +2124,14 @@ insert into patd_pa_temp_data
                      vc_gmr_price_unit_cur_code
                 from cgcp_conc_gmr_cog_price cgcp
                where cgcp.internal_gmr_ref_no =
-                     cur_pur_accural_temp_rows.internal_gmr_ref_no
-                 and cgcp.internal_grd_ref_no =
-                     cur_pur_accural_temp_rows.internal_grd_ref_no
+                     vc_gmr_ref_no_for_price
                  and cgcp.process_id = pc_process_id
-                 and cgcp.element_id = cur_pur_accural_temp_rows.element_id;
+                 and cgcp.element_id = cur_pur_accural_temp_rows.element_id
+                 AND ROWNUM < 2;
         exception
           when others then
             begin
-                 select cccp.contract_price,
+             select cccp.contract_price,
                  cccp.price_unit_id,
                  cccp.price_unit_weight_unit_id,
                  cccp.price_unit_cur_id,
@@ -1925,16 +2168,18 @@ insert into patd_pa_temp_data
         end if;
     end loop;
  commit;
+ vn_log_counter := vn_log_counter + 1;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          974,
+                          vn_log_counter,
                           'patd_pa_temp_data price updation over');    
 --
 -- Calcualte TC Now
 --         
 
 for cur_pur_accural_temp_rows in cur_pur_accural_tc_rc loop
+vn_counter := vn_counter + 1;
 pkg_metals_general.sp_get_gmr_tc_by_assay(cur_pur_accural_temp_rows.internal_gmr_ref_no,
                                                        cur_pur_accural_temp_rows.internal_grd_ref_no,
                                                        cur_pur_accural_temp_rows.element_id,
@@ -1953,18 +2198,30 @@ where t.internal_gmr_ref_no =cur_pur_accural_temp_rows.internal_gmr_ref_no
 and t.internal_grd_ref_no = cur_pur_accural_temp_rows.internal_grd_ref_no
 and t.element_id =   cur_pur_accural_temp_rows.element_id 
 and t.process_id = pc_process_id; 
+if vn_counter = 100 then
+      commit;
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'PA TC',
+                 'finished inserting 100');
+      vn_counter := 0;
+end if;
+    
 end loop;
 commit;
+vn_log_counter := vn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
                   pd_trade_date,
                   pc_process_id,
-                  975,
+                  vn_log_counter,
                   'TC updation over');    
 
 --
 -- Calcualte RC Now
 --         
+vn_counter :=0;
 for cur_pur_accural_temp_rows in cur_pur_accural_tc_rc loop
+vn_counter := vn_counter + 1;
 pkg_metals_general.sp_get_gmr_rc_by_assay (cur_pur_accural_temp_rows.internal_gmr_ref_no,
                                                     cur_pur_accural_temp_rows.internal_grd_ref_no,
                                                     cur_pur_accural_temp_rows.element_id,
@@ -1983,17 +2240,28 @@ where t.internal_gmr_ref_no =cur_pur_accural_temp_rows.internal_gmr_ref_no
 and t.internal_grd_ref_no = cur_pur_accural_temp_rows.internal_grd_ref_no
 and t.element_id =   cur_pur_accural_temp_rows.element_id 
 and t.process_id = pc_process_id;                                                      
+if vn_counter = 100 then
+      commit;
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'PA RC',
+                 'finished inserting 100');
+      vn_counter := 0;
+end if;
 end loop;     
 commit;
+vn_log_counter := vn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
                   pd_trade_date,
                   pc_process_id,
-                  976,
+                  vn_log_counter,
                   'RC updation over');    
 --
 -- Calcualte Penalty Now
 --        
+vn_counter :=0;
 for cur_pur_accural_temp_rows in cur_pur_accural_penalty loop
+vn_counter := vn_counter +1;
 pkg_metals_general.sp_get_gmr_pc_by_assay(cur_pur_accural_temp_rows.internal_gmr_ref_no,
                                                        cur_pur_accural_temp_rows.internal_grd_ref_no,
                                                        pc_dbd_id,
@@ -2009,12 +2277,21 @@ where t.internal_gmr_ref_no =cur_pur_accural_temp_rows.internal_gmr_ref_no
 and t.internal_grd_ref_no = cur_pur_accural_temp_rows.internal_grd_ref_no
 and t.element_id =   cur_pur_accural_temp_rows.element_id 
 and t.process_id = pc_process_id;                                                         
+if vn_counter = 100 then
+      commit;
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'PA Penalty',
+                 'finished inserting 100');
+      vn_counter := 0;
+end if;
 end loop;  
 commit;
+vn_log_counter := vn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
                   pd_trade_date,
                   pc_process_id,
-                  977,
+                  vn_log_counter,
                   'Penalty updation over');                                                         
                              
     for cur_pur_accural_rows in cur_pur_accural
@@ -2072,7 +2349,7 @@ sp_eodeom_process_log(pc_corporate_id,
             vc_payable_qty_unit_id := cur_pur_accural_rows.payable_qty_unit_id;
          else
              vn_payable_qty := 0;
-             vc_payable_qty_unit_id := cur_pur_accural_rows.Assay_Qty_Unit_Id;
+             vc_payable_qty_unit_id := cur_pur_accural_rows.assay_qty_unit_id;
           end if;
         
        vn_gmr_treatment_charge := round(cur_pur_accural_rows.tc_amt,cur_pur_accural_rows.base_cur_decimal);
@@ -2080,8 +2357,8 @@ sp_eodeom_process_log(pc_corporate_id,
       end if;
       if cur_pur_accural_rows.payable_type = 'Penalty' then
           vn_gmr_penality_charge := round(cur_pur_accural_rows.penalty_amt,cur_pur_accural_rows.base_cur_decimal);
-           vn_payable_qty := 0;
-             vc_payable_qty_unit_id := cur_pur_accural_rows.Assay_Qty_Unit_Id;
+             vn_payable_qty := 0;
+             vc_payable_qty_unit_id := cur_pur_accural_rows.assay_qty_unit_id;
       else
            vn_gmr_penality_charge := 0;
       end if;
@@ -2117,7 +2394,9 @@ sp_eodeom_process_log(pc_corporate_id,
          payable_amt_price_ccy,
          payable_amt_pay_ccy,
          frightcharges_amount,
-         othercharges_amount)
+         othercharges_amount,
+         is_afloat ,
+         is_pledge)
       values
         (cur_pur_accural_rows.corporate_id,
          pc_process_id,
@@ -2149,24 +2428,132 @@ sp_eodeom_process_log(pc_corporate_id,
          nvl(vn_payable_amt_in_price_cur, 0),
          nvl(vn_payable_amt_in_pay_cur, 0),
          0, -- Fright charges amount,
-         0 -- Other charges amount    
+         0, -- Other charges amount    
+         cur_pur_accural_rows.is_afloat,
+         cur_pur_accural_rows.is_pledge
          );
     end loop;
     commit;
+    vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          978,
+                          vn_log_counter,
                           'sp_phy_purchase_accural Loop over');
+                          
+
+for cur_pur_accural_rows in cur_pur_accural_pledge
+    loop
+      vn_gmr_price                 := cur_pur_accural_rows.gmr_price;
+      vc_gmr_price_untit_id        := cur_pur_accural_rows.gmr_price_unit_id;
+      vn_price_unit_weight_unit_id := cur_pur_accural_rows.gmr_price_unit_weight_unit_id;
+      vc_gmr_price_unit_cur_id     := cur_pur_accural_rows.gmr_price_unit_cur_id;
+      vc_gmr_price_unit_cur_code   := cur_pur_accural_rows.gmr_price_unit_cur_code;
+      
+      pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
+                                           vc_price_cur_id,
+                                           vc_price_cur_code,
+                                           vn_cont_price_cur_id_factor,
+                                           vn_cont_price_cur_decimals);
+      vn_payable_amt_in_price_cur := round((vn_gmr_price /
+                                                 nvl(vn_gmr_price_unit_weight,
+                                                      1)) *
+                                                 (pkg_general.f_get_converted_quantity(cur_pur_accural_rows.conc_product_id,
+                                                                                       cur_pur_accural_rows.payable_qty_unit_id,
+                                                                                       vn_price_unit_weight_unit_id,
+                                                                                       cur_pur_accural_rows.payable_qty)) *
+                                                 vn_cont_price_cur_id_factor,
+                                                 vn_cont_price_cur_decimals);
+          
+      vn_fx_rate_price_to_pay   := pkg_general.f_get_converted_currency_amt(cur_pur_accural_rows.corporate_id,
+                                                                                  vc_gmr_price_unit_cur_id,
+                                                                                  cur_pur_accural_rows.pay_cur_id,
+                                                                                  pd_trade_date,
+                                                                                  1);
+      vn_payable_amt_in_pay_cur := round(vn_payable_amt_in_price_cur *
+                                               vn_fx_rate_price_to_pay,
+                                               cur_pur_accural_rows.pay_cur_decimal);
+      vn_payable_qty := cur_pur_accural_rows.payable_qty;
+      vc_payable_qty_unit_id := cur_pur_accural_rows.payable_qty_unit_id;
+         
+      insert into pa_purchase_accural
+        (corporate_id,
+         process_id,
+         product_id,
+         product_type,
+         contract_type,
+         cp_id,
+         counterparty_name,
+         gmr_ref_no,
+         internal_gmr_ref_no,
+         internal_grd_ref_no,
+         element_id,
+         element_name,
+         payable_returnable_type,
+         assay_content,
+         assay_content_unit,
+         payable_qty,
+         payable_qty_unit_id,
+         price,
+         price_unit_id,
+         price_unit_cur_id,
+         price_unit_cur_code,
+         fx_rate_price_to_pay,
+         pay_in_cur_id,
+         pay_in_cur_code,
+         payable_amt_price_ccy,
+         payable_amt_pay_ccy,
+         frightcharges_amount,
+         othercharges_amount,
+         is_afloat ,
+         is_pledge,
+         supp_internal_gmr_ref_no,
+         supp_gmr_ref_no)
+      values
+        (cur_pur_accural_rows.corporate_id,
+         pc_process_id,
+         cur_pur_accural_rows.product_id,
+         cur_pur_accural_rows.conc_product_name,
+         cur_pur_accural_rows.contract_type,
+         cur_pur_accural_rows.cp_id,
+         cur_pur_accural_rows.counterparty_name,
+         cur_pur_accural_rows.gmr_ref_no,
+         cur_pur_accural_rows.internal_gmr_ref_no,
+         cur_pur_accural_rows.internal_grd_ref_no,
+         cur_pur_accural_rows.element_id,
+         cur_pur_accural_rows.element_name,
+         cur_pur_accural_rows.payable_type,
+         cur_pur_accural_rows.assay_qty,
+         cur_pur_accural_rows.assay_qty_unit_id,
+         vn_payable_qty,
+         vc_payable_qty_unit_id,
+         vn_gmr_price,
+         vc_gmr_price_untit_id,
+         vc_gmr_price_unit_cur_id,
+         vc_gmr_price_unit_cur_code,
+         vn_fx_rate_price_to_pay,
+         cur_pur_accural_rows.pay_cur_id,
+         cur_pur_accural_rows.pay_cur_code,
+         nvl(vn_payable_amt_in_price_cur, 0),
+         nvl(vn_payable_amt_in_pay_cur, 0),
+         0, -- Fright charges amount,
+         0, -- Other charges amount    
+         cur_pur_accural_rows.is_afloat,
+         cur_pur_accural_rows.is_pledge,
+         cur_pur_accural_rows.supp_internal_gmr_ref_no,
+         cur_pur_accural_rows.supp_gmr_ref_no);
+    end loop;
+-- End Loop for Pledge GMRs                  
 delete from pa_temp 
 where  corporate_id = pc_corporate_id;
 commit;   
+vn_log_counter := vn_log_counter + 1;
    sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          979,
+                          vn_log_counter,
                           'sp_phy_purchase_accural Loop pa_temp1');                      
--- Payable Quantity                          
+-- Payable Quantity For Concentrates                          
 insert into pa_temp
   (internal_gmr_ref_no,
    internal_grd_ref_no,
@@ -2174,6 +2561,7 @@ insert into pa_temp
    gmr_ref_no,
    corporate_id,
    product_id,
+   quality_id,
    profit_center_id,
    invoice_currency_id,
    element_id,
@@ -2187,13 +2575,16 @@ insert into pa_temp
    rcharges_amount,
    penalty_amount,
    latest_internal_invoice_ref_no,
-   invoice_ref_no)
+   invoice_ref_no,
+   is_afloat,
+   is_pledge)
 select grd.internal_gmr_ref_no,
        grd.internal_grd_ref_no,
        gmr.internal_contract_ref_no,
        gmr.gmr_ref_no,
        gmr.corporate_id,
        grd.product_id,
+       grd.quality_id,
        grd.profit_center_id,
        iid.invoice_currency_id,
        iied.element_id,
@@ -2212,7 +2603,9 @@ select grd.internal_gmr_ref_no,
        0 rcharges_amount,
        0 penalty_amount,
        gmr.latest_internal_invoice_ref_no,
-       is1.invoice_ref_no
+       is1.invoice_ref_no,
+       grd.is_afloat,
+       'N'
   from gmr_goods_movement_record     gmr,
        grd_goods_record_detail       grd,
        iid_invoicable_item_details   iid,
@@ -2250,12 +2643,14 @@ select grd.internal_gmr_ref_no,
    and nvl(gmr.contract_type,'NA') <> 'Tolling'
    and nvl(gmr.is_final_invoiced, 'N') = 'N';
 commit;
+vn_log_counter := vn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          980,
+                          vn_log_counter,
                           'sp_phy_purchase_accural Loop pa_temp2');
--- assay qty
+
+-- Payable Quantity For Pledge GMRs
 insert into pa_temp
   (internal_gmr_ref_no,
    internal_grd_ref_no,
@@ -2263,6 +2658,7 @@ insert into pa_temp
    gmr_ref_no,
    corporate_id,
    product_id,
+   quality_id,
    profit_center_id,
    invoice_currency_id,
    element_id,
@@ -2276,13 +2672,115 @@ insert into pa_temp
    rcharges_amount,
    penalty_amount,
    latest_internal_invoice_ref_no,
-   invoice_ref_no)
+   invoice_ref_no,
+   is_afloat,
+   is_pledge,
+   supp_internal_gmr_ref_no,        
+   supp_gmr_ref_no)
 select grd.internal_gmr_ref_no,
        grd.internal_grd_ref_no,
        gmr.internal_contract_ref_no,
        gmr.gmr_ref_no,
        gmr.corporate_id,
        grd.product_id,
+       grd.quality_id,
+       grd.profit_center_id,
+       iid.invoice_currency_id,
+       gepd.element_id,
+       gmr.contract_type,
+       0 assay_qty,
+       null assay_qty_unit,
+       iid.invoiced_qty payble_qty,
+       grd.qty_unit_id payable_qty_unit_id,
+       iid.invoice_item_amount,
+       null tcharges_amount,
+       null rcharges_amount,
+       null penalty_amount,
+       gmr.latest_internal_invoice_ref_no,
+       is1.invoice_ref_no,
+       grd.is_afloat,
+       'Y',-- Pledge
+       gepd.pledge_input_gmr,
+       gmr_supp.gmr_ref_no
+  from ii_invoicable_item             ii,
+       iid_invoicable_item_details    iid,
+       is_invoice_summary             is1,
+       grd_goods_record_detail        grd,
+       gepd_gmr_element_pledge_detail gepd,
+       gmr_goods_movement_record      gmr,
+       gmr_goods_movement_record      gmr_supp,
+       ak_corporate                   akc,
+       qat_quality_attributes         qat,
+       cpc_corporate_profit_center    cpc,
+       aml_attribute_master_list      aml,
+       phd_profileheaderdetails       phd,
+       cm_currency_master             cm,
+       pcm_physical_contract_main     pcm,
+       cm_currency_master             cm_pay
+ where ii.is_pledge = 'Y'
+   and ii.stock_id = grd.internal_grd_ref_no
+   and grd.internal_gmr_ref_no = gepd.internal_gmr_ref_no
+   and ii.internal_gmr_ref_no = grd.internal_gmr_ref_no
+   and grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+   and gmr.corporate_id = akc.corporate_id
+   and grd.quality_id = qat.quality_id
+   and grd.profit_center_id = cpc.profit_center_id(+) -- No Profit Centre Updated For Pledge Stocks
+   and gepd.element_id = aml.attribute_id
+   and gepd.pledge_cp_id = phd.profileid
+   and gmr.process_id = pc_process_id
+   and ii.is_active = 'Y'
+   and grd.process_id = pc_process_id
+   and gepd.process_id = pc_process_id
+   and gepd.is_active = 'Y'
+   and akc.base_cur_id = cm.cur_id
+   and ii.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and pcm.process_id = pc_process_id
+   and pcm.invoice_currency_id = cm_pay.cur_id
+   and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+   and grd.internal_grd_ref_no = iid.stock_id
+   and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no
+   and ii.invoicable_item_id = iid.invoicable_item_id
+   and nvl(gmr.is_final_invoiced, 'N') = 'N'
+   and iid.internal_invoice_ref_no = is1.internal_invoice_ref_no
+   and gmr.latest_internal_invoice_ref_no = is1.internal_invoice_ref_no
+   and is1.process_id = pc_process_id
+   and gmr_supp.internal_gmr_ref_no = gepd.pledge_input_gmr
+   and gmr_supp.process_id = pc_process_id;
+
+   commit;
+   
+-- assay qty
+insert into pa_temp
+  (internal_gmr_ref_no,
+   internal_grd_ref_no,
+   internal_contract_ref_no,
+   gmr_ref_no,
+   corporate_id,
+   product_id,
+   quality_id,
+   profit_center_id,
+   invoice_currency_id,
+   element_id,
+   contract_type,
+   assay_qty,
+   assay_qty_unit,
+   payble_qty,
+   payable_qty_unit,
+   element_payable_amount,
+   tcharges_amount,
+   rcharges_amount,
+   penalty_amount,
+   latest_internal_invoice_ref_no,
+   invoice_ref_no,
+   is_afloat, 
+   is_pledge)
+select grd.internal_gmr_ref_no,
+       grd.internal_grd_ref_no,
+       gmr.internal_contract_ref_no,
+       gmr.gmr_ref_no,
+       gmr.corporate_id,
+       grd.product_id,
+       grd.quality_id,
        grd.profit_center_id,
        iid.invoice_currency_id,
        pqca.element_id,
@@ -2316,7 +2814,9 @@ select grd.internal_gmr_ref_no,
        0 rcharges_amount,
        0 penalty_amount,
        gmr.latest_internal_invoice_ref_no,
-       is1.invoice_ref_no
+       is1.invoice_ref_no,
+       grd.is_afloat,
+       'N'
   from gmr_goods_movement_record   gmr,
        grd_goods_record_detail     grd,
        iid_invoicable_item_details iid,
@@ -2350,70 +2850,79 @@ select grd.internal_gmr_ref_no,
    and gmr.corporate_id = pc_corporate_id
    and nvl(gmr.contract_type,'NA') <> 'Tolling'
    and nvl(gmr.is_final_invoiced, 'N') = 'N';
+  commit;
+  vn_log_counter := vn_log_counter + 1;   
   sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          981,
+                          vn_log_counter,
                           'sp_phy_purchase_accural Loop pa_temp3');
-commit;
-    -- Invoiced  GMR Level
-    insert into pa_purchase_accural_gmr
-      (corporate_id,
-       process_id,
-       eod_trade_date,
-       product_id,
-       product_type,
-       contract_type,
-       cp_id,
-       counterparty_name,
-       gmr_ref_no,
-       element_id,
-       element_name,
-       payable_returnable_type,
-       assay_content,
-       assay_content_unit,
-       payable_qty,
-       payable_qty_unit_id,
-       payable_amt_pay_ccy,
-       pay_in_cur_id,
-       pay_in_cur_code,
-       tranascation_type,
-       internal_gmr_ref_no,
-       latest_internal_invoice_ref_no,
-       invoice_ref_no)
-      select temp.corporate_id,
-             pc_process_id,
-             pd_trade_date,
-             temp.product_id,
-             pdm_conc.product_desc,
-             temp.contract_type,
-             pcm.cp_id,
-             phd.companyname,
-             temp.gmr_ref_no,
-             temp.element_id,
-             aml.attribute_name,
-             nvl(pcpch.payable_type,'Penalty'),
-             sum(temp.assay_qty) payable_qty,
-             temp.assay_qty_unit assay_qty_unit,
-             sum(temp.payble_qty) payable_qty,
-             temp.payable_qty_unit payable_qty_unit_id,
-             sum(temp.element_payable_amount) element_payable_amount,
-             temp.invoice_currency_id,
-             cm.cur_code,
-             'Invoiced',
-             temp.internal_gmr_ref_no,
-             temp.latest_internal_invoice_ref_no,
-             temp.invoice_ref_no
-        from pa_temp temp,
-             pdm_productmaster pdm_conc,
-             qat_quality_attributes qat,
-             cpc_corporate_profit_center cpc,
-             ak_corporate akc,
-             cm_currency_master cm,
-             aml_attribute_master_list aml,
-             pcm_physical_contract_main pcm,
-             phd_profileheaderdetails phd,
-             (select pcp.internal_contract_ref_no,
+-- Invoiced  GMR Level
+ insert into pa_purchase_accural_gmr
+   (corporate_id,
+    process_id,
+    eod_trade_date,
+    product_id,
+    product_type,
+    contract_type,
+    cp_id,
+    counterparty_name,
+    gmr_ref_no,
+    element_id,
+    element_name,
+    payable_returnable_type,
+    assay_content,
+    assay_content_unit,
+    payable_qty,
+    payable_qty_unit_id,
+    payable_amt_pay_ccy,
+    pay_in_cur_id,
+    pay_in_cur_code,
+    tranascation_type,
+    internal_gmr_ref_no,
+    latest_internal_invoice_ref_no,
+    invoice_ref_no,
+    is_afloat,
+    is_pledge,
+    supp_internal_gmr_ref_no,        
+    supp_gmr_ref_no)
+   select temp.corporate_id,
+          pc_process_id,
+          pd_trade_date,
+          temp.product_id,
+          pdm_conc.product_desc,
+          temp.contract_type,
+          pcm.cp_id,
+          phd.companyname,
+          temp.gmr_ref_no,
+          temp.element_id,
+          aml.attribute_name,
+          nvl(pcpch.payable_type, 'Penalty'),
+          sum(temp.assay_qty) payable_qty,
+          temp.assay_qty_unit assay_qty_unit,
+          sum(temp.payble_qty) payable_qty,
+          temp.payable_qty_unit payable_qty_unit_id,
+          sum(temp.element_payable_amount) element_payable_amount,
+          temp.invoice_currency_id,
+          cm.cur_code,
+          'Invoiced',
+          temp.internal_gmr_ref_no,
+          temp.latest_internal_invoice_ref_no,
+          temp.invoice_ref_no,
+          temp.is_afloat,
+          temp.is_pledge,
+          temp.supp_internal_gmr_ref_no,        
+          temp.supp_gmr_ref_no
+     from pa_temp temp,
+          pdm_productmaster pdm_conc,
+          qat_quality_attributes qat,
+          cpc_corporate_profit_center cpc,
+          ak_corporate akc,
+          cm_currency_master cm,
+          aml_attribute_master_list aml,
+          pcm_physical_contract_main pcm,
+          phd_profileheaderdetails phd,
+          (select pcp.internal_contract_ref_no,
                   pcp.element_id,
                   pcp.payable_type
              from pcpch_pc_payble_content_header pcp
@@ -2422,44 +2931,48 @@ commit;
             group by pcp.internal_contract_ref_no,
                      pcp.element_id,
                      pcp.payable_type) pcpch
-       where temp.product_id = pdm_conc.product_id
-         and temp.quality_id = qat.quality_id(+)
-         and temp.profit_center_id = cpc.profit_center_id
-         and temp.corporate_id = akc.corporate_id
-         and temp.corporate_id = pc_corporate_id
-         and temp.element_id = aml.attribute_id
-         and temp.invoice_currency_id = cm.cur_id
-         and temp.internal_contract_ref_no = pcm.internal_contract_ref_no
-         and pcm.cp_id = phd.profileid
-         and pcm.cp_id = phd.profileid
-         and temp.internal_contract_ref_no =
-             pcpch.internal_contract_ref_no(+)
-         and temp.element_id = pcpch.element_id(+)
-         and pcm.process_id = pc_process_id
-         and pcm.is_active = 'Y'
-         group by temp.corporate_id,
-                pc_process_id,
-                temp.product_id,
-                pdm_conc.product_desc,
-                pcm.cp_id,
-                temp.contract_type,
-                phd.companyname,
-                temp.gmr_ref_no,
-                temp.element_id,
-                aml.attribute_name,
-                nvl(pcpch.payable_type,'Penalty'),
-                temp.invoice_currency_id,
-                temp.payable_qty_unit,
-                temp.assay_qty_unit,
-                cm.cur_code,
-                temp.internal_gmr_ref_no,
-                temp.latest_internal_invoice_ref_no,
-                temp.invoice_ref_no;
+    where temp.product_id = pdm_conc.product_id
+      and temp.quality_id = qat.quality_id(+)
+      and temp.profit_center_id = cpc.profit_center_id(+)
+      and temp.corporate_id = akc.corporate_id
+      and temp.corporate_id = pc_corporate_id
+      and temp.element_id = aml.attribute_id
+      and temp.invoice_currency_id = cm.cur_id
+      and temp.internal_contract_ref_no = pcm.internal_contract_ref_no
+      and pcm.cp_id = phd.profileid
+      and pcm.cp_id = phd.profileid
+      and temp.internal_contract_ref_no = pcpch.internal_contract_ref_no(+)
+      and temp.element_id = pcpch.element_id(+)
+      and pcm.process_id = pc_process_id
+      and pcm.is_active = 'Y'
+    group by temp.corporate_id,
+             pc_process_id,
+             temp.product_id,
+             pdm_conc.product_desc,
+             pcm.cp_id,
+             temp.contract_type,
+             phd.companyname,
+             temp.gmr_ref_no,
+             temp.element_id,
+             aml.attribute_name,
+             nvl(pcpch.payable_type, 'Penalty'),
+             temp.invoice_currency_id,
+             temp.payable_qty_unit,
+             temp.assay_qty_unit,
+             cm.cur_code,
+             temp.internal_gmr_ref_no,
+             temp.latest_internal_invoice_ref_no,
+             temp.invoice_ref_no,
+             temp.is_afloat,
+             temp.is_pledge,
+             temp.supp_internal_gmr_ref_no,        
+             temp.supp_gmr_ref_no;
     commit;
+    vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          982,
+                          vn_log_counter,
                           'sp_phy_purchase_accural GMR Level');
 --
 -- Need to update Tc Charges,Rc Chargess, Penality
@@ -2474,7 +2987,8 @@ where t.corporate_id = pc_corporate_id
 and t.internal_gmr_ref_no = pa_gmr.internal_gmr_ref_no
 and t.internal_invoice_ref_no = pa_gmr.latest_internal_invoice_ref_no
 AND t.element_id = pa_gmr.element_id)
-where pa_gmr.process_id = pc_process_id;
+where pa_gmr.process_id = pc_process_id
+and pa_gmr.is_pledge ='N';
 commit;
 -- 
 -- Frieght and Other charges we need to update only once per GMR
@@ -2499,10 +3013,12 @@ select is1.internal_invoice_ref_no,
 
 update pa_purchase_accural_gmr pa_gmr
    set pa_gmr.othercharges_amount = cur_charges.total_other_charge_amount,
-       pa_gmr.frightcharges_amount = cur_charges.freight_allowance_amt
+       pa_gmr.frightcharges_amount = case when pa_gmr.is_pledge ='N' then cur_charges.freight_allowance_amt else 0 end
  where pa_gmr.process_id = pc_process_id
- and pa_gmr.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no
- and rownum < 2;
+ and   pa_gmr.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no
+ and   pa_gmr.payable_returnable_type <> 'Penalty'
+ and   rownum < 2
+ ;
 end loop;  
 commit;
 Update pa_purchase_accural_gmr pa_gmr
@@ -2513,10 +3029,11 @@ Update pa_purchase_accural_gmr pa_gmr
  where pa_gmr.process_id = pc_process_id;        
 
 commit;
+vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          983,
+                          vn_log_counter,
                           'sp_phy_purchase_accural Update TC and Others');
 
 --
@@ -2554,7 +3071,11 @@ commit;
        frightcharges_amount,
        othercharges_amount,
        tranascation_type,
-       internal_gmr_ref_no)
+       internal_gmr_ref_no,
+       is_afloat,
+       is_pledge,
+       supp_internal_gmr_ref_no,        
+       supp_gmr_ref_no)
       select pa.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -2586,7 +3107,11 @@ commit;
              0,
              0,
              'Calculated',
-             pa.internal_gmr_ref_no
+             pa.internal_gmr_ref_no,
+             pa.is_afloat,
+             pa.is_pledge,
+             pa.supp_internal_gmr_ref_no,        
+             pa.supp_gmr_ref_no
         from pa_purchase_accural pa
        where pa.process_id = pc_process_id
          and pa.corporate_id = pc_corporate_id
@@ -2610,15 +3135,20 @@ commit;
                 pa.pay_in_cur_id,
                 pa.pay_in_cur_code,
                 pa.fx_rate_price_to_pay,
-                pa.internal_gmr_ref_no;
+                pa.internal_gmr_ref_no,
+                pa.is_afloat,
+                pa.is_pledge,
+                pa.supp_internal_gmr_ref_no,        
+                pa.supp_gmr_ref_no;
     commit;
+    vn_log_counter := vn_log_counter + 1;
    sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          984,
+                          vn_log_counter,
                           'sp_phy_purchase_accural Calcualted GMR Level');
-    -- Difference Section at GMR level
-    insert into pa_purchase_accural_gmr
+-- Difference Section at GMR level
+ insert into pa_purchase_accural_gmr
       (corporate_id,
        process_id,
        eod_trade_date,
@@ -2645,7 +3175,11 @@ commit;
        frightcharges_amount,
        othercharges_amount,
        tranascation_type,
-       internal_gmr_ref_no)
+       internal_gmr_ref_no,
+       is_afloat,
+       is_pledge,
+       supp_internal_gmr_ref_no,        
+       supp_gmr_ref_no)
       select pa.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -2752,10 +3286,14 @@ commit;
                                0
                             end) othercharges_amount,
              'Difference',
-             pa.internal_gmr_ref_no
+             pa.internal_gmr_ref_no,
+             pa.is_afloat,
+             pa.is_pledge,
+             pa.supp_internal_gmr_ref_no,        
+             pa.supp_gmr_ref_no
         from pa_purchase_accural_gmr pa
        where pa.process_id = pc_process_id
-         and pa.corporate_id = pc_corporate_id
+     --    and pa.corporate_id = pc_corporate_id
        group by pa.corporate_id,
                 pc_process_id,
                 pa.product_id,
@@ -2771,10 +3309,21 @@ commit;
                 pa.payable_qty_unit_id,
                 pa.pay_in_cur_id,
                 pa.pay_in_cur_code,
-                pa.internal_gmr_ref_no;
-    commit;
- -- Purchase accrual update statements here
-for cc in (select gmr.internal_gmr_ref_no,
+                pa.internal_gmr_ref_no,
+                pa.is_afloat,
+                pa.is_pledge,
+                pa.supp_internal_gmr_ref_no,        
+                pa.supp_gmr_ref_no;
+commit;                
+vn_log_counter := vn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'Pledge GMR Insertion into patd_pa_temp_data Over');
+                  
+-- Purchase Accrual update statements here
+  for cc in (select gmr.internal_gmr_ref_no,
                     gmr.warehouse_profile_id,
                     phd.companyname
                from gmr_goods_movement_record gmr,
@@ -2783,19 +3332,22 @@ for cc in (select gmr.internal_gmr_ref_no,
                 and gmr.warehouse_profile_id = phd.profileid
                 and gmr.corporate_id = pc_corporate_id
                 and gmr.is_deleted = 'N'
-                and gmr.process_id = pc_process_id
-                group by gmr.internal_gmr_ref_no,
-                    gmr.warehouse_profile_id,
-                    phd.companyname)
+                and gmr.process_id = pc_process_id)
   loop
+    -- This update is for Non Pledge GMR
     update pa_purchase_accural_gmr pa
        set pa.warehouse_profile_id = cc.warehouse_profile_id,
            pa.warehouse_name       = cc.companyname
      where pa.internal_gmr_ref_no = cc.internal_gmr_ref_no
        and pa.process_id = pc_process_id;
-end loop;
+       -- This update is for Pledge GMR
+        update pa_purchase_accural_gmr pa
+       set pa.warehouse_profile_id = cc.warehouse_profile_id,
+           pa.warehouse_name       = cc.companyname
+     where pa.supp_internal_gmr_ref_no = cc.internal_gmr_ref_no
+       and pa.process_id = pc_process_id ;
+  end loop;
   commit;
-  
 for cc1 in (
 select grd.internal_gmr_ref_no,
        qat.quality_id,
@@ -2814,13 +3366,13 @@ where pa.internal_gmr_ref_no = cc1.internal_gmr_ref_no
 and pa.process_id = pc_process_id;
 end loop;
 commit;
+  vn_log_counter := vn_log_counter + 1;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
-                          985,
+                          vn_log_counter,
                           'sp_phy_purchase_accural End');
   end;  
-  
 
   procedure sp_calc_overall_realized_pnl
   --------------------------------------------------------------------------------------------------------------------------
@@ -8036,6 +8588,9 @@ commit;
                           pc_process_id,
                           10001,
                           'Start Of Base Metal Not Event Based');
+delete from tcr_temp_cr 
+where corporate_id = pc_corporate_id;
+
 --
 -- Base Metal Not Event Based 
 --
@@ -8209,7 +8764,8 @@ insert into tcr_temp_cr
      and grd.internal_contract_item_ref_no =
          pci.internal_contract_item_ref_no(+)
      and pci.m2m_inco_term = itm.incoterm_id(+)
-     and grd.pcdi_id = pcdi.pcdi_id(+)
+     --and grd.pcdi_id = pcdi.pcdi_id(+)
+     and pci.pcdi_id = pcdi.pcdi_id(+)
      and grd.quality_id = qat.quality_id(+)
      and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
      and pcpd.input_output = 'Input'
@@ -8249,6 +8805,7 @@ insert into tcr_temp_cr
           trunc(vd.loading_date, 'Mon') = trunc(pd_trade_date, 'Mon') and
           vd.loading_date is not null then 'TRUE' else 'FALSE' end)
      and nvl(ppu.weight, 1) = 1
+     and pci.is_active (+) ='Y'
      and gmr.internal_gmr_ref_no not in
          (select bgcp.internal_gmr_ref_no
             from bgcp_base_gmr_cog_price bgcp
@@ -8415,7 +8972,7 @@ select t.contract_price,
              t.bl_date) loop
        
 select pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
-                                                       cur_price_conv.contract_price,
+                                                       1,
                                                        cur_price_conv.price_unit_id,
                                                        cur_price_conv.product_price_unit_id,
                                                        cur_price_conv.bl_date)
@@ -8848,7 +9405,8 @@ insert into tcr_temp_cr
      and grd.internal_contract_item_ref_no =
          pci.internal_contract_item_ref_no(+)
      and pci.m2m_inco_term = itm.incoterm_id(+)
-     and grd.pcdi_id = pcdi.pcdi_id(+)
+    -- and grd.pcdi_id = pcdi.pcdi_id(+)
+    and pci.pcdi_id = pcdi.pcdi_id(+)
      and grd.quality_id = qat.quality_id(+)
      and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
      and pcpd.input_output = 'Input'
@@ -8889,7 +9447,8 @@ insert into tcr_temp_cr
      and grd.status = 'Active'
      and ppu.cur_id = ak.base_cur_id
      and ppu.weight_unit_id = pdm.base_quantity_unit
-     and nvl(ppu.weight, 1) = 1;
+     and nvl(ppu.weight, 1) = 1
+     and pci.is_active(+) ='Y';
 commit;
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -9052,7 +9611,7 @@ select t.contract_price,
              t.bl_date) loop
        
 select pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
-                                                       cur_price_conv.contract_price,
+                                                       1,
                                                        cur_price_conv.price_unit_id,
                                                        cur_price_conv.product_price_unit_id,
                                                        cur_price_conv.bl_date)
@@ -9503,7 +10062,8 @@ insert into tcr_temp_cr
      and grd.internal_contract_item_ref_no =
          pci.internal_contract_item_ref_no(+)
      and pci.m2m_inco_term = itm.incoterm_id(+)
-     and grd.pcdi_id = pcdi.pcdi_id(+)
+    -- and grd.pcdi_id = pcdi.pcdi_id(+)
+    and pci.pcdi_id = pcdi.pcdi_id(+)
      and grd.quality_id = qat.quality_id(+)
      and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
      and pcpd.input_output = 'Input'
@@ -9557,7 +10117,8 @@ insert into tcr_temp_cr
      and aml.underlying_product_id = pdm_aml.product_id
      and pocd.element_id = aml.attribute_id
      and poch.is_active = 'Y'
-     and pocd.is_active = 'Y';
+     and pocd.is_active = 'Y'
+     and pci.is_active (+) ='Y';
 Commit;              
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -9720,7 +10281,7 @@ select t.contract_price,
              t.bl_date) loop
        
 select pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
-                                                       cur_price_conv.contract_price,
+                                                       1,
                                                        cur_price_conv.price_unit_id,
                                                        cur_price_conv.product_price_unit_id,
                                                        cur_price_conv.bl_date)
@@ -10210,7 +10771,8 @@ insert into tcr_temp_cr
      and grd.internal_contract_item_ref_no =
          pci.internal_contract_item_ref_no(+)
      and pci.m2m_inco_term = itm.incoterm_id(+)
-     and grd.pcdi_id = pcdi.pcdi_id(+)
+     --and grd.pcdi_id = pcdi.pcdi_id(+)
+     and pci.pcdi_id = pcdi.pcdi_id(+)
      and grd.quality_id = qat.quality_id(+)
      and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
      and pcpd.input_output = 'Input'
@@ -10258,7 +10820,8 @@ insert into tcr_temp_cr
           vd.loading_date is not null then 'TRUE' else 'FALSE' end)
      and grd.status = 'Active'
      and spq.element_id = aml.attribute_id
-     and aml.underlying_product_id = pdm_aml.product_id;
+     and aml.underlying_product_id = pdm_aml.product_id
+     and pci.is_active(+) ='Y';
           
                                                  
 Commit;              
@@ -10423,7 +10986,7 @@ select t.contract_price,
              t.bl_date) loop
        
 select pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
-                                                       cur_price_conv.contract_price,
+                                                       1,
                                                        cur_price_conv.price_unit_id,
                                                        cur_price_conv.product_price_unit_id,
                                                        cur_price_conv.bl_date)
@@ -10771,10 +11334,11 @@ end;
                                 and t.process = 'EOM')
        and tdc.corporate_id = pc_corporate_id
        and tdc.process = 'EOM';
+    
   exception
     when no_data_found then
       vc_prev_process_id := null;
-      vd_prev_eom_date   := to_date('01-Jan-2000', 'dd-Mon-yyyy');
+      vd_prev_eom_date   := to_date('01-Jan-2000','dd-Mon-yyyy');
   end;
 delete from temp_mas t where t.corporate_id = pc_corporate_id;
 commit;
@@ -13983,7 +14547,6 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
            pdm_productmaster  pdm_conc,
            qum_quantity_unit_master qum_conc
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.corporate_id = pc_corporate_id
        and grd.status = 'Active'
        and grd.tolling_stock_type = 'None Tolling'
        and gmr.is_internal_movement = 'N'
@@ -14019,8 +14582,7 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
        and pcm.process_id = pc_process_id
        and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
        and gmr.eff_date <= pd_trade_date
-     --  and ash.is_active = 'Y'
-       and pcm.is_active = 'Y'
+      and pcm.is_active = 'Y'
        and spq.is_active = 'Y'
        and gsm.is_active = 'Y'
        and sld.is_active = 'Y'
@@ -14698,7 +15260,7 @@ and fce.element_id = cur_pc.element_id
 and fce.process_id = pc_process_id;
 end loop;
 commit;
-exception
+  exception
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
@@ -15109,7 +15671,7 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                       ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
                       pqcapd.payable_percentage)
                    end) payable_qty,
-                  (case
+                   (case
                      when rm.ratio_name = '%' then
                       grd.qty_unit_id
                      else
@@ -15125,7 +15687,7 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                    'Payable' qty_type,
                    pdm_conc.base_quantity_unit conc_base_qty_unit_id,
                    qum_conc.qty_unit conc_base_qty_unit,
-                   gmr.internal_gmr_ref_no
+                   gmr.internal_gmr_ref_no gmr_ref_no_for_price
               from gmr_goods_movement_record      gmr,
                    grd_goods_record_detail        grd,
                    ak_corporate                   akc,
@@ -15260,7 +15822,7 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
                    null qty_type,
                    pdm_conc.base_quantity_unit conc_base_qty_unit_id,
                    qum_conc.qty_unit conc_base_qty_unit,
-                   gmr.internal_gmr_ref_no
+                   gmr.internal_gmr_ref_no gmr_ref_no_for_price
               from gmr_goods_movement_record gmr,
                    grd_goods_record_detail grd,
                    ak_corporate akc,
@@ -15475,7 +16037,6 @@ commit;
              where cccp.pcdi_id = cur_closing_rows.pcdi_id
                and cccp.process_id = pc_process_id
                and cccp.element_id = cur_closing_rows.element_id;
-          
           exception
             when others then
               vn_gmr_price                 := null;
@@ -15570,7 +16131,7 @@ commit;
         vn_base_gmr_refine_charge := vn_gmr_refine_charge;
       end if;
     
-      else
+    else
       --TC,RC,PC calculation has to use current qty for the closing balance position,
       -- so new tc,rc,pc proc created in pkg_metals_general by passing assay id and respective qty
       if cur_closing_rows.is_internal_movement='Y' then
@@ -15665,7 +16226,8 @@ commit;
          cur_closing_rows.pay_cur_id,
          cur_closing_rows.pay_cur_code,
          cur_closing_rows.conc_base_qty_unit_id,
-         cur_closing_rows.conc_base_qty_unit);
+         cur_closing_rows.conc_base_qty_unit
+         );
     end if;
     insert into cbre_closing_bal_report_ele
       (process_id,
@@ -15704,7 +16266,8 @@ commit;
        nvl(vn_base_gmr_penality_charge, 0),
        vn_gmr_price,
        vc_gmr_price_untit_id,
-       cur_closing_rows.gmr_ref_no_for_price);
+       cur_closing_rows.gmr_ref_no_for_price
+       );
     if vn_rno = 500 then
       commit;
       vn_rno := 0;
@@ -15755,6 +16318,7 @@ procedure sp_calc_treatment_charge(pc_corporate_id varchar2,
   vc_price_unit_weight_unit_id varchar2(15);
   vc_gmr_price_unit_cur_id     varchar2(15);
   vn_commit_count              number := 0;
+  vc_range_over                varchar2(1) := 'N';
 
 begin
   for cc in (select grd.internal_gmr_ref_no internal_gmr_ref_no,
@@ -15816,7 +16380,7 @@ begin
                                    and tqd.is_active = 'Y')
              union
              select dgrd.internal_gmr_ref_no,
-                  dgrd.internal_dgrd_ref_no,
+                    dgrd.internal_dgrd_ref_no,
                     pqca.typical,
                     pqca.element_id,
                     pci.pcpq_id,
@@ -16002,6 +16566,7 @@ begin
               vn_treatment_charge := cur_tret_charge.treatment_charge;
             end if;
           elsif cur_tret_charge.charge_type = 'Variable' then
+          vc_range_over :='N'; -- Initialize for each record
             --Take the base price and its min and max range
             begin
               select pcetc.range_min_value,
@@ -16028,15 +16593,10 @@ begin
             --in case if base
             if vn_contract_price > vn_max_range then
               vn_treatment_charge := vn_base_tret_charge;
-              vn_max_price        := pkg_metals_general.f_get_tc_max_value(vn_contract_price,
-                                                                           pc_dbd_id,
-                                                                           cur_tret_charge.pcth_id,
-                                                                           cur_tret_charge.range_min_op,
-                                                                           cur_tret_charge.range_max_op);
               --go forward for the price range
               for cur_forward_price in (select pcetc.range_min_value,
                                                pcetc.range_min_op,                                            
-                                               nvl(pcetc.range_max_value,vn_max_price) range_max_value,
+                                               nvl(pcetc.range_max_value,vn_contract_price) range_max_value,
                                                pcetc.range_max_op,
                                                pcetc.esc_desc_value,
                                                pcetc.esc_desc_unit_id,
@@ -16046,20 +16606,21 @@ begin
                                           from pcetc_pc_elem_treatment_charge pcetc
                                          where pcetc.pcth_id =
                                                cur_tret_charge.pcth_id
-                                           and nvl(pcetc.range_min_value,
-                                                      0) >= vn_max_range 
-                                           and nvl(pcetc.range_max_value,
-                                                      vn_max_price) <=vn_max_price 
-                                           and nvl(pcetc.position, 'a') <>
-                                               'Base'
+                                           and nvl(pcetc.range_min_value,0) >= vn_max_range
+                                           -- Because There is a defintely range for escalator saying > Base 
+                                           -- If base is 6000, the escalator entry must say first entry as > 6000 and <=7000, > 7000 to 8000 or 
+                                           -- If we do not put >= price one entry will be missed
+                                           and nvl(pcetc.position, 'a') <> 'Base'
                                            and pcetc.is_active = 'Y'
-                                           and pcetc.dbd_id = pc_dbd_id)
+                                           and pcetc.dbd_id = pc_dbd_id
+                                           order by pcetc.range_max_value asc nulls last)
               loop
                 -- if price is in the range take diff of price and max range
                 if vn_contract_price>=cur_forward_price.range_min_value and
-                       vn_contract_price<=cur_forward_price.range_max_value then
+                      vn_contract_price<=cur_forward_price.range_max_value then
                       vn_range_gap := abs(vn_contract_price -
-                                        cur_forward_price.range_min_value);  
+                                        cur_forward_price.range_min_value);
+                      vc_range_over := 'Y';                          
                 else
                   -- else diff range               
                   vn_range_gap := cur_forward_price.range_max_value -
@@ -16079,17 +16640,14 @@ begin
               
                 vn_treatment_charge := vn_treatment_charge +
                                        vn_each_tier_tc_charge;
+                if vc_range_over = 'Y' then
+                    exit;
+                  end if;                       
               end loop;
             elsif vn_contract_price < vn_min_range then
               vn_treatment_charge := vn_base_tret_charge; --
-              vn_min_price        := pkg_metals_general.f_get_tc_min_value(vn_contract_price,
-                                                                           pc_dbd_id,
-                                                                           cur_tret_charge.pcth_id,
-                                                                           cur_tret_charge.range_min_op,
-                                                                           cur_tret_charge.range_max_op);
               --go back ward for the price range
-              for cur_backward_price in (select nvl(pcetc.range_min_value,
-                                                      vn_min_price) range_min_value,
+              for cur_backward_price in (select nvl(pcetc.range_min_value, vn_contract_price) range_min_value,
                                                 pcetc.range_min_op,
                                                 pcetc.range_max_value,
                                                 pcetc.range_max_op,
@@ -16101,21 +16659,20 @@ begin
                                            from pcetc_pc_elem_treatment_charge pcetc
                                           where pcetc.pcth_id =
                                                 cur_tret_charge.pcth_id
-                                            and nvl(pcetc.range_min_value,
-                                                      vn_min_price) >= vn_min_price
-                                            and nvl(pcetc.range_max_value,
-                                                      100000000) <=
-                                                  vn_min_range
-                                            and nvl(pcetc.position, 'a') <>
-                                                'Base'
+                                            and nvl(pcetc.range_min_value,0) < vn_min_range
+                                            -- Because Deescalator has range saying < Base 
+                                            -- If base is 6000, Deescalator entry has to < 6000
+                                            and nvl(pcetc.position, 'a') <> 'Base'
                                             and pcetc.is_active = 'Y'
-                                            and pcetc.dbd_id = pc_dbd_id)
+                                            and pcetc.dbd_id = pc_dbd_id
+                                            order by pcetc.range_min_value desc nulls last)
               loop
                 -- if price is in the range take diff of price and max range
                 if   vn_contract_price>=  cur_backward_price.range_min_value  and
                           vn_contract_price<= cur_backward_price.range_max_value then
                      vn_range_gap := abs(vn_contract_price -
                                         cur_backward_price.range_max_value);
+                     vc_range_over := 'Y';                                        
                 else
                   -- else diff range               
                   vn_range_gap := cur_backward_price.range_max_value -
@@ -16135,6 +16692,9 @@ begin
                 end if;
                 vn_treatment_charge := vn_treatment_charge -
                                        vn_each_tier_tc_charge;
+                if vc_range_over = 'Y' then
+                    exit;
+                end if;                                       
               end loop;
             elsif vn_contract_price = vn_min_range and
                   vn_contract_price = vn_max_range then
@@ -16271,6 +16831,7 @@ procedure sp_calc_refining_charge(pc_corporate_id varchar2,
   vc_price_unit_weight_unit_id varchar2(15);
   vc_gmr_price_unit_cur_id     varchar2(15);
   vn_commit_count              number := 0;
+  vc_range_over          varchar2(1) := 'N';
 begin
   --Get the Charge Details 
   for cc in (select gmr.internal_gmr_ref_no,
@@ -16650,6 +17211,7 @@ from pcrh_pc_refining_header       pcrh,
                 vn_refine_charge := cur_ref_charge.refining_charge;
               end if;
             elsif cur_ref_charge.charge_type = 'Variable' then
+              vc_range_over := 'N';
               -- Take the base price and its min and max range
               begin
                 select pcerc.range_min_value,
@@ -16676,14 +17238,9 @@ from pcrh_pc_refining_header       pcrh,
               if vn_contract_price > vn_max_range then
                 --go forward for the price range
                 vn_refine_charge := vn_base_refine_charge;
-                vn_max_price     := pkg_metals_general.f_get_rc_max_value(vn_contract_price,
-                                                                          pc_dbd_id,
-                                                                          cur_ref_charge.pcrh_id,
-                                                                          cur_ref_charge.range_min_op,
-                                                                          cur_ref_charge.range_max_op);
                 for cur_forward_price in (select pcerc.range_min_value,
                                                  pcerc.range_min_op,
-                                                 nvl(pcerc.range_max_value,vn_max_price)range_max_value, 
+                                                 nvl(pcerc.range_max_value,vn_contract_price) range_max_value,
                                                  pcerc.range_max_op,
                                                  pcerc.esc_desc_value,
                                                  pcerc.esc_desc_unit_id,
@@ -16693,20 +17250,21 @@ from pcrh_pc_refining_header       pcrh,
                                             from pcerc_pc_elem_refining_charge pcerc
                                            where pcerc.pcrh_id =
                                                  cur_ref_charge.pcrh_id
-                                             and nvl(pcerc.range_min_value,
-                                                      0) >= vn_max_range 
-                                             and nvl(pcerc.range_max_value,
-                                                      vn_max_price) <=vn_max_price 
-                                             and nvl(pcerc.position, 'a') <>
-                                                 'Base'
+                                             and nvl(pcerc.range_min_value,0) >= vn_max_range
+                                             -- Because There is a defintely range for escalator saying > Base 
+                                             -- If base is 6000, the escalator entry must say first entry as > 6000 and <=7000, > 7000 to 8000 or 
+                                             -- If we do not put >= price one entry will be missed
+                                             and nvl(pcerc.position, 'a') <> 'Base'
                                              and pcerc.is_active = 'Y'
-                                             and pcerc.dbd_id = pc_dbd_id)
+                                             and pcerc.dbd_id = pc_dbd_id
+                                             order by pcerc.range_max_value asc nulls last)
                 loop
                   -- if price is in the range take diff of price and max range
                   if vn_contract_price>=cur_forward_price.range_min_value and
                        vn_contract_price<=cur_forward_price.range_max_value then
                       vn_range_gap := abs(vn_contract_price -
-                                        cur_forward_price.range_min_value); 
+                                        cur_forward_price.range_min_value);
+                                      vc_range_over := 'Y';   
                   else
                     -- else diff range               
                     vn_range_gap := cur_forward_price.range_max_value -
@@ -16727,18 +17285,15 @@ from pcrh_pc_refining_header       pcrh,
                   end if;
                   vn_refine_charge := vn_refine_charge +
                                       vn_each_tier_rc_charge;
-                
+                if vc_range_over = 'Y' then
+                    exit;
+                  end if;
+
                 end loop;
               elsif vn_contract_price < vn_min_range then
                 --go back ward for the price range
                 vn_refine_charge := vn_base_refine_charge;
-                vn_min_price     := pkg_metals_general.f_get_rc_min_value(vn_contract_price,
-                                                                          pc_dbd_id,
-                                                                          cur_ref_charge.pcrh_id,
-                                                                          cur_ref_charge.range_min_op,
-                                                                          cur_ref_charge.range_max_op);
-                for cur_backward_price in (select nvl(pcerc.range_min_value,
-                                                        vn_min_price) range_min_value,
+                for cur_backward_price in (select nvl(pcerc.range_min_value, vn_contract_price) range_min_value,
                                                   pcerc.range_min_op,
                                                   pcerc.range_max_value,
                                                   pcerc.range_max_op,
@@ -16750,21 +17305,21 @@ from pcrh_pc_refining_header       pcrh,
                                              from pcerc_pc_elem_refining_charge pcerc
                                             where pcerc.pcrh_id =
                                                   cur_ref_charge.pcrh_id
-                                              and nvl(pcerc.range_min_value,
-                                                      vn_min_price) >= vn_min_price
-                                               and nvl(pcerc.range_max_value,
-                                                      100000000) <=
-                                                  vn_min_range
-                                              and nvl(pcerc.position, 'a') <>
-                                                  'Base'
+                                              and nvl(pcerc.range_min_value,0) < vn_min_range
+                                              -- Because Deescalator has range saying < Base 
+                                              -- If base is 6000, Deescalator entry has to < 6000
+                                              and nvl(pcerc.position, 'a') <>'Base'
                                               and pcerc.is_active = 'Y'
-                                              and pcerc.dbd_id = pc_dbd_id)
+                                              and pcerc.dbd_id = pc_dbd_id
+                                              order by pcerc.range_min_value desc nulls last)
                 loop
                   -- if price is in the range take diff of price and max range 
                  if   vn_contract_price>=  cur_backward_price.range_min_value  and
                           vn_contract_price<= cur_backward_price.range_max_value then
                      vn_range_gap := abs(vn_contract_price -
-                                        cur_backward_price.range_max_value);  
+                                        cur_backward_price.range_max_value); 
+                   
+                                        vc_range_over := 'Y';                      
                   else
                     -- else diff range               
                     vn_range_gap := cur_backward_price.range_max_value -
@@ -16785,6 +17340,9 @@ from pcrh_pc_refining_header       pcrh,
                   end if;
                   vn_refine_charge := vn_refine_charge -
                                       vn_each_tier_rc_charge;
+                 if vc_range_over = 'Y' then
+                    exit;
+                  end if;                     
                 end loop;
               elsif vn_contract_price = vn_min_range and
                     vn_contract_price = vn_max_range then

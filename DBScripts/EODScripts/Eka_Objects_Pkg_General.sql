@@ -124,8 +124,23 @@ create or replace package pkg_general is
   function fn_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                          pd_trade_date       date)
     return date;
-
-end; 
+  procedure sp_bank_fx_rate_spot(pc_corporate_id     in varchar2,
+                                 pd_trade_date       in date,
+                                 pc_from_cur_id      in varchar2,
+                                 pc_to_cur_id        in varchar2,
+                                 pc_from_where       in varchar2,
+                                 pc_process          in varchar2,
+                                 pc_settlement_price out number);
+  procedure sp_bank_fx_rate_spot_fw_points(pc_corporate_id         in varchar2,
+                                           pd_trade_date           in date,
+                                           pd_maturity_date        in date,
+                                           pc_from_cur_id          in varchar2,
+                                           pc_to_cur_id            in varchar2,
+                                           pc_from_where           in varchar2,
+                                           pc_process              in varchar2,
+                                           pc_settlement_price     out number,
+                                           pc_sum_of_forward_point out number);
+end;
 /
 create or replace package body pkg_general is
 
@@ -688,7 +703,7 @@ create or replace package body pkg_general is
      where cm.cur_id = pc_cur_id
        and cm.cur_id = scd.sub_cur_id(+)
        and scd.cur_id = cm_1.cur_id(+);
-    --write_log(null,'sp_get_main_cur_detail'); 
+    --write_log(null,'sp_get_main_cur_detail');
   exception
     when no_data_found then
       dbms_output.put_line('pc_cur_id' || pc_cur_id);
@@ -702,7 +717,7 @@ create or replace package body pkg_general is
         into pc_base_cur_code
         from cm_currency_master cm
        where cm.cur_id = pc_cur_id;
-      --write_log(null,'sp_get_main_cur_detail'); 
+      --write_log(null,'sp_get_main_cur_detail');
   end;
 
   procedure sp_spot_cur_exchange_rate
@@ -886,32 +901,9 @@ create or replace package body pkg_general is
     vd_valid_quote_date date;
   begin
   
- if pc_from_cur_id is not null and pc_to_cur_id is not null and pc_from_cur_id <> pc_to_cur_id then
-    begin
-      select cci.instrument_id,
-             cdim.valid_quote_date
-        into vc_insturment_id,
-             vd_valid_quote_date
-        from cci_corp_currency_instrument cci,
-             cdim_corporate_dim           cdim,
-             dim_der_instrument_master    dim,
-             pdd_product_derivative_def   pdd,
-             pdm_productmaster            pdm
-       where cci.corporate_id = pc_corporate_id
-         and cci.instrument_id = cdim.instrument_id
-         and dim.instrument_id = cdim.instrument_id
-         and dim.product_derivative_id = pdd.derivative_def_id
-         and pdd.product_id = pdm.product_id
-         and pdm.base_cur_id = pc_from_cur_id
-         and pdm.quote_cur_id = pc_to_cur_id
-         and cci.corporate_id=cdim.corporate_id
-         and cci.is_deleted = 'N'
-         and cdim.is_active = 'Y'
-         and pdm.is_active = 'Y'
-         and pdd.is_active = 'Y'
-         and dim.is_active = 'Y';
-    exception
-      when no_data_found then
+    if pc_from_cur_id is not null and pc_to_cur_id is not null and
+       pc_from_cur_id <> pc_to_cur_id then
+      begin
         select cci.instrument_id,
                cdim.valid_quote_date
           into vc_insturment_id,
@@ -925,121 +917,42 @@ create or replace package body pkg_general is
            and cci.instrument_id = cdim.instrument_id
            and dim.instrument_id = cdim.instrument_id
            and dim.product_derivative_id = pdd.derivative_def_id
-           and cci.corporate_id=cdim.corporate_id
            and pdd.product_id = pdm.product_id
-           and pdm.base_cur_id = pc_to_cur_id
-           and pdm.quote_cur_id = pc_from_cur_id
+           and pdm.base_cur_id = pc_from_cur_id
+           and pdm.quote_cur_id = pc_to_cur_id
            and cci.is_deleted = 'N'
            and cdim.is_active = 'Y'
-           and dim.is_active = 'Y'
+           and pdm.is_active = 'Y'
            and pdd.is_active = 'Y'
-           and pdm.is_active = 'Y';
-    end;
-  
-    if pc_from_cur_id <> pc_to_cur_id then
-      begin
-        select max(cfq.prompt_date)
-          into vd_maturity_date
-          from mv_cfq_cci_cur_forward_quotes cfq,
-               div_der_instrument_valuation  div
-         where cfq.corporate_id = pc_corporate_id
-           and cfq.trade_date = nvl(vd_valid_quote_date, pd_trade_date)
-           and cfq.instrument_id = div.instrument_id
-           and cfq.price_source_id = div.price_source_id
-           and div.is_deleted = 'N'
-           and cfq.prompt_date = pc_maturity_date
-           and cfq.base_cur_id = pc_from_cur_id
-           and cfq.quote_cur_id = pc_to_cur_id;
+           and dim.is_active = 'Y'
+           and cdim.corporate_id = pc_corporate_id;
       exception
         when no_data_found then
-          vd_maturity_date := null;
+          select cci.instrument_id,
+                 cdim.valid_quote_date
+            into vc_insturment_id,
+                 vd_valid_quote_date
+            from cci_corp_currency_instrument cci,
+                 cdim_corporate_dim           cdim,
+                 dim_der_instrument_master    dim,
+                 pdd_product_derivative_def   pdd,
+                 pdm_productmaster            pdm
+           where cci.corporate_id = pc_corporate_id
+             and cci.instrument_id = cdim.instrument_id
+             and dim.instrument_id = cdim.instrument_id
+             and dim.product_derivative_id = pdd.derivative_def_id
+             and pdd.product_id = pdm.product_id
+             and pdm.base_cur_id = pc_to_cur_id
+             and pdm.quote_cur_id = pc_from_cur_id
+             and cci.is_deleted = 'N'
+             and cdim.is_active = 'Y'
+             and dim.is_active = 'Y'
+             and pdd.is_active = 'Y'
+             and pdm.is_active = 'Y'
+             and cdim.corporate_id = pc_corporate_id;
       end;
-      if vd_maturity_date is null then
-        begin
-          select max(cfq.prompt_date)
-            into vd_lower_date
-            from mv_cfq_cci_cur_forward_quotes cfq,
-                 div_der_instrument_valuation  div
-           where cfq.corporate_id = pc_corporate_id
-             and cfq.trade_date = nvl(vd_valid_quote_date, pd_trade_date)
-             and cfq.instrument_id = div.instrument_id
-             and cfq.price_source_id = div.price_source_id
-             and div.is_deleted = 'N'
-             and cfq.prompt_date <= pc_maturity_date
-             and abs(pc_maturity_date - cfq.prompt_date) <=
-                 pc_max_deviation --lalit
-             and cfq.base_cur_id = pc_from_cur_id
-             and cfq.quote_cur_id = pc_to_cur_id;
-        exception
-          when no_data_found then
-            vd_lower_date := null;
-        end;
-        begin
-          select min(cfq.prompt_date)
-            into vd_upper_date
-            from mv_cfq_cci_cur_forward_quotes cfq,
-                 div_der_instrument_valuation  div
-           where cfq.corporate_id = pc_corporate_id
-             and cfq.trade_date = nvl(vd_valid_quote_date, pd_trade_date)
-             and cfq.instrument_id = div.instrument_id
-             and cfq.price_source_id = div.price_source_id
-             and div.is_deleted = 'N'
-             and cfq.prompt_date >= pc_maturity_date
-             and abs(pc_maturity_date - cfq.prompt_date) <=
-                 pc_max_deviation --Lalit
-             and cfq.base_cur_id = pc_from_cur_id
-             and cfq.quote_cur_id = pc_to_cur_id;
-        exception
-          when no_data_found then
-            vd_upper_date := null;
-        end;
-        vn_lower_date_diff := nvl(abs(pc_maturity_date - vd_lower_date),
-                                  999);
-        vn_upper_date_diff := nvl(abs(pc_maturity_date - vd_upper_date),
-                                  999);
-        if vd_lower_date is null and vd_upper_date is null then
-          vd_maturity_date    := null;
-          pc_settlement_price := 0;
-        else
-          if vn_lower_date_diff <= vn_upper_date_diff then
-            vd_maturity_date := vd_lower_date;
-          else
-            vd_maturity_date := vd_upper_date;
-          end if;
-        end if;
-      end if;
-      --If the maturity date is configured for the currency pair get the exchange rate
-      if vd_maturity_date is not null then
-        begin
-          select t.settlement_price,
-                 t.sum_forward_point
-            into pc_settlement_price,
-                 pc_sum_of_forward_point
-            from (select cfq.rate settlement_price,
-                         nvl(cfq.forward_point, 0) sum_forward_point
-                    from mv_cfq_cci_cur_forward_quotes cfq,
-                         div_der_instrument_valuation  div
-                   where cfq.corporate_id = pc_corporate_id
-                     and cfq.trade_date =
-                         nvl(vd_valid_quote_date, pd_trade_date)
-                     and cfq.instrument_id = div.instrument_id
-                     and cfq.price_source_id = div.price_source_id
-                     and div.is_deleted = 'N'
-                     and cfq.prompt_date = vd_maturity_date
-                     and cfq.base_cur_id = pc_from_cur_id
-                     and cfq.quote_cur_id = pc_to_cur_id) t;
-        exception
-          when no_data_found then
-            pc_settlement_price     := 0;
-            pc_sum_of_forward_point := 0;
-        end;
-      else
-        pc_settlement_price     := 0;
-        pc_sum_of_forward_point := 0;
-      end if;
-      if pc_settlement_price = 0 then
-        -- its likely that the pair is not configured.
-        --try reverse pair 
+    
+      if pc_from_cur_id <> pc_to_cur_id then
         begin
           select max(cfq.prompt_date)
             into vd_maturity_date
@@ -1047,17 +960,16 @@ create or replace package body pkg_general is
                  div_der_instrument_valuation  div
            where cfq.corporate_id = pc_corporate_id
              and cfq.trade_date = nvl(vd_valid_quote_date, pd_trade_date)
-             and cfq.prompt_date = pc_maturity_date
              and cfq.instrument_id = div.instrument_id
              and cfq.price_source_id = div.price_source_id
              and div.is_deleted = 'N'
-             and cfq.base_cur_id = pc_to_cur_id
-             and cfq.quote_cur_id = pc_from_cur_id;
+             and cfq.prompt_date = pc_maturity_date
+             and cfq.base_cur_id = pc_from_cur_id
+             and cfq.quote_cur_id = pc_to_cur_id;
         exception
           when no_data_found then
             vd_maturity_date := null;
         end;
-      
         if vd_maturity_date is null then
           begin
             select max(cfq.prompt_date)
@@ -1066,14 +978,14 @@ create or replace package body pkg_general is
                    div_der_instrument_valuation  div
              where cfq.corporate_id = pc_corporate_id
                and cfq.trade_date = nvl(vd_valid_quote_date, pd_trade_date)
-               and cfq.prompt_date <= pc_maturity_date
                and cfq.instrument_id = div.instrument_id
                and cfq.price_source_id = div.price_source_id
                and div.is_deleted = 'N'
+               and cfq.prompt_date <= pc_maturity_date
                and abs(pc_maturity_date - cfq.prompt_date) <=
                    pc_max_deviation --lalit
-               and cfq.base_cur_id = pc_to_cur_id
-               and cfq.quote_cur_id = pc_from_cur_id;
+               and cfq.base_cur_id = pc_from_cur_id
+               and cfq.quote_cur_id = pc_to_cur_id;
           exception
             when no_data_found then
               vd_lower_date := null;
@@ -1091,8 +1003,8 @@ create or replace package body pkg_general is
                and cfq.prompt_date >= pc_maturity_date
                and abs(pc_maturity_date - cfq.prompt_date) <=
                    pc_max_deviation --Lalit
-               and cfq.base_cur_id = pc_to_cur_id
-               and cfq.quote_cur_id = pc_from_cur_id;
+               and cfq.base_cur_id = pc_from_cur_id
+               and cfq.quote_cur_id = pc_to_cur_id;
           exception
             when no_data_found then
               vd_upper_date := null;
@@ -1112,10 +1024,10 @@ create or replace package body pkg_general is
             end if;
           end if;
         end if;
-      
+        --If the maturity date is configured for the currency pair get the exchange rate
         if vd_maturity_date is not null then
           begin
-            select 1 / t.settlement_price,
+            select t.settlement_price,
                    t.sum_forward_point
               into pc_settlement_price,
                    pc_sum_of_forward_point
@@ -1130,8 +1042,8 @@ create or replace package body pkg_general is
                        and cfq.price_source_id = div.price_source_id
                        and div.is_deleted = 'N'
                        and cfq.prompt_date = vd_maturity_date
-                       and cfq.base_cur_id = pc_to_cur_id
-                       and cfq.quote_cur_id = pc_from_cur_id) t;
+                       and cfq.base_cur_id = pc_from_cur_id
+                       and cfq.quote_cur_id = pc_to_cur_id) t;
           exception
             when no_data_found then
               pc_settlement_price     := 0;
@@ -1141,16 +1053,122 @@ create or replace package body pkg_general is
           pc_settlement_price     := 0;
           pc_sum_of_forward_point := 0;
         end if;
+        if pc_settlement_price = 0 then
+          -- its likely that the pair is not configured.
+          --try reverse pair
+          begin
+            select max(cfq.prompt_date)
+              into vd_maturity_date
+              from mv_cfq_cci_cur_forward_quotes cfq,
+                   div_der_instrument_valuation  div
+             where cfq.corporate_id = pc_corporate_id
+               and cfq.trade_date = nvl(vd_valid_quote_date, pd_trade_date)
+               and cfq.prompt_date = pc_maturity_date
+               and cfq.instrument_id = div.instrument_id
+               and cfq.price_source_id = div.price_source_id
+               and div.is_deleted = 'N'
+               and cfq.base_cur_id = pc_to_cur_id
+               and cfq.quote_cur_id = pc_from_cur_id;
+          exception
+            when no_data_found then
+              vd_maturity_date := null;
+          end;
+        
+          if vd_maturity_date is null then
+            begin
+              select max(cfq.prompt_date)
+                into vd_lower_date
+                from mv_cfq_cci_cur_forward_quotes cfq,
+                     div_der_instrument_valuation  div
+               where cfq.corporate_id = pc_corporate_id
+                 and cfq.trade_date =
+                     nvl(vd_valid_quote_date, pd_trade_date)
+                 and cfq.prompt_date <= pc_maturity_date
+                 and cfq.instrument_id = div.instrument_id
+                 and cfq.price_source_id = div.price_source_id
+                 and div.is_deleted = 'N'
+                 and abs(pc_maturity_date - cfq.prompt_date) <=
+                     pc_max_deviation --lalit
+                 and cfq.base_cur_id = pc_to_cur_id
+                 and cfq.quote_cur_id = pc_from_cur_id;
+            exception
+              when no_data_found then
+                vd_lower_date := null;
+            end;
+            begin
+              select min(cfq.prompt_date)
+                into vd_upper_date
+                from mv_cfq_cci_cur_forward_quotes cfq,
+                     div_der_instrument_valuation  div
+               where cfq.corporate_id = pc_corporate_id
+                 and cfq.trade_date =
+                     nvl(vd_valid_quote_date, pd_trade_date)
+                 and cfq.instrument_id = div.instrument_id
+                 and cfq.price_source_id = div.price_source_id
+                 and div.is_deleted = 'N'
+                 and cfq.prompt_date >= pc_maturity_date
+                 and abs(pc_maturity_date - cfq.prompt_date) <=
+                     pc_max_deviation --Lalit
+                 and cfq.base_cur_id = pc_to_cur_id
+                 and cfq.quote_cur_id = pc_from_cur_id;
+            exception
+              when no_data_found then
+                vd_upper_date := null;
+            end;
+            vn_lower_date_diff := nvl(abs(pc_maturity_date - vd_lower_date),
+                                      999);
+            vn_upper_date_diff := nvl(abs(pc_maturity_date - vd_upper_date),
+                                      999);
+            if vd_lower_date is null and vd_upper_date is null then
+              vd_maturity_date    := null;
+              pc_settlement_price := 0;
+            else
+              if vn_lower_date_diff <= vn_upper_date_diff then
+                vd_maturity_date := vd_lower_date;
+              else
+                vd_maturity_date := vd_upper_date;
+              end if;
+            end if;
+          end if;
+        
+          if vd_maturity_date is not null then
+            begin
+              select 1 / t.settlement_price,
+                     t.sum_forward_point
+                into pc_settlement_price,
+                     pc_sum_of_forward_point
+                from (select cfq.rate settlement_price,
+                             nvl(cfq.forward_point, 0) sum_forward_point
+                        from mv_cfq_cci_cur_forward_quotes cfq,
+                             div_der_instrument_valuation  div
+                       where cfq.corporate_id = pc_corporate_id
+                         and cfq.trade_date =
+                             nvl(vd_valid_quote_date, pd_trade_date)
+                         and cfq.instrument_id = div.instrument_id
+                         and cfq.price_source_id = div.price_source_id
+                         and div.is_deleted = 'N'
+                         and cfq.prompt_date = vd_maturity_date
+                         and cfq.base_cur_id = pc_to_cur_id
+                         and cfq.quote_cur_id = pc_from_cur_id) t;
+            exception
+              when no_data_found then
+                pc_settlement_price     := 0;
+                pc_sum_of_forward_point := 0;
+            end;
+          else
+            pc_settlement_price     := 0;
+            pc_sum_of_forward_point := 0;
+          end if;
+        end if;
+        pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
+      else
+        pc_settlement_price     := 1;
+        pc_sum_of_forward_point := 0;
       end if;
-      pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
     else
       pc_settlement_price     := 1;
       pc_sum_of_forward_point := 0;
     end if;
-   else
-     pc_settlement_price     := 1;
-      pc_sum_of_forward_point := 0;
-   end if;
   exception
     when others then
       pc_settlement_price     := 0;
@@ -1289,7 +1307,7 @@ create or replace package body pkg_general is
       if vd_lower_date is null and vd_upper_date is null and
          pc_settlement_price = 0 then
         -- its likely that the pair is not configured.
-        --try reverse pair 
+        --try reverse pair
         if pc_from_cur_id != vc_base_cur_id then
           sp_forward_cur_exchange_sub(pc_corporate_id,
                                       pd_trade_date,
@@ -1361,7 +1379,7 @@ create or replace package body pkg_general is
                nvl(pc_settlement_price_to, 0) <> 0 then
               pc_settlement_price     := pc_settlement_price_from /
                                          pc_settlement_price_to;
-              pc_sum_of_forward_point := pc_sum_of_forward_point_from; --fix for automation --/pc_sum_of_forward_point_to;
+              pc_sum_of_forward_point := pc_sum_of_forward_point_from;
             else
               pc_settlement_price     := 0;
               pc_sum_of_forward_point := 0;
@@ -1816,12 +1834,12 @@ create or replace package body pkg_general is
              and pdd.product_id = pdm.product_id
              and pdm.base_cur_id = pc_from_cur_id
              and pdm.quote_cur_id = pc_to_cur_id
-             and cci.corporate_id=cdim.corporate_id
              and cci.is_deleted = 'N'
              and cdim.is_active = 'Y'
              and pdm.is_active = 'Y'
              and pdd.is_active = 'Y'
-             and dim.is_active = 'Y';
+             and dim.is_active = 'Y'
+             and cdim.corporate_id = pc_corporate_id;
         exception
           when no_data_found then
             select cci.instrument_id,
@@ -1840,12 +1858,12 @@ create or replace package body pkg_general is
                and pdd.product_id = pdm.product_id
                and pdm.base_cur_id = pc_to_cur_id
                and pdm.quote_cur_id = pc_from_cur_id
-               and cci.corporate_id=cdim.corporate_id
                and cci.is_deleted = 'N'
                and cdim.is_active = 'Y'
                and dim.is_active = 'Y'
                and pdd.is_active = 'Y'
-               and pdm.is_active = 'Y';
+               and pdm.is_active = 'Y'
+               and cdim.corporate_id = pc_corporate_id;
         end;
       
         if pc_from_cur_id <> pc_to_cur_id then
@@ -1957,7 +1975,7 @@ create or replace package body pkg_general is
           end if;
           if pc_settlement_price = 0 then
             -- its likely that the pair is not configured.
-            --try reverse pair 
+            --try reverse pair
             begin
               select max(cfq.prompt_date)
                 into vd_maturity_date
@@ -2187,6 +2205,372 @@ create or replace package body pkg_general is
     end if;
     return vc_prompt_date;
   end;
-
-end; 
+  procedure sp_bank_fx_rate_spot
+  /**************************************************************************************************
+    Function Name                       : sp_bank_fx_rate
+    Author                              : Suresh Gottipati
+    Created Date                        : 9th Oct 2012
+    Purpose                             : Get Spot Exchange Rate
+    
+    Parameters                          :
+    
+    Returns                             :
+    
+    
+    Modification History
+    
+    Modified Date  :
+    Modified By  :
+    Modify Description :
+    ***************************************************************************************************/
+  (pc_corporate_id     in varchar2,
+   pd_trade_date       in date,
+   pc_from_cur_id      in varchar2,
+   pc_to_cur_id        in varchar2,
+   pc_from_where       in varchar2,
+   pc_process          in varchar2,
+   pc_settlement_price out number) is
+    vobj_error_log      tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count  number := 1;
+    vc_from_cur_code    varchar2(15);
+    vc_to_cur_code      varchar2(15);
+    vc_insturment_id    varchar2(15);
+    vd_valid_quote_date date;
+  begin
+    if pc_from_cur_id = pc_to_cur_id then
+      pc_settlement_price := 1;
+    else
+      begin
+        select cm.cur_code
+          into vc_from_cur_code
+          from cm_currency_master cm
+         where cm.cur_id = pc_from_cur_id;
+        select cm.cur_code
+          into vc_to_cur_code
+          from cm_currency_master cm
+         where cm.cur_id = pc_to_cur_id;
+        -- Get Instrument and Valid Quote Date
+        begin
+          select cci.instrument_id,
+                 cdim.valid_quote_date
+            into vc_insturment_id,
+                 vd_valid_quote_date
+            from cci_corp_currency_instrument cci,
+                 cdim_corporate_dim           cdim,
+                 dim_der_instrument_master    dim,
+                 pdd_product_derivative_def   pdd,
+                 pdm_productmaster            pdm
+           where cci.corporate_id = pc_corporate_id
+             and cci.instrument_id = cdim.instrument_id
+             and dim.instrument_id = cdim.instrument_id
+             and dim.product_derivative_id = pdd.derivative_def_id
+             and pdd.product_id = pdm.product_id
+             and pdm.base_cur_id = pc_from_cur_id
+             and pdm.quote_cur_id = pc_to_cur_id
+             and cci.is_deleted = 'N'
+             and cdim.is_active = 'Y'
+             and pdm.is_active = 'Y'
+             and pdd.is_active = 'Y'
+             and dim.is_active = 'Y'
+             and cdim.corporate_id = pc_corporate_id;
+        exception
+          when no_data_found then
+            select cci.instrument_id,
+                   cdim.valid_quote_date
+              into vc_insturment_id,
+                   vd_valid_quote_date
+              from cci_corp_currency_instrument cci,
+                   cdim_corporate_dim           cdim,
+                   dim_der_instrument_master    dim,
+                   pdd_product_derivative_def   pdd,
+                   pdm_productmaster            pdm
+             where cci.corporate_id = pc_corporate_id
+               and cci.instrument_id = cdim.instrument_id
+               and dim.instrument_id = cdim.instrument_id
+               and dim.product_derivative_id = pdd.derivative_def_id
+               and pdd.product_id = pdm.product_id
+               and pdm.base_cur_id = pc_to_cur_id
+               and pdm.quote_cur_id = pc_from_cur_id
+               and cci.is_deleted = 'N'
+               and cdim.is_active = 'Y'
+               and dim.is_active = 'Y'
+               and pdd.is_active = 'Y'
+               and pdm.is_active = 'Y'
+               and cdim.corporate_id = pc_corporate_id;
+          when others then
+            pc_settlement_price := 0;
+        end;
+        -- Get the quote either from the same currency pair or reverse pair
+        begin
+          select t.settlement_price
+            into pc_settlement_price
+            from (select cfq.rate settlement_price
+                    from mv_cfq_cci_cur_forward_quotes cfq,
+                         div_der_instrument_valuation  div
+                   where cfq.corporate_id = pc_corporate_id
+                     and cfq.instrument_id = vc_insturment_id
+                     and cfq.trade_date =
+                         nvl(vd_valid_quote_date, pd_trade_date)
+                     and cfq.prompt_date =
+                         nvl(vd_valid_quote_date, pd_trade_date)
+                     and cfq.base_cur_id = pc_from_cur_id
+                     and cfq.quote_cur_id = pc_to_cur_id
+                     and cfq.instrument_id = div.instrument_id
+                     and cfq.price_source_id = div.price_source_id
+                     and div.is_deleted = 'N') t;
+        exception
+          when no_data_found then
+            pc_settlement_price := 0;
+        end;
+        if pc_settlement_price = 0 then
+          -- its likely that the pair is not configured, try reverse pair
+          begin
+            select 1 / t.settlement_price
+              into pc_settlement_price
+              from (select cfq.rate settlement_price
+                      from mv_cfq_cci_cur_forward_quotes cfq,
+                           div_der_instrument_valuation  div
+                     where cfq.corporate_id = pc_corporate_id
+                       and cfq.instrument_id = vc_insturment_id
+                       and cfq.trade_date =
+                           nvl(vd_valid_quote_date, pd_trade_date)
+                       and cfq.prompt_date =
+                           nvl(vd_valid_quote_date, pd_trade_date)
+                       and cfq.base_cur_id = pc_to_cur_id
+                       and cfq.quote_cur_id = pc_from_cur_id
+                       and cfq.instrument_id = div.instrument_id
+                       and cfq.price_source_id = div.price_source_id
+                       and div.is_deleted = 'N') t;
+          exception
+            when no_data_found then
+              pc_settlement_price := 0;
+            when others then
+              pc_settlement_price := 0;
+          end;
+        end if;
+      exception
+        when others then
+          pc_settlement_price := 0;
+      end;
+    end if;
+    pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
+    if pc_settlement_price = 0 or pc_settlement_price is null then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           pc_from_where,
+                                                           'PHY-005',
+                                                           vc_from_cur_code ||
+                                                           ' to ' ||
+                                                           vc_to_cur_code ||
+                                                           ' (Spot Price)  Trade date:' || ' ' ||
+                                                           to_char(vd_valid_quote_date,
+                                                                   'dd-Mon-yyyy'),
+                                                           '', -- trade_ref_no
+                                                           pc_process,
+                                                           null, -- pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    end if;
+  end;
+  procedure sp_bank_fx_rate_spot_fw_points
+  /**************************************************************************************************
+    Function Name                       : sp_bank_fx_rate_spot_fw_points
+    Author                              : Suresh Gottipati
+    Created Date                        : 03rd Feb 2012
+    Purpose                             : To get forward exchange rates
+    
+    Parameters                          :
+    
+    Returns                             :
+    
+    Number                              : Converted Qty
+    
+    Modification History
+    
+    Modified Date  :
+    Modified By  :
+    Modify Description :
+    ***************************************************************************************************/
+  (pc_corporate_id         in varchar2,
+   pd_trade_date           in date,
+   pd_maturity_date        in date,
+   pc_from_cur_id          in varchar2,
+   pc_to_cur_id            in varchar2,
+   pc_from_where           in varchar2,
+   pc_process              in varchar2,
+   pc_settlement_price     out number,
+   pc_sum_of_forward_point out number) is
+    vd_maturity_date    date;
+    vobj_error_log      tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count  number := 1;
+    vc_from_cur_code    varchar2(15);
+    vc_to_cur_code      varchar2(15);
+    vc_insturment_id    varchar2(15);
+    vd_valid_quote_date date;
+  begin
+    if pc_from_cur_id = pc_to_cur_id then
+      pc_settlement_price     := 1;
+      pc_sum_of_forward_point := 0;
+    else
+      begin
+        select cm.cur_code
+          into vc_from_cur_code
+          from cm_currency_master cm
+         where cm.cur_id = pc_from_cur_id;
+        select cm.cur_code
+          into vc_to_cur_code
+          from cm_currency_master cm
+         where cm.cur_id = pc_to_cur_id;
+        begin
+          select cci.instrument_id,
+                 cdim.valid_quote_date
+            into vc_insturment_id,
+                 vd_valid_quote_date
+            from cci_corp_currency_instrument cci,
+                 cdim_corporate_dim           cdim,
+                 dim_der_instrument_master    dim,
+                 pdd_product_derivative_def   pdd,
+                 pdm_productmaster            pdm
+           where cci.corporate_id = pc_corporate_id
+             and cci.instrument_id = cdim.instrument_id
+             and dim.instrument_id = cdim.instrument_id
+             and dim.product_derivative_id = pdd.derivative_def_id
+             and pdd.product_id = pdm.product_id
+             and pdm.base_cur_id = pc_from_cur_id
+             and pdm.quote_cur_id = pc_to_cur_id
+             and cci.is_deleted = 'N'
+             and cdim.is_active = 'Y'
+             and pdm.is_active = 'Y'
+             and pdd.is_active = 'Y'
+             and dim.is_active = 'Y'
+             and cdim.corporate_id = pc_corporate_id;
+          select nvl(max(cfq.prompt_date), vd_valid_quote_date) -- If no forward points then look at Spot Only
+            into vd_maturity_date
+            from mv_cfq_cci_cur_forward_quotes cfq,
+                 div_der_instrument_valuation  div
+           where cfq.corporate_id = pc_corporate_id
+             and cfq.instrument_id = vc_insturment_id
+             and cfq.trade_date = nvl(vd_valid_quote_date, pd_trade_date)
+             and cfq.prompt_date <= pd_maturity_date
+             and cfq.base_cur_id = pc_from_cur_id
+             and cfq.quote_cur_id = pc_to_cur_id
+             and cfq.instrument_id = div.instrument_id
+             and cfq.price_source_id = div.price_source_id
+             and div.is_deleted = 'N';
+          begin
+            select t.settlement_price,
+                   t.sum_forward_point
+              into pc_settlement_price,
+                   pc_sum_of_forward_point
+              from (select cfq.rate settlement_price,
+                           nvl(cfq.forward_point, 0) sum_forward_point
+                      from mv_cfq_cci_cur_forward_quotes cfq,
+                           div_der_instrument_valuation  div
+                     where cfq.corporate_id = pc_corporate_id
+                       and cfq.instrument_id = vc_insturment_id
+                       and cfq.trade_date =
+                           nvl(vd_valid_quote_date, pd_trade_date)
+                       and cfq.prompt_date = vd_maturity_date
+                       and cfq.base_cur_id = pc_from_cur_id
+                       and cfq.quote_cur_id = pc_to_cur_id
+                       and cfq.instrument_id = div.instrument_id
+                       and cfq.price_source_id = div.price_source_id
+                       and div.is_deleted = 'N') t;
+          end;
+        exception
+          -- its likely that the pair is not configured, try reverse pair
+          when no_data_found then
+            select cci.instrument_id,
+                   cdim.valid_quote_date
+              into vc_insturment_id,
+                   vd_valid_quote_date
+              from cci_corp_currency_instrument cci,
+                   cdim_corporate_dim           cdim,
+                   dim_der_instrument_master    dim,
+                   pdd_product_derivative_def   pdd,
+                   pdm_productmaster            pdm
+             where cci.corporate_id = pc_corporate_id
+               and cci.instrument_id = cdim.instrument_id
+               and dim.instrument_id = cdim.instrument_id
+               and dim.product_derivative_id = pdd.derivative_def_id
+               and pdd.product_id = pdm.product_id
+               and pdm.base_cur_id = pc_to_cur_id
+               and pdm.quote_cur_id = pc_from_cur_id
+               and cci.is_deleted = 'N'
+               and cdim.is_active = 'Y'
+               and dim.is_active = 'Y'
+               and pdd.is_active = 'Y'
+               and pdm.is_active = 'Y'
+               and cdim.corporate_id = pc_corporate_id;
+            begin
+              select nvl(max(cfq.prompt_date), vd_valid_quote_date) -- If no forward points then look at Spot Only
+                into vd_maturity_date
+                from mv_cfq_currency_forward_quotes cfq,
+                     div_der_instrument_valuation   div
+               where cfq.corporate_id = pc_corporate_id
+                 and cfq.instrument_id = vc_insturment_id
+                 and cfq.trade_date =
+                     nvl(vd_valid_quote_date, pd_trade_date)
+                 and cfq.prompt_date <= pd_maturity_date
+                 and cfq.base_cur_id = pc_to_cur_id
+                 and cfq.quote_cur_id = pc_from_cur_id
+                 and cfq.instrument_id = div.instrument_id
+                 and cfq.price_source_id = div.price_source_id
+                 and div.is_deleted = 'N';
+              begin
+                select 1 / t.settlement_price,
+                       t.sum_forward_point
+                  into pc_settlement_price,
+                       pc_sum_of_forward_point
+                  from (select cfq.rate settlement_price,
+                               nvl(cfq.forward_point, 0) sum_forward_point
+                          from mv_cfq_cci_cur_forward_quotes cfq,
+                               div_der_instrument_valuation  div
+                         where cfq.corporate_id = pc_corporate_id
+                           and cfq.instrument_id = vc_insturment_id
+                           and cfq.trade_date =
+                               nvl(vd_valid_quote_date, pd_trade_date)
+                           and cfq.prompt_date = vd_maturity_date
+                           and cfq.base_cur_id = pc_to_cur_id
+                           and cfq.quote_cur_id = pc_from_cur_id
+                           and cfq.instrument_id = div.instrument_id
+                           and cfq.price_source_id = div.price_source_id
+                           and div.is_deleted = 'N') t;
+              exception
+                when no_data_found then
+                  pc_settlement_price     := 0;
+                  pc_sum_of_forward_point := 0;
+              end;
+            end;
+        end;
+      exception
+        when others then
+          pc_settlement_price     := 0;
+          pc_sum_of_forward_point := 0;
+      end;
+    end if;
+    pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
+    if pc_settlement_price = 0 or pc_settlement_price is null then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           pc_from_where,
+                                                           'PHY-005',
+                                                           vc_from_cur_code ||
+                                                           ' to ' ||
+                                                           vc_to_cur_code || '(' ||
+                                                           to_char(pd_maturity_date,
+                                                                   'dd-Mon-yyyy') || ') ' ||
+                                                           'Trade date:' || ' ' ||
+                                                           to_char(vd_valid_quote_date,
+                                                                   'dd-Mon-yyyy'),
+                                                           '', -- trade_ref_no
+                                                           pc_process,
+                                                           null, -- pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+    end if;
+  end;
+end;
 /

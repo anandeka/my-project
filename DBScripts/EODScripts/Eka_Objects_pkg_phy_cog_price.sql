@@ -23,7 +23,7 @@ create or replace package pkg_phy_cog_price is
                                   pc_user_id      varchar2,
                                   pc_dbd_id       varchar2,
                                   pc_process      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -289,8 +289,8 @@ create or replace package body pkg_phy_cog_price is
             
             loop
               begin
-                select nvl(sum(pfd.user_price * round(pfd.qty_fixed, 5)), 0),
-                       nvl(sum(round(pfd.qty_fixed, 5)), 0),
+                select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
+                       nvl(sum(pfd.qty_fixed), 0),
                        vppu.price_unit_id
                   into vn_fixed_value,
                        vn_fixed_qty,
@@ -484,7 +484,7 @@ create or replace package body pkg_phy_cog_price is
                     sp_insert_error_log(vobj_error_log);
                   end if;
                 when others then
-                 vobj_error_log.extend; 
+                  vobj_error_log.extend;
                   vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                        'procedure sp_concentrate_congprice',
                                                                        'M2M-013',
@@ -519,7 +519,13 @@ create or replace package body pkg_phy_cog_price is
                 vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
               else
                 vn_unfixed_value := 0;
+                vn_unfixed_qty   := 0;
               end if;
+              if vn_fixed_qty < 0 then
+                vn_fixed_value := 0;
+                vn_fixed_qty   := 0;
+              end if;
+              vn_total_quantity := vn_fixed_qty + vn_unfixed_qty;
               if vc_fixed_price_unit_id is not null then
                 vc_price_unit_id := vc_fixed_price_unit_id;
               else
@@ -737,7 +743,7 @@ create or replace package body pkg_phy_cog_price is
                   sp_insert_error_log(vobj_error_log);
                 end if;
               when others then
-               vobj_error_log.extend; 
+                vobj_error_log.extend;
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                      'procedure sp_concentrate_congprice',
                                                                      'M2M-013',
@@ -1103,8 +1109,8 @@ create or replace package body pkg_phy_cog_price is
         vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
         vc_price_basis      := cur_gmr_ele_rows.price_basis;
         begin
-          select nvl(sum(pfd.user_price * round(pfd.qty_fixed, 5)), 0),
-                 nvl(sum(round(pfd.qty_fixed, 5)), 0),
+          select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
+                 nvl(sum(pfd.qty_fixed), 0),
                  ppu.price_unit_id
             into vn_fixed_value,
                  vn_fixed_qty,
@@ -1297,7 +1303,7 @@ create or replace package body pkg_phy_cog_price is
               sp_insert_error_log(vobj_error_log);
             end if;
           when others then
-           vobj_error_log.extend; 
+            vobj_error_log.extend;
             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                  'procedure sp_concentrate_congprice',
                                                                  'M2M-013',
@@ -1333,7 +1339,13 @@ create or replace package body pkg_phy_cog_price is
           vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
         else
           vn_unfixed_value := 0;
+          vn_unfixed_qty   := 0;
         end if;
+        if vn_fixed_qty < 0 then
+          vn_fixed_value := 0;
+          vn_fixed_qty   := 0;
+        end if;
+        vn_total_quantity := vn_fixed_qty + vn_unfixed_qty;
         if vc_fixed_price_unit_id is not null then
           vc_price_unit_id := vc_fixed_price_unit_id;
         else
@@ -1679,8 +1691,8 @@ create or replace package body pkg_phy_cog_price is
             loop
               vc_error_message := ' Line 240 ';
               begin
-                select nvl(sum(pfd.user_price * round(pfd.qty_fixed, 5)), 0),
-                       nvl(sum(round(pfd.qty_fixed, 5)), 0),
+                select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
+                       nvl(sum(pfd.qty_fixed), 0),
                        ppu.price_unit_id
                   into vn_fixed_value,
                        vn_fixed_qty,
@@ -1878,7 +1890,7 @@ create or replace package body pkg_phy_cog_price is
                   sp_insert_error_log(vobj_error_log);
                 end if;
               when others then
-               vobj_error_log.extend; 
+                vobj_error_log.extend;
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                      'procedure sp_concentrate_congprice',
                                                                      'M2M-013',
@@ -1915,8 +1927,13 @@ create or replace package body pkg_phy_cog_price is
               vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
             else
               vn_unfixed_value := 0;
+              vn_unfixed_qty   := 0;
             end if;
-            vn_total_quantity       := cur_pcdi_rows.payable_qty;
+            if vn_fixed_qty < 0 then
+              vn_fixed_value := 0;
+              vn_fixed_qty   := 0;
+            end if;
+            vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
             vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
             vn_total_contract_value := vn_total_contract_value +
                                        ((vn_qty_to_be_priced / 100) *
@@ -2126,7 +2143,7 @@ create or replace package body pkg_phy_cog_price is
                   sp_insert_error_log(vobj_error_log);
                 end if;
               when others then
-                vobj_error_log.extend;              
+                vobj_error_log.extend;
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                      'procedure sp_calc_contract_conc_price',
                                                                      'M2M-013',
@@ -2301,8 +2318,7 @@ create or replace package body pkg_phy_cog_price is
                 from grd_goods_record_detail grd
                where grd.process_id = pc_process_id
                  and grd.status = 'Active'
-                 and grd.tolling_stock_type in
-                     ('None Tolling', 'Clone Stock')
+                 and grd.tolling_stock_type in ('None Tolling') --, 'Clone Stock')
                  and grd.is_deleted = 'N'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
@@ -2355,6 +2371,7 @@ create or replace package body pkg_phy_cog_price is
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
          and spq.payable_qty > 0
+      
       union all
       select gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
@@ -2383,8 +2400,7 @@ create or replace package body pkg_phy_cog_price is
                 from dgrd_delivered_grd grd
                where grd.process_id = pc_process_id
                  and grd.status = 'Active'
-                 and grd.tolling_stock_type in
-                     ('None Tolling', 'Clone Stock')
+                 and grd.tolling_stock_type in ('None Tolling') --, 'Clone Stock')
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id,
@@ -2518,8 +2534,8 @@ create or replace package body pkg_phy_cog_price is
         vc_pcbpd_id    := cur_gmr_ele_rows.pcbpd_id;
       
         begin
-          select nvl(sum((pfd.user_price * round(pfd.qty_fixed, 5))), 0),
-                 nvl(sum(round(pfd.qty_fixed, 5)), 0),
+          select nvl(sum((pfd.user_price * pfd.qty_fixed)), 0),
+                 nvl(sum(pfd.qty_fixed), 0),
                  ppu.price_unit_id
             into vn_fixed_value,
                  vn_fixed_qty,
@@ -2711,7 +2727,7 @@ create or replace package body pkg_phy_cog_price is
               sp_insert_error_log(vobj_error_log);
             end if;
           when others then
-           vobj_error_log.extend; 
+            vobj_error_log.extend;
             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                  'procedure sp_concentrate_congprice',
                                                                  'M2M-013',
@@ -2745,7 +2761,13 @@ create or replace package body pkg_phy_cog_price is
           vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
         else
           vn_unfixed_value := 0;
+          vn_unfixed_qty   := 0;
         end if;
+        if vn_fixed_qty < 0 then
+          vn_fixed_value := 0;
+          vn_fixed_qty   := 0;
+        end if;
+      
         if vc_fixed_price_unit_id is not null then
           vc_price_unit_id := vc_fixed_price_unit_id;
         else
@@ -2761,7 +2783,8 @@ create or replace package body pkg_phy_cog_price is
           when others then
             vc_price_unit_id := null;
         end;
-        vn_total_quantity       := cur_gmr_rows.payable_qty;
+        --vn_total_quantity       := cur_gmr_rows.payable_qty;
+        vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
         vn_total_contract_value := vn_total_contract_value +
                                    ((vn_qty_to_be_priced / 100) *
                                    (vn_fixed_value + vn_unfixed_value));
@@ -2855,5 +2878,5 @@ create or replace package body pkg_phy_cog_price is
       sp_insert_error_log(vobj_error_log);
       commit;
   end;
-end;
+end; 
 /

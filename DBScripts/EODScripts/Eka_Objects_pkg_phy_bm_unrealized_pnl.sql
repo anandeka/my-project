@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE "PKG_PHY_BM_UNREALIZED_PNL" is
+create or replace package "PKG_PHY_BM_UNREALIZED_PNL" is
 
   procedure sp_calc_phy_open_unreal_pnl(pc_corporate_id        varchar2,
                                         pd_trade_date          date,
@@ -20,9 +20,9 @@ CREATE OR REPLACE PACKAGE "PKG_PHY_BM_UNREALIZED_PNL" is
                                       pc_process             varchar2,
                                       pc_previous_process_id varchar2);
 
-end; 
+end;
 /
-CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
+create or replace package body "PKG_PHY_BM_UNREALIZED_PNL" is
   procedure sp_calc_phy_open_unreal_pnl(pc_corporate_id        varchar2,
                                         pd_trade_date          date,
                                         pc_process_id          varchar2,
@@ -166,7 +166,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                 'Y'
                else
                 'N'
-             end) approval_flag
+             end) approval_flag,
+             tmpc.qp_fx_date,
+             tmpc.valuation_fx_date
         from pcm_physical_contract_main pcm,
              ak_corporate akc,
              pcdi_pc_delivery_item pcdi,
@@ -265,7 +267,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
          and ciqs.internal_contract_item_ref_no =
              ciscs.internal_contract_item_ref_no(+)
          and ciqs.process_id = ciscs.process_id(+);
-
+  
     vn_m2m_amt                     number;
     vc_m2m_cur_id                  varchar2(15);
     vc_m2m_cur_code                varchar2(15);
@@ -313,9 +315,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
     vc_del_premium_weight_unit_id  varchar2(15);
     vn_del_premium_weight          number;
     vn_del_to_base_fw_rate         number;
-    vn_forward_points              number;
-    vc_qual_prem_exch_rate_string  varchar2(500);
-    vc_error_msg                   varchar2(100);
+    --vn_forward_points              number;
+    vc_qual_prem_exch_rate_string varchar2(500);
+    vc_error_msg                  varchar2(100);
     -- Variable for all exchange rate string start
     vc_price_to_base_fw_rate    varchar2(100);
     vc_m2m_to_base_fw_rate      varchar2(100);
@@ -340,7 +342,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       vn_cont_del_premium_amt     := 0;
       vn_contract_premium         := 0;
       vn_contract_premium_value   := 0;
-
+    
       vn_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_unrealized_rows.product_id,
                                                                    cur_unrealized_rows.qty_unit_id,
                                                                    cur_unrealized_rows.base_qty_unit_id,
@@ -362,45 +364,41 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       vn_m2m_amt   := round(vn_m2m_amt * vn_m2m_sub_cur_id_factor, 2);
       vc_error_msg := '2';
       if cur_unrealized_rows.eval_basis <> 'FIXED' then
-        pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
-                                                pd_trade_date,
-                                                cur_unrealized_rows.payment_due_date,
-                                                vc_m2m_cur_id,
-                                                cur_unrealized_rows.base_cur_id,
-                                                30,
-                                                vn_m2m_base_fx_rate,
-                                                vn_m2m_base_deviation);
-
-        if vc_m2m_cur_id <> cur_unrealized_rows.base_cur_id then
-          if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
-            vc_error_msg := '3';
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 cur_unrealized_rows.base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_m2m_cur_code || ' (' ||
-                                                                 to_char(cur_unrealized_rows.payment_due_date,
-                                                                         'dd-Mon-yyyy') || ') ',
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
-          else
-            vc_error_msg := '4';
-            if vn_m2m_base_fx_rate <> 1 then
-              vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
-                                        vn_m2m_base_fx_rate || ' ' ||
-                                        cur_unrealized_rows.base_cur_code;
-            end if;
-          end if;
-
-        else
+        if vc_m2m_cur_id = cur_unrealized_rows.base_cur_id then
           vn_m2m_base_fx_rate := 1;
+        else
+          /* pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
+          pd_trade_date,
+          cur_unrealized_rows.payment_due_date,
+          vc_m2m_cur_id,
+          cur_unrealized_rows.base_cur_id,
+          30,
+          vn_m2m_base_fx_rate,
+          vn_m2m_base_deviation);*/
+          if cur_unrealized_rows.valuation_fx_date = pd_trade_date then
+            pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                             pd_trade_date,
+                                             vc_m2m_cur_id,
+                                             cur_unrealized_rows.base_cur_id,
+                                             'sp_calc_phy_open_unreal_pnl M2M To Base Spot ',
+                                             pc_process,
+                                             vn_m2m_base_fx_rate);
+          else
+            pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                       pd_trade_date,
+                                                       cur_unrealized_rows.valuation_fx_date,
+                                                       vc_m2m_cur_id,
+                                                       cur_unrealized_rows.base_cur_id,
+                                                       'sp_calc_phy_open_unreal_pnl M2M To Base Spot + FW Points',
+                                                       pc_process,
+                                                       vn_m2m_base_fx_rate,
+                                                       vn_m2m_base_deviation);
+          end if;
+          vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
+                                    vn_m2m_base_fx_rate || ' ' ||
+                                    cur_unrealized_rows.base_cur_code;
         end if;
+      
       else
         vn_m2m_amt          := 0;
         vn_m2m_base_fx_rate := 1;
@@ -416,7 +414,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                          vc_price_cur_code,
                                          vn_cont_price_cur_id_factor,
                                          vn_cont_price_cur_decimals);
-
+    
       vc_error_msg                   := '6';
       vn_contract_value_in_price_cur := (cur_unrealized_rows.contract_price /
                                         nvl(cur_unrealized_rows.price_unit_weight,
@@ -426,49 +424,72 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                                                               cur_unrealized_rows.price_unit_weight_unit_id,
                                                                               cur_unrealized_rows.item_qty)) *
                                         vn_cont_price_cur_id_factor;
-
-      pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
-                                              pd_trade_date,
-                                              cur_unrealized_rows.payment_due_date,
-                                              vc_price_cur_id,
-                                              cur_unrealized_rows.base_cur_id,
-                                              30,
-                                              vn_fx_price_to_base,
-                                              vn_forward_exch_rate);
-      vc_error_msg := '7';
-
+      --                                   
+      -- Price to Base FW Rate, For Fixed Type Use Valuation Date 3rd Wed, Others Use QP End Date 3rd Wed
+      --
+      /* pkg_general.sp_forward_cur_exchange_new(cur_unrealized_rows.corporate_id,
+      pd_trade_date,
+      cur_unrealized_rows.payment_due_date,
+      vc_price_cur_id,
+      cur_unrealized_rows.base_cur_id,
+      30,
+      vn_fx_price_to_base,
+      vn_forward_exch_rate);*/
       if vc_price_cur_id <> cur_unrealized_rows.base_cur_id then
-        if vn_fx_price_to_base is null or vn_fx_price_to_base = 0 then
-          vobj_error_log.extend;
-          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure sp_calc_phy_open_unreal_pnl',
-                                                               'PHY-005',
-                                                               cur_unrealized_rows.base_cur_code ||
-                                                               ' to ' ||
-                                                               vc_price_cur_code || ' (' ||
-                                                               to_char(cur_unrealized_rows.payment_due_date,
-                                                                       'dd-Mon-yyyy') || ')',
-                                                               '',
-                                                               pc_process,
-                                                               pc_user_id,
-                                                               sysdate,
-                                                               pd_trade_date);
-          sp_insert_error_log(vobj_error_log);
+        if cur_unrealized_rows.price_basis = 'Fixed' then
+          if cur_unrealized_rows.valuation_fx_date = pd_trade_date then
+            pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                             pd_trade_date,
+                                             vc_price_cur_id,
+                                             cur_unrealized_rows.base_cur_id,
+                                             'sp_calc_phy_open_unreal_pnl Price To Base Spot ',
+                                             pc_process,
+                                             vn_fx_price_to_base);
+          else
+            pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                       pd_trade_date,
+                                                       cur_unrealized_rows.valuation_fx_date,
+                                                       vc_price_cur_id,
+                                                       cur_unrealized_rows.base_cur_id,
+                                                       'sp_calc_phy_open_unreal_pnl Price To Base Spot + FW Points',
+                                                       pc_process,
+                                                       vn_fx_price_to_base,
+                                                       vn_forward_exch_rate);
+          end if;
+        
         else
-          vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
-                                      vn_fx_price_to_base || ' ' ||
-                                      cur_unrealized_rows.base_cur_code;
+          if cur_unrealized_rows.qp_fx_date = pd_trade_date then
+            pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                             pd_trade_date,
+                                             vc_price_cur_id,
+                                             cur_unrealized_rows.base_cur_id,
+                                             'sp_calc_phy_open_unreal_pnl Price To Base Spot ',
+                                             pc_process,
+                                             vn_fx_price_to_base);
+          else
+            pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                       pd_trade_date,
+                                                       cur_unrealized_rows.qp_fx_date,
+                                                       vc_price_cur_id,
+                                                       cur_unrealized_rows.base_cur_id,
+                                                       'sp_calc_phy_open_unreal_pnl Price To Base Spot + FW Points',
+                                                       pc_process,
+                                                       vn_fx_price_to_base,
+                                                       vn_forward_exch_rate);
+          end if;
         end if;
-
+        vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
+                                    vn_fx_price_to_base || ' ' ||
+                                    cur_unrealized_rows.base_cur_code;
       else
         vn_fx_price_to_base := 1;
       end if;
-
+      vc_error_msg := '7';
       vc_error_msg := '8';
       -- contract value in value currency will store the data in base currency
       vn_contract_value_in_price_cur := round(vn_contract_value_in_price_cur,
                                               2);
-
+    
       vn_contract_value_in_val_cur := round(vn_contract_value_in_price_cur *
                                             nvl(vn_fx_price_to_base, 1),
                                             2);
@@ -489,7 +510,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                        cur_unrealized_rows.contract_ref_no);
       end;
       vn_contract_premium := 0;
-
+    
       vc_error_msg := '9';
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
@@ -500,21 +521,25 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                    pd_trade_date || ' ' || cur_unrealized_rows.product_id ||
                    ' pc_process_id ' || pc_process_id);
       ------------------******** Premium Calculations starts here ******-------------------
-
+    
       pkg_metals_general.sp_quality_premium_fw_rate(cur_unrealized_rows.internal_contract_item_ref_no,
                                                     pc_corporate_id,
+                                                    pc_process,
                                                     pd_trade_date,
                                                     vc_base_price_unit,
                                                     cur_unrealized_rows.base_cur_id,
-                                                    cur_unrealized_rows.payment_due_date,
+                                                    -- cur_unrealized_rows.payment_due_date,
                                                     cur_unrealized_rows.product_id,
                                                     cur_unrealized_rows.base_qty_unit_id,
                                                     pc_process_id,
+                                                    cur_unrealized_rows.price_basis,
+                                                    cur_unrealized_rows.valuation_fx_date,
+                                                    cur_unrealized_rows.qp_fx_date,
                                                     vn_contract_premium,
                                                     vc_qual_prem_exch_rate_string);
       vc_error_msg                := '10';
       vc_contract_qp_fw_exch_rate := vc_qual_prem_exch_rate_string;
-
+    
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
                    'sp_open_phy_unreal',
@@ -526,7 +551,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       if cur_unrealized_rows.delivery_premium <> 0 then
         if cur_unrealized_rows.delivery_premium_unit_id <>
            vc_base_price_unit then
-
+        
           vc_error_msg := '11';
           --
           -- Get the Delivery Premium Currency
@@ -552,17 +577,68 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                              vc_del_premium_main_cur_id,
                                              vc_del_premium_main_cur_code,
                                              vn_del_premium_cur_main_factor);
-
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  cur_unrealized_rows.payment_due_date,
-                                                  vc_del_premium_main_cur_id,
-                                                  cur_unrealized_rows.base_cur_id,
-                                                  30,
-                                                  vn_del_to_base_fw_rate,
-                                                  vn_forward_points);
+        
+          /*pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+          pd_trade_date,
+          cur_unrealized_rows.payment_due_date,
+          vc_del_premium_main_cur_id,
+          cur_unrealized_rows.base_cur_id,
+          30,
+          vn_del_to_base_fw_rate,
+          vn_forward_points);*/
+          if vc_del_premium_main_cur_id <> cur_unrealized_rows.base_cur_id then
+            if cur_unrealized_rows.price_basis = 'Fixed' then
+              if cur_unrealized_rows.valuation_fx_date = pd_trade_date then
+                pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 vc_del_premium_main_cur_id,
+                                                 cur_unrealized_rows.base_cur_id,
+                                                 'sp_calc_phy_open_unreal_pnl DP To Base Spot ',
+                                                 pc_process,
+                                                 vn_del_to_base_fw_rate);
+              else
+                pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                           pd_trade_date,
+                                                           cur_unrealized_rows.valuation_fx_date,
+                                                           vc_del_premium_main_cur_id,
+                                                           cur_unrealized_rows.base_cur_id,
+                                                           'sp_calc_phy_open_unreal_pnl DP To Base Spot + FW Points',
+                                                           pc_process,
+                                                           vn_del_to_base_fw_rate,
+                                                           vn_forward_exch_rate);
+              end if;
+            
+            else
+              if cur_unrealized_rows.qp_fx_date = pd_trade_date then
+                pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 vc_del_premium_main_cur_id,
+                                                 cur_unrealized_rows.base_cur_id,
+                                                 'sp_calc_phy_open_unreal_pnl DP To Base Spot ',
+                                                 pc_process,
+                                                 vn_del_to_base_fw_rate);
+              else
+                pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                           pd_trade_date,
+                                                           cur_unrealized_rows.qp_fx_date,
+                                                           vc_del_premium_main_cur_id,
+                                                           cur_unrealized_rows.base_cur_id,
+                                                           'sp_calc_phy_open_unreal_pnl DP To Base Spot + FW Points',
+                                                           pc_process,
+                                                           vn_del_to_base_fw_rate,
+                                                           vn_forward_exch_rate);
+              end if;
+            end if;
+            vc_contract_pp_fw_exch_rate := '1 ' ||
+                                           vc_del_premium_main_cur_code || '=' ||
+                                           vn_del_to_base_fw_rate || ' ' ||
+                                           cur_unrealized_rows.base_cur_code;
+          else
+            vn_del_to_base_fw_rate := 1;
+          end if;
+        
           vc_error_msg := '13';
-
+        
           vn_cont_delivery_premium := (cur_unrealized_rows.delivery_premium /
                                       vn_del_premium_weight) *
                                       vn_del_premium_cur_main_factor *
@@ -572,15 +648,15 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                                                            cur_unrealized_rows.base_qty_unit_id,
                                                                            1);
           vc_error_msg             := '14';
-          if cur_unrealized_rows.base_cur_code <>
-             vc_del_premium_main_cur_code then
+          /*if cur_unrealized_rows.base_cur_code <>
+           vc_del_premium_main_cur_code then
             vc_contract_pp_fw_exch_rate := '1 ' ||
-                                           vc_del_premium_main_cur_code || '=' ||
-                                           vn_del_to_base_fw_rate || ' ' ||
-                                           cur_unrealized_rows.base_cur_code;
-          end if;
-
-          if cur_unrealized_rows.base_cur_code <>
+                                         vc_del_premium_main_cur_code || '=' ||
+                                         vn_del_to_base_fw_rate || ' ' ||
+                                         cur_unrealized_rows.base_cur_code;
+          end if;*/
+        
+          /*if cur_unrealized_rows.base_cur_code <>
              vc_del_premium_main_cur_code then
             if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
               vobj_error_log.extend;
@@ -599,7 +675,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                                                    pd_trade_date);
               sp_insert_error_log(vobj_error_log);
             end if;
-          end if;
+          end if;*/
         else
           vn_cont_delivery_premium := cur_unrealized_rows.delivery_premium;
         end if;
@@ -610,7 +686,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
         vn_cont_delivery_premium := 0;
         vn_cont_del_premium_amt  := 0;
       end if;
-
+    
       vc_error_msg              := '15';
       vn_contract_premium_value := round((vn_contract_premium *
                                          vn_qty_in_base) +
@@ -632,7 +708,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                              vn_qty_in_base,
                                              2);
       vn_sc_in_valuation_cur        := vn_sc_in_base_cur;
-
+    
       -- as per the current implementation in basemetals, there is not Income/expense accruals separately
       -- so we need to ass conract value + SC  - done as on 05-Jul-2011, once we implement the
       -- Income/expense accruals separately, we have to remove the abs from SC.
@@ -640,7 +716,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       vn_expected_cog_in_val_cur := round((abs(vn_contract_value_in_val_cur) +
                                           abs(vn_sc_in_valuation_cur)),
                                           2);
-
+    
       if cur_unrealized_rows.purchase_sales = 'P' then
         vn_unrealized_pnl_in_val_cur := round((vn_m2m_total_amount -
                                               vn_expected_cog_in_val_cur),
@@ -652,7 +728,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       end if;
       vc_error_msg                  := '16';
       vn_unrealized_pnl_in_base_cur := vn_unrealized_pnl_in_val_cur;
-
+    
       -- below variable set as zero as it's not used in any calculation.
       vn_unrealized_pnl_in_m2m_unit := 0;
       vc_m2m_price_unit_id          := cur_unrealized_rows.m2m_price_unit_id;
@@ -661,7 +737,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       vc_m2m_price_unit_wgt_unit_id := cur_unrealized_rows.m2m_price_unit_weight_unit_id;
       vc_m2m_price_unit_wgt_unit    := cur_unrealized_rows.m2m_price_unit_weight_unit;
       vn_m2m_price_unit_wgt_unit_wt := cur_unrealized_rows.m2m_price_unit_weight;
-
+    
       insert into poud_phy_open_unreal_daily
         (corporate_id,
          corporate_name,
@@ -992,7 +1068,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
     ---------
     commit;
     sp_gather_stats('poud_phy_open_unreal_daily');
-
+  
     vc_error_msg := '17';
     begin
       -- update previous eod data
@@ -1031,7 +1107,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       when others then
         dbms_output.put_line('SQLERRM-1' || sqlerrm);
     end;
-
+  
     vc_error_msg := '18';
     -- mark the trades came as new in this eod/eom
     begin
@@ -1122,14 +1198,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              md.main_currency_factor,
              md.settlement_cur_id,
              md.settlement_to_val_fx_rate,
-             nvl(gpd.contract_price, spd.stock_price) contract_price,
-             nvl(gpd.price_unit_id, spd.price_unit_id) price_unit_id,
+             nvl(gpd.contract_price, cipd.contract_price) contract_price,
+             nvl(gpd.price_unit_id, cipd.price_unit_id) price_unit_id,
              nvl(gpd.price_unit_weight_unit_id,
-                 spd.price_unit_weight_unit_id) price_unit_weight_unit_id,
-             nvl(gpd.price_unit_weight, spd.price_unit_weight) price_unit_weight,
-             nvl(gpd.price_unit_cur_id, spd.price_unit_cur_id) price_unit_cur_id,
-             nvl(gpd.price_unit_cur_code, spd.price_unit_cur_code) price_unit_cur_code,
-             nvl(gpd.price_unit_weight_unit, spd.price_unit_weight_unit) price_unit_weight_unit,
+                 cipd.price_unit_weight_unit_id) price_unit_weight_unit_id,
+             nvl(gpd.price_unit_weight, cipd.price_unit_weight) price_unit_weight,
+             nvl(gpd.price_unit_cur_id, cipd.price_unit_cur_id) price_unit_cur_id,
+             nvl(gpd.price_unit_cur_code, cipd.price_unit_cur_code) price_unit_cur_code,
+             nvl(gpd.price_unit_weight_unit, cipd.price_unit_weight_unit) price_unit_weight_unit,
              nvl(gpd.price_fixation_status, cipd.price_fixation_details) price_fixation_details,
              nvl(cipd.payment_due_date, pd_trade_date) payment_due_date,
              akc.base_cur_id as base_cur_id,
@@ -1209,7 +1285,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              md.m2m_qp_fw_exch_rate,
              gscs.fw_rate_string accrual_to_base_fw_exch_rate,
              pcm.cp_id,
-             phd_cp.companyname cp_name
+             phd_cp.companyname cp_name,
+             tmpc.qp_fx_date,
+             tmpc.valuation_fx_date
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
              gpd_gmr_price_daily gpd,
@@ -1239,8 +1317,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              ciqs_contract_item_qty_status ciqs,
              css_corporate_strategy_setup css,
              gscs_gmr_sec_cost_summary gscs,
-             phd_profileheaderdetails phd_cp,
-             spd_stock_price_daily spd
+             phd_profileheaderdetails phd_cp
        where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
@@ -1276,7 +1353,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
          and ciqs.process_id = pc_process_id
          and pcm.process_id = pc_process_id
          and pci.process_id = pc_process_id
-         and spd.process_id = pc_process_id
          and pcm.contract_status = 'In Position'
          and pcm.contract_type = 'BASEMETAL'
          and pcm.is_active = 'Y'
@@ -1288,14 +1364,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
          and nvl(grd.inventory_status, 'NA') = 'NA'
          and pcm.purchase_sales = 'P'
          and nvl(grd.current_qty, 0) > 0
-         and gmr.is_internal_movement = 'N'
+            -- and gmr.is_internal_movement = 'N'
          and pcm.cp_id = phd_cp.profileid
          and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
          and gmr.process_id = gscs.process_id(+)
          and grd.internal_contract_item_ref_no =
              pci.internal_contract_item_ref_no
          and grd.process_id = pci.process_id
-         and spd.internal_drg_dgrd_ref_no = grd.internal_grd_ref_no
+      
       union all
       select 'Sales' section_type,
              pcpd.profit_center_id profit_center,
@@ -1336,14 +1412,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              md.main_currency_factor,
              md.settlement_cur_id,
              md.settlement_to_val_fx_rate,
-             nvl(gpd.contract_price, spd.stock_price) contract_price,
-             nvl(gpd.price_unit_id, spd.price_unit_id) price_unit_id,
+             nvl(gpd.contract_price, cipd.contract_price) contract_price,
+             nvl(gpd.price_unit_id, cipd.price_unit_id) price_unit_id,
              nvl(gpd.price_unit_weight_unit_id,
-                 spd.price_unit_weight_unit_id) price_unit_weight_unit_id,
-             nvl(gpd.price_unit_weight, spd.price_unit_weight) price_unit_weight,
-             nvl(gpd.price_unit_cur_id, spd.price_unit_cur_id) price_unit_cur_id,
-             nvl(gpd.price_unit_cur_code, spd.price_unit_cur_code) price_unit_cur_code,
-             nvl(gpd.price_unit_weight_unit, spd.price_unit_weight_unit) price_unit_weight_unit,
+                 cipd.price_unit_weight_unit_id) price_unit_weight_unit_id,
+             nvl(gpd.price_unit_weight, cipd.price_unit_weight) price_unit_weight,
+             nvl(gpd.price_unit_cur_id, cipd.price_unit_cur_id) price_unit_cur_id,
+             nvl(gpd.price_unit_cur_code, cipd.price_unit_cur_code) price_unit_cur_code,
+             nvl(gpd.price_unit_weight_unit, cipd.price_unit_weight_unit) price_unit_weight_unit,
              nvl(gpd.price_fixation_status, cipd.price_fixation_details) price_fixation_details,
              nvl(cipd.payment_due_date, pd_trade_date) payment_due_date,
              akc.base_cur_id as base_cur_id,
@@ -1419,7 +1495,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              md.m2m_qp_fw_exch_rate,
              gscs.fw_rate_string accrual_to_base_fw_exch_rate,
              pcm.cp_id,
-             phd_cp.companyname cp_name
+             phd_cp.companyname cp_name,
+             tmpc.qp_fx_date,
+             tmpc.valuation_fx_date
         from gmr_goods_movement_record gmr,
              gpd_gmr_price_daily gpd,
              dgrd_delivered_grd dgrd,
@@ -1449,7 +1527,6 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              pcdb_pc_delivery_basis pcdb,
              cm_currency_master cm,
              css_corporate_strategy_setup css,
-             spd_stock_price_daily spd,
              phd_profileheaderdetails phd_cp,
              gscs_gmr_sec_cost_summary gscs
        where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
@@ -1504,14 +1581,17 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
          and pcpd.process_id = pc_process_id
          and agh.is_deleted = 'N'
          and gmr.corporate_id = pc_corporate_id
-         and gmr.is_internal_movement = 'N'
+            --  and gmr.is_internal_movement = 'N'
          and nvl(gmr.inventory_status, 'NA') <> 'Out'
-         and spd.internal_drg_dgrd_ref_no = dgrd.internal_dgrd_ref_no
-         and spd.process_id = pc_process_id
          and dgrd.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
          and dgrd.process_id = gscs.process_id(+)
       union all
-      -- Internal Movement Shipped But Not TT
+      --
+      -- Janna changed on 31 oct 2012, All internal movement purchase GMRs will be part of first query, if they have Internal Contract Item Ref Num
+      -- Hence I removed the condition for checking Is Internal Movement from top two queries(Condition does not make sense for Sales GMR)
+      -- Internal Movement Shipped But Not TT If Internal Contract Ref No is Missing in GRD
+      -- This section added condition grd.internal_contract_item_ref_no is null along with internal movement condition
+      ---
       select 'Internal Movement' section_type,
              grd.profit_center_id profit_center,
              pc_process_id process_id,
@@ -1644,7 +1724,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              md.m2m_qp_fw_exch_rate,
              gscs.fw_rate_string accrual_to_base_fw_exch_rate,
              null cp_id,
-             null cp_name
+             null cp_name,
+             tmpc.qp_fx_date,
+             tmpc.valuation_fx_date
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
              gpd_gmr_price_daily gpd,
@@ -1691,6 +1773,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
          and nvl(grd.inventory_status, 'NA') = 'NA'
          and nvl(grd.current_qty, 0) > 0
          and gmr.is_internal_movement = 'Y'
+         and grd.internal_contract_item_ref_no is null
          and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
          and gmr.process_id = gscs.process_id(+)
          and spd.internal_drg_dgrd_ref_no = grd.internal_grd_ref_no
@@ -1775,11 +1858,11 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       vc_m2m_to_base_fw_rate      := null;
       vc_contract_qp_fw_exch_rate := null;
       vc_contract_pp_fw_exch_rate := null;
-
+    
       vc_m2m_ld_fw_exch_rate := cur_grd_rows.m2m_ld_fw_exch_rate;
       vc_m2m_qp_fw_exch_rate := cur_grd_rows.m2m_qp_fw_exch_rate;
       vc_m2m_pp_fw_exch_rate := cur_grd_rows.m2m_pp_fw_exch_rate;
-
+    
       vn_product_premium            := 0;
       vn_product_premium_amt        := 0;
       vn_quality_premium            := 0;
@@ -1810,7 +1893,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       vn_cont_price_wt            := cur_grd_rows.price_unit_weight;
       vc_cont_price_wt_unit_id    := cur_grd_rows.price_unit_weight_unit_id;
       vc_cont_price_wt_unit       := cur_grd_rows.price_unit_weight_unit;
-
+    
       vc_error_msg := vn_cont_price || vc_cont_price_unit_id;
       if cur_grd_rows.stock_qty <> 0 then
         vc_psu_id      := cur_grd_rows.internal_gmr_ref_no || '-' ||
@@ -1851,25 +1934,51 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
           --
           -- Forwad Rate from Valuation to Base Currency
           --
-          pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  nvl(vc_m2m_cur_id,
-                                                      cur_grd_rows.base_cur_id),
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_base_fx_rate,
-                                                  vn_m2m_base_deviation);
+          /* pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
+          pd_trade_date,
+          cur_grd_rows.payment_due_date,
+          nvl(vc_m2m_cur_id,
+              cur_grd_rows.base_cur_id),
+          cur_grd_rows.base_cur_id,
+          30,
+          vn_m2m_base_fx_rate,
+          vn_m2m_base_deviation);*/
+          if vc_m2m_cur_code <> cur_grd_rows.base_cur_code then
+            if cur_grd_rows.valuation_fx_date = pd_trade_date then
+              pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                               pd_trade_date,
+                                               vc_m2m_cur_id,
+                                               cur_grd_rows.base_cur_id,
+                                               'sp_stock_unreal_sntt_bm M2M To Base Spot ',
+                                               pc_process,
+                                               vn_m2m_base_fx_rate);
+            else
+              pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                         pd_trade_date,
+                                                         cur_grd_rows.valuation_fx_date,
+                                                         vc_m2m_cur_id,
+                                                         cur_grd_rows.base_cur_id,
+                                                         'sp_stock_unreal_sntt_bm M2M To Base Spot + FW Points',
+                                                         pc_process,
+                                                         vn_m2m_base_fx_rate,
+                                                         vn_m2m_base_deviation);
+            end if;
+            vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
+                                      vn_m2m_base_fx_rate || ' ' ||
+                                      cur_grd_rows.base_cur_code;
+          else
+            vn_m2m_base_fx_rate := 1;
+          end if;
           vc_error_msg := '5';
-          if (vn_m2m_base_fx_rate <> 0 or vn_m2m_base_fx_rate <> 1 or
+          /*if (vn_m2m_base_fx_rate <> 0 or vn_m2m_base_fx_rate <> 1 or
              vn_m2m_base_fx_rate is not null) then
             if vc_m2m_cur_code <> cur_grd_rows.base_cur_code then
               vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
                                         vn_m2m_base_fx_rate || ' ' ||
                                         cur_grd_rows.base_cur_code;
             end if;
-          end if;
-          if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
+          end if;*/
+          /*if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
             if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
               vobj_error_log.extend;
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
@@ -1887,7 +1996,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                                                    pd_trade_date);
               sp_insert_error_log(vobj_error_log);
             end if;
-          end if;
+          end if;*/
         else
           vn_m2m_base_fx_rate := 1;
         end if;
@@ -1924,25 +2033,75 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
         --
         -- Forward FX Rate from Price to Base Currency
         --
-        pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
-                                                pd_trade_date,
-                                                cur_grd_rows.payment_due_date,
-                                                vc_price_cur_id,
-                                                cur_grd_rows.base_cur_id,
-                                                30,
-                                                vn_fx_price_to_base,
-                                                vn_fx_price_deviation);
-
-        if vn_fx_price_to_base <> 0 or vn_fx_price_to_base <> 1 or
+        /*pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
+        pd_trade_date,
+        cur_grd_rows.payment_due_date,
+        vc_price_cur_id,
+        cur_grd_rows.base_cur_id,
+        30,
+        vn_fx_price_to_base,
+        vn_fx_price_deviation);*/
+      
+        if vc_price_cur_id <> cur_grd_rows.base_cur_id then
+          if cur_grd_rows.price_basis = 'Fixed' then
+            if cur_grd_rows.valuation_fx_date = pd_trade_date then
+              pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                               pd_trade_date,
+                                               vc_price_cur_id,
+                                               cur_grd_rows.base_cur_id,
+                                               'sp_stock_unreal_sntt_bm Price To Base Spot ',
+                                               pc_process,
+                                               vn_fx_price_to_base);
+            else
+              pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                         pd_trade_date,
+                                                         cur_grd_rows.valuation_fx_date,
+                                                         vc_price_cur_id,
+                                                         cur_grd_rows.base_cur_id,
+                                                         'sp_stock_unreal_sntt_bm Price To Base Spot + FW Points',
+                                                         pc_process,
+                                                         vn_fx_price_to_base,
+                                                         vn_fx_price_deviation);
+            end if;
+          
+          else
+            if cur_grd_rows.qp_fx_date = pd_trade_date then
+              pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                               pd_trade_date,
+                                               vc_price_cur_id,
+                                               cur_grd_rows.base_cur_id,
+                                               'sp_stock_unreal_sntt_bm Price To Base Spot ',
+                                               pc_process,
+                                               vn_fx_price_to_base);
+            else
+              pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                         pd_trade_date,
+                                                         cur_grd_rows.qp_fx_date,
+                                                         vc_price_cur_id,
+                                                         cur_grd_rows.base_cur_id,
+                                                         'sp_stock_unreal_sntt_bm Price To Base Spot + FW Points',
+                                                         pc_process,
+                                                         vn_fx_price_to_base,
+                                                         vn_fx_price_deviation);
+            end if;
+          end if;
+          vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
+                                      vn_fx_price_to_base || ' ' ||
+                                      cur_grd_rows.base_cur_code;
+        else
+          vn_fx_price_to_base := 1;
+        end if;
+      
+        /*if vn_fx_price_to_base <> 0 or vn_fx_price_to_base <> 1 or
            vn_fx_price_to_base is not null then
-
+        
           if vc_price_cur_code <> cur_grd_rows.base_cur_code then
             vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
                                         vn_fx_price_to_base || ' ' ||
                                         cur_grd_rows.base_cur_code;
           end if;
-        end if;
-
+        end if;*/
+      
         vn_contract_value_in_price_cur := round(vn_contract_value_in_price_cur,
                                                 vn_cont_price_cur_decimals);
         --
@@ -1979,24 +2138,29 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       --
       -- Cannot calculate if Stock is internal movement and not having Contract Item #
       --
-      if cur_grd_rows.internal_contract_item_ref_no is not null and
-         cur_grd_rows.payment_due_date is not null then
+      if cur_grd_rows.internal_contract_item_ref_no is not null then
+        /*and cur_grd_rows.payment_due_date is not null*/
+      
         pkg_metals_general.sp_quality_premium_fw_rate(cur_grd_rows.internal_contract_item_ref_no,
                                                       pc_corporate_id,
+                                                      pc_process,
                                                       pd_trade_date,
                                                       vc_base_price_unit_id,
                                                       cur_grd_rows.base_cur_id,
-                                                      cur_grd_rows.payment_due_date,
+                                                      --   cur_grd_rows.payment_due_date,
                                                       cur_grd_rows.product_id,
                                                       cur_grd_rows.base_qty_unit_id,
                                                       pc_process_id,
+                                                      cur_grd_rows.price_basis,
+                                                      cur_grd_rows.valuation_fx_date,
+                                                      cur_grd_rows.qp_fx_date,
                                                       vn_quality_premium,
                                                       vc_qual_prem_exch_rate_string);
         vc_contract_qp_fw_exch_rate := vc_qual_prem_exch_rate_string;
       else
         vn_quality_premium := 0;
       end if;
-
+    
       if cur_grd_rows.delivery_premium <> 0 then
         if cur_grd_rows.delivery_premium_unit_id <> vc_base_price_unit_id then
           --
@@ -2022,16 +2186,66 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                              vc_del_premium_main_cur_id,
                                              vc_del_premium_main_cur_code,
                                              vn_del_premium_cur_main_factor);
-
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  vc_del_premium_main_cur_id,
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_del_to_base_fw_rate,
-                                                  vn_forward_points);
-
+        
+          /*pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+          pd_trade_date,
+          cur_grd_rows.payment_due_date,
+          vc_del_premium_main_cur_id,
+          cur_grd_rows.base_cur_id,
+          30,
+          vn_del_to_base_fw_rate,
+          vn_forward_points);*/
+          if vc_del_premium_main_cur_id <> cur_grd_rows.base_cur_id then
+            if cur_grd_rows.price_basis = 'Fixed' then
+              if cur_grd_rows.valuation_fx_date = pd_trade_date then
+                pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 vc_del_premium_main_cur_id,
+                                                 cur_grd_rows.base_cur_id,
+                                                 'sp_stock_unreal_sntt_bm DP To Base Spot ',
+                                                 pc_process,
+                                                 vn_del_to_base_fw_rate);
+              else
+                pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                           pd_trade_date,
+                                                           cur_grd_rows.valuation_fx_date,
+                                                           vc_del_premium_main_cur_id,
+                                                           cur_grd_rows.base_cur_id,
+                                                           'sp_stock_unreal_sntt_bm DP To Base Spot + FW Points',
+                                                           pc_process,
+                                                           vn_del_to_base_fw_rate,
+                                                           vn_forward_points);
+              end if;
+            
+            else
+              if cur_grd_rows.qp_fx_date = pd_trade_date then
+                pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 vc_del_premium_main_cur_id,
+                                                 cur_grd_rows.base_cur_id,
+                                                 'sp_stock_unreal_sntt_bm DP To Base Spot ',
+                                                 pc_process,
+                                                 vn_del_to_base_fw_rate);
+              else
+                pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                           pd_trade_date,
+                                                           cur_grd_rows.qp_fx_date,
+                                                           vc_del_premium_main_cur_id,
+                                                           cur_grd_rows.base_cur_id,
+                                                           'sp_stock_unreal_sntt_bm DP To Base Spot + FW Points',
+                                                           pc_process,
+                                                           vn_del_to_base_fw_rate,
+                                                           vn_forward_points);
+              end if;
+            end if;
+            vc_contract_pp_fw_exch_rate := '1 ' ||
+                                           vc_del_premium_main_cur_code || '=' ||
+                                           vn_del_to_base_fw_rate || ' ' ||
+                                           cur_grd_rows.base_cur_code;
+          else
+            vn_del_to_base_fw_rate := 1;
+          end if;
+        
           vn_product_premium := (cur_grd_rows.delivery_premium /
                                 vn_del_premium_weight) *
                                 vn_del_premium_cur_main_factor *
@@ -2040,14 +2254,14 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                                                      vc_del_premium_weight_unit_id,
                                                                      cur_grd_rows.base_qty_unit_id,
                                                                      1);
-          if cur_grd_rows.base_cur_code <> vc_del_premium_main_cur_code then
+          /*if cur_grd_rows.base_cur_code <> vc_del_premium_main_cur_code then
             vc_contract_pp_fw_exch_rate := '1 ' ||
                                            vc_del_premium_main_cur_code || '=' ||
                                            vn_del_to_base_fw_rate || ' ' ||
                                            cur_grd_rows.base_cur_code;
-          end if;
-
-          if cur_grd_rows.base_cur_code <> vc_del_premium_main_cur_code then
+          end if;*/
+        
+          /*if cur_grd_rows.base_cur_code <> vc_del_premium_main_cur_code then
             if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
               vobj_error_log.extend;
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
@@ -2065,7 +2279,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                                                    pd_trade_date);
               sp_insert_error_log(vobj_error_log);
             end if;
-          end if;
+          end if;*/
         else
           vn_product_premium := cur_grd_rows.delivery_premium;
         end if;
@@ -2084,19 +2298,19 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       --
       vn_sc_in_base_cur := cur_grd_rows.noncog_secondary_cost_per_unit *
                            vn_qty_in_base;
-
+    
       --------------------------------------------------------------------------
       vc_error_msg               := '14';
       vn_expected_cog_in_val_cur := round(vn_contract_value_in_base_cur, 2);
-
+    
       --
       -- Total COG = Contract Value (Qty*Price) + Quality Premium + Delivery Premium + Secondary Cost
       --
-
+    
       vn_expected_cog_in_val_cur := vn_expected_cog_in_val_cur +
                                     vn_total_premium_value +
                                     abs(vn_sc_in_base_cur);
-
+    
       if cur_grd_rows.purchase_sales = 'P' then
         vn_contract_value_in_val_cur := (-1) * vn_contract_value_in_val_cur;
         vn_expected_cog_in_val_cur   := (-1) * vn_expected_cog_in_val_cur;
@@ -2121,10 +2335,10 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       vc_error_msg              := '16';
       vc_error_msg              := '17';
       vn_pnl_in_exch_price_unit := 0;
-
+    
       vn_trade_day_pnl_per_base_unit := vn_pnl_in_base_cur / vn_qty_in_base;
       vc_error_msg                   := '18';
-
+    
       insert into psu_phy_stock_unrealized
         (process_id,
          psu_id,
@@ -2730,7 +2944,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              invm.price_to_base_fw_exch_rate_act,
              pcm.cp_id,
              phd_cp.companyname cp_name,
-             gpd.price_fixation_status gmr_price_fixation_status
+             gpd.price_fixation_status gmr_price_fixation_status,
+             tmpc.valuation_fx_date,
+             tmpc.qp_fx_date
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
              pcm_physical_contract_main pcm,
@@ -2783,8 +2999,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              ciqs.internal_contract_item_ref_no
          and grd.internal_contract_item_ref_no =
              pci.internal_contract_item_ref_no
-         and grd.internal_contract_item_ref_no = cipd.internal_contract_item_ref_no 
-          and cipd.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and grd.internal_contract_item_ref_no =
+             cipd.internal_contract_item_ref_no
+         and cipd.internal_contract_ref_no = pcm.internal_contract_ref_no
          and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
          and gmr.corporate_id = akc.corporate_id
          and akc.base_cur_id = cm.cur_id
@@ -2792,7 +3009,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
          and pcpd.strategy_id = css.strategy_id
          and pcm.cp_id = phd_cp.profileid
          and gmr.process_id = gpd.process_id(+)
-         and grd.process_id = cipd.process_id 
+         and grd.process_id = cipd.process_id
          and grd.process_id = pc_process_id
          and gmr.process_id = pc_process_id
          and pcpd.process_id = pc_process_id
@@ -2817,7 +3034,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       union all
       -- Internal Movement Inventory In
       select 'Internal Movement' section_type,
-             null profit_center, --get it FROM grd
+             grd.profit_center_id profit_center,
              pc_process_id process_id,
              gmr.corporate_id,
              gmr.internal_gmr_ref_no,
@@ -2885,7 +3102,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              null price_basis,
              gmr.shed_id,
              gmr.destination_city_id,
-             'NA'  price_fixation_status,
+             'NA' price_fixation_status,
              pdm.base_quantity_unit base_qty_unit_id,
              css.strategy_id strategy_id,
              css.strategy_name strategy_name,
@@ -2941,7 +3158,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
              invm.price_to_base_fw_exch_rate_act,
              null cp_id,
              null cp_name,
-             'NA' gmr_price_fixation_status
+             'NA' gmr_price_fixation_status,
+             tmpc.valuation_fx_date,
+             tmpc.qp_fx_date
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail grd,
              pdm_productmaster pdm,
@@ -3079,15 +3298,15 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       vc_error_msg                  := vn_cont_price ||
                                        vc_cont_price_unit_id;
       if cur_grd_rows.stock_qty <> 0 then
-        vc_psu_id    := cur_grd_rows.internal_gmr_ref_no || '-' ||
-                        cur_grd_rows.internal_grd_dgrd_ref_no || '-' ||
-                        cur_grd_rows.internal_contract_item_ref_no || '-' ||
-                        cur_grd_rows.container_no;
-     if cur_grd_rows.gmr_price_fixation_status is null then
-        vc_price_fixation_status := cur_grd_rows.price_fixation_status;
-      else
-        vc_price_fixation_status := cur_grd_rows.gmr_price_fixation_status;
-      end if;                
+        vc_psu_id := cur_grd_rows.internal_gmr_ref_no || '-' ||
+                     cur_grd_rows.internal_grd_dgrd_ref_no || '-' ||
+                     cur_grd_rows.internal_contract_item_ref_no || '-' ||
+                     cur_grd_rows.container_no;
+        if cur_grd_rows.gmr_price_fixation_status is null then
+          vc_price_fixation_status := cur_grd_rows.price_fixation_status;
+        else
+          vc_price_fixation_status := cur_grd_rows.gmr_price_fixation_status;
+        end if;
         vc_error_msg := '1';
         if cur_grd_rows.qty_unit_id <> cur_grd_rows.base_qty_unit_id then
           vn_qty_in_base := cur_grd_rows.stock_qty *
@@ -3126,18 +3345,45 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
           --
           -- Forwad Rate from Valuation to Base Currency
           --
-          pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
-                                                  pd_trade_date,
-                                                  cur_grd_rows.payment_due_date,
-                                                  nvl(vc_m2m_cur_id,
-                                                      cur_grd_rows.base_cur_id),
-                                                  cur_grd_rows.base_cur_id,
-                                                  30,
-                                                  vn_m2m_base_fx_rate,
-                                                  vn_m2m_base_deviation);
+          /*pkg_general.sp_forward_cur_exchange_new(cur_grd_rows.corporate_id,
+          pd_trade_date,
+          cur_grd_rows.payment_due_date,
+          nvl(vc_m2m_cur_id,
+              cur_grd_rows.base_cur_id),
+          cur_grd_rows.base_cur_id,
+          30,
+          vn_m2m_base_fx_rate,
+          vn_m2m_base_deviation);*/
+        
           vc_error_msg := '5';
-
-          if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
+          if vc_m2m_cur_code <> cur_grd_rows.base_cur_code then
+            if cur_grd_rows.valuation_fx_date = pd_trade_date then
+              pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                               pd_trade_date,
+                                               vc_m2m_cur_id,
+                                               cur_grd_rows.base_cur_id,
+                                               'sp_stock_unreal_inv_in_bm M2M To Base Spot ',
+                                               pc_process,
+                                               vn_m2m_base_fx_rate);
+            else
+              pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                         pd_trade_date,
+                                                         cur_grd_rows.valuation_fx_date,
+                                                         vc_m2m_cur_id,
+                                                         cur_grd_rows.base_cur_id,
+                                                         'sp_stock_unreal_inv_in_bm M2M To Base Spot + FW Points',
+                                                         pc_process,
+                                                         vn_m2m_base_fx_rate,
+                                                         vn_m2m_base_deviation);
+            end if;
+            vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
+                                      vn_m2m_base_fx_rate || ' ' ||
+                                      cur_grd_rows.base_cur_code;
+          else
+            vn_m2m_base_fx_rate := 1;
+          end if;
+        
+          /*if vc_m2m_cur_id <> cur_grd_rows.base_cur_id then
             if vn_m2m_base_fx_rate is null or vn_m2m_base_fx_rate = 0 then
               vobj_error_log.extend;
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
@@ -3158,9 +3404,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
               vc_m2m_to_base_fw_rate := '1 ' || vc_m2m_cur_code || '=' ||
                                         vn_m2m_base_fx_rate || ' ' ||
                                         cur_grd_rows.base_cur_code;
-
+            
             end if;
-          end if;
+          end if;*/
         else
           vn_m2m_base_fx_rate := 1;
         end if;
@@ -3180,23 +3426,24 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                            vn_cont_price_cur_id_factor,
                                            vn_cont_price_cur_decimals);
         vc_error_msg := '7';
-
+      
         vc_error_msg                   := '8';
         vn_contract_value_in_price_cur := vn_cont_price *
                                           (pkg_general.f_get_converted_quantity(cur_grd_rows.product_id,
                                                                                 cur_grd_rows.qty_unit_id,
                                                                                 vc_cont_price_wt_unit_id,
                                                                                 cur_grd_rows.stock_qty));
-
+      
         vc_error_msg := '9';
-
+      
         --
         -- Contract Value in Base Currency
         --
-        vn_contract_value_in_base_cur := round((vn_cont_price *cur_grd_rows.price_to_base_fw_exch_rate_act*
+        vn_contract_value_in_base_cur := round((vn_cont_price *
+                                               cur_grd_rows.price_to_base_fw_exch_rate_act *
                                                vn_qty_in_base),
                                                2);
-
+      
       end if;
       vc_error_msg          := '10';
       vc_m2m_price_unit_str := cur_grd_rows.m2m_price_unit_str;
@@ -3229,7 +3476,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       --
       vn_product_premium_amt := cur_grd_rows.product_premium_per_unit *
                                 vn_qty_in_base;
-
+    
       vc_error_msg           := '13';
       vn_total_premium_value := round((vn_quality_premium_amt +
                                       vn_product_premium_amt),
@@ -3239,19 +3486,19 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
       --
       vn_sc_in_base_cur := cur_grd_rows.secondary_cost_per_unit *
                            vn_qty_in_base;
-
+    
       --------------------------------------------------------------------------
       vc_error_msg               := '14';
       vn_expected_cog_in_val_cur := round(vn_contract_value_in_base_cur, 2);
-
+    
       --
       -- Total COG = Contract Value (Qty*Price) + Quality Premium + Delivery Premium + Secondary Cost
       --
-
+    
       vn_expected_cog_in_val_cur := vn_expected_cog_in_val_cur +
                                     vn_total_premium_value +
                                     abs(vn_sc_in_base_cur);
-
+    
       if cur_grd_rows.purchase_sales = 'P' then
         vn_contract_value_in_val_cur := (-1) * vn_contract_value_in_val_cur;
         vn_expected_cog_in_val_cur   := (-1) * vn_expected_cog_in_val_cur;
@@ -3275,10 +3522,9 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                          5);
       vc_error_msg              := '16';
       vn_pnl_in_exch_price_unit := 0;
-
+    
       vn_trade_day_pnl_per_base_unit := vn_pnl_in_base_cur / vn_qty_in_base;
-     
-
+    
       insert into psu_phy_stock_unrealized
         (process_id,
          psu_id,
@@ -3767,5 +4013,5 @@ CREATE OR REPLACE PACKAGE BODY "PKG_PHY_BM_UNREALIZED_PNL" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end; 
+end;
 /

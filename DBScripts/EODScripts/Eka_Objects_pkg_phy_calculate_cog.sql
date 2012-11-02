@@ -700,7 +700,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
        where t.transaction_amt_main_cur_id =
              cur_exch_rate.transaction_amt_main_cur_id
          and t.process_id = pc_process_id
-         and t.cost_type='Secondary Cost';
+         and t.cost_type='Secondary Cost'
+         and t.transact_to_base_fw_exch_rate = cur_exch_rate.transact_to_base_fw_exch_rate;
     
     end loop;
    commit;
@@ -1851,7 +1852,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
        where t.transaction_amt_main_cur_id =
              cur_exch_rate.transaction_amt_main_cur_id
          and t.process_id = pc_process_id
-         and t.cost_type='Secondary Cost';
+         and t.cost_type='Secondary Cost'
+         and t.transact_to_base_fw_exch_rate = cur_exch_rate.transact_to_base_fw_exch_rate;
     
     end loop;
    commit;

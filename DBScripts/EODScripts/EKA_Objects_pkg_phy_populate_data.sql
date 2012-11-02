@@ -197,7 +197,7 @@ create or replace package pkg_phy_populate_data is
                                pd_trade_date   date,
                                pc_user_id      varchar2);
 
-end pkg_phy_populate_data;
+end pkg_phy_populate_data; 
 /
 create or replace package body PKG_PHY_POPULATE_DATA is
 
@@ -1049,6 +1049,139 @@ select grd_parent.internal_gmr_ref_no parent_internal_gmr_ref_no,
    and gmr.internal_gmr_ref_no = cur_update_inv.child_internal_gmr_ref_no;
    end loop;
 
+-- Update Pricing QP Start Date and End Date in PCI
+   vn_logno := vn_logno + 1;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'Update Pricing QP Start Date and End Date in PCI');
+ 
+for cur_price_qp in
+(--Called off
+select t.pcdi_id,
+       t.internal_contract_item_ref_no,
+       min(qp_start_date) qp_start_date,
+       min(qp_end_date) qp_end_date
+  from (select pcdi.pcdi_id,
+               pci.internal_contract_item_ref_no,
+               pofh.qp_start_date,
+               pofh.qp_end_date
+          from pcm_physical_contract_main     pcm,
+               pcdi_pc_delivery_item          pcdi,
+               pci_physical_contract_item     pci,
+               poch_price_opt_call_off_header poch,
+               pocd_price_option_calloff_dtls pocd,
+               pofh_price_opt_fixation_header pofh
+         where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+           and pcdi.pcdi_id = poch.pcdi_id
+           and poch.poch_id = pocd.poch_id
+           and pocd.pocd_id = pofh.pocd_id
+           and pci.pcdi_id = pcdi.pcdi_id
+           and pocd.qp_period_type <> 'Event'
+           and pcdi.is_active = 'Y'
+           and poch.is_active = 'Y'
+           and pocd.is_active = 'Y'
+           and pofh.is_active = 'Y'
+           and pci.is_active = 'Y'
+           and pcm.dbd_id = pc_dbd_id
+           and pcm.contract_type = 'BASEMETAL'
+           and pcdi.dbd_id = pc_dbd_id
+           and pci.dbd_id = pc_dbd_id
+           and pcdi.price_option_call_off_status in
+               ('Called Off', 'Not Applicable')
+        union -- All with Event Based
+        select pcdi.pcdi_id,
+               pci.internal_contract_item_ref_no,
+               di.expected_qp_start_date qp_start_date,
+               di.expected_qp_end_date qp_end_date
+          from pcm_physical_contract_main pcm,
+               pcdi_pc_delivery_item      pcdi,
+               di_del_item_exp_qp_details di,
+               pci_physical_contract_item pci
+         where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+           and pcdi.pcdi_id = di.pcdi_id
+           and pci.pcdi_id = pcdi.pcdi_id
+           and di.is_active = 'Y'
+           and pcdi.is_active = 'Y'
+           and pci.is_active = 'Y'
+           and pcm.dbd_id = pc_dbd_id
+           and pcm.contract_type = 'BASEMETAL'
+           and pcdi.dbd_id = pc_dbd_id
+           and pci.dbd_id = pc_dbd_id) t
+ group by t.pcdi_id,
+          t.internal_contract_item_ref_no
+-- not called off
+union all
+
+select t.pcdi_id,
+       t.internal_contract_item_ref_no,
+       min(t.qp_start_date) qp_start_date,
+       min(t.qp_end_date) qp_end_date
+  from (select pci.pcdi_id,
+               pci.internal_contract_item_ref_no,
+               (case
+                 when pfqpp.qp_pricing_period_type = 'Period' then
+                  pfqpp.qp_period_from_date
+                 when pfqpp.qp_pricing_period_type = 'Month' then
+                  to_date('01-' || pfqpp.qp_month || '-' || pfqpp.qp_year,
+                          'dd-Mon-yyyy')
+                 when pfqpp.qp_pricing_period_type = 'Date' then
+                  pfqpp.qp_date
+               end) qp_start_date,
+               (case
+                 when pfqpp.qp_pricing_period_type = 'Period' then
+                  pfqpp.qp_period_to_date
+                 when pfqpp.qp_pricing_period_type = 'Month' then
+                  last_day(to_date('01-' || pfqpp.qp_month || '-' ||
+                                   pfqpp.qp_year,
+                                   'dd-Mon-yyyy'))
+                 when pfqpp.qp_pricing_period_type = 'Date' then
+                  pfqpp.qp_date
+               end) qp_end_date
+        
+          from pcm_physical_contract_main    pcm,
+               pci_physical_contract_item    pci,
+               pcdi_pc_delivery_item         pcdi,
+               pcipf_pci_pricing_formula     pcipf,
+               pcbph_pc_base_price_header    pcbph,
+               pcbpd_pc_base_price_detail    pcbpd,
+               ppfh_phy_price_formula_header ppfh,
+               pfqpp_phy_formula_qp_pricing  pfqpp
+         where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+           and pci.internal_contract_item_ref_no =
+               pcipf.internal_contract_item_ref_no
+           and pci.pcdi_id = pcdi.pcdi_id
+           and pcipf.pcbph_id = pcbph.pcbph_id
+           and pcbph.pcbph_id = pcbpd.pcbph_id
+           and pcbpd.pcbpd_id = ppfh.pcbpd_id
+           and ppfh.ppfh_id = pfqpp.ppfh_id
+           and pfqpp.qp_pricing_period_type <> 'Event'
+           and pci.is_active = 'Y'
+           and pcipf.is_active = 'Y'
+           and pcbph.is_active = 'Y'
+           and pcbpd.is_active = 'Y'
+           and ppfh.is_active = 'Y'
+           and pfqpp.is_active = 'Y'
+           and pcdi.is_active = 'Y'
+           and pcm.dbd_id = pc_dbd_id
+           and pcm.contract_type = 'BASEMETAL'
+           and pci.dbd_id = pc_dbd_id
+           and pcdi.dbd_id = pc_dbd_id
+           and pcipf.dbd_id = pc_dbd_id
+           and pcbph.dbd_id = pc_dbd_id
+           and pcbpd.dbd_id = pc_dbd_id
+           and ppfh.dbd_id = pc_dbd_id
+           and pfqpp.dbd_id = pc_dbd_id
+           and pcdi.price_option_call_off_status = 'Not Called Off') t
+ group by t.pcdi_id,
+          t.internal_contract_item_ref_no) loop
+Update pci_physical_contract_item pci
+set pci.qp_start_date = cur_price_qp.qp_start_date,
+pci.qp_end_date = cur_price_qp.qp_end_date
+where pci.internal_contract_item_ref_no = cur_price_qp.internal_contract_item_ref_no
+and pci.dbd_id = pc_dbd_id;
+end loop;          
 
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
@@ -3902,6 +4035,7 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
    and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
   and iam.internal_invoice_ref_no = is1.internal_invoice_ref_no
    and iam.invoice_action_ref_no = axs.internal_action_ref_no
+   and nvl(is1.is_free_metal,'N') <> 'Y'
  group by iid.internal_gmr_ref_no)
  where gmr.dbd_id = gvc_dbd_id ;
   exception
@@ -12990,12 +13124,18 @@ where gmr.dbd_id = gvc_dbd_id;
        inv_qty_id,
        is_active,
        dbd_id,
+       product_premium,
+       quality_premium,
        price_unit_id,
        price_unit_cur_id,
        price_unit_cur_code,
        price_unit_weight_unit_id,
        price_unit_weight_unit,
        price_unit_weight,
+       material_cost_per_unit,
+       secondary_cost_per_unit,
+       product_premium_per_unit,
+       quality_premium_per_unit,
        process_id,
        stock_qty)
       select t.inv_id,
@@ -13012,17 +13152,72 @@ where gmr.dbd_id = gvc_dbd_id;
              invm.inv_qty_id,
              invm.is_active,
              gvc_dbd_id,
+             t.total_product_premium,
+             t.total_quality_premium,
              pum.price_unit_id,
              pum.cur_id,
              cm.cur_code,
              pum.weight_unit_id,
              qum.qty_unit,
              pum.weight,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_mc / t.cur_inv_qty)
+             
+               else
+                0
+             end as material_cost_per_unit,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_sc / t.cur_inv_qty)
+               else
+                0
+             end as secondary_cost_per_unit,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_product_premium / t.cur_inv_qty)
+               else
+                0
+             end as product_premium_per_unit,
+             case
+               when t.cur_inv_qty <> 0 then
+                (t.total_quality_premium / t.cur_inv_qty)
+               else
+                0
+             end as quality_premium_per_unit,
              gvc_process_id,
              null --agd.qty
         from (select invd.inv_id,
-                     nvl(sum(invd.transaction_qty), 0) cur_inv_qty
-                     
+                     nvl(sum(invd.transaction_qty), 0) cur_inv_qty,
+                     nvl(sum(case
+                               when invd.is_direct_cost = 'Y' and
+                                    scm.cost_component_name = 'Material Cost' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_mc,
+                     nvl(sum(case
+                               when scm.cost_type = 'SECONDARY_COST' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_sc,
+                     nvl(sum(case
+                               when scm.cost_component_name = 'Location Premium' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_product_premium,
+                     nvl(sum(case
+                               when scm.cost_component_name = 'Quality Premium' then
+                                invd.transaction_cost
+                               else
+                                0
+                             end),
+                         0) as total_quality_premium
                 from invd_inventory_detail     invd,
                      scm_service_charge_master scm
                where invd.transaction_date <= pd_trade_date

@@ -39,7 +39,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -4093,14 +4093,14 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     commit;
     vn_no := 4;
     /*update is_invoice_summary is1
-       set is1.is_cancelled_today = 'Y'
-     where is1.is_active = 'N'
-       and is1.dbd_id = pc_dbd_id
-       and is1.internal_invoice_ref_no in
-           (select is1.internal_invoice_ref_no
-              from is_invoice_summary is2
-             where is2.dbd_id = gvc_previous_dbd_id
-               and is2.is_active = 'Y');*/
+      set is1.is_cancelled_today = 'Y'
+    where is1.is_active = 'N'
+      and is1.dbd_id = pc_dbd_id
+      and is1.internal_invoice_ref_no in
+          (select is1.internal_invoice_ref_no
+             from is_invoice_summary is2
+            where is2.dbd_id = gvc_previous_dbd_id
+              and is2.is_active = 'Y');*/
     update is_invoice_summary is1
        set is1.is_cancelled_today = 'Y'
      where is1.is_active = 'N'
@@ -4110,7 +4110,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
               from is_invoice_summary is2
              where is2.dbd_id = gvc_previous_dbd_id
                and is2.internal_invoice_ref_no = is1.internal_invoice_ref_no
-               and is2.is_active = 'Y');               
+               and is2.is_active = 'Y');
     commit;
     vn_no := 5;
     update is_invoice_summary is1
@@ -4121,15 +4121,15 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
               from is_invoice_summary is2
              where is2.dbd_id = gvc_previous_dbd_id
                and is2.internal_invoice_ref_no = is1.internal_invoice_ref_no);
-               
+  
     /*update is_invoice_summary is1
-       set is1.is_invoice_new = 'Y'
-     where is1.is_active = 'Y'
-       and is1.dbd_id = pc_dbd_id
-       and is1.internal_invoice_ref_no not in
-           (select is2.internal_invoice_ref_no
-              from is_invoice_summary is2
-             where is2.dbd_id = gvc_previous_dbd_id);*/
+      set is1.is_invoice_new = 'Y'
+    where is1.is_active = 'Y'
+      and is1.dbd_id = pc_dbd_id
+      and is1.internal_invoice_ref_no not in
+          (select is2.internal_invoice_ref_no
+             from is_invoice_summary is2
+            where is2.dbd_id = gvc_previous_dbd_id);*/
     vn_no := 6;
     commit;
     for cc in (select is1.internal_invoice_ref_no,
@@ -4154,7 +4154,54 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     end loop;
     vn_no := 7;
     commit;
-
+    delete from gepd_gmr_element_pledge_detail
+     where corporate_id = pc_corporate_id;
+    commit;
+    insert into gepd_gmr_element_pledge_detail
+      (gepd_id,
+       corporate_id,
+       activity_action_id,
+       activity_ref_no,
+       activity_date,
+       internal_gmr_ref_no,
+       pledge_input_gmr,
+       supplier_cp_id,
+       pledge_cp_id,
+       product_id,
+       element_id,
+       element_type,
+       pledge_qty,
+       pledge_qty_unit_id,
+       internal_action_ref_no,
+       version,
+       is_active,
+       quality_id,
+       due_date,
+       dbd_id)
+      select gepd.gepd_id,
+             gepd.corporate_id,
+             gepd.activity_action_id,
+             gepd.activity_ref_no,
+             gepd.activity_date,
+             gepd.internal_gmr_ref_no,
+             gepd.pledge_input_gmr,
+             gepd.supplier_cp_id,
+             gepd.pledge_cp_id,
+             gepd.product_id,
+             gepd.element_id,
+             gepd.element_type,
+             gepd.pledge_qty,
+             gepd.pledge_qty_unit_id,
+             gepd.internal_action_ref_no,
+             gepd.version,
+             gepd.is_active,
+             gepd.quality_id,
+             gepd.due_date,
+             pc_dbd_id
+        from gepd_gmr_element_pledge_detail@eka_appdb gepd
+       where gepd.corporate_id = pc_corporate_id
+         and gepd.activity_date <= pd_trade_date;
+    commit;
   exception
     when others then
       sp_precheck_process_log(pc_corporate_id,
@@ -4181,5 +4228,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /

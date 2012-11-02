@@ -76,6 +76,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_user_id               varchar2,
                                     pd_payment_due_date      date,
                                     pc_process               varchar2,
+                                    pd_valuation_fx_date     date,
                                     pn_qp_amt                out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2);
@@ -89,6 +90,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_process               varchar2,
                                     pc_premium_price_unit_id varchar2,
                                     pc_valuation_point_id    varchar2,
+                                    pd_valuation_fx_date     date,
                                     pn_pp_amt                out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2);
@@ -132,7 +134,11 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pd_trade_date   date,
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2);
-end; 
+  procedure sp_update_tmpc_fx_date(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_dbd_id       varchar2,
+                                   pc_user_id      varchar2);
+end;
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -219,10 +225,10 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       goto cancel_process;
     end if;
     sp_pre_check_m2m_tolling_extn(pc_corporate_id,
-    pd_trade_date,
-    gvc_dbd_id,
-    pc_user_id,
-    pc_process);
+                                  pd_trade_date,
+                                  gvc_dbd_id,
+                                  pc_user_id,
+                                  pc_process);
   
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
@@ -258,6 +264,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       goto cancel_process;
     end if;
     vn_logno := vn_logno + 1;
+  
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             gvc_dbd_id,
@@ -268,6 +275,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       goto cancel_process;
     end if;
     sp_pre_check_rebuild_stats;
+  
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -299,7 +307,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_dbd_id       varchar2,
                                     pc_user_id      varchar2,
                                     pc_process      varchar2) is
-    pragma autonomous_transaction;
     /******************************************************************************************************************************************
     procedure name                            : sp_pre_check_m2m_values
     author                                    : siva
@@ -555,7 +562,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        shipment_date,
        internal_m2m_id,
        product_type,
-       payment_due_date)
+       payment_due_date,
+       qp_end_date)
       (select pcm.corporate_id corporate_id,
               mv_qat.product_id product_id,
               mv_qat.quality_id quality_id,
@@ -591,7 +599,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  pd_trade_date
                 else
                  nvl(pcdi.payment_due_date, pd_trade_date)
-              end)
+              end),
+              pci.qp_end_date
          from pcm_physical_contract_main    pcm,
               pci_physical_contract_item    pci,
               pcpq_pc_product_quality       pcpq,
@@ -663,7 +672,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        shipment_date,
        internal_m2m_id,
        product_type,
-       payment_due_date)
+       payment_due_date,
+       qp_end_date)
       select m2m.corporate_id,
              m2m.product_id,
              m2m.quality_id,
@@ -691,7 +701,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              m2m.shipment_date,
              null internal_m2m_id,
              'BASEMETAL',
-             payment_due_date
+             payment_due_date,
+             m2m.qp_end_date
         from (select temp.corporate_id,
                      temp.product_id,
                      temp.quality_id,
@@ -723,11 +734,13 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      to_char(pd_trade_date, 'Mon') shipment_month,
                      to_char(pd_trade_date, 'yyyy') shipment_year,
                      pd_trade_date shipment_date,
-                     (case when nvl(temp.payment_due_date,pd_trade_date) <= pd_trade_date then
-                          pd_trade_date
-                          else
-                          temp.payment_due_date
-                     end) payment_due_date
+                     (case
+                       when temp.payment_due_date < pd_trade_date then
+                        pd_trade_date
+                       else
+                        temp.payment_due_date
+                     end) payment_due_date,
+                     temp.qp_end_date
                 from (select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
                                     nvl(grd.inventory_status, 'NA') in
@@ -764,7 +777,13 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              grd.product_id,
                              grd.quality_id quality_id,
                              pci.m2m_inco_term,
-                             (case when nvl(grd.inventory_status, 'NA') = 'In' then pd_trade_date else pcdi.payment_due_date end)payment_due_date  
+                             (case
+                               when nvl(grd.inventory_status, 'NA') = 'In' then
+                                pd_trade_date
+                               else
+                                pcdi.payment_due_date
+                             end) payment_due_date,
+                             pci.qp_end_date
                         from grd_goods_record_detail     grd,
                              gmr_goods_movement_record   gmr,
                              pci_physical_contract_item  pci,
@@ -845,7 +864,13 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              dgrd.product_id,
                              dgrd.quality_id,
                              pci.m2m_inco_term,
-                             (case when nvl(dgrd.inventory_status, 'NA') = 'Out' then pd_trade_date else pcdi.payment_due_date end)payment_due_date
+                             (case
+                               when nvl(dgrd.inventory_status, 'NA') = 'Out' then
+                                pd_trade_date
+                               else
+                                pcdi.payment_due_date
+                             end) payment_due_date,
+                             pci.qp_end_date
                         from gmr_goods_movement_record   gmr,
                              pci_physical_contract_item  pci,
                              pcm_physical_contract_main  pcm,
@@ -925,7 +950,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                              grd.product_id,
                              grd.quality_id quality_id,
                              null m2m_inco_term,
-                             pd_trade_date payment_due_date
+                             pd_trade_date payment_due_date,
+                             pd_trade_date --- ???
                         from grd_goods_record_detail     grd,
                              gmr_goods_movement_record   gmr,
                              sld_storage_location_detail shm,
@@ -1252,6 +1278,17 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       commit;
     end loop;
     vc_error_loc := 10;
+    -- Update data so that we can calculate other M2M Data
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            gvc_dbd_id,
+                            10101,
+                            'sp_update_tmpc_fx_date');
+    sp_update_tmpc_fx_date(pc_corporate_id,
+                           pd_trade_date,
+                           gvc_dbd_id,
+                           pc_user_id);
+    commit;
     --Checking for the Quality premimum is there or not
     --For this  we are calling the sp_calc_m2m_quality_premimum 
     for cc1 in (select tmpc.corporate_id,
@@ -1265,7 +1302,10 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                        tmpc.product_id,
                        pdm.product_desc,
                        qat.quality_name,
-                       tmpc.payment_due_date
+                       tmpc.payment_due_date,
+                       tmpc.price_basis,
+                       tmpc.valuation_fx_date,
+                       tmpc.qp_fx_date
                   from tmpc_temp_m2m_pre_check tmpc,
                        qat_quality_attributes  qat,
                        pdm_productmaster       pdm
@@ -1284,7 +1324,10 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                           tmpc.product_id,
                           pdm.product_desc,
                           qat.quality_name,
-                          tmpc.payment_due_date)
+                          tmpc.payment_due_date,
+                          tmpc.price_basis,
+                          tmpc.valuation_fx_date,
+                          tmpc.qp_fx_date)
     loop
       vn_qty_premimum_amt := 0;
       sp_m2m_quality_premimum(pc_corporate_id,
@@ -1298,6 +1341,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                               pc_user_id,
                               cc1.payment_due_date,
                               pc_process,
+                              cc1.valuation_fx_date,
                               vn_qty_premimum_amt,
                               vc_quality_exch_rate_string,
                               vc_exch_rate_missing);
@@ -1353,7 +1397,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                       tmpc.shipment_year,
                       tmpc.payment_due_date,
                       tmpc.mvp_id,
-                      tmpc.valuation_point
+                      tmpc.valuation_point,
+                      tmpc.valuation_fx_date
                  from tmpc_temp_m2m_pre_check tmpc,
                       pdm_productmaster       pdm
                 where tmpc.corporate_id = pc_corporate_id
@@ -1367,7 +1412,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          tmpc.shipment_year,
                          tmpc.payment_due_date,
                          tmpc.mvp_id,
-                         tmpc.valuation_point)
+                         tmpc.valuation_point,
+                         tmpc.valuation_fx_date)
     loop
       vn_pp_amt := 0;
       sp_m2m_product_premimum(cc.corporate_id,
@@ -1380,6 +1426,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                               pc_process,
                               cc.base_price_unit_id_in_ppu,
                               cc.mvp_id,
+                              cc.valuation_fx_date,
                               vn_pp_amt,
                               vc_product_exch_rate_string,
                               vc_exch_rate_missing);
@@ -1628,7 +1675,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
    pc_process      varchar2)
   
    is
-    pragma autonomous_transaction;
     cursor cur_loc_diff is
       select tmpc.mvp_id || tmpc.valuation_city_id ||
              tmpc.valuation_incoterm_id || tmpc.product_id ||
@@ -1640,7 +1686,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              ldc.cost_value cost_value,
              ldc.cost_price_unit_id,
              tmpc.base_price_unit_id_in_ppu,
-             tmpc.payment_due_date
+             tmpc.valuation_fx_date
         from lds_location_diff_setup ldh,
              ldc_location_diff_cost ldc,
              (select tmpc.valuation_incoterm_id,
@@ -1648,7 +1694,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                      tmpc.product_id,
                      tmpc.payment_due_date,
                      tmpc.mvp_id,
-                     base_price_unit_id_in_ppu
+                     base_price_unit_id_in_ppu,
+                     tmpc.valuation_fx_date
                 from tmpc_temp_m2m_pre_check tmpc
                where tmpc.product_type = 'BASEMETAL'
                  and tmpc.corporate_id = pc_corporate_id
@@ -1657,7 +1704,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                         tmpc.product_id,
                         tmpc.payment_due_date,
                         tmpc.mvp_id,
-                        base_price_unit_id_in_ppu) tmpc
+                        base_price_unit_id_in_ppu,
+                        tmpc.valuation_fx_date) tmpc
        where ldh.loc_diff_id = ldc.loc_diff_id
          and ldh.valuation_city_id = tmpc.valuation_city_id
          and tmpc.mvp_id = ldh.valuation_point_id
@@ -1698,8 +1746,10 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     vc_valuation_incoterm_id     varchar2(15);
     vc_product_id                varchar2(15);
     vd_payment_due_date          date;
+    vd_valuation_fx_date         date;
     vc_mvp_id                    varchar2(15);
     vc_data_missing_for          varchar2(100);
+  
   begin
     for cur_loc_diff_rows in cur_loc_diff
     loop
@@ -1716,7 +1766,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
            and tmpc.valuation_city_id = vc_valuation_city_id
            and tmpc.valuation_incoterm_id = vc_valuation_incoterm_id
            and tmpc.product_id = vc_product_id
-           and tmpc.payment_due_date = vd_payment_due_date
+              --        and tmpc.payment_due_date = vd_payment_due_date
+           and tmpc.valuation_fx_date = vd_valuation_fx_date
            and tmpc.mvp_id = vc_mvp_id;
         vn_loc_diff                  := 0;
         vn_total_loc_diff            := 0;
@@ -1765,19 +1816,38 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
         --
         -- Get the Exchange Rate from Premium Price Currency to Base Currency
         -- 
-        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                pd_trade_date,
-                                                cur_loc_diff_rows.payment_due_date,
-                                                vc_ld_main_cur_id,
-                                                vc_base_cur_id,
-                                                30,
-                                                vn_fw_exch_rate_ld_to_base,
-                                                vn_forward_points);
+        /* pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+        pd_trade_date,
+        cur_loc_diff_rows.payment_due_date,
+        vc_ld_main_cur_id,
+        vc_base_cur_id,
+        30,
+        vn_fw_exch_rate_ld_to_base,
+        vn_forward_points);*/
+        if cur_loc_diff_rows.valuation_fx_date = pd_trade_date then
+          pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                           pd_trade_date,
+                                           vc_ld_main_cur_id,
+                                           vc_base_cur_id,
+                                           'sp_update_ld_base_metal LD to Base Spot',
+                                           pc_process,
+                                           vn_fw_exch_rate_ld_to_base);
+        else
+          pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                     pd_trade_date,
+                                                     cur_loc_diff_rows.valuation_fx_date,
+                                                     vc_ld_main_cur_id,
+                                                     vc_base_cur_id,
+                                                     'sp_update_ld_base_metal LD to Base FW Rate',
+                                                     pc_process,
+                                                     vn_fw_exch_rate_ld_to_base,
+                                                     vn_forward_points);
+        end if;
         vc_error_loc := '5';
         if vn_fw_exch_rate_ld_to_base = 0 then
           vc_data_missing_for := vc_ld_main_cur_code || ' / ' ||
                                  vc_base_cur_code || ' ' ||
-                                 to_char(cur_loc_diff_rows.payment_due_date,
+                                 to_char(cur_loc_diff_rows.valuation_fx_date,
                                          'dd-Mon-yyyy');
           insert into eel_eod_eom_exception_log eel
             (corporate_id,
@@ -1836,8 +1906,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       vc_valuation_city_id     := cur_loc_diff_rows.valuation_city_id;
       vc_valuation_incoterm_id := cur_loc_diff_rows.valuation_incoterm_id;
       vc_product_id            := cur_loc_diff_rows.product_id;
-      vd_payment_due_date      := cur_loc_diff_rows.payment_due_date;
-      vc_mvp_id                := cur_loc_diff_rows.mvp_id;
+      --vd_payment_due_date      := cur_loc_diff_rows.payment_due_date;
+      vd_valuation_fx_date := cur_loc_diff_rows.valuation_fx_date;
+      vc_mvp_id            := cur_loc_diff_rows.mvp_id;
     end loop;
     vc_error_loc := '7';
     update tmpc_temp_m2m_pre_check tmpc
@@ -1847,7 +1918,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        and tmpc.valuation_city_id = vc_valuation_city_id
        and tmpc.valuation_incoterm_id = vc_valuation_incoterm_id
        and tmpc.product_id = vc_product_id
-       and tmpc.payment_due_date = vd_payment_due_date
+          -- and tmpc.payment_due_date = vd_payment_due_date
+       and tmpc.valuation_fx_date = vd_valuation_fx_date
        and tmpc.mvp_id = vc_mvp_id;
     vc_error_loc := '8';
     commit;
@@ -1890,7 +1962,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
    pc_process      varchar2)
   
    is
-    pragma autonomous_transaction;
     cursor cur_loc_diff is
       select tmpc.mvp_id || tmpc.valuation_city_id ||
              tmpc.valuation_incoterm_id || tmpc.conc_product_id ||
@@ -2143,7 +2214,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                          pc_dbd_id       varchar2,
                                          pc_user_id      varchar2,
                                          pc_process      varchar2) is
-    pragma autonomous_transaction;
     /******************************************************************************************************************************************
     procedure name                            : sp_pre_check_m2m_values
     author                                    : siva
@@ -3088,7 +3158,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
     -------------------- 
-  commit;
+    commit;
     for cc2 in (select t.pcdi_id,
                        t.internal_contract_ref_no,
                        t.internal_contract_item_ref_no,
@@ -3219,7 +3289,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
     -------
-  commit;
+    commit;
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -3988,7 +4058,6 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                           pc_dbd_id       varchar2,
                                           pc_user_id      varchar2,
                                           pc_process      varchar2) is
-    pragma autonomous_transaction;
     /******************************************************************************************************************************************
     procedure name                            : sp_pre_check_m2m_values
     author                                    : Suresh Gottipati
@@ -5781,6 +5850,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_user_id               varchar2,
                                     pd_payment_due_date      date,
                                     pc_process               varchar2,
+                                    pd_valuation_fx_date     date,
                                     pn_qp_amt                out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2) is
@@ -5891,21 +5961,41 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
         --
         -- Get the Exchange Rate from Premium Price Currency to Base Currency
         -- 
-        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                pd_trade_date,
-                                                pd_payment_due_date,
-                                                vc_premium_main_cur_id,
-                                                vc_base_cur_id,
-                                                30,
-                                                vn_fw_exch_rate_prem_to_base,
-                                                vn_forward_points);
+        /* pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+        pd_trade_date,
+        pd_payment_due_date,
+        vc_premium_main_cur_id,
+        vc_base_cur_id,
+        30,
+        vn_fw_exch_rate_prem_to_base,
+        vn_forward_points);*/
+        if pd_valuation_fx_date = pd_trade_date then
+          pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                           pd_trade_date,
+                                           vc_premium_main_cur_id,
+                                           vc_base_cur_id,
+                                           'sp_m2m_quality_premium QP to Base',
+                                           pc_process,
+                                           vn_fw_exch_rate_prem_to_base);
+        else
+          pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                     pd_trade_date,
+                                                     pd_valuation_fx_date,
+                                                     vc_premium_main_cur_id,
+                                                     vc_base_cur_id,
+                                                     'sp_m2m_quality_premium QP to Base',
+                                                     pc_process,
+                                                     vn_fw_exch_rate_prem_to_base,
+                                                     vn_forward_points);
+        end if;
       
         if vn_fw_exch_rate_prem_to_base = 0 then
           pc_exch_rate_missing := 'Y';
-          vc_data_missing_for  := vc_premium_main_cur_code || ' / ' ||
+          /*vc_data_missing_for  := vc_premium_main_cur_code || ' / ' ||
                                   vc_base_cur_code || ' ' ||
                                   to_char(pd_payment_due_date,
-                                          'dd-Mon-yyyy');
+                                          'dd-Mon-yyyy') || ' Trade Date ' ||
+                                  to_char(pd_trade_date, 'dd-Mon-yyyy');
           insert into eel_eod_eom_exception_log eel
             (corporate_id,
              submodule_name,
@@ -5927,7 +6017,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              systimestamp,
              pc_user_id,
              null,
-             pd_trade_date);
+             pd_trade_date);*/
         end if;
         if vc_base_cur_id <> vc_premium_main_cur_id then
           vc_exch_rate_string := vc_exch_rate_string || '1 ' ||
@@ -5998,15 +6088,34 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           --
           -- Get the Exchange Rate from Premium Price Currency to Base Currency
           -- 
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  pd_payment_due_date,
-                                                  vc_premium_main_cur_id,
-                                                  vc_base_cur_id,
-                                                  30,
-                                                  vn_fw_exch_rate_prem_to_base,
-                                                  vn_forward_points);
-          if vn_fw_exch_rate_prem_to_base = 0 then
+          /* pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+          pd_trade_date,
+          pd_payment_due_date,
+          vc_premium_main_cur_id,
+          vc_base_cur_id,
+          30,
+          vn_fw_exch_rate_prem_to_base,
+          vn_forward_points);*/
+          if pd_valuation_fx_date = pd_trade_date then
+            pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                             pd_trade_date,
+                                             vc_premium_main_cur_id,
+                                             vc_base_cur_id,
+                                             'sp_m2m_quality_premium QP to Base Spot Beyond',
+                                             pc_process,
+                                             vn_fw_exch_rate_prem_to_base);
+          else
+            pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                       pd_trade_date,
+                                                       pd_valuation_fx_date,
+                                                       vc_premium_main_cur_id,
+                                                       vc_base_cur_id,
+                                                       'sp_m2m_quality_premium QP to Base No Spot Beyond',
+                                                       pc_process,
+                                                       vn_fw_exch_rate_prem_to_base,
+                                                       vn_forward_points);
+          end if;
+          /*if vn_fw_exch_rate_prem_to_base = 0 then
             vc_data_missing_for := vc_premium_main_cur_code || ' / ' ||
                                    vc_base_cur_code || ' ' ||
                                    to_char(pd_payment_due_date,
@@ -6033,7 +6142,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                pc_user_id,
                null,
                pd_trade_date);
-          end if;
+          end if;*/
           --
           -- Convert Premium to Base
           --
@@ -6629,6 +6738,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_process               varchar2,
                                     pc_premium_price_unit_id varchar2,
                                     pc_valuation_point_id    varchar2,
+                                    pd_valuation_fx_date     date,
                                     pn_pp_amt                out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2) is
@@ -6738,20 +6848,41 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
         --
         -- Get the Exchange Rate from Premium Price Currency to Base Currency
         -- 
-        pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                pd_trade_date,
-                                                pd_payment_due_date,
-                                                vc_premium_main_cur_id,
-                                                vc_base_cur_id,
-                                                30,
-                                                vn_fw_exch_rate_prem_to_base,
-                                                vn_forward_points);
+        /* pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+        pd_trade_date,
+        pd_payment_due_date,
+        vc_premium_main_cur_id,
+        vc_base_cur_id,
+        30,
+        vn_fw_exch_rate_prem_to_base,
+        vn_forward_points);*/
+      
+        if pd_valuation_fx_date = pd_trade_date then
+          pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                           pd_trade_date,
+                                           vc_premium_main_cur_id,
+                                           vc_base_cur_id,
+                                           'sp_m2m_product_premium PP to Base Spot',
+                                           pc_process,
+                                           vn_fw_exch_rate_prem_to_base);
+        else
+          pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                     pd_trade_date,
+                                                     pd_valuation_fx_date,
+                                                     vc_premium_main_cur_id,
+                                                     vc_base_cur_id,
+                                                     'sp_m2m_product_premium PP to Base No Spot',
+                                                     pc_process,
+                                                     vn_fw_exch_rate_prem_to_base,
+                                                     vn_forward_points);
+        end if;
         if vn_fw_exch_rate_prem_to_base = 0 then
           pc_exch_rate_missing := 'Y';
-          vc_data_missing_for  := vc_premium_main_cur_code || ' / ' ||
+          /*vc_data_missing_for  := vc_premium_main_cur_code || ' / ' ||
                                   vc_base_cur_code || ' ' ||
                                   to_char(pd_payment_due_date,
-                                          'dd-Mon-yyyy');
+                                          'dd-Mon-yyyy') || ' Trade Date ' ||
+                                  to_char(pd_trade_date, 'dd-Mon-yyyy');
           insert into eel_eod_eom_exception_log eel
             (corporate_id,
              submodule_name,
@@ -6773,7 +6904,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              systimestamp,
              pc_user_id,
              null,
-             pd_trade_date);
+             pd_trade_date);*/
         end if;
         if vc_base_cur_id <> vc_premium_main_cur_id then
           vc_exch_rate_string := '1 ' || vc_premium_main_cur_code || '=' ||
@@ -6844,20 +6975,39 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
           --
           -- Get the Exchange Rate from Premium Price Currency to Base Currency
           -- 
-          pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  pd_payment_due_date,
-                                                  vc_premium_main_cur_id,
-                                                  vc_base_cur_id,
-                                                  30,
-                                                  vn_fw_exch_rate_prem_to_base,
-                                                  vn_forward_points);
-          if vn_fw_exch_rate_prem_to_base = 0 then
-            vc_data_missing_for := vc_premium_main_cur_code || ' / ' ||
-                                   vc_base_cur_code || ' ' ||
-                                   to_char(pd_payment_due_date,
-                                           'dd-Mon-yyyy');
-            insert into eel_eod_eom_exception_log eel
+          /* pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
+          pd_trade_date,
+          pd_payment_due_date,
+          vc_premium_main_cur_id,
+          vc_base_cur_id,
+          30,
+          vn_fw_exch_rate_prem_to_base,
+          vn_forward_points);*/
+          if pd_valuation_fx_date = pd_trade_date then
+            pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                             pd_trade_date,
+                                             vc_premium_main_cur_id,
+                                             vc_base_cur_id,
+                                             'sp_m2m_product_premium PP to Base Spot Beyond',
+                                             pc_process,
+                                             vn_fw_exch_rate_prem_to_base);
+          else
+            pkg_general.sp_bank_fx_rate_spot_fw_points(pc_corporate_id,
+                                                       pd_trade_date,
+                                                       pd_valuation_fx_date,
+                                                       vc_premium_main_cur_id,
+                                                       vc_base_cur_id,
+                                                       'sp_m2m_product_premium PP to Base No Spot Beyond',
+                                                       pc_process,
+                                                       vn_fw_exch_rate_prem_to_base,
+                                                       vn_forward_points);
+          end if;
+          /* if vn_fw_exch_rate_prem_to_base = 0 then
+          vc_data_missing_for := vc_premium_main_cur_code || ' / ' ||
+           vc_base_cur_code || ' ' ||
+           to_char(pd_payment_due_date,
+                   'dd-Mon-yyyy');*/
+          /*insert into eel_eod_eom_exception_log eel
               (corporate_id,
                submodule_name,
                exception_code,
@@ -6879,7 +7029,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                pc_user_id,
                null,
                pd_trade_date);
-          end if;
+          end if;*/
           --
           -- Convert Premium to Base
           --
@@ -7546,5 +7696,66 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          pc_dbd_id);
     end loop;
   end;
-end; 
+  procedure sp_update_tmpc_fx_date(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_dbd_id       varchar2,
+                                   pc_user_id      varchar2) is
+    cursor cur_temp is
+      select instrument_id,
+             fx_date
+        from (select tmpc.instrument_id,
+                     tmpc.valuation_date fx_date
+                from tmpc_temp_m2m_pre_check tmpc
+               where tmpc.corporate_id = pc_corporate_id
+              union
+              select tmpc.instrument_id,
+                     tmpc.qp_end_date fx_date
+                from tmpc_temp_m2m_pre_check tmpc
+               where tmpc.corporate_id = pc_corporate_id)
+       group by instrument_id,
+                fx_date;
+    vd_qp_end_date   date;
+    vd_3rd_wed_of_qp date;
+    workings_days    number;
+    vd_quotes_date   date;
+  begin
+  
+    for cur_temp_rows in cur_temp
+    loop
+      vd_qp_end_date   := cur_temp_rows.fx_date;
+      vd_3rd_wed_of_qp := pkg_metals_general.f_get_next_day(vd_qp_end_date,
+                                                            'Wed',
+                                                            3);
+    
+      while true
+      loop
+        if pkg_metals_general.f_is_day_holiday(cur_temp_rows.instrument_id,
+                                               vd_3rd_wed_of_qp) then
+          vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
+        else
+          exit;
+        end if;
+      end loop;
+      -- If QP End Date is Less than EOD Then Update EOD Date as Spot Date For Exchange
+      if vd_3rd_wed_of_qp < pd_trade_date then
+        vd_3rd_wed_of_qp := pd_trade_date;
+      end if;
+    
+      update tmpc_temp_m2m_pre_check tmpc
+         set tmpc.qp_fx_date = vd_3rd_wed_of_qp
+       where tmpc.corporate_id = pc_corporate_id
+         and tmpc.qp_end_date = cur_temp_rows.fx_date
+         and tmpc.instrument_id = cur_temp_rows.instrument_id
+         and tmpc.qp_end_date = cur_temp_rows.fx_date;
+    
+      update tmpc_temp_m2m_pre_check tmpc
+         set tmpc.valuation_fx_date = vd_3rd_wed_of_qp
+       where tmpc.corporate_id = pc_corporate_id
+         and tmpc.instrument_id = cur_temp_rows.instrument_id
+         and tmpc.valuation_date = cur_temp_rows.fx_date;
+    
+      commit;
+    end loop;
+  end;
+end;
 /
