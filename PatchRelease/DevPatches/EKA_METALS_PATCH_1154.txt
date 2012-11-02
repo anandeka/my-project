@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_1154
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Gaurav Kumar
+ 
+Created on*        		:  01-Nov-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice 
+
+Sub-Module  			 :  Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 107231
+Author: gaurav.kumar
+Date: 7:26:42 PM, Friday, November 02, 2012
+Message:
+columns were added in the Invoice_doc view to resolve bugs # 68814 and 69441.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_341.sql
+
+
+
+
+
+
+
