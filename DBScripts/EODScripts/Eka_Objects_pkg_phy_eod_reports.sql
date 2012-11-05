@@ -16015,11 +16015,10 @@ commit;
                vc_gmr_price_unit_cur_code
           from cgcp_conc_gmr_cog_price cgcp
          where cgcp.internal_gmr_ref_no =
-               cur_closing_rows.internal_gmr_ref_no
-           and cgcp.internal_grd_ref_no =
-               cur_closing_rows.internal_grd_ref_no
+               cur_closing_rows.gmr_ref_no_for_price
            and cgcp.process_id = pc_process_id
-           and cgcp.element_id = cur_closing_rows.element_id;
+           and cgcp.element_id = cur_closing_rows.element_id
+           and rownum < 2;
       exception
         when others then
           begin
