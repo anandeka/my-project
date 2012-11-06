@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1158
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  06-Nov-2012
+
+Bug / Enhancement*      :  BUG
+
+Bug ID*            		:  69803
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Invoice
+
+Sub-Module  			:  Invice o/p Doc
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		     :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 107434
+Author: mayank.chaturvedi
+Date: 8:34:48 PM, Tuesday, November 06, 2012
+Message:
+- For Bug 70160 API o/p Doc issue.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_429.sql
+
+Revision: 107430
+Author: mayank.chaturvedi
+Date: 8:13:19 PM, Tuesday, November 06, 2012
+Message:
+- For Bug 70160 API o/p Doc issue.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_342.sql
