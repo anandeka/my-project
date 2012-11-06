@@ -53,6 +53,14 @@ Bug ID:- 69803
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql
 
+Revision: 107402
+Author: elaiyaraja.nallathambi
+Date: 6:33:32 PM, Tuesday, November 06, 2012
+Message:
+Migrated Purchase Accrual Report as per the Latest FS.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+
 
 
 
