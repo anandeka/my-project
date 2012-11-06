@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_1157
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  06-Nov-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  69803
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 107387
+Author: elaiyaraja.nallathambi
+Date: 5:39:52 PM, Tuesday, November 06, 2012
+Message:
+Bug ID:- 69803
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt
+
+Revision: 107388
+Author: elaiyaraja.nallathambi
+Date: 5:41:33 PM, Tuesday, November 06, 2012
+Message:
+Bug ID:- 69803
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql
+
+
+
+
+
