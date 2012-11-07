@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1159
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  07-Nov-2012
+
+Bug / Enhancement*      	:  Enhancement
+
+Bug ID*            		:  69803
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group: Feature Group
+==================================================================
+Module  		   	    :  Logistics 
+
+Sub-Module  			:  Logistics
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		     :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 107464
+Author: anupkumar.agarwal
+Date: 3:16:09 PM, Wednesday, November 07, 2012
+Message:
+Document Child Table For Stock Populated for Shipment Back To back 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_430.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_343.sql
+
