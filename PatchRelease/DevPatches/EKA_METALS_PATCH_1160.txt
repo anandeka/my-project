@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1160
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  07-Nov-2012
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group: 
+==================================================================
+Module  		   	    :  Invoice 
+
+Sub-Module  			:  Invoice o/p doc
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		     :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 107491
+Author: mayank.chaturvedi
+Date: 5:41:28 PM, Wednesday, November 07, 2012
+Message:
+-Changes for invoice o/p PI-FI-DFI o/p doc
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_431.sql
