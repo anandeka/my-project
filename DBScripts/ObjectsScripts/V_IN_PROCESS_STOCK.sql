@@ -10,6 +10,8 @@ select ips_temp.corporate_id,
           'Receive Material'
          when ips_temp.action_id = 'CREATE_FREE_MATERIAL' then
           'Capture Yield'
+         when ips_temp.action_id = 'IN_PROCESS_ADJUSTMENT' then
+          'In Process Adjustment'
          else
           ips_temp.action_name
        end) action_name,
@@ -47,6 +49,8 @@ select ips_temp.corporate_id,
        'Free Metal Stock'*/
          when ips_temp.tolling_stock_type = 'Delta MFT IP Stock' then
           'Delta IP Stock'
+         when ips_temp.tolling_stock_type = 'In Process Adjustment Stock' then
+          'In Process Adjustment Stock'
          else
           ips_temp.tolling_stock_type
        end) tolling_stock_type,
@@ -190,7 +194,7 @@ select ips_temp.corporate_id,
                phd_profileheaderdetails     phd
          where grd.is_deleted = 'N'
            and grd.status = 'Active'
-           and grd.tolling_stock_type = 'RM In Process Stock'
+           and grd.tolling_stock_type in( 'RM In Process Stock','In Process Adjustment Stock')
            and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
            and wrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
