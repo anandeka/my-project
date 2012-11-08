@@ -6,9 +6,9 @@ Created by*        		:  Mayank Chaturvedi
  
 Created on*        		:  07-Nov-2012
 
-Bug / Enhancement*      :  Enhancement
+Bug / Enhancement*      :  Bug
 
-Bug ID*            		:  
+Bug ID*            		:  70353
 
 ==================================================================
 Branch (DEV / REL)*		:  Dev
