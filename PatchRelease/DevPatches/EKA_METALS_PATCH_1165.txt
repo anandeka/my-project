@@ -1,0 +1,70 @@
+Patch No*          		:  EKA_METALS_PATCH_1165
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  09-Nov-2012
+
+Bug / Enhancement*     		:  Bug
+
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group: 
+==================================================================
+Module  		   	:  Reports
+
+Sub-Module  			:  Reports
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 107718
+Author: suresh.gottipati
+Date: 3:30:04 PM, Friday, November 09, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_DERIVATIVE_UNREALIZED.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_347.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative.sql
+
+
+Revision: 107719
+Author: suresh.gottipati
+Date: 3:31:19 PM, Friday, November 09, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TradersPositionReport.rpt
+
+
+Revision: 107684
+Author: sivachalabathi.s
+Date: 11:28:45 AM, Friday, November 09, 2012
+Message:
+bug fixes, inclusion of average trades in futures section and new section for options
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BrokerMarginReport.rpt
+
+
+
+
+
