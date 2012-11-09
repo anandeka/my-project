@@ -1,4 +1,5 @@
-drop materialized view MV_FACT_DERIVATIVE_UNREALIZED;
+DROP MATERIALIZED VIEW MV_FACT_DERIVATIVE_UNREALIZED;
+DROP TABLE MV_FACT_DERIVATIVE_UNREALIZED;
 create materialized view MV_FACT_DERIVATIVE_UNREALIZED
 refresh force on demand
 as
@@ -43,25 +44,10 @@ select dpd.corporate_id,
        'NA' allocated_phy_refno,
        dpd.group_cur_code,
        cm_corp.cur_code corporate_base_currency,
-       (case
-         when dpd.trade_type = 'Sell' then
-          -1
-         else
-          1
-       end) * dpd.open_quantity contract_quantity,
+       dpd.qty_sign * dpd.open_quantity contract_quantity,
        dpd.quantity_unit contract_quantity_uom,
-       (case
-         when dpd.trade_type = 'Sell' then
-          -1
-         else
-          1
-       end) * dpd.trade_qty_in_exch_unit quantity_in_base_uom,
-       (case
-         when dpd.trade_type = 'Sell' then
-          -1
-         else
-          1
-       end) * dpd.open_lots quantity_in_lots,
+       dpd.qty_sign * dpd.trade_qty_in_exch_unit quantity_in_base_uom,
+       dpd.open_lots quantity_in_lots,
        dpd.trade_price contract_price,
        dpd.trade_price_cur_code || '/' || dpd.trade_price_weight ||
        dpd.trade_price_weight_unit trade_price_unit,
@@ -248,3 +234,4 @@ select cpd.corporate_id,
    and ak.base_cur_id = cm_corp.cur_id
    and cpd.product_name = pdm.product_desc
    and cpd.strategy_id = msa.startegy_id(+)
+/

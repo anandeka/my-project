@@ -149,7 +149,18 @@ select temp.derivative_ref_no,
                dtm.deal_type_display_name deal_type,
                dim.instrument_name,
                (case
-                 when dt.trade_type = 'Sell' then
+                 when irmf.instrument_type in
+                      ('Option Put', 'OTC Put Option') and
+                      dt.trade_type = 'Buy' then
+                  -1
+                 when irmf.instrument_type in
+                      ('Option Call', 'OTC Call Option') and
+                      dt.trade_type = 'Sell' then
+                  -1
+                 when dt.trade_type = 'Sell' and
+                      irmf.instrument_type not in
+                      ('Option Call', 'OTC Call Option', 'Option Put',
+                       'OTC Put Option') then
                   -1
                  else
                   1
@@ -158,19 +169,52 @@ select temp.derivative_ref_no,
                      pdm_qum.decimals) trade_quantity_in_base_unit,
                pdm_qum.qty_unit base_quantity_unit,
                (case
-                 when dt.trade_type = 'Sell' then
+                 when irmf.instrument_type in
+                      ('Option Put', 'OTC Put Option') and
+                      dt.trade_type = 'Buy' then
+                  -1
+                 when irmf.instrument_type in
+                      ('Option Call', 'OTC Call Option') and
+                      dt.trade_type = 'Sell' then
+                  -1
+                 when dt.trade_type = 'Sell' and
+                      irmf.instrument_type not in
+                      ('Option Call', 'OTC Call Option', 'Option Put',
+                       'OTC Put Option') then
                   -1
                  else
                   1
                end) * dt.total_lots total_lots,
                (case
-                 when dt.trade_type = 'Sell' then
+                 when irmf.instrument_type in
+                      ('Option Put', 'OTC Put Option') and
+                      dt.trade_type = 'Buy' then
+                  -1
+                 when irmf.instrument_type in
+                      ('Option Call', 'OTC Call Option') and
+                      dt.trade_type = 'Sell' then
+                  -1
+                 when dt.trade_type = 'Sell' and
+                      irmf.instrument_type not in
+                      ('Option Call', 'OTC Call Option', 'Option Put',
+                       'OTC Put Option') then
                   -1
                  else
                   1
                end) * dt.open_lots open_lots,
                (case
-                 when dt.trade_type = 'Sell' then
+                 when irmf.instrument_type in
+                      ('Option Put', 'OTC Put Option') and
+                      dt.trade_type = 'Buy' then
+                  -1
+                 when irmf.instrument_type in
+                      ('Option Call', 'OTC Call Option') and
+                      dt.trade_type = 'Sell' then
+                  -1
+                 when dt.trade_type = 'Sell' and
+                      irmf.instrument_type not in
+                      ('Option Call', 'OTC Call Option', 'Option Put',
+                       'OTC Put Option') then
                   -1
                  else
                   1
@@ -254,7 +298,18 @@ select temp.derivative_ref_no,
                dt.remarks,
                emt.exchange_name,
                (case
-                 when dt.trade_type = 'Sell' then
+                 when irmf.instrument_type in
+                      ('Option Put', 'OTC Put Option') and
+                      dt.trade_type = 'Buy' then
+                  -1
+                 when irmf.instrument_type in
+                      ('Option Call', 'OTC Call Option') and
+                      dt.trade_type = 'Sell' then
+                  -1
+                 when dt.trade_type = 'Sell' and
+                      irmf.instrument_type not in
+                      ('Option Call', 'OTC Call Option', 'Option Put',
+                       'OTC Put Option') then
                   -1
                  else
                   1
@@ -275,11 +330,59 @@ select temp.derivative_ref_no,
                                                               sysdate,
                                                               1),
                      4) fx_to_base,
-               dt.total_quantity trade_qty,
+               dt.total_quantity * (case
+                 when irmf.instrument_type in
+                      ('Option Put', 'OTC Put Option') and
+                      dt.trade_type = 'Buy' then
+                  -1
+                 when irmf.instrument_type in
+                      ('Option Call', 'OTC Call Option') and
+                      dt.trade_type = 'Sell' then
+                  -1
+                 when dt.trade_type = 'Sell' and
+                      irmf.instrument_type not in
+                      ('Option Call', 'OTC Call Option', 'Option Put',
+                       'OTC Put Option') then
+                  -1
+                 else
+                  1
+               end) trade_qty,
                dt.quantity_unit_id trade_qty_unit_id,
                qum.qty_unit trade_qty_unit,
-               dt.open_quantity,
-               dt.closed_quantity,
+               dt.open_quantity * (case
+                 when irmf.instrument_type in
+                      ('Option Put', 'OTC Put Option') and
+                      dt.trade_type = 'Buy' then
+                  -1
+                 when irmf.instrument_type in
+                      ('Option Call', 'OTC Call Option') and
+                      dt.trade_type = 'Sell' then
+                  -1
+                 when dt.trade_type = 'Sell' and
+                      irmf.instrument_type not in
+                      ('Option Call', 'OTC Call Option', 'Option Put',
+                       'OTC Put Option') then
+                  -1
+                 else
+                  1
+               end),
+               dt.closed_quantity * (case
+                 when irmf.instrument_type in
+                      ('Option Put', 'OTC Put Option') and
+                      dt.trade_type = 'Buy' then
+                  -1
+                 when irmf.instrument_type in
+                      ('Option Call', 'OTC Call Option') and
+                      dt.trade_type = 'Sell' then
+                  -1
+                 when dt.trade_type = 'Sell' and
+                      irmf.instrument_type not in
+                      ('Option Call', 'OTC Call Option', 'Option Put',
+                       'OTC Put Option') then
+                  -1
+                 else
+                  1
+               end),
                null priced_qty,
                null unprice_qt,
                null premium_due_date,
@@ -392,8 +495,8 @@ select temp.derivative_ref_no,
            and cpc.business_line_id = blm.business_line_id(+)
            and cm_val.cur_id = scd.sub_cur_id(+)
            and dt.strategy_id = css.strategy_id(+)
-         --  and irmf.is_active = 'Y'
-       --    and irmf.is_deleted = 'N'
+              --  and irmf.is_active = 'Y'
+              --    and irmf.is_deleted = 'N'
            and dt.status = 'Verified'
               /*and emt.exchange_code = 'LME' */
            and pdd.exchange_id = emt.exchange_id
@@ -403,8 +506,8 @@ select temp.derivative_ref_no,
            and cmak.cur_id = ak.base_cur_id
            and dt.clearer_comm_type_id = bct.commission_type_id(+)
               /*and bct.commission_type_id = bcs.commission_type_id(+)
-                                       and dim.instrument_type_id = bcs.future_option_type*/
-         --  and bct.is_active = 'Y'
+                                                                   and dim.instrument_type_id = bcs.future_option_type*/
+              --  and bct.is_active = 'Y'
            and dt.price_source_id = ps.price_source_id(+)
            and dt.price_point_id = pp.price_point_id(+)
            and dt.settlement_price_unit_id = pum_sett.price_unit_id(+)
@@ -536,7 +639,18 @@ select temp.derivative_ref_no,
                        dtm.deal_type_display_name deal_type,
                        dim.instrument_name,
                        (case
-                         when dt.trade_type = 'Sell' then
+                         when irmf.instrument_type in
+                              ('Option Put', 'OTC Put Option') and
+                              dt.trade_type = 'Buy' then
+                          -1
+                         when irmf.instrument_type in
+                              ('Option Call', 'OTC Call Option') and
+                              dt.trade_type = 'Sell' then
+                          -1
+                         when dt.trade_type = 'Sell' and
+                              irmf.instrument_type not in
+                              ('Option Call', 'OTC Call Option', 'Option Put',
+                               'OTC Put Option') then
                           -1
                          else
                           1
@@ -545,19 +659,52 @@ select temp.derivative_ref_no,
                                     pdm_qum.decimals) trade_quantity_in_base_unit,
                        pdm_qum.qty_unit base_quantity_unit,
                        (case
-                         when dt.trade_type = 'Sell' then
+                         when irmf.instrument_type in
+                              ('Option Put', 'OTC Put Option') and
+                              dt.trade_type = 'Buy' then
+                          -1
+                         when irmf.instrument_type in
+                              ('Option Call', 'OTC Call Option') and
+                              dt.trade_type = 'Sell' then
+                          -1
+                         when dt.trade_type = 'Sell' and
+                              irmf.instrument_type not in
+                              ('Option Call', 'OTC Call Option', 'Option Put',
+                               'OTC Put Option') then
                           -1
                          else
                           1
                        end) * dt.total_lots total_lots,
                        (case
-                         when dt.trade_type = 'Sell' then
+                         when irmf.instrument_type in
+                              ('Option Put', 'OTC Put Option') and
+                              dt.trade_type = 'Buy' then
+                          -1
+                         when irmf.instrument_type in
+                              ('Option Call', 'OTC Call Option') and
+                              dt.trade_type = 'Sell' then
+                          -1
+                         when dt.trade_type = 'Sell' and
+                              irmf.instrument_type not in
+                              ('Option Call', 'OTC Call Option', 'Option Put',
+                               'OTC Put Option') then
                           -1
                          else
                           1
                        end) * dt.open_lots open_lots,
                        (case
-                         when dt.trade_type = 'Sell' then
+                         when irmf.instrument_type in
+                              ('Option Put', 'OTC Put Option') and
+                              dt.trade_type = 'Buy' then
+                          -1
+                         when irmf.instrument_type in
+                              ('Option Call', 'OTC Call Option') and
+                              dt.trade_type = 'Sell' then
+                          -1
+                         when dt.trade_type = 'Sell' and
+                              irmf.instrument_type not in
+                              ('Option Call', 'OTC Call Option', 'Option Put',
+                               'OTC Put Option') then
                           -1
                          else
                           1
@@ -665,7 +812,18 @@ select temp.derivative_ref_no,
                        dt.remarks,
                        null exchange_name,
                        (case
-                         when dt.trade_type = 'Sell' then
+                         when irmf.instrument_type in
+                              ('Option Put', 'OTC Put Option') and
+                              dt.trade_type = 'Buy' then
+                          -1
+                         when irmf.instrument_type in
+                              ('Option Call', 'OTC Call Option') and
+                              dt.trade_type = 'Sell' then
+                          -1
+                         when dt.trade_type = 'Sell' and
+                              irmf.instrument_type not in
+                              ('Option Call', 'OTC Call Option', 'Option Put',
+                               'OTC Put Option') then
                           -1
                          else
                           1
@@ -686,11 +844,59 @@ select temp.derivative_ref_no,
                                                                       sysdate,
                                                                       1),
                              4) fx_to_base,
-                       dt.total_quantity trade_qty,
+                       dt.total_quantity * (case
+                         when irmf.instrument_type in
+                              ('Option Put', 'OTC Put Option') and
+                              dt.trade_type = 'Buy' then
+                          -1
+                         when irmf.instrument_type in
+                              ('Option Call', 'OTC Call Option') and
+                              dt.trade_type = 'Sell' then
+                          -1
+                         when dt.trade_type = 'Sell' and
+                              irmf.instrument_type not in
+                              ('Option Call', 'OTC Call Option', 'Option Put',
+                               'OTC Put Option') then
+                          -1
+                         else
+                          1
+                       end) trade_qty,
                        dt.quantity_unit_id trade_qty_unit_id,
                        qum.qty_unit trade_qty_unit,
-                       dt.open_quantity,
-                       dt.closed_quantity,
+                       dt.open_quantity * (case
+                         when irmf.instrument_type in
+                              ('Option Put', 'OTC Put Option') and
+                              dt.trade_type = 'Buy' then
+                          -1
+                         when irmf.instrument_type in
+                              ('Option Call', 'OTC Call Option') and
+                              dt.trade_type = 'Sell' then
+                          -1
+                         when dt.trade_type = 'Sell' and
+                              irmf.instrument_type not in
+                              ('Option Call', 'OTC Call Option', 'Option Put',
+                               'OTC Put Option') then
+                          -1
+                         else
+                          1
+                       end),
+                       dt.closed_quantity * (case
+                         when irmf.instrument_type in
+                              ('Option Put', 'OTC Put Option') and
+                              dt.trade_type = 'Buy' then
+                          -1
+                         when irmf.instrument_type in
+                              ('Option Call', 'OTC Call Option') and
+                              dt.trade_type = 'Sell' then
+                          -1
+                         when dt.trade_type = 'Sell' and
+                              irmf.instrument_type not in
+                              ('Option Call', 'OTC Call Option', 'Option Put',
+                               'OTC Put Option') then
+                          -1
+                         else
+                          1
+                       end),
                        null priced_qty,
                        null unprice_qt,
                        dt.premium_due_date,
@@ -809,8 +1015,8 @@ select temp.derivative_ref_no,
                    and cpc.business_line_id = blm.business_line_id(+)
                    and cm_val.cur_id = scd.sub_cur_id(+)
                    and dt.strategy_id = css.strategy_id(+)
-                --   and irmf.is_active = 'Y'
-                --   and irmf.is_deleted = 'N'
+                      --   and irmf.is_active = 'Y'
+                      --   and irmf.is_deleted = 'N'
                    and dt.status = 'Verified'
                    and akcu.user_id = dt.trader_id
                    and dt.clearer_account_id = bca.account_id(+)
@@ -839,11 +1045,11 @@ select temp.derivative_ref_no,
                    and dt.internal_derivative_ref_no =
                        dt_fbi.internal_derivative_ref_no(+)) t
         /*bcs_broker_commission_setup bcs,
-                       pum_price_unit_master pum_clear
-                 where t.commission_type_id = bcs.commission_type_id(+)
-                   and bcs.price_unit_id = pum_clear.price_unit_id(+)
-                   and t.corporate_id = bcs.corporate_id(+)
-                   and bcs.future_option_type(+) = t.instrument_type_id*/
+                                       pum_price_unit_master pum_clear
+                                 where t.commission_type_id = bcs.commission_type_id(+)
+                                   and bcs.price_unit_id = pum_clear.price_unit_id(+)
+                                   and t.corporate_id = bcs.corporate_id(+)
+                                   and bcs.future_option_type(+) = t.instrument_type_id*/
         ) temp,
        (select dtavg.internal_derivative_ref_no,
                round(sum((case
