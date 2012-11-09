@@ -287,7 +287,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             case when scms.cost_display_name = 'Material Cost' then cs.fx_to_base else 1 end,
              ppu.product_price_unit_id,
              1,
              gmr.stock_current_qty
@@ -638,7 +638,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                              and t.transaction_amt_main_cur_id =
                                  cm_trans.cur_id
                              and t.base_cur_id = cm_base.cur_id
-                             and t.cost_type<>'Secondary Cost'
+                             and t.cost_type not in ('Secondary Cost','Price')
                            group by t.transaction_amt_main_cur_id,
                                     t.base_cur_id,
                                     cm_base.cur_code,
@@ -663,7 +663,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
        where t.transaction_amt_main_cur_id =
              cur_exch_rate.transaction_amt_main_cur_id
          and t.process_id = pc_process_id
-         and t.cost_type<>'Secondary Cost';
+         and t.cost_type not in ('Secondary Cost','Price');
     
     end loop;
    commit;
@@ -675,7 +675,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                                  t.base_cur_id,
                                  cm_base.cur_code base_cur_code,
                                  cm_trans.cur_code transaction_amt_main_cur_code,
-                                 t.transact_to_base_fw_exch_rate
+                                 t.transact_to_base_fw_exch_rate,
+                                 t.internal_cost_id
                             from tinvp_temp_invm_cog t,
                                  cm_currency_master  cm_trans,
                                  cm_currency_master  cm_base
@@ -685,12 +686,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                              and t.transaction_amt_main_cur_id =
                                  cm_trans.cur_id
                              and t.base_cur_id = cm_base.cur_id
-                             and t.cost_type='Secondary Cost'
-                           group by t.transaction_amt_main_cur_id,
-                                    t.base_cur_id,
-                                    cm_base.cur_code,
-                                    cm_trans.cur_code,
-                                    t.transact_to_base_fw_exch_rate)
+                             and t.cost_type in ('Secondary Cost','Price')
+                           )
     loop  
       update tinvp_temp_invm_cog t
          set t.trans_to_base_fw_exch_rate    = '1 ' ||
@@ -700,9 +697,9 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
        where t.transaction_amt_main_cur_id =
              cur_exch_rate.transaction_amt_main_cur_id
          and t.process_id = pc_process_id
-         and t.cost_type='Secondary Cost'
-         and t.transact_to_base_fw_exch_rate = cur_exch_rate.transact_to_base_fw_exch_rate;
-    
+         and t.cost_type in ('Secondary Cost','Price')
+         and t.transact_to_base_fw_exch_rate = cur_exch_rate.transact_to_base_fw_exch_rate
+         and t.internal_cost_id = cur_exch_rate.internal_cost_id;
     end loop;
    commit;
     --
@@ -1413,7 +1410,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
              nvl(pum_trans.weight, 1),
              1,
              1,
-             1,
+             case when scms.cost_display_name = 'Material Cost' then cs.fx_to_base else 1 end,
              ppu.product_price_unit_id,
              1
         from scm_stock_cost_mapping      scm,
@@ -1788,7 +1785,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                              and t.transaction_amt_main_cur_id =
                                  cm_trans.cur_id
                              and t.base_cur_id = cm_base.cur_id
-                             and t.cost_type<>'Secondary Cost'
+                             and t.cost_type not in ('Secondary Cost','Price')
                            group by t.transaction_amt_main_cur_id,
                                     t.base_cur_id,
                                     cm_base.cur_code,
@@ -1814,7 +1811,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
        where t.transaction_amt_main_cur_id =
              cur_exch_rate.transaction_amt_main_cur_id
          and t.process_id = pc_process_id
-         and t.cost_type<>'Secondary Cost';
+         and t.cost_type not in ('Secondary Cost','Price');
     
     end loop;
     commit;
@@ -1827,7 +1824,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                                  t.base_cur_id,
                                  cm_base.cur_code base_cur_code,
                                  cm_trans.cur_code transaction_amt_main_cur_code,
-                                 t.transact_to_base_fw_exch_rate
+                                 t.transact_to_base_fw_exch_rate,
+                                 t.internal_cost_id
                             from tinvp_temp_invm_cog t,
                                  cm_currency_master  cm_trans,
                                  cm_currency_master  cm_base
@@ -1837,12 +1835,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
                              and t.transaction_amt_main_cur_id =
                                  cm_trans.cur_id
                              and t.base_cur_id = cm_base.cur_id
-                             and t.cost_type='Secondary Cost'
-                           group by t.transaction_amt_main_cur_id,
-                                    t.base_cur_id,
-                                    cm_base.cur_code,
-                                    cm_trans.cur_code,
-                                    t.transact_to_base_fw_exch_rate)
+                             and t.cost_type in ('Secondary Cost','Price'))
     loop  
       update tinvs_temp_invm_cogs t
          set t.trans_to_base_fw_exch_rate    = '1 ' ||
@@ -1852,8 +1845,9 @@ CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
        where t.transaction_amt_main_cur_id =
              cur_exch_rate.transaction_amt_main_cur_id
          and t.process_id = pc_process_id
-         and t.cost_type='Secondary Cost'
-         and t.transact_to_base_fw_exch_rate = cur_exch_rate.transact_to_base_fw_exch_rate;
+         and t.cost_type in ('Secondary Cost','Price')
+         and t.transact_to_base_fw_exch_rate = cur_exch_rate.transact_to_base_fw_exch_rate
+         and t.internal_cost_id = cur_exch_rate.internal_cost_id;
     
     end loop;
    commit;
