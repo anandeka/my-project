@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1169
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  09-Nov-2012
+
+Bug / Enhancement*     		:  Enhancement
+
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group: 
+==================================================================
+Module  		   	:  Logistics
+
+Sub-Module  			:  logistics
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 107780
+Author: pradeep.kumar
+Date: 8:38:34 PM, Friday, November 09, 2012
+Message:
+-- IS_WEIGHT_FREIGHT_ALLOWANCE_ISSUE Fixed...
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_348.sql
+
+
+
+
+
+
+
+
