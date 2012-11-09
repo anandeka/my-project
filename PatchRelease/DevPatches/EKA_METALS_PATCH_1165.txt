@@ -43,7 +43,7 @@ Bug Fixes
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_DERIVATIVE_UNREALIZED.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_347.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative.sql(Revision: 107758)
 
 
 Revision: 107719
