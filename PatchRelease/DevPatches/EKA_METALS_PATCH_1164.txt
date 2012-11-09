@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1164
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  prakash
+ 
+Created on*        		:  09-Nov-2012
+
+Bug / Enhancement*      :  Bug
+
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group: 
+==================================================================
+Module  		   	    :  Pricing  
+
+Sub-Module  			:  Pricing
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		     :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 107691
+Author: kotipalli.prakash
+Date: 12:17:33 PM, Friday, November 09, 2012
+Message:
+data  correction pathc for price description 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_433.sql
+
