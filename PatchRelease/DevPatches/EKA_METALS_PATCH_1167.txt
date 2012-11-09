@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1167
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  09-Nov-2012
+
+Bug / Enhancement*     		:  Bug
+
+Bug ID*            		:  NA
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group: 
+==================================================================
+Module  		   	:  Invoice O/P document
+
+Sub-Module  			:  Invoice O/P document
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 107745
+Author: anandp
+Date: 16:36:11, 09 November 2012
+Message:
+For DGM entries for payment instruction. Bug #70380
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_434.sql
+
+
+
+
+
+
+
+
