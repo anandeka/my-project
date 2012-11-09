@@ -365,7 +365,7 @@ select temp.derivative_ref_no,
                   -1
                  else
                   1
-               end),
+               end) open_quantity,
                dt.closed_quantity * (case
                  when irmf.instrument_type in
                       ('Option Put', 'OTC Put Option') and
@@ -382,7 +382,7 @@ select temp.derivative_ref_no,
                   -1
                  else
                   1
-               end),
+               end) closed_quantity,
                null priced_qty,
                null unprice_qt,
                null premium_due_date,
@@ -879,7 +879,7 @@ select temp.derivative_ref_no,
                           -1
                          else
                           1
-                       end),
+                       end) open_quantity,
                        dt.closed_quantity * (case
                          when irmf.instrument_type in
                               ('Option Put', 'OTC Put Option') and
@@ -896,7 +896,7 @@ select temp.derivative_ref_no,
                           -1
                          else
                           1
-                       end),
+                       end) closed_quantity,
                        null priced_qty,
                        null unprice_qt,
                        dt.premium_due_date,
