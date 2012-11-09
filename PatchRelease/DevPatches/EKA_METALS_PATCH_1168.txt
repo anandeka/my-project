@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1168
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  09-Nov-2012
+
+Bug / Enhancement*     		:  Bug
+
+Bug ID*            		:  70345
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group: 
+==================================================================
+Module  		   	:  Invoice O/P document
+
+Sub-Module  			:  Invoice O/P document
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 107772
+Author: elaiyaraja.nallathambi
+Date: 7:50:10 PM, Friday, November 09, 2012
+Message:
+Bug Fixes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TATA_InvoiceDocument.rpt
+
+
+
+
+
+
+
+
+
