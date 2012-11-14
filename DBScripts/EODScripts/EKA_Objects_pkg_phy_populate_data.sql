@@ -3251,6 +3251,7 @@ insert into gmr_goods_movement_record
    is_pass_through,
    pledge_input_gmr,
    is_apply_freight_allowance,
+   is_apply_container_charge,
    mode_of_transport,
    wns_status,
    dbd_id)
@@ -3431,6 +3432,10 @@ insert into gmr_goods_movement_record
                 'Empty_String',
                 null,
                 is_apply_freight_allowance),
+         decode(is_apply_container_charge,
+                'Empty_String',
+                null,
+                is_apply_container_charge),
          decode(mode_of_transport, 'Empty_String', null, mode_of_transport) mode_of_transport,
          decode(wns_status, 'Empty_String', null, wns_status) wns_status,
          
@@ -3978,6 +3983,12 @@ insert into gmr_goods_movement_record
                                gmrul.is_apply_freight_allowance
                             end),
                         24) is_apply_freight_allowance,
+                 substr(max(case
+                              when gmrul.is_apply_container_charge is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.is_apply_container_charge
+                            end),
+                        24) is_apply_container_charge,
                  substr(max(case
                               when gmrul.mode_of_transport is not null then
                                to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5294,6 +5305,7 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
        qty_declaration_date,
        quality_declaration_date,
        inco_location_declaration_date,
+       price_allocation_method,
        dbd_id)
       select decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(internal_contract_ref_no,
@@ -5406,6 +5418,10 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                     'Empty_String',
                     null,
                     inco_location_declaration_date),
+             decode(price_allocation_method,
+                    'Empty_String',
+                    null,
+                    price_allocation_method),
              gvc_dbd_id
         from (select pcdiul.pcdi_id,
                      substr(max(case
@@ -5655,6 +5671,12 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                                    pcdiul.inco_location_declaration_date
                                 end),
                             24) inco_location_declaration_date,
+                     substr(max(case
+                                  when pcdiul.price_allocation_method is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdiul.price_allocation_method
+                                end),
+                            24) price_allocation_method,
                      gvc_dbd_id
                 from pcdiul_pc_delivery_item_ul pcdiul,
                      axs_action_summary         axs,

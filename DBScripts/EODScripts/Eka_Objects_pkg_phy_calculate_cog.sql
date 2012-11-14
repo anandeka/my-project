@@ -15,6 +15,8 @@ CREATE OR REPLACE PACKAGE PKG_PHY_CALCULATE_COG is
                                  pd_trade_date   date,
                                  pc_process      varchar2);
 end; 
+ 
+ 
 /
 CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
   procedure sp_calc_invm_cog(pc_corporate_id varchar2,

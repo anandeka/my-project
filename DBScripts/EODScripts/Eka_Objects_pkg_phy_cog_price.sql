@@ -23,6 +23,12 @@ create or replace package pkg_phy_cog_price is
                                   pc_user_id      varchar2,
                                   pc_dbd_id       varchar2,
                                   pc_process      varchar2);
+  procedure sp_conc_gmr_allocation_price(pc_corporate_id varchar2,
+                                         pd_trade_date   date,
+                                         pc_process_id   varchar2,
+                                         pc_user_id      varchar2,
+                                         pc_dbd_id       varchar2,
+                                         pc_process      varchar2);
 end; 
 /
 create or replace package body pkg_phy_cog_price is
@@ -315,6 +321,7 @@ create or replace package body pkg_phy_cog_price is
                 when others then
                   vn_fixed_value := 0;
                   vn_fixed_qty   := 0;
+                  vc_fixed_price_unit_id := null;
               end;
               vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
               if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
@@ -1135,6 +1142,7 @@ create or replace package body pkg_phy_cog_price is
           when others then
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
+            vc_fixed_price_unit_id := null;
         end;
         vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
       
@@ -1718,6 +1726,7 @@ create or replace package body pkg_phy_cog_price is
                 when others then
                   vn_fixed_value := 0;
                   vn_fixed_qty   := 0;
+                  vc_fixed_price_unit_id := null;
               end;
             end loop;
             vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
@@ -2561,6 +2570,7 @@ create or replace package body pkg_phy_cog_price is
           when others then
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
+            vc_fixed_price_unit_id := null;
         end;
       
         vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
@@ -2878,5 +2888,639 @@ create or replace package body pkg_phy_cog_price is
       sp_insert_error_log(vobj_error_log);
       commit;
   end;
-end; 
+  procedure sp_conc_gmr_allocation_price(pc_corporate_id varchar2,
+                                         pd_trade_date   date,
+                                         pc_process_id   varchar2,
+                                         pc_user_id      varchar2,
+                                         pc_dbd_id       varchar2,
+                                         pc_process      varchar2) is
+    ------------------------------------------------------------------------------------------
+    --        Procedure Name                            : sp_conc_gmr_allocation_price
+    --        Author                                    : Janna
+    --        Created Date                              : 08th Nov 2012
+    --        Purpose                                   : Calcualte COG Price for Price Allocation GMRs
+    --
+    --        parameters
+    --
+    --        Modification History
+    --        Modified Date                             :
+    --        Modified By                               :
+    --        Modify Description                        :
+    --------------------------------------------------------------------------------------------                                       
+  
+    cursor cur_gmr is
+      select gmr.internal_gmr_ref_no,
+             gmr.gmr_ref_no,
+             grd.product_id,
+             grd.internal_grd_ref_no internal_grd_ref_no,
+             tt.instrument_id,
+             tt.instrument_name,
+             tt.price_source_id,
+             tt.price_source_name,
+             tt.available_price_id,
+             tt.available_price_name,
+             tt.price_unit_name,
+             tt.ppu_price_unit_id,
+             tt.price_unit_id,
+             tt.delivery_calender_id,
+             tt.is_daily_cal_applicable,
+             tt.is_monthly_cal_applicable,
+             spq.element_id,
+             spq.payable_qty,
+             spq.qty_unit_id payable_qty_unit_id
+        from (select grd.internal_gmr_ref_no,
+                     grd.internal_grd_ref_no,
+                     grd.quality_id,
+                     grd.product_id
+                from grd_goods_record_detail grd
+               where grd.process_id = pc_process_id
+                 and grd.status = 'Active'
+                 and grd.tolling_stock_type in ('None Tolling')
+                 and grd.is_deleted = 'N'
+              union
+              select grd.internal_gmr_ref_no,
+                     grd.internal_dgrd_ref_no internal_grd_ref_no,
+                     grd.quality_id,
+                     grd.product_id
+                from dgrd_delivered_grd grd
+               where grd.process_id = pc_process_id
+                 and grd.status = 'Active'
+                 and grd.tolling_stock_type in ('None Tolling')) grd,
+             pdm_productmaster pdm,
+             pdtm_product_type_master pdtm,
+             v_gmr_payable_qty spq,
+             gmr_goods_movement_record gmr,
+             (select qat.internal_gmr_ref_no,
+                     qat.instrument_id,
+                     qat.element_id,
+                     dim.instrument_name,
+                     ps.price_source_id,
+                     ps.price_source_name,
+                     apm.available_price_id,
+                     apm.available_price_name,
+                     pum.price_unit_name,
+                     vdip.ppu_price_unit_id,
+                     div.price_unit_id,
+                     dim.delivery_calender_id,
+                     pdc.is_daily_cal_applicable,
+                     pdc.is_monthly_cal_applicable
+                from page_price_alloc_gmr_exchange qat,
+                     dim_der_instrument_master     dim,
+                     div_der_instrument_valuation  div,
+                     ps_price_source               ps,
+                     apm_available_price_master    apm,
+                     pum_price_unit_master         pum,
+                     v_der_instrument_price_unit   vdip,
+                     pdc_prompt_delivery_calendar  pdc
+               where qat.instrument_id = dim.instrument_id
+                 and dim.instrument_id = div.instrument_id
+                 and div.is_deleted = 'N'
+                 and div.price_source_id = ps.price_source_id
+                 and div.available_price_id = apm.available_price_id
+                 and div.price_unit_id = pum.price_unit_id
+                 and dim.instrument_id = vdip.instrument_id
+                 and dim.delivery_calender_id =
+                     pdc.prompt_delivery_calendar_id
+                 and qat.process_id = pc_process_id) tt
+       where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+         and grd.product_id = pdm.product_id
+         and pdm.product_type_id = pdtm.product_type_id
+         and pdtm.product_type_name = 'Composite'
+         and spq.process_id = pc_process_id
+         and tt.element_id = spq.element_id
+         and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
+         and gmr.process_id = pc_process_id
+         and grd.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
+         and gmr.is_deleted = 'N'
+         and spq.payable_qty > 0;
+    cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is
+      select gpah.internal_gmr_ref_no,
+             pcbpd.element_id,
+             pcbpd.pcbpd_id,
+             pcbpd.qty_to_be_priced,
+             pcbpd.price_basis,
+             pdm.product_id,
+             pdm.base_quantity_unit base_qty_unit_id,
+             gpah.gpah_id
+        from poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             pcbpd_pc_base_price_detail     pcbpd,
+             pcbph_pc_base_price_header     pcbph,
+             gpah_gmr_price_alloc_header    gpah,
+             gpad_gmr_price_alloc_dtls      gpad,
+             pcdi_pc_delivery_item          pcdi,
+             aml_attribute_master_list      aml,
+             pdm_productmaster              pdm
+       where poch.poch_id = pocd.poch_id
+         and gpad.pfd_id = pfd.pfd_id
+         and pcdi.pcdi_id = poch.pcdi_id
+         and pocd.pocd_id = pofh.pocd_id(+)
+         and pcbpd.pcbpd_id = pocd.pcbpd_id
+         and pofh.pofh_id = pfd.pofh_id(+)
+         and pfd.is_active(+) = 'Y'
+         and pofh.is_active(+) = 'Y'
+         and pcbpd.pcbph_id = pcbph.pcbph_id
+         and pocd.pocd_id = gpah.pocd_id
+         and pocd.is_active = 'Y'
+         and poch.is_active = 'Y'
+         and gpah.is_active = 'Y'
+         and gpad.is_active = 'Y'
+         and pcdi.price_allocation_method = 'Price Allocation'
+         and gpad.allocated_qty <> 0
+         and nvl(pocd.is_any_day_pricing, 'N') = 'Y'
+         and pcbpd.process_id = pc_process_id
+         and pcbph.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcbpd.element_id = aml.attribute_id
+         and aml.underlying_product_id = pdm.product_id
+         and gpah.internal_gmr_ref_no = pc_internal_gmr_ref_no
+         and pcbpd.element_id = pc_element_id
+         and gpah.element_id = poch.element_id
+         and gpad.gpah_id = gpah.gpah_id
+       group by gpah.internal_gmr_ref_no,
+                pofh.pofh_id,
+                pofh.qty_to_be_fixed,
+                pcbpd.element_id,
+                pcbpd.pcbpd_id,
+                pcbpd.qty_to_be_priced,
+                pcbpd.price_basis,
+                pdm.product_id,
+                pdm.base_quantity_unit,
+                gpah.gpah_id;
+  
+    vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count           number := 1;
+    vd_quotes_date               date;
+    vn_total_contract_value      number;
+    vc_price_cur_id              varchar2(15);
+    vc_price_cur_code            varchar2(15);
+    vn_price_weight_unit         number;
+    vc_price_weight_unit_id      varchar2(15);
+    vc_price_qty_unit            varchar2(15);
+    vc_price_unit_id             varchar2(15);
+    vc_pcbpd_id                  varchar2(15);
+    vc_prompt_month              varchar2(15);
+    vc_prompt_year               number;
+    vn_qty_to_be_priced          number;
+    vn_total_quantity            number;
+    vn_average_price             number;
+    vc_price_basis               varchar2(15);
+    vd_valid_quote_date          date;
+    vn_fixed_value               number;
+    vn_unfixed_value             number;
+    vn_fixed_qty                 number;
+    vn_unfixed_qty               number;
+    vn_forward_days              number;
+    vc_market_quote_dr_id        varchar2(15);
+    vd_prompt_date               date;
+    vn_unfixed_val_price         number;
+    vc_unfixed_val_price_unit_id varchar2(15);
+    vc_prompt_date_text          varchar2(100); -- Setting the decode to this variable to make the Beautifier work
+    vc_fixed_price_unit_id       varchar2(15);
+    vc_data_missing_for          varchar2(1000);
+  begin
+    --
+    -- Populate Price Allocation GMR Exchange Details
+    --
+    insert into page_price_alloc_gmr_exchange
+      select pcdi.process_id,
+             gpah.internal_gmr_ref_no,
+             ppfd.instrument_id,
+             dim.instrument_name,
+             pdd.derivative_def_id,
+             pdd.derivative_def_name,
+             emt.exchange_id,
+             emt.exchange_name,
+             pcbpd.element_id
+        from poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             pcbpd_pc_base_price_detail     pcbpd,
+             pcbph_pc_base_price_header     pcbph,
+             gpah_gmr_price_alloc_header    gpah,
+             gpad_gmr_price_alloc_dtls      gpad,
+             pcdi_pc_delivery_item          pcdi,
+             ppfh_phy_price_formula_header  ppfh,
+             ppfd_phy_price_formula_details ppfd,
+             dim_der_instrument_master      dim,
+             pdd_product_derivative_def     pdd,
+             emt_exchangemaster             emt
+       where poch.poch_id = pocd.poch_id
+         and gpad.pfd_id = pfd.pfd_id
+         and pcdi.pcdi_id = poch.pcdi_id
+         and pocd.pocd_id = pofh.pocd_id(+)
+         and pcbpd.pcbpd_id = pocd.pcbpd_id
+         and pofh.pofh_id = pfd.pofh_id(+)
+         and pfd.is_active(+) = 'Y'
+         and pofh.is_active(+) = 'Y'
+         and pcbpd.pcbph_id = pcbph.pcbph_id
+         and pocd.pocd_id = gpah.pocd_id
+         and pocd.is_active = 'Y'
+         and poch.is_active = 'Y'
+         and gpah.is_active = 'Y'
+         and gpad.is_active = 'Y'
+         and pcdi.price_allocation_method = 'Price Allocation'
+         and nvl(pocd.is_any_day_pricing, 'N') = 'Y'
+         and pcbpd.process_id = pc_process_id
+         and pcbph.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and ppfd.process_id = pc_process_id
+         and ppfh.process_id = pc_process_id
+         and pcbpd.pcbpd_id = ppfh.pcbpd_id
+         and ppfh.ppfh_id = ppfd.ppfh_id
+         and ppfd.instrument_id = dim.instrument_id
+         and dim.product_derivative_id = pdd.derivative_def_id
+         and pdd.exchange_id = emt.exchange_id(+)
+       group by pcdi.process_id,
+                gpah.internal_gmr_ref_no,
+                ppfd.instrument_id,
+                dim.instrument_name,
+                pdd.derivative_def_id,
+                pdd.derivative_def_name,
+                emt.exchange_id,
+                emt.exchange_name,
+                pcbpd.element_id;
+    commit;
+  
+    for cur_gmr_rows in cur_gmr
+    loop
+      vn_total_contract_value      := 0;
+      vn_fixed_qty                 := 0;
+      vn_unfixed_qty               := 0;
+      vn_fixed_value               := 0;
+      vn_unfixed_value             := 0;
+      vc_unfixed_val_price_unit_id := null;
+      vc_unfixed_val_price_unit_id := null;
+      for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
+                                          cur_gmr_rows.element_id)
+      loop
+      
+        vc_price_basis := cur_gmr_ele_rows.price_basis;
+        vc_pcbpd_id    := cur_gmr_ele_rows.pcbpd_id;
+      
+        begin
+          select nvl(sum((pfd.user_price * gpad.allocated_qty)), 0),
+                 nvl(sum(gpad.allocated_qty), 0),
+                 ppu.price_unit_id
+            into vn_fixed_value,
+                 vn_fixed_qty,
+                 vc_fixed_price_unit_id
+          
+            from poch_price_opt_call_off_header poch,
+                 pocd_price_option_calloff_dtls pocd,
+                 pofh_price_opt_fixation_header pofh,
+                 pfd_price_fixation_details     pfd,
+                 pcbpd_pc_base_price_detail     pcbpd,
+                 pcbph_pc_base_price_header     pcbph,
+                 gpah_gmr_price_alloc_header    gpah,
+                 gpad_gmr_price_alloc_dtls      gpad,
+                 pcdi_pc_delivery_item          pcdi,
+                 v_ppu_pum                      ppu
+           where poch.poch_id = pocd.poch_id
+             and gpad.pfd_id = pfd.pfd_id
+             and pcdi.pcdi_id = poch.pcdi_id
+             and pocd.pocd_id = pofh.pocd_id(+)
+             and pcbpd.pcbpd_id = pocd.pcbpd_id
+             and pofh.pofh_id = pfd.pofh_id(+)
+             and pfd.is_active(+) = 'Y'
+             and pofh.is_active(+) = 'Y'
+             and pcbpd.pcbph_id = pcbph.pcbph_id
+             and pocd.pocd_id = gpah.pocd_id
+             and pocd.is_active = 'Y'
+             and poch.is_active = 'Y'
+             and gpah.is_active = 'Y'
+             and gpad.is_active = 'Y'
+             and pcbpd.process_id = pc_process_id
+             and pcbph.process_id = pc_process_id
+             and pcdi.process_id = pc_process_id
+             and ppu.product_price_unit_id = pfd.price_unit_id
+             and gpah.gpah_id = gpad.gpah_id
+             and gpah.element_id = poch.element_id
+             and gpad.allocated_qty <> 0
+             and gpah.gpah_id = cur_gmr_ele_rows.gpah_id
+           group by ppu.price_unit_id;
+        exception
+          when others then
+            vn_fixed_value         := 0;
+            vn_fixed_qty           := 0;
+            vc_fixed_price_unit_id := null;
+        end;
+        vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
+        vn_unfixed_qty      := cur_gmr_rows.payable_qty - vn_fixed_qty;
+        if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
+          vn_forward_days := 0;
+          vd_quotes_date  := pd_trade_date + 1;
+          while vn_forward_days <> 2
+          loop
+            if pkg_metals_general.f_is_day_holiday(cur_gmr_rows.instrument_id,
+                                                   vd_quotes_date) then
+              vd_quotes_date := vd_quotes_date + 1;
+            else
+              vn_forward_days := vn_forward_days + 1;
+              if vn_forward_days <> 2 then
+                vd_quotes_date := vd_quotes_date + 1;
+              end if;
+            end if;
+          end loop;
+          begin
+            select drm.dr_id
+              into vc_market_quote_dr_id
+              from drm_derivative_master drm
+             where drm.instrument_id = cur_gmr_rows.instrument_id
+               and drm.prompt_date = vd_quotes_date
+               and rownum <= 1
+               and drm.price_point_id is null
+               and drm.is_deleted = 'N';
+          exception
+            when no_data_found then
+              if vd_quotes_date is not null then
+                vobj_error_log.extend;
+                vc_data_missing_for := 'DR_ID missing for ' ||
+                                       cur_gmr_rows.instrument_name ||
+                                       ',Price Source:' ||
+                                       cur_gmr_rows.price_source_name ||
+                                       ' GMR Ref No: ' ||
+                                       cur_gmr_rows.gmr_ref_no ||
+                                       ',Price Unit:' ||
+                                       cur_gmr_rows.price_unit_name || ',' ||
+                                       cur_gmr_rows.available_price_name ||
+                                       ' Price,Prompt Date:' ||
+                                       to_char(vd_quotes_date,
+                                               'dd-Mon-RRRR');
+                vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                     'procedure sp_conc_gmr_allocation_price',
+                                                                     'PHY-002',
+                                                                     vc_data_missing_for,
+                                                                     '',
+                                                                     pc_process,
+                                                                     pc_user_id,
+                                                                     sysdate,
+                                                                     pd_trade_date);
+                sp_insert_error_log(vobj_error_log);
+              end if;
+          end;
+        end if;
+        if cur_gmr_rows.is_daily_cal_applicable = 'N' and
+           cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
+          vd_prompt_date  := pkg_metals_general.fn_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
+                                                                              pd_trade_date);
+          vc_prompt_month := to_char(vd_prompt_date, 'Mon');
+          vc_prompt_year  := to_char(vd_prompt_date, 'RRRR');
+          begin
+            select drm.dr_id
+              into vc_market_quote_dr_id
+              from drm_derivative_master drm
+             where drm.instrument_id = cur_gmr_rows.instrument_id
+               and drm.period_month = vc_prompt_month
+               and drm.period_year = vc_prompt_year
+               and rownum <= 1
+               and drm.price_point_id is null
+               and drm.is_deleted = 'N';
+          exception
+            when no_data_found then
+            
+              if vc_prompt_month is not null and vc_prompt_year is not null then
+                vobj_error_log.extend;
+                vc_data_missing_for := 'DR_ID missing for ' ||
+                                       cur_gmr_rows.instrument_name ||
+                                       ',Price Source:' ||
+                                       cur_gmr_rows.price_source_name ||
+                                       ' GMR Ref No: ' ||
+                                       cur_gmr_rows.gmr_ref_no ||
+                                       ',Price Unit:' ||
+                                       cur_gmr_rows.price_unit_name || ',' ||
+                                       cur_gmr_rows.available_price_name ||
+                                       ' Price,Prompt Date:' ||
+                                       vc_prompt_month || ' ' ||
+                                       vc_prompt_year;
+                vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                     'procedure sp_conc_gmr_allocation_price',
+                                                                     'PHY-002',
+                                                                     vc_data_missing_for,
+                                                                     '',
+                                                                     pc_process,
+                                                                     pc_user_id,
+                                                                     sysdate,
+                                                                     pd_trade_date);
+                sp_insert_error_log(vobj_error_log);
+              end if;
+          end;
+        end if;
+      
+        begin
+          select dqd.price,
+                 dqd.price_unit_id
+            into vn_unfixed_val_price,
+                 vc_unfixed_val_price_unit_id
+            from dq_derivative_quotes        dq,
+                 dqd_derivative_quote_detail dqd,
+                 cdim_corporate_dim          cdim
+           where dq.dq_id = dqd.dq_id
+             and dqd.dr_id = vc_market_quote_dr_id
+             and dq.instrument_id = cur_gmr_rows.instrument_id
+             and dq.dbd_id = dqd.dbd_id
+             and dq.dbd_id = pc_dbd_id
+             and dqd.available_price_id = cur_gmr_rows.available_price_id
+             and dq.price_source_id = cur_gmr_rows.price_source_id
+             and dqd.price_unit_id = cur_gmr_rows.price_unit_id
+             and dq.trade_date = cdim.valid_quote_date
+             and dq.is_deleted = 'N'
+             and dqd.is_deleted = 'N'
+             and cdim.corporate_id = pc_corporate_id
+             and cdim.instrument_id = dq.instrument_id;
+        exception
+          when no_data_found then
+            select cdim.valid_quote_date
+              into vd_valid_quote_date
+              from cdim_corporate_dim cdim
+             where cdim.corporate_id = pc_corporate_id
+               and cdim.instrument_id = cur_gmr_rows.instrument_id;
+            if vd_quotes_date is not null then
+              vobj_error_log.extend;
+              select (case
+                       when cur_gmr_rows.is_daily_cal_applicable = 'N' and
+                            cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
+                        to_char(vd_prompt_date, 'Mon-RRRR')
+                       else
+                        to_char(vd_quotes_date, 'dd-Mon-RRRR')
+                     end)
+                into vc_prompt_date_text
+                from dual;
+              vc_data_missing_for := 'Price missing for ' ||
+                                     cur_gmr_rows.instrument_name ||
+                                     ',Price Source:' ||
+                                     cur_gmr_rows.price_source_name ||
+                                     ',Price Unit:' ||
+                                     cur_gmr_rows.price_unit_name || ',' ||
+                                     cur_gmr_rows.available_price_name ||
+                                     ' Price,Prompt Date:' ||
+                                     vc_prompt_date_text || ' Trade Date(' ||
+                                     to_char(vd_valid_quote_date,
+                                             'dd-Mon-RRRR') || ')';
+              vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                   'procedure sp_conc_gmr_allocation_price',
+                                                                   'PHY-002',
+                                                                   vc_data_missing_for,
+                                                                   '',
+                                                                   pc_process,
+                                                                   pc_user_id,
+                                                                   sysdate,
+                                                                   pd_trade_date);
+              sp_insert_error_log(vobj_error_log);
+            end if;
+          when others then
+            vobj_error_log.extend;
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                                 'procedure sp_conc_gmr_allocation_price',
+                                                                 'M2M-013',
+                                                                 sqlcode || ' ' ||
+                                                                 sqlerrm,
+                                                                 '',
+                                                                 pc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
+        end;
+        --
+        -- If Both Fixed and Unfixed Quantities are there then we have two prices
+        -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
+        --
+        if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+          if vc_fixed_price_unit_id <> vc_unfixed_val_price_unit_id then
+            select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                                                                       vn_unfixed_val_price,
+                                                                       vc_unfixed_val_price_unit_id,
+                                                                       vc_fixed_price_unit_id,
+                                                                       pd_trade_date,
+                                                                       cur_gmr_rows.product_id)
+              into vn_unfixed_val_price
+              from dual;
+          end if;
+        
+        end if;
+        if vn_unfixed_qty > 0 then
+          vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
+        else
+          vn_unfixed_value := 0;
+          vn_unfixed_qty   := 0;
+        end if;
+        if vn_fixed_qty < 0 then
+          vn_fixed_value := 0;
+          vn_fixed_qty   := 0;
+        end if;
+      
+        if vc_fixed_price_unit_id is not null then
+          vc_price_unit_id := vc_fixed_price_unit_id;
+        else
+          vc_price_unit_id := vc_unfixed_val_price_unit_id;
+        end if;
+        begin
+          select ppu.product_price_unit_id
+            into vc_price_unit_id
+            from v_ppu_pum ppu
+           where ppu.price_unit_id = vc_price_unit_id
+             and ppu.product_id = cur_gmr_rows.product_id;
+        exception
+          when others then
+            vc_price_unit_id := null;
+        end;
+        vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
+        vn_total_contract_value := vn_total_contract_value +
+                                   ((vn_qty_to_be_priced / 100) *
+                                   (vn_fixed_value + vn_unfixed_value));
+      
+      end loop;
+      vn_average_price := round(vn_total_contract_value / vn_total_quantity,
+                                4);
+      begin
+        select cm.cur_id,
+               cm.cur_code,
+               ppu.weight,
+               ppu.weight_unit_id,
+               qum.qty_unit
+          into vc_price_cur_id,
+               vc_price_cur_code,
+               vn_price_weight_unit,
+               vc_price_weight_unit_id,
+               vc_price_qty_unit
+          from v_ppu_pum                ppu,
+               cm_currency_master       cm,
+               qum_quantity_unit_master qum
+         where ppu.product_price_unit_id = vc_price_unit_id
+           and ppu.cur_id = cm.cur_id
+           and qum.qty_unit_id = ppu.weight_unit_id;
+      exception
+        when no_data_found then
+          vc_price_cur_id         := null;
+          vc_price_cur_code       := null;
+          vn_price_weight_unit    := null;
+          vc_price_weight_unit_id := null;
+          vc_price_qty_unit       := null;
+      end;
+      if vn_average_price is not null and vc_price_unit_id is not null then
+        insert into cgcp_conc_gmr_cog_price
+          (process_id,
+           corporate_id,
+           internal_gmr_ref_no,
+           gmr_ref_no,
+           element_id,
+           payable_qty,
+           payable_qty_unit_id,
+           contract_price,
+           price_unit_id,
+           price_unit_cur_id,
+           price_unit_cur_code,
+           price_unit_weight,
+           price_unit_weight_unit_id,
+           price_unit_weight_unit,
+           fixed_qty,
+           unfixed_qty,
+           price_basis,
+           internal_grd_ref_no)
+        values
+          (pc_process_id,
+           pc_corporate_id,
+           cur_gmr_rows.internal_gmr_ref_no,
+           cur_gmr_rows.gmr_ref_no,
+           cur_gmr_rows.element_id,
+           cur_gmr_rows.payable_qty,
+           cur_gmr_rows.payable_qty_unit_id,
+           vn_average_price,
+           vc_price_unit_id,
+           vc_price_cur_id,
+           vc_price_cur_code,
+           vn_price_weight_unit,
+           vc_price_weight_unit_id,
+           vn_price_weight_unit,
+           vn_fixed_qty,
+           vn_unfixed_qty,
+           vc_price_basis,
+           cur_gmr_rows.internal_grd_ref_no);
+      end if;
+    end loop;
+    commit;
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure pkg_phy_cog_price.sp_conc_gmr_allocation_price',
+                                                           'M2M-013',
+                                                           ' Code:' ||
+                                                           sqlcode ||
+                                                           ' Message:' ||
+                                                           sqlerrm ||
+                                                           dbms_utility.format_error_backtrace,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+      commit;
+  end;
+end;
 /

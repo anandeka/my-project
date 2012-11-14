@@ -1144,6 +1144,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        is_pass_through,
        pledge_input_gmr,
        is_apply_freight_allowance,
+       is_apply_container_charge,
        mode_of_transport,
        arrival_date,
        wns_status,
@@ -1240,6 +1241,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_pass_through,
              ul.pledge_input_gmr,
              ul.is_apply_freight_allowance,
+             ul.is_apply_container_charge,
              mode_of_transport,
              arrival_date,
              wns_status,
@@ -4201,6 +4203,56 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
         from gepd_gmr_element_pledge_detail@eka_appdb gepd
        where gepd.corporate_id = pc_corporate_id
          and gepd.activity_date <= pd_trade_date;
+    commit;
+    delete from pcmac_pcm_addn_charges pcmac
+     where pcmac.corporate_id = pc_corporate_id;
+    insert into pcmac_pcm_addn_charges
+      (corporate_id,
+       pcmac_id,
+       int_contract_ref_no,
+       addn_charge_id,
+       addn_charge_name,
+       charge_type,
+       position,
+       range_min_op,
+       range_min_value,
+       range_max_op,
+       range_max_value,
+       range_unit_id,
+       charge,
+       charge_cur_id,
+       charge_rate_basis,
+       container_size,
+       fx_rate,
+       is_active,
+       qty_unit_id,
+       version,
+       is_automatic_charge)
+      select pc_corporate_id,
+             pcmac_id,
+             int_contract_ref_no,
+             addn_charge_id,
+             addn_charge_name,
+             charge_type,
+             position,
+             range_min_op,
+             range_min_value,
+             range_max_op,
+             range_max_value,
+             range_unit_id,
+             charge,
+             charge_cur_id,
+             charge_rate_basis,
+             container_size,
+             nvl(fx_rate, 1),
+             pcmac.is_active,
+             qty_unit_id,
+             pcmac.version,
+             is_automatic_charge
+        from pcmac_pcm_addn_charges@eka_appdb     pcmac,
+             pcm_physical_contract_main@eka_appdb pcm
+       where pcm.corporate_id = pc_corporate_id
+         and pcm.internal_contract_ref_no = pcmac.int_contract_ref_no;
     commit;
   exception
     when others then

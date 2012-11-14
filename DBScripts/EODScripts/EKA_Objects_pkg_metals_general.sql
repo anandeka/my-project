@@ -89,6 +89,7 @@ create or replace package pkg_metals_general is
                                    pc_element_id       varchar2,
                                    pc_ash_id           varchar2,
                                    pn_dry_qty          number,
+                                   pn_wet_qty          number,
                                    pc_qty_unit_id      varchar2,
                                    pn_total_pc_charge  out number,
                                    pc_pc_cur_id        out varchar2);
@@ -813,7 +814,8 @@ create or replace package body pkg_metals_general is
           into vc_include_ref_charge
           from pcm_physical_contract_main     pcm,
                pcpch_pc_payble_content_header pcpch,
-               pcepc_pc_elem_payable_content  pcepc
+               pcepc_pc_elem_payable_content  pcepc,
+               pqd_payable_quality_details    pqd
          where pcm.internal_contract_ref_no =
                pcpch.internal_contract_ref_no
            and pcpch.pcpch_id = pcepc.pcpch_id
@@ -828,7 +830,11 @@ create or replace package body pkg_metals_general is
                pcepc.position = 'Range End')
            and pcm.is_active = 'Y'
            and pcpch.is_active = 'Y'
-           and pcepc.is_active = 'Y';
+           and pcepc.is_active = 'Y'
+           and pqd.pcpch_id = pcpch.pcpch_id
+           and pqd.pcpq_id = cc.pcpq_id
+           and pqd.is_active = 'Y'
+           and pqd.dbd_id = pc_dbd_id;
       exception
         when no_data_found then
           vc_include_ref_charge := 'N';
@@ -2635,7 +2641,8 @@ create or replace package body pkg_metals_general is
         select pcepc.include_ref_charges
           into vc_include_ref_charge
           from pcpch_pc_payble_content_header pcpch,
-               pcepc_pc_elem_payable_content  pcepc
+               pcepc_pc_elem_payable_content  pcepc,
+               pqd_payable_quality_details    pqd
          where pcpch.pcpch_id = pcepc.pcpch_id
            and pcpch.dbd_id = pc_dbd_id
            and pcepc.dbd_id = pc_dbd_id
@@ -2646,7 +2653,11 @@ create or replace package body pkg_metals_general is
            and (pcepc.range_max_value > cc.typical or
                pcepc.position = 'Range End')
            and pcpch.is_active = 'Y'
-           and pcepc.is_active = 'Y';
+           and pcepc.is_active = 'Y'
+           and pqd.pcpch_id = pcpch.pcpch_id
+           and pqd.pcpq_id = cc.pcpq_id
+           and pqd.is_active = 'Y'
+           and pqd.dbd_id = pc_dbd_id;
       exception
         when no_data_found then
           vc_include_ref_charge := 'N';
@@ -3068,6 +3079,7 @@ create or replace package body pkg_metals_general is
                                    pc_element_id       varchar2,
                                    pc_ash_id           varchar2,
                                    pn_dry_qty          number,
+                                   pn_wet_qty          number,
                                    pc_qty_unit_id      varchar2,
                                    pn_total_pc_charge  out number,
                                    pc_pc_cur_id        out varchar2) is
@@ -3168,9 +3180,9 @@ create or replace package body pkg_metals_general is
         vc_price_unit_id     := cur_pc_charge.price_unit_id;
         vc_cur_id            := cur_pc_charge.cur_id;
         vn_element_pc_charge := 0;
+        vc_penalty_weight_type := cur_pc_charge.penalty_weight_type;
         --check the penalty charge type
         if cur_pc_charge.penalty_charge_type = 'Fixed' then
-          vc_penalty_weight_type := cur_pc_charge.penalty_weight_type;
           --Find the PC charge which will fall in the appropriate range.
           --as according to the typical value   
           if (cur_pc_charge.position = 'Range Begining' and
@@ -3210,12 +3222,18 @@ create or replace package body pkg_metals_general is
             vn_max_range      := cur_pc_charge.range_max_value;
             vn_min_range      := cur_pc_charge.range_min_value;
             vn_typical_val    := cc.typical;
-          
-            vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
-                                                                     pc_qty_unit_id,
-                                                                     cur_pc_charge.weight_unit_id,
-                                                                     pn_dry_qty);
-          
+            if vc_penalty_weight_type = 'Dry' then
+              vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
+                                                                       pc_qty_unit_id,
+                                                                       cur_pc_charge.weight_unit_id,
+                                                                       pn_dry_qty);
+            else
+              vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
+                                                                       pc_qty_unit_id,
+                                                                       cur_pc_charge.weight_unit_id,
+                                                                       pn_wet_qty);
+            
+            end if;
             vn_element_pc_charge := vn_penalty_charge * vn_converted_qty;
           end if;
         elsif cur_pc_charge.penalty_charge_type = 'Variable' then
@@ -3305,10 +3323,18 @@ create or replace package body pkg_metals_general is
         
           --Penalty Charge is applyed on the item wise not on the element  wise
           --This item qty may be dry or wet
-          vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
-                                                                   pc_qty_unit_id,
-                                                                   cur_pc_charge.weight_unit_id,
-                                                                   pn_dry_qty);
+          if vc_penalty_weight_type = 'Dry' then
+            vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
+                                                                     pc_qty_unit_id,
+                                                                     cur_pc_charge.weight_unit_id,
+                                                                     pn_dry_qty);
+          else
+            vn_converted_qty := pkg_general.f_get_converted_quantity(cc.underlying_product_id,
+                                                                     pc_qty_unit_id,
+                                                                     cur_pc_charge.weight_unit_id,
+                                                                     pn_wet_qty);
+          
+          end if;
           --Here no need of the typical value as penalty is on item level  
           vn_element_pc_charge := vn_tier_penalty * vn_converted_qty;
         end if;
@@ -3493,7 +3519,8 @@ create or replace package body pkg_metals_general is
         select pcepc.include_ref_charges
           into vc_include_ref_charge
           from pcpch_pc_payble_content_header pcpch,
-               pcepc_pc_elem_payable_content  pcepc
+               pcepc_pc_elem_payable_content  pcepc,
+               pqd_payable_quality_details    pqd
          where pcpch.pcpch_id = pcepc.pcpch_id
            and pcpch.dbd_id = pc_dbd_id
            and pcepc.dbd_id = pc_dbd_id
@@ -3504,7 +3531,11 @@ create or replace package body pkg_metals_general is
            and (pcepc.range_max_value > cc.typical or
                pcepc.position = 'Range End')
            and pcpch.is_active = 'Y'
-           and pcepc.is_active = 'Y';
+           and pcepc.is_active = 'Y'
+           and pqd.pcpch_id = pcpch.pcpch_id
+           and pqd.pcpq_id = cc.pcpq_id
+           and pqd.is_active = 'Y'
+           and pqd.dbd_id = pc_dbd_id;
       exception
         when no_data_found then
           vc_include_ref_charge := 'N';
