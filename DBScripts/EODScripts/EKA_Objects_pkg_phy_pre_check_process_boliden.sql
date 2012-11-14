@@ -7292,24 +7292,23 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       return pn_price;
     else
     
-      select nvl(round(nvl(pn_price, 0) *
-                       f_get_converted_currency_amt(pc_corporate_id,
-                                                    pum1.cur_id,
-                                                    pum2.cur_id,
-                                                    pd_trade_date,
-                                                    1) *
-                       f_get_converted_quantity(pc_product_id,
-                                                pum1.weight_unit_id,
-                                                pum2.weight_unit_id,
-                                                1) * nvl(pum1.weight, 1) /
-                       nvl(pum2.weight, 1),
-                       5),
+      select nvl((((nvl((pn_price), 0)) *
+                 pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                            pum1.cur_id,
+                                                            pum2.cur_id,
+                                                            pd_trade_date,
+                                                            1)) /
+                 ((ucm.multiplication_factor * nvl(pum1.weight, 1)) /
+                 nvl(pum2.weight, 1))),
                  0)
         into vn_result
-        from pum_price_unit_master pum1,
-             pum_price_unit_master pum2
+        from pum_price_unit_master      pum1,
+             pum_price_unit_master      pum2,
+             ucm_unit_conversion_master ucm
        where pum1.price_unit_id = pc_from_price_unit_id
          and pum2.price_unit_id = pc_to_price_unit_id
+         and pum1.weight_unit_id = ucm.from_qty_unit_id
+         and pum2.weight_unit_id = ucm.to_qty_unit_id
          and pum1.is_deleted = 'N'
          and pum2.is_deleted = 'N';
       return vn_result;
