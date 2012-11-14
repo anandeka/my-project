@@ -2025,6 +2025,7 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
+                             and pcm.approval_status='Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Applicable', 'Called Off')
                              and not exists
@@ -2032,6 +2033,7 @@ create or replace package body pkg_phy_custom_reports is
                                     from pcm_physical_contract_main pcm_in
                                    where pcm.internal_contract_ref_no =
                                          pcm_in.internal_contract_ref_no
+                                     and pcm.approval_status='Approved'    
                                      and pcm_in.process_id =
                                          pc_prev_process_id)
                           union all
@@ -2222,6 +2224,7 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
+                             and pcm.approval_status='Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Called Off')
                              and not exists
@@ -2229,6 +2232,7 @@ create or replace package body pkg_phy_custom_reports is
                                     from pcm_physical_contract_main pcm_in
                                    where pcm.internal_contract_ref_no =
                                          pcm_in.internal_contract_ref_no
+                                     and pcm.approval_status='Approved'    
                                      and pcm_in.process_id =
                                          pc_prev_process_id)
                           union all
@@ -2418,6 +2422,7 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
+                             and pcm.approval_status='Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Called Off')
                              and exists (select pcm_in.internal_contract_ref_no
@@ -2428,6 +2433,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
+                                     and pcm.approval_status='Approved'    
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           union all
@@ -2611,6 +2617,7 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
+                             and pcm.approval_status='Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Applicable', 'Called Off')
                              and exists (select pcm_in.internal_contract_ref_no
@@ -2621,6 +2628,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
+                                     and pcm.approval_status='Approved'    
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           union all
@@ -2809,6 +2817,7 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
+                             and pcm.approval_status='Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Called Off')
                              and exists
@@ -2818,6 +2827,7 @@ create or replace package body pkg_phy_custom_reports is
                                      and pcmul.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
                                      and pcmul.entry_type = 'Update'
+                                     and pcm.approval_status='Approved'
                                      and nvl(pcmul.contract_status, 'none') <>
                                          'Cancelled')
                              and exists (select pcm_in.internal_contract_ref_no
@@ -2828,6 +2838,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id -------prev
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
+                                     and pcm.approval_status='Approved'    
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           union all
@@ -3019,6 +3030,7 @@ create or replace package body pkg_phy_custom_reports is
                                      and pcmul.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
                                      and pcmul.entry_type = 'Update'
+                                     and pcm.approval_status='Approved'
                                      and nvl(pcmul.contract_status, 'none') <>
                                          'Cancelled')
                              and exists (select pcm_in.internal_contract_ref_no
@@ -3029,6 +3041,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id -------prev
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
+                                     and pcm.approval_status='Approved'    
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           --for Concentrate
@@ -3185,11 +3198,13 @@ create or replace package body pkg_phy_custom_reports is
                              and pcpd.strategy_id = css.strategy_id
                              and cim_inco.city_id = pcdb.city_id
                              and css.is_active = 'Y'
+                             and pcm.approval_status='Approved'
                              and not exists
                            (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm.internal_contract_ref_no =
                                          pcm_in.internal_contract_ref_no
+                                     and pcm.approval_status='Approved'    
                                      and pcm_in.process_id =
                                          pc_prev_process_id)
                           union all
@@ -3356,6 +3371,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcpd.strategy_id = css.strategy_id
                              and cim_inco.city_id = pcdb.city_id
                              and css.is_active = 'Y'
+                             and pcm.approval_status='Approved'
                              and exists
                            (select pcmul.internal_contract_ref_no
                                     from pcmul_phy_contract_main_ul pcmul
@@ -3363,6 +3379,7 @@ create or replace package body pkg_phy_custom_reports is
                                      and pcmul.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
                                      and pcmul.entry_type = 'Update'
+                                     and pcm.approval_status='Approved'
                                      and nvl(pcmul.contract_status, 'none') <>
                                          'Cancelled')
                              and exists (select pcm_in.internal_contract_ref_no
@@ -3373,6 +3390,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id -------prev
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
+                                     and pcm.approval_status='Approved'    
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           union all
@@ -3528,6 +3546,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcpd.strategy_id = css.strategy_id
                              and cim_inco.city_id = pcdb.city_id
                              and css.is_active = 'Y'
+                             and pcm.approval_status='Approved'
                              and exists (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm_in.internal_contract_ref_no =
@@ -3536,6 +3555,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
+                                     and pcm.approval_status='Approved'    
                                      and pcm_in.contract_status <>
                                          'Cancelled'))
     loop
@@ -5790,6 +5810,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.contract_status = 'In Position'
                              and pcdi.pcdi_id = poch.pcdi_id
                              and pocd.price_type <> 'Fixed'
+                             and diqs.total_qty - diqs.final_invoiced_qty>0
                              and poch.is_active = 'Y'
                              and poch.poch_id = pocd.poch_id
                              and pocd.is_active = 'Y')
