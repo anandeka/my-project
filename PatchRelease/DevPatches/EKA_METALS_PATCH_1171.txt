@@ -1,4 +1,4 @@
-Patch No*          		:  EKA_METALS_PATCH_1170
+Patch No*          		:  EKA_METALS_PATCH_1171
 Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
