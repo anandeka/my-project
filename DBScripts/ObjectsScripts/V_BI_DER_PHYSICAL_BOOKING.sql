@@ -5,7 +5,11 @@ select iss.corporate_id,
        pdm.product_desc,
        pcm.cp_id counter_party_id,
        phd_contract_cp.companyname counter_party_name,
-       iss.invoiced_qty invoice_quantity,
+       (case when pcm.purchase_sales='P' then       
+       iss.invoiced_qty
+       else
+       (-1) *iss.invoiced_qty
+       end) invoice_quantity,
        qum.qty_unit invoice_quantity_uom,
        nvl(iss.fx_to_base, 1) fx_base,
        nvl(cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
@@ -128,7 +132,11 @@ select iss.corporate_id,
        nvl(pdm.product_desc, 'NA'),
        iss.cp_id counter_party_id,
        phd_cp.companyname counter_party_name,
-       iss.invoiced_qty invoice_quantity,
+       (case when pcm.purchase_sales='P' then       
+       iss.invoiced_qty
+       else
+       (-1) *iss.invoiced_qty
+       end) invoice_quantity,
        nvl(qum.qty_unit, 'MT') invoice_quantity_uom,
        nvl(iss.fx_to_base, 1) fx_base,
        coalesce(cpc.profit_center_id, cpc1.profit_center_id, 'NA') profit_center_id,
