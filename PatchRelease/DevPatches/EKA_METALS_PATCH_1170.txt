@@ -34,3 +34,11 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
+Revision: 107825
+Date: 11:00:03 AM, Wednesday, November 14, 2012
+Message:
+MV for GMR Price allocation 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_349.sql
+
+
