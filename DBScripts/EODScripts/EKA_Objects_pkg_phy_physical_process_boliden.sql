@@ -442,6 +442,26 @@ create or replace package body pkg_phy_physical_process is
                                             pc_dbd_id,
                                             pc_process);
   commit;                                            
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_conc_gmr_allocation_price');
+  
+    vc_err_msg := 'sp_conc_gmr_allocation_price';
+  
+    pkg_phy_cog_price.sp_conc_gmr_allocation_price(pc_corporate_id,
+                                                   pd_trade_date,
+                                                   pc_process_id,
+                                                   pc_user_id,
+                                                   pc_dbd_id,
+                                                   pc_process);
+    commit;
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -1607,6 +1627,10 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        and dbd_id = vc_dbd_id;
   
     update is_invoice_summary
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;
+    update gepd_gmr_element_pledge_detail
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = vc_dbd_id;
@@ -3878,77 +3902,100 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from aghul_alloc_group_header_ul where dbd_id = vc_dbd_id;
     delete from cigcul_contrct_itm_gmr_cost_ul where dbd_id = vc_dbd_id;
     delete from csul_cost_store_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from dgrdul_delivered_grd_ul where dbd_id = vc_dbd_id;
     delete from gmrul_gmr_ul where dbd_id = vc_dbd_id;
     delete from mogrdul_moved_out_grd_ul where dbd_id = vc_dbd_id;
     delete from pcadul_pc_agency_detail_ul where dbd_id = vc_dbd_id;
+    commit;    
     delete from pcbpdul_pc_base_price_dtl_ul where dbd_id = vc_dbd_id;
     delete from pcbphul_pc_base_prc_header_ul where dbd_id = vc_dbd_id;
     delete from pcdbul_pc_delivery_basis_ul where dbd_id = vc_dbd_id;
     delete from pcddul_document_details_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from pcdiobul_di_optional_basis_ul where dbd_id = vc_dbd_id;
     delete from pcdipeul_di_pricing_elemnt_ul where dbd_id = vc_dbd_id;
     delete from pcdiqdul_di_quality_detail_ul where dbd_id = vc_dbd_id;
     delete from pcdiul_pc_delivery_item_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from pcipful_pci_pricing_formula_ul where dbd_id = vc_dbd_id;
     delete from pciul_phy_contract_item_ul where dbd_id = vc_dbd_id;
     delete from pcjvul_pc_jv_detail_ul where dbd_id = vc_dbd_id;
     delete from pcmul_phy_contract_main_ul where dbd_id = vc_dbd_id;
     delete from pcpdqdul_pd_quality_dtl_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from pcpdul_pc_product_defintn_ul where dbd_id = vc_dbd_id;
     delete from pcpqul_pc_product_quality_ul where dbd_id = vc_dbd_id;
     delete from pcqpdul_pc_qual_prm_discnt_ul where dbd_id = vc_dbd_id;
     delete from pffxdul_phy_formula_fx_dtl_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from pfqppul_phy_formula_qp_prc_ul where dbd_id = vc_dbd_id;
     delete from ppfdul_phy_price_frmula_dtl_ul where dbd_id = vc_dbd_id;
     delete from ppfhul_phy_price_frmla_hdr_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from ciqsl_contract_itm_qty_sts_log where dbd_id = vc_dbd_id;
     delete from diqsl_delivery_itm_qty_sts_log where dbd_id = vc_dbd_id;
     delete from cqsl_contract_qty_status_log where dbd_id = vc_dbd_id;
+    commit;
     delete from grdl_goods_record_detail_log where dbd_id = vc_dbd_id;
     delete from vdul_voyage_detail_ul where dbd_id = vc_dbd_id;
     delete from pcpchul_payble_contnt_headr_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from pqdul_payable_quality_dtl_ul where dbd_id = vc_dbd_id;
     delete from pcepcul_elem_payble_content_ul where dbd_id = vc_dbd_id;
     delete from pcthul_treatment_header_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from tedul_treatment_element_dtl_ul where dbd_id = vc_dbd_id;
     delete from tqdul_treatment_quality_dtl_ul where dbd_id = vc_dbd_id;
     delete from pcetcul_elem_treatmnt_chrg_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from pcarul_assaying_rules_ul where dbd_id = vc_dbd_id;
     delete from pcaeslul_assay_elm_splt_lmt_ul where dbd_id = vc_dbd_id;
     delete from pcaeslul_assay_elm_splt_lmt_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from arqdul_assay_quality_dtl_ul where dbd_id = vc_dbd_id;
     delete from pcaphul_attr_penalty_header_ul where dbd_id = vc_dbd_id;
     delete from pcapul_attribute_penalty_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from pqdul_penalty_quality_dtl_ul where dbd_id = vc_dbd_id;
     delete from padul_penalty_attribute_dtl_ul where dbd_id = vc_dbd_id;
     delete from pcrhul_refining_header_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from rqdul_refining_quality_dtl_ul where dbd_id = vc_dbd_id;
     delete from redul_refining_element_dtl_ul where dbd_id = vc_dbd_id;
     delete from pcercul_elem_refing_charge_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from dithul_di_treatment_header_ul where dbd_id = vc_dbd_id;
     delete from dirhul_di_refining_header_ul where dbd_id = vc_dbd_id;
     delete from diphul_di_penalty_header_ul where dbd_id = vc_dbd_id;
+    commit;
     delete from cipql_ctrt_itm_payable_qty_log where dbd_id = vc_dbd_id;
     delete from dipql_del_itm_payble_qty_log where dbd_id = vc_dbd_id;
+    commit;
     delete from spql_stock_payable_qty_log where dbd_id = vc_dbd_id;
     delete from dipchul_di_payblecon_header_ul where dbd_id = vc_dbd_id;
     delete from agd_alloc_group_detail where dbd_id = vc_dbd_id;
     delete from agh_alloc_group_header where dbd_id = vc_dbd_id;
+    commit;
     delete from cigc_contract_item_gmr_cost where dbd_id = vc_dbd_id;
     delete from cs_cost_store where dbd_id = vc_dbd_id;
     delete from ecs_element_cost_store where dbd_id = vc_dbd_id;
     delete from dgrd_delivered_grd where dbd_id = vc_dbd_id;
+    commit;
     delete from gmr_goods_movement_record where dbd_id = vc_dbd_id;
     delete from mogrd_moved_out_grd where dbd_id = vc_dbd_id;
+    commit;
     delete from pcad_pc_agency_detail where dbd_id = vc_dbd_id;
+    commit;
     delete from pcbpd_pc_base_price_detail where dbd_id = vc_dbd_id;
     delete from pcbph_pc_base_price_header where dbd_id = vc_dbd_id;
     delete from pcdb_pc_delivery_basis where dbd_id = vc_dbd_id;
+    commit;
     delete from pcdd_document_details where dbd_id = vc_dbd_id;
     delete from pcdiob_di_optional_basis where dbd_id = vc_dbd_id;
     delete from pcdipe_di_pricing_elements where dbd_id = vc_dbd_id;
     delete from pcdiqd_di_quality_details where dbd_id = vc_dbd_id;
+    commit;
     delete from pcdi_pc_delivery_item where dbd_id = vc_dbd_id;
     delete from pcipf_pci_pricing_formula where dbd_id = vc_dbd_id;
     delete from pci_physical_contract_item where dbd_id = vc_dbd_id;
@@ -3957,28 +4004,34 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from pcpdqd_pd_quality_details where dbd_id = vc_dbd_id;
     delete from pcpd_pc_product_definition where dbd_id = vc_dbd_id;
     delete from pcpq_pc_product_quality where dbd_id = vc_dbd_id;
+    commit;
     delete from pcqpd_pc_qual_premium_discount where dbd_id = vc_dbd_id;
     delete from pffxd_phy_formula_fx_details where dbd_id = vc_dbd_id;
     delete from pfqpp_phy_formula_qp_pricing where dbd_id = vc_dbd_id;
     delete from ppfd_phy_price_formula_details where dbd_id = vc_dbd_id;
     delete from ppfh_phy_price_formula_header where dbd_id = vc_dbd_id;
+    commit;
     delete from ciqs_contract_item_qty_status where dbd_id = vc_dbd_id;
     delete from diqs_delivery_item_qty_status where dbd_id = vc_dbd_id;
+    commit;
     delete from cqs_contract_qty_status where dbd_id = vc_dbd_id;
     delete from grd_goods_record_detail where dbd_id = vc_dbd_id;
     delete from vd_voyage_detail where dbd_id = vc_dbd_id;
+    commit;
     delete from invd_inventory_detail where dbd_id = vc_dbd_id;
     delete from invm_inventory_master where dbd_id = vc_dbd_id;
     delete from cipd_contract_item_price_daily
      where process_id = pc_process_id;
     delete from poud_phy_open_unreal_daily
      where process_id = pc_process_id;
+     commit;
     delete from psu_phy_stock_unrealized where process_id = pc_process_id;
     delete from md_m2m_daily where process_id = pc_process_id;
     delete from tgsc_temp_gmr_sec_cost where process_id = pc_process_id;
     delete from gscs_gmr_sec_cost_summary where process_id = pc_process_id;
     delete from cisc_contract_item_sec_cost
      where process_id = pc_process_id;
+     commit;
     delete from gpd_gmr_price_daily where process_id = pc_process_id;
     delete from pcpch_pc_payble_content_header where dbd_id = vc_dbd_id;
     delete from pqd_payable_quality_details where dbd_id = vc_dbd_id;
@@ -4010,29 +4063,38 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from dith_di_treatment_header where dbd_id = vc_dbd_id;
     delete from dirh_di_refining_header where dbd_id = vc_dbd_id;
     delete from diph_di_penalty_header where dbd_id = vc_dbd_id;
+    commit;
     delete from cipq_contract_item_payable_qty where dbd_id = vc_dbd_id;
     delete from dipq_delivery_item_payable_qty where dbd_id = vc_dbd_id;
     delete from spq_stock_payable_qty where dbd_id = vc_dbd_id;
     delete from dipch_di_payablecontent_header where dbd_id = vc_dbd_id;
     delete from rgmr_realized_gmr where process_id = pc_process_id;
+    commit;
     delete from rgmrd_realized_gmr_detail where process_id = pc_process_id;
     delete from prd_physical_realized_daily
      where process_id = pc_process_id;
     delete from spd_stock_price_daily where process_id = pc_process_id;
-    delete from is_invoice_summary where process_id = pc_process_id;
+    delete from is_invoice_summary where dbd_id = vc_dbd_id;
+    commit;
+    update is_invoice_summary iss set iss.process_id = null
+           where iss.process_id = pc_process_id;
+    commit;
     delete from cdl_cost_delta_log where dbd_id = vc_dbd_id;
     delete from invs_inventory_sales where process_id = pc_process_id;
     delete from tinvp_temp_invm_cog where process_id = pc_process_id;
     delete from tinvs_temp_invm_cogs where process_id = pc_process_id;
+    commit;
     delete from invm_cog where process_id = pc_process_id;
     delete from invm_cogs where process_id = pc_process_id;
     delete from invme_cog_element where process_id = pc_process_id;
     delete from invme_cogs_element where process_id = pc_process_id;
+    commit;
     delete from pa_purchase_accural where process_id = pc_process_id;
     delete from pa_purchase_accural_gmr where process_id = pc_process_id;
     delete from isr_intrastat_grd where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
      where process_id = pc_process_id;
+     commit;
     delete from fcr_feed_consumption_report
      where process_id = pc_process_id;
     delete from stock_monthly_yeild_data where process_id = pc_process_id;
@@ -4040,6 +4102,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
      where process_id = pc_process_id;
     delete from cccp_conc_contract_cog_price
      where process_id = pc_process_id;
+     commit;
     delete from cgcp_conc_gmr_cog_price where process_id = pc_process_id;
     delete from bccp_base_contract_cog_price
      where process_id = pc_process_id;
@@ -4050,6 +4113,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from dpr_daily_position_record where process_id = pc_process_id;
     delete from prch_phy_realized_conc_header
      where process_id = pc_process_id;
+     commit;
     delete from prce_phy_realized_conc_element
      where process_id = pc_process_id;
     delete from rgmrc_realized_gmr_conc where process_id = pc_process_id;
@@ -4062,7 +4126,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from cbre_closing_bal_report_ele where process_id = pc_process_id;
     delete from ord_overall_realized_pnl_daily where process_id = pc_process_id;
     delete from tpd_trade_pnl_daily where process_id = pc_process_id;
-    --
+    delete from gepd_gmr_element_pledge_detail where dbd_id = vc_dbd_id;
   
     delete from eod_eom_fixation_journal where process_id = pc_process_id;
     delete from pofh_history where process_id = pc_process_id;
@@ -4074,6 +4138,12 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     delete from getc_gmr_element_tc_charges where process_id = pc_process_id;
     delete from gerc_gmr_element_rc_charges where process_id = pc_process_id;
     delete from gepc_gmr_element_pc_charges where process_id = pc_process_id;
+	commit;
+	delete from cmp_contract_market_price where process_id = pc_process_id;
+    delete from gmp_gmr_market_price where process_id = pc_process_id;
+    commit;
+	delete from page_price_alloc_gmr_exchange
+    where process_id = pc_process_id;
 
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
@@ -4087,12 +4157,12 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     update cdl_cost_delta_log t
        set t.process_id = null
      where t.process_id = pc_process_id;
-  
+  commit;
     vn_logno := vn_logno + 1;
     -- Washout rollback
     delete from sswh_spe_settle_washout_header where dbd_id = vc_dbd_id;
     delete from sswd_spe_settle_washout_detail where dbd_id = vc_dbd_id;
-  
+  commit;
     update sswh_spe_settle_washout_header
        set process_id = null
      where process_id = pc_process_id;
@@ -4102,7 +4172,7 @@ if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
     update sswd_spe_settle_washout_detail
        set process_id = null
      where process_id = pc_process_id;
-  
+  commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
