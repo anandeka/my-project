@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_1175
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar Behera
+ 
+Created on*        		:  15-Nov-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  70492
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Tolling
+
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 107969
+Author: pradeep.kumar
+Date: 3:40:08 PM, Thursday, November 15, 2012
+Message:
+-- Issue Fixed..For In Process Adjustment : In list of tolling input output GMR if multiple stocks are added then in listing it is displaying ','(comma) 2 times
+-- In List Of Tolling In Process Stock (details ) added the in the existing dropdown In Process Adjustment as Stock Type 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_435.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_TOLLING_GMR.sql
+
+
+
+
+
+
