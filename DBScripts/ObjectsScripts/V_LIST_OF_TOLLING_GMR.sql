@@ -60,7 +60,7 @@ select gmr.corporate_id as corporate_id,
               and dgrd_rm.tolling_stock_type = 'Return Material Stock'
               and dgrd_rm.internal_gmr_ref_no = gmr.internal_gmr_ref_no)
          when axm.action_id = 'IN_PROCESS_ADJUSTMENT' then
-          (select f_string_aggregate(pdm_in.product_desc)
+          (select f_string_aggregate(distinct pdm_in.product_desc)
              from grd_goods_record_detail grd_rm,
                   pdm_productmaster       pdm_in
             where pdm_in.product_id = grd_rm.product_id
@@ -104,7 +104,7 @@ select gmr.corporate_id as corporate_id,
               and dgrd_rm.tolling_stock_type = 'Return Material Stock'
               and dgrd_rm.internal_gmr_ref_no = gmr.internal_gmr_ref_no)
          when axm.action_id = 'IN_PROCESS_ADJUSTMENT' then
-          (select f_string_aggregate(qat_in.quality_name)
+          (select f_string_aggregate(distinct qat_in.quality_name)
              from grd_goods_record_detail grd_rm,
                   qat_quality_attributes  qat_in
             where qat_in.quality_id = grd_rm.quality_id
