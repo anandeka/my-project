@@ -549,13 +549,11 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
     vc_del_premium_main_cur_code   varchar2(15);
     vn_del_premium_cur_main_factor number;
     vn_fw_exch_rate_del_to_base    number;
-    --vn_forward_points              number;
-    vc_contract_qp_fw_exch_rate   varchar2(100);
-    vc_contract_pp_fw_exch_rate   varchar2(100);
-    vc_qual_prem_exch_rate_string varchar2(100);
-    vn_price_to_base_fw_exch_rate number;
-    vc_price_to_base_fw_rate      varchar2(100);
-    vc_sc_to_base_fw_exch_rate    varchar2(500);
+    vc_contract_qp_fw_exch_rate    varchar2(100);
+    vc_contract_pp_fw_exch_rate    varchar2(100);
+    vn_price_to_base_fw_exch_rate  number;
+    vc_price_to_base_fw_rate       varchar2(100);
+    vc_sc_to_base_fw_exch_rate     varchar2(500);
     --
     vn_contract_price            number;
     vc_price_unit_id             varchar2(15);
@@ -568,10 +566,68 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
     vc_error_msg := '1';
     for cur_realized_rows in cur_realized
     loop
-    
-      if cur_realized_rows.contract_type = 'S' then
-        if cur_realized_rows.latest_internal_invoice_ref_no is null then
-          vc_error_msg                 := '7';
+      if cur_realized_rows.item_qty > 0 then
+        if cur_realized_rows.contract_type = 'S' then
+          if cur_realized_rows.latest_internal_invoice_ref_no is null then
+            vc_error_msg                 := '7';
+            vn_contract_price            := cur_realized_rows.contract_price;
+            vc_price_unit_id             := cur_realized_rows.price_unit_id;
+            vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+            vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+            vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+            vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+            vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+            if vn_price_unit_weight is null then
+              vn_price_unit_weight := 1;
+            end if;
+          
+          else
+            -- Invoice Present
+            vc_error_msg := '8';
+            begin
+              select iid.new_invoice_price,
+                     iid.new_invoice_price_unit_id,
+                     ppu.cur_id,
+                     cm.cur_code,
+                     ppu.weight_unit_id,
+                     qum.qty_unit,
+                     nvl(ppu.weight, 1) weight
+                into vn_contract_price,
+                     vc_price_unit_id,
+                     vc_price_unit_cur_id,
+                     vc_price_unit_cur_code,
+                     vc_price_unit_weight_unit_id,
+                     vc_price_unit_weight_unit,
+                     vn_price_unit_weight
+                from iid_invoicable_item_details iid,
+                     v_ppu_pum                   ppu,
+                     cm_currency_master          cm,
+                     qum_quantity_unit_master    qum
+               where iid.internal_invoice_ref_no =
+                     cur_realized_rows.latest_internal_invoice_ref_no
+                 and iid.new_invoice_price_unit_id =
+                     ppu.product_price_unit_id
+                 and ppu.cur_id = cm.cur_id
+                 and ppu.weight_unit_id = qum.qty_unit_id
+                 and iid.internal_gmr_ref_no =
+                     cur_realized_rows.internal_gmr_ref_no;
+            
+            exception
+              when others then
+                vc_error_msg := '9';
+                -- REMOVE THIS LATER, NOT SURE HOW INVOICE IS WORKING
+                vn_contract_price            := cur_realized_rows.contract_price;
+                vc_price_unit_id             := cur_realized_rows.price_unit_id;
+                vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+                vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+                vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+                vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+                vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+              
+            end;
+          end if;
+        else
+          -- Purchase We don't need to look at invoice as COG contains latest price 
           vn_contract_price            := cur_realized_rows.contract_price;
           vc_price_unit_id             := cur_realized_rows.price_unit_id;
           vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
@@ -579,609 +635,484 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
           vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
           vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
           vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
-          if vn_price_unit_weight is null then
-            vn_price_unit_weight := 1;
-          end if;
         
-        else
-          -- Invoice Present
-          vc_error_msg := '8';
-          begin
-            select iid.new_invoice_price,
-                   iid.new_invoice_price_unit_id,
-                   ppu.cur_id,
-                   cm.cur_code,
-                   ppu.weight_unit_id,
-                   qum.qty_unit,
-                   nvl(ppu.weight, 1) weight
-              into vn_contract_price,
-                   vc_price_unit_id,
-                   vc_price_unit_cur_id,
-                   vc_price_unit_cur_code,
-                   vc_price_unit_weight_unit_id,
-                   vc_price_unit_weight_unit,
-                   vn_price_unit_weight
-              from iid_invoicable_item_details iid,
-                   v_ppu_pum                   ppu,
-                   cm_currency_master          cm,
-                   qum_quantity_unit_master    qum
-             where iid.internal_invoice_ref_no =
-                   cur_realized_rows.latest_internal_invoice_ref_no
-               and iid.new_invoice_price_unit_id =
-                   ppu.product_price_unit_id
-               and ppu.cur_id = cm.cur_id
-               and ppu.weight_unit_id = qum.qty_unit_id
-               and iid.internal_gmr_ref_no =
-                   cur_realized_rows.internal_gmr_ref_no;
-          
-          exception
-            when others then
-              vc_error_msg := '9';
-              -- REMOVE THIS LATER, NOT SURE HOW INVOICE IS WORKING
-              vn_contract_price            := cur_realized_rows.contract_price;
-              vc_price_unit_id             := cur_realized_rows.price_unit_id;
-              vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
-              vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
-              vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
-              vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
-              vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
-            
-          end;
         end if;
-      else
-        -- Purchase We don't need to look at invoice as COG contains latest price 
-        vn_contract_price            := cur_realized_rows.contract_price;
-        vc_price_unit_id             := cur_realized_rows.price_unit_id;
-        vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
-        vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
-        vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
-        vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
-        vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
       
-      end if;
-    
-      if cur_realized_rows.contract_type = 'P' then
-        vc_sc_to_base_fw_exch_rate := cur_realized_rows.accrual_to_base_fw_exch_rate;
-      else
-        vc_sc_to_base_fw_exch_rate := cur_realized_rows.sales_sc_exch_rate_string;
-      end if;
-      begin
-        select ppu.product_price_unit_id,
-               ppu.price_unit_name
-          into vc_base_price_unit_id,
-               vc_base_price_unit_name
-          from v_ppu_pum ppu
-         where ppu.cur_id = cur_realized_rows.base_cur_id
-           and ppu.weight_unit_id = cur_realized_rows.base_qty_unit_id
-           and nvl(ppu.weight, 1) = 1
-           and ppu.product_id = cur_realized_rows.product_id;
-      exception
-        when others then
-          sp_write_log(pc_corporate_id,
-                       pd_trade_date,
-                       'sp_calc_realized_today',
-                       'vc_base_price_unit is not available' || ' For' ||
-                       cur_realized_rows.contract_ref_no);
-      end;
-      --
-      -- Pricing Main Currency Details
-      --
-      pkg_general.sp_get_main_cur_detail(vc_price_unit_cur_id,
-                                         vc_price_cur_id,
-                                         vc_price_cur_code,
-                                         vn_cont_price_cur_id_factor,
-                                         vn_cont_price_cur_decimals);
-    
-      vc_error_msg := '2';
-      --
-      -- Quantity in Product Base Unit
-      --
-      if cur_realized_rows.qty_unit_id <>
-         cur_realized_rows.base_qty_unit_id then
-        select pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
-                                                    cur_realized_rows.qty_unit_id,
-                                                    cur_realized_rows.base_qty_unit_id,
-                                                    cur_realized_rows.item_qty)
-          into vn_qty_in_base_qty_unit_id
-          from dual;
-      else
-        vn_qty_in_base_qty_unit_id := cur_realized_rows.item_qty;
-      end if;
-      --
-      -- Total Secondary Cost Value = Avg Seconadry Cost * Realized Qty in Product Base Unit
-      --
-      vn_sc_in_base_cur := cur_realized_rows.secondary_cost_per_unit *
-                           vn_qty_in_base_qty_unit_id;
-      vc_error_msg      := '3';
-      --
-      -- Calculate Product Premium, Purchase Contracts from INVM else from Contract
-      -- 
-      if cur_realized_rows.contract_type = 'P' then
-        vn_product_premium := vn_qty_in_base_qty_unit_id *
-                              cur_realized_rows.cog_product_premium_per_unit;
+        if cur_realized_rows.contract_type = 'P' then
+          vc_sc_to_base_fw_exch_rate := cur_realized_rows.accrual_to_base_fw_exch_rate;
+        else
+          vc_sc_to_base_fw_exch_rate := cur_realized_rows.sales_sc_exch_rate_string;
+        end if;
+        begin
+          select ppu.product_price_unit_id,
+                 ppu.price_unit_name
+            into vc_base_price_unit_id,
+                 vc_base_price_unit_name
+            from v_ppu_pum ppu
+           where ppu.cur_id = cur_realized_rows.base_cur_id
+             and ppu.weight_unit_id = cur_realized_rows.base_qty_unit_id
+             and nvl(ppu.weight, 1) = 1
+             and ppu.product_id = cur_realized_rows.product_id;
+        exception
+          when others then
+            sp_write_log(pc_corporate_id,
+                         pd_trade_date,
+                         'sp_calc_realized_today',
+                         'vc_base_price_unit is not available' || ' For' ||
+                         cur_realized_rows.contract_ref_no);
+        end;
+        --
+        -- Pricing Main Currency Details
+        --
+        pkg_general.sp_get_main_cur_detail(vc_price_unit_cur_id,
+                                           vc_price_cur_id,
+                                           vc_price_cur_code,
+                                           vn_cont_price_cur_id_factor,
+                                           vn_cont_price_cur_decimals);
       
-        vc_contract_pp_fw_exch_rate := cur_realized_rows.contract_pp_fw_exch_rate;
-      else
-        if cur_realized_rows.delivery_premium <> 0 then
-          if cur_realized_rows.delivery_premium_unit_id <>
-             vc_base_price_unit_id then
-            --
-            -- Get the Main Currency of the Delivery Premium Price Unit
-            --
-            pkg_general.sp_get_base_cur_detail(cur_realized_rows.del_premium_cur_id,
+        vc_error_msg := '2';
+        --
+        -- Quantity in Product Base Unit
+        --
+        if cur_realized_rows.qty_unit_id <>
+           cur_realized_rows.base_qty_unit_id then
+          select pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                      cur_realized_rows.qty_unit_id,
+                                                      cur_realized_rows.base_qty_unit_id,
+                                                      cur_realized_rows.item_qty)
+            into vn_qty_in_base_qty_unit_id
+            from dual;
+        else
+          vn_qty_in_base_qty_unit_id := cur_realized_rows.item_qty;
+        end if;
+        --
+        -- Total Secondary Cost Value = Avg Seconadry Cost * Realized Qty in Product Base Unit
+        --
+        vn_sc_in_base_cur := cur_realized_rows.secondary_cost_per_unit *
+                             vn_qty_in_base_qty_unit_id;
+        vc_error_msg      := '3';
+        --
+        -- Calculate Product Premium, Purchase Contracts from INVM else from Contract
+        -- 
+        if cur_realized_rows.contract_type = 'P' then
+          vn_product_premium := vn_qty_in_base_qty_unit_id *
+                                cur_realized_rows.cog_product_premium_per_unit;
+        
+          vc_contract_pp_fw_exch_rate := cur_realized_rows.contract_pp_fw_exch_rate;
+        else
+          if cur_realized_rows.delivery_premium <> 0 then
+            if cur_realized_rows.delivery_premium_unit_id <>
+               vc_base_price_unit_id then
+              --
+              -- Get the Main Currency of the Delivery Premium Price Unit
+              --
+              pkg_general.sp_get_base_cur_detail(cur_realized_rows.del_premium_cur_id,
+                                                 vc_del_premium_main_cur_id,
+                                                 vc_del_premium_main_cur_code,
+                                                 vn_del_premium_cur_main_factor);
+            
+              pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                               pd_trade_date,
                                                vc_del_premium_main_cur_id,
-                                               vc_del_premium_main_cur_code,
-                                               vn_del_premium_cur_main_factor);
-          
-            /* pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-            pd_trade_date,
-            cur_realized_rows.payment_due_date,
-            vc_del_premium_main_cur_id,
-            cur_realized_rows.base_cur_id,
-            30,
-            vn_fw_exch_rate_del_to_base,
-            vn_forward_points);*/
-          
-            pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
-                                             pd_trade_date,
-                                             vc_del_premium_main_cur_id,
-                                             cur_realized_rows.base_cur_id,
-                                             'sp_calc_phy_realized_today Sales DP to Base',
-                                             pc_process,
-                                             vn_fw_exch_rate_del_to_base);
-          
-            /*if vc_del_premium_main_cur_id <> cur_realized_rows.base_cur_id then
-              if vn_fw_exch_rate_del_to_base is null or
-                 vn_fw_exch_rate_del_to_base = 0 then
-                vobj_error_log.extend;
-                vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                     'procedure pkg_phy_physical_process-sp_physical_realized_today ',
-                                                                     'PHY-005',
-                                                                     cur_realized_rows.base_cur_code ||
-                                                                     ' to ' ||
-                                                                     vc_del_premium_main_cur_id || ' (' ||
-                                                                     to_char(pd_trade_date,
-                                                                             'dd-Mon-yyyy') || ') ',
-                                                                     '',
-                                                                     pc_process,
-                                                                     pc_user_id,
-                                                                     sysdate,
-                                                                     pd_trade_date);
-                sp_insert_error_log(vobj_error_log);
-              end if;
-            end if;*/
-            /*if vn_fw_exch_rate_del_to_base <> 1 then*/
-            vc_contract_pp_fw_exch_rate := '1 ' ||
-                                           vc_del_premium_main_cur_code || '=' ||
-                                           vn_fw_exch_rate_del_to_base || ' ' ||
-                                           cur_realized_rows.base_cur_code;
-            /* end if;*/
-          
-            vn_product_premium_per_unit := (cur_realized_rows.delivery_premium /
-                                           cur_realized_rows.del_premium_weight) *
-                                           vn_del_premium_cur_main_factor *
-                                           vn_fw_exch_rate_del_to_base *
-                                           pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
-                                                                                cur_realized_rows.del_premium_weight_unit_id,
-                                                                                cur_realized_rows.base_qty_unit_id,
-                                                                                1);
-          
+                                               cur_realized_rows.base_cur_id,
+                                               'sp_calc_phy_realized_today Sales DP to Base',
+                                               pc_process,
+                                               vn_fw_exch_rate_del_to_base);
+            
+              vc_contract_pp_fw_exch_rate := '1 ' ||
+                                             vc_del_premium_main_cur_code || '=' ||
+                                             vn_fw_exch_rate_del_to_base || ' ' ||
+                                             cur_realized_rows.base_cur_code;
+            
+              vn_product_premium_per_unit := (cur_realized_rows.delivery_premium /
+                                             cur_realized_rows.del_premium_weight) *
+                                             vn_del_premium_cur_main_factor *
+                                             vn_fw_exch_rate_del_to_base *
+                                             pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                                                  cur_realized_rows.del_premium_weight_unit_id,
+                                                                                  cur_realized_rows.base_qty_unit_id,
+                                                                                  1);
+            
+            else
+              vn_product_premium_per_unit := cur_realized_rows.delivery_premium;
+              vc_contract_pp_fw_exch_rate := null;
+            end if;
+            vn_product_premium := round(vn_product_premium_per_unit *
+                                        vn_qty_in_base_qty_unit_id,
+                                        2);
           else
-            vn_product_premium_per_unit := cur_realized_rows.delivery_premium;
+            vn_product_premium_per_unit := 0;
+            vn_product_premium          := 0;
             vc_contract_pp_fw_exch_rate := null;
           end if;
-          vn_product_premium := round(vn_product_premium_per_unit *
-                                      vn_qty_in_base_qty_unit_id,
-                                      2);
-        else
-          vn_product_premium_per_unit := 0;
-          vn_product_premium          := 0;
-          vc_contract_pp_fw_exch_rate := null;
         end if;
-      end if;
-      vc_error_msg := '4';
-      --
-      -- Calculate Contract Quality Premium, Purchase Contracts from COG Sales COntracts from Contract
-      -- 
-      if cur_realized_rows.contract_type = 'P' then
-        vn_quality_premium            := round(cur_realized_rows.cog_quality_premium_per_unit *
+        vc_error_msg := '4';
+        --
+        -- Calculate Contract Quality Premium, Purchase Contracts from COG Sales COntracts from Contract
+        -- 
+        if cur_realized_rows.contract_type = 'P' then
+          vn_quality_premium          := round(cur_realized_rows.cog_quality_premium_per_unit *
                                                vn_qty_in_base_qty_unit_id,
                                                2);
-        vc_qual_prem_exch_rate_string := cur_realized_rows.contract_qp_fw_exch_rate;
-      else
-        pkg_metals_general.sp_quality_premium_fw_rate(cur_realized_rows.internal_contract_item_ref_no,
-                                                      pc_corporate_id,
-                                                      pc_process,
-                                                      pd_trade_date,
-                                                      vc_base_price_unit_id,
-                                                      cur_realized_rows.base_cur_id,
-                                                      cur_realized_rows.product_id,
-                                                      cur_realized_rows.base_qty_unit_id,
-                                                      pc_process_id,
-                                                      'Fixed', -- price_basis,
-                                                      pd_trade_date, --valuation_fx_date
-                                                      pd_trade_date, --qp_fx_date
-                                                      vn_quality_premium_per_unit,
-                                                      vc_qual_prem_exch_rate_string);
-        if vc_qual_prem_exch_rate_string is not null then
-          vc_contract_qp_fw_exch_rate := vc_qual_prem_exch_rate_string;
-        end if;
-      
-        vn_quality_premium := round((vn_quality_premium_per_unit *
-                                    vn_qty_in_base_qty_unit_id),
-                                    2);
-      end if;
-      vc_error_msg := '5';
-      --  
-      -- Contratc value in base cur = Price Per Unit in Base * Qty in Base
-      -- 
-      vc_error_msg := '5.1';
-      if cur_realized_rows.contract_type = 'P' then
-        vc_price_to_base_fw_rate      := cur_realized_rows.price_to_base_fw_exch_rate;
-        vn_price_to_base_fw_exch_rate := cur_realized_rows.price_to_base_fw_exch_rate_act;
-        select ppu.product_price_unit_id
-          into vc_contract_price_unit_id
-          from v_ppu_pum ppu
-         where ppu.product_price_unit_id = vc_price_unit_id
-           and ppu.product_id = cur_realized_rows.product_id;
-      
-        vn_contract_value_in_price_cur := (vn_contract_price /
-                                          nvl(vn_price_unit_weight, 1)) *
-                                          vn_cont_price_cur_id_factor *
-                                          pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
-                                                                               cur_realized_rows.qty_unit_id,
-                                                                               cur_realized_rows.base_qty_unit_id,
-                                                                               cur_realized_rows.item_qty);
-      
-        vn_contract_value_in_base_cur := (vn_contract_price /
-                                         nvl(vn_price_unit_weight, 1)) *
-                                         vn_cont_price_cur_id_factor *
-                                         vn_price_to_base_fw_exch_rate *
-                                         pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
-                                                                              cur_realized_rows.qty_unit_id,
-                                                                              cur_realized_rows.base_qty_unit_id,
-                                                                              cur_realized_rows.item_qty);
-      
-      else
-        vc_error_msg              := '6';
-        vc_contract_price_unit_id := vc_price_unit_id;
-        --
-        -- Contract Value in Price Currency
-        -- 
-        vn_contract_value_in_price_cur := (vn_contract_price /
-                                          nvl(vn_price_unit_weight, 1)) *
-                                          vn_cont_price_cur_id_factor *
-                                          pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
-                                                                               cur_realized_rows.qty_unit_id,
-                                                                               cur_realized_rows.base_qty_unit_id,
-                                                                               cur_realized_rows.item_qty);
-        --
-        -- Get the Contract Value in Base Currency
-        --
-        vc_error_msg := '7';
-        /*pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-        pd_trade_date,
-        cur_realized_rows.payment_due_date,
-        vc_price_cur_id,
-        cur_realized_rows.base_cur_id,
-        30,
-        vn_price_to_base_fw_exch_rate,
-        vn_forward_points);*/
-        if vc_price_cur_id <> cur_realized_rows.base_cur_id then
-          pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
-                                           pd_trade_date,
-                                           vc_price_cur_id,
-                                           cur_realized_rows.base_cur_id,
-                                           'sp_calc_phy_realized_today Sales Price to Base',
-                                           pc_process,
-                                           vn_price_to_base_fw_exch_rate);
-          vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
-                                      vn_price_to_base_fw_exch_rate || ' ' ||
-                                      cur_realized_rows.base_cur_code;
+          vc_contract_qp_fw_exch_rate := cur_realized_rows.contract_qp_fw_exch_rate;
         else
-          vn_price_to_base_fw_exch_rate := 1;
-          vc_price_to_base_fw_rate      := null;
+          pkg_metals_general.sp_quality_premium_fw_rate(cur_realized_rows.internal_contract_item_ref_no,
+                                                        pc_corporate_id,
+                                                        pc_process,
+                                                        pd_trade_date,
+                                                        vc_base_price_unit_id,
+                                                        cur_realized_rows.base_cur_id,
+                                                        cur_realized_rows.product_id,
+                                                        cur_realized_rows.base_qty_unit_id,
+                                                        pc_process_id,
+                                                        'Fixed', -- price_basis,
+                                                        pd_trade_date, --valuation_fx_date
+                                                        pd_trade_date, --qp_fx_date
+                                                        vn_quality_premium_per_unit,
+                                                        vc_contract_qp_fw_exch_rate);
+        
+          vn_quality_premium := round((vn_quality_premium_per_unit *
+                                      vn_qty_in_base_qty_unit_id),
+                                      2);
         end if;
-      
-        /*if vc_price_cur_id <> cur_realized_rows.base_cur_id then
-          if vn_price_to_base_fw_exch_rate is null or
-             vn_price_to_base_fw_exch_rate = 0 then
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure pkg_phy_physical_process-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 cur_realized_rows.base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_price_cur_code || ' (' ||
-                                                                 to_char(pd_trade_date,
-                                                                         'dd-Mon-yyyy') || ') ',
-                                                                 '',
-                                                                 pc_process,
-                                                                 pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
+        vc_error_msg := '5';
+        --  
+        -- Contratc value in base cur = Price Per Unit in Base * Qty in Base
+        -- 
+        vc_error_msg := '5.1';
+        if cur_realized_rows.contract_type = 'P' then
+          vc_price_to_base_fw_rate      := cur_realized_rows.price_to_base_fw_exch_rate;
+          vn_price_to_base_fw_exch_rate := cur_realized_rows.price_to_base_fw_exch_rate_act;
+          select ppu.product_price_unit_id
+            into vc_contract_price_unit_id
+            from v_ppu_pum ppu
+           where ppu.product_price_unit_id = vc_price_unit_id
+             and ppu.product_id = cur_realized_rows.product_id;
+        
+          vn_contract_value_in_price_cur := (vn_contract_price /
+                                            nvl(vn_price_unit_weight, 1)) *
+                                            vn_cont_price_cur_id_factor *
+                                            pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                                                 cur_realized_rows.qty_unit_id,
+                                                                                 cur_realized_rows.base_qty_unit_id,
+                                                                                 cur_realized_rows.item_qty);
+        
+          vn_contract_value_in_base_cur := (vn_contract_price /
+                                           nvl(vn_price_unit_weight, 1)) *
+                                           vn_cont_price_cur_id_factor *
+                                           vn_price_to_base_fw_exch_rate *
+                                           pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                                                cur_realized_rows.qty_unit_id,
+                                                                                cur_realized_rows.base_qty_unit_id,
+                                                                                cur_realized_rows.item_qty);
+        
+        else
+          vc_error_msg              := '6';
+          vc_contract_price_unit_id := vc_price_unit_id;
+          --
+          -- Contract Value in Price Currency
+          -- 
+          vn_contract_value_in_price_cur := (vn_contract_price /
+                                            nvl(vn_price_unit_weight, 1)) *
+                                            vn_cont_price_cur_id_factor *
+                                            pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                                                 cur_realized_rows.qty_unit_id,
+                                                                                 cur_realized_rows.base_qty_unit_id,
+                                                                                 cur_realized_rows.item_qty);
+          --
+          -- Get the Contract Value in Base Currency
+          --
+          vc_error_msg := '7';
+        
+          if vc_price_cur_id <> cur_realized_rows.base_cur_id then
+            pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                             pd_trade_date,
+                                             vc_price_cur_id,
+                                             cur_realized_rows.base_cur_id,
+                                             'sp_calc_phy_realized_today Sales Price to Base',
+                                             pc_process,
+                                             vn_price_to_base_fw_exch_rate);
+            vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
+                                        vn_price_to_base_fw_exch_rate || ' ' ||
+                                        cur_realized_rows.base_cur_code;
+          else
+            vn_price_to_base_fw_exch_rate := 1;
+            vc_price_to_base_fw_rate      := null;
           end if;
-        end if;*/
-      
-        /*if vn_price_to_base_fw_exch_rate is not null and
-           vn_price_to_base_fw_exch_rate <> 1 then
-          vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
-                                      vn_price_to_base_fw_exch_rate || ' ' ||
-                                      cur_realized_rows.base_cur_code;
-        end if;*/
-        vn_contract_value_in_base_cur := (vn_contract_price /
-                                         nvl(vn_price_unit_weight, 1)) *
-                                         vn_cont_price_cur_id_factor *
-                                         vn_price_to_base_fw_exch_rate *
-                                         pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
-                                                                              cur_realized_rows.qty_unit_id,
-                                                                              cur_realized_rows.base_qty_unit_id,
-                                                                              cur_realized_rows.item_qty);
+        
+          vn_contract_value_in_base_cur := (vn_contract_price /
+                                           nvl(vn_price_unit_weight, 1)) *
+                                           vn_cont_price_cur_id_factor *
+                                           vn_price_to_base_fw_exch_rate *
+                                           pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                                                cur_realized_rows.qty_unit_id,
+                                                                                cur_realized_rows.base_qty_unit_id,
+                                                                                cur_realized_rows.item_qty);
+        end if;
+        vc_error_msg := '8';
+        --
+        -- Total COG or Sale Value = Contract Value (Qty * Price) + Quality Premium + Product Premium
+        --  +- Secondary Cost (+ for Purchase Contracts and - for Sales Contracts)
+        --
+        vn_cog_net_sale_value := vn_contract_value_in_base_cur +
+                                 vn_quality_premium + vn_product_premium;
+        if cur_realized_rows.contract_type = 'P' then
+          vn_cog_net_sale_value := -1 * (vn_cog_net_sale_value +
+                                   abs(vn_sc_in_base_cur));
+        else
+          vn_cog_net_sale_value := vn_cog_net_sale_value -
+                                   abs(vn_sc_in_base_cur);
+        end if;
+        vc_error_msg := '9';
+        insert into prd_physical_realized_daily
+          (process_id,
+           trade_date,
+           corporate_id,
+           corporate_name,
+           internal_contract_ref_no,
+           contract_ref_no,
+           internal_contract_item_ref_no,
+           del_distribution_item_no,
+           contract_issue_date,
+           contract_type,
+           contract_status,
+           int_alloc_group_id,
+           alloc_group_name,
+           internal_gmr_ref_no,
+           gmr_ref_no,
+           internal_grd_ref_no,
+           internal_stock_ref_no,
+           product_id,
+           product_name,
+           origin_id,
+           origin_name,
+           quality_id,
+           quality_name,
+           profit_center_id,
+           profit_center_name,
+           profit_center_short_name,
+           cp_profile_id,
+           cp_name,
+           trade_user_id,
+           trade_user_name,
+           price_type_id,
+           price_type_name,
+           incoterm_id,
+           incoterm,
+           payment_term_id,
+           payment_term,
+           price_fixation_details,
+           price_fixation_status,
+           realized_type,
+           realized_date,
+           container_no,
+           item_qty,
+           qty_unit_id,
+           qty_unit,
+           contract_price,
+           price_unit_id,
+           price_unit_cur_id,
+           price_unit_cur_code,
+           price_unit_weight_unit_id,
+           price_unit_weight_unit,
+           price_unit_weight,
+           contract_value_in_price_cur,
+           contract_price_cur_id,
+           contract_price_cur_code,
+           contract_invoice_value,
+           secondary_cost_per_unit,
+           secondary_cost_value,
+           cog_net_sale_value,
+           realized_pnl,
+           cfx_price_cur_to_base_cur,
+           warehouse_id,
+           warehouse_name,
+           shed_id,
+           shed_name,
+           group_id,
+           group_name,
+           group_cur_id,
+           group_cur_code,
+           group_qty_unit_id,
+           group_qty_unit,
+           item_qty_in_base_qty_unit,
+           base_qty_unit_id,
+           base_qty_unit,
+           base_cur_id,
+           base_cur_code,
+           sales_profit_center_id,
+           sales_profit_center_name,
+           sales_profit_center_short_name,
+           sales_strategy_id,
+           sales_strategy_name,
+           sales_business_line_id,
+           sales_business_line_name,
+           sales_internal_gmr_ref_no,
+           sales_contract_ref_no,
+           origination_city_id,
+           origination_city_name,
+           origination_country_id,
+           origination_country_name,
+           destination_city_id,
+           destination_city_name,
+           destination_country_id,
+           destination_country_name,
+           pool_id,
+           strategy_id,
+           strategy_name,
+           business_line_id,
+           business_line_name,
+           bl_number,
+           bl_date,
+           seal_no,
+           mark_no,
+           warehouse_ref_no,
+           warehouse_receipt_no,
+           warehouse_receipt_date,
+           is_warrant,
+           warrant_no,
+           pcdi_id,
+           supp_contract_item_ref_no,
+           supplier_pcdi_id,
+           payable_returnable_type,
+           quality_premium,
+           quality_premium_per_unit,
+           product_premium,
+           product_premium_per_unit,
+           base_price_unit_id,
+           base_price_unit_name,
+           price_description,
+           delivery_item_no,
+           price_to_base_fw_exch_rate,
+           contract_qp_fw_exch_rate,
+           contract_pp_fw_exch_rate,
+           accrual_to_base_fw_exch_rate,
+           sales_gmr_ref_no)
+        values
+          (pc_process_id,
+           pd_trade_date,
+           cur_realized_rows.corporate_id,
+           cur_realized_rows.corporate_name,
+           cur_realized_rows.internal_contract_ref_no,
+           cur_realized_rows.contract_ref_no,
+           cur_realized_rows.internal_contract_item_ref_no,
+           cur_realized_rows.del_distribution_item_no,
+           cur_realized_rows.issue_date,
+           cur_realized_rows.contract_type,
+           cur_realized_rows.contract_status,
+           cur_realized_rows.int_alloc_group_id,
+           cur_realized_rows.alloc_group_name,
+           cur_realized_rows.internal_gmr_ref_no,
+           cur_realized_rows.gmr_ref_no,
+           cur_realized_rows.internal_grd_ref_no,
+           cur_realized_rows.internal_stock_ref_no,
+           cur_realized_rows.product_id,
+           cur_realized_rows.product_desc,
+           cur_realized_rows.origin_id,
+           cur_realized_rows.origin_name,
+           cur_realized_rows.quality_id,
+           cur_realized_rows.quality_name,
+           cur_realized_rows.profit_center_id,
+           cur_realized_rows.profit_center_name,
+           cur_realized_rows.profit_center_short_name,
+           cur_realized_rows.cp_profile_id,
+           cur_realized_rows.cp_name,
+           cur_realized_rows.trade_user_id,
+           cur_realized_rows.trade_user_name,
+           cur_realized_rows.price_type_id,
+           cur_realized_rows.price_type_name,
+           cur_realized_rows.incoterm_id,
+           cur_realized_rows.incoterm,
+           cur_realized_rows.payment_term_id,
+           cur_realized_rows.payment_term,
+           cur_realized_rows.price_fixation_details,
+           cur_realized_rows.price_fixation_status,
+           cur_realized_rows.realized_type,
+           cur_realized_rows.realized_date,
+           cur_realized_rows.container_no,
+           cur_realized_rows.item_qty,
+           cur_realized_rows.qty_unit_id,
+           cur_realized_rows.qty_unit,
+           vn_contract_price,
+           vc_contract_price_unit_id,
+           vc_price_unit_cur_id,
+           vc_price_unit_cur_code,
+           vc_price_unit_weight_unit_id,
+           vc_price_unit_weight_unit,
+           vn_price_unit_weight,
+           vn_contract_value_in_price_cur,
+           vc_price_cur_id,
+           vc_price_cur_code,
+           vn_contract_value_in_base_cur,
+           cur_realized_rows.secondary_cost_per_unit,
+           vn_sc_in_base_cur,
+           vn_cog_net_sale_value,
+           null, -- Realized_pnl Updated Below
+           vn_cfx_price_cur_to_base_cur,
+           cur_realized_rows.warehouse_id,
+           cur_realized_rows.warehouse_name,
+           cur_realized_rows.shed_id,
+           cur_realized_rows.shed_name,
+           cur_realized_rows.group_id,
+           cur_realized_rows.group_name,
+           cur_realized_rows.group_cur_id,
+           cur_realized_rows.group_cur_code,
+           cur_realized_rows.group_qty_unit_id,
+           cur_realized_rows.group_qty_unit,
+           vn_qty_in_base_qty_unit_id,
+           cur_realized_rows.base_qty_unit_id,
+           cur_realized_rows.base_qty_unit,
+           cur_realized_rows.base_cur_id,
+           cur_realized_rows.base_cur_code,
+           cur_realized_rows.sales_profit_center_id,
+           cur_realized_rows.sales_profit_center_name,
+           cur_realized_rows.sales_profit_center_short_name,
+           cur_realized_rows.sales_strategy_id,
+           cur_realized_rows.sales_strategy_name,
+           cur_realized_rows.sales_business_line_id,
+           cur_realized_rows.sales_business_line_name,
+           cur_realized_rows.sales_internal_gmr_ref_no,
+           cur_realized_rows.sales_contract_ref_no,
+           cur_realized_rows.origination_city_id,
+           cur_realized_rows.origination_city_name,
+           cur_realized_rows.origination_country_id,
+           cur_realized_rows.origination_country_name,
+           cur_realized_rows.destination_city_id,
+           cur_realized_rows.destination_city_name,
+           cur_realized_rows.destination_country_id,
+           cur_realized_rows.destination_country_name,
+           cur_realized_rows.pool_id,
+           cur_realized_rows.strategy_id,
+           cur_realized_rows.strategy_name,
+           cur_realized_rows.business_line_id,
+           cur_realized_rows.business_line_name,
+           cur_realized_rows.bl_number,
+           cur_realized_rows.bl_date,
+           cur_realized_rows.seal_no,
+           cur_realized_rows.mark_no,
+           cur_realized_rows.warehouse_ref_no,
+           cur_realized_rows.warehouse_receipt_no,
+           cur_realized_rows.warehouse_receipt_date,
+           cur_realized_rows.is_warrant,
+           cur_realized_rows.warrant_no,
+           cur_realized_rows.pcdi_id,
+           cur_realized_rows.supp_contract_item_ref_no,
+           cur_realized_rows.supplier_pcdi_id,
+           cur_realized_rows.payable_returnable_type,
+           vn_quality_premium,
+           vn_quality_premium_per_unit,
+           vn_product_premium,
+           vn_product_premium_per_unit,
+           vc_base_price_unit_id,
+           vc_base_price_unit_name,
+           cur_realized_rows.price_description,
+           cur_realized_rows.delivery_item_no,
+           vc_price_to_base_fw_rate,
+           vc_contract_qp_fw_exch_rate,
+           vc_contract_pp_fw_exch_rate,
+           vc_sc_to_base_fw_exch_rate,
+           cur_realized_rows.sales_gmr_ref_no);
       end if;
-      vc_error_msg := '8';
-      --
-      -- Total COG or Sale Value = Contract Value (Qty * Price) + Quality Premium + Product Premium
-      --  +- Secondary Cost (+ for Purchase Contracts and - for Sales Contracts)
-      --
-      vn_cog_net_sale_value := vn_contract_value_in_base_cur +
-                               vn_quality_premium + vn_product_premium;
-      if cur_realized_rows.contract_type = 'P' then
-        vn_cog_net_sale_value := -1 * (vn_cog_net_sale_value +
-                                 abs(vn_sc_in_base_cur));
-      else
-        vn_cog_net_sale_value := vn_cog_net_sale_value -
-                                 abs(vn_sc_in_base_cur);
-      end if;
-      vc_error_msg := '9';
-      insert into prd_physical_realized_daily
-        (process_id,
-         trade_date,
-         corporate_id,
-         corporate_name,
-         internal_contract_ref_no,
-         contract_ref_no,
-         internal_contract_item_ref_no,
-         del_distribution_item_no,
-         contract_issue_date,
-         contract_type,
-         contract_status,
-         int_alloc_group_id,
-         alloc_group_name,
-         internal_gmr_ref_no,
-         gmr_ref_no,
-         internal_grd_ref_no,
-         internal_stock_ref_no,
-         product_id,
-         product_name,
-         origin_id,
-         origin_name,
-         quality_id,
-         quality_name,
-         profit_center_id,
-         profit_center_name,
-         profit_center_short_name,
-         cp_profile_id,
-         cp_name,
-         trade_user_id,
-         trade_user_name,
-         price_type_id,
-         price_type_name,
-         incoterm_id,
-         incoterm,
-         payment_term_id,
-         payment_term,
-         price_fixation_details,
-         price_fixation_status,
-         realized_type,
-         realized_date,
-         container_no,
-         item_qty,
-         qty_unit_id,
-         qty_unit,
-         contract_price,
-         price_unit_id,
-         price_unit_cur_id,
-         price_unit_cur_code,
-         price_unit_weight_unit_id,
-         price_unit_weight_unit,
-         price_unit_weight,
-         contract_value_in_price_cur,
-         contract_price_cur_id,
-         contract_price_cur_code,
-         contract_invoice_value,
-         secondary_cost_per_unit,
-         secondary_cost_value,
-         cog_net_sale_value,
-         realized_pnl,
-         cfx_price_cur_to_base_cur,
-         warehouse_id,
-         warehouse_name,
-         shed_id,
-         shed_name,
-         group_id,
-         group_name,
-         group_cur_id,
-         group_cur_code,
-         group_qty_unit_id,
-         group_qty_unit,
-         item_qty_in_base_qty_unit,
-         base_qty_unit_id,
-         base_qty_unit,
-         base_cur_id,
-         base_cur_code,
-         sales_profit_center_id,
-         sales_profit_center_name,
-         sales_profit_center_short_name,
-         sales_strategy_id,
-         sales_strategy_name,
-         sales_business_line_id,
-         sales_business_line_name,
-         sales_internal_gmr_ref_no,
-         sales_contract_ref_no,
-         origination_city_id,
-         origination_city_name,
-         origination_country_id,
-         origination_country_name,
-         destination_city_id,
-         destination_city_name,
-         destination_country_id,
-         destination_country_name,
-         pool_id,
-         strategy_id,
-         strategy_name,
-         business_line_id,
-         business_line_name,
-         bl_number,
-         bl_date,
-         seal_no,
-         mark_no,
-         warehouse_ref_no,
-         warehouse_receipt_no,
-         warehouse_receipt_date,
-         is_warrant,
-         warrant_no,
-         pcdi_id,
-         supp_contract_item_ref_no,
-         supplier_pcdi_id,
-         payable_returnable_type,
-         quality_premium,
-         quality_premium_per_unit,
-         product_premium,
-         product_premium_per_unit,
-         base_price_unit_id,
-         base_price_unit_name,
-         price_description,
-         delivery_item_no,
-         price_to_base_fw_exch_rate,
-         contract_qp_fw_exch_rate,
-         contract_pp_fw_exch_rate,
-         accrual_to_base_fw_exch_rate,
-         sales_gmr_ref_no)
-      values
-        (pc_process_id,
-         pd_trade_date,
-         cur_realized_rows.corporate_id,
-         cur_realized_rows.corporate_name,
-         cur_realized_rows.internal_contract_ref_no,
-         cur_realized_rows.contract_ref_no,
-         cur_realized_rows.internal_contract_item_ref_no,
-         cur_realized_rows.del_distribution_item_no,
-         cur_realized_rows.issue_date,
-         cur_realized_rows.contract_type,
-         cur_realized_rows.contract_status,
-         cur_realized_rows.int_alloc_group_id,
-         cur_realized_rows.alloc_group_name,
-         cur_realized_rows.internal_gmr_ref_no,
-         cur_realized_rows.gmr_ref_no,
-         cur_realized_rows.internal_grd_ref_no,
-         cur_realized_rows.internal_stock_ref_no,
-         cur_realized_rows.product_id,
-         cur_realized_rows.product_desc,
-         cur_realized_rows.origin_id,
-         cur_realized_rows.origin_name,
-         cur_realized_rows.quality_id,
-         cur_realized_rows.quality_name,
-         cur_realized_rows.profit_center_id,
-         cur_realized_rows.profit_center_name,
-         cur_realized_rows.profit_center_short_name,
-         cur_realized_rows.cp_profile_id,
-         cur_realized_rows.cp_name,
-         cur_realized_rows.trade_user_id,
-         cur_realized_rows.trade_user_name,
-         cur_realized_rows.price_type_id,
-         cur_realized_rows.price_type_name,
-         cur_realized_rows.incoterm_id,
-         cur_realized_rows.incoterm,
-         cur_realized_rows.payment_term_id,
-         cur_realized_rows.payment_term,
-         cur_realized_rows.price_fixation_details,
-         cur_realized_rows.price_fixation_status,
-         cur_realized_rows.realized_type,
-         cur_realized_rows.realized_date,
-         cur_realized_rows.container_no,
-         cur_realized_rows.item_qty,
-         cur_realized_rows.qty_unit_id,
-         cur_realized_rows.qty_unit,
-         vn_contract_price,
-         vc_contract_price_unit_id,
-         vc_price_unit_cur_id,
-         vc_price_unit_cur_code,
-         vc_price_unit_weight_unit_id,
-         vc_price_unit_weight_unit,
-         vn_price_unit_weight,
-         vn_contract_value_in_price_cur,
-         vc_price_cur_id,
-         vc_price_cur_code,
-         vn_contract_value_in_base_cur,
-         cur_realized_rows.secondary_cost_per_unit,
-         vn_sc_in_base_cur,
-         vn_cog_net_sale_value,
-         null, -- Realized_pnl Updated Below
-         vn_cfx_price_cur_to_base_cur,
-         cur_realized_rows.warehouse_id,
-         cur_realized_rows.warehouse_name,
-         cur_realized_rows.shed_id,
-         cur_realized_rows.shed_name,
-         cur_realized_rows.group_id,
-         cur_realized_rows.group_name,
-         cur_realized_rows.group_cur_id,
-         cur_realized_rows.group_cur_code,
-         cur_realized_rows.group_qty_unit_id,
-         cur_realized_rows.group_qty_unit,
-         vn_qty_in_base_qty_unit_id,
-         cur_realized_rows.base_qty_unit_id,
-         cur_realized_rows.base_qty_unit,
-         cur_realized_rows.base_cur_id,
-         cur_realized_rows.base_cur_code,
-         cur_realized_rows.sales_profit_center_id,
-         cur_realized_rows.sales_profit_center_name,
-         cur_realized_rows.sales_profit_center_short_name,
-         cur_realized_rows.sales_strategy_id,
-         cur_realized_rows.sales_strategy_name,
-         cur_realized_rows.sales_business_line_id,
-         cur_realized_rows.sales_business_line_name,
-         cur_realized_rows.sales_internal_gmr_ref_no,
-         cur_realized_rows.sales_contract_ref_no,
-         cur_realized_rows.origination_city_id,
-         cur_realized_rows.origination_city_name,
-         cur_realized_rows.origination_country_id,
-         cur_realized_rows.origination_country_name,
-         cur_realized_rows.destination_city_id,
-         cur_realized_rows.destination_city_name,
-         cur_realized_rows.destination_country_id,
-         cur_realized_rows.destination_country_name,
-         cur_realized_rows.pool_id,
-         cur_realized_rows.strategy_id,
-         cur_realized_rows.strategy_name,
-         cur_realized_rows.business_line_id,
-         cur_realized_rows.business_line_name,
-         cur_realized_rows.bl_number,
-         cur_realized_rows.bl_date,
-         cur_realized_rows.seal_no,
-         cur_realized_rows.mark_no,
-         cur_realized_rows.warehouse_ref_no,
-         cur_realized_rows.warehouse_receipt_no,
-         cur_realized_rows.warehouse_receipt_date,
-         cur_realized_rows.is_warrant,
-         cur_realized_rows.warrant_no,
-         cur_realized_rows.pcdi_id,
-         cur_realized_rows.supp_contract_item_ref_no,
-         cur_realized_rows.supplier_pcdi_id,
-         cur_realized_rows.payable_returnable_type,
-         vn_quality_premium,
-         vn_quality_premium_per_unit,
-         vn_product_premium,
-         vn_product_premium_per_unit,
-         vc_base_price_unit_id,
-         vc_base_price_unit_name,
-         cur_realized_rows.price_description,
-         cur_realized_rows.delivery_item_no,
-         vc_price_to_base_fw_rate,
-         vc_contract_qp_fw_exch_rate,
-         vc_contract_pp_fw_exch_rate,
-         vc_sc_to_base_fw_exch_rate,
-         cur_realized_rows.sales_gmr_ref_no);
     end loop;
     vc_error_msg := '10';
     --
@@ -1638,20 +1569,18 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
     vc_del_premium_main_cur_code   varchar2(15);
     vn_del_premium_cur_main_factor number;
     vn_fw_exch_rate_del_to_base    number;
-    --vn_forward_points              number;
-    vc_contract_qp_fw_exch_rate   varchar2(100);
-    vc_contract_pp_fw_exch_rate   varchar2(100);
-    vc_qual_prem_exch_rate_string varchar2(100);
-    vn_price_to_base_fw_exch_rate number;
-    vc_price_to_base_fw_rate      varchar2(100);
-    vc_sc_to_base_fw_rate         varchar2(500);
-    vn_contract_price             number;
-    vc_price_unit_id              varchar2(15);
-    vc_price_unit_cur_id          varchar2(15);
-    vc_price_unit_cur_code        varchar2(15);
-    vc_price_unit_weight_unit_id  varchar2(15);
-    vc_price_unit_weight_unit     varchar2(15);
-    vn_price_unit_weight          number;
+    vc_contract_qp_fw_exch_rate    varchar2(100);
+    vc_contract_pp_fw_exch_rate    varchar2(100);
+    vn_price_to_base_fw_exch_rate  number;
+    vc_price_to_base_fw_rate       varchar2(100);
+    vc_sc_to_base_fw_rate          varchar2(500);
+    vn_contract_price              number;
+    vc_price_unit_id               varchar2(15);
+    vc_price_unit_cur_id           varchar2(15);
+    vc_price_unit_cur_code         varchar2(15);
+    vc_price_unit_weight_unit_id   varchar2(15);
+    vc_price_unit_weight_unit      varchar2(15);
+    vn_price_unit_weight           number;
   
     cursor cur_realized is
       select pd_trade_date trade_date,
@@ -2248,11 +2177,69 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
   
     for cur_realized_rows in cur_realized
     loop
-    
-      -- Contract Price Details  
-      if cur_realized_rows.contract_type = 'S' then
-        if cur_realized_rows.latest_internal_invoice_ref_no is null then
-          vc_error_msg                 := '7';
+      if cur_realized_rows.item_qty > 0 then
+        -- Contract Price Details  
+        if cur_realized_rows.contract_type = 'S' then
+          if cur_realized_rows.latest_internal_invoice_ref_no is null then
+            vc_error_msg                 := '7';
+            vn_contract_price            := cur_realized_rows.contract_price;
+            vc_price_unit_id             := cur_realized_rows.price_unit_id;
+            vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+            vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+            vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+            vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+            vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+            if vn_price_unit_weight is null then
+              vn_price_unit_weight := 1;
+            end if;
+          
+          else
+            -- Invoice Present
+            vc_error_msg := '8';
+            begin
+              select iid.new_invoice_price,
+                     iid.new_invoice_price_unit_id,
+                     ppu.cur_id,
+                     cm.cur_code,
+                     ppu.weight_unit_id,
+                     qum.qty_unit,
+                     nvl(ppu.weight, 1) weight
+                into vn_contract_price,
+                     vc_price_unit_id,
+                     vc_price_unit_cur_id,
+                     vc_price_unit_cur_code,
+                     vc_price_unit_weight_unit_id,
+                     vc_price_unit_weight_unit,
+                     vn_price_unit_weight
+                from iid_invoicable_item_details iid,
+                     v_ppu_pum                   ppu,
+                     cm_currency_master          cm,
+                     qum_quantity_unit_master    qum
+               where iid.internal_invoice_ref_no =
+                     cur_realized_rows.latest_internal_invoice_ref_no
+                 and iid.new_invoice_price_unit_id =
+                     ppu.product_price_unit_id
+                 and ppu.cur_id = cm.cur_id
+                 and ppu.weight_unit_id = qum.qty_unit_id
+                 and iid.internal_gmr_ref_no =
+                     cur_realized_rows.internal_gmr_ref_no;
+            
+            exception
+              when others then
+                vc_error_msg := '9';
+                -- REMOVE THIS LATER, NOT SURE HOW INVOICE IS WORKING
+                vn_contract_price            := cur_realized_rows.contract_price;
+                vc_price_unit_id             := cur_realized_rows.price_unit_id;
+                vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
+                vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
+                vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
+                vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
+                vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+              
+            end;
+          end if;
+        else
+          -- Purchase We don't need to look at invoice as COG contains latest price
           vn_contract_price            := cur_realized_rows.contract_price;
           vc_price_unit_id             := cur_realized_rows.price_unit_id;
           vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
@@ -2260,626 +2247,497 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
           vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
           vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
           vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
-          if vn_price_unit_weight is null then
-            vn_price_unit_weight := 1;
-          end if;
         
-        else
-          -- Invoice Present
-          vc_error_msg := '8';
-          begin
-            select iid.new_invoice_price,
-                   iid.new_invoice_price_unit_id,
-                   ppu.cur_id,
-                   cm.cur_code,
-                   ppu.weight_unit_id,
-                   qum.qty_unit,
-                   nvl(ppu.weight, 1) weight
-              into vn_contract_price,
-                   vc_price_unit_id,
-                   vc_price_unit_cur_id,
-                   vc_price_unit_cur_code,
-                   vc_price_unit_weight_unit_id,
-                   vc_price_unit_weight_unit,
-                   vn_price_unit_weight
-              from iid_invoicable_item_details iid,
-                   v_ppu_pum                   ppu,
-                   cm_currency_master          cm,
-                   qum_quantity_unit_master    qum
-             where iid.internal_invoice_ref_no =
-                   cur_realized_rows.latest_internal_invoice_ref_no
-               and iid.new_invoice_price_unit_id =
-                   ppu.product_price_unit_id
-               and ppu.cur_id = cm.cur_id
-               and ppu.weight_unit_id = qum.qty_unit_id
-               and iid.internal_gmr_ref_no =
-                   cur_realized_rows.internal_gmr_ref_no;
-          
-          exception
-            when others then
-              vc_error_msg := '9';
-              -- REMOVE THIS LATER, NOT SURE HOW INVOICE IS WORKING
-              vn_contract_price            := cur_realized_rows.contract_price;
-              vc_price_unit_id             := cur_realized_rows.price_unit_id;
-              vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
-              vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
-              vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
-              vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
-              vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
-            
-          end;
         end if;
-      else
-        -- Purchase We don't need to look at invoice as COG contains latest price
-        vn_contract_price            := cur_realized_rows.contract_price;
-        vc_price_unit_id             := cur_realized_rows.price_unit_id;
-        vc_price_unit_cur_id         := cur_realized_rows.price_unit_cur_id;
-        vc_price_unit_cur_code       := cur_realized_rows.price_unit_cur_code;
-        vc_price_unit_weight_unit_id := cur_realized_rows.price_unit_weight_unit_id;
-        vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
-        vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
+        vc_error_msg := '10';
       
-      end if;
-      vc_error_msg := '10';
-    
-      vc_sc_to_base_fw_rate := cur_realized_rows.accrual_to_base_fw_exch_rate;
-      --
-      -- If there is quantity change, this qty is used in this EOD
-      --
-      if cur_realized_rows.contract_type = 'S' and
-         cur_realized_rows.is_mc_change_for_sales = 'Y' then
-        vc_error_msg := '11';
-        if cur_realized_rows.qty_unit_id <>
-           cur_realized_rows.base_qty_unit_id then
-          select pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
-                                                      cur_realized_rows.qty_unit_id,
-                                                      cur_realized_rows.base_qty_unit_id,
-                                                      cur_realized_rows.item_qty)
-            into vn_qty_in_base_qty_unit_id
-            from dual;
-        
-        else
-          vn_qty_in_base_qty_unit_id := cur_realized_rows.item_qty;
-        end if;
-      else
-        vn_qty_in_base_qty_unit_id := cur_realized_rows.item_qty_in_base_qty_unit;
-      end if;
-      --
-      -- Calcualte the New Quality Premium (Sales from Contract and Purchase from INVS)
-      --
-      vc_error_msg := '12';
-      if cur_realized_rows.contract_type = 'S' then
-        pkg_metals_general.sp_quality_premium_fw_rate(cur_realized_rows.internal_contract_item_ref_no,
-                                                      pc_corporate_id,
-                                                      pc_process,
-                                                      pd_trade_date,
-                                                      cur_realized_rows.base_price_unit_id,
-                                                      cur_realized_rows.base_cur_id,
-                                                      cur_realized_rows.product_id,
-                                                      cur_realized_rows.base_qty_unit_id,
-                                                      pc_process_id,
-                                                      'Fixed', -- price_basis
-                                                      pd_trade_date, -- valuation_fx_date
-                                                      pd_trade_date, --qp_fx_date
-                                                      vn_quality_premium_per_unit,
-                                                      vc_qual_prem_exch_rate_string);
-        if vc_qual_prem_exch_rate_string is not null then
-          vc_contract_qp_fw_exch_rate := vc_qual_prem_exch_rate_string;
-        end if;
-      
-        vn_quality_premium := round((vn_quality_premium_per_unit *
-                                    vn_qty_in_base_qty_unit_id),
-                                    2);
-      else
-        vn_quality_premium_per_unit := cur_realized_rows.quality_premium_per_unit;
-        vn_quality_premium          := vn_quality_premium_per_unit *
-                                       vn_qty_in_base_qty_unit_id;
-        vc_contract_qp_fw_exch_rate := cur_realized_rows.contract_qp_fw_exch_rate;
-      end if;
-      vc_error_msg := '13';
-    
-      --
-      -- Calcualte the new  Product Premium (Sales from Contract and Purchase from INVS)
-      --   
-      if cur_realized_rows.contract_type = 'S' then
-        if cur_realized_rows.product_premium <> 0 then
-          if cur_realized_rows.product_premium_unit_id <>
-             cur_realized_rows.base_price_unit_id then
-            --
-            -- Get the Main Currency of the Delivery Premium Price Unit
-            --
-            pkg_general.sp_get_base_cur_detail(cur_realized_rows.del_premium_cur_id,
-                                               vc_del_premium_main_cur_id,
-                                               vc_del_premium_main_cur_code,
-                                               vn_del_premium_cur_main_factor);
+        vc_sc_to_base_fw_rate := cur_realized_rows.accrual_to_base_fw_exch_rate;
+        --
+        -- If there is quantity change, this qty is used in this EOD
+        --
+        if cur_realized_rows.contract_type = 'S' and
+           cur_realized_rows.is_mc_change_for_sales = 'Y' then
+          vc_error_msg := '11';
+          if cur_realized_rows.qty_unit_id <>
+             cur_realized_rows.base_qty_unit_id then
+            select pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                        cur_realized_rows.qty_unit_id,
+                                                        cur_realized_rows.base_qty_unit_id,
+                                                        cur_realized_rows.item_qty)
+              into vn_qty_in_base_qty_unit_id
+              from dual;
           
-            /*pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-            pd_trade_date,
-            cur_realized_rows.payment_due_date,
-            vc_del_premium_main_cur_id,
-            cur_realized_rows.base_cur_id,
-            30,
-            vn_fw_exch_rate_del_to_base,
-            vn_forward_points);*/
-            if vc_del_premium_main_cur_id <> cur_realized_rows.base_cur_id then
-              pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
-                                               pd_trade_date,
-                                               vc_del_premium_main_cur_id,
-                                               cur_realized_rows.base_cur_id,
-                                               'sp_calc_phy_realize_pnl_change Sales DP To Base',
-                                               pc_process,
-                                               vn_fw_exch_rate_del_to_base);
-            
-              vc_contract_pp_fw_exch_rate := '1 ' ||
-                                             vc_del_premium_main_cur_code || '=' ||
-                                             vn_fw_exch_rate_del_to_base || ' ' ||
-                                             cur_realized_rows.base_cur_code;
-            else
-              vc_contract_pp_fw_exch_rate := null;
-            
-            end if;
-          
-            /*if vc_del_premium_main_cur_id <> cur_realized_rows.base_cur_id then
-              if vn_fw_exch_rate_del_to_base is null or
-                 vn_fw_exch_rate_del_to_base = 0 then
-                vobj_error_log.extend;
-                vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                     'procedure pkg_phy_physical_process-sp_calc_realized_pnl_change ',
-                                                                     'PHY-005',
-                                                                     cur_realized_rows.base_cur_code ||
-                                                                     ' to ' ||
-                                                                     vc_del_premium_main_cur_code || ' (' ||
-                                                                     to_char(pd_trade_date,
-                                                                             'dd-Mon-yyyy') || ') ',
-                                                                     '',
-                                                                     pc_process,
-                                                                     null, --pc_user_id,
-                                                                     sysdate,
-                                                                     pd_trade_date);
-                sp_insert_error_log(vobj_error_log);
-              end if;
-            end if;*/
-            /*if vn_fw_exch_rate_del_to_base <> 1 then
-              vc_contract_pp_fw_exch_rate := '1 ' ||
-                                             vc_del_premium_main_cur_code || '=' ||
-                                             vn_fw_exch_rate_del_to_base || ' ' ||
-                                             cur_realized_rows.base_cur_code;
-            end if;*/
-          
-            vn_product_premium_per_unit := (cur_realized_rows.product_premium /
-                                           nvl(cur_realized_rows.del_premium_weight,
-                                                1)) *
-                                           vn_del_premium_cur_main_factor *
-                                           vn_fw_exch_rate_del_to_base;
           else
-            vn_product_premium_per_unit := cur_realized_rows.product_premium;
-            vc_contract_pp_fw_exch_rate := null;
+            vn_qty_in_base_qty_unit_id := cur_realized_rows.item_qty;
           end if;
-          vn_product_premium := round(vn_product_premium_per_unit *
-                                      vn_qty_in_base_qty_unit_id,
+        else
+          vn_qty_in_base_qty_unit_id := cur_realized_rows.item_qty_in_base_qty_unit;
+        end if;
+        --
+        -- Calcualte the New Quality Premium (Sales from Contract and Purchase from INVS)
+        --
+        vc_error_msg := '12';
+        if cur_realized_rows.contract_type = 'S' then
+          pkg_metals_general.sp_quality_premium_fw_rate(cur_realized_rows.internal_contract_item_ref_no,
+                                                        pc_corporate_id,
+                                                        pc_process,
+                                                        pd_trade_date,
+                                                        cur_realized_rows.base_price_unit_id,
+                                                        cur_realized_rows.base_cur_id,
+                                                        cur_realized_rows.product_id,
+                                                        cur_realized_rows.base_qty_unit_id,
+                                                        pc_process_id,
+                                                        'Fixed', -- price_basis
+                                                        pd_trade_date, -- valuation_fx_date
+                                                        pd_trade_date, --qp_fx_date
+                                                        vn_quality_premium_per_unit,
+                                                        vc_contract_qp_fw_exch_rate);
+          vn_quality_premium := round((vn_quality_premium_per_unit *
+                                      vn_qty_in_base_qty_unit_id),
                                       2);
         else
-          vn_product_premium          := 0;
-          vn_product_premium_per_unit := 0;
-          vc_contract_pp_fw_exch_rate := null;
+          vn_quality_premium_per_unit := cur_realized_rows.quality_premium_per_unit;
+          vn_quality_premium          := vn_quality_premium_per_unit *
+                                         vn_qty_in_base_qty_unit_id;
+          vc_contract_qp_fw_exch_rate := cur_realized_rows.contract_qp_fw_exch_rate;
         end if;
-      else
-        vn_product_premium_per_unit := cur_realized_rows.product_premium_per_unit;
-        vn_product_premium          := vn_product_premium_per_unit *
-                                       vn_qty_in_base_qty_unit_id;
-        vc_contract_pp_fw_exch_rate := cur_realized_rows.contract_pp_fw_exch_rate;
-      end if;
-      vc_error_msg := '14';
-    
-      --
-      -- Secondary Cost in Base
-      --
-      vn_sc_in_base_cur := cur_realized_rows.avg_secondary_cost *
-                           vn_qty_in_base_qty_unit_id;
-    
-      --
-      -- Pricing Main Currency Details
-      --    
-      pkg_general.sp_get_main_cur_detail(vc_price_unit_cur_id,
-                                         vc_price_cur_id,
-                                         vc_price_cur_code,
-                                         vn_cont_price_cur_id_factor,
-                                         vn_cont_price_cur_decimals);
-    
-      vc_error_msg := '15';
-      --  
-      -- Contratc value in base cur = Price Per Unit in Base * Qty in Base
-      -- 
-    
-      vc_error_msg := '16';
-      --
-      -- Contract Value in Price Currency
-      -- 
-      vn_contract_value_in_price_cur := (vn_contract_price /
-                                        nvl(vn_price_unit_weight, 1)) *
-                                        vn_cont_price_cur_id_factor *
-                                        vn_qty_in_base_qty_unit_id;
-      --
-      -- Get the Contract Value in Base Currency
-      --
-      vc_error_msg := '17';
-      /*pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-      pd_trade_date,
-      cur_realized_rows.payment_due_date,
-      vc_price_cur_id,
-      cur_realized_rows.base_cur_id,
-      30,
-      vn_price_to_base_fw_exch_rate,
-      vn_forward_points);*/
-      if vc_price_cur_id <> cur_realized_rows.base_cur_id then
-        pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
-                                         pd_trade_date,
-                                         vc_price_cur_id,
-                                         cur_realized_rows.base_cur_id,
-                                         'sp_calc_phy_realize_pnl_change Price to Base',
-                                         pc_process,
-                                         vn_price_to_base_fw_exch_rate);
-        vc_price_to_base_fw_rate := '1 ' || cur_realized_rows.base_cur_code || '=' ||
-                                    vn_price_to_base_fw_exch_rate || ' ' ||
-                                    vc_price_cur_code;
-      else
-        vc_price_to_base_fw_rate      := null;
-        vn_price_to_base_fw_exch_rate := 1;
-      end if;
-    
-      /*if vc_price_cur_id <> cur_realized_rows.base_cur_id then
-        if vn_price_to_base_fw_exch_rate is null or
-           vn_price_to_base_fw_exch_rate = 0 then
-          vobj_error_log.extend;
-          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure pkg_phy_physical_process-sp_ realized_pnl_change ',
-                                                               'PHY-005',
-                                                               cur_realized_rows.base_cur_code ||
-                                                               ' to ' ||
-                                                               vc_price_cur_code || ' (' ||
-                                                               to_char(pd_trade_date,
-                                                                       'dd-Mon-yyyy') || ') ',
-                                                               '',
-                                                               pc_process,
-                                                               pc_user_id,
-                                                               sysdate,
-                                                               pd_trade_date);
-          sp_insert_error_log(vobj_error_log);
+        vc_error_msg := '13';
+      
+        --
+        -- Calcualte the new  Product Premium (Sales from Contract and Purchase from INVS)
+        --   
+        if cur_realized_rows.contract_type = 'S' then
+          if cur_realized_rows.product_premium <> 0 then
+            if cur_realized_rows.product_premium_unit_id <>
+               cur_realized_rows.base_price_unit_id then
+              --
+              -- Get the Main Currency of the Delivery Premium Price Unit
+              --
+              pkg_general.sp_get_base_cur_detail(cur_realized_rows.del_premium_cur_id,
+                                                 vc_del_premium_main_cur_id,
+                                                 vc_del_premium_main_cur_code,
+                                                 vn_del_premium_cur_main_factor);
+            
+              if vc_del_premium_main_cur_id <>
+                 cur_realized_rows.base_cur_id then
+                pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 vc_del_premium_main_cur_id,
+                                                 cur_realized_rows.base_cur_id,
+                                                 'sp_calc_phy_realize_pnl_change Sales DP To Base',
+                                                 pc_process,
+                                                 vn_fw_exch_rate_del_to_base);
+              
+                vc_contract_pp_fw_exch_rate := '1 ' ||
+                                               vc_del_premium_main_cur_code || '=' ||
+                                               vn_fw_exch_rate_del_to_base || ' ' ||
+                                               cur_realized_rows.base_cur_code;
+              else
+                vc_contract_pp_fw_exch_rate := null;
+              
+              end if;
+            
+              vn_product_premium_per_unit := (cur_realized_rows.product_premium /
+                                             nvl(cur_realized_rows.del_premium_weight,
+                                                  1)) *
+                                             vn_del_premium_cur_main_factor *
+                                             vn_fw_exch_rate_del_to_base;
+            else
+              vn_product_premium_per_unit := cur_realized_rows.product_premium;
+              vc_contract_pp_fw_exch_rate := null;
+            end if;
+            vn_product_premium := round(vn_product_premium_per_unit *
+                                        vn_qty_in_base_qty_unit_id,
+                                        2);
+          else
+            vn_product_premium          := 0;
+            vn_product_premium_per_unit := 0;
+            vc_contract_pp_fw_exch_rate := null;
+          end if;
+        else
+          vn_product_premium_per_unit := cur_realized_rows.product_premium_per_unit;
+          vn_product_premium          := vn_product_premium_per_unit *
+                                         vn_qty_in_base_qty_unit_id;
+          vc_contract_pp_fw_exch_rate := cur_realized_rows.contract_pp_fw_exch_rate;
         end if;
-      end if;*/
-    
-      /*if vn_price_to_base_fw_exch_rate is not null and
-         vn_price_to_base_fw_exch_rate <> 1 then
-        vc_price_to_base_fw_rate := '1 ' || cur_realized_rows.base_cur_code || '=' ||
-                                    vn_price_to_base_fw_exch_rate || ' ' ||
-                                    vc_price_cur_code;
-      end if;*/
-    
-      vc_error_msg := '18';
-    
-      vn_contract_value_in_base_cur := (vn_contract_price /
-                                       nvl(vn_price_unit_weight, 1)) *
-                                       vn_cont_price_cur_id_factor *
-                                       vn_price_to_base_fw_exch_rate *
-                                       vn_qty_in_base_qty_unit_id;
-    
-      -- end if;
-      vc_error_msg := '19';
-      --
-      -- Total COG/Sale Value = Contract Value + Quality Premium + Product Premium + Secondary Cost
-      --
-      vn_cog_net_sale_value := vn_contract_value_in_base_cur +
-                               vn_quality_premium + vn_product_premium;
-      if cur_realized_rows.contract_type = 'P' then
-        vn_cog_net_sale_value := -1 * (vn_cog_net_sale_value +
-                                 abs(vn_sc_in_base_cur));
-      else
-        vn_cog_net_sale_value := vn_cog_net_sale_value -
-                                 abs(vn_sc_in_base_cur);
+        vc_error_msg := '14';
+      
+        --
+        -- Secondary Cost in Base
+        --
+        vn_sc_in_base_cur := cur_realized_rows.avg_secondary_cost *
+                             vn_qty_in_base_qty_unit_id;
+      
+        --
+        -- Pricing Main Currency Details
+        --    
+        pkg_general.sp_get_main_cur_detail(vc_price_unit_cur_id,
+                                           vc_price_cur_id,
+                                           vc_price_cur_code,
+                                           vn_cont_price_cur_id_factor,
+                                           vn_cont_price_cur_decimals);
+      
+        vc_error_msg := '15';
+        --  
+        -- Contratc value in base cur = Price Per Unit in Base * Qty in Base
+        -- 
+      
+        vc_error_msg := '16';
+        --
+        -- Contract Value in Price Currency
+        -- 
+        vn_contract_value_in_price_cur := (vn_contract_price /
+                                          nvl(vn_price_unit_weight, 1)) *
+                                          vn_cont_price_cur_id_factor *
+                                          vn_qty_in_base_qty_unit_id;
+        --
+        -- Get the Contract Value in Base Currency
+        --
+        vc_error_msg := '17';
+      
+        if vc_price_cur_id <> cur_realized_rows.base_cur_id then
+          pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                           pd_trade_date,
+                                           vc_price_cur_id,
+                                           cur_realized_rows.base_cur_id,
+                                           'sp_calc_phy_realize_pnl_change Price to Base',
+                                           pc_process,
+                                           vn_price_to_base_fw_exch_rate);
+          vc_price_to_base_fw_rate := '1 ' ||
+                                      cur_realized_rows.base_cur_code || '=' ||
+                                      vn_price_to_base_fw_exch_rate || ' ' ||
+                                      vc_price_cur_code;
+        else
+          vc_price_to_base_fw_rate      := null;
+          vn_price_to_base_fw_exch_rate := 1;
+        end if;
+      
+        vc_error_msg := '18';
+      
+        vn_contract_value_in_base_cur := (vn_contract_price /
+                                         nvl(vn_price_unit_weight, 1)) *
+                                         vn_cont_price_cur_id_factor *
+                                         vn_price_to_base_fw_exch_rate *
+                                         vn_qty_in_base_qty_unit_id;
+      
+        -- end if;
+        vc_error_msg := '19';
+        --
+        -- Total COG/Sale Value = Contract Value + Quality Premium + Product Premium + Secondary Cost
+        --
+        vn_cog_net_sale_value := vn_contract_value_in_base_cur +
+                                 vn_quality_premium + vn_product_premium;
+        if cur_realized_rows.contract_type = 'P' then
+          vn_cog_net_sale_value := -1 * (vn_cog_net_sale_value +
+                                   abs(vn_sc_in_base_cur));
+        else
+          vn_cog_net_sale_value := vn_cog_net_sale_value -
+                                   abs(vn_sc_in_base_cur);
+        end if;
+        vc_error_msg := '20';
+        insert into prd_physical_realized_daily
+          (process_id,
+           trade_date,
+           corporate_id,
+           corporate_name,
+           internal_contract_ref_no,
+           contract_ref_no,
+           internal_contract_item_ref_no,
+           del_distribution_item_no,
+           contract_issue_date,
+           contract_type,
+           contract_status,
+           int_alloc_group_id,
+           alloc_group_name,
+           internal_gmr_ref_no,
+           gmr_ref_no,
+           internal_grd_ref_no,
+           internal_stock_ref_no,
+           product_id,
+           product_name,
+           origin_id,
+           origin_name,
+           quality_id,
+           quality_name,
+           profit_center_id,
+           profit_center_name,
+           profit_center_short_name,
+           cp_profile_id,
+           cp_name,
+           trade_user_id,
+           trade_user_name,
+           price_type_id,
+           price_type_name,
+           incoterm_id,
+           incoterm,
+           payment_term_id,
+           payment_term,
+           price_fixation_details,
+           price_fixation_status,
+           realized_type,
+           realized_date,
+           container_no,
+           item_qty,
+           qty_unit_id,
+           qty_unit,
+           contract_price,
+           price_unit_id,
+           price_unit_cur_id,
+           price_unit_cur_code,
+           price_unit_weight_unit_id,
+           price_unit_weight_unit,
+           price_unit_weight,
+           contract_value_in_price_cur,
+           contract_price_cur_id,
+           contract_price_cur_code,
+           contract_invoice_value,
+           secondary_cost_per_unit,
+           product_premium_per_unit,
+           product_premium,
+           quality_premium_per_unit,
+           quality_premium,
+           secondary_cost_value,
+           cog_net_sale_value,
+           realized_pnl,
+           prev_real_price,
+           prev_real_price_id,
+           prev_real_price_cur_id,
+           prev_real_price_cur_code,
+           prev_real_price_weight_unit_id,
+           prev_real_price_weight_unit,
+           prev_real_price_weight,
+           prev_real_qty,
+           prev_real_qty_id,
+           prev_real_qty_unit,
+           prev_cont_value_in_price_cur,
+           prev_contract_price_cur_id,
+           prev_contract_price_cur_code,
+           prev_real_contract_value,
+           prev_real_secondary_cost,
+           prev_real_cog_net_sale_value,
+           prev_real_pnl,
+           prev_product_premium_per_unit,
+           prev_product_premium,
+           prev_quality_premium_per_unit,
+           prev_quality_premium,
+           prev_secondary_cost_per_unit,
+           change_in_pnl,
+           cfx_price_cur_to_base_cur,
+           warehouse_id,
+           warehouse_name,
+           shed_id,
+           shed_name,
+           group_id,
+           group_name,
+           group_cur_id,
+           group_cur_code,
+           group_qty_unit_id,
+           group_qty_unit,
+           item_qty_in_base_qty_unit,
+           base_qty_unit_id,
+           base_qty_unit,
+           base_cur_id,
+           base_cur_code,
+           base_price_unit_id,
+           base_price_unit_name,
+           sales_profit_center_id,
+           sales_profit_center_name,
+           sales_profit_center_short_name,
+           sales_strategy_id,
+           sales_strategy_name,
+           sales_business_line_id,
+           sales_business_line_name,
+           sales_internal_gmr_ref_no,
+           sales_contract_ref_no,
+           origination_city_id,
+           origination_city_name,
+           origination_country_id,
+           origination_country_name,
+           destination_city_id,
+           destination_city_name,
+           destination_country_id,
+           destination_country_name,
+           pool_id,
+           strategy_id,
+           strategy_name,
+           business_line_id,
+           business_line_name,
+           bl_number,
+           bl_date,
+           seal_no,
+           mark_no,
+           warehouse_ref_no,
+           warehouse_receipt_no,
+           warehouse_receipt_date,
+           is_warrant,
+           warrant_no,
+           pcdi_id,
+           supp_contract_item_ref_no,
+           supplier_pcdi_id,
+           payable_returnable_type,
+           price_description,
+           delivery_item_no,
+           price_to_base_fw_exch_rate,
+           contract_qp_fw_exch_rate,
+           contract_pp_fw_exch_rate,
+           accrual_to_base_fw_exch_rate,
+           p_price_to_base_fw_exch_rate,
+           p_contract_qp_fw_exch_rate,
+           p_contract_pp_fw_exch_rate,
+           p_accrual_to_base_fw_exch_rate,
+           sales_gmr_ref_no)
+        values
+          (pc_process_id,
+           pd_trade_date,
+           cur_realized_rows.corporate_id,
+           cur_realized_rows.corporate_name,
+           cur_realized_rows.internal_contract_ref_no,
+           cur_realized_rows.contract_ref_no,
+           cur_realized_rows.internal_contract_item_ref_no,
+           cur_realized_rows.del_distribution_item_no,
+           cur_realized_rows.contract_issue_date,
+           cur_realized_rows.contract_type,
+           cur_realized_rows.contract_status,
+           cur_realized_rows.int_alloc_group_id,
+           cur_realized_rows.alloc_group_name,
+           cur_realized_rows.internal_gmr_ref_no,
+           cur_realized_rows.gmr_ref_no,
+           cur_realized_rows.internal_grd_ref_no,
+           cur_realized_rows.internal_stock_ref_no,
+           cur_realized_rows.product_id,
+           cur_realized_rows.product_name,
+           cur_realized_rows.origin_id,
+           cur_realized_rows.origin_name,
+           cur_realized_rows.quality_id,
+           cur_realized_rows.quality_name,
+           cur_realized_rows.profit_center_id,
+           cur_realized_rows.profit_center_name,
+           cur_realized_rows.profit_center_short_name,
+           cur_realized_rows.cp_profile_id,
+           cur_realized_rows.cp_name,
+           cur_realized_rows.trade_user_id,
+           cur_realized_rows.trade_user_name,
+           cur_realized_rows.price_type_id,
+           cur_realized_rows.price_type_name,
+           cur_realized_rows.incoterm_id,
+           cur_realized_rows.incoterm,
+           cur_realized_rows.payment_term_id,
+           cur_realized_rows.payment_term,
+           cur_realized_rows.price_fixation_details,
+           cur_realized_rows.price_fixation_status,
+           cur_realized_rows.realized_type,
+           cur_realized_rows.realized_date,
+           cur_realized_rows.container_no,
+           cur_realized_rows.item_qty,
+           cur_realized_rows.qty_unit_id,
+           cur_realized_rows.qty_unit,
+           vn_contract_price,
+           vc_price_unit_id,
+           vc_price_unit_cur_id,
+           vc_price_unit_cur_code,
+           vc_price_unit_weight_unit_id,
+           vc_price_unit_weight_unit,
+           vn_price_unit_weight,
+           vn_contract_value_in_price_cur,
+           vc_price_cur_id,
+           vc_price_cur_code,
+           vn_contract_value_in_base_cur,
+           vn_sc_in_base_cur / vn_qty_in_base_qty_unit_id, -- secondary_cost_per_unit,
+           vn_product_premium_per_unit,
+           vn_product_premium,
+           vn_quality_premium_per_unit,
+           vn_quality_premium,
+           vn_sc_in_base_cur,
+           vn_cog_net_sale_value,
+           null, --realized_pnl,
+           cur_realized_rows.prev_real_price,
+           cur_realized_rows.prev_real_price_id,
+           cur_realized_rows.prev_real_price_cur_id,
+           cur_realized_rows.prev_real_price_cur_code,
+           cur_realized_rows.prev_real_price_weight_unit_id,
+           cur_realized_rows.prev_real_price_weight_unit,
+           cur_realized_rows.prev_real_price_weight,
+           cur_realized_rows.prev_real_qty,
+           cur_realized_rows.prev_real_qty_id,
+           cur_realized_rows.prev_real_qty_unit,
+           cur_realized_rows.prev_cont_value_in_price_cur,
+           cur_realized_rows.prev_contract_price_cur_id,
+           cur_realized_rows.prev_contract_price_cur_code,
+           cur_realized_rows.prev_real_contract_value,
+           cur_realized_rows.prev_real_secondary_cost,
+           cur_realized_rows.prev_real_cog_net_sale_value,
+           cur_realized_rows.prev_real_pnl,
+           cur_realized_rows.prev_product_premium_per_unit,
+           cur_realized_rows.prev_product_premium,
+           cur_realized_rows.prev_quality_premium_per_unit,
+           cur_realized_rows.prev_quality_premium,
+           cur_realized_rows.prev_secondary_cost_per_unit,
+           null, -- change_in_pnl,
+           null, -- cfx_price_cur_to_base_cur,
+           cur_realized_rows.warehouse_id,
+           cur_realized_rows.warehouse_name,
+           cur_realized_rows.shed_id,
+           cur_realized_rows.shed_name,
+           cur_realized_rows.group_id,
+           cur_realized_rows.group_name,
+           cur_realized_rows.group_cur_id,
+           cur_realized_rows.group_cur_code,
+           cur_realized_rows.group_qty_unit_id,
+           cur_realized_rows.group_qty_unit,
+           vn_qty_in_base_qty_unit_id,
+           cur_realized_rows.base_qty_unit_id,
+           cur_realized_rows.base_qty_unit,
+           cur_realized_rows.base_cur_id,
+           cur_realized_rows.base_cur_code,
+           cur_realized_rows.base_price_unit_id,
+           cur_realized_rows.base_price_unit_name,
+           cur_realized_rows.sales_profit_center_id,
+           cur_realized_rows.sales_profit_center_name,
+           cur_realized_rows.sales_profit_center_short_name,
+           cur_realized_rows.sales_strategy_id,
+           cur_realized_rows.sales_strategy_name,
+           cur_realized_rows.sales_business_line_id,
+           cur_realized_rows.sales_business_line_name,
+           cur_realized_rows.sales_internal_gmr_ref_no,
+           cur_realized_rows.sales_contract_ref_no,
+           cur_realized_rows.origination_city_id,
+           cur_realized_rows.origination_city_name,
+           cur_realized_rows.origination_country_id,
+           cur_realized_rows.origination_country_name,
+           cur_realized_rows.destination_city_id,
+           cur_realized_rows.destination_city_name,
+           cur_realized_rows.destination_country_id,
+           cur_realized_rows.destination_country_name,
+           cur_realized_rows.pool_id,
+           cur_realized_rows.strategy_id,
+           cur_realized_rows.strategy_name,
+           cur_realized_rows.business_line_id,
+           cur_realized_rows.business_line_name,
+           cur_realized_rows.bl_number,
+           cur_realized_rows.bl_date,
+           cur_realized_rows.seal_no,
+           cur_realized_rows.mark_no,
+           cur_realized_rows.warehouse_ref_no,
+           cur_realized_rows.warehouse_receipt_no,
+           cur_realized_rows.warehouse_receipt_date,
+           cur_realized_rows.is_warrant,
+           cur_realized_rows.warrant_no,
+           cur_realized_rows.pcdi_id,
+           cur_realized_rows.supp_contract_item_ref_no,
+           cur_realized_rows.supplier_pcdi_id,
+           cur_realized_rows.payable_returnable_type,
+           cur_realized_rows.price_description,
+           cur_realized_rows.delivery_item_no,
+           vc_price_to_base_fw_rate,
+           vc_contract_qp_fw_exch_rate,
+           vc_contract_pp_fw_exch_rate,
+           vc_sc_to_base_fw_rate,
+           cur_realized_rows.p_price_to_base_fw_exch_rate,
+           cur_realized_rows.p_contract_qp_fw_exch_rate,
+           cur_realized_rows.p_contract_pp_fw_exch_rate,
+           cur_realized_rows.p_accrual_to_base_fw_exch_rate,
+           cur_realized_rows.sales_gmr_ref_no);
       end if;
-      vc_error_msg := '20';
-      insert into prd_physical_realized_daily
-        (process_id,
-         trade_date,
-         corporate_id,
-         corporate_name,
-         internal_contract_ref_no,
-         contract_ref_no,
-         internal_contract_item_ref_no,
-         del_distribution_item_no,
-         contract_issue_date,
-         contract_type,
-         contract_status,
-         int_alloc_group_id,
-         alloc_group_name,
-         internal_gmr_ref_no,
-         gmr_ref_no,
-         internal_grd_ref_no,
-         internal_stock_ref_no,
-         product_id,
-         product_name,
-         origin_id,
-         origin_name,
-         quality_id,
-         quality_name,
-         profit_center_id,
-         profit_center_name,
-         profit_center_short_name,
-         cp_profile_id,
-         cp_name,
-         trade_user_id,
-         trade_user_name,
-         price_type_id,
-         price_type_name,
-         incoterm_id,
-         incoterm,
-         payment_term_id,
-         payment_term,
-         price_fixation_details,
-         price_fixation_status,
-         realized_type,
-         realized_date,
-         container_no,
-         item_qty,
-         qty_unit_id,
-         qty_unit,
-         contract_price,
-         price_unit_id,
-         price_unit_cur_id,
-         price_unit_cur_code,
-         price_unit_weight_unit_id,
-         price_unit_weight_unit,
-         price_unit_weight,
-         contract_value_in_price_cur,
-         contract_price_cur_id,
-         contract_price_cur_code,
-         contract_invoice_value,
-         secondary_cost_per_unit,
-         product_premium_per_unit,
-         product_premium,
-         quality_premium_per_unit,
-         quality_premium,
-         secondary_cost_value,
-         cog_net_sale_value,
-         realized_pnl,
-         prev_real_price,
-         prev_real_price_id,
-         prev_real_price_cur_id,
-         prev_real_price_cur_code,
-         prev_real_price_weight_unit_id,
-         prev_real_price_weight_unit,
-         prev_real_price_weight,
-         prev_real_qty,
-         prev_real_qty_id,
-         prev_real_qty_unit,
-         prev_cont_value_in_price_cur,
-         prev_contract_price_cur_id,
-         prev_contract_price_cur_code,
-         prev_real_contract_value,
-         prev_real_secondary_cost,
-         prev_real_cog_net_sale_value,
-         prev_real_pnl,
-         prev_product_premium_per_unit,
-         prev_product_premium,
-         prev_quality_premium_per_unit,
-         prev_quality_premium,
-         prev_secondary_cost_per_unit,
-         change_in_pnl,
-         cfx_price_cur_to_base_cur,
-         warehouse_id,
-         warehouse_name,
-         shed_id,
-         shed_name,
-         group_id,
-         group_name,
-         group_cur_id,
-         group_cur_code,
-         group_qty_unit_id,
-         group_qty_unit,
-         item_qty_in_base_qty_unit,
-         base_qty_unit_id,
-         base_qty_unit,
-         base_cur_id,
-         base_cur_code,
-         base_price_unit_id,
-         base_price_unit_name,
-         sales_profit_center_id,
-         sales_profit_center_name,
-         sales_profit_center_short_name,
-         sales_strategy_id,
-         sales_strategy_name,
-         sales_business_line_id,
-         sales_business_line_name,
-         sales_internal_gmr_ref_no,
-         sales_contract_ref_no,
-         origination_city_id,
-         origination_city_name,
-         origination_country_id,
-         origination_country_name,
-         destination_city_id,
-         destination_city_name,
-         destination_country_id,
-         destination_country_name,
-         pool_id,
-         strategy_id,
-         strategy_name,
-         business_line_id,
-         business_line_name,
-         bl_number,
-         bl_date,
-         seal_no,
-         mark_no,
-         warehouse_ref_no,
-         warehouse_receipt_no,
-         warehouse_receipt_date,
-         is_warrant,
-         warrant_no,
-         pcdi_id,
-         supp_contract_item_ref_no,
-         supplier_pcdi_id,
-         payable_returnable_type,
-         price_description,
-         delivery_item_no,
-         price_to_base_fw_exch_rate,
-         contract_qp_fw_exch_rate,
-         contract_pp_fw_exch_rate,
-         accrual_to_base_fw_exch_rate,
-         p_price_to_base_fw_exch_rate,
-         p_contract_qp_fw_exch_rate,
-         p_contract_pp_fw_exch_rate,
-         p_accrual_to_base_fw_exch_rate,
-         sales_gmr_ref_no)
-      values
-        (pc_process_id,
-         pd_trade_date,
-         cur_realized_rows.corporate_id,
-         cur_realized_rows.corporate_name,
-         cur_realized_rows.internal_contract_ref_no,
-         cur_realized_rows.contract_ref_no,
-         cur_realized_rows.internal_contract_item_ref_no,
-         cur_realized_rows.del_distribution_item_no,
-         cur_realized_rows.contract_issue_date,
-         cur_realized_rows.contract_type,
-         cur_realized_rows.contract_status,
-         cur_realized_rows.int_alloc_group_id,
-         cur_realized_rows.alloc_group_name,
-         cur_realized_rows.internal_gmr_ref_no,
-         cur_realized_rows.gmr_ref_no,
-         cur_realized_rows.internal_grd_ref_no,
-         cur_realized_rows.internal_stock_ref_no,
-         cur_realized_rows.product_id,
-         cur_realized_rows.product_name,
-         cur_realized_rows.origin_id,
-         cur_realized_rows.origin_name,
-         cur_realized_rows.quality_id,
-         cur_realized_rows.quality_name,
-         cur_realized_rows.profit_center_id,
-         cur_realized_rows.profit_center_name,
-         cur_realized_rows.profit_center_short_name,
-         cur_realized_rows.cp_profile_id,
-         cur_realized_rows.cp_name,
-         cur_realized_rows.trade_user_id,
-         cur_realized_rows.trade_user_name,
-         cur_realized_rows.price_type_id,
-         cur_realized_rows.price_type_name,
-         cur_realized_rows.incoterm_id,
-         cur_realized_rows.incoterm,
-         cur_realized_rows.payment_term_id,
-         cur_realized_rows.payment_term,
-         cur_realized_rows.price_fixation_details,
-         cur_realized_rows.price_fixation_status,
-         cur_realized_rows.realized_type,
-         cur_realized_rows.realized_date,
-         cur_realized_rows.container_no,
-         cur_realized_rows.item_qty,
-         cur_realized_rows.qty_unit_id,
-         cur_realized_rows.qty_unit,
-         vn_contract_price,
-         vc_price_unit_id,
-         vc_price_unit_cur_id,
-         vc_price_unit_cur_code,
-         vc_price_unit_weight_unit_id,
-         vc_price_unit_weight_unit,
-         vn_price_unit_weight,
-         vn_contract_value_in_price_cur,
-         vc_price_cur_id,
-         vc_price_cur_code,
-         vn_contract_value_in_base_cur,
-         vn_sc_in_base_cur / vn_qty_in_base_qty_unit_id, -- secondary_cost_per_unit,
-         vn_product_premium_per_unit,
-         vn_product_premium,
-         vn_quality_premium_per_unit,
-         vn_quality_premium,
-         vn_sc_in_base_cur,
-         vn_cog_net_sale_value,
-         null, --realized_pnl,
-         cur_realized_rows.prev_real_price,
-         cur_realized_rows.prev_real_price_id,
-         cur_realized_rows.prev_real_price_cur_id,
-         cur_realized_rows.prev_real_price_cur_code,
-         cur_realized_rows.prev_real_price_weight_unit_id,
-         cur_realized_rows.prev_real_price_weight_unit,
-         cur_realized_rows.prev_real_price_weight,
-         cur_realized_rows.prev_real_qty,
-         cur_realized_rows.prev_real_qty_id,
-         cur_realized_rows.prev_real_qty_unit,
-         cur_realized_rows.prev_cont_value_in_price_cur,
-         cur_realized_rows.prev_contract_price_cur_id,
-         cur_realized_rows.prev_contract_price_cur_code,
-         cur_realized_rows.prev_real_contract_value,
-         cur_realized_rows.prev_real_secondary_cost,
-         cur_realized_rows.prev_real_cog_net_sale_value,
-         cur_realized_rows.prev_real_pnl,
-         cur_realized_rows.prev_product_premium_per_unit,
-         cur_realized_rows.prev_product_premium,
-         cur_realized_rows.prev_quality_premium_per_unit,
-         cur_realized_rows.prev_quality_premium,
-         cur_realized_rows.prev_secondary_cost_per_unit,
-         null, -- change_in_pnl,
-         null, -- cfx_price_cur_to_base_cur,
-         cur_realized_rows.warehouse_id,
-         cur_realized_rows.warehouse_name,
-         cur_realized_rows.shed_id,
-         cur_realized_rows.shed_name,
-         cur_realized_rows.group_id,
-         cur_realized_rows.group_name,
-         cur_realized_rows.group_cur_id,
-         cur_realized_rows.group_cur_code,
-         cur_realized_rows.group_qty_unit_id,
-         cur_realized_rows.group_qty_unit,
-         vn_qty_in_base_qty_unit_id,
-         cur_realized_rows.base_qty_unit_id,
-         cur_realized_rows.base_qty_unit,
-         cur_realized_rows.base_cur_id,
-         cur_realized_rows.base_cur_code,
-         cur_realized_rows.base_price_unit_id,
-         cur_realized_rows.base_price_unit_name,
-         cur_realized_rows.sales_profit_center_id,
-         cur_realized_rows.sales_profit_center_name,
-         cur_realized_rows.sales_profit_center_short_name,
-         cur_realized_rows.sales_strategy_id,
-         cur_realized_rows.sales_strategy_name,
-         cur_realized_rows.sales_business_line_id,
-         cur_realized_rows.sales_business_line_name,
-         cur_realized_rows.sales_internal_gmr_ref_no,
-         cur_realized_rows.sales_contract_ref_no,
-         cur_realized_rows.origination_city_id,
-         cur_realized_rows.origination_city_name,
-         cur_realized_rows.origination_country_id,
-         cur_realized_rows.origination_country_name,
-         cur_realized_rows.destination_city_id,
-         cur_realized_rows.destination_city_name,
-         cur_realized_rows.destination_country_id,
-         cur_realized_rows.destination_country_name,
-         cur_realized_rows.pool_id,
-         cur_realized_rows.strategy_id,
-         cur_realized_rows.strategy_name,
-         cur_realized_rows.business_line_id,
-         cur_realized_rows.business_line_name,
-         cur_realized_rows.bl_number,
-         cur_realized_rows.bl_date,
-         cur_realized_rows.seal_no,
-         cur_realized_rows.mark_no,
-         cur_realized_rows.warehouse_ref_no,
-         cur_realized_rows.warehouse_receipt_no,
-         cur_realized_rows.warehouse_receipt_date,
-         cur_realized_rows.is_warrant,
-         cur_realized_rows.warrant_no,
-         cur_realized_rows.pcdi_id,
-         cur_realized_rows.supp_contract_item_ref_no,
-         cur_realized_rows.supplier_pcdi_id,
-         cur_realized_rows.payable_returnable_type,
-         cur_realized_rows.price_description,
-         cur_realized_rows.delivery_item_no,
-         vc_price_to_base_fw_rate,
-         vc_contract_qp_fw_exch_rate,
-         vc_contract_pp_fw_exch_rate,
-         vc_sc_to_base_fw_rate,
-         cur_realized_rows.p_price_to_base_fw_exch_rate,
-         cur_realized_rows.p_contract_qp_fw_exch_rate,
-         cur_realized_rows.p_contract_pp_fw_exch_rate,
-         cur_realized_rows.p_accrual_to_base_fw_exch_rate,
-         cur_realized_rows.sales_gmr_ref_no);
     end loop;
     --
     -- Update Realized PNL Value
@@ -3209,7 +3067,6 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
     vn_unreal_pnl_in_base_per_unit number;
     vn_price_to_base_fw_rate       number;
     vc_price_to_base_fw_rate       varchar2(100);
-    vn_forward_points              number;
     vc_real_price_cur_id           varchar2(10);
     vc_real_price_cur_code         varchar2(10);
     vn_real_price_cur_id_factor    number;
@@ -3221,516 +3078,454 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
     vc_error_msg := '1';
     for cur_not_fixed_rows in cur_not_fixed
     loop
-      --
-      -- Calculate the Current contract value in Price Currency
-      --
-      pkg_general.sp_get_main_cur_detail(cur_not_fixed_rows.price_unit_cur_id,
-                                         vc_price_cur_id,
-                                         vc_price_cur_code,
-                                         vn_cont_price_cur_id_factor,
-                                         vn_cont_price_cur_decimals);
-      vc_error_msg                   := '2';
-      vn_contract_value_in_price_cur := (cur_not_fixed_rows.contract_price /
-                                        nvl(cur_not_fixed_rows.price_unit_weight,
-                                             1)) *
-                                        (pkg_general.f_get_converted_quantity(cur_not_fixed_rows.product_id,
-                                                                              cur_not_fixed_rows.realized_qty_unit_id,
-                                                                              cur_not_fixed_rows.price_unit_weight_unit_id,
-                                                                              cur_not_fixed_rows.realized_qty)) *
-                                        vn_cont_price_cur_id_factor;
-      vn_contract_value_in_price_cur := round(vn_contract_value_in_price_cur,
-                                              vn_cont_price_cur_decimals);
-      --
-      -- Convert contract value in Price Currency to Base Currency
-      --
-      vc_error_msg := '3';
-      /*pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-      pd_trade_date,
-      cur_not_fixed_rows.payment_due_date,
-      vc_price_cur_id,
-      cur_not_fixed_rows.base_cur_id,
-      30,
-      vn_price_to_base_fw_rate,
-      vn_forward_points);*/
-      if vc_price_cur_id <> cur_not_fixed_rows.base_cur_id then
+      if cur_not_fixed_rows.qty_in_base_unit > 0 then
+        --
+        -- Calculate the Current contract value in Price Currency
+        --
+        pkg_general.sp_get_main_cur_detail(cur_not_fixed_rows.price_unit_cur_id,
+                                           vc_price_cur_id,
+                                           vc_price_cur_code,
+                                           vn_cont_price_cur_id_factor,
+                                           vn_cont_price_cur_decimals);
+        vc_error_msg                   := '2';
+        vn_contract_value_in_price_cur := (cur_not_fixed_rows.contract_price /
+                                          nvl(cur_not_fixed_rows.price_unit_weight,
+                                               1)) *
+                                          (pkg_general.f_get_converted_quantity(cur_not_fixed_rows.product_id,
+                                                                                cur_not_fixed_rows.realized_qty_unit_id,
+                                                                                cur_not_fixed_rows.price_unit_weight_unit_id,
+                                                                                cur_not_fixed_rows.realized_qty)) *
+                                          vn_cont_price_cur_id_factor;
+        vn_contract_value_in_price_cur := round(vn_contract_value_in_price_cur,
+                                                vn_cont_price_cur_decimals);
+        --
+        -- Convert contract value in Price Currency to Base Currency
+        --
+        vc_error_msg := '3';
+      
+        if vc_price_cur_id <> cur_not_fixed_rows.base_cur_id then
+          pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                           pd_trade_date,
+                                           vc_price_cur_id,
+                                           cur_not_fixed_rows.base_cur_id,
+                                           'sp_calc_realized_not_fixed Price To Base',
+                                           pc_process,
+                                           vn_price_to_base_fw_rate);
+          vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
+                                      vn_price_to_base_fw_rate || ' ' ||
+                                      cur_not_fixed_rows.base_cur_code;
+        else
+          vn_price_to_base_fw_rate := 1;
+          vc_price_to_base_fw_rate := null;
+        end if;
+      
+        vn_contract_value_in_base_cur := round((vn_contract_value_in_price_cur *
+                                               vn_price_to_base_fw_rate),
+                                               2);
+      
+        --
+        -- Value in Base Price Currency
+        --
+      
+        -- Calculate the Current Realized  value in Price Currency  start
+        --
+        pkg_general.sp_get_main_cur_detail(cur_not_fixed_rows.realized_price_cur_id,
+                                           vc_real_price_cur_id,
+                                           vc_real_price_cur_code,
+                                           vn_real_price_cur_id_factor,
+                                           vn_real_price_cur_decimals);
+      
+        vn_real_value_in_price_cur := (cur_not_fixed_rows.realized_price /
+                                      nvl(cur_not_fixed_rows.realized_price_weight,
+                                           1)) *
+                                      (pkg_general.f_get_converted_quantity(cur_not_fixed_rows.product_id,
+                                                                            cur_not_fixed_rows.realized_qty_unit_id,
+                                                                            cur_not_fixed_rows.realized_price_weight_unit,
+                                                                            cur_not_fixed_rows.realized_qty)) *
+                                      vn_real_price_cur_id_factor;
+      
+        vn_real_value_in_price_cur := round(vn_real_value_in_price_cur,
+                                            vn_real_price_cur_decimals);
+        --
+        -- Convert contract value in Price Currency to Base Currency
+        --
+        vc_error_msg := '3';
         pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
                                          pd_trade_date,
-                                         vc_price_cur_id,
+                                         vc_real_price_cur_id,
                                          cur_not_fixed_rows.base_cur_id,
                                          'sp_calc_realized_not_fixed Price To Base',
                                          pc_process,
-                                         vn_price_to_base_fw_rate);
-        vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
-                                    vn_price_to_base_fw_rate || ' ' ||
-                                    cur_not_fixed_rows.base_cur_code;
-      else
-        vn_price_to_base_fw_rate := 1;
-        vc_price_to_base_fw_rate := null;
-      end if;
-    
-      /*if vc_price_cur_id <> cur_not_fixed_rows.base_cur_id then
-        if vn_price_to_base_fw_rate is null or vn_price_to_base_fw_rate = 0 then
-          vobj_error_log.extend;
-          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure pkg_phy_physical_process-sp_calc_realized not fixed ',
-                                                               'PHY-005',
-                                                               cur_not_fixed_rows.base_cur_code ||
-                                                               ' to ' ||
-                                                               vc_price_cur_code || ' (' ||
-                                                               to_char(cur_not_fixed_rows.payment_due_date,
-                                                                       'dd-Mon-yyyy') || ') ',
-                                                               '',
-                                                               pc_process,
-                                                               null, -- pc_user_id,
-                                                               sysdate,
-                                                               pd_trade_date);
-          sp_insert_error_log(vobj_error_log);
+                                         vn_real_price_to_base_fw_rate);
+      
+        if vn_real_price_to_base_fw_rate <> 0 or
+           vn_real_price_to_base_fw_rate <> 1 or
+           vn_real_price_to_base_fw_rate is not null then
+          vc_real_price_to_base_fw_rate := '1 ' || vc_real_price_cur_code || '=' ||
+                                           vn_real_price_to_base_fw_rate || ' ' ||
+                                           cur_not_fixed_rows.base_cur_code;
+        else
+          vc_real_price_to_base_fw_rate := null;
         end if;
-      end if;*/
-    
-      /*if vn_price_to_base_fw_rate <> 0 or vn_price_to_base_fw_rate <> 1 or
-         vn_price_to_base_fw_rate is not null then
-        vc_price_to_base_fw_rate := '1 ' || vc_price_cur_code || '=' ||
-                                    vn_price_to_base_fw_rate || ' ' ||
-                                    cur_not_fixed_rows.base_cur_code;
-      else
-        vc_price_to_base_fw_rate := null;
-      end if;*/
-      vn_contract_value_in_base_cur := round((vn_contract_value_in_price_cur *
-                                             vn_price_to_base_fw_rate),
-                                             2);
-    
-      --
-      -- Value in Base Price Currency
-      --
-    
-      -- Calculate the Current Realized  value in Price Currency  start
-      --
-      pkg_general.sp_get_main_cur_detail(cur_not_fixed_rows.realized_price_cur_id,
-                                         vc_real_price_cur_id,
-                                         vc_real_price_cur_code,
-                                         vn_real_price_cur_id_factor,
-                                         vn_real_price_cur_decimals);
-    
-      vn_real_value_in_price_cur := (cur_not_fixed_rows.realized_price /
-                                    nvl(cur_not_fixed_rows.realized_price_weight,
-                                         1)) *
-                                    (pkg_general.f_get_converted_quantity(cur_not_fixed_rows.product_id,
-                                                                          cur_not_fixed_rows.realized_qty_unit_id,
-                                                                          cur_not_fixed_rows.realized_price_weight_unit,
-                                                                          cur_not_fixed_rows.realized_qty)) *
-                                    vn_real_price_cur_id_factor;
-    
-      vn_real_value_in_price_cur := round(vn_real_value_in_price_cur,
-                                          vn_real_price_cur_decimals);
-      --
-      -- Convert contract value in Price Currency to Base Currency
-      --
-      vc_error_msg := '3';
-      pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
-                                       pd_trade_date,
-                                       vc_real_price_cur_id,
-                                       cur_not_fixed_rows.base_cur_id,
-                                       'sp_calc_realized_not_fixed Price To Base',
-                                       pc_process,
-                                       vn_real_price_to_base_fw_rate);
-    
-      /*pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-      pd_trade_date,
-      cur_not_fixed_rows.payment_due_date,
-      vc_real_price_cur_id,
-      cur_not_fixed_rows.base_cur_id,
-      30,
-      vn_real_price_to_base_fw_rate,
-      vn_forward_points);*/
-      /*if vc_real_price_cur_id <> cur_not_fixed_rows.base_cur_id then
-        if vn_real_price_to_base_fw_rate is null or
-           vn_real_price_to_base_fw_rate = 0 then
-          vobj_error_log.extend;
-          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure pkg_phy_physical_process-sp_calc_realized not fixed ',
-                                                               'PHY-005',
-                                                               cur_not_fixed_rows.base_cur_code ||
-                                                               ' to ' ||
-                                                               vc_real_price_cur_code || ' (' ||
-                                                               to_char(cur_not_fixed_rows.payment_due_date,
-                                                                       'dd-Mon-yyyy') || ') ',
-                                                               '',
-                                                               pc_process,
-                                                               null, -- pc_user_id,
-                                                               sysdate,
-                                                               pd_trade_date);
-          sp_insert_error_log(vobj_error_log);
+        vn_realized_amount_in_base_cur := round((vn_real_value_in_price_cur *
+                                                vn_real_price_to_base_fw_rate),
+                                                2);
+        -----------------------------------    
+        --  vn_realized_amount_in_base_cur := cur_not_fixed_rows.contract_invoice_value;
+      
+        vc_error_msg := '4';
+        --
+        -- Calcualte the PNL in base
+        --
+      
+        if cur_not_fixed_rows.contract_type = 'S' then
+          vn_pnl_in_base_cur := vn_contract_value_in_base_cur -
+                                vn_realized_amount_in_base_cur;
+        else
+          vn_pnl_in_base_cur := vn_realized_amount_in_base_cur -
+                                vn_contract_value_in_base_cur;
         end if;
-      end if;*/
-    
-      if vn_real_price_to_base_fw_rate <> 0 or
-         vn_real_price_to_base_fw_rate <> 1 or
-         vn_real_price_to_base_fw_rate is not null then
-        vc_real_price_to_base_fw_rate := '1 ' || vc_real_price_cur_code || '=' ||
-                                         vn_real_price_to_base_fw_rate || ' ' ||
-                                         cur_not_fixed_rows.base_cur_code;
-      else
-        vc_real_price_to_base_fw_rate := null;
+        vn_pnl_in_base_cur := round(vn_pnl_in_base_cur, 2);
+        --
+        -- Get the Previous Unrealized PNL
+        --
+        begin
+          select poud_prev_day.unrealized_pnl_in_base_cur
+            into vn_prev_unr_pnl
+            from poud_phy_open_unreal_daily poud_prev_day
+           where poud_prev_day.process_id = pc_previous_process_id
+             and poud_prev_day.unrealized_type =
+                 'Realized Not Final Invoiced'
+             and corporate_id = pc_corporate_id
+             and poud_prev_day.sales_internal_gmr_ref_no =
+                 cur_not_fixed_rows.sales_internal_gmr_ref_no
+             and poud_prev_day.internal_contract_item_ref_no =
+                 cur_not_fixed_rows.internal_contract_item_ref_no
+             and poud_prev_day.contract_type =
+                 cur_not_fixed_rows.contract_type
+             and poud_prev_day.realized_internal_stock_ref_no =
+                 cur_not_fixed_rows.internal_grd_ref_no;
+        exception
+          when no_data_found then
+            vn_prev_unr_pnl := 0;
+          when others then
+            vn_prev_unr_pnl := 0; -- Issue in POUD 
+        end;
+      
+        vc_error_msg                   := '5';
+        vn_trade_day_pnl               := vn_pnl_in_base_cur -
+                                          vn_prev_unr_pnl;
+        vn_unreal_pnl_in_base_per_unit := vn_pnl_in_base_cur /
+                                          cur_not_fixed_rows.qty_in_base_unit;
+      
+        vc_error_msg := '2';
+        insert into poud_phy_open_unreal_daily
+          (corporate_id,
+           corporate_name,
+           process_id,
+           pcdi_id,
+           delivery_item_no,
+           prefix,
+           middle_no,
+           suffix,
+           internal_contract_ref_no,
+           contract_ref_no,
+           contract_issue_date,
+           internal_contract_item_ref_no,
+           basis_type,
+           delivery_period_type,
+           delivery_from_month,
+           delivery_from_year,
+           delivery_to_month,
+           delivery_to_year,
+           delivery_from_date,
+           delivery_to_date,
+           transit_days,
+           contract_type,
+           approval_status,
+           unrealized_type,
+           profit_center_id,
+           profit_center_name,
+           profit_center_short_name,
+           cp_profile_id,
+           cp_name,
+           trade_user_id,
+           trade_user_name,
+           product_id,
+           product_name,
+           item_qty,
+           qty_unit_id,
+           qty_unit,
+           quality_id,
+           quality_name,
+           product_desc,
+           price_type_id,
+           price_type_name,
+           price_string,
+           item_delivery_period_string,
+           fixation_method,
+           price_fixation_status,
+           incoterm_id,
+           incoterm,
+           origination_city_id,
+           origination_city,
+           origination_country_id,
+           origination_country,
+           destination_city_id,
+           destination_city,
+           destination_country_id,
+           destination_country,
+           origination_region_id,
+           origination_region,
+           destination_region_id,
+           destination_region,
+           payment_term_id,
+           payment_term,
+           price_fixation_details,
+           contract_price,
+           price_unit_id,
+           price_unit_cur_id,
+           price_unit_cur_code,
+           price_unit_weight_unit_id,
+           price_unit_weight,
+           price_unit_weight_unit,
+           net_m2m_price,
+           m2m_price_unit_id,
+           m2m_price_cur_id,
+           m2m_price_cur_code,
+           m2m_price_weight,
+           m2m_price_weght_unit_id,
+           m2m_price_weight_unit,
+           contract_value_in_price_cur,
+           contract_value_in_val_cur,
+           price_main_cur_id,
+           price_main_cur_code,
+           valualtion_cur_id,
+           valualtion_cur_code,
+           m2m_amt,
+           m2m_amt_cur_id,
+           m2m_amt_cur_code,
+           sc_in_valuation_cur,
+           sc_in_base_cur,
+           contract_premium_value,
+           premium_cur_id,
+           premium_cur_code,
+           expected_cog_net_sale_value,
+           unrealized_pnl_in_val_cur,
+           unrealized_pnl_in_base_cur,
+           prev_day_unr_pnl_in_val_cur,
+           prev_day_unr_pnl_in_base_cur,
+           trade_day_pnl_in_val_cur,
+           trade_day_pnl_in_base_cur,
+           base_cur_id,
+           base_cur_code,
+           expected_cog_in_val_cur,
+           price_cur_to_val_cur_fx_rate,
+           price_cur_to_base_cur_fx_rate,
+           base_cur_to_val_cur_fx_rate,
+           val_to_base_corp_fx_rate,
+           spot_rate_val_cur_to_base_cur,
+           unrealized_pnl_in_m2m_price_id,
+           prev_unr_pnl_in_m2m_price_id,
+           trade_day_pnl_in_m2m_price_id,
+           realized_date,
+           realized_price,
+           realized_price_id,
+           realized_price_cur_id,
+           realized_price_cur_code,
+           realized_price_weight,
+           realized_price_weight_unit,
+           realized_qty,
+           realized_qty_id,
+           realized_qty_unit,
+           md_id,
+           group_id,
+           group_name,
+           group_cur_id,
+           group_cur_code,
+           group_qty_unit_id,
+           group_qty_unit,
+           base_qty_unit_id,
+           base_qty_unit,
+           prev_item_qty,
+           prev_qty_unit_id,
+           cont_unr_status,
+           unfxd_qty,
+           fxd_qty,
+           qty_in_base_unit,
+           eod_trade_date,
+           strategy_id,
+           strategy_name,
+           derivative_def_id,
+           valuation_exchange_id,
+           valuation_dr_id,
+           valuation_dr_id_name,
+           valuation_month,
+           price_month,
+           pay_in_cur_id,
+           pay_in_cur_code,
+           unreal_pnl_in_base_per_unit,
+           unreal_pnl_in_val_cur_per_unit,
+           realized_internal_stock_ref_no,
+           sales_internal_gmr_ref_no,
+           sales_gmr_ref_no,
+           price_to_base_fw_exch_rate,
+           internal_stock_ref_no,
+           real_price_to_base_fw_rate)
+        values
+          (pc_corporate_id,
+           cur_not_fixed_rows.corporate_name,
+           pc_process_id,
+           cur_not_fixed_rows.pcdi_id,
+           cur_not_fixed_rows.delivery_item_no,
+           null, -- prefix
+           null, -- middle_no
+           null, -- suffix
+           cur_not_fixed_rows.internal_contract_ref_no,
+           cur_not_fixed_rows.contract_ref_no,
+           cur_not_fixed_rows.contract_issue_date,
+           cur_not_fixed_rows.internal_contract_item_ref_no,
+           null, --basis_type
+           null, --delivery_period_type
+           null, --delivery_from_month
+           null, --delivery_from_year
+           null, --delivery_to_month
+           null, --delivery_to_year
+           null, --delivery_from_date
+           null, --delivery_to_date
+           null, --transit_days
+           cur_not_fixed_rows.contract_type,
+           null, --approval_status
+           cur_not_fixed_rows.unrealized_type,
+           cur_not_fixed_rows.profit_center_id,
+           cur_not_fixed_rows.profit_center_name,
+           cur_not_fixed_rows.profit_center_short_name,
+           cur_not_fixed_rows.cp_id,
+           cur_not_fixed_rows.cp_name,
+           cur_not_fixed_rows.trade_user_id,
+           cur_not_fixed_rows.trade_user_name,
+           cur_not_fixed_rows.product_id,
+           cur_not_fixed_rows.product_name,
+           cur_not_fixed_rows.item_qty,
+           cur_not_fixed_rows.qty_unit_id,
+           cur_not_fixed_rows.qty_unit,
+           cur_not_fixed_rows.quality_id,
+           cur_not_fixed_rows.quality_name,
+           cur_not_fixed_rows.product_desc,
+           cur_not_fixed_rows.price_type_id,
+           cur_not_fixed_rows.price_type_name,
+           null, -- price_string
+           null, -- item_delivery_period_string
+           null, -- fixation_method
+           null, -- price_fixation_status
+           cur_not_fixed_rows.incoterm_id,
+           cur_not_fixed_rows.incoterm,
+           cur_not_fixed_rows.origination_city_id,
+           cur_not_fixed_rows.origination_city_name,
+           cur_not_fixed_rows.origination_country_id,
+           cur_not_fixed_rows.origination_country_name,
+           cur_not_fixed_rows.destination_city_id,
+           cur_not_fixed_rows.destination_city_name,
+           cur_not_fixed_rows.destination_country_id,
+           cur_not_fixed_rows.destination_country_name,
+           null, --origination_region_id
+           null, --origination_region
+           null, --destination_region_id
+           null, --destination_region
+           cur_not_fixed_rows.payment_term_id,
+           cur_not_fixed_rows.payment_term,
+           cur_not_fixed_rows.price_fixation_details,
+           cur_not_fixed_rows.contract_price,
+           cur_not_fixed_rows.price_unit_id,
+           cur_not_fixed_rows.price_unit_cur_id,
+           cur_not_fixed_rows.price_unit_cur_code,
+           cur_not_fixed_rows.price_unit_weight_unit_id,
+           cur_not_fixed_rows.price_unit_weight,
+           cur_not_fixed_rows.price_unit_weight_unit,
+           null, -- net_m2m_price
+           null, -- m2m_price_unit_id
+           null, -- m2m_price_cur_id
+           null, -- m2m_price_cur_code
+           null, -- m2m_price_weight
+           null, -- m2m_price_weght_unit_id
+           null, -- m2m_price_weight_unit
+           vn_contract_value_in_price_cur, --contract_value_in_price_cur
+           vn_contract_value_in_base_cur, --contract_value_in_val_cur
+           cur_not_fixed_rows.price_unit_cur_id,
+           cur_not_fixed_rows.price_unit_cur_code,
+           null, --valualtion_cur_id
+           null, --valualtion_cur_code
+           null, --m2m_amt
+           null, --2m_amt_cur_id
+           null, --m2m_amt_cur_code
+           null, --sc_in_valuation_cur
+           null, --sc_in_base_cur
+           null, --contract_premium_value
+           null, --premium_cur_id
+           null, -- premium_cur_code
+           null, --expected_cog_net_sale_value
+           vn_pnl_in_base_cur, -- unrealized_pnl_in_val_cur
+           vn_pnl_in_base_cur, -- unrealized_pnl_in_base_cur
+           vn_prev_unr_pnl, -- prev_day_unr_pnl_in_val_cur
+           vn_prev_unr_pnl, -- prev_day_unr_pnl_in_base_cur
+           vn_trade_day_pnl, -- trade_day_pnl_in_val_cur
+           vn_trade_day_pnl, -- trade_day_pnl_in_base_cur
+           cur_not_fixed_rows.base_cur_id,
+           cur_not_fixed_rows.base_cur_code,
+           null, -- expected_cog_in_val_cur
+           null, -- price_cur_to_val_cur_fx_rate
+           null, -- price_cur_to_base_cur_fx_rate
+           null, -- base_cur_to_val_cur_fx_rate
+           null, -- val_to_base_corp_fx_rate
+           null, -- spot_rate_val_cur_to_base_cur
+           null, -- unrealized_pnl_in_m2m_price_id
+           null, -- prev_unr_pnl_in_m2m_price_id
+           null, -- trade_day_pnl_in_m2m_price_id
+           cur_not_fixed_rows.realized_date,
+           cur_not_fixed_rows.realized_price,
+           cur_not_fixed_rows.realized_price_id,
+           cur_not_fixed_rows.realized_price_cur_id,
+           cur_not_fixed_rows.realized_price_cur_code,
+           cur_not_fixed_rows.realized_price_weight,
+           cur_not_fixed_rows.realized_price_weight_unit,
+           cur_not_fixed_rows.realized_qty,
+           cur_not_fixed_rows.realized_qty_unit_id,
+           cur_not_fixed_rows.realized_qty_unit_id, -- realized_qty_unit,
+           null, -- md_id
+           cur_not_fixed_rows.group_id,
+           cur_not_fixed_rows.group_name,
+           cur_not_fixed_rows.group_cur_id,
+           cur_not_fixed_rows.group_cur_code,
+           cur_not_fixed_rows.group_qty_unit_id,
+           cur_not_fixed_rows.group_qty_unit,
+           cur_not_fixed_rows.base_qty_unit_id,
+           cur_not_fixed_rows.base_qty_unit,
+           null, -- prev_item_qty
+           null, -- prev_qty_unit_id
+           null, -- cont_unr_status 
+           null, -- unfxd_qty
+           null, -- fxd_qty
+           cur_not_fixed_rows.qty_in_base_unit, -- qty_in_base_unit
+           pd_trade_date, --eod_trade_date,
+           cur_not_fixed_rows.strategy_id,
+           cur_not_fixed_rows.strategy_name,
+           null, --derivative_def_id
+           null, --valuation_exchange_id
+           null, --valuation_dr_id
+           null, --valuation_dr_id_name
+           null, --valuation_month
+           null, --price_month
+           null, --pay_in_cur_id
+           null, --pay_in_cur_code
+           vn_unreal_pnl_in_base_per_unit, --unreal_pnl_in_base_per_unit
+           vn_unreal_pnl_in_base_per_unit, --unreal_pnl_in_val_cur_per_unit
+           cur_not_fixed_rows.internal_grd_ref_no, --realized_internal_stock_ref_no
+           cur_not_fixed_rows.sales_internal_gmr_ref_no,
+           cur_not_fixed_rows.sales_gmr_ref_no,
+           vc_price_to_base_fw_rate,
+           cur_not_fixed_rows.internal_stock_ref_no,
+           vc_real_price_to_base_fw_rate);
       end if;
-      vn_realized_amount_in_base_cur := round((vn_real_value_in_price_cur *
-                                              vn_real_price_to_base_fw_rate),
-                                              2);
-      -----------------------------------    
-      --  vn_realized_amount_in_base_cur := cur_not_fixed_rows.contract_invoice_value;
-    
-      vc_error_msg := '4';
-      --
-      -- Calcualte the PNL in base
-      --
-    
-      if cur_not_fixed_rows.contract_type = 'S' then
-        vn_pnl_in_base_cur := vn_contract_value_in_base_cur -
-                              vn_realized_amount_in_base_cur;
-      else
-        vn_pnl_in_base_cur := vn_realized_amount_in_base_cur -
-                              vn_contract_value_in_base_cur;
-      end if;
-      vn_pnl_in_base_cur := round(vn_pnl_in_base_cur, 2);
-      --
-      -- Get the Previous Unrealized PNL
-      --
-      begin
-        select poud_prev_day.unrealized_pnl_in_base_cur
-          into vn_prev_unr_pnl
-          from poud_phy_open_unreal_daily poud_prev_day
-         where poud_prev_day.process_id = pc_previous_process_id
-           and poud_prev_day.unrealized_type =
-               'Realized Not Final Invoiced'
-           and corporate_id = pc_corporate_id
-           and poud_prev_day.sales_internal_gmr_ref_no =
-               cur_not_fixed_rows.sales_internal_gmr_ref_no
-           and poud_prev_day.internal_contract_item_ref_no =
-               cur_not_fixed_rows.internal_contract_item_ref_no
-           and poud_prev_day.contract_type =
-               cur_not_fixed_rows.contract_type
-           and poud_prev_day.realized_internal_stock_ref_no =
-               cur_not_fixed_rows.internal_grd_ref_no;
-      exception
-        when no_data_found then
-          vn_prev_unr_pnl := 0;
-        when others then
-          vn_prev_unr_pnl := 0; -- Issue in POUD 
-      end;
-    
-      vc_error_msg                   := '5';
-      vn_trade_day_pnl               := vn_pnl_in_base_cur -
-                                        vn_prev_unr_pnl;
-      vn_unreal_pnl_in_base_per_unit := vn_pnl_in_base_cur /
-                                        cur_not_fixed_rows.qty_in_base_unit;
-    
-      vc_error_msg := '2';
-      insert into poud_phy_open_unreal_daily
-        (corporate_id,
-         corporate_name,
-         process_id,
-         pcdi_id,
-         delivery_item_no,
-         prefix,
-         middle_no,
-         suffix,
-         internal_contract_ref_no,
-         contract_ref_no,
-         contract_issue_date,
-         internal_contract_item_ref_no,
-         basis_type,
-         delivery_period_type,
-         delivery_from_month,
-         delivery_from_year,
-         delivery_to_month,
-         delivery_to_year,
-         delivery_from_date,
-         delivery_to_date,
-         transit_days,
-         contract_type,
-         approval_status,
-         unrealized_type,
-         profit_center_id,
-         profit_center_name,
-         profit_center_short_name,
-         cp_profile_id,
-         cp_name,
-         trade_user_id,
-         trade_user_name,
-         product_id,
-         product_name,
-         item_qty,
-         qty_unit_id,
-         qty_unit,
-         quality_id,
-         quality_name,
-         product_desc,
-         price_type_id,
-         price_type_name,
-         price_string,
-         item_delivery_period_string,
-         fixation_method,
-         price_fixation_status,
-         incoterm_id,
-         incoterm,
-         origination_city_id,
-         origination_city,
-         origination_country_id,
-         origination_country,
-         destination_city_id,
-         destination_city,
-         destination_country_id,
-         destination_country,
-         origination_region_id,
-         origination_region,
-         destination_region_id,
-         destination_region,
-         payment_term_id,
-         payment_term,
-         price_fixation_details,
-         contract_price,
-         price_unit_id,
-         price_unit_cur_id,
-         price_unit_cur_code,
-         price_unit_weight_unit_id,
-         price_unit_weight,
-         price_unit_weight_unit,
-         net_m2m_price,
-         m2m_price_unit_id,
-         m2m_price_cur_id,
-         m2m_price_cur_code,
-         m2m_price_weight,
-         m2m_price_weght_unit_id,
-         m2m_price_weight_unit,
-         contract_value_in_price_cur,
-         contract_value_in_val_cur,
-         price_main_cur_id,
-         price_main_cur_code,
-         valualtion_cur_id,
-         valualtion_cur_code,
-         m2m_amt,
-         m2m_amt_cur_id,
-         m2m_amt_cur_code,
-         sc_in_valuation_cur,
-         sc_in_base_cur,
-         contract_premium_value,
-         premium_cur_id,
-         premium_cur_code,
-         expected_cog_net_sale_value,
-         unrealized_pnl_in_val_cur,
-         unrealized_pnl_in_base_cur,
-         prev_day_unr_pnl_in_val_cur,
-         prev_day_unr_pnl_in_base_cur,
-         trade_day_pnl_in_val_cur,
-         trade_day_pnl_in_base_cur,
-         base_cur_id,
-         base_cur_code,
-         expected_cog_in_val_cur,
-         price_cur_to_val_cur_fx_rate,
-         price_cur_to_base_cur_fx_rate,
-         base_cur_to_val_cur_fx_rate,
-         val_to_base_corp_fx_rate,
-         spot_rate_val_cur_to_base_cur,
-         unrealized_pnl_in_m2m_price_id,
-         prev_unr_pnl_in_m2m_price_id,
-         trade_day_pnl_in_m2m_price_id,
-         realized_date,
-         realized_price,
-         realized_price_id,
-         realized_price_cur_id,
-         realized_price_cur_code,
-         realized_price_weight,
-         realized_price_weight_unit,
-         realized_qty,
-         realized_qty_id,
-         realized_qty_unit,
-         md_id,
-         group_id,
-         group_name,
-         group_cur_id,
-         group_cur_code,
-         group_qty_unit_id,
-         group_qty_unit,
-         base_qty_unit_id,
-         base_qty_unit,
-         prev_item_qty,
-         prev_qty_unit_id,
-         cont_unr_status,
-         unfxd_qty,
-         fxd_qty,
-         qty_in_base_unit,
-         eod_trade_date,
-         strategy_id,
-         strategy_name,
-         derivative_def_id,
-         valuation_exchange_id,
-         valuation_dr_id,
-         valuation_dr_id_name,
-         valuation_month,
-         price_month,
-         pay_in_cur_id,
-         pay_in_cur_code,
-         unreal_pnl_in_base_per_unit,
-         unreal_pnl_in_val_cur_per_unit,
-         realized_internal_stock_ref_no,
-         sales_internal_gmr_ref_no,
-         sales_gmr_ref_no,
-         price_to_base_fw_exch_rate,
-         internal_stock_ref_no,
-         real_price_to_base_fw_rate)
-      values
-        (pc_corporate_id,
-         cur_not_fixed_rows.corporate_name,
-         pc_process_id,
-         cur_not_fixed_rows.pcdi_id,
-         cur_not_fixed_rows.delivery_item_no,
-         null, -- prefix
-         null, -- middle_no
-         null, -- suffix
-         cur_not_fixed_rows.internal_contract_ref_no,
-         cur_not_fixed_rows.contract_ref_no,
-         cur_not_fixed_rows.contract_issue_date,
-         cur_not_fixed_rows.internal_contract_item_ref_no,
-         null, --basis_type
-         null, --delivery_period_type
-         null, --delivery_from_month
-         null, --delivery_from_year
-         null, --delivery_to_month
-         null, --delivery_to_year
-         null, --delivery_from_date
-         null, --delivery_to_date
-         null, --transit_days
-         cur_not_fixed_rows.contract_type,
-         null, --approval_status
-         cur_not_fixed_rows.unrealized_type,
-         cur_not_fixed_rows.profit_center_id,
-         cur_not_fixed_rows.profit_center_name,
-         cur_not_fixed_rows.profit_center_short_name,
-         cur_not_fixed_rows.cp_id,
-         cur_not_fixed_rows.cp_name,
-         cur_not_fixed_rows.trade_user_id,
-         cur_not_fixed_rows.trade_user_name,
-         cur_not_fixed_rows.product_id,
-         cur_not_fixed_rows.product_name,
-         cur_not_fixed_rows.item_qty,
-         cur_not_fixed_rows.qty_unit_id,
-         cur_not_fixed_rows.qty_unit,
-         cur_not_fixed_rows.quality_id,
-         cur_not_fixed_rows.quality_name,
-         cur_not_fixed_rows.product_desc,
-         cur_not_fixed_rows.price_type_id,
-         cur_not_fixed_rows.price_type_name,
-         null, -- price_string
-         null, -- item_delivery_period_string
-         null, -- fixation_method
-         null, -- price_fixation_status
-         cur_not_fixed_rows.incoterm_id,
-         cur_not_fixed_rows.incoterm,
-         cur_not_fixed_rows.origination_city_id,
-         cur_not_fixed_rows.origination_city_name,
-         cur_not_fixed_rows.origination_country_id,
-         cur_not_fixed_rows.origination_country_name,
-         cur_not_fixed_rows.destination_city_id,
-         cur_not_fixed_rows.destination_city_name,
-         cur_not_fixed_rows.destination_country_id,
-         cur_not_fixed_rows.destination_country_name,
-         null, --origination_region_id
-         null, --origination_region
-         null, --destination_region_id
-         null, --destination_region
-         cur_not_fixed_rows.payment_term_id,
-         cur_not_fixed_rows.payment_term,
-         cur_not_fixed_rows.price_fixation_details,
-         cur_not_fixed_rows.contract_price,
-         cur_not_fixed_rows.price_unit_id,
-         cur_not_fixed_rows.price_unit_cur_id,
-         cur_not_fixed_rows.price_unit_cur_code,
-         cur_not_fixed_rows.price_unit_weight_unit_id,
-         cur_not_fixed_rows.price_unit_weight,
-         cur_not_fixed_rows.price_unit_weight_unit,
-         null, -- net_m2m_price
-         null, -- m2m_price_unit_id
-         null, -- m2m_price_cur_id
-         null, -- m2m_price_cur_code
-         null, -- m2m_price_weight
-         null, -- m2m_price_weght_unit_id
-         null, -- m2m_price_weight_unit
-         vn_contract_value_in_price_cur, --contract_value_in_price_cur
-         vn_contract_value_in_base_cur, --contract_value_in_val_cur
-         cur_not_fixed_rows.price_unit_cur_id,
-         cur_not_fixed_rows.price_unit_cur_code,
-         null, --valualtion_cur_id
-         null, --valualtion_cur_code
-         null, --m2m_amt
-         null, --2m_amt_cur_id
-         null, --m2m_amt_cur_code
-         null, --sc_in_valuation_cur
-         null, --sc_in_base_cur
-         null, --contract_premium_value
-         null, --premium_cur_id
-         null, -- premium_cur_code
-         null, --expected_cog_net_sale_value
-         vn_pnl_in_base_cur, -- unrealized_pnl_in_val_cur
-         vn_pnl_in_base_cur, -- unrealized_pnl_in_base_cur
-         vn_prev_unr_pnl, -- prev_day_unr_pnl_in_val_cur
-         vn_prev_unr_pnl, -- prev_day_unr_pnl_in_base_cur
-         vn_trade_day_pnl, -- trade_day_pnl_in_val_cur
-         vn_trade_day_pnl, -- trade_day_pnl_in_base_cur
-         cur_not_fixed_rows.base_cur_id,
-         cur_not_fixed_rows.base_cur_code,
-         null, -- expected_cog_in_val_cur
-         null, -- price_cur_to_val_cur_fx_rate
-         null, -- price_cur_to_base_cur_fx_rate
-         null, -- base_cur_to_val_cur_fx_rate
-         null, -- val_to_base_corp_fx_rate
-         null, -- spot_rate_val_cur_to_base_cur
-         null, -- unrealized_pnl_in_m2m_price_id
-         null, -- prev_unr_pnl_in_m2m_price_id
-         null, -- trade_day_pnl_in_m2m_price_id
-         cur_not_fixed_rows.realized_date,
-         cur_not_fixed_rows.realized_price,
-         cur_not_fixed_rows.realized_price_id,
-         cur_not_fixed_rows.realized_price_cur_id,
-         cur_not_fixed_rows.realized_price_cur_code,
-         cur_not_fixed_rows.realized_price_weight,
-         cur_not_fixed_rows.realized_price_weight_unit,
-         cur_not_fixed_rows.realized_qty,
-         cur_not_fixed_rows.realized_qty_unit_id,
-         cur_not_fixed_rows.realized_qty_unit_id, -- realized_qty_unit,
-         null, -- md_id
-         cur_not_fixed_rows.group_id,
-         cur_not_fixed_rows.group_name,
-         cur_not_fixed_rows.group_cur_id,
-         cur_not_fixed_rows.group_cur_code,
-         cur_not_fixed_rows.group_qty_unit_id,
-         cur_not_fixed_rows.group_qty_unit,
-         cur_not_fixed_rows.base_qty_unit_id,
-         cur_not_fixed_rows.base_qty_unit,
-         null, -- prev_item_qty
-         null, -- prev_qty_unit_id
-         null, -- cont_unr_status 
-         null, -- unfxd_qty
-         null, -- fxd_qty
-         cur_not_fixed_rows.qty_in_base_unit, -- qty_in_base_unit
-         pd_trade_date, --eod_trade_date,
-         cur_not_fixed_rows.strategy_id,
-         cur_not_fixed_rows.strategy_name,
-         null, --derivative_def_id
-         null, --valuation_exchange_id
-         null, --valuation_dr_id
-         null, --valuation_dr_id_name
-         null, --valuation_month
-         null, --price_month
-         null, --pay_in_cur_id
-         null, --pay_in_cur_code
-         vn_unreal_pnl_in_base_per_unit, --unreal_pnl_in_base_per_unit
-         vn_unreal_pnl_in_base_per_unit, --unreal_pnl_in_val_cur_per_unit
-         cur_not_fixed_rows.internal_grd_ref_no, --realized_internal_stock_ref_no
-         cur_not_fixed_rows.sales_internal_gmr_ref_no,
-         cur_not_fixed_rows.sales_gmr_ref_no,
-         vc_price_to_base_fw_rate,
-         cur_not_fixed_rows.internal_stock_ref_no,
-         vc_real_price_to_base_fw_rate);
     end loop;
   exception
     when others then
