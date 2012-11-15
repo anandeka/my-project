@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1176
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  15-Nov-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  70382
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+
+Revision: 107973
+Date: 4:06:38 PM, Thursday, November 15, 2012
+Message:
+Realized Today and PNL Changes Contract QP Exchange Rate Initialization Corrected
+All sections loop only if quantity is > 0
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+
+
