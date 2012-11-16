@@ -127,17 +127,16 @@ create or replace package pkg_metals_general is
                                        pd_trade_date               in date,
                                        pc_price_unit_id            in varchar2,
                                        pc_base_cur_id              in varchar2,
-                                       -- pd_payment_due_date         in date,
-                                       pc_product_id        in varchar2,
-                                       pc_base_qty_unit_id  in varchar2,
-                                       pc_process_id        in varchar2,
-                                       pc_price_basis       in varchar2,
-                                       pd_valuation_fx_date date,
-                                       pd_qp_fx_date        date,
-                                       pn_premium           out number,
-                                       pc_exch_rate_string  out varchar2);
+                                       pc_product_id               in varchar2,
+                                       pc_base_qty_unit_id         in varchar2,
+                                       pc_process_id               in varchar2,
+                                       pc_price_basis              in varchar2,
+                                       pd_valuation_fx_date        date,
+                                       pd_qp_fx_date               date,
+                                       pn_premium                  out number,
+                                       pc_exch_rate_string         out varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_metals_general is
   function fn_deduct_wet_to_dry_qty(pc_product_id                varchar2,
@@ -687,7 +686,7 @@ create or replace package body pkg_metals_general is
                 vn_tier_penalty := vn_tier_penalty + vn_penalty_charge;
                 /** vn_range_gap;*/
               /* dbms_output.put_line(' Variable  Penalty charge for this ' ||                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     vn_penalty_charge);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dbms_output.put_line('---------------------------');*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                dbms_output.put_line('---------------------------');*/
               --calculate total Penalty charge
               end loop;
             end if;
@@ -4649,15 +4648,14 @@ create or replace package body pkg_metals_general is
                                        pd_trade_date               in date,
                                        pc_price_unit_id            in varchar2,
                                        pc_base_cur_id              in varchar2,
-                                       -- pd_payment_due_date         in date,
-                                       pc_product_id        in varchar2,
-                                       pc_base_qty_unit_id  in varchar2,
-                                       pc_process_id        in varchar2,
-                                       pc_price_basis       in varchar2,
-                                       pd_valuation_fx_date date,
-                                       pd_qp_fx_date        date,
-                                       pn_premium           out number,
-                                       pc_exch_rate_string  out varchar2) is
+                                       pc_product_id               in varchar2,
+                                       pc_base_qty_unit_id         in varchar2,
+                                       pc_process_id               in varchar2,
+                                       pc_price_basis              in varchar2,
+                                       pd_valuation_fx_date        date,
+                                       pd_qp_fx_date               date,
+                                       pn_premium                  out number,
+                                       pc_exch_rate_string         out varchar2) is
   
     cursor cur_preimium is
       select pcqpd.premium_disc_value,
@@ -4723,14 +4721,6 @@ create or replace package body pkg_metals_general is
         -- Exchange Rate from Premium to Base Currency
         --       
       
-        /*pkg_general.sp_forward_cur_exchange_new(pc_corporate_id,
-        pd_trade_date,
-        pd_payment_due_date,
-        vc_premium_main_cur_id,
-        pc_base_cur_id,
-        30,
-        vn_premium_to_base_fw_rate,
-        vn_forward_points);*/
         if pc_price_basis = 'Fixed' then
           if pd_valuation_fx_date = pd_trade_date then
           
@@ -4775,38 +4765,18 @@ create or replace package body pkg_metals_general is
                                                        vn_forward_exch_rate);
           end if;
         end if;
-      
-        if pc_exch_rate_string is null then
-          pc_exch_rate_string := '1 ' || vc_premium_main_cur_code || '=' ||
-                                 vn_premium_to_base_fw_rate || ' ' ||
-                                 vc_base_cur_code;
-        else
-          pc_exch_rate_string := pc_exch_rate_string || ',' || '1 ' ||
-                                 vc_premium_main_cur_code || '=' ||
-                                 vn_premium_to_base_fw_rate || ' ' ||
-                                 vc_base_cur_code;
-        end if;
-      
-        /*if vc_premium_main_cur_code <> vc_base_cur_code then
-          if vn_premium_to_base_fw_rate is null or
-             vn_premium_to_base_fw_rate = 0 then
-            vobj_error_log.extend;
-            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure sp_quality_premium_fw_rate-sp_calc_phy_open_unrealized ',
-                                                                 'PHY-005',
-                                                                 vc_base_cur_code ||
-                                                                 ' to ' ||
-                                                                 vc_premium_main_cur_code || ' (' ||
-                                                                 to_char(pd_payment_due_date,
-                                                                         'dd-Mon-yyyy') || ') ',
-                                                                 '',
-                                                                 pkg_phy_physical_process.gvc_process,
-                                                                 null, --pc_user_id,
-                                                                 sysdate,
-                                                                 pd_trade_date);
-            sp_insert_error_log(vobj_error_log);
+        if vc_premium_main_cur_code <> vc_base_cur_code then
+          if pc_exch_rate_string is null then
+            pc_exch_rate_string := '1 ' || vc_premium_main_cur_code || '=' ||
+                                   vn_premium_to_base_fw_rate || ' ' ||
+                                   vc_base_cur_code;
+          else
+            pc_exch_rate_string := pc_exch_rate_string || ',' || '1 ' ||
+                                   vc_premium_main_cur_code || '=' ||
+                                   vn_premium_to_base_fw_rate || ' ' ||
+                                   vc_base_cur_code;
           end if;
-        end if;*/
+        end if;
         vn_premium := (cur_preimium_rows.premium_disc_value /
                       vn_premium_cur_main_factor) *
                       vn_premium_to_base_fw_rate *
@@ -4819,5 +4789,5 @@ create or replace package body pkg_metals_general is
     end loop;
     pn_premium := vn_total_premium;
   end;
-end; 
+end;
 /

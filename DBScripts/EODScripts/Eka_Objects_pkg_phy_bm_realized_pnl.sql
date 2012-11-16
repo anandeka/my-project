@@ -710,20 +710,24 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                                                  vc_del_premium_main_cur_id,
                                                  vc_del_premium_main_cur_code,
                                                  vn_del_premium_cur_main_factor);
-            
-              pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
-                                               pd_trade_date,
-                                               vc_del_premium_main_cur_id,
-                                               cur_realized_rows.base_cur_id,
-                                               'sp_calc_phy_realized_today Sales DP to Base',
-                                               pc_process,
-                                               vn_fw_exch_rate_del_to_base);
-            
-              vc_contract_pp_fw_exch_rate := '1 ' ||
-                                             vc_del_premium_main_cur_code || '=' ||
-                                             vn_fw_exch_rate_del_to_base || ' ' ||
-                                             cur_realized_rows.base_cur_code;
-            
+              if vc_del_premium_main_cur_id <>
+                 cur_realized_rows.base_cur_id then
+                pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 vc_del_premium_main_cur_id,
+                                                 cur_realized_rows.base_cur_id,
+                                                 'sp_calc_phy_realized_today Sales DP to Base',
+                                                 pc_process,
+                                                 vn_fw_exch_rate_del_to_base);
+              
+                vc_contract_pp_fw_exch_rate := '1 ' ||
+                                               vc_del_premium_main_cur_code || '=' ||
+                                               vn_fw_exch_rate_del_to_base || ' ' ||
+                                               cur_realized_rows.base_cur_code;
+              else
+                vn_fw_exch_rate_del_to_base := 1;
+                vc_contract_pp_fw_exch_rate := null;
+              end if;
               vn_product_premium_per_unit := (cur_realized_rows.delivery_premium /
                                              cur_realized_rows.del_premium_weight) *
                                              vn_del_premium_cur_main_factor *
@@ -3150,22 +3154,21 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
         -- Convert contract value in Price Currency to Base Currency
         --
         vc_error_msg := '3';
-        pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
-                                         pd_trade_date,
-                                         vc_real_price_cur_id,
-                                         cur_not_fixed_rows.base_cur_id,
-                                         'sp_calc_realized_not_fixed Price To Base',
-                                         pc_process,
-                                         vn_real_price_to_base_fw_rate);
-      
-        if vn_real_price_to_base_fw_rate <> 0 or
-           vn_real_price_to_base_fw_rate <> 1 or
-           vn_real_price_to_base_fw_rate is not null then
+        if vc_real_price_cur_id <> cur_not_fixed_rows.base_cur_id then
+          pkg_general.sp_bank_fx_rate_spot(pc_corporate_id,
+                                           pd_trade_date,
+                                           vc_real_price_cur_id,
+                                           cur_not_fixed_rows.base_cur_id,
+                                           'sp_calc_realized_not_fixed Price To Base',
+                                           pc_process,
+                                           vn_real_price_to_base_fw_rate);
+        
           vc_real_price_to_base_fw_rate := '1 ' || vc_real_price_cur_code || '=' ||
                                            vn_real_price_to_base_fw_rate || ' ' ||
                                            cur_not_fixed_rows.base_cur_code;
         else
           vc_real_price_to_base_fw_rate := null;
+          vn_real_price_to_base_fw_rate := 1;
         end if;
         vn_realized_amount_in_base_cur := round((vn_real_value_in_price_cur *
                                                 vn_real_price_to_base_fw_rate),

@@ -15,8 +15,6 @@ CREATE OR REPLACE PACKAGE PKG_PHY_CALCULATE_COG is
                                  pd_trade_date   date,
                                  pc_process      varchar2);
 end; 
- 
- 
 /
 CREATE OR REPLACE PACKAGE BODY PKG_PHY_CALCULATE_COG is
   procedure sp_calc_invm_cog(pc_corporate_id varchar2,
@@ -2643,7 +2641,7 @@ commit;
              dgrd.product_id,
              pum_base.weight_unit_id,
              qum.qty_unit,
-             dgrd.current_qty,
+             gmr.qty,
              dgrd.net_weight_unit_id,
              cs.cost_value,
              1,
@@ -2662,7 +2660,7 @@ commit;
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
-             gmr.qty
+             gmr.current_qty
         from dgrd_delivered_grd          dgrd,
              cigc_contract_item_gmr_cost cigc,
              cs_cost_store               cs,
@@ -2729,7 +2727,7 @@ commit;
              dgrd.product_id,
              pum_base.weight_unit_id,
              qum.qty_unit,
-             dgrd.current_qty,
+             gmr.qty,
              dgrd.net_weight_unit_id,
              cs.cost_value,
              1,
@@ -2748,7 +2746,7 @@ commit;
              ppu.product_price_unit_id,
              1,
              nvl(cs.est_payment_due_date, pd_trade_date),
-             gmr.qty
+             gmr.current_qty
         from dgrd_delivered_grd          dgrd,
              cigc_contract_item_gmr_cost cigc,
              cs_cost_store               cs,
@@ -2817,7 +2815,7 @@ commit;
              dgrd.product_id,
              pum_base.weight_unit_id,
              qum.qty_unit,
-             dgrd.current_qty,
+             gmr.qty,
              dgrd.net_weight_unit_id,
              cs.cost_value,
              1,
@@ -2836,7 +2834,7 @@ commit;
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
-             gmr.qty
+             gmr.current_qty
         from dgrd_delivered_grd          dgrd,
              cigc_contract_item_gmr_cost cigc,
              cs_cost_store               cs,
@@ -2903,7 +2901,7 @@ commit;
              dgrd.product_id,
              pum_base.weight_unit_id,
              qum.qty_unit,
-             dgrd.current_qty,
+             gmr.qty,
              dgrd.net_weight_unit_id,
              cs.cost_value,
              1,
@@ -2922,7 +2920,7 @@ commit;
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
-             gmr.qty
+             gmr.current_qty
         from dgrd_delivered_grd          dgrd,
              cigc_contract_item_gmr_cost cigc,
              cs_cost_store               cs,
@@ -2988,7 +2986,7 @@ commit;
              dgrd.product_id,
              pum_base.weight_unit_id,
              qum.qty_unit,
-             dgrd.current_qty,
+             gmr.qty,
              dgrd.net_weight_unit_id,
              cs.cost_value,
              scmt.transformation_ratio,
@@ -3007,7 +3005,7 @@ commit;
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
-             gmr.qty
+             dgrd.current_qty
         from dgrd_delivered_grd          dgrd,
              cigc_contract_item_gmr_cost cigc,
              cs_cost_store               cs,
@@ -3098,7 +3096,7 @@ commit;
              ppu.product_price_unit_id,
              1,
              nvl(cs.est_payment_due_date, pd_trade_date),
-             gmr.qty
+             dgrd.current_qty
         from dgrd_delivered_grd          dgrd,
              cigc_contract_item_gmr_cost cigc,
              cs_cost_store               cs,
@@ -3191,7 +3189,7 @@ commit;
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
-             gmr.qty
+             dgrd.current_qty
         from dgrd_delivered_grd          dgrd,
              cigc_contract_item_gmr_cost cigc,
              cs_cost_store               cs,
@@ -3282,7 +3280,7 @@ commit;
              ppu.product_price_unit_id,
              cs.transact_amt_sign,
              nvl(cs.est_payment_due_date, pd_trade_date),
-             gmr.qty
+             dgrd.current_qty
         from dgrd_delivered_grd          dgrd,
              cigc_contract_item_gmr_cost cigc,
              cs_cost_store               cs,

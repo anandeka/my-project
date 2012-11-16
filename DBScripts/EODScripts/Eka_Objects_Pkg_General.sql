@@ -2361,8 +2361,10 @@ create or replace package body pkg_general is
                                                            'PHY-005',
                                                            vc_from_cur_code ||
                                                            ' to ' ||
-                                                           vc_to_cur_code ||
-                                                           ' (Spot Price)  Trade date:' || ' ' ||
+                                                           vc_to_cur_code || '(' ||
+                                                           to_char(vd_valid_quote_date,
+                                                                   'dd-Mon-yyyy') || ')' ||
+                                                           ' Trade date:' || ' ' ||
                                                            to_char(vd_valid_quote_date,
                                                                    'dd-Mon-yyyy'),
                                                            '', -- trade_ref_no
