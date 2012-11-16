@@ -69,8 +69,13 @@ create or replace package pkg_phy_custom_reports is
                                 pc_process      varchar2,
                                 pc_process_id   varchar2,
                                 pc_user_id      varchar2);
+  procedure sp_trader_position_report(pc_corporate_id varchar2,
+                                      pd_trade_date   date,
+                                      pc_process      varchar2,
+                                      pc_process_id   varchar2,
+                                      pc_user_id      varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_phy_custom_reports is
 
@@ -86,7 +91,7 @@ create or replace package body pkg_phy_custom_reports is
     --        Procedure Name                            : sp_call_custom_reports
     --        Author                                    : Siva
     --        Created Date                              : 25-Jul-2012
-    --        Purpose                                   : this package is for custom report client specific
+    --        Purpose                                   : this package is for custom report client specific..
     --
     --        Parameters
     --        pc_corporate_id                           : Corporate ID
@@ -151,7 +156,7 @@ create or replace package body pkg_phy_custom_reports is
                           pc_process_id,
                           vn_logno,
                           'sp_physical_booking_journal');
-   sp_physical_booking_journal(pc_corporate_id,
+    sp_physical_booking_journal(pc_corporate_id,
                                 pd_trade_date,
                                 pc_process_id,
                                 pc_user_id,
@@ -221,6 +226,18 @@ create or replace package body pkg_phy_custom_reports is
                               pc_process_id,
                               pc_user_id);
   
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_trader_position_report');
+    sp_trader_position_report(pc_corporate_id,
+                              pd_trade_date,
+                              pc_process,
+                              pc_process_id,
+                              pc_user_id);
     commit;
     ----Note:  keep sp_update_strategy_attributes update procedue at end of custom reports call
     sp_update_strategy_attributes(pc_corporate_id,
@@ -381,7 +398,7 @@ create or replace package body pkg_phy_custom_reports is
          and pum_tp.cur_id = cm_tp.cur_id(+)
          and dcoh.created_by = akcu.user_id
          and akcu.gabid = gab_akc.gabid
-         and dt.process_id=pc_process_id 
+         and dt.process_id = pc_process_id
       union all
       select dcoh.internal_close_out_ref_no,
              'New' journal_type,
@@ -479,7 +496,7 @@ create or replace package body pkg_phy_custom_reports is
          and pum_tp.cur_id = cm_tp.cur_id(+)
          and dcoh.created_by = akcu.user_id
          and akcu.gabid = gab_akc.gabid
-         and dt.process_id=pc_process_id;
+         and dt.process_id = pc_process_id;
   
   begin
     for cr_cdc_row in cr_cdc_closeout
@@ -663,1107 +680,1120 @@ create or replace package body pkg_phy_custom_reports is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   begin
-  delete from temp_ii  ii where ii.corporate_id=pc_corporate_id;
-  commit;
- insert into temp_ii
-   (corporate_id, internal_invoice_ref_no, delivery_item_ref_no)
-   select pc_corporate_id,
-          iid.internal_invoice_ref_no,
-          ii.delivery_item_ref_no
-     from iid_invoicable_item_details iid,
-          ii_invoicable_item          ii,
-          is_invoice_summary          iss
-    where ii.invoicable_item_id = iid.invoicable_item_id
-    and iss.internal_invoice_ref_no=iid.internal_invoice_ref_no
-    and iss.process_id=pc_process_id
-    and iss.corporate_id=pc_corporate_id
-    and iss.is_active='Y'
-    and iid.is_active='Y'
-    and ii.is_active='Y'   
-    group by iid.internal_invoice_ref_no,
-             ii.delivery_item_ref_no;
-   commit;
-   sp_gather_table_stats('temp_ii');
-   for cur_temp_ii in (select iss.internal_invoice_ref_no,
-                             axs.created_by,
-                             gab.firstname || '  ' || gab.lastname created_name
-                        from is_invoice_summary         iss,
-                             iam_invoice_action_mapping iam,
-                             axs_action_summary         axs,
-                             dbd_database_dump          dbd,
-                             ak_corporate_user          ak,
-                             gab_globaladdressbook      gab
-                      
-                       where iss.internal_invoice_ref_no =
-                             iam.internal_invoice_ref_no
-                         and iss.process_id = pc_process_id
-                         and iss.corporate_id=pc_corporate_id
-                         and iss.is_active = 'Y'
-                         and iam.invoice_action_ref_no =
-                             axs.internal_action_ref_no
-                         and axs.dbd_id = dbd.dbd_id 
-                         and axs.corporate_id=pc_corporate_id                       
-                         and dbd.process = pc_process
-                         and axs.created_by = ak.user_id
-                         and ak.gabid = gab.gabid)
-  loop
-    update temp_ii ii
-       set ii.created_user_id   = cur_temp_ii.created_by,
-           ii.created_user_name = cur_temp_ii.created_name    
-     where ii.internal_invoice_ref_no = cur_temp_ii.internal_invoice_ref_no
-       and ii.corporate_id = pc_corporate_id;
-  end loop;
-  commit;   
-  -- removed corporate name,base cur,code ,eod run count,run time
-      for cc_phy in (select 'New' section_name,
-                            iss.corporate_id,
-                            pdm.product_id,
-                            pdm.product_desc,
-                            pcm.cp_id counter_party_id,
-                            phd_contract_cp.companyname counter_party_name,
-                            iss.invoiced_qty invoice_quantity,
-                            qum.qty_unit invoice_quantity_uom,
-                            nvl(iss.fx_to_base, 1) fx_base,
-                            nvl(cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
-                            nvl(cpc.profit_center_short_name,
-                                cpc1.profit_center_short_name) profit_center,
-                            pcpd.strategy_id,
-                            css.strategy_name,
-                            nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
-                            nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
-                            nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
-                            iss.invoice_cur_id invoice_cur_id,
-                            cm_p.cur_code pay_in_currency,
-                            round(iss.total_amount_to_pay, 4) *
-                            nvl(iss.fx_to_base, 1) *
-                            (case
-                               when nvl(iss.payable_receivable, 'NA') =
-                                    'Payable' then
-                                -1
-                               when nvl(iss.payable_receivable, 'NA') =
-                                    'Receivable' then
-                                1
-                               when nvl(iss.payable_receivable, 'NA') = 'NA' then
-                                (case
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceReceived' then
-                                -1
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceRaised' then
-                                1
-                               else
-                                (case
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Raised' then
-                                1
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Received' then
-                                -1
-                               else
-                                1
-                             end) end) else 1 end) amount_in_base_cur,
-                            round(iss.total_amount_to_pay, 4) * case
-                              when (iss.invoice_type = 'Commercial' or
-                                   iss.invoice_type = 'DebitCredit') then
-                               1
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Received' then
-                               -1
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Raised' then
-                               1
-                              when nvl(iss.invoice_type_name, 'NA') =
-                                   'AdvancePayment' and
-                                   pcm.purchase_sales = 'P' then
-                               -1
-                              when nvl(iss.invoice_type_name, 'NA') =
-                                   'AdvancePayment' and
-                                   pcm.purchase_sales = 'S' then
-                               1
-                            end invoice_amt,
-                            iss.invoice_issue_date invoice_date,
-                            iss.payment_due_date invoice_due_date,
-                            iss.invoice_type_name invoice_type,
-                            iss.bill_to_address bill_to_cp_country,
-                            pcm.contract_ref_no || '-' ||
-                            ii.delivery_item_ref_no delivery_item_ref_no,
-                            ivd.vat_amount_in_vat_cur vat_amount,
-                            ivd.vat_remit_cur_id,
-                            cm_vat.cur_code vat_remit_currency,
-                            (nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
-                            (ivd.vat_amount_in_vat_cur *
-                            nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
-                            null commission_value,
-                            null commission_value_ccy,
-                            ii.created_user_id,
-                            ii.created_user_name
-                       from is_invoice_summary                      iss,
-                            cm_currency_master                      cm_p,
-                            incm_invoice_contract_mapping@eka_appdb incm,
-                            ivd_invoice_vat_details@eka_appdb       ivd,
-                            pcm_physical_contract_main              pcm,
-                            temp_ii                                 ii,
-                            cpc_corporate_profit_center             cpc,
-                            cpc_corporate_profit_center             cpc1,
-                            pcpd_pc_product_definition              pcpd,
-                            cm_currency_master                      cm_vat,
-                            pdm_productmaster                       pdm,
-                            phd_profileheaderdetails                phd_contract_cp,
-                            qum_quantity_unit_master                qum,
-                            css_corporate_strategy_setup            css
-                      where iss.is_active = 'Y'
-                        and iss.corporate_id is not null
-                        and iss.internal_invoice_ref_no =
-                            incm.internal_invoice_ref_no(+)
-                        and iss.internal_invoice_ref_no =
-                            ivd.internal_invoice_ref_no(+)
-                        and incm.internal_contract_ref_no =
-                            pcm.internal_contract_ref_no(+)
-                        and ii.internal_invoice_ref_no=iss.internal_invoice_ref_no 
-                        and ii.corporate_id=iss.corporate_id 
-                        and iss.internal_contract_ref_no =
-                            pcpd.internal_contract_ref_no
-                        and iss.profit_center_id = cpc.profit_center_id(+)
-                        and pcpd.profit_center_id = cpc1.profit_center_id(+)
-                        and iss.invoice_cur_id = cm_p.cur_id(+)
-                        and pcpd.product_id = pdm.product_id(+)
-                        and phd_contract_cp.profileid(+) = iss.cp_id
-                        and nvl(pcm.partnership_type, 'Normal') = 'Normal'
-                        and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
-                        and iss.is_inv_draft = 'N'
-                        and iss.invoice_type_name not in('Profoma','Service')
-                        and ivd.vat_remit_cur_id = cm_vat.cur_id(+) 
-                        and pcpd.input_output = 'Input'
-                        and nvl(iss.total_amount_to_pay, 0) <> 0
-                        and pcpd.strategy_id = css.strategy_id
-                        and iss.process_id = pc_process_id
-                        and pcm.process_id = pc_process_id
-                        and pcpd.process_id = pc_process_id
-                        and phd_contract_cp.is_active = 'Y'
-                        and iss.is_invoice_new = 'Y'
-                        and iss.corporate_id = pc_corporate_id                     
-                     ---2 Service invoices
-                     union all
-                     select 'New' section_name,
-                            iss.corporate_id,
-                            nvl(pdm.product_id, 'NA'),
-                            nvl(pdm.product_desc, 'NA'),
-                            iss.cp_id counter_party_id,
-                            phd_cp.companyname counter_party_name,
-                            iss.invoiced_qty invoice_quantity,
-                            nvl(qum.qty_unit, 'NA') invoice_quantity_uom,
-                            nvl(iss.fx_to_base, 1) fx_base,
-                            coalesce(cpc.profit_center_id,
-                                     cpc1.profit_center_id,
-                                     'NA') profit_center_id,
-                            coalesce(cpc.profit_center_short_name,
-                                     cpc1.profit_center_short_name,
-                                     'NA') profit_center,
-                            pcpd.strategy_id,
-                            css.strategy_name,
-                            nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
-                            nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
-                            nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
-                            iss.invoice_cur_id invoice_cur_id,
-                            cm_p.cur_code pay_in_currency,
-                            round(iss.total_amount_to_pay, 4) *
-                            nvl(iss.fx_to_base, 1) *
-                            (case
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceReceived' then
-                                -1
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceRaised' then
-                                1
-                               else
-                                (case
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Raised' then
-                                1
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Received' then
-                                -1
-                               else
-                                1
-                             end) end) amount_in_base_cur,
-                            round(iss.total_amount_to_pay, 4) * case
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Received' then
-                               -1
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Raised' then
-                               1
-                            end invoice_amt,
-                            iss.invoice_issue_date invoice_date,
-                            iss.payment_due_date invoice_due_date,
-                            nvl(iss.invoice_type_name, 'NA') invoice_type,
-                            iss.bill_to_address bill_to_cp_country,
-                            pcm.contract_ref_no || '-' ||
-                            ii.delivery_item_ref_no delivery_item_ref_no,
-                            ivd.vat_amount_in_vat_cur vat_amount,
-                            nvl(ivd.vat_remit_cur_id, 'NA'),
-                            nvl(cm_vat.cur_code, 'NA') vat_remit_currency,
-                            (nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
-                            (ivd.vat_amount_in_vat_cur *
-                            nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
-                            null commission_value,
-                            null commission_value_ccy,
-                            ii.created_user_id,
-                            ii.created_user_name
-                       from is_invoice_summary                iss,
-                            iam_invoice_action_mapping        iam,
-                            iid_invoicable_item_details       iid,
-                            axs_action_summary                axs,
-                            cs_cost_store                     cs,
-                            ivd_invoice_vat_details@eka_appdb ivd,
-                            cigc_contract_item_gmr_cost       cigc,
-                            gmr_goods_movement_record         gmr,
-                            pcpd_pc_product_definition        pcpd,
-                            pcm_physical_contract_main        pcm,
-                            temp_ii                           ii,
-                            cpc_corporate_profit_center       cpc,
-                            cpc_corporate_profit_center       cpc1,
-                            phd_profileheaderdetails          phd_cp,
-                            cm_currency_master                cm_vat,
-                            cm_currency_master                cm_p,
-                            pdm_productmaster                 pdm,
-                            qum_quantity_unit_master          qum,
-                            css_corporate_strategy_setup      css,
-                            dbd_database_dump                 dbd
-                      where iss.internal_contract_ref_no is null
-                        and iss.is_active = 'Y'
-                        and iss.internal_invoice_ref_no =
-                            iam.internal_invoice_ref_no
-                        and iss.internal_invoice_ref_no =
-                            iid.internal_invoice_ref_no(+)
-                        and iss.internal_invoice_ref_no =
-                            ivd.internal_invoice_ref_no(+)
-                        and iam.invoice_action_ref_no =
-                            axs.internal_action_ref_no
-                        and iam.invoice_action_ref_no =
-                            cs.internal_action_ref_no(+)
-                        and cs.cog_ref_no = cigc.cog_ref_no(+)
-                        and cigc.internal_gmr_ref_no =
-                            gmr.internal_gmr_ref_no(+)
-                        and gmr.internal_contract_ref_no =
-                            pcpd.internal_contract_ref_no(+)
-                        and pcpd.internal_contract_ref_no =
-                            pcm.internal_contract_ref_no(+)
-                        and ii.internal_invoice_ref_no=iss.internal_invoice_ref_no
-                        and ii.corporate_id=iss.corporate_id    
-                        and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)                        
-                        and pcpd.input_output(+) = 'Input'
-                        and iss.invoice_type_name ='Service'
-                        and iss.profit_center_id = cpc.profit_center_id(+)
-                        and pcpd.profit_center_id = cpc1.profit_center_id(+)
-                        and iss.cp_id = phd_cp.profileid
-                        and iss.invoice_cur_id = cm_p.cur_id(+)
-                        and pcpd.product_id = pdm.product_id(+)
-                        and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
-                        and pcpd.strategy_id = css.strategy_id
-                        and iss.process_id = pc_process_id
-                        and pcm.process_id = pc_process_id
-                        and pcpd.process_id = pc_process_id
-                        and iss.is_invoice_new = 'Y'
-                        and pcm.corporate_id = pc_corporate_id
-                        and iss.corporate_id = pc_corporate_id  
-                        and axs.dbd_id=dbd.dbd_id 
-                        and dbd.corporate_id=pc_corporate_id
-                        and dbd.trade_date <= pd_trade_date
-                        and dbd.process=pc_process                  
-                      group by pdm.product_id,
-                               pdm.product_desc,
-                               iss.corporate_id,
-                               iss.cp_id,
-                               iss.invoiced_qty,
-                               iss.fx_to_base,
-                               pcm.contract_ref_no,
-                               pcm.internal_contract_ref_no,
-                               iss.invoice_type,
-                               iss.invoice_ref_no,
-                               iss.total_amount_to_pay,
-                               iss.recieved_raised_type,
-                               iss.bill_to_address,
-                               iss.invoice_cur_id,
-                               iss.invoice_issue_date,
-                               iss.payment_due_date,
-                               iss.invoice_type_name,
-                               phd_cp.companyname,
-                               cpc.profit_center_id,
-                               cpc.profit_center_short_name,
-                               cpc1.profit_center_id,
-                               cpc1.profit_center_short_name,
-                               cm_p.cur_code,
-                               pcm.purchase_sales,
-                               qum.qty_unit,
-                               ivd.vat_amount_in_vat_cur,
-                               ivd.vat_remit_cur_id,
-                               cm_vat.cur_code,
-                               ivd.fx_rate_vc_ic,
-                               ii.delivery_item_ref_no,
-                               pcpd.strategy_id,
-                               css.strategy_name,
-                               ii.created_user_id,
-                               ii.created_user_name
-                     union all
-                     --For Cancelled INV
-                     select 'Delete' section_name,
-                            iss.corporate_id,
-                            pdm.product_id,
-                            pdm.product_desc,
-                            pcm.cp_id counter_party_id,
-                            phd_contract_cp.companyname counter_party_name,
-                            iss.invoiced_qty invoice_quantity,
-                            qum.qty_unit invoice_quantity_uom,
-                            nvl(iss.fx_to_base, 1) fx_base,
-                            nvl(cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
-                            nvl(cpc.profit_center_short_name,
-                                cpc1.profit_center_short_name) profit_center,
-                            pcpd.strategy_id,
-                            css.strategy_name,
-                            nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
-                            nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
-                            nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
-                            iss.invoice_cur_id invoice_cur_id,
-                            cm_p.cur_code pay_in_currency,
-                            round(iss.total_amount_to_pay, 4) *
-                            nvl(iss.fx_to_base, 1) *
-                            (case
-                               when nvl(iss.payable_receivable, 'NA') =
-                                    'Payable' then
-                                -1
-                               when nvl(iss.payable_receivable, 'NA') =
-                                    'Receivable' then
-                                1
-                               when nvl(iss.payable_receivable, 'NA') = 'NA' then
-                                (case
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceReceived' then
-                                -1
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceRaised' then
-                                1
-                               else
-                                (case
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Raised' then
-                                1
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Received' then
-                                -1
-                               else
-                                1
-                             end) end) else 1 end) amount_in_base_cur,
-                            round(iss.total_amount_to_pay, 4) * case
-                              when (iss.invoice_type = 'Commercial' or
-                                   iss.invoice_type = 'DebitCredit') then
-                               1
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Received' then
-                               -1
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Raised' then
-                               1
-                              when nvl(iss.invoice_type_name, 'NA') =
-                                   'AdvancePayment' and
-                                   pcm.purchase_sales = 'P' then
-                               -1
-                              when nvl(iss.invoice_type_name, 'NA') =
-                                   'AdvancePayment' and
-                                   pcm.purchase_sales = 'S' then
-                               1
-                            end invoice_amt,
-                            iss.invoice_issue_date invoice_date,
-                            iss.payment_due_date invoice_due_date,
-                            iss.invoice_type_name invoice_type,
-                            iss.bill_to_address bill_to_cp_country,
-                            pcm.contract_ref_no || '-' ||
-                            ii.delivery_item_ref_no delivery_item_ref_no,
-                            ivd.vat_amount_in_vat_cur vat_amount,
-                            ivd.vat_remit_cur_id,
-                            cm_vat.cur_code vat_remit_currency,
-                            (nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
-                            (ivd.vat_amount_in_vat_cur *
-                            nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
-                            null commission_value,
-                            null commission_value_ccy,
-                            ii.created_user_id,
-                            ii.created_user_name
-                       from is_invoice_summary                      iss,
-                            cm_currency_master                      cm_p,
-                            incm_invoice_contract_mapping@eka_appdb incm,
-                            ivd_invoice_vat_details@eka_appdb       ivd,
-                            pcm_physical_contract_main              pcm,
-                            temp_ii                                 ii,
-                            cpc_corporate_profit_center             cpc,
-                            cpc_corporate_profit_center             cpc1,
-                            pcpd_pc_product_definition              pcpd,
-                            cm_currency_master                      cm_vat,
-                            pdm_productmaster                       pdm,
-                            phd_profileheaderdetails                phd_contract_cp,
-                            qum_quantity_unit_master                qum,
-                            css_corporate_strategy_setup            css
-                      where iss.is_active = 'N'
-                        and iss.is_cancelled_today = 'Y'
-                        and iss.corporate_id is not null
-                        and iss.internal_invoice_ref_no =
-                            incm.internal_invoice_ref_no(+)
-                        and iss.internal_invoice_ref_no =
-                            ivd.internal_invoice_ref_no(+)
-                        and incm.internal_contract_ref_no =
-                            pcm.internal_contract_ref_no(+)
-                        and iss.internal_invoice_ref_no=ii.internal_invoice_ref_no
-                        and iss.corporate_id=ii.corporate_id    
-                        and iss.internal_contract_ref_no =
-                            pcpd.internal_contract_ref_no
-                        and iss.profit_center_id = cpc.profit_center_id(+)
-                        and pcpd.profit_center_id = cpc1.profit_center_id(+)
-                        and iss.invoice_cur_id = cm_p.cur_id(+)
-                        and pcpd.product_id = pdm.product_id(+)
-                        and iss.cp_id = phd_contract_cp.profileid(+)
-                        and nvl(pcm.partnership_type, 'Normal') = 'Normal'
-                        and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
-                        and iss.is_inv_draft = 'N'
-                        and iss.invoice_type_name not in('Profoma','Service')
-                        and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
-                        and pcpd.input_output = 'Input'
-                        and nvl(iss.total_amount_to_pay, 0) <> 0
-                        and pcpd.strategy_id = css.strategy_id
-                        and iss.process_id = pc_process_id
-                        and pcm.process_id = pc_process_id
-                        and pcpd.process_id = pc_process_id
-                        and phd_contract_cp.is_active = 'Y'
-                        and iss.corporate_id = pc_corporate_id                     
-                     ---2 Service invoices
-                     --For Cancelled INV
-                     union all
-                     select 'Delete' section_name,
-                            iss.corporate_id,
-                            nvl(pdm.product_id, 'NA'),
-                            nvl(pdm.product_desc, 'NA'),
-                            iss.cp_id counter_party_id,
-                            phd_cp.companyname counter_party_name,
-                            iss.invoiced_qty invoice_quantity,
-                            nvl(qum.qty_unit, 'MT') invoice_quantity_uom,
-                            nvl(iss.fx_to_base, 1) fx_base,
-                            coalesce(cpc.profit_center_id,
-                                     cpc1.profit_center_id,
-                                     'NA') profit_center_id,
-                            coalesce(cpc.profit_center_short_name,
-                                     cpc1.profit_center_short_name,
-                                     'NA') profit_center,
-                            pcpd.strategy_id,
-                            css.strategy_name,
-                            nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
-                            nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
-                            nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
-                            iss.invoice_cur_id invoice_cur_id,
-                            cm_p.cur_code pay_in_currency,
-                            round(iss.total_amount_to_pay, 4) *
-                            nvl(iss.fx_to_base, 1) *
-                            (case
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceReceived' then
-                                -1
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceRaised' then
-                                1
-                               else
-                                (case
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Raised' then
-                                1
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Received' then
-                                -1
-                               else
-                                1
-                             end) end) amount_in_base_cur,
-                            round(iss.total_amount_to_pay, 4) * case
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Received' then
-                               -1
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Raised' then
-                               1
-                            end invoice_amt,
-                            iss.invoice_issue_date invoice_date,
-                            iss.payment_due_date invoice_due_date,
-                            nvl(iss.invoice_type_name, 'NA') invoice_type,
-                            iss.bill_to_address bill_to_cp_country,
-                            pcm.contract_ref_no || '-' ||
-                            ii.delivery_item_ref_no delivery_item_ref_no,
-                            ivd.vat_amount_in_vat_cur vat_amount,
-                            nvl(ivd.vat_remit_cur_id, 'NA'),
-                            nvl(cm_vat.cur_code, 'NA') vat_remit_currency,
-                            (nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
-                            (ivd.vat_amount_in_vat_cur *
-                            nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
-                            null commission_value,
-                            null commission_value_ccy,
-                            ii.created_user_id,
-                            ii.created_user_name
-                       from is_invoice_summary                iss,
-                            iam_invoice_action_mapping        iam,
-                            iid_invoicable_item_details       iid,
-                            axs_action_summary                axs,
-                            cs_cost_store                     cs,
-                            ivd_invoice_vat_details@eka_appdb ivd,
-                            cigc_contract_item_gmr_cost       cigc,
-                            gmr_goods_movement_record         gmr,
-                            pcpd_pc_product_definition        pcpd,
-                            pcm_physical_contract_main        pcm,
-                            temp_ii                           ii,
-                            cpc_corporate_profit_center       cpc,
-                            cpc_corporate_profit_center       cpc1,
-                            phd_profileheaderdetails          phd_cp,
-                            cm_currency_master                cm_vat,
-                            cm_currency_master                cm_p,
-                            pdm_productmaster                 pdm,
-                            qum_quantity_unit_master          qum,
-                            css_corporate_strategy_setup      css,
-                            dbd_database_dump                 dbd
-                      where iss.internal_contract_ref_no is null
-                        and iss.is_active = 'N'
-                        and iss.is_cancelled_today = 'Y'
-                        and iss.internal_invoice_ref_no =
-                            iam.internal_invoice_ref_no
-                        and iss.internal_invoice_ref_no =
-                            iid.internal_invoice_ref_no(+)
-                        and iss.internal_invoice_ref_no =
-                            ivd.internal_invoice_ref_no(+)
-                        and iam.invoice_action_ref_no =
-                            axs.internal_action_ref_no
-                        and iam.invoice_action_ref_no =
-                            cs.internal_action_ref_no(+)
-                        and cs.cog_ref_no = cigc.cog_ref_no(+)
-                        and cigc.internal_gmr_ref_no =
-                            gmr.internal_gmr_ref_no(+)
-                        and gmr.internal_contract_ref_no =
-                            pcpd.internal_contract_ref_no(+)
-                        and pcpd.internal_contract_ref_no =
-                            pcm.internal_contract_ref_no(+)
-                        and ii.internal_invoice_ref_no=iss.internal_invoice_ref_no
-                        and ii.corporate_id=iss.corporate_id
-                        and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
-                        and pcpd.input_output(+) = 'Input'
-                         and iss.invoice_type_name='Service'
-                        and iss.profit_center_id = cpc.profit_center_id(+)
-                        and pcpd.profit_center_id = cpc1.profit_center_id(+)
-                        and iss.cp_id = phd_cp.profileid
-                        and iss.invoice_cur_id = cm_p.cur_id(+)
-                        and pcpd.product_id = pdm.product_id(+)
-                        and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
-                        and pcpd.strategy_id = css.strategy_id
-                        and iss.process_id = pc_process_id
-                        and pcm.process_id = pc_process_id
-                        and pcpd.process_id = pc_process_id
-                        and iss.corporate_id = pc_corporate_id
-                        and axs.dbd_id=dbd.dbd_id 
-                        and dbd.corporate_id=pc_corporate_id
-                        and dbd.trade_date <= pd_trade_date
-                        and dbd.process=pc_process     
-                      group by pdm.product_id,
-                               pdm.product_desc,
-                               iss.corporate_id,
-                               iss.cp_id,cm_p.cur_code,
-                               iss.invoiced_qty,
-                               iss.fx_to_base,
-                               pcm.contract_ref_no,
-                               pcm.internal_contract_ref_no,
-                               iss.invoice_type,
-                               iss.invoice_ref_no,
-                               iss.total_amount_to_pay,
-                               iss.recieved_raised_type,
-                               iss.invoice_cur_id,
-                               iss.invoice_issue_date,
-                               iss.payment_due_date,
-                               iss.invoice_type_name,
-                               iss.bill_to_address,
-                               phd_cp.companyname,
-                               cpc.profit_center_id,
-                               cpc.profit_center_short_name,
-                               cpc1.profit_center_id,
-                               cpc1.profit_center_short_name,
-                               pcm.purchase_sales,
-                               qum.qty_unit,
-                               ivd.vat_amount_in_vat_cur,
-                               ivd.vat_remit_cur_id,
-                               cm_vat.cur_code,
-                               ivd.fx_rate_vc_ic,
-                               ii.delivery_item_ref_no,
-                               pcpd.strategy_id,
-                               css.strategy_name,
-                               ii.created_user_id,
-                               ii.created_user_name) loop 
-     insert into eod_eom_phy_booking_journal
-       (section_name,
-        corporate_id,
-        product_id,
-        product_desc,
-        counter_party_id,
-        counter_party_name,
-        invoice_quantity,
-        invoice_quantity_uom,
-        fx_base,
-        profit_center_id,
-        profit_center,
-        strategy_id,
-        strategy_name,
-        invoice_ref_no,
-        contract_ref_no,
-        internal_contract_ref_no,
-        invoice_cur_id,
-        pay_in_currency,
-        amount_in_base_cur,
-        invoice_amt,
-        invoice_date,
-        invoice_due_date,
-        invoice_type,
-        bill_to_cp_country,
-        delivery_item_ref_no,
-        vat_amount,
-        vat_remit_cur_id,
-        vat_remit_currency,
-        fx_rate_for_vat,
-        vat_amount_base_currency,
-        commission_value,
-        commission_value_ccy,
-        process_id,
-        process,
-        created_user_id,
-        created_user_name)
-     values
-       (cc_phy.section_name,
-        cc_phy.corporate_id,
-        cc_phy.product_id,
-        cc_phy.product_desc,
-        cc_phy.counter_party_id,
-        cc_phy.counter_party_name,
-        cc_phy.invoice_quantity,
-        cc_phy.invoice_quantity_uom,
-        cc_phy.fx_base,
-        cc_phy.profit_center_id,
-        cc_phy.profit_center,
-        cc_phy.strategy_id,
-        cc_phy.strategy_name,
-        cc_phy.invoice_ref_no,
-        cc_phy.contract_ref_no,
-        cc_phy.internal_contract_ref_no,
-        cc_phy.invoice_cur_id,
-        cc_phy.pay_in_currency,
-        cc_phy.amount_in_base_cur,
-        cc_phy.invoice_amt,
-        cc_phy.invoice_date,
-        cc_phy.invoice_due_date,
-        cc_phy.invoice_type,
-        cc_phy.bill_to_cp_country,
-        cc_phy.delivery_item_ref_no,
-        cc_phy.vat_amount,
-        cc_phy.vat_remit_cur_id,
-        cc_phy.vat_remit_currency,
-        cc_phy.fx_rate_for_vat,
-        cc_phy.vat_amount_base_currency,
-        cc_phy.commission_value,
-        cc_phy.commission_value_ccy,
-        pc_process_id,
-        pc_process,
-        cc_phy.created_user_id,
-        cc_phy.created_user_name);
+    delete from temp_ii ii where ii.corporate_id = pc_corporate_id;
+    commit;
+    insert into temp_ii
+      (corporate_id, internal_invoice_ref_no, delivery_item_ref_no)
+      select pc_corporate_id,
+             iid.internal_invoice_ref_no,
+             ii.delivery_item_ref_no
+        from iid_invoicable_item_details iid,
+             ii_invoicable_item          ii,
+             is_invoice_summary          iss
+       where ii.invoicable_item_id = iid.invoicable_item_id
+         and iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
+         and iss.process_id = pc_process_id
+         and iss.corporate_id = pc_corporate_id
+         and iss.is_active = 'Y'
+         and iid.is_active = 'Y'
+         and ii.is_active = 'Y'
+       group by iid.internal_invoice_ref_no,
+                ii.delivery_item_ref_no;
+    commit;
+    sp_gather_table_stats('temp_ii');
+    for cur_temp_ii in (select iss.internal_invoice_ref_no,
+                               axs.created_by,
+                               gab.firstname || '  ' || gab.lastname created_name
+                          from is_invoice_summary         iss,
+                               iam_invoice_action_mapping iam,
+                               axs_action_summary         axs,
+                               dbd_database_dump          dbd,
+                               ak_corporate_user          ak,
+                               gab_globaladdressbook      gab
+                        
+                         where iss.internal_invoice_ref_no =
+                               iam.internal_invoice_ref_no
+                           and iss.process_id = pc_process_id
+                           and iss.corporate_id = pc_corporate_id
+                           and iss.is_active = 'Y'
+                           and iam.invoice_action_ref_no =
+                               axs.internal_action_ref_no
+                           and axs.dbd_id = dbd.dbd_id
+                           and axs.corporate_id = pc_corporate_id
+                           and dbd.process = pc_process
+                           and axs.created_by = ak.user_id
+                           and ak.gabid = gab.gabid)
+    loop
+      update temp_ii ii
+         set ii.created_user_id   = cur_temp_ii.created_by,
+             ii.created_user_name = cur_temp_ii.created_name
+       where ii.internal_invoice_ref_no =
+             cur_temp_ii.internal_invoice_ref_no
+         and ii.corporate_id = pc_corporate_id;
+    end loop;
+    commit;
+    -- removed corporate name,base cur,code ,eod run count,run time
+    for cc_phy in (select 'New' section_name,
+                          iss.corporate_id,
+                          pdm.product_id,
+                          pdm.product_desc,
+                          pcm.cp_id counter_party_id,
+                          phd_contract_cp.companyname counter_party_name,
+                          iss.invoiced_qty invoice_quantity,
+                          qum.qty_unit invoice_quantity_uom,
+                          nvl(iss.fx_to_base, 1) fx_base,
+                          nvl(cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
+                          nvl(cpc.profit_center_short_name,
+                              cpc1.profit_center_short_name) profit_center,
+                          pcpd.strategy_id,
+                          css.strategy_name,
+                          nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
+                          nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
+                          nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
+                          iss.invoice_cur_id invoice_cur_id,
+                          cm_p.cur_code pay_in_currency,
+                          round(iss.total_amount_to_pay, 4) *
+                          nvl(iss.fx_to_base, 1) *
+                          (case
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Payable' then
+                              -1
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Receivable' then
+                              1
+                             when nvl(iss.payable_receivable, 'NA') = 'NA' then
+                              (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) else 1 end) amount_in_base_cur,
+                          round(iss.total_amount_to_pay, 4) * case
+                            when (iss.invoice_type = 'Commercial' or
+                                 iss.invoice_type = 'DebitCredit') then
+                             1
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Received' then
+                             -1
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Raised' then
+                             1
+                            when nvl(iss.invoice_type_name, 'NA') =
+                                 'AdvancePayment' and
+                                 pcm.purchase_sales = 'P' then
+                             -1
+                            when nvl(iss.invoice_type_name, 'NA') =
+                                 'AdvancePayment' and
+                                 pcm.purchase_sales = 'S' then
+                             1
+                          end invoice_amt,
+                          iss.invoice_issue_date invoice_date,
+                          iss.payment_due_date invoice_due_date,
+                          iss.invoice_type_name invoice_type,
+                          iss.bill_to_address bill_to_cp_country,
+                          pcm.contract_ref_no || '-' ||
+                          ii.delivery_item_ref_no delivery_item_ref_no,
+                          ivd.vat_amount_in_vat_cur vat_amount,
+                          ivd.vat_remit_cur_id,
+                          cm_vat.cur_code vat_remit_currency,
+                          (nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
+                          (ivd.vat_amount_in_vat_cur *
+                          nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
+                          null commission_value,
+                          null commission_value_ccy,
+                          ii.created_user_id,
+                          ii.created_user_name
+                     from is_invoice_summary                      iss,
+                          cm_currency_master                      cm_p,
+                          incm_invoice_contract_mapping@eka_appdb incm,
+                          ivd_invoice_vat_details@eka_appdb       ivd,
+                          pcm_physical_contract_main              pcm,
+                          temp_ii                                 ii,
+                          cpc_corporate_profit_center             cpc,
+                          cpc_corporate_profit_center             cpc1,
+                          pcpd_pc_product_definition              pcpd,
+                          cm_currency_master                      cm_vat,
+                          pdm_productmaster                       pdm,
+                          phd_profileheaderdetails                phd_contract_cp,
+                          qum_quantity_unit_master                qum,
+                          css_corporate_strategy_setup            css
+                    where iss.is_active = 'Y'
+                      and iss.corporate_id is not null
+                      and iss.internal_invoice_ref_no =
+                          incm.internal_invoice_ref_no(+)
+                      and iss.internal_invoice_ref_no =
+                          ivd.internal_invoice_ref_no(+)
+                      and incm.internal_contract_ref_no =
+                          pcm.internal_contract_ref_no(+)
+                      and ii.internal_invoice_ref_no =
+                          iss.internal_invoice_ref_no
+                      and ii.corporate_id = iss.corporate_id
+                      and iss.internal_contract_ref_no =
+                          pcpd.internal_contract_ref_no
+                      and iss.profit_center_id = cpc.profit_center_id(+)
+                      and pcpd.profit_center_id = cpc1.profit_center_id(+)
+                      and iss.invoice_cur_id = cm_p.cur_id(+)
+                      and pcpd.product_id = pdm.product_id(+)
+                      and phd_contract_cp.profileid(+) = iss.cp_id
+                      and nvl(pcm.partnership_type, 'Normal') = 'Normal'
+                      and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
+                      and iss.is_inv_draft = 'N'
+                      and iss.invoice_type_name not in
+                          ('Profoma', 'Service')
+                      and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
+                      and pcpd.input_output = 'Input'
+                      and nvl(iss.total_amount_to_pay, 0) <> 0
+                      and pcpd.strategy_id = css.strategy_id
+                      and iss.process_id = pc_process_id
+                      and pcm.process_id = pc_process_id
+                      and pcpd.process_id = pc_process_id
+                      and phd_contract_cp.is_active = 'Y'
+                      and iss.is_invoice_new = 'Y'
+                      and iss.corporate_id = pc_corporate_id
+                   ---2 Service invoices
+                   union all
+                   select 'New' section_name,
+                          iss.corporate_id,
+                          nvl(pdm.product_id, 'NA'),
+                          nvl(pdm.product_desc, 'NA'),
+                          iss.cp_id counter_party_id,
+                          phd_cp.companyname counter_party_name,
+                          iss.invoiced_qty invoice_quantity,
+                          nvl(qum.qty_unit, 'NA') invoice_quantity_uom,
+                          nvl(iss.fx_to_base, 1) fx_base,
+                          coalesce(cpc.profit_center_id,
+                                   cpc1.profit_center_id,
+                                   'NA') profit_center_id,
+                          coalesce(cpc.profit_center_short_name,
+                                   cpc1.profit_center_short_name,
+                                   'NA') profit_center,
+                          pcpd.strategy_id,
+                          css.strategy_name,
+                          nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
+                          nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
+                          nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
+                          iss.invoice_cur_id invoice_cur_id,
+                          cm_p.cur_code pay_in_currency,
+                          round(iss.total_amount_to_pay, 4) *
+                          nvl(iss.fx_to_base, 1) *
+                          (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) amount_in_base_cur,
+                          round(iss.total_amount_to_pay, 4) * case
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Received' then
+                             -1
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Raised' then
+                             1
+                          end invoice_amt,
+                          iss.invoice_issue_date invoice_date,
+                          iss.payment_due_date invoice_due_date,
+                          nvl(iss.invoice_type_name, 'NA') invoice_type,
+                          iss.bill_to_address bill_to_cp_country,
+                          pcm.contract_ref_no || '-' ||
+                          ii.delivery_item_ref_no delivery_item_ref_no,
+                          ivd.vat_amount_in_vat_cur vat_amount,
+                          nvl(ivd.vat_remit_cur_id, 'NA'),
+                          nvl(cm_vat.cur_code, 'NA') vat_remit_currency,
+                          (nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
+                          (ivd.vat_amount_in_vat_cur *
+                          nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
+                          null commission_value,
+                          null commission_value_ccy,
+                          ii.created_user_id,
+                          ii.created_user_name
+                     from is_invoice_summary                iss,
+                          iam_invoice_action_mapping        iam,
+                          iid_invoicable_item_details       iid,
+                          axs_action_summary                axs,
+                          cs_cost_store                     cs,
+                          ivd_invoice_vat_details@eka_appdb ivd,
+                          cigc_contract_item_gmr_cost       cigc,
+                          gmr_goods_movement_record         gmr,
+                          pcpd_pc_product_definition        pcpd,
+                          pcm_physical_contract_main        pcm,
+                          temp_ii                           ii,
+                          cpc_corporate_profit_center       cpc,
+                          cpc_corporate_profit_center       cpc1,
+                          phd_profileheaderdetails          phd_cp,
+                          cm_currency_master                cm_vat,
+                          cm_currency_master                cm_p,
+                          pdm_productmaster                 pdm,
+                          qum_quantity_unit_master          qum,
+                          css_corporate_strategy_setup      css,
+                          dbd_database_dump                 dbd
+                    where iss.internal_contract_ref_no is null
+                      and iss.is_active = 'Y'
+                      and iss.internal_invoice_ref_no =
+                          iam.internal_invoice_ref_no
+                      and iss.internal_invoice_ref_no =
+                          iid.internal_invoice_ref_no(+)
+                      and iss.internal_invoice_ref_no =
+                          ivd.internal_invoice_ref_no(+)
+                      and iam.invoice_action_ref_no =
+                          axs.internal_action_ref_no
+                      and iam.invoice_action_ref_no =
+                          cs.internal_action_ref_no(+)
+                      and cs.cog_ref_no = cigc.cog_ref_no(+)
+                      and cigc.internal_gmr_ref_no =
+                          gmr.internal_gmr_ref_no(+)
+                      and gmr.internal_contract_ref_no =
+                          pcpd.internal_contract_ref_no(+)
+                      and pcpd.internal_contract_ref_no =
+                          pcm.internal_contract_ref_no(+)
+                      and ii.internal_invoice_ref_no =
+                          iss.internal_invoice_ref_no
+                      and ii.corporate_id = iss.corporate_id
+                      and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
+                      and pcpd.input_output(+) = 'Input'
+                      and iss.invoice_type_name = 'Service'
+                      and iss.profit_center_id = cpc.profit_center_id(+)
+                      and pcpd.profit_center_id = cpc1.profit_center_id(+)
+                      and iss.cp_id = phd_cp.profileid
+                      and iss.invoice_cur_id = cm_p.cur_id(+)
+                      and pcpd.product_id = pdm.product_id(+)
+                      and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
+                      and pcpd.strategy_id = css.strategy_id
+                      and iss.process_id = pc_process_id
+                      and pcm.process_id = pc_process_id
+                      and pcpd.process_id = pc_process_id
+                      and iss.is_invoice_new = 'Y'
+                      and pcm.corporate_id = pc_corporate_id
+                      and iss.corporate_id = pc_corporate_id
+                      and axs.dbd_id = dbd.dbd_id
+                      and dbd.corporate_id = pc_corporate_id
+                      and dbd.trade_date <= pd_trade_date
+                      and dbd.process = pc_process
+                    group by pdm.product_id,
+                             pdm.product_desc,
+                             iss.corporate_id,
+                             iss.cp_id,
+                             iss.invoiced_qty,
+                             iss.fx_to_base,
+                             pcm.contract_ref_no,
+                             pcm.internal_contract_ref_no,
+                             iss.invoice_type,
+                             iss.invoice_ref_no,
+                             iss.total_amount_to_pay,
+                             iss.recieved_raised_type,
+                             iss.bill_to_address,
+                             iss.invoice_cur_id,
+                             iss.invoice_issue_date,
+                             iss.payment_due_date,
+                             iss.invoice_type_name,
+                             phd_cp.companyname,
+                             cpc.profit_center_id,
+                             cpc.profit_center_short_name,
+                             cpc1.profit_center_id,
+                             cpc1.profit_center_short_name,
+                             cm_p.cur_code,
+                             pcm.purchase_sales,
+                             qum.qty_unit,
+                             ivd.vat_amount_in_vat_cur,
+                             ivd.vat_remit_cur_id,
+                             cm_vat.cur_code,
+                             ivd.fx_rate_vc_ic,
+                             ii.delivery_item_ref_no,
+                             pcpd.strategy_id,
+                             css.strategy_name,
+                             ii.created_user_id,
+                             ii.created_user_name
+                   union all
+                   --For Cancelled INV
+                   select 'Delete' section_name,
+                          iss.corporate_id,
+                          pdm.product_id,
+                          pdm.product_desc,
+                          pcm.cp_id counter_party_id,
+                          phd_contract_cp.companyname counter_party_name,
+                          iss.invoiced_qty invoice_quantity,
+                          qum.qty_unit invoice_quantity_uom,
+                          nvl(iss.fx_to_base, 1) fx_base,
+                          nvl(cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
+                          nvl(cpc.profit_center_short_name,
+                              cpc1.profit_center_short_name) profit_center,
+                          pcpd.strategy_id,
+                          css.strategy_name,
+                          nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
+                          nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
+                          nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
+                          iss.invoice_cur_id invoice_cur_id,
+                          cm_p.cur_code pay_in_currency,
+                          round(iss.total_amount_to_pay, 4) *
+                          nvl(iss.fx_to_base, 1) *
+                          (case
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Payable' then
+                              -1
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Receivable' then
+                              1
+                             when nvl(iss.payable_receivable, 'NA') = 'NA' then
+                              (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) else 1 end) amount_in_base_cur,
+                          round(iss.total_amount_to_pay, 4) * case
+                            when (iss.invoice_type = 'Commercial' or
+                                 iss.invoice_type = 'DebitCredit') then
+                             1
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Received' then
+                             -1
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Raised' then
+                             1
+                            when nvl(iss.invoice_type_name, 'NA') =
+                                 'AdvancePayment' and
+                                 pcm.purchase_sales = 'P' then
+                             -1
+                            when nvl(iss.invoice_type_name, 'NA') =
+                                 'AdvancePayment' and
+                                 pcm.purchase_sales = 'S' then
+                             1
+                          end invoice_amt,
+                          iss.invoice_issue_date invoice_date,
+                          iss.payment_due_date invoice_due_date,
+                          iss.invoice_type_name invoice_type,
+                          iss.bill_to_address bill_to_cp_country,
+                          pcm.contract_ref_no || '-' ||
+                          ii.delivery_item_ref_no delivery_item_ref_no,
+                          ivd.vat_amount_in_vat_cur vat_amount,
+                          ivd.vat_remit_cur_id,
+                          cm_vat.cur_code vat_remit_currency,
+                          (nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
+                          (ivd.vat_amount_in_vat_cur *
+                          nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
+                          null commission_value,
+                          null commission_value_ccy,
+                          ii.created_user_id,
+                          ii.created_user_name
+                     from is_invoice_summary                      iss,
+                          cm_currency_master                      cm_p,
+                          incm_invoice_contract_mapping@eka_appdb incm,
+                          ivd_invoice_vat_details@eka_appdb       ivd,
+                          pcm_physical_contract_main              pcm,
+                          temp_ii                                 ii,
+                          cpc_corporate_profit_center             cpc,
+                          cpc_corporate_profit_center             cpc1,
+                          pcpd_pc_product_definition              pcpd,
+                          cm_currency_master                      cm_vat,
+                          pdm_productmaster                       pdm,
+                          phd_profileheaderdetails                phd_contract_cp,
+                          qum_quantity_unit_master                qum,
+                          css_corporate_strategy_setup            css
+                    where iss.is_active = 'N'
+                      and iss.is_cancelled_today = 'Y'
+                      and iss.corporate_id is not null
+                      and iss.internal_invoice_ref_no =
+                          incm.internal_invoice_ref_no(+)
+                      and iss.internal_invoice_ref_no =
+                          ivd.internal_invoice_ref_no(+)
+                      and incm.internal_contract_ref_no =
+                          pcm.internal_contract_ref_no(+)
+                      and iss.internal_invoice_ref_no =
+                          ii.internal_invoice_ref_no
+                      and iss.corporate_id = ii.corporate_id
+                      and iss.internal_contract_ref_no =
+                          pcpd.internal_contract_ref_no
+                      and iss.profit_center_id = cpc.profit_center_id(+)
+                      and pcpd.profit_center_id = cpc1.profit_center_id(+)
+                      and iss.invoice_cur_id = cm_p.cur_id(+)
+                      and pcpd.product_id = pdm.product_id(+)
+                      and iss.cp_id = phd_contract_cp.profileid(+)
+                      and nvl(pcm.partnership_type, 'Normal') = 'Normal'
+                      and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
+                      and iss.is_inv_draft = 'N'
+                      and iss.invoice_type_name not in
+                          ('Profoma', 'Service')
+                      and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
+                      and pcpd.input_output = 'Input'
+                      and nvl(iss.total_amount_to_pay, 0) <> 0
+                      and pcpd.strategy_id = css.strategy_id
+                      and iss.process_id = pc_process_id
+                      and pcm.process_id = pc_process_id
+                      and pcpd.process_id = pc_process_id
+                      and phd_contract_cp.is_active = 'Y'
+                      and iss.corporate_id = pc_corporate_id
+                   ---2 Service invoices
+                   --For Cancelled INV
+                   union all
+                   select 'Delete' section_name,
+                          iss.corporate_id,
+                          nvl(pdm.product_id, 'NA'),
+                          nvl(pdm.product_desc, 'NA'),
+                          iss.cp_id counter_party_id,
+                          phd_cp.companyname counter_party_name,
+                          iss.invoiced_qty invoice_quantity,
+                          nvl(qum.qty_unit, 'MT') invoice_quantity_uom,
+                          nvl(iss.fx_to_base, 1) fx_base,
+                          coalesce(cpc.profit_center_id,
+                                   cpc1.profit_center_id,
+                                   'NA') profit_center_id,
+                          coalesce(cpc.profit_center_short_name,
+                                   cpc1.profit_center_short_name,
+                                   'NA') profit_center,
+                          pcpd.strategy_id,
+                          css.strategy_name,
+                          nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
+                          nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
+                          nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
+                          iss.invoice_cur_id invoice_cur_id,
+                          cm_p.cur_code pay_in_currency,
+                          round(iss.total_amount_to_pay, 4) *
+                          nvl(iss.fx_to_base, 1) *
+                          (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) amount_in_base_cur,
+                          round(iss.total_amount_to_pay, 4) * case
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Received' then
+                             -1
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Raised' then
+                             1
+                          end invoice_amt,
+                          iss.invoice_issue_date invoice_date,
+                          iss.payment_due_date invoice_due_date,
+                          nvl(iss.invoice_type_name, 'NA') invoice_type,
+                          iss.bill_to_address bill_to_cp_country,
+                          pcm.contract_ref_no || '-' ||
+                          ii.delivery_item_ref_no delivery_item_ref_no,
+                          ivd.vat_amount_in_vat_cur vat_amount,
+                          nvl(ivd.vat_remit_cur_id, 'NA'),
+                          nvl(cm_vat.cur_code, 'NA') vat_remit_currency,
+                          (nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
+                          (ivd.vat_amount_in_vat_cur *
+                          nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
+                          null commission_value,
+                          null commission_value_ccy,
+                          ii.created_user_id,
+                          ii.created_user_name
+                     from is_invoice_summary                iss,
+                          iam_invoice_action_mapping        iam,
+                          iid_invoicable_item_details       iid,
+                          axs_action_summary                axs,
+                          cs_cost_store                     cs,
+                          ivd_invoice_vat_details@eka_appdb ivd,
+                          cigc_contract_item_gmr_cost       cigc,
+                          gmr_goods_movement_record         gmr,
+                          pcpd_pc_product_definition        pcpd,
+                          pcm_physical_contract_main        pcm,
+                          temp_ii                           ii,
+                          cpc_corporate_profit_center       cpc,
+                          cpc_corporate_profit_center       cpc1,
+                          phd_profileheaderdetails          phd_cp,
+                          cm_currency_master                cm_vat,
+                          cm_currency_master                cm_p,
+                          pdm_productmaster                 pdm,
+                          qum_quantity_unit_master          qum,
+                          css_corporate_strategy_setup      css,
+                          dbd_database_dump                 dbd
+                    where iss.internal_contract_ref_no is null
+                      and iss.is_active = 'N'
+                      and iss.is_cancelled_today = 'Y'
+                      and iss.internal_invoice_ref_no =
+                          iam.internal_invoice_ref_no
+                      and iss.internal_invoice_ref_no =
+                          iid.internal_invoice_ref_no(+)
+                      and iss.internal_invoice_ref_no =
+                          ivd.internal_invoice_ref_no(+)
+                      and iam.invoice_action_ref_no =
+                          axs.internal_action_ref_no
+                      and iam.invoice_action_ref_no =
+                          cs.internal_action_ref_no(+)
+                      and cs.cog_ref_no = cigc.cog_ref_no(+)
+                      and cigc.internal_gmr_ref_no =
+                          gmr.internal_gmr_ref_no(+)
+                      and gmr.internal_contract_ref_no =
+                          pcpd.internal_contract_ref_no(+)
+                      and pcpd.internal_contract_ref_no =
+                          pcm.internal_contract_ref_no(+)
+                      and ii.internal_invoice_ref_no =
+                          iss.internal_invoice_ref_no
+                      and ii.corporate_id = iss.corporate_id
+                      and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
+                      and pcpd.input_output(+) = 'Input'
+                      and iss.invoice_type_name = 'Service'
+                      and iss.profit_center_id = cpc.profit_center_id(+)
+                      and pcpd.profit_center_id = cpc1.profit_center_id(+)
+                      and iss.cp_id = phd_cp.profileid
+                      and iss.invoice_cur_id = cm_p.cur_id(+)
+                      and pcpd.product_id = pdm.product_id(+)
+                      and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
+                      and pcpd.strategy_id = css.strategy_id
+                      and iss.process_id = pc_process_id
+                      and pcm.process_id = pc_process_id
+                      and pcpd.process_id = pc_process_id
+                      and iss.corporate_id = pc_corporate_id
+                      and axs.dbd_id = dbd.dbd_id
+                      and dbd.corporate_id = pc_corporate_id
+                      and dbd.trade_date <= pd_trade_date
+                      and dbd.process = pc_process
+                    group by pdm.product_id,
+                             pdm.product_desc,
+                             iss.corporate_id,
+                             iss.cp_id,
+                             cm_p.cur_code,
+                             iss.invoiced_qty,
+                             iss.fx_to_base,
+                             pcm.contract_ref_no,
+                             pcm.internal_contract_ref_no,
+                             iss.invoice_type,
+                             iss.invoice_ref_no,
+                             iss.total_amount_to_pay,
+                             iss.recieved_raised_type,
+                             iss.invoice_cur_id,
+                             iss.invoice_issue_date,
+                             iss.payment_due_date,
+                             iss.invoice_type_name,
+                             iss.bill_to_address,
+                             phd_cp.companyname,
+                             cpc.profit_center_id,
+                             cpc.profit_center_short_name,
+                             cpc1.profit_center_id,
+                             cpc1.profit_center_short_name,
+                             pcm.purchase_sales,
+                             qum.qty_unit,
+                             ivd.vat_amount_in_vat_cur,
+                             ivd.vat_remit_cur_id,
+                             cm_vat.cur_code,
+                             ivd.fx_rate_vc_ic,
+                             ii.delivery_item_ref_no,
+                             pcpd.strategy_id,
+                             css.strategy_name,
+                             ii.created_user_id,
+                             ii.created_user_name)
+    loop
+      insert into eod_eom_phy_booking_journal
+        (section_name,
+         corporate_id,
+         product_id,
+         product_desc,
+         counter_party_id,
+         counter_party_name,
+         invoice_quantity,
+         invoice_quantity_uom,
+         fx_base,
+         profit_center_id,
+         profit_center,
+         strategy_id,
+         strategy_name,
+         invoice_ref_no,
+         contract_ref_no,
+         internal_contract_ref_no,
+         invoice_cur_id,
+         pay_in_currency,
+         amount_in_base_cur,
+         invoice_amt,
+         invoice_date,
+         invoice_due_date,
+         invoice_type,
+         bill_to_cp_country,
+         delivery_item_ref_no,
+         vat_amount,
+         vat_remit_cur_id,
+         vat_remit_currency,
+         fx_rate_for_vat,
+         vat_amount_base_currency,
+         commission_value,
+         commission_value_ccy,
+         process_id,
+         process,
+         created_user_id,
+         created_user_name)
+      values
+        (cc_phy.section_name,
+         cc_phy.corporate_id,
+         cc_phy.product_id,
+         cc_phy.product_desc,
+         cc_phy.counter_party_id,
+         cc_phy.counter_party_name,
+         cc_phy.invoice_quantity,
+         cc_phy.invoice_quantity_uom,
+         cc_phy.fx_base,
+         cc_phy.profit_center_id,
+         cc_phy.profit_center,
+         cc_phy.strategy_id,
+         cc_phy.strategy_name,
+         cc_phy.invoice_ref_no,
+         cc_phy.contract_ref_no,
+         cc_phy.internal_contract_ref_no,
+         cc_phy.invoice_cur_id,
+         cc_phy.pay_in_currency,
+         cc_phy.amount_in_base_cur,
+         cc_phy.invoice_amt,
+         cc_phy.invoice_date,
+         cc_phy.invoice_due_date,
+         cc_phy.invoice_type,
+         cc_phy.bill_to_cp_country,
+         cc_phy.delivery_item_ref_no,
+         cc_phy.vat_amount,
+         cc_phy.vat_remit_cur_id,
+         cc_phy.vat_remit_currency,
+         cc_phy.fx_rate_for_vat,
+         cc_phy.vat_amount_base_currency,
+         cc_phy.commission_value,
+         cc_phy.commission_value_ccy,
+         pc_process_id,
+         pc_process,
+         cc_phy.created_user_id,
+         cc_phy.created_user_name);
     end loop;
     commit;
     for cc_phy in (select 'Modified' section_name,
-                            iss.corporate_id,
-                            pdm.product_id,
-                            pdm.product_desc,
-                            pcm.cp_id counter_party_id,
-                            phd_contract_cp.companyname counter_party_name,
-                            iss.invoiced_qty invoice_quantity,
-                            qum.qty_unit invoice_quantity_uom,
-                            nvl(iss.fx_to_base, 1) fx_base,
-                            nvl(cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
-                            nvl(cpc.profit_center_short_name,
-                                cpc1.profit_center_short_name) profit_center,
-                            pcpd.strategy_id,
-                            css.strategy_name,
-                            nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
-                            nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
-                            nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
-                            iss.invoice_cur_id invoice_cur_id,
-                            cm_p.cur_code pay_in_currency,
-                            round(iss.total_amount_to_pay, 4) *
-                            nvl(iss.fx_to_base, 1) *
-                            (case
-                               when nvl(iss.payable_receivable, 'NA') =
-                                    'Payable' then
-                                -1
-                               when nvl(iss.payable_receivable, 'NA') =
-                                    'Receivable' then
-                                1
-                               when nvl(iss.payable_receivable, 'NA') = 'NA' then
-                                (case
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceReceived' then
-                                -1
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceRaised' then
-                                1
-                               else
-                                (case
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Raised' then
-                                1
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Received' then
-                                -1
-                               else
-                                1
-                             end) end) else 1 end) amount_in_base_cur,
-                            round(iss.total_amount_to_pay, 4) * case
-                              when (iss.invoice_type = 'Commercial' or
-                                   iss.invoice_type = 'DebitCredit') then
-                               1
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Received' then
-                               -1
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Raised' then
-                               1
-                              when nvl(iss.invoice_type_name, 'NA') =
-                                   'AdvancePayment' and
-                                   pcm.purchase_sales = 'P' then
-                               -1
-                              when nvl(iss.invoice_type_name, 'NA') =
-                                   'AdvancePayment' and
-                                   pcm.purchase_sales = 'S' then
-                               1
-                            end invoice_amt,
-                            iss.invoice_issue_date invoice_date,
-                            iss.payment_due_date invoice_due_date,
-                            iss.invoice_type_name invoice_type,
-                            iss.bill_to_address bill_to_cp_country,
-                            pcm.contract_ref_no || '-' ||
-                            ii.delivery_item_ref_no delivery_item_ref_no,
-                            ivd.vat_amount_in_vat_cur vat_amount,
-                            ivd.vat_remit_cur_id,
-                            cm_vat.cur_code vat_remit_currency,
-                            (nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
-                            (ivd.vat_amount_in_vat_cur *
-                            nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
-                            null commission_value,
-                            null commission_value_ccy,
-                            ii.created_user_id,
-                            ii.created_user_name
-                       from is_invoice_summary                      iss,
-                            cm_currency_master                      cm_p,
-                            incm_invoice_contract_mapping@eka_appdb incm,
-                            ivd_invoice_vat_details@eka_appdb       ivd,
-                            pcm_physical_contract_main              pcm,
-                            temp_ii                                 ii,
-                            cpc_corporate_profit_center             cpc,
-                            cpc_corporate_profit_center             cpc1,
-                            pcpd_pc_product_definition              pcpd,
-                            cm_currency_master                      cm_vat,
-                            pdm_productmaster                       pdm,
-                            phd_profileheaderdetails                phd_contract_cp,
-                            qum_quantity_unit_master                qum,
-                            css_corporate_strategy_setup            css
-                      where iss.is_active = 'Y'
-                        and iss.corporate_id is not null
-                        and iss.internal_invoice_ref_no =
-                            incm.internal_invoice_ref_no(+)
-                        and iss.internal_invoice_ref_no =
-                            ivd.internal_invoice_ref_no(+)
-                        and incm.internal_contract_ref_no =
-                            pcm.internal_contract_ref_no(+)
-                        and ii.internal_invoice_ref_no=iss.internal_invoice_ref_no 
-                        and ii.corporate_id=iss.corporate_id 
-                        and iss.internal_contract_ref_no =
-                            pcpd.internal_contract_ref_no
-                        and iss.profit_center_id = cpc.profit_center_id(+)
-                        and pcpd.profit_center_id = cpc1.profit_center_id(+)
-                        and iss.invoice_cur_id = cm_p.cur_id(+)
-                        and pcpd.product_id = pdm.product_id(+)
-                        and phd_contract_cp.profileid(+) = iss.cp_id
-                        and nvl(pcm.partnership_type, 'Normal') = 'Normal'
-                        and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
-                        and iss.is_inv_draft = 'N'
-                        and iss.invoice_type_name not in('Profoma','Service')
-                        and ivd.vat_remit_cur_id = cm_vat.cur_id(+) 
-                        and pcpd.input_output = 'Input'
-                        and nvl(iss.total_amount_to_pay, 0) <> 0
-                        and pcpd.strategy_id = css.strategy_id
-                        and iss.process_id = pc_process_id
-                        and pcm.process_id = pc_process_id
-                        and pcpd.process_id = pc_process_id
-                        and phd_contract_cp.is_active = 'Y'
-                        and iss.is_modified_today = 'Y'
-                        and iss.corporate_id = pc_corporate_id                     
-                     ---2 Service invoices
-                     union all
-                     select 'Modified' section_name,
-                            iss.corporate_id,
-                            nvl(pdm.product_id, 'NA'),
-                            nvl(pdm.product_desc, 'NA'),
-                            iss.cp_id counter_party_id,
-                            phd_cp.companyname counter_party_name,
-                            iss.invoiced_qty invoice_quantity,
-                            nvl(qum.qty_unit, 'NA') invoice_quantity_uom,
-                            nvl(iss.fx_to_base, 1) fx_base,
-                            coalesce(cpc.profit_center_id,
-                                     cpc1.profit_center_id,
-                                     'NA') profit_center_id,
-                            coalesce(cpc.profit_center_short_name,
-                                     cpc1.profit_center_short_name,
-                                     'NA') profit_center,
-                            pcpd.strategy_id,
-                            css.strategy_name,
-                            nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
-                            nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
-                            nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
-                            iss.invoice_cur_id invoice_cur_id,
-                            cm_p.cur_code pay_in_currency,
-                            round(iss.total_amount_to_pay, 4) *
-                            nvl(iss.fx_to_base, 1) *
-                            (case
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceReceived' then
-                                -1
-                               when nvl(iss.invoice_type_name, 'NA') =
-                                    'ServiceInvoiceRaised' then
-                                1
-                               else
-                                (case
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Raised' then
-                                1
-                               when nvl(iss.recieved_raised_type, 'NA') =
-                                    'Received' then
-                                -1
-                               else
-                                1
-                             end) end) amount_in_base_cur,
-                            round(iss.total_amount_to_pay, 4) * case
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Received' then
-                               -1
-                              when nvl(iss.invoice_type, 'NA') = 'Service' and
-                                   nvl(iss.recieved_raised_type, 'NA') =
-                                   'Raised' then
-                               1
-                            end invoice_amt,
-                            iss.invoice_issue_date invoice_date,
-                            iss.payment_due_date invoice_due_date,
-                            nvl(iss.invoice_type_name, 'NA') invoice_type,
-                            iss.bill_to_address bill_to_cp_country,
-                            pcm.contract_ref_no || '-' ||
-                            ii.delivery_item_ref_no delivery_item_ref_no,
-                            ivd.vat_amount_in_vat_cur vat_amount,
-                            nvl(ivd.vat_remit_cur_id, 'NA'),
-                            nvl(cm_vat.cur_code, 'NA') vat_remit_currency,
-                            (nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
-                            (ivd.vat_amount_in_vat_cur *
-                            nvl(ivd.fx_rate_vc_ic, 1) *
-                            nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
-                            null commission_value,
-                            null commission_value_ccy,
-                            ii.created_user_id,
-                            ii.created_user_name
-                       from is_invoice_summary                iss,
-                            iam_invoice_action_mapping        iam,
-                            iid_invoicable_item_details       iid,
-                            axs_action_summary                axs,
-                            cs_cost_store                     cs,
-                            ivd_invoice_vat_details@eka_appdb ivd,
-                            cigc_contract_item_gmr_cost       cigc,
-                            gmr_goods_movement_record         gmr,
-                            pcpd_pc_product_definition        pcpd,
-                            pcm_physical_contract_main        pcm,
-                            temp_ii                           ii,
-                            cpc_corporate_profit_center       cpc,
-                            cpc_corporate_profit_center       cpc1,
-                            phd_profileheaderdetails          phd_cp,
-                            cm_currency_master                cm_vat,
-                            cm_currency_master                cm_p,
-                            pdm_productmaster                 pdm,
-                            qum_quantity_unit_master          qum,
-                            css_corporate_strategy_setup      css,
-                            dbd_database_dump                 dbd
-                      where iss.internal_contract_ref_no is null
-                        and iss.is_active = 'Y'
-                        and iss.internal_invoice_ref_no =
-                            iam.internal_invoice_ref_no
-                        and iss.internal_invoice_ref_no =
-                            iid.internal_invoice_ref_no(+)
-                        and iss.internal_invoice_ref_no =
-                            ivd.internal_invoice_ref_no(+)
-                        and iam.invoice_action_ref_no =
-                            axs.internal_action_ref_no
-                        and iam.invoice_action_ref_no =
-                            cs.internal_action_ref_no(+)
-                        and cs.cog_ref_no = cigc.cog_ref_no(+)
-                        and cigc.internal_gmr_ref_no =
-                            gmr.internal_gmr_ref_no(+)
-                        and gmr.internal_contract_ref_no =
-                            pcpd.internal_contract_ref_no(+)
-                        and pcpd.internal_contract_ref_no =
-                            pcm.internal_contract_ref_no(+)
-                        and ii.internal_invoice_ref_no=iss.internal_invoice_ref_no
-                        and ii.corporate_id=iss.corporate_id    
-                        and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)                        
-                        and pcpd.input_output(+) = 'Input'
-                        and iss.invoice_type_name ='Service'
-                        and iss.profit_center_id = cpc.profit_center_id(+)
-                        and pcpd.profit_center_id = cpc1.profit_center_id(+)
-                        and iss.cp_id = phd_cp.profileid
-                        and iss.invoice_cur_id = cm_p.cur_id(+)
-                        and pcpd.product_id = pdm.product_id(+)
-                        and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
-                        and pcpd.strategy_id = css.strategy_id
-                        and iss.process_id = pc_process_id
-                        and pcm.process_id = pc_process_id
-                        and pcpd.process_id = pc_process_id
-                        and iss.is_modified_today = 'Y'
-                        and pcm.corporate_id = pc_corporate_id
-                        and iss.corporate_id = pc_corporate_id  
-                        and axs.dbd_id=dbd.dbd_id 
-                        and dbd.corporate_id=pc_corporate_id
-                        and dbd.trade_date <= pd_trade_date
-                        and dbd.process=pc_process                  
-                      group by pdm.product_id,
-                               pdm.product_desc,
-                               iss.corporate_id,
-                               iss.cp_id,
-                               iss.invoiced_qty,
-                               iss.fx_to_base,
-                               pcm.contract_ref_no,
-                               pcm.internal_contract_ref_no,
-                               iss.invoice_type,
-                               iss.invoice_ref_no,
-                               iss.total_amount_to_pay,
-                               iss.recieved_raised_type,
-                               iss.bill_to_address,
-                               iss.invoice_cur_id,
-                               iss.invoice_issue_date,
-                               iss.payment_due_date,
-                               iss.invoice_type_name,
-                               phd_cp.companyname,
-                               cpc.profit_center_id,
-                               cpc.profit_center_short_name,
-                               cpc1.profit_center_id,
-                               cpc1.profit_center_short_name,
-                               cm_p.cur_code,
-                               pcm.purchase_sales,
-                               qum.qty_unit,
-                               ivd.vat_amount_in_vat_cur,
-                               ivd.vat_remit_cur_id,
-                               cm_vat.cur_code,
-                               ivd.fx_rate_vc_ic,
-                               ii.delivery_item_ref_no,
-                               pcpd.strategy_id,
-                               css.strategy_name,
-                               ii.created_user_id,
-                               ii.created_user_name                     ) loop 
-     insert into eod_eom_phy_booking_journal
-       (section_name,
-        corporate_id,
-        product_id,
-        product_desc,
-        counter_party_id,
-        counter_party_name,
-        invoice_quantity,
-        invoice_quantity_uom,
-        fx_base,
-        profit_center_id,
-        profit_center,
-        strategy_id,
-        strategy_name,
-        invoice_ref_no,
-        contract_ref_no,
-        internal_contract_ref_no,
-        invoice_cur_id,
-        pay_in_currency,
-        amount_in_base_cur,
-        invoice_amt,
-        invoice_date,
-        invoice_due_date,
-        invoice_type,
-        bill_to_cp_country,
-        delivery_item_ref_no,
-        vat_amount,
-        vat_remit_cur_id,
-        vat_remit_currency,
-        fx_rate_for_vat,
-        vat_amount_base_currency,
-        commission_value,
-        commission_value_ccy,
-        process_id,
-        process,
-        created_user_id,
-        created_user_name)
-     values
-       (cc_phy.section_name,
-        cc_phy.corporate_id,
-        cc_phy.product_id,
-        cc_phy.product_desc,
-        cc_phy.counter_party_id,
-        cc_phy.counter_party_name,
-        cc_phy.invoice_quantity,
-        cc_phy.invoice_quantity_uom,
-        cc_phy.fx_base,
-        cc_phy.profit_center_id,
-        cc_phy.profit_center,
-        cc_phy.strategy_id,
-        cc_phy.strategy_name,
-        cc_phy.invoice_ref_no,
-        cc_phy.contract_ref_no,
-        cc_phy.internal_contract_ref_no,
-        cc_phy.invoice_cur_id,
-        cc_phy.pay_in_currency,
-        cc_phy.amount_in_base_cur,
-        cc_phy.invoice_amt,
-        cc_phy.invoice_date,
-        cc_phy.invoice_due_date,
-        cc_phy.invoice_type,
-        cc_phy.bill_to_cp_country,
-        cc_phy.delivery_item_ref_no,
-        cc_phy.vat_amount,
-        cc_phy.vat_remit_cur_id,
-        cc_phy.vat_remit_currency,
-        cc_phy.fx_rate_for_vat,
-        cc_phy.vat_amount_base_currency,
-        cc_phy.commission_value,
-        cc_phy.commission_value_ccy,
-        pc_process_id,
-        pc_process,
-        cc_phy.created_user_id,
-        cc_phy.created_user_name);
+                          iss.corporate_id,
+                          pdm.product_id,
+                          pdm.product_desc,
+                          pcm.cp_id counter_party_id,
+                          phd_contract_cp.companyname counter_party_name,
+                          iss.invoiced_qty invoice_quantity,
+                          qum.qty_unit invoice_quantity_uom,
+                          nvl(iss.fx_to_base, 1) fx_base,
+                          nvl(cpc.profit_center_id, cpc1.profit_center_id) profit_center_id,
+                          nvl(cpc.profit_center_short_name,
+                              cpc1.profit_center_short_name) profit_center,
+                          pcpd.strategy_id,
+                          css.strategy_name,
+                          nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
+                          nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
+                          nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
+                          iss.invoice_cur_id invoice_cur_id,
+                          cm_p.cur_code pay_in_currency,
+                          round(iss.total_amount_to_pay, 4) *
+                          nvl(iss.fx_to_base, 1) *
+                          (case
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Payable' then
+                              -1
+                             when nvl(iss.payable_receivable, 'NA') =
+                                  'Receivable' then
+                              1
+                             when nvl(iss.payable_receivable, 'NA') = 'NA' then
+                              (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) else 1 end) amount_in_base_cur,
+                          round(iss.total_amount_to_pay, 4) * case
+                            when (iss.invoice_type = 'Commercial' or
+                                 iss.invoice_type = 'DebitCredit') then
+                             1
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Received' then
+                             -1
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Raised' then
+                             1
+                            when nvl(iss.invoice_type_name, 'NA') =
+                                 'AdvancePayment' and
+                                 pcm.purchase_sales = 'P' then
+                             -1
+                            when nvl(iss.invoice_type_name, 'NA') =
+                                 'AdvancePayment' and
+                                 pcm.purchase_sales = 'S' then
+                             1
+                          end invoice_amt,
+                          iss.invoice_issue_date invoice_date,
+                          iss.payment_due_date invoice_due_date,
+                          iss.invoice_type_name invoice_type,
+                          iss.bill_to_address bill_to_cp_country,
+                          pcm.contract_ref_no || '-' ||
+                          ii.delivery_item_ref_no delivery_item_ref_no,
+                          ivd.vat_amount_in_vat_cur vat_amount,
+                          ivd.vat_remit_cur_id,
+                          cm_vat.cur_code vat_remit_currency,
+                          (nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
+                          (ivd.vat_amount_in_vat_cur *
+                          nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
+                          null commission_value,
+                          null commission_value_ccy,
+                          ii.created_user_id,
+                          ii.created_user_name
+                     from is_invoice_summary                      iss,
+                          cm_currency_master                      cm_p,
+                          incm_invoice_contract_mapping@eka_appdb incm,
+                          ivd_invoice_vat_details@eka_appdb       ivd,
+                          pcm_physical_contract_main              pcm,
+                          temp_ii                                 ii,
+                          cpc_corporate_profit_center             cpc,
+                          cpc_corporate_profit_center             cpc1,
+                          pcpd_pc_product_definition              pcpd,
+                          cm_currency_master                      cm_vat,
+                          pdm_productmaster                       pdm,
+                          phd_profileheaderdetails                phd_contract_cp,
+                          qum_quantity_unit_master                qum,
+                          css_corporate_strategy_setup            css
+                    where iss.is_active = 'Y'
+                      and iss.corporate_id is not null
+                      and iss.internal_invoice_ref_no =
+                          incm.internal_invoice_ref_no(+)
+                      and iss.internal_invoice_ref_no =
+                          ivd.internal_invoice_ref_no(+)
+                      and incm.internal_contract_ref_no =
+                          pcm.internal_contract_ref_no(+)
+                      and ii.internal_invoice_ref_no =
+                          iss.internal_invoice_ref_no
+                      and ii.corporate_id = iss.corporate_id
+                      and iss.internal_contract_ref_no =
+                          pcpd.internal_contract_ref_no
+                      and iss.profit_center_id = cpc.profit_center_id(+)
+                      and pcpd.profit_center_id = cpc1.profit_center_id(+)
+                      and iss.invoice_cur_id = cm_p.cur_id(+)
+                      and pcpd.product_id = pdm.product_id(+)
+                      and phd_contract_cp.profileid(+) = iss.cp_id
+                      and nvl(pcm.partnership_type, 'Normal') = 'Normal'
+                      and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
+                      and iss.is_inv_draft = 'N'
+                      and iss.invoice_type_name not in
+                          ('Profoma', 'Service')
+                      and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
+                      and pcpd.input_output = 'Input'
+                      and nvl(iss.total_amount_to_pay, 0) <> 0
+                      and pcpd.strategy_id = css.strategy_id
+                      and iss.process_id = pc_process_id
+                      and pcm.process_id = pc_process_id
+                      and pcpd.process_id = pc_process_id
+                      and phd_contract_cp.is_active = 'Y'
+                      and iss.is_modified_today = 'Y'
+                      and iss.corporate_id = pc_corporate_id
+                   ---2 Service invoices
+                   union all
+                   select 'Modified' section_name,
+                          iss.corporate_id,
+                          nvl(pdm.product_id, 'NA'),
+                          nvl(pdm.product_desc, 'NA'),
+                          iss.cp_id counter_party_id,
+                          phd_cp.companyname counter_party_name,
+                          iss.invoiced_qty invoice_quantity,
+                          nvl(qum.qty_unit, 'NA') invoice_quantity_uom,
+                          nvl(iss.fx_to_base, 1) fx_base,
+                          coalesce(cpc.profit_center_id,
+                                   cpc1.profit_center_id,
+                                   'NA') profit_center_id,
+                          coalesce(cpc.profit_center_short_name,
+                                   cpc1.profit_center_short_name,
+                                   'NA') profit_center,
+                          pcpd.strategy_id,
+                          css.strategy_name,
+                          nvl(iss.invoice_ref_no, 'NA') as invoice_ref_no,
+                          nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
+                          nvl(pcm.internal_contract_ref_no, 'NA') internal_contract_ref_no,
+                          iss.invoice_cur_id invoice_cur_id,
+                          cm_p.cur_code pay_in_currency,
+                          round(iss.total_amount_to_pay, 4) *
+                          nvl(iss.fx_to_base, 1) *
+                          (case
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceReceived' then
+                              -1
+                             when nvl(iss.invoice_type_name, 'NA') =
+                                  'ServiceInvoiceRaised' then
+                              1
+                             else
+                              (case
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Raised' then
+                              1
+                             when nvl(iss.recieved_raised_type, 'NA') =
+                                  'Received' then
+                              -1
+                             else
+                              1
+                           end) end) amount_in_base_cur,
+                          round(iss.total_amount_to_pay, 4) * case
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Received' then
+                             -1
+                            when nvl(iss.invoice_type, 'NA') = 'Service' and
+                                 nvl(iss.recieved_raised_type, 'NA') =
+                                 'Raised' then
+                             1
+                          end invoice_amt,
+                          iss.invoice_issue_date invoice_date,
+                          iss.payment_due_date invoice_due_date,
+                          nvl(iss.invoice_type_name, 'NA') invoice_type,
+                          iss.bill_to_address bill_to_cp_country,
+                          pcm.contract_ref_no || '-' ||
+                          ii.delivery_item_ref_no delivery_item_ref_no,
+                          ivd.vat_amount_in_vat_cur vat_amount,
+                          nvl(ivd.vat_remit_cur_id, 'NA'),
+                          nvl(cm_vat.cur_code, 'NA') vat_remit_currency,
+                          (nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
+                          (ivd.vat_amount_in_vat_cur *
+                          nvl(ivd.fx_rate_vc_ic, 1) *
+                          nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
+                          null commission_value,
+                          null commission_value_ccy,
+                          ii.created_user_id,
+                          ii.created_user_name
+                     from is_invoice_summary                iss,
+                          iam_invoice_action_mapping        iam,
+                          iid_invoicable_item_details       iid,
+                          axs_action_summary                axs,
+                          cs_cost_store                     cs,
+                          ivd_invoice_vat_details@eka_appdb ivd,
+                          cigc_contract_item_gmr_cost       cigc,
+                          gmr_goods_movement_record         gmr,
+                          pcpd_pc_product_definition        pcpd,
+                          pcm_physical_contract_main        pcm,
+                          temp_ii                           ii,
+                          cpc_corporate_profit_center       cpc,
+                          cpc_corporate_profit_center       cpc1,
+                          phd_profileheaderdetails          phd_cp,
+                          cm_currency_master                cm_vat,
+                          cm_currency_master                cm_p,
+                          pdm_productmaster                 pdm,
+                          qum_quantity_unit_master          qum,
+                          css_corporate_strategy_setup      css,
+                          dbd_database_dump                 dbd
+                    where iss.internal_contract_ref_no is null
+                      and iss.is_active = 'Y'
+                      and iss.internal_invoice_ref_no =
+                          iam.internal_invoice_ref_no
+                      and iss.internal_invoice_ref_no =
+                          iid.internal_invoice_ref_no(+)
+                      and iss.internal_invoice_ref_no =
+                          ivd.internal_invoice_ref_no(+)
+                      and iam.invoice_action_ref_no =
+                          axs.internal_action_ref_no
+                      and iam.invoice_action_ref_no =
+                          cs.internal_action_ref_no(+)
+                      and cs.cog_ref_no = cigc.cog_ref_no(+)
+                      and cigc.internal_gmr_ref_no =
+                          gmr.internal_gmr_ref_no(+)
+                      and gmr.internal_contract_ref_no =
+                          pcpd.internal_contract_ref_no(+)
+                      and pcpd.internal_contract_ref_no =
+                          pcm.internal_contract_ref_no(+)
+                      and ii.internal_invoice_ref_no =
+                          iss.internal_invoice_ref_no
+                      and ii.corporate_id = iss.corporate_id
+                      and iss.invoiced_qty_unit_id = qum.qty_unit_id(+)
+                      and pcpd.input_output(+) = 'Input'
+                      and iss.invoice_type_name = 'Service'
+                      and iss.profit_center_id = cpc.profit_center_id(+)
+                      and pcpd.profit_center_id = cpc1.profit_center_id(+)
+                      and iss.cp_id = phd_cp.profileid
+                      and iss.invoice_cur_id = cm_p.cur_id(+)
+                      and pcpd.product_id = pdm.product_id(+)
+                      and ivd.vat_remit_cur_id = cm_vat.cur_id(+)
+                      and pcpd.strategy_id = css.strategy_id
+                      and iss.process_id = pc_process_id
+                      and pcm.process_id = pc_process_id
+                      and pcpd.process_id = pc_process_id
+                      and iss.is_modified_today = 'Y'
+                      and pcm.corporate_id = pc_corporate_id
+                      and iss.corporate_id = pc_corporate_id
+                      and axs.dbd_id = dbd.dbd_id
+                      and dbd.corporate_id = pc_corporate_id
+                      and dbd.trade_date <= pd_trade_date
+                      and dbd.process = pc_process
+                    group by pdm.product_id,
+                             pdm.product_desc,
+                             iss.corporate_id,
+                             iss.cp_id,
+                             iss.invoiced_qty,
+                             iss.fx_to_base,
+                             pcm.contract_ref_no,
+                             pcm.internal_contract_ref_no,
+                             iss.invoice_type,
+                             iss.invoice_ref_no,
+                             iss.total_amount_to_pay,
+                             iss.recieved_raised_type,
+                             iss.bill_to_address,
+                             iss.invoice_cur_id,
+                             iss.invoice_issue_date,
+                             iss.payment_due_date,
+                             iss.invoice_type_name,
+                             phd_cp.companyname,
+                             cpc.profit_center_id,
+                             cpc.profit_center_short_name,
+                             cpc1.profit_center_id,
+                             cpc1.profit_center_short_name,
+                             cm_p.cur_code,
+                             pcm.purchase_sales,
+                             qum.qty_unit,
+                             ivd.vat_amount_in_vat_cur,
+                             ivd.vat_remit_cur_id,
+                             cm_vat.cur_code,
+                             ivd.fx_rate_vc_ic,
+                             ii.delivery_item_ref_no,
+                             pcpd.strategy_id,
+                             css.strategy_name,
+                             ii.created_user_id,
+                             ii.created_user_name)
+    loop
+      insert into eod_eom_phy_booking_journal
+        (section_name,
+         corporate_id,
+         product_id,
+         product_desc,
+         counter_party_id,
+         counter_party_name,
+         invoice_quantity,
+         invoice_quantity_uom,
+         fx_base,
+         profit_center_id,
+         profit_center,
+         strategy_id,
+         strategy_name,
+         invoice_ref_no,
+         contract_ref_no,
+         internal_contract_ref_no,
+         invoice_cur_id,
+         pay_in_currency,
+         amount_in_base_cur,
+         invoice_amt,
+         invoice_date,
+         invoice_due_date,
+         invoice_type,
+         bill_to_cp_country,
+         delivery_item_ref_no,
+         vat_amount,
+         vat_remit_cur_id,
+         vat_remit_currency,
+         fx_rate_for_vat,
+         vat_amount_base_currency,
+         commission_value,
+         commission_value_ccy,
+         process_id,
+         process,
+         created_user_id,
+         created_user_name)
+      values
+        (cc_phy.section_name,
+         cc_phy.corporate_id,
+         cc_phy.product_id,
+         cc_phy.product_desc,
+         cc_phy.counter_party_id,
+         cc_phy.counter_party_name,
+         cc_phy.invoice_quantity,
+         cc_phy.invoice_quantity_uom,
+         cc_phy.fx_base,
+         cc_phy.profit_center_id,
+         cc_phy.profit_center,
+         cc_phy.strategy_id,
+         cc_phy.strategy_name,
+         cc_phy.invoice_ref_no,
+         cc_phy.contract_ref_no,
+         cc_phy.internal_contract_ref_no,
+         cc_phy.invoice_cur_id,
+         cc_phy.pay_in_currency,
+         cc_phy.amount_in_base_cur,
+         cc_phy.invoice_amt,
+         cc_phy.invoice_date,
+         cc_phy.invoice_due_date,
+         cc_phy.invoice_type,
+         cc_phy.bill_to_cp_country,
+         cc_phy.delivery_item_ref_no,
+         cc_phy.vat_amount,
+         cc_phy.vat_remit_cur_id,
+         cc_phy.vat_remit_currency,
+         cc_phy.fx_rate_for_vat,
+         cc_phy.vat_amount_base_currency,
+         cc_phy.commission_value,
+         cc_phy.commission_value_ccy,
+         pc_process_id,
+         pc_process,
+         cc_phy.created_user_id,
+         cc_phy.created_user_name);
     end loop;
     commit;
     sp_gather_table_stats('eod_eom_phy_booking_journal');
---this code has to be placed before exception....
+    --this code has to be placed before exception....
     for cc in (select akc.corporate_id,
                       akc.corporate_name,
                       akc.base_cur_id,
@@ -1789,15 +1819,15 @@ create or replace package body pkg_phy_custom_reports is
                 where tdc.process_id = pc_process_id)
     loop
       update eod_eom_phy_booking_journal tt
-         set tt.eod_date = cc.trade_date,
-             tt.eod_run_date = cc.created_date,
-             tt.process_run_count  = cc.process_run_count
+         set tt.eod_date          = cc.trade_date,
+             tt.eod_run_date      = cc.created_date,
+             tt.process_run_count = cc.process_run_count
        where tt.corporate_id = pc_corporate_id
          and tt.process_id = pc_process_id
          and tt.process = pc_process;
     end loop;
-  commit;
-     
+    commit;
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -2025,7 +2055,7 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
-                             and pcm.approval_status='Approved'
+                             and pcm.approval_status = 'Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Applicable', 'Called Off')
                              and not exists
@@ -2033,7 +2063,7 @@ create or replace package body pkg_phy_custom_reports is
                                     from pcm_physical_contract_main pcm_in
                                    where pcm.internal_contract_ref_no =
                                          pcm_in.internal_contract_ref_no
-                                     and pcm.approval_status='Approved'    
+                                     and pcm.approval_status = 'Approved'
                                      and pcm_in.process_id =
                                          pc_prev_process_id)
                           union all
@@ -2069,19 +2099,19 @@ create or replace package body pkg_phy_custom_reports is
                                  end) del_date,
                                  --For not called off , no need to show the pricing details
                                  /*pcbpd.price_basis,
-                                                                                                                                    (case
-                                                                                                                                      when pcbpd.price_basis = 'Fixed' then
-                                                                                                                                       pcbpd.price_value
-                                                                                                                                      else
-                                                                                                                                       0
-                                                                                                                                    end) price,
-                                                                                                                                    (case
-                                                                                                                                      when pcbpd.price_basis = 'Fixed' then
-                                                                                                                                       pcbpd.price_unit_id
-                                                                                                                                      else
-                                                                                                                                       null
-                                                                                                                                    end) price_unit_id,
-                                                                                                                                    ppu_pum_price.price_unit_name,*/
+                                                                                                                                                                                                                                                                        (case
+                                                                                                                                                                                                                                                                          when pcbpd.price_basis = 'Fixed' then
+                                                                                                                                                                                                                                                                           pcbpd.price_value
+                                                                                                                                                                                                                                                                          else
+                                                                                                                                                                                                                                                                           0
+                                                                                                                                                                                                                                                                        end) price,
+                                                                                                                                                                                                                                                                        (case
+                                                                                                                                                                                                                                                                          when pcbpd.price_basis = 'Fixed' then
+                                                                                                                                                                                                                                                                           pcbpd.price_unit_id
+                                                                                                                                                                                                                                                                          else
+                                                                                                                                                                                                                                                                           null
+                                                                                                                                                                                                                                                                        end) price_unit_id,
+                                                                                                                                                                                                                                                                        ppu_pum_price.price_unit_name,*/
                                  null price_basis,
                                  0 price,
                                  null price_unit_id,
@@ -2194,15 +2224,16 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
                              and pcm.corporate_id = akc.corporate_id
-                             and pcdi.pcdi_id=pci.pcdi_id
-                             and pci.process_id=pc_process_id
-                             and pci.is_active='Y'
-                             and pci.internal_contract_item_ref_no=pcipf.internal_contract_item_ref_no
-                             and pcipf.process_id=pc_process_id
-                             and pcipf.is_active='Y'
-                             and pcipf.pcbph_id=pcbph.pcbph_id
-                             /*and pcm.internal_contract_ref_no =
-                                 pcbph.internal_contract_ref_no*/
+                             and pcdi.pcdi_id = pci.pcdi_id
+                             and pci.process_id = pc_process_id
+                             and pci.is_active = 'Y'
+                             and pci.internal_contract_item_ref_no =
+                                 pcipf.internal_contract_item_ref_no
+                             and pcipf.process_id = pc_process_id
+                             and pcipf.is_active = 'Y'
+                             and pcipf.pcbph_id = pcbph.pcbph_id
+                                /*and pcm.internal_contract_ref_no =
+                                                                                                                                                                 pcbph.internal_contract_ref_no*/
                              and pcbph.process_id = pc_process_id
                              and pcbph.pcbph_id = pcbpd.pcbph_id
                              and pcbpd.process_id = pc_process_id
@@ -2224,7 +2255,7 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
-                             and pcm.approval_status='Approved'
+                             and pcm.approval_status = 'Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Called Off')
                              and not exists
@@ -2232,7 +2263,7 @@ create or replace package body pkg_phy_custom_reports is
                                     from pcm_physical_contract_main pcm_in
                                    where pcm.internal_contract_ref_no =
                                          pcm_in.internal_contract_ref_no
-                                     and pcm.approval_status='Approved'    
+                                     and pcm.approval_status = 'Approved'
                                      and pcm_in.process_id =
                                          pc_prev_process_id)
                           union all
@@ -2268,19 +2299,19 @@ create or replace package body pkg_phy_custom_reports is
                                  end) del_date,
                                  --For not called off , no need to show the pricing
                                  /*pcbpd.price_basis,
-                                                                                                   (case
-                                                                                                     when pcbpd.price_basis = 'Fixed' then
-                                                                                                      pcbpd.price_value
-                                                                                                     else
-                                                                                                      0
-                                                                                                   end) price,
-                                                                                                   (case
-                                                                                                     when pcbpd.price_basis = 'Fixed' then
-                                                                                                      pcbpd.price_unit_id
-                                                                                                     else
-                                                                                                      null
-                                                                                                   end) price_unit_id,
-                                                                                                   ppu_pum_price.price_unit_name,*/
+                                                                                                                                                                                                                                       (case
+                                                                                                                                                                                                                                         when pcbpd.price_basis = 'Fixed' then
+                                                                                                                                                                                                                                          pcbpd.price_value
+                                                                                                                                                                                                                                         else
+                                                                                                                                                                                                                                          0
+                                                                                                                                                                                                                                       end) price,
+                                                                                                                                                                                                                                       (case
+                                                                                                                                                                                                                                         when pcbpd.price_basis = 'Fixed' then
+                                                                                                                                                                                                                                          pcbpd.price_unit_id
+                                                                                                                                                                                                                                         else
+                                                                                                                                                                                                                                          null
+                                                                                                                                                                                                                                       end) price_unit_id,
+                                                                                                                                                                                                                                       ppu_pum_price.price_unit_name,*/
                                  null price_basis,
                                  0 price,
                                  null price_unit_id,
@@ -2393,15 +2424,16 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
                              and pcm.corporate_id = akc.corporate_id
-                            /* and pcm.internal_contract_ref_no =
-                                 pcbph.internal_contract_ref_no*/
-                             and pcdi.pcdi_id=pci.pcdi_id
-                             and pci.process_id=pc_process_id
-                             and pci.is_active='Y'
-                             and pci.internal_contract_item_ref_no=pcipf.internal_contract_item_ref_no
-                             and pcipf.process_id=pc_process_id
-                             and pcipf.is_active='Y'
-                             and pcipf.pcbph_id=pcbph.pcbph_id    
+                                /* and pcm.internal_contract_ref_no =
+                                                                                                                                                                 pcbph.internal_contract_ref_no*/
+                             and pcdi.pcdi_id = pci.pcdi_id
+                             and pci.process_id = pc_process_id
+                             and pci.is_active = 'Y'
+                             and pci.internal_contract_item_ref_no =
+                                 pcipf.internal_contract_item_ref_no
+                             and pcipf.process_id = pc_process_id
+                             and pcipf.is_active = 'Y'
+                             and pcipf.pcbph_id = pcbph.pcbph_id
                              and pcbph.process_id = pc_process_id
                              and pcbph.pcbph_id = pcbpd.pcbph_id
                              and pcbpd.process_id = pc_process_id
@@ -2422,10 +2454,11 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
-                             and pcm.approval_status='Approved'
+                             and pcm.approval_status = 'Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Called Off')
-                             and exists (select pcm_in.internal_contract_ref_no
+                             and exists
+                           (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm_in.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
@@ -2433,7 +2466,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
-                                     and pcm.approval_status='Approved'    
+                                     and pcm.approval_status = 'Approved'
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           union all
@@ -2617,10 +2650,11 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
-                             and pcm.approval_status='Approved'
+                             and pcm.approval_status = 'Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Applicable', 'Called Off')
-                             and exists (select pcm_in.internal_contract_ref_no
+                             and exists
+                           (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm_in.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
@@ -2628,7 +2662,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
-                                     and pcm.approval_status='Approved'    
+                                     and pcm.approval_status = 'Approved'
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           union all
@@ -2664,19 +2698,19 @@ create or replace package body pkg_phy_custom_reports is
                                  end) del_date,
                                  --Not called off So no price details
                                  /*pcbpd.price_basis,
-                                                                                                   (case
-                                                                                                     when pcbpd.price_basis = 'Fixed' then
-                                                                                                      pcbpd.price_value
-                                                                                                     else
-                                                                                                      0
-                                                                                                   end) price,
-                                                                                                   (case
-                                                                                                     when pcbpd.price_basis = 'Fixed' then
-                                                                                                      pcbpd.price_unit_id
-                                                                                                     else
-                                                                                                      null
-                                                                                                   end) price_unit_id,
-                                                                                                   ppu_pum_price.price_unit_name,*/
+                                                                                                                                                                                                                                       (case
+                                                                                                                                                                                                                                         when pcbpd.price_basis = 'Fixed' then
+                                                                                                                                                                                                                                          pcbpd.price_value
+                                                                                                                                                                                                                                         else
+                                                                                                                                                                                                                                          0
+                                                                                                                                                                                                                                       end) price,
+                                                                                                                                                                                                                                       (case
+                                                                                                                                                                                                                                         when pcbpd.price_basis = 'Fixed' then
+                                                                                                                                                                                                                                          pcbpd.price_unit_id
+                                                                                                                                                                                                                                         else
+                                                                                                                                                                                                                                          null
+                                                                                                                                                                                                                                       end) price_unit_id,
+                                                                                                                                                                                                                                       ppu_pum_price.price_unit_name,*/
                                  null price_basis,
                                  0 price,
                                  null price_unit_id,
@@ -2788,15 +2822,16 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.internal_contract_ref_no =
                                  pcqpd.internal_contract_ref_no(+)
                              and pcm.corporate_id = akc.corporate_id
-                             /*and pcm.internal_contract_ref_no =
-                                 pcbph.internal_contract_ref_no*/
-                             and pcdi.pcdi_id=pci.pcdi_id
-                             and pci.process_id=pc_process_id
-                             and pci.is_active='Y'
-                             and pci.internal_contract_item_ref_no=pcipf.internal_contract_item_ref_no
-                             and pcipf.process_id=pc_process_id
-                             and pcipf.is_active='Y'
-                             and pcipf.pcbph_id=pcbph.pcbph_id    
+                                /*and pcm.internal_contract_ref_no =
+                                                                                                                                                                 pcbph.internal_contract_ref_no*/
+                             and pcdi.pcdi_id = pci.pcdi_id
+                             and pci.process_id = pc_process_id
+                             and pci.is_active = 'Y'
+                             and pci.internal_contract_item_ref_no =
+                                 pcipf.internal_contract_item_ref_no
+                             and pcipf.process_id = pc_process_id
+                             and pcipf.is_active = 'Y'
+                             and pcipf.pcbph_id = pcbph.pcbph_id
                              and pcbph.process_id = pc_process_id
                              and pcbph.pcbph_id = pcbpd.pcbph_id
                              and pcbpd.process_id = pc_process_id
@@ -2817,7 +2852,7 @@ create or replace package body pkg_phy_custom_reports is
                              and cpc.is_active = 'Y'
                              and pcpd.strategy_id = css.strategy_id
                              and css.is_active = 'Y'
-                             and pcm.approval_status='Approved'
+                             and pcm.approval_status = 'Approved'
                              and pcdi.price_option_call_off_status in
                                  ('Not Called Off')
                              and exists
@@ -2827,10 +2862,11 @@ create or replace package body pkg_phy_custom_reports is
                                      and pcmul.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
                                      and pcmul.entry_type = 'Update'
-                                     and pcm.approval_status='Approved'
+                                     and pcm.approval_status = 'Approved'
                                      and nvl(pcmul.contract_status, 'none') <>
                                          'Cancelled')
-                             and exists (select pcm_in.internal_contract_ref_no
+                             and exists
+                           (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm_in.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
@@ -2838,7 +2874,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id -------prev
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
-                                     and pcm.approval_status='Approved'    
+                                     and pcm.approval_status = 'Approved'
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           union all
@@ -3030,10 +3066,11 @@ create or replace package body pkg_phy_custom_reports is
                                      and pcmul.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
                                      and pcmul.entry_type = 'Update'
-                                     and pcm.approval_status='Approved'
+                                     and pcm.approval_status = 'Approved'
                                      and nvl(pcmul.contract_status, 'none') <>
                                          'Cancelled')
-                             and exists (select pcm_in.internal_contract_ref_no
+                             and exists
+                           (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm_in.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
@@ -3041,7 +3078,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id -------prev
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
-                                     and pcm.approval_status='Approved'    
+                                     and pcm.approval_status = 'Approved'
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           --for Concentrate
@@ -3198,13 +3235,13 @@ create or replace package body pkg_phy_custom_reports is
                              and pcpd.strategy_id = css.strategy_id
                              and cim_inco.city_id = pcdb.city_id
                              and css.is_active = 'Y'
-                             and pcm.approval_status='Approved'
+                             and pcm.approval_status = 'Approved'
                              and not exists
                            (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm.internal_contract_ref_no =
                                          pcm_in.internal_contract_ref_no
-                                     and pcm.approval_status='Approved'    
+                                     and pcm.approval_status = 'Approved'
                                      and pcm_in.process_id =
                                          pc_prev_process_id)
                           union all
@@ -3371,7 +3408,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcpd.strategy_id = css.strategy_id
                              and cim_inco.city_id = pcdb.city_id
                              and css.is_active = 'Y'
-                             and pcm.approval_status='Approved'
+                             and pcm.approval_status = 'Approved'
                              and exists
                            (select pcmul.internal_contract_ref_no
                                     from pcmul_phy_contract_main_ul pcmul
@@ -3379,10 +3416,11 @@ create or replace package body pkg_phy_custom_reports is
                                      and pcmul.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
                                      and pcmul.entry_type = 'Update'
-                                     and pcm.approval_status='Approved'
+                                     and pcm.approval_status = 'Approved'
                                      and nvl(pcmul.contract_status, 'none') <>
                                          'Cancelled')
-                             and exists (select pcm_in.internal_contract_ref_no
+                             and exists
+                           (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm_in.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
@@ -3390,7 +3428,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id -------prev
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
-                                     and pcm.approval_status='Approved'    
+                                     and pcm.approval_status = 'Approved'
                                      and pcm_in.contract_status <>
                                          'Cancelled')
                           union all
@@ -3546,8 +3584,9 @@ create or replace package body pkg_phy_custom_reports is
                              and pcpd.strategy_id = css.strategy_id
                              and cim_inco.city_id = pcdb.city_id
                              and css.is_active = 'Y'
-                             and pcm.approval_status='Approved'
-                             and exists (select pcm_in.internal_contract_ref_no
+                             and pcm.approval_status = 'Approved'
+                             and exists
+                           (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
                                    where pcm_in.internal_contract_ref_no =
                                          pcm.internal_contract_ref_no
@@ -3555,7 +3594,7 @@ create or replace package body pkg_phy_custom_reports is
                                          pc_prev_process_id
                                      and pcm_in.corporate_id =
                                          pc_corporate_id
-                                     and pcm.approval_status='Approved'    
+                                     and pcm.approval_status = 'Approved'
                                      and pcm_in.contract_status <>
                                          'Cancelled'))
     loop
@@ -3786,7 +3825,8 @@ create or replace package body pkg_phy_custom_reports is
              dt.trade_date,
              pdm.product_desc product,
              drm.prompt_date prompt_date,
-             round((dt.total_quantity *dt.qty_sign* nvl(ucm.multiplication_factor, 1)),
+             round((dt.total_quantity * dt.qty_sign *
+                   nvl(ucm.multiplication_factor, 1)),
                    pdm_qum.decimals) quantity_in_base_unit,
              pdm_qum.qty_unit uom,
              dt.trade_price,
@@ -3828,12 +3868,12 @@ create or replace package body pkg_phy_custom_reports is
              irmf.instrument_type,
              drm.instrument_id,
              dim.instrument_name,
-             dt.total_quantity*dt.qty_sign total_quantity,
+             dt.total_quantity * dt.qty_sign total_quantity,
              qum.qty_unit total_qty_unit,
              nvl(dt.expired_lots, 0) expired_lots,
              nvl(dt.exercised_lots, 0) exercised_lots,
-             nvl(dt.expired_quantity, 0)*dt.qty_sign  expired_quantity,
-             nvl(dt.exercised_quantity, 0)*dt.qty_sign  exercised_quantity,
+             nvl(dt.expired_quantity, 0) * dt.qty_sign expired_quantity,
+             nvl(dt.exercised_quantity, 0) * dt.qty_sign exercised_quantity,
              dt.external_ref_no ext_trade_ref_no,
              dt.int_trade_parent_der_ref_no int_trade_ref_no,
              cdcmc.master_contract_ref_no master_cont_ref_no,
@@ -3923,7 +3963,8 @@ create or replace package body pkg_phy_custom_reports is
              dt.trade_date,
              pdm.product_desc product,
              drm.prompt_date prompt_date,
-             round((dt.total_quantity *dt.qty_sign*nvl(ucm.multiplication_factor, 1)),
+             round((dt.total_quantity * dt.qty_sign *
+                   nvl(ucm.multiplication_factor, 1)),
                    pdm_qum.decimals) quantity_in_base_unit,
              pdm_qum.qty_unit uom,
              dt.trade_price,
@@ -3965,12 +4006,12 @@ create or replace package body pkg_phy_custom_reports is
              irmf.instrument_type,
              drm.instrument_id,
              dim.instrument_name,
-             dt.total_quantity*dt.qty_sign total_quantity,
+             dt.total_quantity * dt.qty_sign total_quantity,
              qum.qty_unit total_qty_unit,
              nvl(dt.expired_lots, 0) expired_lots,
              nvl(dt.exercised_lots, 0) exercised_lots,
-             nvl(dt.expired_quantity, 0)*dt.qty_sign  expired_quantity,
-             nvl(dt.exercised_quantity, 0)*dt.qty_sign  exercised_quantity,
+             nvl(dt.expired_quantity, 0) * dt.qty_sign expired_quantity,
+             nvl(dt.exercised_quantity, 0) * dt.qty_sign exercised_quantity,
              dt.external_ref_no ext_trade_ref_no,
              dt.int_trade_parent_der_ref_no int_trade_ref_no,
              cdcmc.master_contract_ref_no master_cont_ref_no,
@@ -4064,7 +4105,8 @@ create or replace package body pkg_phy_custom_reports is
              dt.trade_date,
              pdm.product_desc product,
              drm.prompt_date prompt_date,
-             round((dt.total_quantity*dt.qty_sign* nvl(ucm.multiplication_factor, 1)),
+             round((dt.total_quantity * dt.qty_sign *
+                   nvl(ucm.multiplication_factor, 1)),
                    pdm_qum.decimals) quantity_in_base_unit,
              pdm_qum.qty_unit uom,
              dt.trade_price,
@@ -4106,12 +4148,12 @@ create or replace package body pkg_phy_custom_reports is
              irmf.instrument_type,
              drm.instrument_id,
              dim.instrument_name,
-             dt.total_quantity*dt.qty_sign total_quantity,
+             dt.total_quantity * dt.qty_sign total_quantity,
              qum.qty_unit total_qty_unit,
              nvl(dt.expired_lots, 0) expired_lots,
              nvl(dt.exercised_lots, 0) exercised_lots,
-             nvl(dt.expired_quantity, 0)*dt.qty_sign  expired_quantity,
-             nvl(dt.exercised_quantity, 0)*dt.qty_sign  exercised_quantity,
+             nvl(dt.expired_quantity, 0) * dt.qty_sign expired_quantity,
+             nvl(dt.exercised_quantity, 0) * dt.qty_sign exercised_quantity,
              dt.external_ref_no ext_trade_ref_no,
              dt.int_trade_parent_der_ref_no int_trade_ref_no,
              cdcmc.master_contract_ref_no master_cont_ref_no,
@@ -4544,11 +4586,11 @@ create or replace package body pkg_phy_custom_reports is
              diqs.total_qty delivery_item_qty,
              qum_diqs.qty_unit delivery_item_qty_unit,
              /*(case
-                                                                   when gmr.gmr_ref_no is not null then
-                                                                    gmr.gmr_ref_no
-                                                                   else
-                                                                    pcm.contract_ref_no
-                                                                 end) contract_ref_no,*/
+                                                                                                                       when gmr.gmr_ref_no is not null then
+                                                                                                                        gmr.gmr_ref_no
+                                                                                                                       else
+                                                                                                                        pcm.contract_ref_no
+                                                                                                                     end) contract_ref_no,*/
              pcm.contract_ref_no, --bug id 69221
              pcm.cp_id clearer_profile_id,
              phd_cp.companyname clearer_name,
@@ -4684,11 +4726,11 @@ create or replace package body pkg_phy_custom_reports is
              diqs.total_qty delivery_item_qty,
              qum_diqs.qty_unit delivery_item_qty_unit,
              /*(case
-                                                                   when gmr.gmr_ref_no is not null then
-                                                                    gmr.gmr_ref_no
-                                                                   else
-                                                                    pcm.contract_ref_no
-                                                                 end) contract_ref_no,*/
+                                                                                                                       when gmr.gmr_ref_no is not null then
+                                                                                                                        gmr.gmr_ref_no
+                                                                                                                       else
+                                                                                                                        pcm.contract_ref_no
+                                                                                                                     end) contract_ref_no,*/
              pcm.contract_ref_no, --bug id 69221
              pcm.cp_id clearer_profile_id,
              phd_cp.companyname clearer_name,
@@ -4822,11 +4864,11 @@ create or replace package body pkg_phy_custom_reports is
              diqs.total_qty delivery_item_qty,
              qum_diqs.qty_unit delivery_item_qty_unit,
              /*(case
-                                                                   when gmr.gmr_ref_no is not null then
-                                                                    gmr.gmr_ref_no
-                                                                   else
-                                                                    pcm.contract_ref_no
-                                                                 end) contract_ref_no,*/
+                                                                                                                       when gmr.gmr_ref_no is not null then
+                                                                                                                        gmr.gmr_ref_no
+                                                                                                                       else
+                                                                                                                        pcm.contract_ref_no
+                                                                                                                     end) contract_ref_no,*/
              pcm.contract_ref_no, --bug id 69221
              pcm.cp_id clearer_profile_id,
              phd_cp.companyname clearer_name,
@@ -5744,7 +5786,8 @@ create or replace package body pkg_phy_custom_reports is
                                    when pcm.purchase_sales = 'P' then
                                     (diqs.total_qty - diqs.final_invoiced_qty)
                                    when pcm.purchase_sales = 'S' then
-                                    (-1)*(diqs.total_qty - diqs.final_invoiced_qty)
+                                    (-1) *
+                                    (diqs.total_qty - diqs.final_invoiced_qty)
                                  end) del_item_qty,
                                  diqs.item_qty_unit_id di_qty_unit_id,
                                  qum_di.qty_unit di_qty_unit,
@@ -5810,7 +5853,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.contract_status = 'In Position'
                              and pcdi.pcdi_id = poch.pcdi_id
                              and pocd.price_type <> 'Fixed'
-                             and diqs.total_qty - diqs.final_invoiced_qty>0
+                             and diqs.total_qty - diqs.final_invoiced_qty > 0
                              and poch.is_active = 'Y'
                              and poch.poch_id = pocd.poch_id
                              and pocd.is_active = 'Y')
@@ -5921,16 +5964,16 @@ create or replace package body pkg_phy_custom_reports is
     loop
       update prp_physical_risk_position prp
          set prp.priced_qty         = (case when prp.trade_type = 'Purchase' then ---
-                                      nvl(cur_priced_qty.priced_qty, 0)--
-                                       else--
-                                       (-1) * nvl(cur_priced_qty.priced_qty, 0)--
-                                        end),
+              nvl(cur_priced_qty.priced_qty, 0) --
+              else --
+              (-1) * nvl(cur_priced_qty.priced_qty, 0) --
+              end),
              prp.priced_qty_unit_id = cur_priced_qty.qty_unit_id,
              prp.price_qty_unit     = cur_priced_qty.qty_unit
        where cur_priced_qty.pcdi_id = prp.pcdi_id
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
-         and prp.process =pc_process
+         and prp.process = pc_process
          and prp.product_type = 'BASEMETAL';
     end loop;
     commit;
@@ -5958,7 +6001,7 @@ create or replace package body pkg_phy_custom_reports is
        where cur_cont_price.pcdi_id = prp.pcdi_id
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
-         and prp.process =pc_process
+         and prp.process = pc_process
          and prp.qp_period_type not in ('Event')
          and prp.product_type = 'BASEMETAL';
     end loop;
@@ -6056,7 +6099,7 @@ create or replace package body pkg_phy_custom_reports is
        where cur_cont_price_event.pcdi_id = prp.pcdi_id
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
-         and prp.process =pc_process
+         and prp.process = pc_process
          and prp.qp_period_type = 'Event'
          and prp.product_type = 'BASEMETAL';
     end loop;
@@ -6113,7 +6156,7 @@ create or replace package body pkg_phy_custom_reports is
        where cur_cont_premium.pcdi_id = prp.pcdi_id
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
-         and prp.process =pc_process
+         and prp.process = pc_process
          and prp.product_type = 'BASEMETAL';
       commit;
     end loop;
@@ -6143,7 +6186,7 @@ create or replace package body pkg_phy_custom_reports is
        where cur_mar_price.pcdi_id = prp.pcdi_id
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
-         and prp.process =pc_process
+         and prp.process = pc_process
          and prp.qp_period_type not in ('Event')
          and prp.product_type = 'BASEMETAL';
     end loop;
@@ -6245,7 +6288,7 @@ create or replace package body pkg_phy_custom_reports is
        where cur_mar_price_event.pcdi_id = prp.pcdi_id
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
-         and prp.process =pc_process
+         and prp.process = pc_process
          and prp.qp_period_type = 'Event'
          and prp.product_type = 'BASEMETAL';
     end loop;
@@ -6309,7 +6352,8 @@ create or replace package body pkg_phy_custom_reports is
                                    select pcdi.pcdi_id,
                                           tmpc.m2m_quality_premium,
                                           tmpc.m2m_product_premium,
-                                          (diqs.open_qty-diqs.final_invoiced_qty) qty,
+                                          (diqs.open_qty -
+                                          diqs.final_invoiced_qty) qty,
                                           tmpc.base_price_unit_id_in_ppu market_premium_price_unit_id,
                                           pum.price_unit_name market_premium_price_unit
                                      from pcdi_pc_delivery_item         pcdi,
@@ -6319,14 +6363,15 @@ create or replace package body pkg_phy_custom_reports is
                                     where pcdi.process_id = pc_process_id
                                       and diqs.pcdi_id = pcdi.pcdi_id
                                       and diqs.process_id = pc_process_id
-                                     and pcdi.is_active = 'Y'
+                                      and pcdi.is_active = 'Y'
                                       and diqs.is_active = 'Y'
                                       and tmpc.pcdi_id = pcdi.pcdi_id
                                       and tmpc.section_name = 'OPEN'
                                       and tmpc.base_price_unit_id_in_ppu =
                                           pum.product_price_unit_id
                                     group by pcdi.pcdi_id,
-                                             (diqs.open_qty-diqs.final_invoiced_qty),
+                                             (diqs.open_qty -
+                                             diqs.final_invoiced_qty),
                                              tmpc.m2m_quality_premium,
                                              tmpc.m2m_product_premium,
                                              tmpc.base_price_unit_id_in_ppu,
@@ -6343,7 +6388,7 @@ create or replace package body pkg_phy_custom_reports is
        where cc_m2m_premium.pcdi_id = prp.pcdi_id
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
-         and prp.process =pc_process
+         and prp.process = pc_process
          and prp.product_type = 'BASEMETAL';
     end loop;
     commit;
@@ -6357,7 +6402,7 @@ create or replace package body pkg_phy_custom_reports is
                                   prp.contract_premium_cur_id
                               and prp.corporate_id = pc_corporate_id
                               and prp.process_id = pc_process_id
-                              and prp.process =pc_process
+                              and prp.process = pc_process
                             group by prp.contract_price_cur_id,
                                      prp.contract_premium_cur_id
                            union
@@ -6368,7 +6413,7 @@ create or replace package body pkg_phy_custom_reports is
                                   prp.m2m_price_cur_id
                               and prp.corporate_id = pc_corporate_id
                               and prp.process_id = pc_process_id
-                              and prp.process =pc_process
+                              and prp.process = pc_process
                             group by prp.contract_price_cur_id,
                                      prp.m2m_price_cur_id
                            union
@@ -6379,7 +6424,7 @@ create or replace package body pkg_phy_custom_reports is
                                   prp.base_cur_id
                               and prp.corporate_id = pc_corporate_id
                               and prp.process_id = pc_process_id
-                              and prp.process =pc_process
+                              and prp.process = pc_process
                             group by prp.contract_price_cur_id,
                                      prp.base_cur_id)
     loop
@@ -6389,30 +6434,30 @@ create or replace package body pkg_phy_custom_reports is
                                                                    pd_trade_date,
                                                                    1);
       update prp_physical_risk_position prp
-               set prp.contract_pp_to_price_fx_rate = vn_exchnage_rate
-               where prp.contract_price_cur_id  = cc_prp_fx_rate.from_cur_id
-               and prp.contract_premium_cur_id = cc_prp_fx_rate.to_cur_id
-               and prp.corporate_id = pc_corporate_id
-               and prp.process_id = pc_process_id
-               and prp.process =pc_process;
-               commit;
+         set prp.contract_pp_to_price_fx_rate = vn_exchnage_rate
+       where prp.contract_price_cur_id = cc_prp_fx_rate.from_cur_id
+         and prp.contract_premium_cur_id = cc_prp_fx_rate.to_cur_id
+         and prp.corporate_id = pc_corporate_id
+         and prp.process_id = pc_process_id
+         and prp.process = pc_process;
+      commit;
       update prp_physical_risk_position prp
-               set prp.m2m_price_to_price_fx_rate = vn_exchnage_rate
-               where prp.contract_price_cur_id  = cc_prp_fx_rate.from_cur_id
-               and prp.m2m_price_cur_id = cc_prp_fx_rate.to_cur_id
-               and prp.corporate_id = pc_corporate_id
-               and prp.process_id = pc_process_id
-               and prp.process =pc_process;
-               commit;
+         set prp.m2m_price_to_price_fx_rate = vn_exchnage_rate
+       where prp.contract_price_cur_id = cc_prp_fx_rate.from_cur_id
+         and prp.m2m_price_cur_id = cc_prp_fx_rate.to_cur_id
+         and prp.corporate_id = pc_corporate_id
+         and prp.process_id = pc_process_id
+         and prp.process = pc_process;
+      commit;
       update prp_physical_risk_position prp
-               set prp.m2m_premium_to_price_fx_rate = vn_exchnage_rate,
-                   prp.fx_rate = vn_exchnage_rate
-               where prp.contract_price_cur_id  = cc_prp_fx_rate.from_cur_id
-               and prp.base_cur_id = cc_prp_fx_rate.to_cur_id
-               and prp.corporate_id = pc_corporate_id
-               and prp.process_id = pc_process_id
-               and prp.process =pc_process;
-               commit;
+         set prp.m2m_premium_to_price_fx_rate = vn_exchnage_rate,
+             prp.fx_rate                      = vn_exchnage_rate
+       where prp.contract_price_cur_id = cc_prp_fx_rate.from_cur_id
+         and prp.base_cur_id = cc_prp_fx_rate.to_cur_id
+         and prp.corporate_id = pc_corporate_id
+         and prp.process_id = pc_process_id
+         and prp.process = pc_process;
+      commit;
     end loop;
     commit;
   
@@ -7175,6 +7220,1292 @@ create or replace package body pkg_phy_custom_reports is
     
     end loop;
   end;
+  procedure sp_trader_position_report(pc_corporate_id varchar2,
+                                      pd_trade_date   date,
+                                      pc_process      varchar2,
+                                      pc_process_id   varchar2,
+                                      pc_user_id      varchar2) as
+    --------------------------------------------------------------------------------------------------------------------------
+    --        Procedure Name                            : sp_trader_position_report
+    --        Author                                    : Siva
+    --        Created Date                              : 10-Nov-2012
+    --        Purpose                                   :
+    --
+    --        Parameters
+    --        pc_corporate_id                           : Corporate ID
+    --        pd_trade_date                             : Trade Date
+    --        pc_user_id                                : User ID
+    --        pc_process                                : Process EOD or EOM
+    --
+    --        Modification History
+    --        Modified Date                             :
+    --        Modified By                               :
+    --        Modify Description                        :
+    --------------------------------------------------------------------------------------------------------------------------
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+    i                  integer;
+    --  vn_conv_factor              number;
+    vn_total_amount             number(30, 5);
+    vn_total_amount_in_base_ccy number(30, 5);
+    vn_total_market_price       number(25, 5);
+    vn_total_di_price           number(25, 5);
+    vn_exchnage_rate            number;
+    vn_logno                    number;
+  
+  begin
+    i        := 0;
+    vn_logno := 200;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for basmetal started');
+    delete from temp_tpr where corporate_id = pc_corporate_id;
+    commit;
+    insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select pcm.corporate_id,
+             'Physical Total' section_name,
+             '13' section_id,
+             pcpd.product_id,
+             pdm.product_desc,
+             pcpd.profit_center_id,
+             cpc.profit_center_short_name,
+             cpc.profit_center_name,
+             trunc(pcdi.shipment_date, 'Mon') delivery_date,
+             to_char(pcdi.shipment_date, 'Mon-YYYY') delivery_month,
+             sum((case
+                   when pcm.purchase_sales = 'P' then
+                    1
+                   else
+                    -1
+                 end) * ucm.multiplication_factor * diqs.price_fixed_qty) qty,
+             qum_base.qty_unit_id,
+             qum_base.qty_unit,
+             null strategy_id,
+             'Physical Total' strategy_name,
+             nvl(pcm.approval_status, 'Approved') approval_status
+        from pcm_physical_contract_main    pcm,
+             pcdi_pc_delivery_item         pcdi,
+             diqs_delivery_item_qty_status diqs,
+             pcpd_pc_product_definition    pcpd,
+             pdm_productmaster             pdm,
+             qum_quantity_unit_master      qum_base,
+             cpc_corporate_profit_center   cpc,
+             qum_quantity_unit_master      qum,
+             ucm_unit_conversion_master    ucm
+       where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcdi.pcdi_id = diqs.pcdi_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and diqs.process_id = pc_process_id
+         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpd.input_output = 'Input'
+         and pcpd.process_id = pc_process_id
+         and pcpd.product_id = pdm.product_id
+         and pcpd.profit_center_id = cpc.profit_center_id
+         and diqs.item_qty_unit_id = qum.qty_unit_id
+         and pdm.base_quantity_unit = qum_base.qty_unit_id
+         and pcm.contract_type = 'BASEMETAL'
+         and ucm.from_qty_unit_id = qum.qty_unit_id
+         and ucm.to_qty_unit_id = qum_base.qty_unit_id
+         and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+         and pcm.corporate_id = pc_corporate_id
+         and round(nvl(diqs.price_fixed_qty, 0), 4) >= diqs.total_qty -----added that only fully priced contract should come 05-Sep-2012
+         and pcm.is_active = 'Y'
+         and pcdi.shipment_date is not null
+         and pcdi.shipment_date >= pd_trade_date
+       group by pcm.corporate_id,
+                pcpd.product_id,
+                pdm.product_desc,
+                pcpd.profit_center_id,
+                cpc.profit_center_short_name,
+                cpc.profit_center_name,
+                trunc(pcdi.shipment_date, 'Mon'),
+                to_char(pcdi.shipment_date, 'Mon-YYYY'),
+                qum_base.qty_unit_id,
+                qum_base.qty_unit,
+                nvl(pcm.approval_status, 'Approved');
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for conent started');
+    insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select pcm.corporate_id,
+             'Physical Total' section_name,
+             '13' section_id,
+             pcpd.product_id,
+             pdm.product_desc,
+             pcpd.profit_center_id,
+             cpc.profit_center_short_name,
+             cpc.profit_center_name,
+             trunc(pcdi.shipment_date, 'Mon') delivery_date,
+             to_char(pcdi.shipment_date, 'Mon-YYYY') delivery_month,
+             sum((case
+                   when pcm.purchase_sales = 'P' then
+                    1
+                   else
+                    -1
+                 end) * ucm.multiplication_factor * cipq.payable_qty) qty,
+             qum_base.qty_unit_id,
+             qum_base.qty_unit,
+             null strategy_id,
+             'Physical Total' strategy_name,
+             nvl(pcm.approval_status, 'Approved') approval_status
+        from pcm_physical_contract_main     pcm,
+             pcdi_pc_delivery_item          pcdi,
+             pofh_history                   pofh,
+             pci_physical_contract_item     pci,
+             cipq_contract_item_payable_qty cipq,
+             aml_attribute_master_list      aml,
+             pcpd_pc_product_definition     pcpd,
+             pdm_productmaster              pdm,
+             cpc_corporate_profit_center    cpc,
+             qum_quantity_unit_master       qum_base,
+             ucm_unit_conversion_master     ucm
+       where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pci.pcdi_id = pcdi.pcdi_id
+         and cipq.internal_contract_item_ref_no =
+             pci.internal_contract_item_ref_no
+         and cipq.element_id = aml.attribute_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pci.process_id = pc_process_id
+         and cipq.process_id = pc_process_id
+         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpd.input_output = 'Input'
+         and pcpd.process_id = pc_process_id
+         and aml.underlying_product_id = pdm.product_id
+         and pcpd.profit_center_id = cpc.profit_center_id
+         and pdm.base_quantity_unit = qum_base.qty_unit_id
+         and ucm.from_qty_unit_id = cipq.qty_unit_id
+         and ucm.to_qty_unit_id = pdm.base_quantity_unit
+         and pofh.pcdi_id = pcdi.pcdi_id
+         and pofh.process_id = pcdi.process_id
+         and round(pofh.qty_to_be_fixed, 4) = round(pofh.priced_qty, 4) -----added that only fully priced contract should come 05-Sep-2012
+         and pcm.contract_type = 'CONCENTRATES'
+         and pcm.corporate_id = pc_corporate_id
+         and cipq.qty_type = 'Payable'
+         and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+         and pcdi.shipment_date >= pd_trade_date
+         and pcdi.shipment_date is not null
+         and pcm.is_active = 'Y'
+         and pcdi.is_active = 'Y'
+       group by pcm.corporate_id,
+                pcpd.product_id,
+                pdm.product_desc,
+                pcpd.profit_center_id,
+                cpc.profit_center_short_name,
+                cpc.profit_center_name,
+                trunc(pcdi.shipment_date, 'Mon'),
+                to_char(pcdi.shipment_date, 'Mon-YYYY'),
+                qum_base.qty_unit_id,
+                qum_base.qty_unit,
+                nvl(pcm.approval_status, 'Approved');
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for futures/forwards started');
+    insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select dpd.corporate_id,
+             'Derivative' section_name,
+             '1' section_id,
+             dpd.derivative_prodct_id,
+             dpd.derivative_prodct_name,
+             dpd.profit_center_id,
+             dpd.profit_center_short_name,
+             dpd.profit_center_name,
+             trunc(dpd.prompt_date, 'Mon') delivery_date,
+             to_char(dpd.prompt_date, 'Mon-YYYY') delivery_month,
+             sum(dpd.open_quantity * ucm.multiplication_factor *
+                 dpd.qty_sign) qty,
+             dpd.base_qty_unit_id,
+             dpd.base_qty_unit,
+             'Strategy' strategy_id,
+             dpd.strategy_name,
+             'Approved' approval_status
+        from dpd_derivative_pnl_daily   dpd,
+             ucm_unit_conversion_master ucm
+       where dpd.process_id = pc_process_id
+         and ucm.from_qty_unit_id = dpd.quantity_unit_id
+         and ucm.to_qty_unit_id = dpd.base_qty_unit_id
+         and dpd.corporate_id = pc_corporate_id
+         and dpd.instrument_type in ('Future', 'Forward')
+         and dpd.pnl_type = 'Unrealized'
+         and dpd.prompt_date > pd_trade_date
+       group by dpd.corporate_id,
+                dpd.derivative_prodct_id,
+                dpd.derivative_prodct_name,
+                dpd.profit_center_id,
+                dpd.profit_center_short_name,
+                dpd.profit_center_name,
+                trunc(dpd.prompt_date, 'Mon'),
+                to_char(dpd.prompt_date, 'Mon-YYYY'),
+                dpd.base_qty_unit_id,
+                dpd.base_qty_unit,
+                dpd.strategy_name;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for option (buy call) trades started');
+    insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select dpd.corporate_id,
+             'Options' section_name,
+             '15' section_id,
+             dpd.derivative_prodct_id,
+             dpd.derivative_prodct_name,
+             dpd.profit_center_id,
+             dpd.profit_center_short_name,
+             dpd.profit_center_name,
+             trunc(dpd.option_expiry_date, 'Mon') delivery_date,
+             to_char(dpd.option_expiry_date, 'Mon-YYYY') delivery_month,
+             sum(dpd.open_quantity * ucm.multiplication_factor *
+                 dpd.qty_sign) qty,
+             dpd.base_qty_unit_id,
+             dpd.base_qty_unit,
+             null strategy_id,
+             'Options' strategy_name,
+             'Approved' approval_status
+        from dpd_derivative_pnl_daily   dpd,
+             ucm_unit_conversion_master ucm
+       where dpd.process_id = pc_process_id
+         and ucm.from_qty_unit_id = dpd.quantity_unit_id
+         and ucm.to_qty_unit_id = dpd.base_qty_unit_id
+         and dpd.corporate_id = pc_corporate_id
+         and dpd.instrument_type in ('Option Call', 'OTC Call Option')
+         and dpd.pnl_type = 'Unrealized'
+         and dpd.trade_type = 'Buy'
+         and nvl(dpd.in_out_at_money_status, 'NA') in
+             ('At the Money', 'In the Money')
+         and dpd.option_expiry_date > pd_trade_date
+         and dpd.option_expiry_date is not null
+       group by dpd.corporate_id,
+                dpd.derivative_prodct_id,
+                dpd.derivative_prodct_name,
+                dpd.profit_center_id,
+                dpd.profit_center_short_name,
+                dpd.profit_center_name,
+                trunc(dpd.option_expiry_date, 'Mon'),
+                to_char(dpd.option_expiry_date, 'Mon-YYYY'),
+                dpd.base_qty_unit_id,
+                dpd.base_qty_unit;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for option (Sell Put) trades started');
+    insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select dpd.corporate_id,
+             'Options' section_name,
+             '15' section_id,
+             dpd.derivative_prodct_id,
+             dpd.derivative_prodct_name,
+             dpd.profit_center_id,
+             dpd.profit_center_short_name,
+             dpd.profit_center_name,
+             trunc(dpd.option_expiry_date, 'Mon') delivery_date,
+             to_char(dpd.option_expiry_date, 'Mon-YYYY') delivery_month,
+             sum(dpd.open_quantity * ucm.multiplication_factor *
+                 dpd.qty_sign) qty,
+             dpd.base_qty_unit_id,
+             dpd.base_qty_unit,
+             null strategy_id,
+             'Options' strategy_name,
+             'Approved' approval_status
+        from dpd_derivative_pnl_daily   dpd,
+             ucm_unit_conversion_master ucm
+       where dpd.process_id = pc_process_id
+         and ucm.from_qty_unit_id = dpd.quantity_unit_id
+         and ucm.to_qty_unit_id = dpd.base_qty_unit_id
+         and dpd.corporate_id = pc_corporate_id
+         and dpd.instrument_type in ('Option Put', 'OTC Put Option')
+         and dpd.pnl_type = 'Unrealized'
+         and dpd.trade_type = 'Sell'
+         and nvl(dpd.in_out_at_money_status, 'NA') in
+             ('At the Money', 'In the Money')
+         and dpd.option_expiry_date > pd_trade_date
+         and dpd.option_expiry_date is not null
+       group by dpd.corporate_id,
+                dpd.derivative_prodct_id,
+                dpd.derivative_prodct_name,
+                dpd.profit_center_id,
+                dpd.profit_center_short_name,
+                dpd.profit_center_name,
+                trunc(dpd.option_expiry_date, 'Mon'),
+                to_char(dpd.option_expiry_date, 'Mon-YYYY'),
+                dpd.base_qty_unit_id,
+                dpd.base_qty_unit;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for option (Sell Call) trades started');
+    insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select dpd.corporate_id,
+             'Options' section_name,
+             '15' section_id,
+             dpd.derivative_prodct_id,
+             dpd.derivative_prodct_name,
+             dpd.profit_center_id,
+             dpd.profit_center_short_name,
+             dpd.profit_center_name,
+             trunc(dpd.option_expiry_date, 'Mon') delivery_date,
+             to_char(dpd.option_expiry_date, 'Mon-YYYY') delivery_month,
+             sum(dpd.open_quantity * ucm.multiplication_factor *
+                 dpd.qty_sign) qty,
+             dpd.base_qty_unit_id,
+             dpd.base_qty_unit,
+             null strategy_id,
+             'Options' strategy_name,
+             'Approved' approval_status
+        from dpd_derivative_pnl_daily   dpd,
+             ucm_unit_conversion_master ucm
+       where dpd.process_id = pc_process_id
+         and ucm.from_qty_unit_id = dpd.quantity_unit_id
+         and ucm.to_qty_unit_id = dpd.base_qty_unit_id
+         and dpd.corporate_id = pc_corporate_id
+         and dpd.instrument_type in ('Option Call', 'OTC Call Option')
+         and dpd.pnl_type = 'Unrealized'
+         and dpd.trade_type = 'Sell'
+         and nvl(dpd.in_out_at_money_status, 'NA') in ('Out of the Money')
+         and dpd.option_expiry_date > pd_trade_date
+         and dpd.option_expiry_date is not null
+       group by dpd.corporate_id,
+                dpd.derivative_prodct_id,
+                dpd.derivative_prodct_name,
+                dpd.profit_center_id,
+                dpd.profit_center_short_name,
+                dpd.profit_center_name,
+                trunc(dpd.option_expiry_date, 'Mon'),
+                to_char(dpd.option_expiry_date, 'Mon-YYYY'),
+                dpd.base_qty_unit_id,
+                dpd.base_qty_unit;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for option (Buy Put) trades started');
+    insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select dpd.corporate_id,
+             'Options' section_name,
+             '15' section_id,
+             dpd.derivative_prodct_id,
+             dpd.derivative_prodct_name,
+             dpd.profit_center_id,
+             dpd.profit_center_short_name,
+             dpd.profit_center_name,
+             trunc(dpd.option_expiry_date, 'Mon') delivery_date,
+             to_char(dpd.option_expiry_date, 'Mon-YYYY') delivery_month,
+             sum(dpd.open_quantity * ucm.multiplication_factor *
+                 dpd.qty_sign) qty,
+             dpd.base_qty_unit_id,
+             dpd.base_qty_unit,
+             null strategy_id,
+             'Options' strategy_name,
+             'Approved' approval_status
+        from dpd_derivative_pnl_daily   dpd,
+             ucm_unit_conversion_master ucm
+       where dpd.process_id = pc_process_id
+         and ucm.from_qty_unit_id = dpd.quantity_unit_id
+         and ucm.to_qty_unit_id = dpd.base_qty_unit_id
+         and dpd.corporate_id = pc_corporate_id
+         and dpd.instrument_type in ('Option Put', 'OTC Put Option')
+         and dpd.pnl_type = 'Unrealized'
+         and dpd.trade_type = 'Buy'
+         and nvl(dpd.in_out_at_money_status, 'NA') in ('Out of the Money')
+         and dpd.option_expiry_date > pd_trade_date
+         and dpd.option_expiry_date is not null
+       group by dpd.corporate_id,
+                dpd.derivative_prodct_id,
+                dpd.derivative_prodct_name,
+                dpd.profit_center_id,
+                dpd.profit_center_short_name,
+                dpd.profit_center_name,
+                trunc(dpd.option_expiry_date, 'Mon'),
+                to_char(dpd.option_expiry_date, 'Mon-YYYY'),
+                dpd.base_qty_unit_id,
+                dpd.base_qty_unit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for option opening balance started');
+    insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select pcm.corporate_id,
+             'Physical Total' section_name,
+             '13' section_id,
+             pcpd.product_id,
+             pdm.product_desc,
+             pcpd.profit_center_id,
+             cpc.profit_center_short_name,
+             cpc.profit_center_name,
+             trunc(to_date('01-' || 'Jan-1900'), 'Mon') delivery_date,
+             'Opening Balance' delivery_month,
+             sum(ucm.multiplication_factor *
+                 round(least(diqs.gmr_qty, diqs.price_fixed_qty), 4)) qty,
+             qum_base.qty_unit_id,
+             qum_base.qty_unit,
+             null strategy_id,
+             'Physical Total' strategy_name,
+             nvl(pcm.approval_status, 'Approved') approval_status
+        from pcm_physical_contract_main    pcm,
+             pcdi_pc_delivery_item         pcdi,
+             diqs_delivery_item_qty_status diqs,
+             pcpd_pc_product_definition    pcpd,
+             pdm_productmaster             pdm,
+             qum_quantity_unit_master      qum_base,
+             cpc_corporate_profit_center   cpc,
+             qum_quantity_unit_master      qum,
+             ucm_unit_conversion_master    ucm
+       where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcdi.pcdi_id = diqs.pcdi_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and diqs.process_id = pc_process_id
+         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpd.input_output = 'Input'
+         and pcpd.process_id = pc_process_id
+         and pcpd.product_id = pdm.product_id
+         and pcpd.profit_center_id = cpc.profit_center_id
+         and diqs.item_qty_unit_id = qum.qty_unit_id
+         and pdm.base_quantity_unit = qum_base.qty_unit_id
+         and pcm.contract_type = 'BASEMETAL'
+         and ucm.from_qty_unit_id = qum.qty_unit_id
+         and ucm.to_qty_unit_id = qum_base.qty_unit_id
+         and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+         and pcm.purchase_sales = 'P'
+         and pcm.corporate_id = pc_corporate_id
+         and pcm.is_active = 'Y'
+         and pcdi.shipment_date is not null
+         and pcdi.shipment_date < pd_trade_date
+       group by pcm.corporate_id,
+                pcpd.product_id,
+                pdm.product_desc,
+                pcpd.profit_center_id,
+                cpc.profit_center_short_name,
+                cpc.profit_center_name,
+                trunc(pcdi.shipment_date, 'Mon'),
+                to_char(pcdi.shipment_date, 'Mon-YYYY'),
+                qum_base.qty_unit_id,
+                qum_base.qty_unit,
+                nvl(pcm.approval_status, 'Approved')
+      union all
+      select pcm.corporate_id,
+             'Physical Total' section_name,
+             '13' section_id,
+             pcpd.product_id,
+             pdm.product_desc,
+             pcpd.profit_center_id,
+             cpc.profit_center_short_name,
+             cpc.profit_center_name,
+             trunc(to_date('01-' || 'Jan-1900'), 'Mon') delivery_date,
+             'Opening Balance' delivery_month,
+             sum((case
+                   when round(diqs.price_fixed_qty, 4) - diqs.gmr_qty > 0 then
+                    round(diqs.price_fixed_qty, 4) - diqs.gmr_qty
+                   else
+                    0
+                 end) * -1 * ucm.multiplication_factor) qty,
+             qum_base.qty_unit_id,
+             qum_base.qty_unit,
+             null strategy_id,
+             'Physical Total' strategy_name,
+             nvl(pcm.approval_status, 'Approved') approval_status
+        from pcm_physical_contract_main    pcm,
+             pcdi_pc_delivery_item         pcdi,
+             diqs_delivery_item_qty_status diqs,
+             pcpd_pc_product_definition    pcpd,
+             pdm_productmaster             pdm,
+             qum_quantity_unit_master      qum_base,
+             cpc_corporate_profit_center   cpc,
+             qum_quantity_unit_master      qum,
+             ucm_unit_conversion_master    ucm
+       where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcdi.pcdi_id = diqs.pcdi_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and diqs.process_id = pc_process_id
+         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpd.input_output = 'Input'
+         and pcpd.process_id = pc_process_id
+         and pcpd.product_id = pdm.product_id
+         and pcpd.profit_center_id = cpc.profit_center_id
+         and diqs.item_qty_unit_id = qum.qty_unit_id
+         and pdm.base_quantity_unit = qum_base.qty_unit_id
+         and pcm.contract_type = 'BASEMETAL'
+         and ucm.from_qty_unit_id = qum.qty_unit_id
+         and ucm.to_qty_unit_id = qum_base.qty_unit_id
+         and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+         and pcm.purchase_sales = 'S'
+         and pcm.corporate_id = pc_corporate_id
+         and pcm.is_active = 'Y'
+         and pcdi.shipment_date is not null
+         and pcdi.shipment_date < pd_trade_date
+       group by pcm.corporate_id,
+                pcpd.product_id,
+                pdm.product_desc,
+                pcpd.profit_center_id,
+                cpc.profit_center_short_name,
+                cpc.profit_center_name,
+                trunc(pcdi.shipment_date, 'Mon'),
+                to_char(pcdi.shipment_date, 'Mon-YYYY'),
+                qum_base.qty_unit_id,
+                qum_base.qty_unit,
+                nvl(pcm.approval_status, 'Approved');
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for dummy section started');
+    ----************* insert dummy sections -----------
+    for cc in (select t2.corporate_id,
+                      t1.profit_center_id,
+                      t1.profit_center_name,
+                      t1.profit_center_short_name,
+                      t2.product_id,
+                      t2.product_desc,
+                      t2.qty_unit_id,
+                      t2.qty_unit
+                 from (select cpc.corporateid,
+                              cpc.profit_center_id,
+                              cpc.profit_center_name,
+                              cpc.profit_center_short_name
+                         from cpc_corporate_profit_center cpc
+                        where cpc.corporateid = pc_corporate_id
+                          and cpc.is_active = 'Y'
+                          and cpc.is_deleted = 'N') t1,
+                      (select cpm.corporate_id,
+                              pdm.product_id,
+                              pdm.product_desc,
+                              qum.qty_unit_id,
+                              qum.qty_unit
+                         from cpm_corporateproductmaster cpm,
+                              pdm_productmaster          pdm,
+                              qum_quantity_unit_master   qum
+                        where cpm.corporate_id = pc_corporate_id
+                          and cpm.is_active = 'Y'
+                          and cpm.is_deleted = 'N'
+                          and cpm.product_id = pdm.product_id
+                          and pdm.base_quantity_unit = qum.qty_unit_id) t2
+                where t1.corporateid = t2.corporate_id)
+    loop
+      i := 0;
+      --Physical total
+      insert into temp_tpr
+        (corporate_id,
+         section_name,
+         section_id,
+         product_id,
+         product_desc,
+         profit_center_id,
+         profit_center_short_name,
+         profit_center_name,
+         delivery_date,
+         delivery_month_display,
+         quantity,
+         quantity_unit_id,
+         quantity_unit,
+         strategy_id,
+         strategy_name,
+         approval_status)
+      values
+        (cc.corporate_id,
+         'Physical Total',
+         '13',
+         cc.product_id,
+         cc.product_desc,
+         cc.profit_center_id,
+         cc.profit_center_short_name,
+         cc.profit_center_name,
+         trunc(to_date('01-' || 'Jan-1900'), 'Mon'),
+         'Opening Balance',
+         0,
+         cc.qty_unit_id,
+         cc.qty_unit,
+         null,
+         'Physical Total',
+         'Approved');
+      -- for dumy months--------
+      --Physical total
+      while i <= 9
+      loop
+        insert into temp_tpr
+          (corporate_id,
+           section_name,
+           section_id,
+           product_id,
+           product_desc,
+           profit_center_id,
+           profit_center_short_name,
+           profit_center_name,
+           delivery_date,
+           delivery_month_display,
+           quantity,
+           quantity_unit_id,
+           quantity_unit,
+           strategy_id,
+           strategy_name,
+           approval_status)
+        values
+          (cc.corporate_id,
+           'Physical Total',
+           '13',
+           cc.product_id,
+           cc.product_desc,
+           cc.profit_center_id,
+           cc.profit_center_short_name,
+           cc.profit_center_name,
+           trunc(add_months(pd_trade_date, i), 'Mon'),
+           to_char(add_months(pd_trade_date, i), 'Mon-YYYY'),
+           0,
+           cc.qty_unit_id,
+           cc.qty_unit,
+           null,
+           'Physical Total',
+           'Approved');
+        i := i + 1;
+      end loop;
+      --Options total
+      insert into temp_tpr
+        (corporate_id,
+         section_name,
+         section_id,
+         product_id,
+         product_desc,
+         profit_center_id,
+         profit_center_short_name,
+         profit_center_name,
+         delivery_date,
+         delivery_month_display,
+         quantity,
+         quantity_unit_id,
+         quantity_unit,
+         strategy_id,
+         strategy_name,
+         approval_status)
+      values
+        (cc.corporate_id,
+         'Options',
+         '15',
+         cc.product_id,
+         cc.product_desc,
+         cc.profit_center_id,
+         cc.profit_center_short_name,
+         cc.profit_center_name,
+         trunc(to_date('01-' || 'Jan-1900'), 'Mon'),
+         'Opening Balance',
+         0,
+         cc.qty_unit_id,
+         cc.qty_unit,
+         null,
+         'Options',
+         'Approved');
+      --for derivate strategy section
+      for cc1 in (select css.corporate_id,
+                         css.strategy_name
+                    from css_corporate_strategy_setup css
+                   where css.corporate_id = pc_corporate_id
+                     and css.is_active = 'Y'
+                     and css.is_deleted = 'N')
+      loop
+        insert into temp_tpr
+          (corporate_id,
+           section_name,
+           section_id,
+           product_id,
+           product_desc,
+           profit_center_id,
+           profit_center_short_name,
+           profit_center_name,
+           delivery_date,
+           delivery_month_display,
+           quantity,
+           quantity_unit_id,
+           quantity_unit,
+           strategy_id,
+           strategy_name,
+           approval_status)
+        values
+          (cc.corporate_id,
+           'Derivative',
+           '1',
+           cc.product_id,
+           cc.product_desc,
+           cc.profit_center_id,
+           cc.profit_center_short_name,
+           cc.profit_center_name,
+           trunc(to_date('01-' || 'Jan-1900'), 'Mon'),
+           'Opening Balance',
+           0,
+           cc.qty_unit_id,
+           cc.qty_unit,
+           'Strategy',
+           cc1.strategy_name,
+           'Approved');
+      end loop;
+      commit;
+    end loop;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR - insert temp_tpr for dummy section ends');
+    ---dummy section ends here 
+    --data to main table started....
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR Main table insert - derivative by strategy started');
+  
+    --- derivative trade by strategy
+    insert into tpr_traders_position_report
+      (corporate_id,
+       process_id,
+       process,
+       eod_date,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select corporate_id,
+             pc_process_id,
+             pc_process,
+             pd_trade_date,
+             section_name,
+             section_id,
+             product_id,
+             product_desc,
+             profit_center_id,
+             profit_center_short_name,
+             profit_center_name,
+             delivery_date,
+             delivery_month_display,
+             sum(quantity),
+             quantity_unit_id,
+             quantity_unit,
+             strategy_id,
+             strategy_name,
+             approval_status
+        from temp_tpr tpr
+       where tpr.corporate_id = pc_corporate_id
+         and tpr.section_name in ('Derivative')
+       group by corporate_id,
+                section_name,
+                section_id,
+                product_id,
+                product_desc,
+                profit_center_id,
+                profit_center_short_name,
+                profit_center_name,
+                delivery_date,
+                delivery_month_display,
+                quantity_unit_id,
+                quantity_unit,
+                strategy_id,
+                strategy_name,
+                approval_status;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR Main table insert - derivative by summary section started');
+    --- total sum of derivative trade
+    insert into tpr_traders_position_report
+      (corporate_id,
+       process_id,
+       process,
+       eod_date,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select corporate_id,
+             pc_process_id,
+             pc_process,
+             pd_trade_date,
+             'Derivative' section_name,
+             '12' section_id,
+             product_id,
+             product_desc,
+             profit_center_id,
+             profit_center_short_name,
+             profit_center_name,
+             delivery_date,
+             delivery_month_display,
+             sum(quantity),
+             quantity_unit_id,
+             quantity_unit,
+             null strategy_id,
+             'Derivative' strategy_name,
+             approval_status
+        from temp_tpr tpr
+       where tpr.corporate_id = pc_corporate_id
+         and tpr.section_name in ('Derivative')
+       group by corporate_id,
+                product_id,
+                product_desc,
+                profit_center_id,
+                profit_center_short_name,
+                profit_center_name,
+                delivery_date,
+                delivery_month_display,
+                quantity_unit_id,
+                quantity_unit,
+                approval_status;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR Main table insert - Physical Total section started');
+    insert into tpr_traders_position_report
+      (corporate_id,
+       process_id,
+       process,
+       eod_date,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select corporate_id,
+             pc_process_id,
+             pc_process,
+             pd_trade_date,
+             'Physical Total' section_name,
+             '13' section_id,
+             product_id,
+             product_desc,
+             profit_center_id,
+             profit_center_short_name,
+             profit_center_name,
+             delivery_date,
+             delivery_month_display,
+             sum(quantity),
+             quantity_unit_id,
+             quantity_unit,
+             null strategy_id,
+             'Physical Total' strategy_name,
+             approval_status
+        from temp_tpr tpr
+       where tpr.corporate_id = pc_corporate_id
+         and tpr.section_name in ('Physical Total')
+       group by corporate_id,
+                product_id,
+                product_desc,
+                profit_center_id,
+                profit_center_short_name,
+                profit_center_name,
+                delivery_date,
+                delivery_month_display,
+                quantity_unit_id,
+                quantity_unit,
+                approval_status;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR Main table insert - Balance section started');
+  
+    insert into tpr_traders_position_report
+      (corporate_id,
+       process_id,
+       process,
+       eod_date,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select corporate_id,
+             pc_process_id,
+             pc_process,
+             pd_trade_date,
+             'Balance' section_name,
+             '14' section_id,
+             product_id,
+             product_desc,
+             profit_center_id,
+             profit_center_short_name,
+             profit_center_name,
+             delivery_date,
+             delivery_month_display,
+             sum(quantity),
+             quantity_unit_id,
+             quantity_unit,
+             null strategy_id,
+             'Balance' strategy_name,
+             approval_status
+        from temp_tpr tpr
+       where tpr.corporate_id = pc_corporate_id
+         and tpr.section_name in ('Derivative', 'Physical Total')
+       group by corporate_id,
+                product_id,
+                product_desc,
+                profit_center_id,
+                profit_center_short_name,
+                profit_center_name,
+                delivery_date,
+                delivery_month_display,
+                quantity_unit_id,
+                quantity_unit,
+                approval_status;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR Main table insert - Options section started');
+  
+    insert into tpr_traders_position_report
+      (corporate_id,
+       process_id,
+       process,
+       eod_date,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select corporate_id,
+             pc_process_id,
+             pc_process,
+             pd_trade_date,
+             'Options' section_name,
+             '15' section_id,
+             product_id,
+             product_desc,
+             profit_center_id,
+             profit_center_short_name,
+             profit_center_name,
+             delivery_date,
+             delivery_month_display,
+             sum(quantity),
+             quantity_unit_id,
+             quantity_unit,
+             null strategy_id,
+             'Options' strategy_name,
+             approval_status
+        from temp_tpr tpr
+       where tpr.corporate_id = pc_corporate_id
+         and tpr.section_name in ('Options')
+       group by corporate_id,
+                product_id,
+                product_desc,
+                profit_center_id,
+                profit_center_short_name,
+                profit_center_name,
+                delivery_date,
+                delivery_month_display,
+                quantity_unit_id,
+                quantity_unit,
+                approval_status;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'TPR Main table insert - Total section started');
+  
+    insert into tpr_traders_position_report
+      (corporate_id,
+       process_id,
+       process,
+       eod_date,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select corporate_id,
+             pc_process_id,
+             pc_process,
+             pd_trade_date,
+             'Total' section_name,
+             '16' section_id,
+             product_id,
+             product_desc,
+             profit_center_id,
+             profit_center_short_name,
+             profit_center_name,
+             delivery_date,
+             delivery_month_display,
+             sum(quantity),
+             quantity_unit_id,
+             quantity_unit,
+             null strategy_id,
+             'Total' strategy_name,
+             approval_status
+        from temp_tpr tpr
+       where tpr.corporate_id = pc_corporate_id
+         and tpr.section_name in
+             ('Derivative', 'Physical Total', 'Options')
+       group by corporate_id,
+                product_id,
+                product_desc,
+                profit_center_id,
+                profit_center_short_name,
+                profit_center_name,
+                delivery_date,
+                delivery_month_display,
+                quantity_unit_id,
+                quantity_unit,
+                approval_status;
+    commit;
+    for cc2 in (select akc.corporate_name,
+                       akc.base_cur_id,
+                       akc.base_currency_name
+                  from ak_corporate akc
+                 where akc.corporate_id = pc_corporate_id)
+    loop
+      update tpr_traders_position_report tpr
+         set tpr.corporate_name = cc2.corporate_name
+       where tpr.corporate_id = pc_corporate_id
+         and tpr.process_id = pc_process_id;
+    end loop;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'traders position report completed');
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_trader_position_report',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           ' Message:' ||
+                                                           sqlerrm,
+                                                           null,
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
 
-end; 
+end;
 /

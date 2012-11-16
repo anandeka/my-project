@@ -1,6 +1,6 @@
 create or replace package pkg_phy_populate_data is
 
-  -- Author  : SURESHGOTTIPATI
+  -- Author  : SURESHGOTTIPATI---
   -- Created : 5/2/2011 5:33:53 PM
   -- Purpose : 
   gvc_dbd_id varchar2(15);
@@ -196,8 +196,12 @@ create or replace package pkg_phy_populate_data is
   procedure sp_phy_create_invs(pc_corporate_id varchar2,
                                pd_trade_date   date,
                                pc_user_id      varchar2);
-
-end pkg_phy_populate_data; 
+  procedure sp_phy_update_contract_details(pc_corporate_id varchar2,
+                                           pd_trade_date   date,
+                                           pc_dbd_id       varchar2,
+                                           pc_process      varchar2,
+                                           pc_user_id      varchar2);
+end pkg_phy_populate_data;
 /
 create or replace package body PKG_PHY_POPULATE_DATA is
 
@@ -1024,165 +1028,18 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                             'sp_phy_create_invs');
     sp_phy_create_invs(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
-    
-    -- For Internal movement records update Latest Invoice Number
-for cur_update_inv in (
-select grd_parent.internal_gmr_ref_no parent_internal_gmr_ref_no,
-       grd.internal_gmr_ref_no child_internal_gmr_ref_no,
-       gmr.latest_internal_invoice_ref_no,
-       gmr.is_final_invoiced,
-       gmr.is_provisional_invoiced
-  from grd_goods_record_detail   grd,
-       grd_goods_record_detail   grd_parent,
-       gmr_goods_movement_record gmr
- where grd.parent_internal_grd_ref_no is not null
-   and grd_parent.internal_grd_ref_no = grd.parent_internal_grd_ref_no
-   and gmr.internal_gmr_ref_no = grd_parent.internal_gmr_ref_no
-   and gmr.dbd_id = gvc_dbd_id
-   and grd.dbd_id = gvc_dbd_id
-   and grd_parent.dbd_id = gvc_dbd_id) loop
-   Update gmr_goods_movement_record gmr
-   set gmr.latest_internal_invoice_ref_no = cur_update_inv.latest_internal_invoice_ref_no,
-   gmr.is_provisional_invoiced = cur_update_inv.is_provisional_invoiced,
-   gmr.is_final_invoiced = cur_update_inv.is_final_invoiced
-   where gmr.dbd_id = gvc_dbd_id
-   and gmr.internal_gmr_ref_no = cur_update_inv.child_internal_gmr_ref_no;
-   end loop;
-
--- Update Pricing QP Start Date and End Date in PCI
-   vn_logno := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
                             vn_logno,
-                            'Update Pricing QP Start Date and End Date in PCI');
- 
-for cur_price_qp in
-(--Called off
-select t.pcdi_id,
-       t.internal_contract_item_ref_no,
-       min(qp_start_date) qp_start_date,
-       min(qp_end_date) qp_end_date
-  from (select pcdi.pcdi_id,
-               pci.internal_contract_item_ref_no,
-               pofh.qp_start_date,
-               pofh.qp_end_date
-          from pcm_physical_contract_main     pcm,
-               pcdi_pc_delivery_item          pcdi,
-               pci_physical_contract_item     pci,
-               poch_price_opt_call_off_header poch,
-               pocd_price_option_calloff_dtls pocd,
-               pofh_price_opt_fixation_header pofh
-         where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-           and pcdi.pcdi_id = poch.pcdi_id
-           and poch.poch_id = pocd.poch_id
-           and pocd.pocd_id = pofh.pocd_id
-           and pci.pcdi_id = pcdi.pcdi_id
-           and pocd.qp_period_type <> 'Event'
-           and pcdi.is_active = 'Y'
-           and poch.is_active = 'Y'
-           and pocd.is_active = 'Y'
-           and pofh.is_active = 'Y'
-           and pci.is_active = 'Y'
-           and pcm.dbd_id = pc_dbd_id
-           and pcm.contract_type = 'BASEMETAL'
-           and pcdi.dbd_id = pc_dbd_id
-           and pci.dbd_id = pc_dbd_id
-           and pcdi.price_option_call_off_status in
-               ('Called Off', 'Not Applicable')
-        union -- All with Event Based
-        select pcdi.pcdi_id,
-               pci.internal_contract_item_ref_no,
-               di.expected_qp_start_date qp_start_date,
-               di.expected_qp_end_date qp_end_date
-          from pcm_physical_contract_main pcm,
-               pcdi_pc_delivery_item      pcdi,
-               di_del_item_exp_qp_details di,
-               pci_physical_contract_item pci
-         where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-           and pcdi.pcdi_id = di.pcdi_id
-           and pci.pcdi_id = pcdi.pcdi_id
-           and di.is_active = 'Y'
-           and pcdi.is_active = 'Y'
-           and pci.is_active = 'Y'
-           and pcm.dbd_id = pc_dbd_id
-           and pcm.contract_type = 'BASEMETAL'
-           and pcdi.dbd_id = pc_dbd_id
-           and pci.dbd_id = pc_dbd_id) t
- group by t.pcdi_id,
-          t.internal_contract_item_ref_no
--- not called off
-union all
-
-select t.pcdi_id,
-       t.internal_contract_item_ref_no,
-       min(t.qp_start_date) qp_start_date,
-       min(t.qp_end_date) qp_end_date
-  from (select pci.pcdi_id,
-               pci.internal_contract_item_ref_no,
-               (case
-                 when pfqpp.qp_pricing_period_type = 'Period' then
-                  pfqpp.qp_period_from_date
-                 when pfqpp.qp_pricing_period_type = 'Month' then
-                  to_date('01-' || pfqpp.qp_month || '-' || pfqpp.qp_year,
-                          'dd-Mon-yyyy')
-                 when pfqpp.qp_pricing_period_type = 'Date' then
-                  pfqpp.qp_date
-               end) qp_start_date,
-               (case
-                 when pfqpp.qp_pricing_period_type = 'Period' then
-                  pfqpp.qp_period_to_date
-                 when pfqpp.qp_pricing_period_type = 'Month' then
-                  last_day(to_date('01-' || pfqpp.qp_month || '-' ||
-                                   pfqpp.qp_year,
-                                   'dd-Mon-yyyy'))
-                 when pfqpp.qp_pricing_period_type = 'Date' then
-                  pfqpp.qp_date
-               end) qp_end_date
-        
-          from pcm_physical_contract_main    pcm,
-               pci_physical_contract_item    pci,
-               pcdi_pc_delivery_item         pcdi,
-               pcipf_pci_pricing_formula     pcipf,
-               pcbph_pc_base_price_header    pcbph,
-               pcbpd_pc_base_price_detail    pcbpd,
-               ppfh_phy_price_formula_header ppfh,
-               pfqpp_phy_formula_qp_pricing  pfqpp
-         where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-           and pci.internal_contract_item_ref_no =
-               pcipf.internal_contract_item_ref_no
-           and pci.pcdi_id = pcdi.pcdi_id
-           and pcipf.pcbph_id = pcbph.pcbph_id
-           and pcbph.pcbph_id = pcbpd.pcbph_id
-           and pcbpd.pcbpd_id = ppfh.pcbpd_id
-           and ppfh.ppfh_id = pfqpp.ppfh_id
-           and pfqpp.qp_pricing_period_type <> 'Event'
-           and pci.is_active = 'Y'
-           and pcipf.is_active = 'Y'
-           and pcbph.is_active = 'Y'
-           and pcbpd.is_active = 'Y'
-           and ppfh.is_active = 'Y'
-           and pfqpp.is_active = 'Y'
-           and pcdi.is_active = 'Y'
-           and pcm.dbd_id = pc_dbd_id
-           and pcm.contract_type = 'BASEMETAL'
-           and pci.dbd_id = pc_dbd_id
-           and pcdi.dbd_id = pc_dbd_id
-           and pcipf.dbd_id = pc_dbd_id
-           and pcbph.dbd_id = pc_dbd_id
-           and pcbpd.dbd_id = pc_dbd_id
-           and ppfh.dbd_id = pc_dbd_id
-           and pfqpp.dbd_id = pc_dbd_id
-           and pcdi.price_option_call_off_status = 'Not Called Off') t
- group by t.pcdi_id,
-          t.internal_contract_item_ref_no) loop
-Update pci_physical_contract_item pci
-set pci.qp_start_date = cur_price_qp.qp_start_date,
-pci.qp_end_date = cur_price_qp.qp_end_date
-where pci.internal_contract_item_ref_no = cur_price_qp.internal_contract_item_ref_no
-and pci.dbd_id = pc_dbd_id;
-end loop;          
-
+                            'sp_phy_update_contract_details');
+     sp_phy_update_contract_details(pc_corporate_id,
+                                           pd_trade_date,
+                                           pc_dbd_id,
+                                           pc_process,
+                                           pc_user_id);
+    commit;                                                                                      
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -13280,6 +13137,222 @@ where gmr.dbd_id = gvc_dbd_id;
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
+  procedure sp_phy_update_contract_details(pc_corporate_id varchar2,
+                                           pd_trade_date   date,
+                                           pc_dbd_id       varchar2,
+                                           pc_process      varchar2,
+                                           pc_user_id      varchar2) is
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
 
+  begin
+  
+    -- For Internal movement records update Latest Invoice Number
+    for cur_update_inv in (select grd_parent.internal_gmr_ref_no parent_internal_gmr_ref_no,
+                                  grd.internal_gmr_ref_no child_internal_gmr_ref_no,
+                                  gmr.latest_internal_invoice_ref_no,
+                                  gmr.is_final_invoiced,
+                                  gmr.is_provisional_invoiced
+                             from grd_goods_record_detail   grd,
+                                  grd_goods_record_detail   grd_parent,
+                                  gmr_goods_movement_record gmr
+                            where grd.parent_internal_grd_ref_no is not null
+                              and grd_parent.internal_grd_ref_no =
+                                  grd.parent_internal_grd_ref_no
+                              and gmr.internal_gmr_ref_no =
+                                  grd_parent.internal_gmr_ref_no
+                              and gmr.dbd_id = pc_dbd_id
+                              and grd.dbd_id = pc_dbd_id
+                              and grd_parent.dbd_id = pc_dbd_id)
+    loop
+      update gmr_goods_movement_record gmr
+         set gmr.latest_internal_invoice_ref_no = cur_update_inv.latest_internal_invoice_ref_no,
+             gmr.is_provisional_invoiced        = cur_update_inv.is_provisional_invoiced,
+             gmr.is_final_invoiced              = cur_update_inv.is_final_invoiced
+       where gmr.dbd_id = pc_dbd_id
+         and gmr.internal_gmr_ref_no =
+             cur_update_inv.child_internal_gmr_ref_no;
+    end loop;
+    commit;
+    sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            100,
+                            'Update for Internal movement records update Latest Invoice Number');
+    -- Update Pricing QP Start Date and End Date in PCI
+    for cur_price_qp in ( --Called off
+                         select t.pcdi_id,
+                                 t.internal_contract_item_ref_no,
+                                 min(qp_start_date) qp_start_date,
+                                 min(qp_end_date) qp_end_date
+                           from (select pcdi.pcdi_id,
+                                         pci.internal_contract_item_ref_no,
+                                         pofh.qp_start_date,
+                                         pofh.qp_end_date
+                                    from pcm_physical_contract_main     pcm,
+                                         pcdi_pc_delivery_item          pcdi,
+                                         pci_physical_contract_item     pci,
+                                         poch_price_opt_call_off_header poch,
+                                         pocd_price_option_calloff_dtls pocd,
+                                         pofh_price_opt_fixation_header pofh
+                                   where pcm.internal_contract_ref_no =
+                                         pcdi.internal_contract_ref_no
+                                     and pcdi.pcdi_id = poch.pcdi_id
+                                     and poch.poch_id = pocd.poch_id
+                                     and pocd.pocd_id = pofh.pocd_id
+                                     and pci.pcdi_id = pcdi.pcdi_id
+                                     and pocd.qp_period_type <> 'Event'
+                                     and pcdi.is_active = 'Y'
+                                     and poch.is_active = 'Y'
+                                     and pocd.is_active = 'Y'
+                                     and pofh.is_active = 'Y'
+                                     and pci.is_active = 'Y'
+                                     and pcm.dbd_id = pc_dbd_id
+                                     and pcm.contract_type = 'BASEMETAL'
+                                     and pcdi.dbd_id = pc_dbd_id
+                                     and pci.dbd_id = pc_dbd_id
+                                     and pcdi.price_option_call_off_status in
+                                         ('Called Off', 'Not Applicable')
+                                  union -- All with Event Based
+                                  select pcdi.pcdi_id,
+                                         pci.internal_contract_item_ref_no,
+                                         di.expected_qp_start_date qp_start_date,
+                                         di.expected_qp_end_date qp_end_date
+                                    from pcm_physical_contract_main pcm,
+                                         pcdi_pc_delivery_item      pcdi,
+                                         di_del_item_exp_qp_details di,
+                                         pci_physical_contract_item pci
+                                   where pcm.internal_contract_ref_no =
+                                         pcdi.internal_contract_ref_no
+                                     and pcdi.pcdi_id = di.pcdi_id
+                                     and pci.pcdi_id = pcdi.pcdi_id
+                                     and di.is_active = 'Y'
+                                     and pcdi.is_active = 'Y'
+                                     and pci.is_active = 'Y'
+                                     and pcm.dbd_id = pc_dbd_id
+                                     and pcm.contract_type = 'BASEMETAL'
+                                     and pcdi.dbd_id = pc_dbd_id
+                                     and pci.dbd_id = pc_dbd_id) t
+                          group by t.pcdi_id,
+                                    t.internal_contract_item_ref_no
+                         -- not called off
+                         union all
+                         
+                         select t.pcdi_id,
+                                t.internal_contract_item_ref_no,
+                                min(t.qp_start_date) qp_start_date,
+                                min(t.qp_end_date) qp_end_date
+                           from (select pci.pcdi_id,
+                                        pci.internal_contract_item_ref_no,
+                                        (case
+                                          when pfqpp.qp_pricing_period_type =
+                                               'Period' then
+                                           pfqpp.qp_period_from_date
+                                          when pfqpp.qp_pricing_period_type =
+                                               'Month' then
+                                           to_date('01-' || pfqpp.qp_month || '-' ||
+                                                   pfqpp.qp_year,
+                                                   'dd-Mon-yyyy')
+                                          when pfqpp.qp_pricing_period_type =
+                                               'Date' then
+                                           pfqpp.qp_date
+                                        end) qp_start_date,
+                                        (case
+                                          when pfqpp.qp_pricing_period_type =
+                                               'Period' then
+                                           pfqpp.qp_period_to_date
+                                          when pfqpp.qp_pricing_period_type =
+                                               'Month' then
+                                           last_day(to_date('01-' ||
+                                                            pfqpp.qp_month || '-' ||
+                                                            pfqpp.qp_year,
+                                                            'dd-Mon-yyyy'))
+                                          when pfqpp.qp_pricing_period_type =
+                                               'Date' then
+                                           pfqpp.qp_date
+                                        end) qp_end_date
+                                 
+                                   from pcm_physical_contract_main    pcm,
+                                        pci_physical_contract_item    pci,
+                                        pcdi_pc_delivery_item         pcdi,
+                                        pcipf_pci_pricing_formula     pcipf,
+                                        pcbph_pc_base_price_header    pcbph,
+                                        pcbpd_pc_base_price_detail    pcbpd,
+                                        ppfh_phy_price_formula_header ppfh,
+                                        pfqpp_phy_formula_qp_pricing  pfqpp
+                                  where pcm.internal_contract_ref_no =
+                                        pcdi.internal_contract_ref_no
+                                    and pci.internal_contract_item_ref_no =
+                                        pcipf.internal_contract_item_ref_no
+                                    and pci.pcdi_id = pcdi.pcdi_id
+                                    and pcipf.pcbph_id = pcbph.pcbph_id
+                                    and pcbph.pcbph_id = pcbpd.pcbph_id
+                                    and pcbpd.pcbpd_id = ppfh.pcbpd_id
+                                    and ppfh.ppfh_id = pfqpp.ppfh_id
+                                    and pfqpp.qp_pricing_period_type <> 'Event'
+                                    and pci.is_active = 'Y'
+                                    and pcipf.is_active = 'Y'
+                                    and pcbph.is_active = 'Y'
+                                    and pcbpd.is_active = 'Y'
+                                    and ppfh.is_active = 'Y'
+                                    and pfqpp.is_active = 'Y'
+                                    and pcdi.is_active = 'Y'
+                                    and pcm.dbd_id = pc_dbd_id
+                                    and pcm.contract_type = 'BASEMETAL'
+                                    and pci.dbd_id = pc_dbd_id
+                                    and pcdi.dbd_id = pc_dbd_id
+                                    and pcipf.dbd_id = pc_dbd_id
+                                    and pcbph.dbd_id = pc_dbd_id
+                                    and pcbpd.dbd_id = pc_dbd_id
+                                    and ppfh.dbd_id = pc_dbd_id
+                                    and pfqpp.dbd_id = pc_dbd_id
+                                    and pcdi.price_option_call_off_status =
+                                        'Not Called Off') t
+                          group by t.pcdi_id,
+                                   t.internal_contract_item_ref_no)
+    loop
+      update pci_physical_contract_item pci
+         set pci.qp_start_date = cur_price_qp.qp_start_date,
+             pci.qp_end_date   = cur_price_qp.qp_end_date
+       where pci.internal_contract_item_ref_no =
+             cur_price_qp.internal_contract_item_ref_no
+         and pci.dbd_id = pc_dbd_id;
+    end loop;
+   commit;
+   sp_precheck_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_dbd_id,
+                        101,
+                        'Updated Pricing QP Start Date and End Date in PCI');
+
+    --added by siva
+    update pcdi_pc_delivery_item pcdi
+       set pcdi.shipment_date = (case when pcdi.basis_type = 'Shipment' then(case when pcdi.delivery_period_type = 'Month' then last_day('01-' || pcdi.delivery_to_month || '-' || pcdi.delivery_to_year) when pcdi.delivery_period_type = 'Date' then pcdi.delivery_to_date end) when pcdi.basis_type = 'Arrival' then(case when pcdi.delivery_period_type = 'Month' then last_day('01-' || pcdi.delivery_to_month || '-' || pcdi.delivery_to_year) - nvl(pcdi.transit_days, 0) when pcdi.delivery_period_type = 'Date' then pcdi.delivery_to_date - nvl(pcdi.transit_days, 0) end) end),
+           pcdi.arrival_date  = (case when pcdi.basis_type = 'Shipment' then(case when pcdi.delivery_period_type = 'Month' then last_day('01-' || pcdi.delivery_to_month || '-' || pcdi.delivery_to_year) when pcdi.delivery_period_type = 'Date' then pcdi.delivery_to_date end) + nvl(pcdi.transit_days, 0) when pcdi.basis_type = 'Arrival' then(case when pcdi.delivery_period_type = 'Month' then last_day('01-' || pcdi.delivery_to_month || '-' || pcdi.delivery_to_year) when pcdi.delivery_period_type = 'Date' then pcdi.delivery_to_date end) end)
+     where pcdi.dbd_id = pc_dbd_id
+       and pcdi.is_active = 'Y';
+    commit;
+   sp_precheck_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_dbd_id,
+                        102,
+                        'Updated shipment date,arrival date for PCDI table');
+
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_phy_update_contract_details',
+                                                           'M2M-013',
+                                                           'Code:' || sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+  end;
 end pkg_phy_populate_data; 
 /

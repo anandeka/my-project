@@ -63,7 +63,7 @@ create or replace package body pkg_phy_physical_process is
                            pc_process      varchar2, --eod or eom
                            pc_dbd_id       varchar2
                            ------------------------------------------------------------------------------------------
-                           --        procedure name                            : sp_process_run
+                           --        procedure name--                            : sp_process_run
                            --        author                                    : Jana
                            --        created date                              : 10 th jan 2011
                            --        purpose                                   : calls all procedures for eod
@@ -4170,24 +4170,25 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     delete from prp_physical_risk_position
      where process_id = pc_process_id;
-	commit;
+    commit;
     delete from eod_eom_phy_booking_journal
      where process_id = pc_process_id;
     delete from getc_gmr_element_tc_charges
      where process_id = pc_process_id;
-	commit;
+    commit;
     delete from gerc_gmr_element_rc_charges
      where process_id = pc_process_id;
     delete from gepc_gmr_element_pc_charges
      where process_id = pc_process_id;
-	commit;
-	delete from cmp_contract_market_price where process_id = pc_process_id;
+    commit;
+    delete from cmp_contract_market_price where process_id = pc_process_id;
     delete from gmp_gmr_market_price where process_id = pc_process_id;
     commit;
-	delete from page_price_alloc_gmr_exchange
+    delete from page_price_alloc_gmr_exchange
     where process_id = pc_process_id;
-
-  
+    delete from tpr_traders_position_report
+    where process_id = pc_process_id;
+    commit;
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
     --
