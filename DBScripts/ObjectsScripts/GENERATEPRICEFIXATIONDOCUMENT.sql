@@ -29,6 +29,7 @@ CREATE OR REPLACE PROCEDURE "GENERATEPRICEFIXATIONDOCUMENT"(p_pfd_id         VAR
   is_delta_pricing      VARCHAR2(10);
   purchase_sales        VARCHAR2(30);
   is_payin_pricing_same VARCHAR2(10);
+  premium_details       VARCHAR2(2000);
 
 BEGIN
 
@@ -181,7 +182,8 @@ BEGIN
             'Y'
            ELSE
             'N'
-         END)
+         END),
+         getpremuimdetails(pcdi.pcdi_id)
     INTO corporate_name,
          cp_address,
          cp_city,
@@ -204,7 +206,8 @@ BEGIN
          currency_product,
          quantity_unit,
          purchase_sales,
-         is_payin_pricing_same
+         is_payin_pricing_same,
+         premium_details
     FROM pfd_price_fixation_details     pfd,
          pofh_price_opt_fixation_header pofh,
          pocd_price_option_calloff_dtls pocd,
@@ -283,7 +286,8 @@ BEGIN
      CURRENCY_PRODUCT,
      QUANTITY_UNIT,
      DOC_ISSUE_DATE,
-     PURCHASE_SALES)
+     PURCHASE_SALES,
+     PREMIUM)
   VALUES
     (p_docrefno,
      corporate_name,
@@ -308,7 +312,8 @@ BEGIN
      currency_product,
      quantity_unit,
      p_doc_issue_date,
-     purchase_sales);
+     purchase_sales,
+     premium_details);
 
   /** Check if delta pricing exist for that pfd  */
   select nvl(pfd.is_delta_pricing, 'N')
