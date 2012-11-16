@@ -1,0 +1,81 @@
+Patch No*          		:  EKA_METALS_PATCH_1179
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir kumar Pagada
+ 
+Created on*        		:  16-Nov-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  68875
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Price Fixation
+
+Sub-Module  			 :  O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 108034
+Author: sishir.pagada
+Date: 2:39:56 PM, Friday, November 16, 2012
+Message:
+Price Fixation Doc: Premium. Bug 68875
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_436.sql
+
+
+Revision: 108035
+Author: sishir.pagada
+Date: 2:44:47 PM, Friday, November 16, 2012
+Message:
+Price Fixation Doc: Premium. Bug 68875
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETPREMUIMDETAILS.sql
+
+
+Revision: 108036
+Author: sishir.pagada
+Date: 2:45:40 PM, Friday, November 16, 2012
+Message:
+Price Fixation Doc: Premium. Bug 68875
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
