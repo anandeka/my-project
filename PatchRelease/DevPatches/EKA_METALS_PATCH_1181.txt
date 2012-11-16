@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_1181
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  16-Nov-2012
+
+Bug / Enhancement*              :  BUG/Enhancement
+
+Bug ID*            		:  70420,70470,70473
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Traders position report
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 108109
+Author: sivachalabathi.s
+Date: 7:49:48 PM, Friday, November 16, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_437.sql
+
+
+
+
+Revision: 108110
+Author: sivachalabathi.s
+Date: 7:51:22 PM, Friday, November 16, 2012
+Message:
+trades position report changes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativesUnRealizedPnLReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDerivativesUnRealizedPnLReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyDerivativesUnRealizedPnLReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyDerivativesUnRealizedPnLReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TradersPositionReport.rpt
