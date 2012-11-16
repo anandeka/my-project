@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1178
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suesh Gottipati
+ 
+Created on*        		:  15-Nov-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  App
+
+Sub-Module  			 :  App
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 108022
+Author: suresh.gottipati
+Date: 12:11:00 PM, Friday, November 16, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_DER_PHYSICAL_BOOKING.sql
+
+
+
+
+
+
+
+
+
+
+
+
