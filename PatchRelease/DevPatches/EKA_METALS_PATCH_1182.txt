@@ -35,3 +35,49 @@ Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
 
+Revision: 108105
+Author: sivachalabathi.s
+Date: 7:45:35 PM, Friday, November 16, 2012
+Message:
+trades position report changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/93_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
+
+
+Revision: 108106
+Author: sivachalabathi.s
+Date: 7:48:06 PM, Friday, November 16, 2012
+Message:
+trades position report changes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+
+
+Revision: 108116
+Author: janna
+Date: 8:10:45 PM, Friday, November 16, 2012
+Message:
+Calcualte COG : Correct Sec Cost for Realized Sales GMR when Qty reduced in Landing
+Geberal : Error Message beautify
+Precheck : Valuation Fx Date EOD Date by default
+M2M Quality and Product Premium, LD update based on inventoty M2M yes or no, 
+TMPC Fx Date for QP and Valuation logic corrected
+Realized PNL issues fixed
+Metals general : LP Exchange rate string only when currency is different
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_Pkg_General.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_calculate_cog.sql
+
+
+
+
+
+
+
+
