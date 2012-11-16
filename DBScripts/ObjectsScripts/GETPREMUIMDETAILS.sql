@@ -83,7 +83,21 @@ BEGIN
       END IF;
    END LOOP;
 
-   premium_details := incoterm_premium || chr(10) || quality_premium;
+   IF incoterm_premium IS NOT NULL AND quality_premium IS NOT NULL
+   THEN
+      premium_details := incoterm_premium || CHR (10) || quality_premium;
+   END IF;
+
+   IF incoterm_premium IS NOT NULL AND quality_premium IS NULL
+   THEN
+      premium_details := incoterm_premium;
+   END IF;
+
+   IF incoterm_premium IS NULL AND quality_premium IS NOT NULL
+   THEN
+      premium_details := quality_premium;
+   END IF;
+
    RETURN premium_details;
 EXCEPTION
    WHEN NO_DATA_FOUND
