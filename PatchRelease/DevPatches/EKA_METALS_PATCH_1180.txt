@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_1180
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  16-Nov-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  69803
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 108108
+Author: anandp
+Date: 19:48:28, 16 November 2012
+Message:
+data correction patch for vat amount.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_21.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
