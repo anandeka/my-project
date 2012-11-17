@@ -75,7 +75,7 @@ create or replace package pkg_phy_custom_reports is
                                       pc_process_id   varchar2,
                                       pc_user_id      varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_custom_reports is
 
@@ -813,7 +813,6 @@ create or replace package body pkg_phy_custom_reports is
                           (nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
                           (ivd.vat_amount_in_vat_cur *
-                          nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
                           null commission_value,
                           null commission_value_ccy,
@@ -932,7 +931,6 @@ create or replace package body pkg_phy_custom_reports is
                           (nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
                           (ivd.vat_amount_in_vat_cur *
-                          nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
                           null commission_value,
                           null commission_value_ccy,
@@ -1116,7 +1114,6 @@ create or replace package body pkg_phy_custom_reports is
                           (nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
                           (ivd.vat_amount_in_vat_cur *
-                          nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
                           null commission_value,
                           null commission_value_ccy,
@@ -1236,7 +1233,6 @@ create or replace package body pkg_phy_custom_reports is
                           (nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
                           (ivd.vat_amount_in_vat_cur *
-                          nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
                           null commission_value,
                           null commission_value_ccy,
@@ -1494,7 +1490,6 @@ create or replace package body pkg_phy_custom_reports is
                           (nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
                           (ivd.vat_amount_in_vat_cur *
-                          nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
                           null commission_value,
                           null commission_value_ccy,
@@ -1613,7 +1608,6 @@ create or replace package body pkg_phy_custom_reports is
                           (nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) fx_rate_for_vat,
                           (ivd.vat_amount_in_vat_cur *
-                          nvl(ivd.fx_rate_vc_ic, 1) *
                           nvl(iss.fx_to_base, 1)) vat_amount_base_currency,
                           null commission_value,
                           null commission_value_ccy,
@@ -8507,5 +8501,5 @@ create or replace package body pkg_phy_custom_reports is
       sp_insert_error_log(vobj_error_log);
   end;
 
-end;
+end; 
 /
