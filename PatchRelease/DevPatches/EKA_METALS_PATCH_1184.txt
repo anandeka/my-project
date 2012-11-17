@@ -8,7 +8,7 @@ Created on*        		:  17-Nov-2012
 
 Bug / Enhancement*      	:  BUG
 
-Bug ID*            		:  69541,70395,70417
+Bug ID*            		:  69541,70395,70417,70512
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -41,6 +41,15 @@ Message:
 Bug Fixes
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_102_RFC_RPC.sql
+
+
+Revision: 108164
+Author: suresh.gottipati
+Date: 1:46:44 PM, Saturday, November 17, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_DER_PHYSICAL_BOOKING.sql
 
 
 Revision: 108156
