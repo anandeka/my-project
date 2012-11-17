@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1187
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar
+ 
+Created on*        		:  17-Nov-2012
+
+Bug / Enhancement*      	:  NA
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	   :  Assay
+
+Sub-Module  			   :  Assay
+ 
+Section   		   	   :  N/A
+ 
+Screen		           	   :  N/A
+ 
+FS Number and Clause No.	   :  N/A
+ 
+FS Enhancement details 		   :  N/A
+ 
+FS Amendment details   		   :  N/A
+
+Dependent patches:		   :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 108198
+Author: rajeshwar.reddy
+Date: 16:59:48, 17 November 2012
+Message:
+AssayListing Performance.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_351.sql
+
+Revision: 108199
+Author: rajeshwar.reddy
+Date: 17:04:50, 17 November 2012
+Message:
+AssayListing Performance.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_22.sql
+
