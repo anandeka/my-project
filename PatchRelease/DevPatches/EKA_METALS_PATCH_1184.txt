@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1184
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  17-Nov-2012
+
+Bug / Enhancement*      	:  BUG
+
+Bug ID*            		:  69541,70395,70417
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Reports
+
+Sub-Module  			:  Reports
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction, Reports
+==================================================================
+Revision: 108154
+Author: suresh.gottipati
+Date: 1:14:40 PM, Saturday, November 17, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_102_RFC_RPC.sql
+
+
+Revision: 108156
+Author: suresh.gottipati
+Date: 1:16:19 PM, Saturday, November 17, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DeliveryScheduleReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+
