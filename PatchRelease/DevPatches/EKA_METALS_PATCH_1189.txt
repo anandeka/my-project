@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1189
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  19-Nov-2012
+
+Bug / Enhancement*      	:  NA
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	   :  Assay
+
+Sub-Module  			   :  Assay OutPut Doc
+ 
+Section   		   	   :  N/A
+ 
+Screen		           	   :  N/A
+ 
+FS Number and Clause No.	   :  N/A
+ 
+FS Enhancement details 		   :  N/A
+ 
+FS Amendment details   		   :  N/A
+
+Dependent patches:		   :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 108271
+Author: elaiyaraja.nallathambi
+Date: 2:56:56 PM, Monday, November 19, 2012
+Message:
+Designed as Per Latest Format..
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+
