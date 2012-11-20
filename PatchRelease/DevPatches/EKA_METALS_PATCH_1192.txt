@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1192
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  20-Nov-2012
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	            :  Invoice
+
+Sub-Module  			        :  N/A
+ 
+Section   		   	            :  N/A
+ 
+Screen		           	        :  N/A
+ 
+FS Number and Clause No.	    :  N/A
+ 
+FS Enhancement details 		    :  N/A
+ 
+FS Amendment details   		    :  N/A
+
+Dependent patches:		        :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 108407
+Author: mayank.chaturvedi
+Date: 7:13:48 PM, Tuesday, November 20, 2012
+Message:
+-Patch for Secondary Provisional Invoice
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_441.sql
