@@ -4551,7 +4551,9 @@ create or replace package body pkg_phy_custom_reports is
              dpd.pd_price_weight_unit_id,
              dpd.pd_price_weight_unit,
              dpd.base_qty_unit_id,
-             dpd.base_qty_unit
+             dpd.base_qty_unit,
+             dpd.price_point_id,
+             dpd.price_point_name
         from dpd_derivative_pnl_daily dpd,
              (select fsh.internal_derivative_ref_no,
                      fsh.settlement_ref_no,
@@ -4630,7 +4632,9 @@ create or replace package body pkg_phy_custom_reports is
              dpd.pd_price_weight_unit_id,
              dpd.pd_price_weight_unit,
              dpd.base_qty_unit_id,
-             dpd.base_qty_unit
+             dpd.base_qty_unit,
+             dpd.price_point_id,
+             dpd.price_point_name
         from dpd_derivative_pnl_daily dpd,
              (select fsh.internal_derivative_ref_no,
                      fsh.settlement_ref_no,
@@ -5185,7 +5189,9 @@ create or replace package body pkg_phy_custom_reports is
          trade_price_unit_id,
          prem_price_unit_id,
          base_qty_unit,
-         base_qty_unit_id)
+         base_qty_unit_id,
+         price_point_id,
+         price_point_name)
       values
         (cr_cdc_row.journal_type,
          cr_cdc_row.book_type,
@@ -5242,7 +5248,9 @@ create or replace package body pkg_phy_custom_reports is
          cr_cdc_row.trade_price_unit_id,
          cr_cdc_row.premium_discount_price_unit_id,
          cr_cdc_row.base_qty_unit,
-         cr_cdc_row.base_qty_unit_id);
+         cr_cdc_row.base_qty_unit_id,
+         cr_cdc_row.price_point_id,
+         cr_cdc_row.price_point_name);
     end loop;
     commit;
     ---derivative price fixation ends here
