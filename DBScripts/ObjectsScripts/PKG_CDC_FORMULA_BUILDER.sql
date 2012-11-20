@@ -41,6 +41,8 @@ CREATE OR REPLACE PACKAGE "PKG_CDC_FORMULA_BUILDER" is
 end; 
  
  
+ 
+ 
 /
 CREATE OR REPLACE PACKAGE BODY "PKG_CDC_FORMULA_BUILDER" is
   procedure sp_calculate_price
@@ -1241,6 +1243,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_CDC_FORMULA_BUILDER" is
                                        pm.period_type_id
                                    and drm.price_point_id is null
                                    and upper(pm.period_type_name) = 'DAY'
+                                   and nvl(dqd.price,0)<>0
                                    and dq.is_deleted = 'N'
                                    and dqd.is_deleted = 'N'
                                    and drm.is_deleted = 'N'
@@ -1399,6 +1402,7 @@ CREATE OR REPLACE PACKAGE BODY "PKG_CDC_FORMULA_BUILDER" is
                                  and dqd.dr_id = vc_tbl(i).drid
                                  and dq.is_deleted = 'N'
                                  and dqd.is_deleted = 'N'
+                                 and nvl(dqd.price,0)<>0
                                  and apm.available_price_name =
                                      pc_price_name)
                        where td_rank = 1;                       
