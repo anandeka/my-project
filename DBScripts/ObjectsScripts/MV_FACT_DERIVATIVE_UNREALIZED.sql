@@ -73,7 +73,13 @@ select dpd.corporate_id,
        dpd.average_from_date average_period_from,
        dpd.average_to_date average_period_to,
        dpd.premium_discount premium,
-       dpd.premium_discount_price_unit_id premium_price_unit,
+       (case
+         when dpd.pd_price_cur_code is not null then
+          dpd.pd_price_cur_code || '/' || dpd.pd_price_weight ||
+          dpd.pd_price_weight_unit
+         else
+          'NA'
+       end) premium_price_unit,
        dpd.clearer_comm_amt commision_value,
        dpd.clearer_comm_cur_code commission_value_currency,
        dpd.expiry_date,
@@ -107,7 +113,10 @@ select dpd.corporate_id,
        dpd.clearer_comm_in_base,
        dpd.clearer_exch_rate clearer_cur_to_base,
        dpd.trade_value_in_base,
-       dpd.market_value_in_base
+       dpd.market_value_in_base,
+       dpd.trade_type,
+       dpd.instrument_type,
+       dpd.instrument_sub_type       
   from dpd_derivative_pnl_daily@eka_eoddb dpd,
        tdc_trade_date_closure@eka_eoddb   tdc,
        pdm_productmaster                  pdm,
@@ -121,7 +130,7 @@ select dpd.corporate_id,
    and dpd.corporate_id = akc.corporate_id
    and akc.is_active = 'Y'
    and cm_corp.cur_id = akc.base_cur_id
-  -- and tdc.process = 'EOD'
+      -- and tdc.process = 'EOD'
    and dpd.strategy_id = msa.startegy_id(+)
 union all
 select cpd.corporate_id,
@@ -207,7 +216,11 @@ select cpd.corporate_id,
        0 clearer_comm_in_base,
        0 clearer_cur_to_base,
        0 trade_value_in_base,
-       0 market_value_in_base
+       0 market_value_in_base,
+       'NA' trade_type,
+       'Forward' instrument_type,
+       'NA' instrument_sub_type
+       
   from cpd_currency_pnl_daily@eka_eoddb        cpd,
        tdc_trade_date_closure@eka_eoddb        tdc,
        ct_currency_trade@eka_eoddb             ct,
@@ -218,7 +231,7 @@ select cpd.corporate_id,
        cm_currency_master@eka_eoddb            cm_group_cur,
        cm_currency_master                      cm_corp,
        pdm_productmaster@eka_eoddb             pdm,
-       mv_bi_strategy_attribute           msa
+       mv_bi_strategy_attribute                msa
  where upper(cpd.pnl_type) = 'UNREALIZED'
    and cpd.process_id = tdc.process_id
    and cpd.corporate_id = tdc.corporate_id
@@ -226,7 +239,7 @@ select cpd.corporate_id,
    and ct.process_id = cpd.process_id
    and pym.payment_term_id(+) = ct.payment_terms_id
    and dpm.purpose_id = ct.purpose_id
-  -- and tdc.process = 'EOD'
+      -- and tdc.process = 'EOD'
    and cpd.corporate_id = ak.corporate_id
    and ak.corporate_id = tdc.corporate_id
    and gcd_group_id.groupid = ak.groupid
