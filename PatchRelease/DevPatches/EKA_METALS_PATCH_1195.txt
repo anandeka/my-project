@@ -1,0 +1,41 @@
+Patch No*          		:  EKA_METALS_PATCH_1195
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  20-Nov-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Journals
+
+Sub-Module  			    :  N/A
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	    :  N/A
+ 
+FS Number and Clause No.	    :  N/A
+ 
+FS Enhancement details 		    :  N/A
+ 
+FS Amendment details   		    :  N/A
+
+Dependent patches:		    :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+----
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_DER_PHY_PFC_JOURNAL.sql			(Revision: 108436)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_FACT_DERIVATIVE_UNREALIZED.sql		(Revision: 108436)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_CDC_FORMULA_BUILDER.sql			(Revision: 108434)

@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1194
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  20-Nov-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Journals
+
+Sub-Module  			    :  N/A
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	    :  N/A
+ 
+FS Number and Clause No.	    :  N/A
+ 
+FS Enhancement details 		    :  N/A
+ 
+FS Amendment details   		    :  N/A
+
+Dependent patches:		    :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 108437
+Author: sivachalabathi.s
+Date: 8:23:02 PM, Tuesday, November 20, 2012
+Message:
+BUG FIXES IN JOURANSL
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/94_DDL_EODDB_ALTER_SCRIPT.sql			(Revision: 108437)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql		(Revision: 108437)
+
