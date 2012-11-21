@@ -95,7 +95,7 @@ create or replace package pkg_phy_eod_reports is
                                    pc_process      varchar2,
                                    pc_dbd_id       varchar2);
 
- procedure sp_calc_gmr_other_charges(pc_corporate_id varchar2,
+  procedure sp_calc_gmr_other_charges(pc_corporate_id varchar2,
                                       pd_trade_date   date,
                                       pc_process_id   varchar2,
                                       pc_process      varchar2);
@@ -6108,7 +6108,7 @@ commit;
   
     update isr_intrastat_grd isr
        set isr.is_new = 'Y'
-     where isr.internal_grd_ref_no in
+     where isr.internal_grd_ref_no not in
            (select isr_prev.internal_grd_ref_no
               from isr_intrastat_grd isr_prev
              where isr_prev.process_id = vc_previous_process_id)
@@ -17922,11 +17922,7 @@ and exists (
                              and pad.element_id = cc.element_id
                              and pcap.penalty_unit_id =
                                  ppu.internal_price_unit_id
-                             and ppu.price_unit_id = pum.price_unit_id
-                             and (pcap.range_max_value > cc.typical or
-                                 pcap.position = 'Range End')
-                             and (pcap.range_min_value <= cc.typical or
-                                 pcap.position = 'Range Begining'))
+                             and ppu.price_unit_id = pum.price_unit_id)
     loop
       vc_pc_weight_unit_id :=cur_pc_charge.weight_unit_id; 
       vc_price_unit_id     := cur_pc_charge.price_unit_id;
@@ -18025,19 +18021,16 @@ and exists (
                                  and pcap.pcaph_id = cur_pc_charge.pcaph_id
                                  and pcap.dbd_id = pc_dbd_id)
             loop
-              --for half range
               if vn_typical_val > 0 then
-                if cur_range.min_range < vn_typical_val and
-                   nvl(cur_range.max_range, vn_typical_val + 1) >
-                   vn_typical_val then
-                  vn_penalty_charge := cur_range.penalty_amount;
-                  vn_range_gap      := vn_typical_val - cur_range.min_range;
-                  --for full range                 
-                elsif cur_range.min_range <= vn_typical_val and
-                      cur_range.max_range <= vn_typical_val then
+              iF cur_range.min_range <= vn_typical_val and
+                      cur_range.max_range <= vn_typical_val then --for full range
                   vn_penalty_charge := cur_range.penalty_amount;
                   vn_range_gap      := cur_range.max_range -
                                        cur_range.min_range;
+                else -- for half range
+                  vn_penalty_charge := cur_range.penalty_amount;
+                  vn_range_gap      := vn_typical_val - cur_range.min_range;
+                                   
                 end if;
               end if;
               if cur_pc_charge.charge_basis = 'absolute' then

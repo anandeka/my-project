@@ -29,7 +29,7 @@ create or replace package pkg_phy_cog_price is
                                          pc_user_id      varchar2,
                                          pc_dbd_id       varchar2,
                                          pc_process      varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -319,8 +319,8 @@ create or replace package body pkg_phy_cog_price is
                  group by vppu.price_unit_id;
               exception
                 when others then
-                  vn_fixed_value := 0;
-                  vn_fixed_qty   := 0;
+                  vn_fixed_value         := 0;
+                  vn_fixed_qty           := 0;
                   vc_fixed_price_unit_id := null;
               end;
               vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
@@ -1140,8 +1140,8 @@ create or replace package body pkg_phy_cog_price is
            group by ppu.price_unit_id;
         exception
           when others then
-            vn_fixed_value := 0;
-            vn_fixed_qty   := 0;
+            vn_fixed_value         := 0;
+            vn_fixed_qty           := 0;
             vc_fixed_price_unit_id := null;
         end;
         vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
@@ -1724,8 +1724,8 @@ create or replace package body pkg_phy_cog_price is
                  group by ppu.price_unit_id;
               exception
                 when others then
-                  vn_fixed_value := 0;
-                  vn_fixed_qty   := 0;
+                  vn_fixed_value         := 0;
+                  vn_fixed_qty           := 0;
                   vc_fixed_price_unit_id := null;
               end;
             end loop;
@@ -2380,7 +2380,6 @@ create or replace package body pkg_phy_cog_price is
          and gmr.process_id = tt.process_id(+)
          and gmr.is_deleted = 'N'
          and spq.payable_qty > 0
-      
       union all
       select gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
@@ -2568,8 +2567,8 @@ create or replace package body pkg_phy_cog_price is
            group by ppu.price_unit_id;
         exception
           when others then
-            vn_fixed_value := 0;
-            vn_fixed_qty   := 0;
+            vn_fixed_value         := 0;
+            vn_fixed_qty           := 0;
             vc_fixed_price_unit_id := null;
         end;
       
@@ -3048,7 +3047,62 @@ create or replace package body pkg_phy_cog_price is
                 pcbpd.price_basis,
                 pdm.product_id,
                 pdm.base_quantity_unit,
-                gpah.gpah_id;
+                gpah.gpah_id
+      union
+      select grd.internal_gmr_ref_no,
+             pcbpd.element_id,
+             pcbpd.pcbpd_id,
+             pcbpd.qty_to_be_priced,
+             pcbpd.price_basis,
+             pdm.product_id,
+             pdm.base_quantity_unit base_qty_unit_id,
+             null gpah_id
+        from poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             pcbpd_pc_base_price_detail     pcbpd,
+             pcbph_pc_base_price_header     pcbph,
+             pcdi_pc_delivery_item          pcdi,
+             aml_attribute_master_list      aml,
+             pdm_productmaster              pdm,
+             grd_goods_record_detail        grd
+       where poch.poch_id = pocd.poch_id
+         and pcdi.pcdi_id = poch.pcdi_id
+         and pocd.pocd_id = pofh.pocd_id
+         and pcbpd.pcbpd_id = pocd.pcbpd_id
+         and pofh.pofh_id = pfd.pofh_id(+)
+         and pfd.is_active(+) = 'Y'
+         and pofh.is_active(+) = 'Y'
+         and pcbpd.pcbph_id = pcbph.pcbph_id
+         and pocd.is_active = 'Y'
+         and poch.is_active = 'Y'
+         and pcdi.price_allocation_method = 'Price Allocation'
+         and nvl(pocd.is_any_day_pricing, 'N') = 'Y'
+         and pcbpd.process_id = pc_process_id
+         and pcbph.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcbpd.element_id = aml.attribute_id
+         and aml.underlying_product_id = pdm.product_id
+         and pcbpd.element_id = pc_element_id
+         and grd.pcdi_id = pcdi.pcdi_id
+         and grd.internal_gmr_ref_no = pc_internal_gmr_ref_no
+         and grd.process_id = pc_process_id
+         and not exists
+       (select *
+                from gpah_gmr_price_alloc_header gpah
+               where gpah.is_active = 'Y'
+                 and gpah.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                 and gpah.element_id = pcbpd.element_id)
+       group by grd.internal_gmr_ref_no,
+                pofh.pofh_id,
+                pofh.qty_to_be_fixed,
+                pcbpd.element_id,
+                pcbpd.pcbpd_id,
+                pcbpd.qty_to_be_priced,
+                pcbpd.price_basis,
+                pdm.product_id,
+                pdm.base_quantity_unit;
   
     vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count           number := 1;
@@ -3085,6 +3139,15 @@ create or replace package body pkg_phy_cog_price is
     -- Populate Price Allocation GMR Exchange Details
     --
     insert into page_price_alloc_gmr_exchange
+      (process_id,
+       internal_gmr_ref_no,
+       instrument_id,
+       instrument_name,
+       derivative_def_id,
+       derivative_def_name,
+       exchange_id,
+       exchange_name,
+       element_id)
       select pcdi.process_id,
              gpah.internal_gmr_ref_no,
              ppfd.instrument_id,
@@ -3134,6 +3197,7 @@ create or replace package body pkg_phy_cog_price is
          and ppfd.instrument_id = dim.instrument_id
          and dim.product_derivative_id = pdd.derivative_def_id
          and pdd.exchange_id = emt.exchange_id(+)
+         and gpad.gpah_id = gpah.gpah_id
        group by pcdi.process_id,
                 gpah.internal_gmr_ref_no,
                 ppfd.instrument_id,
@@ -3144,7 +3208,82 @@ create or replace package body pkg_phy_cog_price is
                 emt.exchange_name,
                 pcbpd.element_id;
     commit;
-  
+    --
+    -- Populate Price Allocation GMR Exchange Details where it is not allocated
+    --
+    insert into page_price_alloc_gmr_exchange
+      (process_id,
+       internal_gmr_ref_no,
+       instrument_id,
+       instrument_name,
+       derivative_def_id,
+       derivative_def_name,
+       exchange_id,
+       exchange_name,
+       element_id)
+      select pcdi.process_id,
+             grd.internal_gmr_ref_no,
+             ppfd.instrument_id,
+             dim.instrument_name,
+             pdd.derivative_def_id,
+             pdd.derivative_def_name,
+             emt.exchange_id,
+             emt.exchange_name,
+             pcbpd.element_id
+        from poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             pcbpd_pc_base_price_detail     pcbpd,
+             pcbph_pc_base_price_header     pcbph,
+             pcdi_pc_delivery_item          pcdi,
+             ppfh_phy_price_formula_header  ppfh,
+             ppfd_phy_price_formula_details ppfd,
+             dim_der_instrument_master      dim,
+             pdd_product_derivative_def     pdd,
+             emt_exchangemaster             emt,
+             grd_goods_record_detail        grd
+       where poch.poch_id = pocd.poch_id
+         and pcdi.pcdi_id = poch.pcdi_id
+         and pocd.pocd_id = pofh.pocd_id(+)
+         and pcbpd.pcbpd_id = pocd.pcbpd_id
+         and pofh.pofh_id = pfd.pofh_id(+)
+         and pfd.is_active(+) = 'Y'
+         and pofh.is_active(+) = 'Y'
+         and pcbpd.pcbph_id = pcbph.pcbph_id
+         and pocd.is_active = 'Y'
+         and poch.is_active = 'Y'
+         and pcdi.price_allocation_method = 'Price Allocation'
+         and nvl(pocd.is_any_day_pricing, 'N') = 'Y'
+         and pcbpd.process_id = pc_process_id
+         and pcbph.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and ppfd.process_id = pc_process_id
+         and ppfh.process_id = pc_process_id
+         and pcbpd.pcbpd_id = ppfh.pcbpd_id
+         and ppfh.ppfh_id = ppfd.ppfh_id
+         and ppfd.instrument_id = dim.instrument_id
+         and dim.product_derivative_id = pdd.derivative_def_id
+         and pdd.exchange_id = emt.exchange_id(+)
+         and grd.pcdi_id = pcdi.pcdi_id
+         and grd.process_id = pc_process_id
+         and not exists
+       (select *
+                from gpah_gmr_price_alloc_header gpah
+               where gpah.is_active = 'Y'
+                 and gpah.element_id = poch.element_id
+                 and gpah.internal_gmr_ref_no = grd.internal_gmr_ref_no)
+       group by pcdi.process_id,
+                grd.internal_gmr_ref_no,
+                ppfd.instrument_id,
+                dim.instrument_name,
+                pdd.derivative_def_id,
+                pdd.derivative_def_name,
+                emt.exchange_id,
+                emt.exchange_name,
+                pcbpd.element_id,
+                pcdi.pcdi_id;
+    commit;
     for cur_gmr_rows in cur_gmr
     loop
       vn_total_contract_value      := 0;
