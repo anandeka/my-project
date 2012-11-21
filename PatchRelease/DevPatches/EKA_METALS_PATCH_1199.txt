@@ -43,4 +43,15 @@ For Intrastat report Insert into TEMP_GMR_INVOICE added
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
 
 
+Revision: 108516
+Author: elaiyaraja.nallathambi
+Date: 4:28:59 PM, Wednesday, November 21, 2012
+Message:
+Bug Fixes :- 69735,69736
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CustomsReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyCustomsReport.rpt
+
+
 
