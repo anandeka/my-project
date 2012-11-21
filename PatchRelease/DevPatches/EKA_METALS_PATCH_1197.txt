@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1197
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  20-Nov-2012
+
+Bug / Enhancement*      	:  NA
+
+Bug ID*            		:  70564
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	   :  Secondary Provisional Assay
+
+Sub-Module  			   :  Secondary Provisional Assay
+ 
+Section   		   	   :  N/A
+ 
+Screen		           	   :  N/A
+ 
+FS Number and Clause No.	   :  N/A
+ 
+FS Enhancement details 		   :  N/A
+ 
+FS Amendment details   		   :  N/A
+
+Dependent patches:		   :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Secondary Provisional Assay
+==================================================================
+
+Revision: 108465
+Author: ramachandran.r
+Date: 12:31:48 PM, Wednesday, November 21, 2012
+Message:
+Secondary Provisional Assay
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_442.sql
+
+
+
