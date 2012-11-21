@@ -36,7 +36,7 @@ Schema type (Transaction / EOD)* :EOD
 
 
 Revision: 108451
-Author: jana
+Author: janna
 Date: 11:17:43 AM, Wednesday, November 21, 2012
 Message:
 EOD Reports : Intrastat Is New Flag Updation corrected
