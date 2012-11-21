@@ -7,7 +7,7 @@ Created on*        		:  21-Nov-2012
 
 Bug / Enhancement*              :  BUG
 
-Bug ID*            		:  
+Bug ID*            		:  69735, 69736
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,4 +33,14 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 108499
+Author: janna
+Date: 3:33:32 PM, Wednesday, November 21, 2012
+Message:
+For Intrastat report Insert into TEMP_GMR_INVOICE added
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
 
