@@ -14587,12 +14587,63 @@ sp_eodeom_process_log(pc_corporate_id,
   sp_gather_stats('cccp_conc_contract_cog_price');
   sp_gather_stats('cgcp_conc_gmr_cog_price');
 commit;
+
 vn_log_counter := vn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           vn_log_counter,
                           'inside sp_insert_temp_gmr stats ends'); 
+
+delete from temp_gmr_invoice where corporate_id = pc_corporate_id;
+  commit;
+vn_log_counter := vn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'delete temp_gmr_invoice over'); 
+  
+  insert into temp_gmr_invoice
+    (process_id,
+     corporate_id,
+     invoice_ref_no,
+     internal_invoice_ref_no,
+     stock_id,
+     invoice_item_amount,
+     invoice_currency_id,
+     new_invoice_price,
+     invoice_type,
+     invoice_issue_date,
+     new_invoice_price_unit_id)
+    select gmr.process_id,
+           gmr.corporate_id,
+           iss.invoice_ref_no,
+           iid.internal_invoice_ref_no,
+           iid.stock_id,
+           iid.invoice_item_amount,
+           iid.invoice_currency_id,
+           new_invoice_price,
+           iss.invoice_type,
+           iss.invoice_issue_date,
+           iid.new_invoice_price_unit_id
+      from iid_invoicable_item_details iid,
+           is_invoice_summary          iss,
+           gmr_goods_movement_record   gmr
+     where iid.internal_invoice_ref_no = iss.internal_invoice_ref_no
+       and iss.is_active = 'Y'
+       and gmr.process_id = pc_process_id
+       and gmr.process_id = iss.process_id
+       and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
+       and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no;
+
+  commit;
+vn_log_counter := vn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'insert temp_gmr_invoice over'); 
   
   delete from tgi_temp_gmr_invoice t
   where t.corporate_id = pc_corporate_id;
@@ -14731,8 +14782,10 @@ select gmr.internal_gmr_ref_no,
 commit;
 sp_gather_stats('tgi_temp_gmr_invoice');
 sp_gather_stats('tgc_temp_gmr_charges');
-
--- check and remove the below update later as we cannot use invoice % from here, it should come from IS directly
+sp_gather_stats('temp_gmr_invoice');
+--
+-- Update Provisional Payment % from IS directly
+--
 Update tgc_temp_gmr_charges t
 set t.provisional_pymt_pctg =
 (select nvl(is1.provisional_pymt_pctg,100) from is_invoice_summary is1
@@ -14753,6 +14806,8 @@ sp_eodeom_process_log(pc_corporate_id,
                           pc_process_id,
                           8005,
                           'Invoice Freight and Other Changes Over');
+
+                          
 end;
 
 procedure sp_arrival_report(pc_corporate_id varchar2,
