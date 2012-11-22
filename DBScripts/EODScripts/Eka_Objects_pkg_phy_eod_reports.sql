@@ -6788,6 +6788,192 @@ end;
                                    pc_process_id   varchar2) as
   
   begin
+    delete from tyytd_temp_yield_ytd where corporate_id = pc_corporate_id;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          301,
+                          'Delete tyytd_temp_yield_ytd Over');
+    commit;
+    insert into tyytd_temp_yield_ytd
+      (internal_gmr_ref_no,
+       element_id,
+       gmr_ref_no,
+       corporate_id,
+       element_name,
+       element_product_id,
+       element_product_name,
+       yield_pct,
+       current_qty,
+       qty_unit_id,
+       ytd_year,
+       ytd_month,
+       ytd_group_column)
+      select ypd.internal_gmr_ref_no,
+             ypd.element_id,
+             gmr.gmr_ref_no || case
+               when gmr.is_final_invoiced = 'Y' then
+                '[FIN]'
+               when gmr.is_provisional_invoiced = 'Y' then
+                '[PRV]'
+               else
+                ''
+             end gmr_ref_no,
+             gmr.corporate_id,
+             aml.attribute_name element_name,
+             pdm.product_id element_product_id,
+             pdm.product_desc element_product_name,
+             ypd.yield_pct,
+             agmr.current_qty,
+             agmr.qty_unit_id,
+             to_char(agmr.eff_date, 'yyyy') ytd_year,
+             to_char(agmr.eff_date, 'Mon') ytd_month,
+             to_date('01-' || to_char(agmr.eff_date, 'Mon-yyyy'),
+                     'dd-Mon-yyyy') ytd_group_column
+        from ypd_yield_pct_detail      ypd,
+             axs_action_summary        axs,
+             gmr_goods_movement_record gmr,
+             agmr_action_gmr           agmr,
+             aml_attribute_master_list aml,
+             pdm_productmaster         pdm,
+             dbd_database_dump         dbd,
+             is_invoice_summary        iss
+       where ypd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+         and ypd.internal_action_ref_no = axs.internal_action_ref_no
+         and ypd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+         and ypd.element_id = aml.attribute_id
+         and aml.underlying_product_id = pdm.product_id(+)
+         and gmr.process_id = pc_process_id
+         and gmr.corporate_id = pc_corporate_id
+         and axs.dbd_id = dbd.dbd_id
+         and dbd.process = 'EOM'
+         and gmr.latest_internal_invoice_ref_no =
+             iss.internal_invoice_ref_no(+)
+         and gmr.process_id = iss.process_id(+)
+         and gmr.is_deleted = 'N'
+         and aml.is_active = 'Y'
+         and pdm.is_active = 'Y'
+         and agmr.action_no = '1'
+         and ypd.is_active = 'Y';
+    commit;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          302,
+                          'Insert tyytd_temp_yield_ytd Over');
+    delete from tys_temp_yield_stock where corporate_id = pc_corporate_id;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          301,
+                          'Delete tys_temp_yield_stock Over');
+    commit;
+    insert into tys_temp_yield_stock
+      (corporate_id,
+       internal_gmr_ref_no,
+       internal_grd_ref_no,
+       element_id,
+       total_qty_in_wet,
+       total_qty_in_dry,
+       wtdavgpostion_ash_id,
+       latest_assay_id,
+       unit_of_measure,
+       typical,
+       finalization_method,
+       is_final_assay,
+       assay_winner,
+       is_elem_for_pricing,
+       is_deductible,
+       is_returnable,
+       cp_id,
+       conc_product_id,
+       conc_qty_unit_id,
+       conc_qty_unit)
+      select pc_corporate_id,
+             sac.internal_gmr_ref_no,
+             sac.internal_grd_ref_no,
+             sac.element_id,
+             (ucm.multiplication_factor * sac.total_qty_in_wet) total_qty_in_wet,
+             (ucm.multiplication_factor * sac.total_qty_in_dry) total_qty_in_dry,
+             sac.wtdavgpostion_ash_id,
+             sac.latest_assay_id,
+             pqca.unit_of_measure,
+             pqca.typical,
+             pqca.finalization_method,
+             pqca.is_final_assay,
+             pqca.assay_winner,
+             pqca.is_elem_for_pricing,
+             pqca.is_deductible,
+             pqca.is_returnable,
+             pcm.cp_id,
+             grd.product_id conc_product_id,
+             pdm.base_quantity_unit conc_qty_unit_id,
+             qum.qty_unit conc_qty_unit
+        from sac_stock_assay_content     sac,
+             ash_assay_header            ash,
+             asm_assay_sublot_mapping    asm,
+             pqca_pq_chemical_attributes pqca,
+             grd_goods_record_detail     grd,
+             pci_physical_contract_item  pci,
+             pcdi_pc_delivery_item       pcdi,
+             pcm_physical_contract_main  pcm,
+             pdm_productmaster           pdm,
+             ucm_unit_conversion_master  ucm,
+             qum_quantity_unit_master    qum
+       where ash.ash_id = asm.ash_id
+         and asm.asm_id = pqca.asm_id
+         and pqca.element_id = sac.element_id
+         and pqca.is_active = 'Y'
+         and ash.ash_id = sac.wtdavgpostion_ash_id
+         and grd.product_id = pdm.product_id
+         and grd.qty_unit_id = ucm.from_qty_unit_id
+         and pdm.base_quantity_unit = ucm.to_qty_unit_id
+         and pdm.base_quantity_unit = qum.qty_unit_id
+         and sac.internal_grd_ref_no = grd.internal_grd_ref_no
+         and grd.internal_contract_item_ref_no =
+             pci.internal_contract_item_ref_no
+         and pci.pcdi_id = pcdi.pcdi_id
+         and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and grd.process_id = pc_process_id
+         and pci.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcm.process_id = pc_process_id
+         and pci.is_active = 'Y'
+         and pcm.is_active = 'Y'
+         and pcdi.is_active = 'Y'
+         and ash.is_active = 'Y'
+         and asm.is_active = 'Y'
+         and pqca.is_active = 'Y'
+         and pdm.is_active = 'Y'
+         and ucm.is_active = 'Y'
+         and qum.is_active = 'Y'
+       group by sac.internal_gmr_ref_no,
+                sac.internal_grd_ref_no,
+                sac.element_id,
+                sac.total_qty_in_wet,
+                sac.total_qty_in_dry,
+                sac.wtdavgpostion_ash_id,
+                ucm.multiplication_factor,
+                grd.product_id,
+                pdm.base_quantity_unit,
+                qum.qty_unit,
+                sac.latest_assay_id,
+                pqca.unit_of_measure,
+                pqca.typical,
+                pqca.finalization_method,
+                pqca.is_final_assay,
+                pqca.assay_winner,
+                pqca.is_elem_for_pricing,
+                pqca.is_deductible,
+                pcm.cp_id,
+                pqca.is_returnable;
+  
+    commit;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          303,
+                          'Insert tys_temp_yield_stock Over');
     insert into stock_monthly_yeild_data
       (corporate_id,
        corporate_name,
@@ -6811,52 +6997,7 @@ end;
        element_product_name,
        conc_product_id,
        conc_qty_unit_id,
-       conc_qty_unit) with ytd_data as
-      (select ypd.internal_gmr_ref_no,
-              ypd.element_id,
-              gmr.gmr_ref_no || case
-                when gmr.is_final_invoiced = 'Y' then
-                 '[FIN]'
-                when gmr.is_provisional_invoiced = 'Y' then
-                 '[PRV]'
-                else
-                 ''
-              end gmr_ref_no,
-              gmr.corporate_id,
-              aml.attribute_name element_name,
-              pdm.product_id element_product_id,
-              pdm.product_desc element_product_name,
-              ypd.yield_pct,
-              agmr.current_qty,
-              agmr.qty_unit_id,
-              to_char(agmr.eff_date, 'yyyy') ytd_year,
-              to_char(agmr.eff_date, 'Mon') ytd_month,
-              to_date('01-' || to_char(agmr.eff_date, 'Mon-yyyy'),
-                      'dd-Mon-yyyy') ytd_group_column
-         from ypd_yield_pct_detail      ypd,
-              axs_action_summary        axs,
-              gmr_goods_movement_record gmr,
-              agmr_action_gmr           agmr,
-              aml_attribute_master_list aml,
-              pdm_productmaster         pdm,
-              dbd_database_dump         dbd,
-              is_invoice_summary        iss
-        where ypd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-          and ypd.internal_action_ref_no = axs.internal_action_ref_no
-          and ypd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-          and ypd.element_id = aml.attribute_id
-          and aml.underlying_product_id = pdm.product_id(+)
-          and gmr.process_id = pc_process_id
-          and gmr.corporate_id = pc_corporate_id
-          and axs.dbd_id = dbd.dbd_id
-          and dbd.process = 'EOM'
-          and gmr.latest_internal_invoice_ref_no =
-              iss.internal_invoice_ref_no(+)
-          and gmr.is_deleted = 'N'
-          and aml.is_active = 'Y'
-          and pdm.is_active = 'Y'
-          and agmr.action_no = '1'
-          and ypd.is_active = 'Y')
+       conc_qty_unit)
       select ytd.corporate_id,
              akc.corporate_name,
              pc_process_id,
@@ -6882,91 +7023,14 @@ end;
              stock.conc_product_id,
              stock.conc_qty_unit_id,
              stock.conc_qty_unit
-        from (select sac.internal_gmr_ref_no,
-                     sac.internal_grd_ref_no,
-                     sac.element_id,
-                     (ucm.multiplication_factor * sac.total_qty_in_wet) total_qty_in_wet,
-                     (ucm.multiplication_factor * sac.total_qty_in_dry) total_qty_in_dry,
-                     sac.wtdavgpostion_ash_id,
-                     sac.latest_assay_id,
-                     pqca.unit_of_measure,
-                     pqca.typical,
-                     pqca.finalization_method,
-                     pqca.is_final_assay,
-                     pqca.assay_winner,
-                     pqca.is_final_assay,
-                     pqca.is_elem_for_pricing,
-                     pqca.is_deductible,
-                     pqca.is_returnable,
-                     pcm.cp_id,
-                     grd.product_id conc_product_id,
-                     pdm.base_quantity_unit conc_qty_unit_id,
-                     qum.qty_unit conc_qty_unit
-                from sac_stock_assay_content     sac,
-                     ash_assay_header            ash,
-                     asm_assay_sublot_mapping    asm,
-                     pqca_pq_chemical_attributes pqca,
-                     grd_goods_record_detail     grd,
-                     pci_physical_contract_item  pci,
-                     pcdi_pc_delivery_item       pcdi,
-                     pcm_physical_contract_main  pcm,
-                     pdm_productmaster           pdm,
-                     ucm_unit_conversion_master  ucm,
-                     qum_quantity_unit_master    qum
-               where ash.ash_id = asm.ash_id
-                 and asm.asm_id = pqca.asm_id
-                 and pqca.element_id = sac.element_id
-                 and pqca.is_active = 'Y'
-                 and ash.ash_id = sac.wtdavgpostion_ash_id
-                 and grd.product_id = pdm.product_id
-                 and grd.qty_unit_id = ucm.from_qty_unit_id
-                 and pdm.base_quantity_unit = ucm.to_qty_unit_id
-                 and pdm.base_quantity_unit = qum.qty_unit_id
-                 and sac.internal_grd_ref_no = grd.internal_grd_ref_no
-                 and grd.internal_contract_item_ref_no =
-                     pci.internal_contract_item_ref_no
-                 and pci.pcdi_id = pcdi.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and grd.process_id = pc_process_id
-                 and pci.process_id = pc_process_id
-                 and pcdi.process_id = pc_process_id
-                 and pcm.process_id = pc_process_id
-                 and pci.is_active = 'Y'
-                 and pcm.is_active = 'Y'
-                 and pcdi.is_active = 'Y'
-                 and ash.is_active = 'Y'
-                 and asm.is_active = 'Y'
-                 and pqca.is_active = 'Y'
-                 and pdm.is_active = 'Y'
-                 and ucm.is_active = 'Y'
-                 and qum.is_active = 'Y'
-               group by sac.internal_gmr_ref_no,
-                        sac.internal_grd_ref_no,
-                        sac.element_id,
-                        sac.total_qty_in_wet,
-                        sac.total_qty_in_dry,
-                        sac.wtdavgpostion_ash_id,
-                        ucm.multiplication_factor,
-                        grd.product_id,
-                        pdm.base_quantity_unit,
-                        qum.qty_unit,
-                        sac.latest_assay_id,
-                        pqca.unit_of_measure,
-                        pqca.typical,
-                        pqca.finalization_method,
-                        pqca.is_final_assay,
-                        pqca.assay_winner,
-                        pqca.is_final_assay,
-                        pqca.is_elem_for_pricing,
-                        pqca.is_deductible,
-                        pcm.cp_id,
-                        pqca.is_returnable) stock,
-             ytd_data ytd,
-             ak_corporate akc
+        from tys_temp_yield_stock stock,
+             tyytd_temp_yield_ytd ytd,
+             ak_corporate         akc
        where stock.internal_gmr_ref_no = ytd.internal_gmr_ref_no
          and stock.element_id = ytd.element_id
          and ytd.corporate_id = akc.corporate_id
+         and ytd.corporate_id = pc_corporate_id
+         and stock.corporate_id = pc_corporate_id
        group by stock.internal_gmr_ref_no,
                 stock.element_id,
                 stock.cp_id,
@@ -6990,6 +7054,11 @@ end;
                 akc.corporate_name,
                 pc_process_id;
     commit;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          304,
+                          'sp_stock_monthly_yield over tys_temp_yield_stock Over');
   end;
 
   procedure sp_calc_risk_limits(pc_corporate_id varchar2,
