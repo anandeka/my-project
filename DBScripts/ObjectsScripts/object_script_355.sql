@@ -1,0 +1,1 @@
+alter table VAT_CHILD_D add (VAT_INV_VAT_CODE varchar2(50), MAIN_INV_VAT_CODE varchar2(50));
