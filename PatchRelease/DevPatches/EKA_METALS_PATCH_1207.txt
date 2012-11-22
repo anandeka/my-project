@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_1207
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  ELaiyaraja Nallathambi
+ 
+Created on*        		:  22-Nov-2012
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice 
+
+Sub-Module  			 :  Invoice O/p Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 108687
+Author: elaiyaraja.nallathambi
+Date: 7:24:34 PM, Thursday, November 22, 2012
+Message:
+Added VAT Code - "M" and "T".
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AdvancePaymentDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProfomaDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+
+Revision: 108688
+Author: elaiyaraja.nallathambi
+Date: 7:26:01 PM, Thursday, November 22, 2012
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_invoice_doc.sql
+
+
+
