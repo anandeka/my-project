@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_1205
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  22-Nov-2012
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	        :  Invoice 
+
+Sub-Module  			    :  Invoice O/p Doc
+ 
+Section   		   	        :  N/A
+ 
+Screen		           	    :  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		    :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 108677
+Author: mayank.chaturvedi
+Date: 6:41:26 PM, Thursday, November 22, 2012
+Message:
+-Changes for New Document migration in Main Branch as well as IVD Changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_355.sql
+
+Revision: 108676
+Author: mayank.chaturvedi
+Date: 6:37:43 PM, Thursday, November 22, 2012
+Message:
+-Changes for Bug - New Document migration in Main Branch as well as IVD Changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_449.sql
+
