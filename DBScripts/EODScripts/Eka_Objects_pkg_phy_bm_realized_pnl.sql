@@ -2018,6 +2018,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                  and agh.int_alloc_group_id = prd.int_alloc_group_id
                  and agh.process_id = pc_process_id
                  and agh.realized_status = 'Realized'
+                 and dgrd.status = 'Active'
                  and prd.realized_type in
                      ('Realized Today', 'Previously Realized PNL Change')
                group by prd.sales_internal_gmr_ref_no,
@@ -2338,7 +2339,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                                                cur_realized_rows.base_cur_code;
               else
                 vc_contract_pp_fw_exch_rate := null;
-              
+                vn_fw_exch_rate_del_to_base := 1;
               end if;
             
               vn_product_premium_per_unit := (cur_realized_rows.product_premium /
