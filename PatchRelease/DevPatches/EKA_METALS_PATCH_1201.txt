@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1201
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  21-Nov-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  Broker Margin
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+SQL File:
+==========
+Revision: 108612
+Author: sivachalabathi.s
+Date: 2:59:53 PM, Thursday, November 22, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_444_RPT.sql
+
+RPT File:
+=========
+Revision: 108608
+Author: sivachalabathi.s
+Date: 2:34:41 PM, Thursday, November 22, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BrokerMarginReport_Excel.rpt
