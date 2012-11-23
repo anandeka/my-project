@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1211
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  ELaiyaraaj Nallathambi
+ 
+Created on*        		:  23-Nov-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Documents
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 108780
+Author: elaiyaraja.nallathambi
+Date: 5:10:47 PM, Friday, November 23, 2012
+Message:
+Direct Final Invoice Document as per Latest FS.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+
+Revision: 108689
+Author: elaiyaraja.nallathambi
+Date: 7:26:42 PM, Thursday, November 22, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql
+
+
