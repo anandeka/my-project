@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1212
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  23-Nov-2012
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	        :  Invoice
+
+Sub-Module  			    :  Invoice O/P Doc
+ 
+Section   		   	        :  N/A
+ 
+Screen		           	    :  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		    :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 108791
+Author: mayank.chaturvedi
+Date: 5:42:02 PM, Friday, November 23, 2012
+Message:
+-Script for DFI O/P Doc issue Bug :- 70377
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_450.sql
