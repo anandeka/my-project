@@ -3928,7 +3928,7 @@ create or replace package body pkg_phy_custom_reports is
                else
                 null
              end) end) put_call,
-             pum_pd.price_unit_id premium_discount_price_unit,
+             pum_pd.price_unit_name premium_discount_price_unit,
              dt.option_expiry_date declaration_date,
              dt.clearer_comm_amt clearer_commission,
              (case
