@@ -316,6 +316,7 @@ create or replace package body pkg_phy_cog_price is
                    and pocd.is_active = 'Y'
                    and pofh.is_active = 'Y'
                    and pfd.is_active = 'Y'
+                   and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
                  group by vppu.price_unit_id;
               exception
                 when others then
@@ -1137,6 +1138,7 @@ create or replace package body pkg_phy_cog_price is
              and pofh.is_active = 'Y'
              and pfd.is_active = 'Y'
              and ppu.product_price_unit_id = pfd.price_unit_id
+             and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
            group by ppu.price_unit_id;
         exception
           when others then
@@ -1721,6 +1723,7 @@ create or replace package body pkg_phy_cog_price is
                    and pfd.is_active = 'Y'
                    and pofh.qty_to_be_fixed <> 0
                    and ppu.product_price_unit_id = pfd.price_unit_id
+                   and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
                  group by ppu.price_unit_id;
               exception
                 when others then
@@ -2564,6 +2567,7 @@ create or replace package body pkg_phy_cog_price is
              and pofh.is_active = 'Y'
              and pfd.is_active = 'Y'
              and ppu.product_price_unit_id = pfd.price_unit_id
+             and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
            group by ppu.price_unit_id;
         exception
           when others then
@@ -3307,7 +3311,6 @@ create or replace package body pkg_phy_cog_price is
             into vn_fixed_value,
                  vn_fixed_qty,
                  vc_fixed_price_unit_id
-          
             from poch_price_opt_call_off_header poch,
                  pocd_price_option_calloff_dtls pocd,
                  pofh_price_opt_fixation_header pofh,
@@ -3338,8 +3341,9 @@ create or replace package body pkg_phy_cog_price is
              and ppu.product_price_unit_id = pfd.price_unit_id
              and gpah.gpah_id = gpad.gpah_id
              and gpah.element_id = poch.element_id
-             and gpad.allocated_qty <> 0
+             and (nvl(pfd.user_price, 0) * nvl(gpad.allocated_qty, 0)) <> 0
              and gpah.gpah_id = cur_gmr_ele_rows.gpah_id
+             and pfd.as_of_date <= pd_trade_date
            group by ppu.price_unit_id;
         exception
           when others then

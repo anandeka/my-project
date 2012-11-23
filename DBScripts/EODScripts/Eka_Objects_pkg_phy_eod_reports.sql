@@ -6974,6 +6974,9 @@ end;
                           pc_process_id,
                           303,
                           'Insert tys_temp_yield_stock Over');
+sp_gather_stats('tyytd_temp_yield_ytd');
+sp_gather_stats('tys_temp_yield_stock');
+
     insert into stock_monthly_yeild_data
       (corporate_id,
        corporate_name,
