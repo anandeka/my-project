@@ -13,7 +13,12 @@ select cpc.profit_center_id,
        dt.deal_type_id,
        dtm.deal_type_name,
        dtm.deal_type_display_name,
-       dcod.quantity_closed invoice_qty,
+       (case
+         when dt.trade_type = 'Sell' then
+          -1
+         else
+          1
+       end)*dcod.quantity_closed invoice_qty,
        qum_um.qty_unit invoice_qty_unit,
        cm_trade.cur_code trade_cur_code,
        ((case
