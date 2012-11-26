@@ -1073,11 +1073,11 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                 
                 end if;
               
-                if cc1.is_qp_any_day_basis = 'Y' then
+               /* if cc1.is_qp_any_day_basis = 'Y' then
                   vn_market_flag := 'N';
                 else
                   vn_market_flag := 'Y';
-                end if;
+                end if;*/
               
                 if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
                   -- get the third wednesday
@@ -1253,9 +1253,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
               
                 vn_during_total_val_price := 0;
                 vn_count_val_qp           := 0;
-                vd_dur_qp_start_date      := pd_trade_date + 1;
+               /* vd_dur_qp_start_date      := pd_trade_date + 1;
               
-                if vn_market_flag = 'N' then
+                if vn_market_flag = 'N' then*/
                   vn_during_total_val_price := vn_during_total_val_price +
                                                vn_during_val_price;
                 
@@ -1269,7 +1269,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                   else
                     vc_price_fixation_status := 'Priced';
                   end if;
-                else
+                /*else
                 
                   while vd_dur_qp_start_date <= vd_dur_qp_end_date
                   loop
@@ -1288,23 +1288,23 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end if;
                     vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
                   end loop;
-                end if;
-              
+                end if;*/
+              /*
                 if (vn_count_val_qp + vn_count_set_qp) <> 0 then
                 
-                  if vn_market_flag = 'N' then
+                  if vn_market_flag = 'N' then*/
                     vn_during_qp_price := (vn_any_day_price_fix_qty_amt +
                                           vn_any_day_price_unfix_qty_amt) /
                                           cc1.qty_to_be_fixed;
                   
-                  else
+                 /* else
                     vn_during_qp_price := (vn_during_total_set_price +
                                           vn_during_total_val_price) /
                                           (vn_count_set_qp +
                                           vn_count_val_qp);
                   
                   end if;
-                
+                */
                   vn_total_quantity       := cur_pcdi_rows.item_qty;
                   vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
                   vn_total_contract_value := vn_total_contract_value +
@@ -1313,13 +1313,13 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                              vn_during_qp_price;
                 
                   --                  vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
-                
+               /* 
                 else
                   vn_total_quantity       := cur_pcdi_rows.item_qty;
                   vn_total_contract_value := 0;
                 
                   --                  vc_price_unit_id        := cur_pcdi_rows.ppu_price_unit_id;
-                end if;
+                end if;*/
                 vc_price_unit_id := cc1.ppu_price_unit_id;
                end if;
               end if;
@@ -2819,11 +2819,11 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
           vc_price_fixation_status := 'Un-priced';
         
         end if;
-        if cur_gmr_rows.is_any_day_pricing = 'Y' then
+       /* if cur_gmr_rows.is_any_day_pricing = 'Y' then
           vn_market_flag := 'N';
         else
           vn_market_flag := 'Y';
-        end if;
+        end if;*/
       
         -- get the third wednesday
         if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
@@ -2994,8 +2994,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
         end;
         vn_during_total_val_price := 0;
         vn_count_val_qp           := 0;
-        vd_dur_qp_start_date      := pd_trade_date + 1;
-        if vn_market_flag = 'N' then
+       /* vd_dur_qp_start_date      := pd_trade_date + 1;
+        if vn_market_flag = 'N' then*/
           vn_during_total_val_price := vn_during_total_val_price +
                                        vn_during_val_price;
         
@@ -3005,7 +3005,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
           vn_any_day_price_ufix_qty_amt := (vn_any_day_unfixed_qty *
                                            vn_during_total_val_price);
         
-        else
+       /* else
           while vd_dur_qp_start_date <= vd_dur_qp_end_date
           loop
             if pkg_metals_general.f_is_day_holiday(cur_gmr_rows.instrument_id,
@@ -3024,20 +3024,20 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
         end if;
         if (vn_count_val_qp + vn_count_set_qp) <> 0 then
         
-          if vn_market_flag = 'N' then
+          if vn_market_flag = 'N' then*/
             vn_during_qp_price := (vn_any_day_price_fix_qty_amt +
                                   vn_any_day_price_ufix_qty_amt) /
                                   cur_gmr_rows.qty_to_be_fixed;
-          else
+        /*  else
             vn_during_qp_price := (vn_during_total_set_price +
                                   vn_during_total_val_price) /
                                   (vn_count_set_qp + vn_count_val_qp);
-          end if;
+          end if;*/
           vn_total_contract_value := vn_total_contract_value +
                                      vn_during_qp_price;
-        else
+        /*else
           vn_total_contract_value := 0;
-        end if;
+        end if;*/
      end if;  
       end if;
       --
@@ -3984,11 +3984,11 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
             vc_price_fixation_status := 'Un-priced';
           
           end if;
-          if cur_gmr_ele_rows.is_any_day_pricing = 'Y' then
+         /* if cur_gmr_ele_rows.is_any_day_pricing = 'Y' then
             vn_market_flag := 'N';
           else
             vn_market_flag := 'Y';
-          end if;
+          end if;*/
         
           if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
             -- get the third wednes day
@@ -4167,8 +4167,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
         
           vn_during_total_val_price := 0;
           vn_count_val_qp           := 0;
-          vd_dur_qp_start_date      := pd_trade_date + 1;
-          if vn_market_flag = 'N' then
+         /* vd_dur_qp_start_date      := pd_trade_date + 1;
+          if vn_market_flag = 'N' then*/
             vn_during_total_val_price := vn_during_total_val_price +
                                          vn_during_val_price;
           
@@ -4178,7 +4178,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
             vn_any_day_price_ufix_qty_amt := (vn_any_day_unfixed_qty *
                                              vn_during_total_val_price);
           
-          else
+        /*  else
             while vd_dur_qp_start_date <= vd_dur_qp_end_date
             loop
               ---- finding holidays       
@@ -4196,18 +4196,18 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
               end if;
               vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
             end loop;
-          end if;
-          if (vn_count_val_qp + vn_count_set_qp) <> 0 then
+          end if;*/
+        --  if (vn_count_val_qp + vn_count_set_qp) <> 0 then
           
-            if vn_market_flag = 'N' then
+           -- if vn_market_flag = 'N' then
               vn_during_qp_price := (vn_any_day_price_fix_qty_amt +
                                     vn_any_day_price_ufix_qty_amt) /
                                     cur_gmr_ele_rows.qty_to_be_fixed;
-            else
+           /* else
               vn_during_qp_price := (vn_during_total_set_price +
                                     vn_during_total_val_price) /
                                     (vn_count_set_qp + vn_count_val_qp);
-            end if;
+            end if;*/
             vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_gmr_rows.product_id,
                                                                             cur_gmr_rows.payable_qty_unit_id,
                                                                             cur_gmr_rows.qty_unit_id,
@@ -4219,9 +4219,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                        vn_during_qp_price;
           
             -- vn_total_contract_value := vn_total_contract_value +vn_during_qp_price;
-          else
+          /*else
             vn_total_contract_value := 0;
-          end if;
+          end if;*/
         end if;
         end if;
       end loop;
@@ -5284,11 +5284,11 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                 
                 end if;
               
-                if cc1.is_qp_any_day_basis = 'Y' then
+               /* if cc1.is_qp_any_day_basis = 'Y' then
                   vn_market_flag := 'N';
                 else
                   vn_market_flag := 'Y';
-                end if;
+                end if;*/
               
                 if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
                   -- get the third wednes day
@@ -5469,9 +5469,9 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
               
                 vn_during_total_val_price := 0;
                 vn_count_val_qp           := 0;
-                vd_dur_qp_start_date      := pd_trade_date + 1;
+               /* vd_dur_qp_start_date      := pd_trade_date + 1;
               
-                if vn_market_flag = 'N' then
+                if vn_market_flag = 'N' then*/
                   vn_during_total_val_price := vn_during_total_val_price +
                                                vn_during_val_price;
                 
@@ -5486,7 +5486,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     vc_price_fixation_status := 'Priced';
                   end if;
                 
-                else
+              /*  else
                 
                   while vd_dur_qp_start_date <= vd_dur_qp_end_date
                   loop
@@ -5505,20 +5505,20 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end if;
                     vd_dur_qp_start_date := vd_dur_qp_start_date + 1;
                   end loop;
-                end if;
+                end if;*/
               
-                if (vn_count_val_qp + vn_count_set_qp) <> 0 then
+             --   if (vn_count_val_qp + vn_count_set_qp) <> 0 then
                 
-                  if vn_market_flag = 'N' then
+                 -- if vn_market_flag = 'N' then
                     vn_during_qp_price := (vn_any_day_cont_price_fix_qty +
                                           vn_any_day_cont_price_ufix_qty) /
                                           cc1.qty_to_be_fixed;
-                  else
+                 /* else
                     vn_during_qp_price := (vn_during_total_set_price +
                                           vn_during_total_val_price) /
                                           (vn_count_set_qp +
                                           vn_count_val_qp);
-                  end if;
+                  end if;*/
                   vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
                                                                                   cur_pcdi_rows.payable_qty_unit_id,
                                                                                   cur_pcdi_rows.item_qty_unit_id,
@@ -5530,14 +5530,14 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                                              vn_during_qp_price;
                   vc_price_unit_id        := cc1.ppu_price_unit_id;
                 
-                else
+                /*else
                   vn_total_quantity       := pkg_general.f_get_converted_quantity(cur_pcdi_rows.underlying_product_id,
                                                                                   cur_pcdi_rows.payable_qty_unit_id,
                                                                                   cur_pcdi_rows.item_qty_unit_id,
                                                                                   cur_pcdi_rows.payable_qty);
                   vn_total_contract_value := 0;
                   vc_price_unit_id        := cc1.ppu_price_unit_id;
-                end if;
+                end if;*/
               end if;
               end if;
             end loop;

@@ -318,7 +318,12 @@ create or replace package body pkg_phy_custom_reports is
              dt.trade_type,
              phd.companyname clearer,
              gab_akc.firstname || ' ' || gab_akc.lastname created,
-             dcod.quantity_closed quantity,
+             (case
+               when dt.trade_type = 'Sell' then
+                -1
+               else
+                1
+             end)*dcod.quantity_closed quantity,
              dcod.quantity_unit_id,
              qum.qty_unit quantity_unit,
              (case
@@ -416,7 +421,12 @@ create or replace package body pkg_phy_custom_reports is
              dt.trade_type,
              phd.companyname clearer,
              gab_akc.firstname || ' ' || gab_akc.lastname created,
-             dcod.quantity_closed quantity,
+              (case
+               when dt.trade_type = 'Sell' then
+                -1
+               else
+                1
+             end)*dcod.quantity_closed quantity,
              dcod.quantity_unit_id,
              qum.qty_unit quantity_unit,
              (case
@@ -3903,6 +3913,7 @@ create or replace package body pkg_phy_custom_reports is
              dt.derivative_ref_no,
              nvl(phd_clr.company_long_name1, phd_clr.companyname) clearer,
              gab.firstname || ' ' || gab.lastname trader,
+             css.strategy_id,
              css.strategy_name,
              dt.trade_type,
              dt.trade_date,
@@ -4041,6 +4052,7 @@ create or replace package body pkg_phy_custom_reports is
              dt.derivative_ref_no,
              nvl(phd_clr.company_long_name1, phd_clr.companyname) clearer,
              gab.firstname || ' ' || gab.lastname trader,
+             css.strategy_id,             
              css.strategy_name,
              dt.trade_type,
              dt.trade_date,
@@ -4183,6 +4195,7 @@ create or replace package body pkg_phy_custom_reports is
              dt.derivative_ref_no,
              nvl(phd_clr.company_long_name1, phd_clr.companyname) clearer,
              gab.firstname || ' ' || gab.lastname trader,
+             css.strategy_id,             
              css.strategy_name,
              dt.trade_type,
              dt.trade_date,
@@ -4341,6 +4354,7 @@ create or replace package body pkg_phy_custom_reports is
          derivative_ref_no,
          clearer,
          trader,
+         strategy_id,
          strategy_name,
          trade_type,
          trade_date,
@@ -4399,6 +4413,7 @@ create or replace package body pkg_phy_custom_reports is
          dvj.derivative_ref_no,
          dvj.clearer,
          dvj.trader,
+         dvj.strategy_id,
          dvj.strategy_name,
          dvj.trade_type,
          dvj.trade_date,
@@ -6485,9 +6500,9 @@ create or replace package body pkg_phy_custom_reports is
     commit;
   
     --- Update FX rate
-  
-    for cc_prp_fx_rate in (select prp.contract_price_cur_id   to_cur_id,
-                                  prp.contract_premium_cur_id from_cur_id
+    
+    for cc_prp_fx_rate in (select prp.contract_price_cur_id   from_cur_id,
+                                  prp.contract_premium_cur_id to_cur_id
                              from prp_physical_risk_position prp
                             where prp.contract_price_cur_id <>
                                   prp.contract_premium_cur_id
@@ -6723,7 +6738,8 @@ create or replace package body pkg_phy_custom_reports is
              eod.attribute_2 = stg_rwo.attribute_value_2,
              eod.attribute_3 = stg_rwo.attribute_value_3,
              eod.attribute_4 = stg_rwo.attribute_value_4,
-             eod.attribute_5 = stg_rwo.attribute_value_5
+             eod.attribute_5 = stg_rwo.attribute_value_5,
+             eod.strategy_name = stg_rwo.strategy_name
        where eod.corporate_id = pc_corporate_id
          and eod.process_id = pc_process_id
          and eod.strategy_id = stg_rwo.startegy_id;
@@ -6796,7 +6812,8 @@ create or replace package body pkg_phy_custom_reports is
              apm.available_price_name,
              div.price_unit_id,
              pum.price_unit_name,
-             ppfh.price_unit_id ppu_price_unit_id
+          --   ppfh.price_unit_id ppu_price_unit_id,
+             ppu.product_price_unit_id ppu_price_unit_id
       
         from pcm_physical_contract_main     pcm,
              pcdi_pc_delivery_item          pcdi,
@@ -6809,7 +6826,9 @@ create or replace package body pkg_phy_custom_reports is
              div_der_instrument_valuation   div,
              ps_price_source                ps,
              apm_available_price_master     apm,
-             pum_price_unit_master          pum
+             pum_price_unit_master          pum,
+             pdd_product_derivative_def     pdd,
+             v_ppu_pum                      ppu
       
        where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcm.process_id = pc_process_id
@@ -6835,6 +6854,9 @@ create or replace package body pkg_phy_custom_reports is
          and div.price_source_id = ps.price_source_id
          and div.available_price_id = apm.available_price_id
          and div.price_unit_id = pum.price_unit_id
+         and dim.product_derivative_id=pdd.derivative_def_id
+         and div.price_unit_id=ppu.price_unit_id
+         and pdd.product_id=ppu.product_id
        group by pcdi.pcdi_id,
                 pocd.pcbpd_id,
                 pcm.contract_ref_no,
@@ -6846,7 +6868,7 @@ create or replace package body pkg_phy_custom_reports is
                 apm.available_price_name,
                 div.price_unit_id,
                 pum.price_unit_name,
-                ppfh.price_unit_id;
+                ppu.product_price_unit_id;
   
     vn_price            number;
     vc_price_unit_id    varchar2(15);
@@ -7090,7 +7112,8 @@ create or replace package body pkg_phy_custom_reports is
              apm.available_price_name,
              div.price_unit_id,
              pum.price_unit_name,
-             ppfh.price_unit_id ppu_price_unit_id
+          --   ppfh.price_unit_id ppu_price_unit_id
+             ppu.product_price_unit_id ppu_price_unit_id
       
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
@@ -7103,7 +7126,9 @@ create or replace package body pkg_phy_custom_reports is
              ps_price_source                ps,
              apm_available_price_master     apm,
              pum_price_unit_master          pum,
-             gmr_goods_movement_record      gmr
+             gmr_goods_movement_record      gmr,
+             pdd_product_derivative_def     pdd,
+             v_ppu_pum                      ppu
       
        where pofh.pocd_id = pocd.pocd_id
          and pocd.poch_id = poch.poch_id
@@ -7130,6 +7155,9 @@ create or replace package body pkg_phy_custom_reports is
          and div.price_unit_id = pum.price_unit_id
          and gmr.internal_gmr_ref_no = pofh.internal_gmr_ref_no
          and gmr.is_deleted = 'N'
+         and dim.product_derivative_id=pdd.derivative_def_id
+         and div.price_unit_id=ppu.price_unit_id
+         and pdd.product_id=ppu.product_id
        group by gmr.gmr_ref_no,
                 poch.pcdi_id,
                 pofh.internal_gmr_ref_no,
@@ -7145,7 +7173,7 @@ create or replace package body pkg_phy_custom_reports is
                 apm.available_price_name,
                 div.price_unit_id,
                 pum.price_unit_name,
-                ppfh.price_unit_id;
+                ppu.product_price_unit_id;
     vn_price            number;
     vc_price_unit_id    varchar2(15);
     vd_3rd_wed_of_qp    date;
