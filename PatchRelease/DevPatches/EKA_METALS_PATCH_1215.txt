@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1215
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  26-Nov-2012
+
+Bug / Enhancement*      	:  Bug
+
+Bug ID*            		:  70850,70851
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Reports
+
+Sub-Module  			:  Reports
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 108944
+Author: suresh.gottipati
+Date: 6:30:21 PM, Monday, November 26, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative_booking.sql
+
+Revision: 108945
+Author: suresh.gottipati
+Date: 6:30:57 PM, Monday, November 26, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+
