@@ -247,24 +247,7 @@ create or replace package body pkg_phy_cog_price is
                                        vn_contract_price;
             vc_price_unit_id        := cur_called_off_rows.price_unit_id;
           elsif cur_called_off_rows.price_basis in ('Index', 'Formula') then
-            for cc1 in (select ppfh.ppfh_id,
-                               ppfh.price_unit_id ppu_price_unit_id,
-                               ppu.price_unit_id,
-                               ppu.price_unit_name,
-                               pocd.qp_period_type,
-                               pofh.qp_start_date,
-                               pofh.qp_end_date,
-                               pfqpp.event_name,
-                               pfqpp.no_of_event_months,
-                               pfqpp.is_qp_any_day_basis,
-                               (case
-                                 when pocd.qp_period_type = 'Event' then
-                                  cur_pcdi_rows.item_qty
-                                 else
-                                  pofh.qty_to_be_fixed
-                               end) qty_to_be_fixed,
-                               pofh.priced_qty,
-                               pofh.pofh_id
+            for cc1 in (select pofh.pofh_id
                           from poch_price_opt_call_off_header poch,
                                pocd_price_option_calloff_dtls pocd,
                                pcbpd_pc_base_price_detail pcbpd,
@@ -926,7 +909,6 @@ create or replace package body pkg_phy_cog_price is
              vdip.ppu_price_unit_id,
              div.price_unit_id,
              pocd.is_any_day_pricing,
-             pofh.qty_to_be_fixed,
              pocd.pcbpd_id,
              dim.delivery_calender_id,
              pdc.is_daily_cal_applicable,
@@ -995,7 +977,6 @@ create or replace package body pkg_phy_cog_price is
              vdip.ppu_price_unit_id,
              div.price_unit_id,
              pocd.is_any_day_pricing,
-             pofh.qty_to_be_fixed,
              pocd.pcbpd_id,
              dim.delivery_calender_id,
              pdc.is_daily_cal_applicable,
@@ -1048,7 +1029,6 @@ create or replace package body pkg_phy_cog_price is
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2) is
       select pofh.internal_gmr_ref_no,
              pofh.pofh_id,
-             pofh.qty_to_be_fixed,
              pcbpd.pcbpd_id,
              pcbpd.qty_to_be_priced,
              pcbpd.price_basis
@@ -1063,7 +1043,6 @@ create or replace package body pkg_phy_cog_price is
          and pcbpd.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
-         and pofh.qty_to_be_fixed <> 0
          and pofh.is_active = 'Y'
          and pocd.is_active = 'Y'
          and pcbpd.is_active = 'Y'
@@ -1550,14 +1529,10 @@ create or replace package body pkg_phy_cog_price is
          and dipq.is_active = 'Y';
     cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
       select poch.poch_id,
-             poch.internal_action_ref_no,
-             pocd.pricing_formula_id,
              pcbpd.pcbpd_id,
              pcbpd.price_basis,
              pcbpd.price_value,
              pcbpd.price_unit_id,
-             pcbpd.tonnage_basis,
-             pcbpd.fx_to_base,
              pcbpd.qty_to_be_priced,
              pcbph.price_description
         from poch_price_opt_call_off_header poch,
@@ -1577,12 +1552,9 @@ create or replace package body pkg_phy_cog_price is
          and pcbph.is_active = 'Y';
     cursor cur_not_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
       select pcbpd.pcbpd_id,
-             pcbph.internal_contract_ref_no,
              pcbpd.price_basis,
              pcbpd.price_value,
              pcbpd.price_unit_id,
-             pcbpd.tonnage_basis,
-             pcbpd.fx_to_base,
              pcbpd.qty_to_be_priced,
              pcbph.price_description
         from pci_physical_contract_item pci,
@@ -1677,8 +1649,7 @@ create or replace package body pkg_phy_cog_price is
                                (select *
                                   from pofh_price_opt_fixation_header pfh
                                  where pfh.internal_gmr_ref_no is null
-                                   and pfh.is_active = 'Y'
-                                   and pfh.qty_to_be_fixed <> 0) pofh,
+                                   and pfh.is_active = 'Y') pofh,
                                v_ppu_pum ppu
                          where poch.poch_id = pocd.poch_id
                            and pocd.pcbpd_id = pcbpd.pcbpd_id
@@ -1696,8 +1667,7 @@ create or replace package body pkg_phy_cog_price is
                            and pfqpp.is_active = 'Y'
                            and pcbpd.process_id = pc_process_id
                            and pfqpp.process_id = pc_process_id
-                           and ppfh.process_id = pc_process_id
-                           and pofh.qty_to_be_fixed <> 0)
+                           and ppfh.process_id = pc_process_id)
             loop
               vc_error_message := ' Line 240 ';
               begin
@@ -1721,7 +1691,6 @@ create or replace package body pkg_phy_cog_price is
                    and pocd.is_active = 'Y'
                    and pofh.is_active = 'Y'
                    and pfd.is_active = 'Y'
-                   and pofh.qty_to_be_fixed <> 0
                    and ppu.product_price_unit_id = pfd.price_unit_id
                    and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
                  group by ppu.price_unit_id;
@@ -2330,7 +2299,7 @@ create or replace package body pkg_phy_cog_price is
                 from grd_goods_record_detail grd
                where grd.process_id = pc_process_id
                  and grd.status = 'Active'
-                 and grd.tolling_stock_type in ('None Tolling') --, 'Clone Stock')
+                 and grd.tolling_stock_type in ('None Tolling')
                  and grd.is_deleted = 'N'
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
@@ -2411,7 +2380,7 @@ create or replace package body pkg_phy_cog_price is
                 from dgrd_delivered_grd grd
                where grd.process_id = pc_process_id
                  and grd.status = 'Active'
-                 and grd.tolling_stock_type in ('None Tolling') --, 'Clone Stock')
+                 and grd.tolling_stock_type in ('None Tolling')
                group by grd.internal_gmr_ref_no,
                         grd.quality_id,
                         grd.product_id,
@@ -2467,7 +2436,6 @@ create or replace package body pkg_phy_cog_price is
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is
       select pofh.internal_gmr_ref_no,
              pofh.pofh_id,
-             pofh.qty_to_be_fixed,
              pcbpd.element_id,
              pcbpd.pcbpd_id,
              pcbpd.qty_to_be_priced,
@@ -2488,7 +2456,6 @@ create or replace package body pkg_phy_cog_price is
          and pcbpd.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
-         and pofh.qty_to_be_fixed <> 0
          and pofh.is_active = 'Y'
          and pocd.is_active = 'Y'
          and pcbpd.is_active = 'Y'
@@ -2561,7 +2528,6 @@ create or replace package body pkg_phy_cog_price is
              and pofh.pofh_id = cur_gmr_ele_rows.pofh_id
              and pofh.pofh_id = pfd.pofh_id
              and pfd.as_of_date <= pd_trade_date
-             and pofh.qty_to_be_fixed <> 0
              and poch.is_active = 'Y'
              and pocd.is_active = 'Y'
              and pofh.is_active = 'Y'
@@ -3031,7 +2997,6 @@ create or replace package body pkg_phy_cog_price is
          and gpah.is_active = 'Y'
          and gpad.is_active = 'Y'
          and pcdi.price_allocation_method = 'Price Allocation'
-         and gpad.allocated_qty <> 0
          and nvl(pocd.is_any_day_pricing, 'N') = 'Y'
          and pcbpd.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
@@ -3044,7 +3009,6 @@ create or replace package body pkg_phy_cog_price is
          and gpad.gpah_id = gpah.gpah_id
        group by gpah.internal_gmr_ref_no,
                 pofh.pofh_id,
-                pofh.qty_to_be_fixed,
                 pcbpd.element_id,
                 pcbpd.pcbpd_id,
                 pcbpd.qty_to_be_priced,
@@ -3100,7 +3064,6 @@ create or replace package body pkg_phy_cog_price is
                  and gpah.element_id = pcbpd.element_id)
        group by grd.internal_gmr_ref_no,
                 pofh.pofh_id,
-                pofh.qty_to_be_fixed,
                 pcbpd.element_id,
                 pcbpd.pcbpd_id,
                 pcbpd.qty_to_be_priced,
