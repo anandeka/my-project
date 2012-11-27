@@ -42,3 +42,11 @@ bug fix:70989
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_453.sql
 
+Revision: 109074
+Author: rajeshwar.reddy
+Date: 18:14:26, 27 November 2012
+Message:
+increased column size.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_356.sql
+
