@@ -6501,8 +6501,8 @@ create or replace package body pkg_phy_custom_reports is
   
     --- Update FX rate
     
-    for cc_prp_fx_rate in (select prp.contract_price_cur_id   from_cur_id,
-                                  prp.contract_premium_cur_id to_cur_id
+    for cc_prp_fx_rate in (select prp.contract_price_cur_id to_cur_id,
+                                  prp.contract_premium_cur_id from_cur_id
                              from prp_physical_risk_position prp
                             where prp.contract_price_cur_id <>
                                   prp.contract_premium_cur_id
@@ -6523,8 +6523,8 @@ create or replace package body pkg_phy_custom_reports is
                             group by prp.contract_price_cur_id,
                                      prp.m2m_price_cur_id
                            union
-                           select prp.contract_price_cur_id,
-                                  prp.base_cur_id -- M2m Premium cur_id
+                           select prp.base_cur_id, -- M2m Premium cur_id
+                                  prp.contract_price_cur_id
                              from prp_physical_risk_position prp
                             where prp.contract_price_cur_id <>
                                   prp.base_cur_id
@@ -6558,8 +6558,8 @@ create or replace package body pkg_phy_custom_reports is
       update prp_physical_risk_position prp
          set prp.m2m_premium_to_price_fx_rate = vn_exchnage_rate,
              prp.fx_rate                      = vn_exchnage_rate
-       where prp.contract_price_cur_id = cc_prp_fx_rate.from_cur_id
-         and prp.base_cur_id = cc_prp_fx_rate.to_cur_id
+       where prp.contract_price_cur_id = cc_prp_fx_rate.to_cur_id
+         and prp.base_cur_id =cc_prp_fx_rate.from_cur_id 
          and prp.corporate_id = pc_corporate_id
          and prp.process_id = pc_process_id
          and prp.process = pc_process;
@@ -6937,11 +6937,6 @@ create or replace package body pkg_phy_custom_reports is
           vd_qp_start_date := cc1.qp_start_date;
           vd_qp_end_date   := cc1.qp_end_date;
         end if;
-      
-        if cc1.final_price <> 0 then
-          vn_price         := cc1.final_price;
-          vc_price_unit_id := cc1.final_price_unit_id;
-        else
         
           vd_3rd_wed_of_qp := pkg_metals_general.f_get_next_day(vd_qp_end_date,
                                                                 'Wed',
@@ -7069,7 +7064,7 @@ create or replace package body pkg_phy_custom_reports is
             
           end;
           vc_price_unit_id := cur_mar_price_rows.ppu_price_unit_id;
-        end if;
+        
       
         insert into cmp_contract_market_price
           (process_id,
@@ -7185,11 +7180,7 @@ create or replace package body pkg_phy_custom_reports is
     vd_valid_quote_date date;
   begin
     for cur_mar_gmr_price_rows in cur_mar_gmr_price
-    loop
-      if cur_mar_gmr_price_rows.final_price <> 0 then
-        vn_price         := cur_mar_gmr_price_rows.final_price;
-        vc_price_unit_id := cur_mar_gmr_price_rows.final_price_unit_id;
-      else
+    loop     
         vd_3rd_wed_of_qp := pkg_metals_general.f_get_next_day(cur_mar_gmr_price_rows.qp_end_date,
                                                               'Wed',
                                                               3);
@@ -7318,7 +7309,7 @@ create or replace package body pkg_phy_custom_reports is
           
         end;
         vc_price_unit_id := cur_mar_gmr_price_rows.ppu_price_unit_id;
-      end if;
+   
       insert into gmp_gmr_market_price
         (process_id,
          internal_gmr_ref_no,
