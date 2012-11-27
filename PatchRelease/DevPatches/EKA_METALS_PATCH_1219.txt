@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1219
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajehwar Reddy
+ 
+Created on*        		:  27-Nov-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay Doc
+
+Sub-Module  			 :  Assay Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 109051
+Author: rajeshwar.reddy
+Date: 17:20:37, 27 November 2012
+Message:
+bug fix:70989
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_453.sql
+
