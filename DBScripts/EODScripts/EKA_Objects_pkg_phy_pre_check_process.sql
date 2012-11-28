@@ -78,6 +78,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_process               varchar2,
                                     pd_valuation_fx_date     date,
                                     pn_qp_amt                out number,
+                                    pn_qp_amt_cp_fx_rate     out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2);
   procedure sp_m2m_product_premimum(pc_corporate_id          varchar2,
@@ -92,6 +93,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_valuation_point_id    varchar2,
                                     pd_valuation_fx_date     date,
                                     pn_pp_amt                out number,
+                                    pn_pp_amt_corp_fx_rate   out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2);
   function f_get_converted_price_pum(pc_corporate_id       varchar2,
@@ -138,7 +140,8 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                    pd_trade_date   date,
                                    pc_dbd_id       varchar2,
                                    pc_user_id      varchar2);
-end;
+end; 
+ 
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -332,6 +335,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     vc_quality_exch_rate_string varchar2(500);
     vc_product_exch_rate_string varchar2(500);
     vc_exch_rate_missing        varchar2(1);
+    vn_qty_premimum_amt_cp_fx_rate  number;
+    vn_pp_amt_cp_fx_rate    number;
   begin
     delete from tmpc_temp_m2m_pre_check tmpc
      where corporate_id = pc_corporate_id;
@@ -1347,6 +1352,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                           end)
     loop
       vn_qty_premimum_amt := 0;
+      vn_qty_premimum_amt_cp_fx_rate:=0;
       sp_m2m_quality_premimum(pc_corporate_id,
                               pd_trade_date,
                               cc1.mvp_id,
@@ -1360,6 +1366,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                               pc_process,
                               cc1.valuation_fx_date,
                               vn_qty_premimum_amt,
+                              vn_qty_premimum_amt_cp_fx_rate,
                               vc_quality_exch_rate_string,
                               vc_exch_rate_missing);
       -- If exchange rate was missing and premium became null let us not throw the error                        
@@ -1391,6 +1398,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       else
         update tmpc_temp_m2m_pre_check tmpc
            set tmpc.m2m_quality_premium = vn_qty_premimum_amt,
+               tmpc.m2m_qp_in_corporate_fx_rate=vn_qty_premimum_amt_cp_fx_rate,
                tmpc.m2m_qp_fw_exch_rate = vc_quality_exch_rate_string
          where tmpc.corporate_id = pc_corporate_id
            and tmpc.mvp_id = cc1.mvp_id
@@ -1448,6 +1456,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          end)
     loop
       vn_pp_amt := 0;
+      vn_pp_amt_cp_fx_rate:=0;
       sp_m2m_product_premimum(cc.corporate_id,
                               pd_trade_date,
                               cc.product_id,
@@ -1460,6 +1469,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                               cc.mvp_id,
                               cc.valuation_fx_date,
                               vn_pp_amt,
+                              vn_pp_amt_cp_fx_rate,
                               vc_product_exch_rate_string,
                               vc_exch_rate_missing);
       --                              
@@ -1492,6 +1502,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       else
         update tmpc_temp_m2m_pre_check tmpc
            set tmpc.m2m_product_premium = vn_pp_amt,
+               tmpc.m2m_pp_in_corporate_fx_rate=vn_pp_amt_cp_fx_rate,
                tmpc.m2m_pp_fw_exch_rate = vc_product_exch_rate_string
          where tmpc.corporate_id = pc_corporate_id
            and tmpc.product_id = cc.product_id
@@ -5889,6 +5900,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_process               varchar2,
                                     pd_valuation_fx_date     date,
                                     pn_qp_amt                out number,
+                                    pn_qp_amt_cp_fx_rate     out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2) is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
@@ -5955,6 +5967,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     vc_exch_rate_string          varchar2(500);
     vc_total_exch_rate_string    varchar2(500);
     vc_data_missing_for          varchar2(500);
+    vn_exchnage_rate             number;
+    vn_premium_corp_fx_rate      number;
+    vn_total_premium_corp_fx_rate number:= 0;
   begin
     --
     -- Premium based on the not beyond  values
@@ -6038,6 +6053,16 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
             end if;
           end if;
         end if;
+      -- corp Fx rate( Premium to base for Risk position by Prompt report)  
+      if vc_premium_main_cur_id<>vc_base_cur_id then
+       vn_exchnage_rate := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                   vc_premium_main_cur_id,
+                                                                   vc_base_cur_id,
+                                                                   pd_trade_date,
+                                                                   1);
+       else
+       vn_exchnage_rate :=1;
+       end if;
       
         vn_premium := (cur_data_rows.premium / vn_premium_weight) *
                       vc_premium_main_cur_factor *
@@ -6047,11 +6072,23 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                                            
                                                            vc_premium_weight_unit_id,
                                                            1);
+                                                           
+        vn_premium_corp_fx_rate := (cur_data_rows.premium / vn_premium_weight) *
+                      vc_premium_main_cur_factor *
+                      vn_exchnage_rate *
+                      pkg_general.f_get_converted_quantity(pc_product_id,
+                                                           vc_base_weight_unit_id,
+                                                           
+                                                           vc_premium_weight_unit_id,
+                                                           1);                                                    
       else
         vn_premium := cur_data_rows.premium;
+        vn_premium_corp_fx_rate:=cur_data_rows.premium;
+        
       end if;
     
       vn_total_premium := vn_total_premium + vn_premium;
+      vn_total_premium_corp_fx_rate:=vn_total_premium_corp_fx_rate+vn_premium_corp_fx_rate;
     end loop;
     if vn_total_premium is null or vn_total_premium = 0 then
       --
@@ -6115,7 +6152,18 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
         
           --
           -- Convert Premium to Base
-          --
+          --  
+           -- corp Fx rate( Premium to base for Risk position by Prompt report)          
+       if vc_premium_main_cur_id<>vc_base_cur_id then
+       vn_exchnage_rate := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                   vc_premium_main_cur_id,
+                                                                   vc_base_cur_id,
+                                                                   pd_trade_date,
+                                                                   1);
+       else
+       vn_exchnage_rate :=1;
+       end if;
+       
           vn_premium := (cur_data_rows.premium / vn_premium_weight) *
                         vc_premium_main_cur_factor *
                         vn_fw_exch_rate_prem_to_base *
@@ -6123,6 +6171,13 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                                              vc_premium_weight_unit_id,
                                                              vc_base_weight_unit_id,
                                                              1);
+          vn_premium_corp_fx_rate := (cur_data_rows.premium / vn_premium_weight) *
+                        vc_premium_main_cur_factor *
+                        vn_exchnage_rate *
+                        pkg_general.f_get_converted_quantity(pc_product_id,
+                                                             vc_premium_weight_unit_id,
+                                                             vc_base_weight_unit_id,
+                                                             1);                                                   
         
           if vc_base_cur_id <> vc_premium_main_cur_id then
             vc_exch_rate_string := vc_exch_rate_string || '1 ' ||
@@ -6139,15 +6194,20 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
         
         else
           vn_premium := cur_data_rows.premium;
+          vn_premium_corp_fx_rate:=cur_data_rows.premium;
+          
         end if;
         vn_total_premium := vn_total_premium + vn_premium;
+        vn_total_premium_corp_fx_rate:=vn_total_premium_corp_fx_rate+vn_premium_corp_fx_rate;
       end loop;
     
     end if;
     if vn_total_premium is null then
       vn_total_premium := 0;
+      vn_total_premium_corp_fx_rate:=0;
     end if;
     pn_qp_amt           := vn_total_premium;
+    pn_qp_amt_cp_fx_rate:=vn_total_premium_corp_fx_rate;
     pc_exch_rate_string := vc_total_exch_rate_string;
   
   exception
@@ -6710,6 +6770,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                     pc_valuation_point_id    varchar2,
                                     pd_valuation_fx_date     date,
                                     pn_pp_amt                out number,
+                                    pn_pp_amt_corp_fx_rate   out number,
                                     pc_exch_rate_string      out varchar2,
                                     pc_exch_rate_missing     out varchar2) is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
@@ -6774,6 +6835,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     vn_total_premium             number := 0;
     vc_exch_rate_string          varchar2(500);
     vc_total_exch_rate_string    varchar2(500);
+    vn_exchnage_rate             number;
+    vn_premium_corp_fx_rate      number;
+    vn_total_premium_corp_fx_rate number:= 0;
     --vc_data_missing_for          varchar2(500);
   begin
     --
@@ -6891,6 +6955,16 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
             end if;
           end if;
         end if;
+        
+       if vc_premium_main_cur_id<>vc_base_cur_id then
+       vn_exchnage_rate := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                   vc_premium_main_cur_id,
+                                                                   vc_base_cur_id,
+                                                                   pd_trade_date,
+                                                                   1);
+       else
+       vn_exchnage_rate :=1;
+       end if;
       
         vn_premium := (cur_data_rows.premium / vn_premium_weight) *
                       vc_premium_main_cur_factor *
@@ -6900,11 +6974,22 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                                            vc_premium_weight_unit_id,
                                                            
                                                            1);
+                                                           
+        vn_premium_corp_fx_rate := (cur_data_rows.premium / vn_premium_weight) *
+                      vc_premium_main_cur_factor *
+                      vn_exchnage_rate *
+                      pkg_general.f_get_converted_quantity(pc_product_id,
+                                                           vc_base_weight_unit_id,
+                                                           vc_premium_weight_unit_id,
+                                                           
+                                                           1);                                                   
       else
         vn_premium := cur_data_rows.premium;
+        vn_premium_corp_fx_rate:=cur_data_rows.premium;
       end if;
     
       vn_total_premium := vn_total_premium + vn_premium;
+      vn_total_premium_corp_fx_rate:=vn_total_premium_corp_fx_rate+vn_premium_corp_fx_rate;
     end loop;
     if vn_total_premium is null or vn_total_premium = 0 then
       --
@@ -7000,6 +7085,16 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                null,
                pd_trade_date);
           end if;*/
+          
+       if vc_premium_main_cur_id<>vc_base_cur_id then
+       vn_exchnage_rate := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                   vc_premium_main_cur_id,
+                                                                   vc_base_cur_id,
+                                                                   pd_trade_date,
+                                                                   1);
+       else
+       vn_exchnage_rate :=1;
+       end if;
           --
           -- Convert Premium to Base
           --
@@ -7010,6 +7105,13 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                                              vc_premium_weight_unit_id,
                                                              vc_base_weight_unit_id,
                                                              1);
+         vn_premium_corp_fx_rate := (cur_data_rows.premium / vn_premium_weight) *
+                        vc_premium_main_cur_factor *
+                        vn_exchnage_rate *
+                        pkg_general.f_get_converted_quantity(pc_product_id,
+                                                             vc_premium_weight_unit_id,
+                                                             vc_base_weight_unit_id,
+                                                             1);                                                    
         
           if vc_base_cur_id <> vc_premium_main_cur_id then
             vc_exch_rate_string := '1 ' || vc_premium_main_cur_id || '=' ||
@@ -7023,15 +7125,19 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
         
         else
           vn_premium := cur_data_rows.premium;
+          vn_premium_corp_fx_rate:=cur_data_rows.premium;
         end if;
         vn_total_premium := vn_total_premium + vn_premium;
+        vn_total_premium_corp_fx_rate:=vn_total_premium_corp_fx_rate+vn_premium_corp_fx_rate;
       end loop;
     
     end if;
     if vn_total_premium is null then
       vn_total_premium := 0;
+      vn_total_premium_corp_fx_rate:=0;
     end if;
     pn_pp_amt           := vn_total_premium;
+    pn_pp_amt_corp_fx_rate:=vn_total_premium_corp_fx_rate;
     pc_exch_rate_string := vc_total_exch_rate_string;
   exception
     when others then
@@ -7825,5 +7931,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
     end loop;
   
   end;
-end;
+end; 
 /

@@ -5907,7 +5907,8 @@ create or replace package body pkg_phy_custom_reports is
                                  1 fx_rate,
                                  1 contract_pp_to_price_fx_rate,
                                  1 m2m_price_to_price_fx_rate,
-                                 1 m2m_premium_to_price_fx_rate
+                                 1 m2m_premium_to_price_fx_rate,
+                                 pocd.price_type
                           
                             from pcm_physical_contract_main     pcm,
                                  pcdi_pc_delivery_item          pcdi,
@@ -5958,7 +5959,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.contract_type = 'BASEMETAL'
                              and pcm.contract_status = 'In Position'
                              and pcdi.pcdi_id = poch.pcdi_id
-                             and pocd.price_type <> 'Fixed'
+                                --  and pocd.price_type <> 'Fixed'
                              and diqs.total_qty - diqs.final_invoiced_qty > 0
                              and poch.is_active = 'Y'
                              and poch.poch_id = pocd.poch_id
@@ -6001,7 +6002,8 @@ create or replace package body pkg_phy_custom_reports is
          contract_price_cur_id,
          contract_pp_to_price_fx_rate,
          m2m_price_to_price_fx_rate,
-         m2m_premium_to_price_fx_rate)
+         m2m_premium_to_price_fx_rate,
+         price_type)
       values
         (cur_di_detail.corporate_id,
          cur_di_detail.corporate,
@@ -6037,7 +6039,8 @@ create or replace package body pkg_phy_custom_reports is
          cur_di_detail.pricing_cur_id,
          cur_di_detail.contract_pp_to_price_fx_rate,
          cur_di_detail.m2m_price_to_price_fx_rate,
-         cur_di_detail.m2m_premium_to_price_fx_rate);
+         cur_di_detail.m2m_premium_to_price_fx_rate,
+         cur_di_detail.price_type);
     end loop;
     commit;
   
@@ -6083,6 +6086,16 @@ create or replace package body pkg_phy_custom_reports is
          and prp.product_type = 'BASEMETAL';
     end loop;
     commit;
+    
+    --- update the priced qty for Fixed contracts.
+    update prp_physical_risk_position prp
+          set prp.priced_qty=prp.del_item_qty,
+              prp.priced_qty_unit_id=prp.di_qty_unit_id,
+              prp.price_qty_unit=prp.di_qty_unit
+          where prp.process_id=pc_process_id
+            and prp.price_type='Fixed'
+            and prp.product_type = 'BASEMETAL';          
+    commit;
   
     --contract price with out event based
     for cur_cont_price in (select cipd.pcdi_id,
@@ -6108,7 +6121,7 @@ create or replace package body pkg_phy_custom_reports is
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
          and prp.process = pc_process
-         and prp.qp_period_type not in ('Event')
+         and nvl(prp.qp_period_type, 'NA') not in ('Event')
          and prp.product_type = 'BASEMETAL';
     end loop;
     commit;
@@ -6211,6 +6224,102 @@ create or replace package body pkg_phy_custom_reports is
     end loop;
     commit;
   
+    -- contract price with fixed contracts
+    for cur_fixed in (select t.pcdi_id,
+                             sum(t.price * qty) / sum(qty) market_price,
+                             t.market_price_unit_id,
+                             t.market_price_unit,
+                             t.market_price_cur_id
+                        from (select nvl(tmpc.pcdi_id, grd.pcdi_id) pcdi_id,
+                                     sum(grd.current_qty *
+                                         ucm.multiplication_factor *
+                                         md.m2m_settlement_price) /
+                                     sum(grd.current_qty *
+                                         ucm.multiplication_factor) price,
+                                     sum(grd.current_qty *
+                                         ucm.multiplication_factor) qty,
+                                     md.m2m_price_unit_id market_price_unit_id,
+                                     pum.price_unit_name market_price_unit,
+                                     pum.cur_id  market_price_cur_id
+                                from gmr_goods_movement_record  gmr,
+                                     grd_goods_record_detail    grd,
+                                     tmpc_temp_m2m_pre_check    tmpc,
+                                     md_m2m_daily               md,
+                                     pcdi_pc_delivery_item      pcdi,
+                                     ucm_unit_conversion_master ucm,
+                                     pum_price_unit_master      pum
+                               where gmr.internal_gmr_ref_no =
+                                     grd.internal_gmr_ref_no
+                                 and gmr.process_id = pc_process_id
+                                 and grd.process_id = pc_process_id
+                                 and gmr.is_deleted = 'N'
+                                 and grd.status = 'Active'
+                                 and tmpc.internal_gmr_ref_no =
+                                     gmr.internal_gmr_ref_no
+                                 and tmpc.internal_grd_ref_no =
+                                     grd.internal_grd_ref_no
+                                 and nvl(gmr.is_final_invoiced, 'N') = 'N'
+                                 and tmpc.section_name <> 'OPEN'
+                                 and pcdi.pcdi_id = grd.pcdi_id
+                                 and pcdi.process_id = pc_process_id
+                                 and tmpc.internal_m2m_id = md.md_id
+                                 and md.process_id = pc_process_id
+                                 and pcdi.is_active = 'Y'
+                                 and ucm.is_active = 'Y'
+                                 and ucm.from_qty_unit_id = grd.qty_unit_id
+                                 and ucm.to_qty_unit_id = pcdi.qty_unit_id
+                                 and md.m2m_price_unit_id = pum.price_unit_id
+                               group by nvl(tmpc.pcdi_id, grd.pcdi_id),
+                                        md.m2m_price_unit_id,
+                                        pum.price_unit_name,
+                                        pum.cur_id
+                              union
+                              select pcdi.pcdi_id,
+                                     md.m2m_settlement_price price,
+                                     diqs.open_qty  qty,
+                                     md.m2m_price_unit_id market_price_unit_id,
+                                     pum.price_unit_name market_price_unit,
+                                     pum.cur_id  market_price_cur_id
+                                from pcdi_pc_delivery_item         pcdi,
+                                     diqs_delivery_item_qty_status diqs,
+                                     tmpc_temp_m2m_pre_check       tmpc,
+                                     pum_price_unit_master         pum,
+                                     md_m2m_daily                  md
+                               where pcdi.process_id = pc_process_id
+                                 and diqs.pcdi_id = pcdi.pcdi_id
+                                 and diqs.process_id = pc_process_id
+                                 and pcdi.is_active = 'Y'
+                                 and diqs.is_active = 'Y'
+                                 and tmpc.pcdi_id = pcdi.pcdi_id
+                                 and tmpc.section_name = 'OPEN'
+                                 and tmpc.internal_m2m_id = md.md_id
+                                 and md.process_id = pc_process_id
+                                 and md.m2m_price_unit_id = pum.price_unit_id
+                               group by pcdi.pcdi_id,
+                                        diqs.open_qty,
+                                        md.m2m_settlement_price,
+                                        md.m2m_price_unit_id,
+                                        pum.price_unit_name,
+                                        pum.cur_id) t
+                       group by t.pcdi_id,
+                                t.market_price_unit_id,
+                                t.market_price_unit,
+                                t.market_price_cur_id)
+    loop
+      update prp_physical_risk_position prp
+         set prp.market_price         = cur_fixed.market_price,
+             prp.market_price_unit_id = cur_fixed.market_price_unit_id,
+             prp.market_price_unit    = cur_fixed.market_price_unit,
+             prp.m2m_price_cur_id     = cur_fixed.market_price_cur_id
+       where cur_fixed.pcdi_id = prp.pcdi_id
+         and prp.process_id = pc_process_id
+         and prp.corporate_id = pc_corporate_id
+         and prp.process = pc_process
+         and prp.price_type = 'Fixed'
+         and prp.product_type = 'BASEMETAL';
+    end loop;
+    commit;
+  
     -- contract premium  with all di Items
     for cur_cont_premium in (select pcm.contract_ref_no,
                                     pcdi.pcdi_id,
@@ -6293,7 +6402,7 @@ create or replace package body pkg_phy_custom_reports is
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
          and prp.process = pc_process
-         and prp.qp_period_type not in ('Event')
+         and nvl(prp.qp_period_type, 'NA') not in ('Event')
          and prp.product_type = 'BASEMETAL';
     end loop;
     commit;
@@ -6410,12 +6519,12 @@ create or replace package body pkg_phy_custom_reports is
                              from (select nvl(tmpc.pcdi_id, grd.pcdi_id) pcdi_id,
                                           sum(grd.current_qty *
                                               ucm.multiplication_factor *
-                                              tmpc.m2m_quality_premium) /
+                                              tmpc.m2m_qp_in_corporate_fx_rate) /
                                           sum(grd.current_qty *
                                               ucm.multiplication_factor) quality_premium,
                                           sum(grd.current_qty *
                                               ucm.multiplication_factor *
-                                              tmpc.m2m_product_premium) /
+                                              tmpc.m2m_pp_in_corporate_fx_rate) /
                                           sum(grd.current_qty *
                                               ucm.multiplication_factor) product_premium,
                                           sum(grd.current_qty *
@@ -6456,10 +6565,9 @@ create or replace package body pkg_phy_custom_reports is
                                              pum.price_unit_name
                                    union
                                    select pcdi.pcdi_id,
-                                          tmpc.m2m_quality_premium,
-                                          tmpc.m2m_product_premium,
-                                          (diqs.open_qty -
-                                          diqs.final_invoiced_qty) qty,
+                                          tmpc.m2m_qp_in_corporate_fx_rate quality_premium,
+                                          tmpc.m2m_pp_in_corporate_fx_rate product_premium,
+                                          diqs.open_qty  qty,
                                           tmpc.base_price_unit_id_in_ppu market_premium_price_unit_id,
                                           pum.price_unit_name market_premium_price_unit
                                      from pcdi_pc_delivery_item         pcdi,
@@ -6476,10 +6584,9 @@ create or replace package body pkg_phy_custom_reports is
                                       and tmpc.base_price_unit_id_in_ppu =
                                           pum.product_price_unit_id
                                     group by pcdi.pcdi_id,
-                                             (diqs.open_qty -
-                                             diqs.final_invoiced_qty),
-                                             tmpc.m2m_quality_premium,
-                                             tmpc.m2m_product_premium,
+                                             diqs.open_qty,
+                                             tmpc.m2m_qp_in_corporate_fx_rate,
+                                             tmpc.m2m_pp_in_corporate_fx_rate,
                                              tmpc.base_price_unit_id_in_ppu,
                                              pum.price_unit_name) t
                             group by t.pcdi_id,
@@ -7330,6 +7437,7 @@ create or replace package body pkg_phy_custom_reports is
     
     end loop;
   end;
+
   procedure sp_trader_position_report(pc_corporate_id varchar2,
                                       pd_trade_date   date,
                                       pc_process      varchar2,
