@@ -1784,7 +1784,7 @@ insert into patd_pa_temp_data
            grd.qty wet_qty,
            grd.qty * asm.dry_wet_qty_ratio / 100 dry_qty,
            grd.qty_unit_id as dry_wet_qty_unit_id,
-           spq.assay_header_id,
+           spq.weg_avg_pricing_assay_id,
            grd.is_afloat,
            'N', -- This is Not Pledge Section Data
            nvl(grd.no_of_bags,0) no_of_bags,
@@ -3487,7 +3487,17 @@ commit;
                             end) payable_amount_price_ccy,
              pa.pay_in_cur_id,
              pa.pay_in_cur_code,
-             0,
+             sum(case
+                   when pa.tranascation_type = 'Calculated' then
+                    pa.frightcharges_amount
+                   else
+                    0
+                 end) - sum(case
+                              when pa.tranascation_type = 'Invoiced' then
+                               pa.frightcharges_amount
+                              else
+                               0
+                            end) frightcharges_amount,  
              sum(case
                    when pa.tranascation_type = 'Calculated' then
                     pa.othercharges_amount
@@ -6976,7 +6986,6 @@ end;
                           'Insert tys_temp_yield_stock Over');
 sp_gather_stats('tyytd_temp_yield_ytd');
 sp_gather_stats('tys_temp_yield_stock');
-
     insert into stock_monthly_yeild_data
       (corporate_id,
        corporate_name,
