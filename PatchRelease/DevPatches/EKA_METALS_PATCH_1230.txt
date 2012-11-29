@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_130
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Suresh Gottipati
+ 
+Created on*        		:  29-Nov-2012
+
+Bug / Enhancement*		:  BUG
+
+Bug ID*            		:  69666,70670
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  APP
+
+Sub-Module  			:  APP
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 109432
+Author: suresh.gottipati
+Date: 6:00:00 PM, Thursday, November 29, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_MV_BI_PHY_POSITION_MGR.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PHY_POSITION_MGR.sql
+
+Revision: 109433
+Author: suresh.gottipati
+Date: 6:00:40 PM, Thursday, November 29, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TradersPositionReport.rpt
+
+
+
+
