@@ -2534,6 +2534,9 @@ sp_eodeom_process_log(pc_corporate_id,
                                                cur_pur_accural_rows.pay_cur_decimal);
             vn_payable_qty := cur_pur_accural_rows.payable_qty;
             vc_payable_qty_unit_id := cur_pur_accural_rows.payable_qty_unit_id;
+         elsif cur_pur_accural_rows.pledge_stock_id is null and cur_pur_accural_rows.payable_type ='Returnable' then
+            vn_payable_qty := cur_pur_accural_rows.payable_qty;
+            vc_payable_qty_unit_id := cur_pur_accural_rows.payable_qty_unit_id;
          else
              vn_payable_qty := 0;
              vc_payable_qty_unit_id := cur_pur_accural_rows.assay_qty_unit_id;
