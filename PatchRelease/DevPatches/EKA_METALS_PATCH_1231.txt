@@ -7,7 +7,7 @@ Created on*        		:  29-Nov-2012
 
 Bug / Enhancement*              :  BUG
 
-Bug ID*            		:  
+Bug ID*            		:  71147,71145,68569
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,4 +33,18 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 109389
+Date: 3:38:03 PM, Thursday, November 29, 2012
+Message:
+
+Purchase Accrual 
+
+
+1) Weighted Average Assay Missing in Payable Section, corrected
+2) Freight Charges in Difference section showing always zero corrected
+3) Payable qty should be shown for returnable element also.
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
 
