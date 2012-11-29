@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1228
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  29-Nov-2012
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  71124 ,71126
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Documents
+
+Sub-Module  			:  Documents
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 109336
+Author: elaiyaraja.nallathambi
+Date: 11:52:21 AM, Thursday, November 29, 2012
+Message:
+Bug Fixes:- 71124 ,71126.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+
