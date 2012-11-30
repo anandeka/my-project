@@ -17,7 +17,7 @@ BEGIN
              ash.dry_weight = (SELECT SUM (asm.dry_weight)
                                  FROM asm_assay_sublot_mapping asm
                                 WHERE ash.ash_id = asm.ash_id),
-             ash.qty_unit =
+             ash.qty_unit_name =
                 pkg_general.f_get_quantity_unit
                                         ((SELECT DISTINCT asm.net_weight_unit
                                                      FROM asm_assay_sublot_mapping asm
@@ -48,7 +48,7 @@ BEGIN
          SET ash.dry_weight = (SELECT SUM (asm.dry_weight)
                                  FROM asm_assay_sublot_mapping asm
                                 WHERE ash.ash_id = asm.ash_id),
-             ash.qty_unit =
+             ash.qty_unit_name =
                 pkg_general.f_get_quantity_unit
                                         ((SELECT DISTINCT asm.net_weight_unit
                                                      FROM asm_assay_sublot_mapping asm
