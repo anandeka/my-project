@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1232
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  30-Nov-2012
+
+Bug / Enhancement*      	:  NA
+
+Bug ID*            		:  69806
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	   :  Price Fixation
+
+Sub-Module  			   :  Price Fixation
+ 
+Section   		   	   :  N/A
+ 
+Screen		           	   :  N/A
+ 
+FS Number and Clause No.	   :  N/A
+ 
+FS Enhancement details 		   :  N/A
+ 
+FS Amendment details   		   :  N/A
+
+Dependent patches:		   :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Price Fixation
+==================================================================
+
+Revision: 109551
+Author: ramachandran.r
+Date: 2:40:33 PM, Friday, November 30, 2012
+Message:
+Price Fixation 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_457.sql
+
+
