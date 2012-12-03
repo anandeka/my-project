@@ -1,0 +1,64 @@
+Patch No*          		:  EKA_METALS_PATCH_1234
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Elaiyaraja Nallathambi
+ 
+Created on*        		:  03-Dec-2012
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  71008,69977,71112,71113,71167,71173
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  APP
+
+Sub-Module  			:  APP
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 109726
+Author: elaiyaraja.nallathambi
+Date: 6:41:15 PM, Monday, December 03, 2012
+Message:
+Bug Fixes:- 71112
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+
+Revision: 109706
+Author: sivachalabathi.s
+Date: 5:32:35 PM, Monday, December 03, 2012
+Message:
+format updated
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BrokerList.rpt
+
+Revision: 109727
+Author: elaiyaraja.nallathambi
+Date: 6:43:14 PM, Monday, December 03, 2012
+Message:
+Bug Fixes:- 69977,71167
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_daily_hedge_correction.sql
+
+
+
+
+
