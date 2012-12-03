@@ -180,7 +180,7 @@ select pcm.corporate_id,
        diqs_delivery_item_qty_status  diqs,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       pofh_price_opt_fixation_header pofh,
+      -- pofh_price_opt_fixation_header pofh,
        pcbpd_pc_base_price_detail     pcbpd,
        ppfh_phy_price_formula_header  ppfh,
        ppfd_phy_price_formula_details ppfd,
@@ -204,7 +204,7 @@ select pcm.corporate_id,
    and pdm.base_quantity_unit= qum.qty_unit_id
    and pcdi.pcdi_id = poch.pcdi_id
    and poch.poch_id = pocd.poch_id
-   and pocd.pocd_id = pofh.pocd_id(+)
+  -- and pocd.pocd_id = pofh.pocd_id(+)
    and pocd.pcbpd_id = pcbpd.pcbpd_id
    and pcbpd.pcbpd_id = ppfh.pcbpd_id
    and ppfh.ppfh_id = ppfd.ppfh_id

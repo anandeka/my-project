@@ -24,7 +24,7 @@ select t.corporate_id,
                qum.qty_unit,
                pcm.issue_date,
                pcdi.payment_due_date,
-               pcdi.qp_declaration_date,
+               trunc(nvl(pcdi.qp_declaration_date,sysdate))qp_declaration_date,
                pcdi.qty_declaration_date,
                pcdi.quality_declaration_date,
                pcdi.inco_location_declaration_date
@@ -46,7 +46,8 @@ select t.corporate_id,
            and pcpd.is_active = 'Y'
            and diqs.is_active = 'Y'
            and qum.is_active = 'Y'
-           and pcdi.qp_declaration_date <= sysdate
+           and pcdi.is_price_optionality_present='Y'
+         --  and pcdi.qp_declaration_date <= sysdate
            and pcdi.price_option_call_off_status = 'Not Called Off'
            and pcm.contract_status <> 'Cancelled'
         union all
@@ -66,7 +67,7 @@ select t.corporate_id,
                qum.qty_unit,
                pcm.issue_date,
                pcdi.payment_due_date,
-               pcdi.qp_declaration_date,
+               trunc(nvl(pcdi.qp_declaration_date,sysdate))qp_declaration_date,
                pcdi.qty_declaration_date,
                pcdi.quality_declaration_date,
                pcdi.inco_location_declaration_date
@@ -101,7 +102,13 @@ select t.corporate_id,
            and pcm.is_active = 'Y'
            and pcpd.is_active = 'Y'
            and pdm.is_active = 'Y'
-           and pcdi.qp_declaration_date <= sysdate
+           and pcdi.is_price_optionality_present='Y'
+          -- and pcdi.qp_declaration_date <= sysdate
            and diqs.is_active = 'Y'
            and qum.is_active = 'Y'
            and pcm.contract_status <> 'Cancelled') t
+           where t.qp_declaration_date<= trunc(sysdate)
+           
+         
+           
+           
