@@ -48,5 +48,15 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_da
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_dash_phy_brk_margin .sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_dash_phy_whs_stock.sql
 
+Revision: 109705
+Author: sivachalabathi.s
+Date: 5:31:51 PM, Monday, December 03, 2012
+Message:
+broker list report format updated and new view released for this report
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_scd.sql
+
+
+
 
 
