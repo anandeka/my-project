@@ -23,7 +23,8 @@ SELECT akc.corporate_id,
        pcm.contract_ref_no,
        pcm.contract_type,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
-       gmr.gmr_ref_no gmr_no,
+       nvl(gmr.gmr_ref_no,pfd.allocated_gmr_ref_no) gmr_no,
+       --gmr.gmr_ref_no gmr_no,
        ((CASE
          WHEN pcdi.basis_type = 'Arrival' THEN
           (CASE
@@ -42,7 +43,7 @@ SELECT akc.corporate_id,
                                      'dd-Mon-yyyy'))
                  END) + pcdi.transit_days END)) expected_delivery,
        NULL quality,
-       ppfh.formula_description formula,
+       pcbph.price_description formula,
        NULL premimum,
        pum.price_unit_id,
        pum.price_unit_name price_unit,
@@ -88,6 +89,7 @@ SELECT akc.corporate_id,
        pofh_price_opt_fixation_header pofh,
        pfd_price_fixation_details pfd,
        pcbpd_pc_base_price_detail pcbpd,
+       pcbph_pc_base_price_header pcbph, -- Newly Added
        ppfh_phy_price_formula_header ppfh,
        (SELECT ppfd.ppfh_id,
                ppfd.instrument_id,
@@ -128,10 +130,13 @@ SELECT akc.corporate_id,
    AND pocd.pocd_id = pofh.pocd_id
    AND pofh.pofh_id = pfd.pofh_id
    AND pocd.pcbpd_id = pcbpd.pcbpd_id
+   and pcbpd.pcbph_id = pcbph.pcbph_id
+   and pcbph.is_active = 'Y'
    AND pcbpd.pcbpd_id = ppfh.pcbpd_id(+)
    AND ppfh.ppfh_id = ppfd.ppfh_id(+)
    AND ppfh.ppfh_id = pfqpp.ppfh_id(+)
-   AND pcm.internal_contract_ref_no = gmr.internal_contract_ref_no(+)
+   --AND pcm.internal_contract_ref_no = gmr.internal_contract_ref_no(+)
+   and pofh.internal_gmr_ref_no =gmr.internal_gmr_ref_no(+)
    AND pcm.corporate_id = akc.corporate_id
    AND pcm.trader_id = akcu.user_id(+)
    AND pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
@@ -187,7 +192,7 @@ SELECT akc.corporate_id,
        pcm.contract_ref_no,
        pcm.contract_type,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
-       gmr.gmr_ref_no gmr_no,
+        nvl(gmr.gmr_ref_no,pfd.allocated_gmr_ref_no) gmr_no,
        ((CASE
          WHEN pcdi.basis_type = 'Arrival' THEN
           (CASE
@@ -206,7 +211,7 @@ SELECT akc.corporate_id,
                                      'dd-Mon-yyyy'))
                  END) + pcdi.transit_days END)) expected_delivery,
        NULL quality,
-       ppfh.formula_description formula,
+       pcbph.price_description formula,
        NULL premimum,
        pum.price_unit_id,
        pum.price_unit_name price_unit,
@@ -247,6 +252,7 @@ SELECT akc.corporate_id,
        pofh_price_opt_fixation_header pofh,
        pfd_price_fixation_details pfd,
        pcbpd_pc_base_price_detail pcbpd,
+       pcbph_pc_base_price_header pcbph,
        ppfh_phy_price_formula_header ppfh,
        (SELECT ppfd.ppfh_id,
                ppfd.instrument_id,
@@ -287,10 +293,13 @@ SELECT akc.corporate_id,
    AND pocd.pocd_id = pofh.pocd_id
    AND pofh.pofh_id = pfd.pofh_id
    AND pocd.pcbpd_id = pcbpd.pcbpd_id
+   and pcbpd.pcbph_id = pcbph.pcbph_id
+   and pcbph.is_active = 'Y'
    AND pcbpd.pcbpd_id = ppfh.pcbpd_id(+)
    AND ppfh.ppfh_id = ppfd.ppfh_id(+)
    AND ppfh.ppfh_id = pfqpp.ppfh_id(+)
-   AND pcm.internal_contract_ref_no = gmr.internal_contract_ref_no(+)
+   --AND pcm.internal_contract_ref_no = gmr.internal_contract_ref_no(+)
+   and pofh.internal_gmr_ref_no =gmr.internal_gmr_ref_no(+)
    AND pcm.corporate_id = akc.corporate_id
    AND pcm.trader_id = akcu.user_id(+)
    AND pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
@@ -317,4 +326,3 @@ SELECT akc.corporate_id,
    AND ppfh.is_active(+) = 'Y'
    AND pfqpp.is_active(+) = 'Y'
    AND pfd.is_cancel = 'Y'
-
