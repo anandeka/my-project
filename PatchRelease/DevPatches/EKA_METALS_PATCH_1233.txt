@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1233
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  03-Dec-2012
+
+Bug / Enhancement*      	:  NA
+
+Bug ID*            		:  69268,69335,69344
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	   :  Dash Board
+
+Sub-Module  			   :  Dash Board
+ 
+Section   		   	   :  N/A
+ 
+Screen		           	   :  N/A
+ 
+FS Number and Clause No.	   :  N/A
+ 
+FS Enhancement details 		   :  N/A
+ 
+FS Amendment details   		   :  N/A
+
+Dependent patches:		   :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 109719
+Author: suresh.gottipati
+Date: 6:23:53 PM, Monday, December 03, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_EXPOSURE_BY_TRADE.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_DASH_PHY_DEL_STOCK.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_DASH_PHY_PFC .sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_PRICE_CALL_OFF_DUE.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_dash_der_prompt.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_dash_phy_brk_margin .sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_dash_phy_whs_stock.sql
+
+
+
