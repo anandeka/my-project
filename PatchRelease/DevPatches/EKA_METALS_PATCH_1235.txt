@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1235
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Prakash
+ 
+Created on*        		:  03-Dec-2012
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Invoice
+
+Sub-Module  			:  N/A
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 109738
+Author: kotipalli.prakash
+Date: 7:29:33 PM, Monday, December 03, 2012
+Message:
+added B/L NO in listing screen of invoicebleitems 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_458.sql
+
+
+
+
+
+
+
