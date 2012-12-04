@@ -7482,6 +7482,7 @@ create or replace package body pkg_phy_custom_reports is
                           'TPR - insert temp_tpr for basmetal started');
     delete from temp_tpr where corporate_id = pc_corporate_id;
     commit;
+    -- Variable contracts
     insert into temp_tpr
       (corporate_id,
        section_name,
@@ -7545,6 +7546,7 @@ create or replace package body pkg_phy_custom_reports is
          and ucm.from_qty_unit_id = qum.qty_unit_id
          and ucm.to_qty_unit_id = qum_base.qty_unit_id
          and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+         and pcdi.item_price_type<>'Fixed'
          and pcm.corporate_id = pc_corporate_id
          and round(nvl(diqs.price_fixed_qty, 0), 4) >= diqs.total_qty -----added that only fully priced contract should come 05-Sep-2012
          and pcm.is_active = 'Y'
@@ -7568,6 +7570,89 @@ create or replace package body pkg_phy_custom_reports is
                           pc_process_id,
                           vn_logno,
                           'TPR - insert temp_tpr for conent started');
+     ---- fixed contracts
+     insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select pcm.corporate_id,
+             'Physical Total' section_name,
+             '13' section_id,
+             pcpd.product_id,
+             pdm.product_desc,
+             pcpd.profit_center_id,
+             cpc.profit_center_short_name,
+             cpc.profit_center_name,
+             trunc(pcdi.shipment_date, 'Mon') delivery_date,
+             to_char(pcdi.shipment_date, 'Mon-YYYY') delivery_month,
+             sum((case
+                   when pcm.purchase_sales = 'P' then
+                    1
+                   else
+                    -1
+                 end) * ucm.multiplication_factor * diqs.total_qty) qty,
+             qum_base.qty_unit_id,
+             qum_base.qty_unit,
+             null strategy_id,
+             'Physical Total' strategy_name,
+             nvl(pcm.approval_status, 'Approved') approval_status
+        from pcm_physical_contract_main    pcm,
+             pcdi_pc_delivery_item         pcdi,
+             diqs_delivery_item_qty_status diqs,
+             pcpd_pc_product_definition    pcpd,
+             pdm_productmaster             pdm,
+             qum_quantity_unit_master      qum_base,
+             cpc_corporate_profit_center   cpc,
+             qum_quantity_unit_master      qum,
+             ucm_unit_conversion_master    ucm
+       where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcdi.pcdi_id = diqs.pcdi_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and diqs.process_id = pc_process_id
+         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpd.input_output = 'Input'
+         and pcpd.process_id = pc_process_id
+         and pcpd.product_id = pdm.product_id
+         and pcpd.profit_center_id = cpc.profit_center_id
+         and diqs.item_qty_unit_id = qum.qty_unit_id
+         and pdm.base_quantity_unit = qum_base.qty_unit_id
+         and pcm.contract_type = 'BASEMETAL'
+         and ucm.from_qty_unit_id = qum.qty_unit_id
+         and ucm.to_qty_unit_id = qum_base.qty_unit_id
+         and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+         and pcdi.item_price_type='Fixed'
+         and pcm.corporate_id = pc_corporate_id         
+         and pcm.is_active = 'Y'
+         and pcdi.shipment_date is not null
+         and pcdi.shipment_date >= pd_trade_date
+       group by pcm.corporate_id,
+                pcpd.product_id,
+                pdm.product_desc,
+                pcpd.profit_center_id,
+                cpc.profit_center_short_name,
+                cpc.profit_center_name,
+                trunc(pcdi.shipment_date, 'Mon'),
+                to_char(pcdi.shipment_date, 'Mon-YYYY'),
+                qum_base.qty_unit_id,
+                qum_base.qty_unit,
+                nvl(pcm.approval_status, 'Approved');
+    commit;                     
+                          
+                          
     insert into temp_tpr
       (corporate_id,
        section_name,
@@ -7977,6 +8062,7 @@ create or replace package body pkg_phy_custom_reports is
                           pc_process_id,
                           vn_logno,
                           'TPR - insert temp_tpr for option opening balance started');
+    -- variable contracts                      
     insert into temp_tpr
       (corporate_id,
        section_name,
@@ -8033,6 +8119,7 @@ create or replace package body pkg_phy_custom_reports is
          and diqs.item_qty_unit_id = qum.qty_unit_id
          and pdm.base_quantity_unit = qum_base.qty_unit_id
          and pcm.contract_type = 'BASEMETAL'
+         and pcdi.item_price_type<>'Fixed'
          and ucm.from_qty_unit_id = qum.qty_unit_id
          and ucm.to_qty_unit_id = qum_base.qty_unit_id
          and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
@@ -8096,6 +8183,7 @@ create or replace package body pkg_phy_custom_reports is
          and diqs.item_qty_unit_id = qum.qty_unit_id
          and pdm.base_quantity_unit = qum_base.qty_unit_id
          and pcm.contract_type = 'BASEMETAL'
+         and pcdi.item_price_type<>'Fixed'
          and ucm.from_qty_unit_id = qum.qty_unit_id
          and ucm.to_qty_unit_id = qum_base.qty_unit_id
          and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
@@ -8122,6 +8210,150 @@ create or replace package body pkg_phy_custom_reports is
                           pc_process_id,
                           vn_logno,
                           'TPR - insert temp_tpr for dummy section started');
+     -- fixed contracts
+     insert into temp_tpr
+      (corporate_id,
+       section_name,
+       section_id,
+       product_id,
+       product_desc,
+       profit_center_id,
+       profit_center_short_name,
+       profit_center_name,
+       delivery_date,
+       delivery_month_display,
+       quantity,
+       quantity_unit_id,
+       quantity_unit,
+       strategy_id,
+       strategy_name,
+       approval_status)
+      select pcm.corporate_id,
+             'Physical Total' section_name,
+             '13' section_id,
+             pcpd.product_id,
+             pdm.product_desc,
+             pcpd.profit_center_id,
+             cpc.profit_center_short_name,
+             cpc.profit_center_name,
+             trunc(to_date('01-' || 'Jan-1900'), 'Mon') delivery_date,
+             'Opening Balance' delivery_month,
+             sum(ucm.multiplication_factor *
+                 round(least(diqs.gmr_qty, diqs.total_qty), 4)) qty,
+             qum_base.qty_unit_id,
+             qum_base.qty_unit,
+             null strategy_id,
+             'Physical Total' strategy_name,
+             nvl(pcm.approval_status, 'Approved') approval_status
+        from pcm_physical_contract_main    pcm,
+             pcdi_pc_delivery_item         pcdi,
+             diqs_delivery_item_qty_status diqs,
+             pcpd_pc_product_definition    pcpd,
+             pdm_productmaster             pdm,
+             qum_quantity_unit_master      qum_base,
+             cpc_corporate_profit_center   cpc,
+             qum_quantity_unit_master      qum,
+             ucm_unit_conversion_master    ucm
+       where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcdi.pcdi_id = diqs.pcdi_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and diqs.process_id = pc_process_id
+         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpd.input_output = 'Input'
+         and pcpd.process_id = pc_process_id
+         and pcpd.product_id = pdm.product_id
+         and pcpd.profit_center_id = cpc.profit_center_id
+         and diqs.item_qty_unit_id = qum.qty_unit_id
+         and pdm.base_quantity_unit = qum_base.qty_unit_id
+         and pcm.contract_type = 'BASEMETAL'
+         and pcdi.item_price_type='Fixed'
+         and ucm.from_qty_unit_id = qum.qty_unit_id
+         and ucm.to_qty_unit_id = qum_base.qty_unit_id
+         and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+         and pcm.purchase_sales = 'P'
+         and pcm.corporate_id = pc_corporate_id
+         and pcm.is_active = 'Y'
+         and pcdi.shipment_date is not null
+         and pcdi.shipment_date < pd_trade_date
+       group by pcm.corporate_id,
+                pcpd.product_id,
+                pdm.product_desc,
+                pcpd.profit_center_id,
+                cpc.profit_center_short_name,
+                cpc.profit_center_name,
+                trunc(pcdi.shipment_date, 'Mon'),
+                to_char(pcdi.shipment_date, 'Mon-YYYY'),
+                qum_base.qty_unit_id,
+                qum_base.qty_unit,
+                nvl(pcm.approval_status, 'Approved')
+      union all
+      select pcm.corporate_id,
+             'Physical Total' section_name,
+             '13' section_id,
+             pcpd.product_id,
+             pdm.product_desc,
+             pcpd.profit_center_id,
+             cpc.profit_center_short_name,
+             cpc.profit_center_name,
+             trunc(to_date('01-' || 'Jan-1900'), 'Mon') delivery_date,
+             'Opening Balance' delivery_month,
+             sum((case
+                   when round(diqs.total_qty, 4) - diqs.gmr_qty > 0 then
+                    round(diqs.total_qty, 4) - diqs.gmr_qty
+                   else
+                    0
+                 end) * -1 * ucm.multiplication_factor) qty,
+             qum_base.qty_unit_id,
+             qum_base.qty_unit,
+             null strategy_id,
+             'Physical Total' strategy_name,
+             nvl(pcm.approval_status, 'Approved') approval_status
+        from pcm_physical_contract_main    pcm,
+             pcdi_pc_delivery_item         pcdi,
+             diqs_delivery_item_qty_status diqs,
+             pcpd_pc_product_definition    pcpd,
+             pdm_productmaster             pdm,
+             qum_quantity_unit_master      qum_base,
+             cpc_corporate_profit_center   cpc,
+             qum_quantity_unit_master      qum,
+             ucm_unit_conversion_master    ucm
+       where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcdi.pcdi_id = diqs.pcdi_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and diqs.process_id = pc_process_id
+         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+         and pcpd.input_output = 'Input'
+         and pcpd.process_id = pc_process_id
+         and pcpd.product_id = pdm.product_id
+         and pcpd.profit_center_id = cpc.profit_center_id
+         and diqs.item_qty_unit_id = qum.qty_unit_id
+         and pdm.base_quantity_unit = qum_base.qty_unit_id
+         and pcm.contract_type = 'BASEMETAL'
+         and pcdi.item_price_type='Fixed'
+         and ucm.from_qty_unit_id = qum.qty_unit_id
+         and ucm.to_qty_unit_id = qum_base.qty_unit_id
+         and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+         and pcm.purchase_sales = 'S'
+         and pcm.corporate_id = pc_corporate_id
+         and pcm.is_active = 'Y'
+         and pcdi.shipment_date is not null
+         and pcdi.shipment_date < pd_trade_date
+       group by pcm.corporate_id,
+                pcpd.product_id,
+                pdm.product_desc,
+                pcpd.profit_center_id,
+                cpc.profit_center_short_name,
+                cpc.profit_center_name,
+                trunc(pcdi.shipment_date, 'Mon'),
+                to_char(pcdi.shipment_date, 'Mon-YYYY'),
+                qum_base.qty_unit_id,
+                qum_base.qty_unit,
+                nvl(pcm.approval_status, 'Approved');
+    commit;                     
+                          
+                          
     ----************* insert dummy sections -----------
     for cc in (select t2.corporate_id,
                       t1.profit_center_id,
