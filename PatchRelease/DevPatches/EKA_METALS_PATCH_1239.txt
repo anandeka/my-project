@@ -1,0 +1,66 @@
+Patch No*          		:  EKA_METALS_PATCH_1239
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  05-Dec-2012
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  67115,70712
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Report
+
+Sub-Module  			:  Report
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 109958
+Author: suresh.gottipati
+Date: 5:31:37 PM, Wednesday, December 05, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_104.sql
+
+
+
+Revision: 109959
+Author: suresh.gottipati
+Date: 5:32:19 PM, Wednesday, December 05, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyOverallRealizedPhysicalPnl.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
