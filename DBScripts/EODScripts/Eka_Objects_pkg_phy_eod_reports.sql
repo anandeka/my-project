@@ -99,7 +99,7 @@ create or replace package pkg_phy_eod_reports is
                                       pd_trade_date   date,
                                       pc_process_id   varchar2,
                                       pc_process      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -3669,7 +3669,8 @@ commit;
        internal_contract_item_ref_no,
        int_alloc_group_id,
        internal_stock_ref_no,
-       alloc_group_name)
+       alloc_group_name,
+       internal_gmr_ref_no)
       select t.section_name,
              t.sub_section_name,
              t.section_id,
@@ -3711,7 +3712,8 @@ commit;
              t.internal_contract_item_ref_no,
              t.int_alloc_group_id,
              t.internal_stock_ref_no,
-             t.alloc_group_name
+             t.alloc_group_name,
+             t.internal_gmr_ref_no
         from (select (case
                        when prd.realized_type = 'Realized Today' then
                         'Realized on this Day'
@@ -3807,7 +3809,8 @@ commit;
                      prd.internal_contract_item_ref_no,
                      prd.int_alloc_group_id,
                      prd.internal_stock_ref_no,
-                     prd.alloc_group_name
+                     prd.alloc_group_name,
+                     prd.internal_gmr_ref_no
                 from prd_physical_realized_daily prd,
                      tdc_trade_date_closure tdc,
                      (select rownum r from all_objects where rownum <= 2)
@@ -3900,7 +3903,8 @@ commit;
                      prd.internal_contract_item_ref_no,
                      prd.int_alloc_group_id,
                      prd.internal_stock_ref_no,
-                     prd.alloc_group_name
+                     prd.alloc_group_name,
+                     prd.internal_gmr_ref_no
                 from prd_physical_realized_daily prd,
                      tdc_trade_date_closure      tdc
                where prd.process_id = tdc.process_id
@@ -3942,8 +3946,8 @@ commit;
                         prd.internal_contract_item_ref_no,
                         prd.int_alloc_group_id,
                         prd.internal_stock_ref_no,
-                        prd.alloc_group_name
-              
+                        prd.alloc_group_name,
+                        prd.internal_gmr_ref_no              
               union all
               select 'Reverse Realized' section_name,
                      decode(r, 1, 'Sales', 2, 'SS') sub_section_name,
@@ -4024,7 +4028,8 @@ commit;
                      prd.internal_contract_item_ref_no,
                      prd.int_alloc_group_id,
                      prd.internal_stock_ref_no,
-                     prd.alloc_group_name
+                     prd.alloc_group_name,
+                     prd.internal_gmr_ref_no
                 from prd_physical_realized_daily prd,
                      tdc_trade_date_closure tdc,
                      (select rownum r from all_objects where rownum <= 2)
@@ -4099,7 +4104,8 @@ commit;
                      prd.internal_contract_item_ref_no,
                      prd.int_alloc_group_id,
                      prd.internal_stock_ref_no,
-                     prd.alloc_group_name
+                     prd.alloc_group_name,
+                     prd.internal_gmr_ref_no
                 from prd_physical_realized_daily prd,
                      tdc_trade_date_closure      tdc
                where prd.process_id = tdc.process_id
@@ -4139,7 +4145,8 @@ commit;
                         end),
                         prd.internal_contract_item_ref_no,
                         prd.int_alloc_group_id,
-                        prd.internal_stock_ref_no
+                        prd.internal_stock_ref_no,
+                        prd.internal_gmr_ref_no
               
               union all
               --Debit -- Credit Note--
@@ -4192,7 +4199,8 @@ commit;
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
                      null internal_stock_ref_no,
-                     null     alloc_group_name
+                     null alloc_group_name,
+                     null internal_gmr_ref_no
                 from is_invoice_summary         invs,
                      iid_invoicable_item_details iid,
                      phd_profileheaderdetails   phd,
@@ -4267,7 +4275,8 @@ commit;
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
                      null internal_stock_ref_no,
-                     null     alloc_group_name
+                     null     alloc_group_name,
+                     null internal_gmr_ref_no
                 from is_invoice_summary         invs,
                      iid_invoicable_item_details iid,
                      phd_profileheaderdetails   phd,
@@ -4334,7 +4343,8 @@ commit;
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
                      null internal_stock_ref_no,
-                     null  alloc_group_name
+                     null  alloc_group_name,
+                     null internal_gmr_ref_no
                 from eodc_end_of_day_costs@eka_appdb         eodc,
                      eodcd_end_of_day_cost_details@eka_appdb eodcd,
                      cpc_corporate_profit_center             cpc,
@@ -4398,7 +4408,8 @@ commit;
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
                      null internal_stock_ref_no,
-                     null alloc_group_name
+                     null alloc_group_name,
+                     null internal_gmr_ref_no
                 from cs_cost_store               cs,
                      cigc_contract_item_gmr_cost cigc,
                      pci_physical_contract_item  pci,
@@ -4490,7 +4501,8 @@ commit;
                      null internal_contract_item_ref_no,
                      null int_alloc_group_id,
                      null internal_stock_ref_no,
-                     null alloc_group_name
+                     null alloc_group_name,
+                     null internal_gmr_ref_no
                 from cs_cost_store               cs,
                      cigc_contract_item_gmr_cost cigc,
                      pci_physical_contract_item  pci,
@@ -4586,7 +4598,8 @@ commit;
                        null internal_contract_item_ref_no,
                        null int_alloc_group_id,
                        null internal_stock_ref_no,
-                       null alloc_group_name
+                       null alloc_group_name,
+                       null internal_gmr_ref_no
                   from is_invoice_summary          invs,
                        iid_invoicable_item_details iid,
                        ioc_invoice_other_charge    ioc,
@@ -4661,7 +4674,8 @@ commit;
                        null internal_contract_item_ref_no,
                        null int_alloc_group_id,
                        null internal_stock_ref_no,
-                       null alloc_group_name
+                       null alloc_group_name,
+                       null internal_gmr_ref_no
                   from is_invoice_summary          invs,
                        iid_invoicable_item_details iid,
                        ioc_invoice_other_charge    ioc,
@@ -4690,6 +4704,26 @@ commit;
                    and iid.is_active = 'N'
                    and invs.is_cancelled_today = 'Y') t;
     --ends here
+    
+      for cc_upadte in (select ord.internal_gmr_ref_no,
+                           iss.invoice_ref_no
+                      from ord_overall_realized_pnl_daily ord,
+                           gmr_goods_movement_record      gmr,
+                           is_invoice_summary             iss
+                     where ord.process_id = pc_process_id
+                       and gmr.internal_gmr_ref_no = ord.internal_gmr_ref_no
+                       and gmr.process_id = pc_process_id
+                       and gmr.latest_internal_invoice_ref_no =
+                           iss.internal_invoice_ref_no
+                       and iss.process_id = pc_process_id)
+  loop
+    update ord_overall_realized_pnl_daily ord
+       set ord.transaction_ref_no = cc_upadte.invoice_ref_no
+     where ord.internal_gmr_ref_no = cc_upadte.internal_gmr_ref_no
+       and ord.process_id = pc_process_id;    
+  end loop;
+  commit;
+
   exception
     when others then
       vobj_error_log.extend;
