@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1240
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  06-Dec-2012
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  69679
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Physicals
+
+Sub-Module  			:  Physicals
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 110069
+Author: sishir.pagada
+Date: 2:20:43 PM, Thursday, December 06, 2012
+Message:
+Bug #69679
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_27.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
