@@ -49,7 +49,7 @@ Date: 4:24:55 PM, Friday, December 07, 2012
 Message:
 Bug Fixes
 ----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport.rpt(Revision: 110214)
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport_Excel.rpt
 
 
