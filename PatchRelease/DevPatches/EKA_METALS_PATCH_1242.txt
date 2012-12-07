@@ -1,0 +1,68 @@
+Patch No*          		:  EKA_METALS_PATCH_1242
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  07-Dec-2012
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  71180,71182
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	:  Reports
+
+Sub-Module  			:  Reports
+ 
+Section   		   	:  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.	:  N/A
+ 
+FS Enhancement details 		:  N/A
+ 
+FS Amendment details   		:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 110212
+Author: suresh.gottipati
+Date: 4:26:02 PM, Friday, December 07, 2012
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_arrived_not_priced.sql
+
+
+Revision: 110211
+Author: suresh.gottipati
+Date: 4:24:55 PM, Friday, December 07, 2012
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivedandNotPricedReport_Excel.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
