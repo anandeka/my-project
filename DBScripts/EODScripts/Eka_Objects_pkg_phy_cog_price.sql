@@ -336,7 +336,7 @@ create or replace package body pkg_phy_cog_price is
                   when no_data_found then
                     if vd_quotes_date is not null then
                       vobj_error_log.extend;
-                      vc_data_missing_for := 'DR_ID missing for ' ||
+                      vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                              cur_pcdi_rows.instrument_name ||
                                              ',Price Source:' ||
                                              cur_pcdi_rows.price_source_name ||
@@ -383,7 +383,7 @@ create or replace package body pkg_phy_cog_price is
                     if vc_prompt_month is not null and
                        vc_prompt_year is not null then
                       vobj_error_log.extend;
-                      vc_data_missing_for := 'DR_ID missing for ' ||
+                      vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                              cur_pcdi_rows.instrument_name ||
                                              ',Price Source:' ||
                                              cur_pcdi_rows.price_source_name ||
@@ -594,7 +594,7 @@ create or replace package body pkg_phy_cog_price is
                 when no_data_found then
                   if vd_quotes_date is not null then
                     vobj_error_log.extend;
-                    vc_data_missing_for := 'DR_ID missing for ' ||
+                    vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                            cur_pcdi_rows.instrument_name ||
                                            ',Price Source:' ||
                                            cur_pcdi_rows.price_source_name ||
@@ -642,7 +642,7 @@ create or replace package body pkg_phy_cog_price is
                   if vc_prompt_month is not null and
                      vc_prompt_year is not null then
                     vobj_error_log.extend;
-                    vc_data_missing_for := 'DR_ID missing for ' ||
+                    vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                            cur_pcdi_rows.instrument_name ||
                                            ',Price Source:' ||
                                            cur_pcdi_rows.price_source_name ||
@@ -1156,7 +1156,7 @@ create or replace package body pkg_phy_cog_price is
             when no_data_found then
               if vd_quotes_date is not null then
                 vobj_error_log.extend;
-                vc_data_missing_for := 'DR_ID missing for ' ||
+                vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                        cur_gmr_rows.instrument_name ||
                                        ',Price Source:' ||
                                        cur_gmr_rows.price_source_name ||
@@ -1202,7 +1202,7 @@ create or replace package body pkg_phy_cog_price is
             when no_data_found then
               if vc_prompt_month is not null and vc_prompt_year is not null then
                 vobj_error_log.extend;
-                vc_data_missing_for := 'DR_ID missing for ' ||
+                vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                        cur_gmr_rows.instrument_name ||
                                        ',Price Source:' ||
                                        cur_gmr_rows.price_source_name ||
@@ -1733,7 +1733,7 @@ create or replace package body pkg_phy_cog_price is
                 when no_data_found then
                   if vd_quotes_date is not null then
                     vobj_error_log.extend;
-                    vc_data_missing_for := 'DR_ID missing for ' ||
+                    vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                            cur_pcdi_rows.instrument_name ||
                                            ',Price Source:' ||
                                            cur_pcdi_rows.price_source_name ||
@@ -1779,7 +1779,7 @@ create or replace package body pkg_phy_cog_price is
                   if vc_prompt_month is not null and
                      vc_prompt_year is not null then
                     vobj_error_log.extend;
-                    vc_data_missing_for := 'DR_ID missing for ' ||
+                    vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                            cur_pcdi_rows.instrument_name ||
                                            ',Price Source:' ||
                                            cur_pcdi_rows.price_source_name ||
@@ -2034,7 +2034,7 @@ create or replace package body pkg_phy_cog_price is
                   if vc_prompt_month is not null and
                      vc_prompt_year is not null then
                     vobj_error_log.extend;
-                    vc_data_missing_for := 'DR_ID missing for ' ||
+                    vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                            cur_pcdi_rows.instrument_name ||
                                            ',Price Source:' ||
                                            cur_pcdi_rows.price_source_name ||
@@ -2575,7 +2575,7 @@ create or replace package body pkg_phy_cog_price is
             when no_data_found then
               if vd_quotes_date is not null then
                 vobj_error_log.extend;
-                vc_data_missing_for := 'DR_ID missing for ' ||
+                vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                        cur_gmr_rows.instrument_name ||
                                        ',Price Source:' ||
                                        cur_gmr_rows.price_source_name ||
@@ -2621,7 +2621,7 @@ create or replace package body pkg_phy_cog_price is
             
               if vc_prompt_month is not null and vc_prompt_year is not null then
                 vobj_error_log.extend;
-                vc_data_missing_for := 'DR_ID missing for ' ||
+                vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                        cur_gmr_rows.instrument_name ||
                                        ',Price Source:' ||
                                        cur_gmr_rows.price_source_name ||
@@ -3347,7 +3347,7 @@ create or replace package body pkg_phy_cog_price is
             when no_data_found then
               if vd_quotes_date is not null then
                 vobj_error_log.extend;
-                vc_data_missing_for := 'DR_ID missing for ' ||
+                vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                        cur_gmr_rows.instrument_name ||
                                        ',Price Source:' ||
                                        cur_gmr_rows.price_source_name ||
@@ -3393,7 +3393,7 @@ create or replace package body pkg_phy_cog_price is
             
               if vc_prompt_month is not null and vc_prompt_year is not null then
                 vobj_error_log.extend;
-                vc_data_missing_for := 'DR_ID missing for ' ||
+                vc_data_missing_for := 'Prompt Delivery Period Missing For ' ||
                                        cur_gmr_rows.instrument_name ||
                                        ',Price Source:' ||
                                        cur_gmr_rows.price_source_name ||
