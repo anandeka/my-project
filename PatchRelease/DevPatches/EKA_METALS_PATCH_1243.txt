@@ -34,3 +34,41 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
+Revision: 110346
+Author: jana
+Date: 10:50:56 AM, Monday, December 10, 2012
+Message:
+Physical Process Boliden : 
+Commented EOD Price
+Rollback of ISR1 and ISR2 added
+Concentrate realized PNL, CP name column from GMR
+Metals General : RC Calcualtion, Include reference charge added GIPCH to get one record
+COG Price : Gather stats after each population
+Populate data : Update sublots added and moved to a seperate procedure
+Transfer : refresh of tables 
+Physical Process Non Boliden : 
+Rollback of ISR1 and ISR2 added
+EOD Reports : PA Fix and Intrastat and Custom as single report, deleted custom report
+Closing Balance : Seperate section for shipment only invoice
+Freight Calcualtion : Shipped qty instead og GMR dry / wet qty
+New RC/TC/Penalty Calculation, removed unnecessary tables like RM and PQCAPD as it is no where used
+Other charge GMR data group corrected 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/98_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_bjects-_pkg_phy_conc_realized_pnl.sql
+
+Revision: 110349
+Date: 12:12:19 PM, Monday, December 10, 2012
+Message:
+DR_ID Missing Text changed to Prompt Delivery Prompt Delivery Period Missing
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+
+
