@@ -201,6 +201,12 @@ create or replace package pkg_phy_populate_data is
                                            pc_dbd_id       varchar2,
                                            pc_process      varchar2,
                                            pc_user_id      varchar2);
+  procedure sp_create_exchange_data(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2,
+                                    pc_dbd_id       varchar2,
+                                    pc_process      varchar2);
+
 end pkg_phy_populate_data;
 /
 create or replace package body PKG_PHY_POPULATE_DATA is
@@ -13299,6 +13305,186 @@ where gmr.dbd_id = gvc_dbd_id;
                         102,
                         'Updated shipment date,arrival date for PCDI table');
 
+
+ -- Update Loading Date for GMR
+  for cur_loading_date in (select vd.internal_gmr_ref_no,
+                                  max(vd.loading_date) loading_date
+                             from vd_voyage_detail vd
+                            where vd.dbd_id = pc_dbd_id
+                              and nvl(vd.status, 'Active') = 'Active'
+                            group by vd.internal_gmr_ref_no)
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.loading_date = cur_loading_date.loading_date
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.internal_gmr_ref_no = cur_loading_date.internal_gmr_ref_no;
+  end loop;
+  commit;
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          103,
+                          'End of GMR Loading Date Update');
+  -- Update Contract Details and CP for GMR
+  for cur_gmr in (select gmr.internal_gmr_ref_no,
+                         pcm.contract_ref_no,
+                         pcm.internal_contract_ref_no,
+                         pcm.contract_type,
+                         pcm.cp_id,
+                         phd.companyname cp_name
+                    from gmr_goods_movement_record  gmr,
+                         grd_goods_record_detail    grd,
+                         pci_physical_contract_item pci,
+                         pcdi_pc_delivery_item      pcdi,
+                         pcm_physical_contract_main pcm,
+                         phd_profileheaderdetails   phd
+                   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                     and grd.internal_contract_item_ref_no =
+                         pci.internal_contract_item_ref_no
+                     and pci.pcdi_id = pcdi.pcdi_id
+                     and pcdi.internal_contract_ref_no =
+                         pcm.internal_contract_ref_no
+                     and gmr.dbd_id = grd.dbd_id
+                     and grd.dbd_id = pci.dbd_id
+                     and pcdi.dbd_id = pcdi.dbd_id
+                     and pcdi.dbd_id = pcm.dbd_id
+                     and pcm.dbd_id = pc_dbd_id
+                     and pcm.cp_id = phd.profileid
+                   group by gmr.internal_gmr_ref_no,
+                            pcm.contract_ref_no,
+                            pcm.internal_contract_ref_no,
+                            pcm.contract_type,
+                            pcm.cp_id,
+                            phd.companyname)
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.contract_ref_no          = cur_gmr.contract_ref_no,
+           gmr.gmr_type                 = cur_gmr.contract_type,
+           gmr.cp_id                    = cur_gmr.cp_id,
+           gmr.cp_name                  = cur_gmr.cp_name,
+           gmr.internal_contract_ref_no = decode(gmr.internal_contract_ref_no,
+                                                 null,
+                                                 cur_gmr.internal_contract_ref_no,
+                                                 gmr.internal_contract_ref_no)
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.internal_gmr_ref_no = cur_gmr.internal_gmr_ref_no;
+  end loop;
+  commit;
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          104,
+                          'End of GMR Contract Details Update');
+
+  --
+  -- Update Dry Qty in GRD
+  --
+
+  for cur_grd_dry_qty in (select spq.internal_grd_ref_no,
+                                 min((nvl(asm.dry_wet_qty_ratio, 100) / 100)) dry_wet_qty_ratio
+                            from spq_stock_payable_qty    spq,
+                                 asm_assay_sublot_mapping asm
+                           where spq.is_stock_split = 'N'
+                             and spq.assay_header_id = asm.ash_id
+                             and spq.dbd_id = pc_dbd_id
+                           group by spq.internal_grd_ref_no)
+  loop
+    update grd_goods_record_detail grd
+       set grd.dry_qty = cur_grd_dry_qty.dry_wet_qty_ratio * grd.qty
+     where grd.dbd_id = gvc_dbd_id
+       and grd.internal_grd_ref_no = cur_grd_dry_qty.internal_grd_ref_no;
+  end loop;
+  commit;
+ sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          105,
+                          'End of Update GRD Dry Qty');
+  for cur_containers in (select grd.internal_gmr_ref_no,
+                                sum(nvl(grd.no_of_containers, 0)) no_of_containers,
+                                sum(nvl(grd.no_of_bags, 0)) no_of_bags
+                           from grd_goods_record_detail grd
+                          where grd.dbd_id = pc_dbd_id
+                            and grd.status = 'Active'
+                            and grd.is_deleted = 'N'
+                          group by grd.internal_gmr_ref_no)
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.no_of_containers = cur_containers.no_of_containers,
+           gmr.no_of_bags       = cur_containers.no_of_bags
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.internal_gmr_ref_no = cur_containers.internal_gmr_ref_no;
+  end loop;
+  commit;
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          106,
+                          'End of GMR Containers and Bags');
+  for cur_shipped_qty in (select agmr.internal_gmr_ref_no,
+                                 agmr.shipped_qty
+                            from agmr_action_gmr agmr
+                           where (agmr.internal_gmr_ref_no, agmr.action_no) in
+                                 (select agmr.internal_gmr_ref_no,
+                                         max(agmr.action_no) action_no
+                                    from agmr_action_gmr    agmr,
+                                         axs_action_summary axs
+                                   where agmr.eff_date <= pd_trade_date
+                                     and agmr.is_deleted = 'N'
+                                   group by agmr.internal_gmr_ref_no))
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.shipped_qty = cur_shipped_qty.shipped_qty
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.internal_gmr_ref_no = cur_shipped_qty.internal_gmr_ref_no;
+  end loop;
+  commit;
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          107,
+                          'End of GMR Shipped Qty Update');
+for cur_sublots in(  
+  select ash.internal_gmr_ref_no,
+       sum(ash.no_of_sublots) no_of_sublots
+  from ash_assay_header        ash,
+       grd_goods_record_detail grd
+ where ash.internal_grd_ref_no = grd.internal_grd_ref_no
+   and ash.is_active = 'Y'
+   and grd.status = 'Active'
+   and grd.dbd_id = pc_dbd_id
+   and ash.ash_id in
+       (select spq.weg_avg_pricing_assay_id
+          from spq_stock_payable_qty spq
+         where spq.internal_grd_ref_no = grd.internal_grd_ref_no
+           and spq.is_stock_split = 'N'
+           and spq.is_active = 'Y'
+           and spq.dbd_id = pc_dbd_id)
+ group by ash.internal_gmr_ref_no) loop
+ Update gmr_goods_movement_record gmr
+ set gmr.no_of_sublots = cur_sublots.no_of_sublots
+ where gmr.internal_gmr_ref_no = cur_sublots.internal_gmr_ref_no
+ and gmr.dbd_id = pc_dbd_id;
+end loop;
+commit;
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          108,
+                          'End of GMR Sublots Update');
+  sp_gather_stats('GRD_GOODS_RECORD_DETAIL');
+  sp_gather_stats('SPQ_STOCK_PAYABLE_QTY');
+  sp_create_exchange_data(pc_corporate_id,
+                          pd_trade_date,
+                          pc_user_id,
+                          gvc_dbd_id,
+                          pc_process);
+
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          107,
+                          'End of Populate Exchange Data');
   exception
     when others then
       vobj_error_log.extend;
@@ -13315,5 +13501,324 @@ where gmr.dbd_id = gvc_dbd_id;
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
+procedure sp_create_exchange_data(pc_corporate_id varchar2,
+                                       pd_trade_date   date,
+                                       pc_user_id      varchar2,
+                                       pc_dbd_id       varchar2,
+                                       pc_process      varchar2)
+is
+begin
+sp_gather_stats('pci_physical_contract_item');
+sp_gather_stats('pcm_physical_contract_main');
+sp_gather_stats('dipq_delivery_item_payable_qty');
+sp_gather_stats('pcbpd_pc_base_price_detail');
+sp_gather_stats('pcbph_pc_base_price_header');
+sp_gather_stats('pcdi_pc_delivery_item');
+sp_gather_stats('pcipf_pci_pricing_formula');
+sp_gather_stats('pocd_price_option_calloff_dtls');
+sp_gather_stats('poch_price_opt_call_off_header');
+sp_gather_stats('ppfd_phy_price_formula_details');
+sp_gather_stats('ppfh_phy_price_formula_header');
+delete from ced_contract_exchange_detail ced
+where ced.corporate_id = pc_corporate_id;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          991,
+                          'Delete from ced over');
+commit;
+insert into ced_contract_exchange_detail
+      (corporate_id,
+       internal_contract_item_ref_no,
+       pcdi_id,
+       element_id,
+       instrument_id,
+       instrument_name,
+       derivative_def_id,
+       derivative_def_name,
+       exchange_id,
+       exchange_name)
+      select pc_corporate_id,
+             tt.internal_contract_item_ref_no,
+             tt.pcdi_id,
+             tt.element_id,
+             tt.instrument_id,
+             dim.instrument_name,
+             pdd.derivative_def_id,
+             pdd.derivative_def_name,
+             emt.exchange_id,
+             emt.exchange_name
+        from (select pci.internal_contract_item_ref_no,
+                     poch.element_id,
+                     ppfd.instrument_id,
+                     pci.pcdi_id
+                from pci_physical_contract_item     pci,
+                     pcdi_pc_delivery_item          pcdi,
+                     poch_price_opt_call_off_header poch,
+                     pocd_price_option_calloff_dtls pocd,
+                     pcbpd_pc_base_price_detail     pcbpd,
+                     ppfh_phy_price_formula_header  ppfh,
+                     ppfd_phy_price_formula_details ppfd,
+                     pcm_physical_contract_main     pcm
+               where pci.pcdi_id = pcdi.pcdi_id
+                 and pcdi.pcdi_id = poch.pcdi_id
+                 and poch.poch_id = pocd.poch_id
+                 and pocd.pcbpd_id = pcbpd.pcbpd_id
+                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
+                 and ppfh.ppfh_id = ppfd.ppfh_id
+                 and pcdi.internal_contract_ref_no =
+                     pcm.internal_contract_ref_no
+                 and pci.dbd_id = pcdi.dbd_id
+                 and pcdi.dbd_id = pcbpd.dbd_id
+                 and pcbpd.dbd_id = ppfh.dbd_id
+                 and ppfh.dbd_id = ppfd.dbd_id
+                 and ppfd.dbd_id = pcm.dbd_id
+                 and pcm.dbd_id = pc_dbd_id
+                 and pcm.is_active = 'Y'
+                 and pci.is_active = 'Y'
+                 and pcdi.is_active = 'Y'
+                 and poch.is_active = 'Y'
+                 and pocd.is_active = 'Y'
+                 and pcbpd.is_active = 'Y'
+                 and ppfh.is_active = 'Y'
+                 and ppfd.is_active = 'Y'
+                 and pcm.product_group_type = 'BASEMETAL'
+                 and pcdi.price_option_call_off_status in
+                     ('Called Off', 'Not Applicable')
+               group by pci.internal_contract_item_ref_no,
+                        ppfd.instrument_id,
+                        poch.element_id,
+                        pci.pcdi_id
+              union all
+              select pci.internal_contract_item_ref_no,
+                     pcbpd.element_id,
+                     ppfd.instrument_id,
+                     pci.pcdi_id
+                from pci_physical_contract_item     pci,
+                     pcdi_pc_delivery_item          pcdi,
+                     pcipf_pci_pricing_formula      pcipf,
+                     pcbph_pc_base_price_header     pcbph,
+                     pcbpd_pc_base_price_detail     pcbpd,
+                     ppfh_phy_price_formula_header  ppfh,
+                     ppfd_phy_price_formula_details ppfd,
+                     pcm_physical_contract_main     pcm
+               where pci.internal_contract_item_ref_no =
+                     pcipf.internal_contract_item_ref_no
+                 and pcipf.pcbph_id = pcbph.pcbph_id
+                 and pcbph.pcbph_id = pcbpd.pcbph_id
+                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
+                 and ppfh.ppfh_id = ppfd.ppfh_id
+                 and pci.pcdi_id = pcdi.pcdi_id
+                 and pcdi.internal_contract_ref_no =
+                     pcm.internal_contract_ref_no
+                 and pci.dbd_id = pcdi.dbd_id
+                 and pcdi.dbd_id = pcipf.dbd_id
+                 and pcipf.dbd_id = pcbph.dbd_id
+                 and pcbph.dbd_id = ppfh.dbd_id
+                 and ppfh.dbd_id = ppfd.dbd_id
+                 and ppfd.dbd_id = pcm.dbd_id
+                 and pcbpd.dbd_id = pcm.dbd_id
+                 and pcm.dbd_id = pc_dbd_id
+                 and pcdi.is_active = 'Y'
+                 and pcm.product_group_type = 'BASEMETAL'
+                 and pcdi.price_option_call_off_status = 'Not Called Off'
+                 and pci.is_active = 'Y'
+                 and pcipf.is_active = 'Y'
+                 and pcbph.is_active = 'Y'
+                 and pcbpd.is_active = 'Y'
+                 and ppfh.is_active = 'Y'
+                 and ppfd.is_active = 'Y'
+               group by pci.internal_contract_item_ref_no,
+                        ppfd.instrument_id,
+                        pcbpd.element_id,
+                        pci.pcdi_id
+              union all
+              select pci.internal_contract_item_ref_no,
+                     pcbpd.element_id,
+                     ppfd.instrument_id,
+                     pci.pcdi_id
+                from pci_physical_contract_item     pci,
+                     pcdi_pc_delivery_item          pcdi,
+                     poch_price_opt_call_off_header poch,
+                     pocd_price_option_calloff_dtls pocd,
+                     pcbpd_pc_base_price_detail     pcbpd,
+                     ppfh_phy_price_formula_header  ppfh,
+                     ppfd_phy_price_formula_details ppfd,
+                     dipq_delivery_item_payable_qty dipq,
+                     pcm_physical_contract_main     pcm
+               where pci.pcdi_id = pcdi.pcdi_id
+                 and pcdi.pcdi_id = poch.pcdi_id
+                 and poch.poch_id = pocd.poch_id
+                 and pocd.pcbpd_id = pcbpd.pcbpd_id
+                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
+                 and ppfh.ppfh_id = ppfd.ppfh_id
+                 and pcdi.pcdi_id = dipq.pcdi_id
+                 and pcdi.internal_contract_ref_no =
+                     pcm.internal_contract_ref_no
+                 and pci.dbd_id = pc_dbd_id
+                 and pcdi.dbd_id = pc_dbd_id
+                 and pcbpd.dbd_id = pc_dbd_id
+                 and ppfh.dbd_id = pc_dbd_id
+                 and ppfd.dbd_id = pc_dbd_id
+                 and dipq.dbd_id = pc_dbd_id
+                 and pcbpd.dbd_id = pc_dbd_id
+                 and pcm.dbd_id = pc_dbd_id
+                 and dipq.element_id = pcbpd.element_id
+                 and pcdi.is_active = 'Y'
+                 and dipq.price_option_call_off_status in
+                     ('Called Off', 'Not Applicable')
+                 and pcm.product_group_type = 'CONCENTRATES'
+                 and pcm.is_active = 'Y'
+                 and dipq.is_active = 'Y'
+                 and pci.is_active = 'Y'
+                 and pcbpd.is_active = 'Y'
+                 and poch.is_active = 'Y'
+                 and pocd.is_active = 'Y'
+                 and ppfh.is_active = 'Y'
+                 and ppfd.is_active = 'Y'
+               group by pci.internal_contract_item_ref_no,
+                        ppfd.instrument_id,
+                        pcbpd.element_id,
+                        pci.pcdi_id
+              union all
+              select pci.internal_contract_item_ref_no,
+                     pcbpd.element_id,
+                     ppfd.instrument_id,
+                     pci.pcdi_id
+                from pci_physical_contract_item     pci,
+                     pcdi_pc_delivery_item          pcdi,
+                     pcipf_pci_pricing_formula      pcipf,
+                     pcbph_pc_base_price_header     pcbph,
+                     pcbpd_pc_base_price_detail     pcbpd,
+                     ppfh_phy_price_formula_header  ppfh,
+                     ppfd_phy_price_formula_details ppfd,
+                     dipq_delivery_item_payable_qty dipq,
+                     pcm_physical_contract_main     pcm
+               where pci.internal_contract_item_ref_no =
+                     pcipf.internal_contract_item_ref_no
+                 and pcipf.pcbph_id = pcbph.pcbph_id
+                 and pcbph.pcbph_id = pcbpd.pcbph_id
+                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
+                 and ppfh.ppfh_id = ppfd.ppfh_id
+                 and pci.pcdi_id = pcdi.pcdi_id
+                 and pcdi.pcdi_id = dipq.pcdi_id
+                 and pcdi.internal_contract_ref_no =
+                     pcm.internal_contract_ref_no
+                 and pci.dbd_id = pc_dbd_id
+                 and pcdi.dbd_id = pc_dbd_id
+                 and pcipf.dbd_id = pc_dbd_id
+                 and pcbph.dbd_id = pc_dbd_id
+                 and ppfh.dbd_id = pc_dbd_id
+                 and ppfd.dbd_id = pc_dbd_id
+                 and dipq.dbd_id = pc_dbd_id
+                 and pcm.dbd_id = pc_dbd_id
+                 and dipq.element_id = pcbpd.element_id
+                 and pcdi.is_active = 'Y'
+                 and dipq.price_option_call_off_status = 'Not Called Off'
+                 and pcm.product_group_type = 'CONCENTRATES'
+                 and pcm.is_active = 'Y'
+                 and dipq.is_active = 'Y'
+                 and pci.is_active = 'Y'
+                 and pcipf.is_active = 'Y'
+                 and pcbph.is_active = 'Y'
+                 and pcbpd.is_active = 'Y'
+                 and ppfh.is_active = 'Y'
+                 and ppfd.is_active = 'Y'
+               group by pci.internal_contract_item_ref_no,
+                        ppfd.instrument_id,
+                        pcbpd.element_id,
+                        pci.pcdi_id) tt,
+             dim_der_instrument_master dim,
+             pdd_product_derivative_def pdd,
+             emt_exchangemaster emt
+       where tt.instrument_id = dim.instrument_id
+         and dim.product_derivative_id = pdd.derivative_def_id
+         and pdd.exchange_id = emt.exchange_id(+)
+       group by tt.internal_contract_item_ref_no,
+                tt.element_id,
+                tt.instrument_id,
+                dim.instrument_name,
+                pdd.derivative_def_id,
+                pdd.derivative_def_name,
+                emt.exchange_id,
+                emt.exchange_name,
+                tt.pcdi_id;
+    commit;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          992,
+                          'Insert ced over');
+    
+    delete from ged_gmr_exchange_detail ged
+     where ged.corporate_id = pc_corporate_id;
+    commit;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          993,
+                          'delete from ged over');
+    
+    insert into ged_gmr_exchange_detail
+      (corporate_id,
+       internal_gmr_ref_no,
+       instrument_id,
+       instrument_name,
+       derivative_def_id,
+       derivative_def_name,
+       exchange_id,
+       exchange_name,
+       element_id)
+      select pc_corporate_id,
+             pofh.internal_gmr_ref_no,
+             ppfd.instrument_id,
+             dim.instrument_name,
+             pdd.derivative_def_id,
+             pdd.derivative_def_name,
+             emt.exchange_id,
+             emt.exchange_name,
+             pcbpd.element_id
+        from pofh_price_opt_fixation_header pofh,
+             pocd_price_option_calloff_dtls pocd,
+             pcbpd_pc_base_price_detail     pcbpd,
+             ppfh_phy_price_formula_header  ppfh,
+             ppfd_phy_price_formula_details ppfd,
+             dim_der_instrument_master      dim,
+             pdd_product_derivative_def     pdd,
+             emt_exchangemaster             emt
+       where pofh.pocd_id = pocd.pocd_id
+         and pocd.pcbpd_id = pcbpd.pcbpd_id
+         and pcbpd.pcbpd_id = ppfh.pcbpd_id
+         and ppfh.ppfh_id = ppfd.ppfh_id
+         and pcbpd.dbd_id = ppfh.dbd_id
+         and ppfh.dbd_id = ppfd.dbd_id
+         and ppfd.instrument_id = dim.instrument_id
+         and dim.product_derivative_id = pdd.derivative_def_id
+         and pdd.exchange_id = emt.exchange_id(+)
+         and pofh.internal_gmr_ref_no is not null
+         and pofh.is_active = 'Y'
+         and pocd.is_active = 'Y'
+         and pcbpd.is_active = 'Y'
+         and ppfh.is_active = 'Y'
+         and ppfd.is_active = 'Y'
+         and ppfd.dbd_id = pc_dbd_id
+       group by pofh.internal_gmr_ref_no,
+                ppfd.instrument_id,
+                dim.instrument_name,
+                pdd.derivative_def_id,
+                pdd.derivative_def_name,
+                emt.exchange_id,
+                emt.exchange_name,
+                pcbpd.element_id;    
+commit;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          993,
+                          'Insert into ged over');                
+sp_gather_stats('ged_gmr_exchange_detail');
+sp_gather_stats('ced_contract_exchange_detail');
+                
+end;  
 end pkg_phy_populate_data; 
 /

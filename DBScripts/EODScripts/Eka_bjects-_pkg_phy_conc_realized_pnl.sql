@@ -24,7 +24,7 @@ create or replace package pkg_phy_conc_realized_pnl is
                                         pc_dbd_id       varchar2,
                                         pc_user_id      varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_conc_realized_pnl is
   procedure sp_calc_phy_conc_realize_today(pc_corporate_id varchar2,
@@ -671,11 +671,11 @@ create or replace package body pkg_phy_conc_realized_pnl is
   begin
     for cur_realized_rows in cur_realized
     loop
-      vc_price_to_base_fw_rate    := null;
-      vc_contract_tc_fw_exch_rate := null;
-      vc_contract_rc_fw_exch_rate := null;
-      vc_contract_pc_fw_exch_rate := null;
-      vc_contract_pp_fw_exch_rate := null;
+      vc_price_to_base_fw_rate     := null;
+      vc_contract_tc_fw_exch_rate  := null;
+      vc_contract_rc_fw_exch_rate  := null;
+      vc_contract_pc_fw_exch_rate  := null;
+      vc_contract_pp_fw_exch_rate  := null;
       vn_location_premium_per_unit := 0;
       vn_location_premium          := 0;
       if cur_realized_rows.contract_type = 'S' then
@@ -2132,7 +2132,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              profit_center_name,
              profit_center_short_name,
              cp_profile_id,
-             cp_name,
+             gmr.cp_name,
              trade_user_id,
              trade_user_name,
              prch.product_id,
@@ -2267,7 +2267,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              profit_center_name,
              profit_center_short_name,
              cp_profile_id,
-             cp_name,
+             gmr.cp_name,
              trade_user_id,
              trade_user_name,
              prch.product_id,
@@ -2400,7 +2400,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              profit_center_name,
              profit_center_short_name,
              cp_profile_id,
-             cp_name,
+             gmr.cp_name,
              trade_user_id,
              trade_user_name,
              prch.product_id,
@@ -2536,7 +2536,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              profit_center_name,
              profit_center_short_name,
              cp_profile_id,
-             cp_name,
+             gmr.cp_name,
              trade_user_id,
              trade_user_name,
              prch.product_id,
@@ -3941,12 +3941,12 @@ create or replace package body pkg_phy_conc_realized_pnl is
   
     for cur_realized_rows in cur_realized
     loop
-      vc_sc_to_base_fw_exch_rate  := null;
-      vc_price_to_base_fw_rate    := null;
-      vc_contract_tc_fw_exch_rate := null;
-      vc_contract_rc_fw_exch_rate := null;
-      vc_contract_pc_fw_exch_rate := null;
-      vc_contract_pp_fw_exch_rate := null;
+      vc_sc_to_base_fw_exch_rate   := null;
+      vc_price_to_base_fw_rate     := null;
+      vc_contract_tc_fw_exch_rate  := null;
+      vc_contract_rc_fw_exch_rate  := null;
+      vc_contract_pc_fw_exch_rate  := null;
+      vc_contract_pp_fw_exch_rate  := null;
       vn_location_premium_per_unit := 0;
       vn_location_premium          := 0;
       begin

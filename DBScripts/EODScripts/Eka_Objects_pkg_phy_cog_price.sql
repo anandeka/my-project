@@ -863,6 +863,7 @@ create or replace package body pkg_phy_cog_price is
       end if;
     end loop;
     commit;
+    sp_gather_stats('bccp_base_contract_cog_price');
   exception
     when others then
       vobj_error_log.extend;
@@ -1426,6 +1427,7 @@ create or replace package body pkg_phy_cog_price is
       end if;
     end loop;
     commit;
+    sp_gather_stats('bgcp_base_gmr_cog_price');
   end;
   procedure sp_conc_contract_cog_price(pc_corporate_id varchar2,
                                        pd_trade_date   date,
@@ -2231,6 +2233,7 @@ create or replace package body pkg_phy_cog_price is
       end if;
     end loop;
     commit;
+    sp_gather_stats('cccp_conc_contract_cog_price');
   exception
     when others then
       vobj_error_log.extend;
@@ -3609,6 +3612,7 @@ create or replace package body pkg_phy_cog_price is
       end if;
     end loop;
     commit;
+    sp_gather_stats('cgcp_conc_gmr_cog_price');
   exception
     when others then
       vobj_error_log.extend;

@@ -4121,6 +4121,8 @@ create or replace package body pkg_phy_physical_process is
     delete from pa_purchase_accural where process_id = pc_process_id;
     delete from pa_purchase_accural_gmr where process_id = pc_process_id;
     delete from isr_intrastat_grd where process_id = pc_process_id;
+	delete from isr1_isr_inventory where process_id = pc_process_id;
+    delete from isr2_isr_invoice where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
      where process_id = pc_process_id;
      commit;

@@ -87,9 +87,7 @@ create or replace package body pkg_phy_physical_process is
     vc_prev_eod_date   date;
     vc_prev_eom_id     varchar2(15);
     vc_prev_eom_date   date;
-    vc_prev_dbd_id     varchar2(15);
-  
-    vn_error_count number;
+    vn_error_count     number;
   begin
     gvc_process    := pc_process;
     vn_error_count := 0;
@@ -163,6 +161,7 @@ create or replace package body pkg_phy_physical_process is
           vc_prev_eom_date := to_date('01-Jan-2000', 'dd-Mon-yyyy');
       end;
     end if;
+    commit;
     if pc_process = 'EOD' then
       gvc_previous_process_id   := vc_prev_eod_id;
       gvc_previous_process_date := vc_prev_eod_date;
@@ -172,23 +171,6 @@ create or replace package body pkg_phy_physical_process is
     end if;
     -- get the dump id
     gvc_dbd_id := pc_dbd_id;
-  
-    ---to get the previous dbd id -------
-    begin
-      select dbd.dbd_id
-        into vc_prev_dbd_id
-        from dbd_database_dump dbd
-       where dbd.corporate_id = pc_corporate_id
-         and dbd.process = pc_process
-         and dbd.trade_date = gvc_previous_process_date
-         and rownum <= 1;
-    exception
-      when no_data_found then
-        vc_prev_dbd_id := '000';
-      when others then
-        vc_prev_dbd_id := '000';
-    end;
-    --------prev dbd id call ends here
     --
     -- get the base currency decinals
     --
@@ -250,9 +232,8 @@ create or replace package body pkg_phy_physical_process is
                                            pd_trade_date,
                                            pc_process_id);
   
-    commit;
     vc_err_msg := 'sp_calc_contract_price ';
-  
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -263,12 +244,12 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_contract_price');
-    pkg_phy_eod_price.sp_calc_contract_price(pc_corporate_id,
-                                             pd_trade_date,
-                                             pc_process_id,
-                                             pc_user_id,
-                                             pc_dbd_id,
-                                             pc_process);
+    /*pkg_phy_eod_price.sp_calc_contract_price(pc_corporate_id,
+    pd_trade_date,
+    pc_process_id,
+    pc_user_id,
+    pc_dbd_id,
+    pc_process);*/
     commit;
     vc_err_msg := 'sp_calc_gmr_price ';
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -281,12 +262,12 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_gmr_price');
-    pkg_phy_eod_price.sp_calc_gmr_price(pc_corporate_id,
-                                        pd_trade_date,
-                                        pc_process_id,
-                                        pc_user_id,
-                                        pc_dbd_id,
-                                        pc_process);
+    /*pkg_phy_eod_price.sp_calc_gmr_price(pc_corporate_id,
+    pd_trade_date,
+    pc_process_id,
+    pc_user_id,
+    pc_dbd_id,
+    pc_process);*/
     commit;
   
     vc_err_msg := 'sp_calc_contract_conc_price ';
@@ -300,14 +281,13 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_contract_conc_price');
-    pkg_phy_eod_price.sp_calc_contract_conc_price(pc_corporate_id,
-                                                  pd_trade_date,
-                                                  pc_process_id,
-                                                  pc_user_id,
-                                                  pc_dbd_id,
-                                                  pc_process);
+    /*pkg_phy_eod_price.sp_calc_contract_conc_price(pc_corporate_id,
+    pd_trade_date,
+    pc_process_id,
+    pc_user_id,
+    pc_dbd_id,
+    pc_process);*/
     commit;
-  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -318,12 +298,12 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'sp_calc_conc_gmr_price');
-    pkg_phy_eod_price.sp_calc_conc_gmr_price(pc_corporate_id,
-                                             pd_trade_date,
-                                             pc_process_id,
-                                             pc_user_id,
-                                             pc_dbd_id,
-                                             pc_process);
+    /*pkg_phy_eod_price.sp_calc_conc_gmr_price(pc_corporate_id,
+    pd_trade_date,
+    pc_process_id,
+    pc_user_id,
+    pc_dbd_id,
+    pc_process);*/
     commit;
     vc_err_msg := 'sp_calc_secondary_cost ';
   
@@ -342,45 +322,42 @@ create or replace package body pkg_phy_physical_process is
                            pc_user_id,
                            pd_trade_date);
     commit;
-  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
     end if;
-    /* vn_logno := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           vn_logno,
                           'sp_calc_invm_cog');
     vc_err_msg := 'sp_calc_invm_cog ';
-    
-    pkg_phy_calculate_cog.sp_calc_invm_cog(pc_corporate_id,
-                                           pc_process_id,
-                                           pc_user_id,
-                                           pd_trade_date,
-                                           pc_process);
-    commit;                                           */
   
-    /*if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-        'Cancel' then
-       goto cancel_process;
-     end if;
-     vn_logno := vn_logno + 1;
-     sp_eodeom_process_log(pc_corporate_id,
-                           pd_trade_date,
-                           pc_process_id,
-                           vn_logno,
-                           'sp_calc_invm_cogs');
-     vc_err_msg := 'sp_calc_invm_cogs ';
-    
-     pkg_phy_calculate_cog.sp_calc_invm_cogs(pc_corporate_id,
-                                             pc_process_id,
-                                             pc_user_id,
-                                             pd_trade_date,
-                                             pc_process);
-    commit; */
+    /*  pkg_phy_calculate_cog.sp_calc_invm_cog(pc_corporate_id,
+    pc_process_id,
+    pc_user_id,
+    pd_trade_date,
+    pc_process);*/
+    commit;
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_calc_invm_cogs');
+    vc_err_msg := 'sp_calc_invm_cogs ';
   
+    /*  pkg_phy_calculate_cog.sp_calc_invm_cogs(pc_corporate_id,
+    pc_process_id,
+    pc_user_id,
+    pd_trade_date,
+    pc_process);*/
+    commit;
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -400,7 +377,6 @@ create or replace package body pkg_phy_physical_process is
                                                  pc_dbd_id,
                                                  pc_process);
     commit;
-  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -420,7 +396,6 @@ create or replace package body pkg_phy_physical_process is
                                                  pc_dbd_id,
                                                  pc_process);
     commit;
-  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -481,7 +456,6 @@ create or replace package body pkg_phy_physical_process is
                                             pc_dbd_id,
                                             pc_process);
     commit;
-  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -505,7 +479,6 @@ create or replace package body pkg_phy_physical_process is
     end;
     ----------------  
     if vn_error_count = 0 then
-    
       vn_logno := vn_logno + 1;
       sp_eodeom_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -547,51 +520,34 @@ create or replace package body pkg_phy_physical_process is
                             pd_trade_date,
                             pc_process_id,
                             vn_logno,
-                            'sp_calc_customs_report');
-      vc_err_msg := 'sp_calc_customs_report';
-    
-      pkg_phy_eod_reports.sp_calc_customs_report(pc_corporate_id,
-                                                 pd_trade_date,
-                                                 pc_process_id,
-                                                 pc_user_id,
-                                                 pc_process);
+                            'sp_calc_m2m_cost');
+      vc_err_msg := 'Before calc m2m cost ';
+      /*  sp_calc_m2m_cost(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id);*/
       commit;
-    
-      /* if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_calc_m2m_cost');
-        vc_err_msg := 'Before calc m2m cost ';
-        sp_calc_m2m_cost(pc_corporate_id,
-                         pd_trade_date,
-                         pc_process_id,
-                         pc_user_id);
-      commit;*/
-      /*   if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-             'Cancel' then
-            goto cancel_process;
-          end if;
-          vn_logno := vn_logno + 1;
-          sp_eodeom_process_log(pc_corporate_id,
-                                pd_trade_date,
-                                pc_process_id,
-                                vn_logno,
-                                'sp_calc_m2m_conc_cost');
-          vc_err_msg := 'Before calc m2m conc  cost ';
-          sp_calc_m2m_conc_cost(pc_corporate_id,
-                                pd_trade_date,
-                                pc_process_id,
-                                pc_user_id);
-      commit; */
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_m2m_conc_cost');
+      vc_err_msg := 'Before calc m2m conc  cost ';
+      /*    sp_calc_m2m_conc_cost(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id);*/
       ----
-      /* if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-         'Cancel' then
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
         goto cancel_process;
       end if;
       vn_logno := vn_logno + 1;
@@ -601,16 +557,16 @@ create or replace package body pkg_phy_physical_process is
                             vn_logno,
                             'sp_calc_m2m_tolling_extn_cost');
       vc_err_msg := 'Before call of sp_calc_m2m_tolling_extn_cost';
-      
-      sp_calc_m2m_tolling_extn_cost(pc_corporate_id,
-                                    pd_trade_date,
-                                    pc_process_id,
-                                    pc_user_id);
-      commit; */
-      ---
     
-      /* if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-         'Cancel' then
+      /* sp_calc_m2m_tolling_extn_cost(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id);*/
+      ---
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
         goto cancel_process;
       end if;
       vn_logno := vn_logno + 1;
@@ -620,237 +576,182 @@ create or replace package body pkg_phy_physical_process is
                             vn_logno,
                             'sp_calc_stock_price');
       vc_err_msg := 'Before call of sp_calc_stock_price';
-      
-      pkg_phy_eod_price.sp_calc_stock_price(pc_process_id);
-      commit;*/
-      --start comment pnl code for boliden : siva as on 10-Oct-2012, asofnow pnl is not required
-      /*  if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_calc_phy_open_unreal_pnl');
-        vc_err_msg := 'Before open unreal pnl ';
-        pkg_phy_bm_unrealized_pnl.sp_calc_phy_open_unreal_pnl(pc_corporate_id,
-                                                              pd_trade_date,
-                                                              pc_process_id,
-                                                              pc_user_id,
-                                                              pc_process,
-                                                              gvc_previous_process_id);
-       commit;                                                          
-      
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_stock_unreal_sntt_bm');
-      
-        vc_err_msg := 'Before call of sp_stock_unreal_sntt_bm';
-      
-        pkg_phy_bm_unrealized_pnl.sp_stock_unreal_sntt_bm(pc_corporate_id,
-                                                          pd_trade_date,
-                                                          pc_process_id,
-                                                          pc_user_id,
-                                                          pc_process,
-                                                          gvc_previous_process_id);
-       commit;                                                      
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_stock_unreal_inv_in_bm');
-      
-        vc_err_msg := 'Before call of sp_stock_unreal_inv_in_bm';
-        pkg_phy_bm_unrealized_pnl.sp_stock_unreal_inv_in_bm(pc_corporate_id,
-                                                            pd_trade_date,
-                                                            pc_process_id,
-                                                            pc_user_id,
-                                                            pc_process,
-                                                            gvc_previous_process_id);
-       commit;                                                        
-      
-        --- tolling start                                                                
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_phy_opencon_ext_unreal_pnl');
-        vc_err_msg := 'Before sp_phy_opencon_ext_unreal_pnl';
-        pkg_phy_tolling_unrealized_pnl.sp_phy_opencon_ext_unreal_pnl(pc_corporate_id,
-                                                                     pd_trade_date,
-                                                                     pc_process_id,
-                                                                     pc_user_id,
-                                                                     pc_dbd_id,
-                                                                     pc_process,
-                                                                     gvc_previous_process_id);
-       commit;                                                                 
-      
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_phy_stok_con_ext_unreal_pnl');
-        vc_err_msg := 'Before sp_phy_stok_con_ext_unreal_pnl';
-        pkg_phy_tolling_unrealized_pnl.sp_phy_stok_con_ext_unreal_pnl(pc_corporate_id,
-                                                                      pd_trade_date,
-                                                                      pc_process_id,
-                                                                      pc_user_id,
-                                                                      pc_process,
-                                                                      gvc_previous_process_id);
-       commit;                                                                  
-        -- tolling end             
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_calc_phy_realized_today');
-      
-        vc_err_msg := 'Before call of sp_calc_phy_realized_today';
-      
-        pkg_phy_bm_realized_pnl.sp_calc_phy_realized_today(pc_corporate_id,
-                                                           pd_trade_date,
-                                                           pc_process_id,
-                                                           pc_user_id,
-                                                           pc_process);
-      commit;                                                       
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_calc_reverse_realized');
-        vc_err_msg := 'Before call of sp_calc_reverse_realized';
-      
-        pkg_phy_bm_realized_pnl.sp_calc_reverse_realized(pc_corporate_id,
-                                                         pd_trade_date,
-                                                         pc_process_id,
-                                                         pc_user_id,
-                                                         pc_process,
-                                                         gvc_previous_process_id);
-       commit;                                                     
-      
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_calc_phy_realize_pnl_change');
-        vc_err_msg := 'Before call of sp_calc_phy_realize_pnl_change';
-      
-        pkg_phy_bm_realized_pnl.sp_calc_phy_realize_pnl_change(pc_corporate_id,
-                                                               pd_trade_date,
-                                                               pc_process,
-                                                               pc_process_id,
-                                                               pc_user_id);
-       commit;                                                           
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_calc_realized_not_fixed');
-        vc_err_msg := 'Before sp_calc_realized_not_fixed ';
-        pkg_phy_bm_realized_pnl.sp_calc_realized_not_fixed(pc_corporate_id,
-                                                           pd_trade_date,
-                                                           pc_process,
-                                                           pc_process_id,
-                                                           pc_user_id,
-                                                           gvc_previous_process_id);
-       commit;                                                       
-        vn_logno := vn_logno + 1;
-      
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_calc_washout_realized_today');
-        vc_err_msg := 'Before sp_calc_washout_realized_today';
-        pkg_phy_bm_washout_pnl.sp_calc_washout_realized_today(pc_corporate_id,
-                                                              pd_trade_date,
-                                                              pc_process_id,
-                                                              pc_user_id,
-                                                              pc_process);
-        commit;                                                          
-      
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              ' sp_washout_reverse_realized');
-        vc_err_msg := 'Before  sp_washout_reverse_realized';
-        pkg_phy_bm_washout_pnl.sp_washout_reverse_realized(pc_corporate_id,
-                                                           pd_trade_date,
-                                                           pc_process_id,
-                                                           pc_user_id,
-                                                           pc_dbd_id,
-                                                           pc_process);
-        commit;                                                       
-      
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              ' sp_washout_realize_pnl_change');
-        vc_err_msg := 'Before  sp_washout_realize_pnl_change';
-        pkg_phy_bm_washout_pnl.sp_washout_realize_pnl_change(pc_corporate_id,
-                                                             pd_trade_date,
-                                                             pc_process,
-                                                             pc_process_id,
-                                                             pc_user_id);
-        commit; */
-      --end comment pnl code for boliden : siva as on 10-Oct-2012, asofnow pnl is not required
+    
+      /* pkg_phy_eod_price.sp_calc_stock_price(pc_process_id);*/
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_phy_open_unreal_pnl');
+      vc_err_msg := 'Before open unreal pnl ';
+      /*    pkg_phy_bm_unrealized_pnl.sp_calc_phy_open_unreal_pnl(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_process,
+      gvc_previous_process_id);*/
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_stock_unreal_sntt_bm');
+    
+      vc_err_msg := 'Before call of sp_stock_unreal_sntt_bm';
+    
+      /*    pkg_phy_bm_unrealized_pnl.sp_stock_unreal_sntt_bm(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_process,
+      gvc_previous_process_id);*/
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_stock_unreal_inv_in_bm');
+    
+      vc_err_msg := 'Before call of sp_stock_unreal_inv_in_bm';
+      /*    pkg_phy_bm_unrealized_pnl.sp_stock_unreal_inv_in_bm(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_process,
+      gvc_previous_process_id);*/
+      commit;
+      --- tolling start                                                                
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_phy_opencon_ext_unreal_pnl');
+      vc_err_msg := 'Before sp_phy_opencon_ext_unreal_pnl';
+      /* pkg_phy_tolling_unrealized_pnl.sp_phy_opencon_ext_unreal_pnl(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_dbd_id,
+      pc_process,
+      gvc_previous_process_id);*/
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_phy_stok_con_ext_unreal_pnl');
+      vc_err_msg := 'Before sp_phy_stok_con_ext_unreal_pnl';
+      /* pkg_phy_tolling_unrealized_pnl.sp_phy_stok_con_ext_unreal_pnl(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_process,
+      gvc_previous_process_id);*/
+      -- tolling end             
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_phy_realized_today');
+    
+      vc_err_msg := 'Before call of sp_calc_phy_realized_today';
+    
+      /*    pkg_phy_bm_realized_pnl.sp_calc_phy_realized_today(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_process);*/
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_reverse_realized');
+      vc_err_msg := 'Before call of sp_calc_reverse_realized';
+    
+      /*    pkg_phy_bm_realized_pnl.sp_calc_reverse_realized(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_process,
+      gvc_previous_process_id);*/
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_phy_realize_pnl_change');
+      vc_err_msg := 'Before call of sp_calc_phy_realize_pnl_change';
+    
+      /*    pkg_phy_bm_realized_pnl.sp_calc_phy_realize_pnl_change(pc_corporate_id,
+      pd_trade_date,
+      pc_process,
+      pc_process_id,
+      pc_user_id);*/
+      commit;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_realized_not_fixed');
+      vc_err_msg := 'Before sp_calc_realized_not_fixed ';
+      /*    pkg_phy_bm_realized_pnl.sp_calc_realized_not_fixed(pc_corporate_id,
+      pd_trade_date,
+      pc_process,
+      pc_process_id,
+      pc_user_id,
+      gvc_previous_process_id);*/
+      vn_logno := vn_logno + 1;
     
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
@@ -869,8 +770,63 @@ create or replace package body pkg_phy_physical_process is
                                                     pd_trade_date,
                                                     pc_process_id,
                                                     pc_dbd_id);
-        commit;
       end if;
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_washout_realized_today');
+      vc_err_msg := 'Before sp_calc_washout_realized_today';
+      /* pkg_phy_bm_washout_pnl.sp_calc_washout_realized_today(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_process);*/
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            ' sp_washout_reverse_realized');
+      vc_err_msg := 'Before  sp_washout_reverse_realized';
+      /* pkg_phy_bm_washout_pnl.sp_washout_reverse_realized(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_dbd_id,
+      pc_process);*/
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            ' sp_washout_realize_pnl_change');
+      vc_err_msg := 'Before  sp_washout_realize_pnl_change';
+      /* pkg_phy_bm_washout_pnl.sp_washout_realize_pnl_change(pc_corporate_id,
+      pd_trade_date,
+      pc_process,
+      pc_process_id,
+      pc_user_id);*/
+      commit;
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -888,9 +844,8 @@ create or replace package body pkg_phy_physical_process is
                                             pd_trade_date,
                                             pc_process,
                                             pc_process_id);
-        commit;
       end if;
-    
+      commit;
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -907,7 +862,6 @@ create or replace package body pkg_phy_physical_process is
                                                  pd_trade_date,
                                                  pc_process_id);
       commit;
-    
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -924,8 +878,8 @@ create or replace package body pkg_phy_physical_process is
         pkg_phy_eod_reports.sp_feed_consumption_report(pc_corporate_id,
                                                        pd_trade_date,
                                                        pc_process_id);
-        commit;
       end if;
+      commit;
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -942,102 +896,93 @@ create or replace package body pkg_phy_physical_process is
         pkg_phy_eod_reports.sp_stock_monthly_yeild(pc_corporate_id,
                                                    pd_trade_date,
                                                    pc_process_id);
-        commit;
       end if;
-      --start comment concentrate pnl code for boliden : siva as on 10-Oct-2012, asofnow pnl is not required
-    
-      /* -- Concentrate PNL Call Start
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_calc_phy_opencon_unreal_pnl');
-        vc_err_msg := 'Before sp_calc_phy_opencon_unreal_pnl';
+      commit;
+      /*    -- Concentrate PNL Call Start
+      if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+         'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_phy_opencon_unreal_pnl');
+      vc_err_msg := 'Before sp_calc_phy_opencon_unreal_pnl';
       
-        pkg_phy_conc_unrealized_pnl.sp_calc_phy_opencon_unreal_pnl(pc_corporate_id,
-                                                                   pd_trade_date,
-                                                                   pc_process_id,
-                                                                   pc_dbd_id,
-                                                                   pc_user_id,
-                                                                   pc_process,
-                                                                   gvc_previous_process_id);
-       commit;                                                               
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_stock_unreal_sntt_conc');
-        vc_err_msg := 'Before sp_stock_unreal_sntt_conc';
-        pkg_phy_conc_unrealized_pnl.sp_stock_unreal_sntt_conc(pc_corporate_id,
-                                                              pd_trade_date,
-                                                              pc_process_id,
-                                                              pc_dbd_id,
-                                                              pc_user_id,
-                                                              pc_process,
-                                                              gvc_previous_process_id);
-       commit;                                                          
-        if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_stock_unreal_inv_in_conc');
-        vc_err_msg := 'Before sp_stock_unreal_inv_in_conc';
-      
-        pkg_phy_conc_unrealized_pnl.sp_stock_unreal_inv_in_conc(pc_corporate_id,
-                                                                pd_trade_date,
-                                                                pc_process_id,
-                                                                pc_user_id,
-                                                                pc_process,
-                                                                gvc_previous_process_id,
-                                                                pc_dbd_id);
-       commit;                                                            
-      
-        pkg_phy_conc_realized_pnl.sp_calc_phy_conc_realize_today(pc_corporate_id,
+      pkg_phy_conc_unrealized_pnl.sp_calc_phy_opencon_unreal_pnl(pc_corporate_id,
                                                                  pd_trade_date,
                                                                  pc_process_id,
                                                                  pc_dbd_id,
                                                                  pc_user_id,
-                                                                 pc_process);
-      commit;                                                             
+                                                                 pc_process,
+                                                                 gvc_previous_process_id);
+      if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+         'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_stock_unreal_sntt_conc');
+      vc_err_msg := 'Before sp_stock_unreal_sntt_conc';
+      pkg_phy_conc_unrealized_pnl.sp_stock_unreal_sntt_conc(pc_corporate_id,
+                                                            pd_trade_date,
+                                                            pc_process_id,
+                                                            pc_dbd_id,
+                                                            pc_user_id,
+                                                            pc_process,
+                                                            gvc_previous_process_id);
+      if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+         'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_stock_unreal_inv_in_conc');
+      vc_err_msg := 'Before sp_stock_unreal_inv_in_conc';
       
-        pkg_phy_conc_realized_pnl.sp_calc_phy_conc_pnl_change(pc_corporate_id,
+      pkg_phy_conc_unrealized_pnl.sp_stock_unreal_inv_in_conc(pc_corporate_id,
                                                               pd_trade_date,
-                                                              pc_process,
                                                               pc_process_id,
-                                                              pc_dbd_id,
-                                                              pc_user_id);
-      commit;                                                          
+                                                              pc_user_id,
+                                                              pc_process,
+                                                              gvc_previous_process_id,
+                                                              pc_dbd_id);
       
-        pkg_phy_conc_realized_pnl.sp_calc_phy_conc_reverse_rlzed(pc_corporate_id,
-                                                                 pd_trade_date,
-                                                                 pc_process_id,
-                                                                 gvc_previous_process_id,
-                                                                 pc_user_id,
-                                                                 pc_process);
-      commit;                                                             
-        pkg_phy_conc_realized_pnl.sp_calc_conc_rlzed_not_fixed(pc_corporate_id,
+      pkg_phy_conc_realized_pnl.sp_calc_phy_conc_realize_today(pc_corporate_id,
+                                                               pd_trade_date,
+                                                               pc_process_id,
+                                                               pc_dbd_id,
+                                                               pc_user_id,
+                                                               pc_process);
+      
+      pkg_phy_conc_realized_pnl.sp_calc_phy_conc_pnl_change(pc_corporate_id,
+                                                            pd_trade_date,
+                                                            pc_process,
+                                                            pc_process_id,
+                                                            pc_dbd_id,
+                                                            pc_user_id);
+      
+      pkg_phy_conc_realized_pnl.sp_calc_phy_conc_reverse_rlzed(pc_corporate_id,
                                                                pd_trade_date,
                                                                pc_process_id,
                                                                gvc_previous_process_id,
                                                                pc_user_id,
                                                                pc_process);
-      commit;  */
-      --End comment concentrate pnl code for boliden : siva as on 10-Oct-2012, asofnow pnl is not required  
+      pkg_phy_conc_realized_pnl.sp_calc_conc_rlzed_not_fixed(pc_corporate_id,
+                                                             pd_trade_date,
+                                                             pc_process_id,
+                                                             gvc_previous_process_id,
+                                                             pc_user_id,
+                                                             pc_process); */
+    
       -- Concentrate PNL Call End
       -- Trade PNL 
       if pkg_process_status.sp_get(pc_corporate_id,
@@ -1075,23 +1020,24 @@ create or replace package body pkg_phy_physical_process is
                                                   gvc_process,
                                                   pc_user_id);
       commit;
-      /*   if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_calc_risk_limits');
-        vc_err_msg := 'Before sp_calc_risk_limits';
-        pkg_phy_eod_reports.sp_calc_risk_limits(pc_corporate_id,
-                                                pd_trade_date,
-                                                pc_process_id,
-                                                pc_user_id,
-                                                pc_process);
-      commit;*/
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_risk_limits');
+      vc_err_msg := 'Before sp_calc_risk_limits';
+      /* pkg_phy_eod_reports.sp_calc_risk_limits(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id,
+      pc_user_id,
+      pc_process);*/
+      commit;
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -1105,32 +1051,32 @@ create or replace package body pkg_phy_physical_process is
                             'sp_calc_overall_realized_pnl');
       vc_err_msg := 'Before sp_calc_overall_realized_pnl';
     
-      pkg_phy_eod_reports.sp_calc_overall_realized_pnl(pc_corporate_id,
-                                                       pd_trade_date,
-                                                       pc_process_id,
-                                                       pc_user_id,
-                                                       pc_process);
+      /* pkg_phy_eod_reports.sp_calc_overall_realized_pnl(pc_corporate_id,
+                                                         pd_trade_date,
+                                                         pc_process_id,
+                                                         pc_user_id,
+                                                         pc_process);
+      */
       commit;
-    
-      /* if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-          'Cancel' then
-         goto cancel_process;
-       end if;
-       vn_logno := vn_logno + 1;
-       sp_eodeom_process_log(pc_corporate_id,
-                             pd_trade_date,
-                             pc_process_id,
-                             vn_logno,
-                             'sp_calc_phy_unreal_pnl_attr');
-       vc_err_msg := 'Before sp_calc_phy_unreal_pnl_attr';
-       pkg_phy_eod_reports.sp_calc_phy_unreal_pnl_attr(pc_corporate_id,
-                                                       pd_trade_date,
-                                                       gvc_previous_process_date,
-                                                       pc_process_id,
-                                                       gvc_previous_process_id,
-                                                       pc_user_id);
-      commit;              */
-    
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_calc_phy_unreal_pnl_attr');
+      vc_err_msg := 'Before sp_calc_phy_unreal_pnl_attr';
+      /* pkg_phy_eod_reports.sp_calc_phy_unreal_pnl_attr(pc_corporate_id,
+      pd_trade_date,
+      gvc_previous_process_date,
+      pc_process_id,
+      gvc_previous_process_id,
+      pc_user_id);*/
+      commit;
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -1147,24 +1093,25 @@ create or replace package body pkg_phy_physical_process is
         pkg_phy_eod_reports.sp_metal_balance_qty_summary(pc_corporate_id,
                                                          pd_trade_date,
                                                          pc_process_id);
-        commit;
       end if;
-      /*    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
-           'Cancel' then
-          goto cancel_process;
-        end if;
-        vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'sp_daily_position_record');
-        vc_err_msg := 'Before sp_daily_position_record';
-      
-        pkg_phy_eod_reports.sp_daily_position_record(pc_corporate_id,
-                                                     pd_trade_date,
-                                                     pc_process_id);
-      commit; */
+      commit;
+      if pkg_process_status.sp_get(pc_corporate_id,
+                                   pc_process,
+                                   pd_trade_date) = 'Cancel' then
+        goto cancel_process;
+      end if;
+      vn_logno := vn_logno + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_process_id,
+                            vn_logno,
+                            'sp_daily_position_record');
+      vc_err_msg := 'Before sp_daily_position_record';
+    
+      /* pkg_phy_eod_reports.sp_daily_position_record(pc_corporate_id,
+      pd_trade_date,
+      pc_process_id);*/
+      commit;
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -1182,8 +1129,8 @@ create or replace package body pkg_phy_physical_process is
                                               pd_trade_date,
                                               pc_process_id,
                                               pc_process);
-        commit;
       end if;
+      commit;
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -1201,8 +1148,8 @@ create or replace package body pkg_phy_physical_process is
                                                       pd_trade_date,
                                                       pc_process_id,
                                                       pc_process);
-        commit;
       end if;
+      commit;
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -1221,31 +1168,10 @@ create or replace package body pkg_phy_physical_process is
                                                       pc_process_id,
                                                       pc_process,
                                                       pc_dbd_id);
-        commit;
       end if;
-      /*vn_logno := vn_logno + 1;
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'pkg_phy_custom_reports.sp_call_custom_reports started');
-        vc_err_msg := 'Before pkg_phy_custom_reports.sp_call_custom_reports';
-        pkg_phy_custom_reports.sp_call_custom_reports(pc_corporate_id,
-                                                      pd_trade_date,
-                                                      pc_process_id,
-                                                      pc_user_id,
-                                                      pc_process,
-                                                      pc_dbd_id,
-                                                      gvc_previous_process_id,
-                                                      vc_prev_dbd_id);
-      commit;                                                  
-        sp_eodeom_process_log(pc_corporate_id,
-                              pd_trade_date,
-                              pc_process_id,
-                              vn_logno,
-                              'pkg_phy_custom_reports.sp_call_custom_reports finished');*/
-    
+      commit;
     end if; ---this end if starts from if vn_error_count = 0 then
+    commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -1273,6 +1199,7 @@ create or replace package body pkg_phy_physical_process is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
+      commit;
   end;
 
   procedure sp_mark_process_id(pc_corporate_id varchar2,
@@ -1801,7 +1728,6 @@ create or replace package body pkg_phy_physical_process is
                                                   pum.price_unit_id)
      where cs.process_id = pc_process_id
        and cs.rate_type = 'Rate';
-    commit;
     --
     -- Update PUM ID for Absolute Type
     -- Currency from CS and Unit from CIGC
@@ -1835,7 +1761,7 @@ create or replace package body pkg_phy_physical_process is
        where css.internal_cost_id = cc1.internal_cost_id;
     
     end loop;
-    commit;
+  
     insert into cisc_contract_item_sec_cost
       (internal_contract_item_ref_no,
        cost_component_id,
@@ -1893,7 +1819,6 @@ create or replace package body pkg_phy_physical_process is
                else
                 null
              end)
-      
         from cs_cost_store               cs,
              cigc_contract_item_gmr_cost cigc,
              pcdi_pc_delivery_item       pcdi,
@@ -2898,7 +2823,6 @@ create or replace package body pkg_phy_physical_process is
            and md.mvp_id = cur_update.mvp_id
            and md.element_id = cur_update.element_id;
       end loop;
-      commit;
     
       vc_err_msg := 'line 7913';
       -- Updating exg_id,settlement_price,settlement price avl date of the md table
@@ -3633,7 +3557,6 @@ create or replace package body pkg_phy_physical_process is
          and md.process_id = pc_process_id
          and md.is_tolling_contract = 'Y'
          and md.is_tolling_extn = 'Y';
-      commit;
       --   dbms_output.put_line('after update -5 ');
       sp_write_log(pc_corporate_id,
                    pd_trade_date,
@@ -4104,6 +4027,8 @@ create or replace package body pkg_phy_physical_process is
     delete from pa_purchase_accural where process_id = pc_process_id;
     delete from pa_purchase_accural_gmr where process_id = pc_process_id;
     delete from isr_intrastat_grd where process_id = pc_process_id;
+    delete from isr1_isr_inventory where process_id = pc_process_id;
+    delete from isr2_isr_invoice where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
      where process_id = pc_process_id;
     commit;
@@ -4143,33 +4068,12 @@ create or replace package body pkg_phy_physical_process is
     delete from ord_overall_realized_pnl_daily
      where process_id = pc_process_id;
     delete from tpd_trade_pnl_daily where process_id = pc_process_id;
-    delete from gepd_gmr_element_pledge_detail where dbd_id = vc_dbd_id;
-  
-    delete from eod_eom_fixation_journal where process_id = pc_process_id;
-    delete from pofh_history where process_id = pc_process_id;
-    delete from eod_eom_derivative_journal
-     where process_id = pc_process_id;
-    delete from eod_eom_booking_journal where process_id = pc_process_id;
-    delete from eod_eom_phy_contract_journal
-     where process_id = pc_process_id;
-    delete from prp_physical_risk_position
-     where process_id = pc_process_id;
-    delete from eod_eom_phy_booking_journal
-     where process_id = pc_process_id;
-    delete from getc_gmr_element_tc_charges
-     where process_id = pc_process_id;
-    delete from gerc_gmr_element_rc_charges
-     where process_id = pc_process_id;
-    delete from gepc_gmr_element_pc_charges
-     where process_id = pc_process_id;
-    commit;
-    delete from cmp_contract_market_price where process_id = pc_process_id;
-    delete from gmp_gmr_market_price where process_id = pc_process_id;
-    commit;
+    delete from gepd_gmr_element_pledge_detail gepd
+     where dbd_id = vc_dbd_id;
     delete from page_price_alloc_gmr_exchange
      where process_id = pc_process_id;
-    delete from tpr_traders_position_report
-     where process_id = pc_process_id;
+  
+    --
     commit;
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now

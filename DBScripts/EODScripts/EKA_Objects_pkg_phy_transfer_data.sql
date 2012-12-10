@@ -577,6 +577,10 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('YPD_YIELD_PCT_DETAIL', 'c');
       dbms_mview.refresh('SBS_SMELTER_BASE_STOCK', 'c');
       dbms_mview.refresh('PRRQS_PRR_QTY_STATUS', 'c');
+      dbms_mview.refresh('PSR_POOL_STOCK_REGISTER', 'c');
+      dbms_mview.refresh('PM_POOL_MASTER', 'c');
+      dbms_mview.refresh('GPAD_GMR_PRICE_ALLOC_DTLS', 'c');
+      dbms_mview.refresh('GPAH_GMR_PRICE_ALLOC_HEADER', 'c');
     end if;
   exception
     when others then
