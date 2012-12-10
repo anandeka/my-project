@@ -16,7 +16,7 @@ Module / Feature Group:
 ==================================================================
 Module  		   	 :  Reports
 
-Sub-Module  			 :  EOD
+Sub-Module  			 :  Reports
  
 Section   		   	 :  N/A
  
@@ -34,3 +34,47 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
+Revision: 110173
+Author: elaiyaraja.nallathambi
+Date: 12:10:52 PM, Friday, December 07, 2012
+Message:
+Bug Fix:- 71268
+Added COrporate Name & Time Stamp.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+
+Revision: 109857
+Author: elaiyaraja.nallathambi
+Date: 6:14:13 PM, Tuesday, December 04, 2012
+Message:
+Excel Report added for "Feed Consumption Report, Intrastat Report, Metal Balance Summary Report & Purchase Accrual Report".
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FeedConsumptionReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MetalBalanceSummaryReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport_Excel.rpt
+
+
+Revision: 110190
+Date: 2:14:01 PM, Friday, December 07, 2012
+Message:
+Purchase accrual removed mandatory check for warehouse filter
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_460.sql
+
+Revision: 110188
+Date: 2:11:41 PM, Friday, December 07, 2012
+Message:
+WMT to DMT change
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt
+
+
+
+Revision: 110372
+Author: janna
+Date: 2:11:12 PM, Monday, December 10, 2012
+Message:
+Monthly Custom Report using ISR table, file taken from Boldien Go live
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyCustomsReport.rpt
