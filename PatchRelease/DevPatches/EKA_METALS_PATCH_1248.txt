@@ -35,7 +35,7 @@ Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
 Revision: 110635
-Author: jana
+Author: janna
 Date: 11:18:17 AM, Wednesday, December 12, 2012
 Message:
 Transfer : Missing Price Allocation Method Population in PCIDUL
@@ -45,9 +45,21 @@ GMR Dry and Wet Qty Convert GRD to GMR Qty
 ---
 
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/99_DDL_EODDB_ALTER_SCRIPT.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+
+
+Revision: 110737
+Author: janna
+Date: 5:53:20 PM, Wednesday, December 12, 2012
+Message:
+GMR Shipped Qty from AGMR Take qty instead of shipepd qty
+Intrastat Report remove ak_corporate table
+COG Price change as of date to hedge correction date
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
 
 Revision: 110487
 Author: janna
@@ -56,4 +68,3 @@ Message:
 Bug 71492 For Pledge GMR Calculated and invoice total is displaying wrong in total section
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
-
