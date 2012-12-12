@@ -359,6 +359,7 @@ select phd.companyname cp_name,
    and pocd.qp_period_type <> 'Event'   
    and round(nvl(dipq.payable_qty, 0), 4) -
        round((nvl(pfd.priced_qty, 0)), 4) > 0
+  and nvl(diqs.title_transferred_qty, 0)<>0  --- it should not show when Gmr is not created.   
 union all
 -- 3. PCT& Traxys Event Based Query + Conc:
 select phd.companyname cp_name,
@@ -712,6 +713,7 @@ select phd.companyname cp_name,
    and pocd.qp_period_type <> 'Event'
    and round(nvl(dipq.payable_qty, 0), 4) -
        round((nvl(pfd.priced_qty, 0)), 4) > 0
+   and nvl(diqs.title_transferred_qty, 0)<>0    --- it should not show when Gmr is not created.    
 union all
 -- 5. PC Contract With Non Event Based(DI) Query:-
 select phd.companyname cp_name,
@@ -842,6 +844,7 @@ select phd.companyname cp_name,
    and pocd.qp_period_type <> 'Event' 
    and round(nvl(pofh.qty_to_be_fixed, 0), 4) -
        round((nvl(pfd.priced_qty, 0)), 4) > 0
+    and nvl(diqs.title_transferred_qty, 0)<>0 --- it should not show when Gmr is not created.       
 union all
 -- 6. SC Contract With Non Event Based(DI) Query:-
 select phd.companyname cp_name,
@@ -972,6 +975,7 @@ select phd.companyname cp_name,
    and pocd.qp_period_type <> 'Event'   
    and round(nvl(pofh.qty_to_be_fixed, 0), 4) -
        round((nvl(pfd.priced_qty, 0)), 4) > 0
+   and nvl(diqs.title_transferred_qty, 0)<>0   --- it should not show when Gmr is not created.     
 union all
 -- 7. PC Event Based Query + Base Metal:
 select phd.companyname cp_name,

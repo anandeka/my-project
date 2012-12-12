@@ -311,7 +311,7 @@ SELECT akc.corporate_id,
    AND pfd.price_unit_id = ppu.product_price_unit_id(+)
    AND ppu.price_unit_id = pum.price_unit_id(+)
    AND pdm.base_quantity_unit = qum.qty_unit_id
-   AND pfd.hedge_correction_action_ref_no = axs.internal_action_ref_no
+   AND pfd.hedge_correction_action_ref_no = axs.internal_action_ref_no(+)
    AND pcm.cp_id = phd.profileid
    AND pcbpd.price_basis <> 'Fixed'
    AND pcpd.input_output = 'Input'

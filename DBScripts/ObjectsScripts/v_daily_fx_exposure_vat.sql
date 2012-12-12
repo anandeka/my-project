@@ -648,7 +648,7 @@ select akc.corporate_id,
    and pfd.price_unit_id = ppu.product_price_unit_id(+)
    and ppu.price_unit_id = pum.price_unit_id(+)
    and pocd.qty_to_be_fixed_unit_id = qum.qty_unit_id
-   and pfd.hedge_correction_action_ref_no = axs.internal_action_ref_no
+   and pfd.hedge_correction_action_ref_no = axs.internal_action_ref_no(+)
    and pcm.cp_id = phd.profileid
    and pcbpd.price_basis <> 'Fixed' 
    and pcpd.input_output = 'Input'
