@@ -293,7 +293,7 @@ create or replace package body pkg_phy_cog_price is
                    and pocd.pocd_id = pofh.pocd_id
                    and pofh.pofh_id = cc1.pofh_id
                    and pofh.pofh_id = pfd.pofh_id
-                   and pfd.as_of_date <= pd_trade_date
+                   and pfd.hedge_correction_date <= pd_trade_date
                    and pfd.price_unit_id = vppu.product_price_unit_id
                    and poch.is_active = 'Y'
                    and pocd.is_active = 'Y'
@@ -1112,7 +1112,7 @@ create or replace package body pkg_phy_cog_price is
              and pocd.pocd_id = pofh.pocd_id
              and pofh.pofh_id = cur_gmr_rows.pofh_id
              and pofh.pofh_id = pfd.pofh_id
-             and pfd.as_of_date <= pd_trade_date
+             and pfd.hedge_correction_date <= pd_trade_date
              and poch.is_active = 'Y'
              and pocd.is_active = 'Y'
              and pofh.is_active = 'Y'
@@ -1688,7 +1688,7 @@ create or replace package body pkg_phy_cog_price is
                    and pocd.pocd_id = pofh.pocd_id
                    and pofh.pofh_id = cc1.pofh_id
                    and pofh.pofh_id = pfd.pofh_id
-                   and pfd.as_of_date <= pd_trade_date
+                   and pfd.hedge_correction_date <= pd_trade_date
                    and poch.is_active = 'Y'
                    and pocd.is_active = 'Y'
                    and pofh.is_active = 'Y'
@@ -2530,7 +2530,7 @@ create or replace package body pkg_phy_cog_price is
              and pocd.pocd_id = pofh.pocd_id
              and pofh.pofh_id = cur_gmr_ele_rows.pofh_id
              and pofh.pofh_id = pfd.pofh_id
-             and pfd.as_of_date <= pd_trade_date
+             and pfd.hedge_correction_date <= pd_trade_date
              and poch.is_active = 'Y'
              and pocd.is_active = 'Y'
              and pofh.is_active = 'Y'
@@ -3309,7 +3309,7 @@ create or replace package body pkg_phy_cog_price is
              and gpah.element_id = poch.element_id
              and (nvl(pfd.user_price, 0) * nvl(gpad.allocated_qty, 0)) <> 0
              and gpah.gpah_id = cur_gmr_ele_rows.gpah_id
-             and pfd.as_of_date <= pd_trade_date
+             and pfd.hedge_correction_date <= pd_trade_date
            group by ppu.price_unit_id;
         exception
           when others then

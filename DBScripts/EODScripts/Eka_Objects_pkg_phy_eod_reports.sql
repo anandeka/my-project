@@ -4949,7 +4949,6 @@ select akc.base_cur_id,
          cccp_conc_contract_cog_price   cccp,
          cm_currency_master             cm_cym_load,
          cm_currency_master             cm_cym_discharge,
-         ak_corporate                   ak,
          sam_stock_assay_mapping        sam,
          v_qat_ppm                      qat_ppm,
          v_ppu_pum                      ppu,
@@ -5002,8 +5001,6 @@ select akc.base_cur_id,
      and sam.is_latest_pricing_assay = 'Y'
      and cccp.price_unit_id = ppu.product_price_unit_id
      and qat.quality_id = qat_ppm.quality_id
-     and ppu.cur_id = ak.base_cur_id
-     and nvl(ppu.weight, 1) = 1
      and pcdi.pcdi_id = poch.pcdi_id
      and poch.poch_id = pocd.poch_id
      and spq.element_id = poch.element_id
@@ -5179,7 +5176,6 @@ insert into isr1_isr_inventory
          cgcp_conc_gmr_cog_price    cccp,
          cm_currency_master         cm_cym_load,
          cm_currency_master         cm_cym_discharge,
-         ak_corporate               ak,
          sam_stock_assay_mapping    sam,
          v_qat_ppm                  qat_ppm,
          v_ppu_pum                  ppu,
@@ -5231,7 +5227,6 @@ insert into isr1_isr_inventory
      and cccp.price_unit_id = ppu.product_price_unit_id
      and cccp.internal_grd_ref_no = grd.internal_grd_ref_no
      and qat.quality_id = qat_ppm.quality_id(+)
-     and ppu.cur_id = ak.base_cur_id
      and cym_load.country_id <> cym_discharge.country_id
      and ucm.from_qty_unit_id = spq.qty_unit_id
      and ucm.to_qty_unit_id = ppu.weight_unit_id
@@ -5735,7 +5730,6 @@ insert into isr2_isr_invoice
          aml_attribute_master_list      aml,
          cm_currency_master             cm_cym_load,
          cm_currency_master             cm_cym_discharge,
-         ak_corporate                   ak,
          sam_stock_assay_mapping        sam,
          v_qat_ppm                      qat_ppm,
          v_ppu_pum                      ppu,
@@ -5786,7 +5780,6 @@ insert into isr2_isr_invoice
      and sam.is_latest_pricing_assay = 'Y'
      and qat.quality_id = qat_ppm.quality_id(+)
      and ppu.product_id = aml.underlying_product_id
-     and ppu.cur_id = ak.base_cur_id
      and ppu.weight_unit_id = pdm_aml.base_quantity_unit
      and nvl(ppu.weight, 1) = 1
      and aml.underlying_product_id = pdm_aml.product_id

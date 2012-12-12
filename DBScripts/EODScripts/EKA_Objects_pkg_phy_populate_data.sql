@@ -13436,13 +13436,12 @@ commit;
                           106,
                           'End of GMR Containers and Bags');
   for cur_shipped_qty in (select agmr.internal_gmr_ref_no,
-                                 agmr.shipped_qty
+                                 agmr.qty shipped_qty
                             from agmr_action_gmr agmr
                            where (agmr.internal_gmr_ref_no, agmr.action_no) in
                                  (select agmr.internal_gmr_ref_no,
                                          max(agmr.action_no) action_no
-                                    from agmr_action_gmr    agmr,
-                                         axs_action_summary axs
+                                    from agmr_action_gmr    agmr
                                    where agmr.eff_date <= pd_trade_date
                                      and agmr.is_deleted = 'N'
                                    group by agmr.internal_gmr_ref_no))
