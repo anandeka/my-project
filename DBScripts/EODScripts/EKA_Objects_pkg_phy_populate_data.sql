@@ -12845,6 +12845,20 @@ where gmr.dbd_id = gvc_dbd_id;
          and dbd_ul.corporate_id = pc_corporate_id
          and dbd_ul.process = gvc_process
        group by spqul.spq_id;
+   commit;
+
+for cur_spq_update in(
+select grd.internal_grd_ref_no from grd_goods_record_detail grd
+where grd.dbd_id =  gvc_dbd_id
+and grd.status ='Inactive')
+loop
+update spq_stock_payable_qty spq
+set spq.is_active ='N'
+where spq.dbd_id = gvc_dbd_id
+and spq.internal_grd_ref_no = cur_spq_update.internal_grd_ref_no;
+end loop;    
+commit;
+           
   exception
     when others then
       vobj_error_log.extend;
@@ -13450,7 +13464,6 @@ for cur_sublots in(
   from ash_assay_header        ash,
        grd_goods_record_detail grd
  where ash.internal_grd_ref_no = grd.internal_grd_ref_no
-   and ash.is_active = 'Y'
    and grd.status = 'Active'
    and grd.dbd_id = pc_dbd_id
    and ash.ash_id in

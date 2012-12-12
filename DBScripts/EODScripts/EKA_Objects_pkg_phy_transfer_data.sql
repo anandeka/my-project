@@ -1614,6 +1614,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        qty_declaration_date,
        quality_declaration_date,
        inco_location_declaration_date,
+       price_allocation_method,
        dbd_id)
       select ul.pcdiul_id,
              ul.internal_action_ref_no,
@@ -1660,6 +1661,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.qty_declaration_date,
              ul.quality_declaration_date,
              ul.inco_location_declaration_date,
+             ul.price_allocation_method,
              pc_dbd_id
         from pcdiul_pc_delivery_item_ul@eka_appdb ul,
              axs_action_summary@eka_appdb         axs

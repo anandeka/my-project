@@ -1553,7 +1553,7 @@ create or replace package body pkg_phy_eod_reports is
     where t.corporate_id = pc_corporate_id
     and t.payable_type = 'Penalty'
     and t.is_pledge ='N';  
-    
+    vn_grd_to_gmr_qty_conversion number;
     vn_gmr_treatment_charge      number;
     vc_gmr_treatment_cur_id      varchar2(15);
     vn_gmr_refine_charge         number;
@@ -1728,7 +1728,9 @@ vn_log_counter := vn_log_counter + 1;
     is_apply_freight_allowance,
     latest_internal_invoice_ref_no,
     no_of_sublots,
-    shipped_qty)
+    shipped_qty,
+    gmr_qty_unit_id,
+    grd_to_gmr_qty_factor)
     select gmr.internal_gmr_ref_no,
            grd.internal_grd_ref_no,
            gmr.gmr_ref_no,
@@ -1775,7 +1777,9 @@ vn_log_counter := vn_log_counter + 1;
            nvl(gmr.is_apply_freight_allowance,'N'),
            gmr.latest_internal_invoice_ref_no,
            nvl(gmr.no_of_sublots,0),
-           nvl(gmr.shipped_qty,0)
+           gmr.shipped_qty,
+           gmr.qty_unit_id,
+           1
       from gmr_goods_movement_record gmr,
            grd_goods_record_detail   grd,
            spq_stock_payable_qty     spq,
@@ -2007,7 +2011,9 @@ vn_log_counter := vn_log_counter + 1;
      is_afloat,
      is_pledge,
      no_of_sublots,
-     shipped_qty)
+     shipped_qty,
+     gmr_qty_unit_id,
+     grd_to_gmr_qty_factor)
    select gmr.internal_gmr_ref_no,
            grd.internal_grd_ref_no,
            gmr.gmr_ref_no,
@@ -2061,7 +2067,9 @@ vn_log_counter := vn_log_counter + 1;
            grd.is_afloat,
            'N',-- This is Not Pledge Section Data
            nvl(gmr.no_of_sublots,0),
-           nvl(gmr.shipped_qty,0)
+           gmr.shipped_qty,
+           gmr.qty_unit_id,
+           1
       from gmr_goods_movement_record   gmr,
            grd_goods_record_detail     grd,
            ak_corporate                akc,
@@ -2174,7 +2182,9 @@ insert into patd_pa_temp_data
    is_afloat,
    is_pledge,
    supp_internal_gmr_ref_no,
-   supp_gmr_ref_no)
+   supp_gmr_ref_no,
+   gmr_qty_unit_id,
+   grd_to_gmr_qty_factor)
   select grd.internal_gmr_ref_no,
          grd.internal_grd_ref_no,
          gmr.gmr_ref_no,
@@ -2214,7 +2224,9 @@ insert into patd_pa_temp_data
          grd.is_afloat, -- Currently this flag will not be used in Pledge Section, Can use later if we want to biforcate data
          'Y',
          gepd.pledge_input_gmr supp_internal_gmr_ref_no,
-         gmr_supp.gmr_ref_no supp_gmr_ref_no
+         gmr_supp.gmr_ref_no supp_gmr_ref_no,
+         gmr.qty_unit_id,
+         1
     from ii_invoicable_item             ii,
          grd_goods_record_detail        grd,
          gepd_gmr_element_pledge_detail gepd,
@@ -2271,6 +2283,35 @@ insert into patd_pa_temp_data
                           pc_process_id,
                           vn_log_counter,
                           'Other Charge Calculation End');
+--
+-- Stock to GMR Quantity Conversion Factor
+--
+FOR cur_grd_gmr_qty_conv in(
+select patd.grd_qty_unit_id,
+       patd.gmr_qty_unit_id
+  from patd_pa_temp_data patd
+ where patd.corporate_id = pc_corporate_id
+   and patd.grd_qty_unit_id <> patd.gmr_qty_unit_id
+   group by patd.grd_qty_unit_id,
+       patd.gmr_qty_unit_id) loop
+select ucm.multiplication_factor
+  into vn_grd_to_gmr_qty_conversion
+  from ucm_unit_conversion_master ucm
+ where ucm.from_qty_unit_id = cur_grd_gmr_qty_conv.grd_qty_unit_id
+   and ucm.to_qty_unit_id = cur_grd_gmr_qty_conv.gmr_qty_unit_id;
+update patd_pa_temp_data patd
+   set patd.grd_to_gmr_qty_factor = vn_grd_to_gmr_qty_conversion
+ where patd.grd_qty_unit_id = cur_grd_gmr_qty_conv.grd_qty_unit_id
+   and patd.gmr_qty_unit_id = cur_grd_gmr_qty_conv.gmr_qty_unit_id
+   and patd.corporate_id = pc_corporate_id;
+end loop;
+commit;
+  vn_log_counter := vn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'GRD to GMR Qty Conversion Over');
                                                                
      -- On Temp Table Update the Price First, If it is Pledge GMR get the price from Supplier GMR
     for cur_pur_accural_temp_rows in cur_pur_accural_temp
@@ -3168,7 +3209,8 @@ where pa_gmr.process_id = pc_process_id
 and pa_gmr.is_pledge ='N';
 commit;
 -- 
--- Frieght and Other charges we need to update only once per GMR
+-- Frieght and Other charges we need to update only once per GMR, on Non Penalty Record
+-- Where the sort order =1 sort on Paybale Returnbale Type + Element Name
 --
 for cur_charges in
 (
@@ -3198,13 +3240,13 @@ update pa_purchase_accural_gmr pa_gmr
        (select min(pa_gmr_inn.payable_returnable_type||pa_gmr_inn.element_id)
           from pa_purchase_accural_gmr pa_gmr_inn
          where pa_gmr_inn.process_id = pc_process_id
-           and pa_gmr_inn.internal_gmr_ref_no = pa_gmr.internal_gmr_ref_no
+           and pa_gmr_inn.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no
            and pa_gmr.payable_returnable_type <> 'Penalty');
 end loop;  
 commit;
 Update pa_purchase_accural_gmr pa_gmr
    set pa_gmr.provisional_pymt_pctg =
-       (select nvl(is1.provisional_pymt_pctg,100) from is_invoice_summary is1
+       (select is1.provisional_pymt_pctg from is_invoice_summary is1
        where is1.process_id = pc_process_id
        and is1.internal_invoice_ref_no = pa_gmr.latest_internal_invoice_ref_no)
  where pa_gmr.process_id = pc_process_id;        
@@ -3329,8 +3371,9 @@ vn_log_counter := vn_log_counter + 1;
                           vn_log_counter,
                           'sp_phy_purchase_accural Calcualted GMR Level');
 --
--- For calcualted section update freight and other charges
---
+-- For calcualted section update freight and other charges once per GMR, on Non Penalty Record
+-- Where the sort order =1, sort on Paybale Returnbale Type + Element Name
+
 for cur_calc_oc_fc in
 (select tgoc.internal_gmr_ref_no,
        tgoc.small_lot_charge + tgoc.container_charge + tgoc.sampling_charge +
@@ -3350,9 +3393,9 @@ update pa_purchase_accural_gmr pa_gmr
        (select min(pa_gmr_inn.payable_returnable_type||pa_gmr_inn.element_id)
           from pa_purchase_accural_gmr pa_gmr_inn
          where pa_gmr_inn.process_id = pc_process_id
-           and pa_gmr_inn.internal_gmr_ref_no = pa_gmr.internal_gmr_ref_no
-           and pa_gmr.payable_returnable_type <> 'Penalty'
-           and pa_gmr.tranascation_type = pa_gmr_inn.tranascation_type);
+           and pa_gmr_inn.internal_gmr_ref_no = cur_calc_oc_fc.internal_gmr_ref_no
+           and pa_gmr_inn.payable_returnable_type <> 'Penalty'
+           and pa_gmr_inn.tranascation_type = 'Calculated');
 end loop;
 commit;
   vn_log_counter := vn_log_counter + 1;
@@ -3590,6 +3633,7 @@ where pa.internal_gmr_ref_no = cc1.internal_gmr_ref_no
 and pa.process_id = pc_process_id;
 end loop;
 commit;
+
   vn_log_counter := vn_log_counter + 1;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -15659,6 +15703,7 @@ procedure sp_calc_gmr_other_charges(pc_corporate_id varchar2,
   vn_container_charge  number;
   vn_total_containers  number;
   vn_dummy             number;
+  vn_wet_qty_in_charge_unit number; -- Used for Small lot charges
   cursor cur_all_gmr is
     select tgoc.internal_gmr_ref_no
       from tgoc_temp_gmr_other_charge tgoc
@@ -15675,6 +15720,7 @@ procedure sp_calc_gmr_other_charges(pc_corporate_id varchar2,
            tgoc.is_invoiced,
            tgoc.latest_internal_invoice_ref_no,
            tgoc.shipped_qty,
+           tgoc.gmr_qty_unit_id,
            pcmac.*
       from pcmac_pcm_addn_charges     pcmac,
            tgoc_temp_gmr_other_charge tgoc
@@ -15708,7 +15754,8 @@ insert into tgoc_temp_gmr_other_charge
    freight_allowance,
    is_apply_container_charge,
    is_apply_freight_allowance,
-   latest_internal_invoice_ref_no)
+   latest_internal_invoice_ref_no,
+   gmr_qty_unit_id)
   select corporate_id,
          internal_gmr_ref_no,
          internal_contract_ref_no,
@@ -15727,7 +15774,8 @@ insert into tgoc_temp_gmr_other_charge
          freight_allowance,
          is_apply_container_charge,
          is_apply_freight_allowance,
-         latest_internal_invoice_ref_no
+         latest_internal_invoice_ref_no,
+         gmr_qty_unit_id
     from (select patd.corporate_id,
                  patd.internal_gmr_ref_no,
                  patd.internal_contract_ref_no,
@@ -15749,7 +15797,7 @@ insert into tgoc_temp_gmr_other_charge
                     patd.dry_qty
                    else
                     0
-                 end) dry_qty,
+                 end) * patd.grd_to_gmr_qty_factor dry_qty,
                  (case
                    when dense_rank()
                     over(partition by patd.internal_grd_ref_no order by
@@ -15757,7 +15805,7 @@ insert into tgoc_temp_gmr_other_charge
                     patd.wet_qty
                    else
                     0
-                 end) wet_qty,
+                 end) * patd.grd_to_gmr_qty_factor wet_qty,
                  patd.shipped_qty,
                  0 small_lot_charge,
                  0 container_charge,
@@ -15767,7 +15815,8 @@ insert into tgoc_temp_gmr_other_charge
                  0 freight_allowance,
                  patd.is_apply_container_charge,
                  patd.is_apply_freight_allowance,
-                 patd.latest_internal_invoice_ref_no
+                 patd.latest_internal_invoice_ref_no,
+                 patd.gmr_qty_unit_id
             from patd_pa_temp_data patd
            where patd.corporate_id = pc_corporate_id
              and patd.process_id = pc_process_id
@@ -15788,7 +15837,8 @@ insert into tgoc_temp_gmr_other_charge
             freight_allowance,
             is_apply_container_charge,
             is_apply_freight_allowance,
-            latest_internal_invoice_ref_no;
+            latest_internal_invoice_ref_no,
+            gmr_qty_unit_id;
  
  
   sp_eodeom_process_log(pc_corporate_id,
@@ -15880,41 +15930,53 @@ sp_eodeom_process_log(pc_corporate_id,
       end if;
       --
       -- Small Lot Charge, This will be like a slab, if the GMR wet qty in the range, multiply the value by GMR Wet Qty
+      -- Convert GMR wet quantity unit to Charge Qty unit
       --
       if cur_each_gmr_rows.addn_charge_name = 'Small Lot Charges' then
+         begin
+          select ucm.multiplication_factor
+            into vn_wet_qty_in_charge_unit
+            from ucm_unit_conversion_master ucm
+           where ucm.from_qty_unit_id = cur_each_gmr_rows.gmr_qty_unit_id
+         and ucm.to_qty_unit_id = cur_each_gmr_rows.qty_unit_id;
+         exception
+         when others then
+         vn_wet_qty_in_charge_unit :=1;
+         end;
+         vn_wet_qty_in_charge_unit := vn_wet_qty_in_charge_unit * cur_each_gmr_rows.wet_qty;
         if (cur_each_gmr_rows.position = 'Range Begining' and
            cur_each_gmr_rows.range_max_op = '<=' and
-           cur_each_gmr_rows.wet_qty <= cur_each_gmr_rows.range_max_value) or
+           vn_wet_qty_in_charge_unit <= cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position = 'Range Begining' and
            cur_each_gmr_rows.range_max_op = '<' and
-           cur_each_gmr_rows.wet_qty < cur_each_gmr_rows.range_max_value) or
+           vn_wet_qty_in_charge_unit < cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position = 'Range End' and
            cur_each_gmr_rows.range_min_op = '>=' and
-           cur_each_gmr_rows.wet_qty >= cur_each_gmr_rows.range_min_value) or
+           vn_wet_qty_in_charge_unit >= cur_each_gmr_rows.range_min_value) or
            (cur_each_gmr_rows.position = 'Range End' and
            cur_each_gmr_rows.range_min_op = '>' and
-           cur_each_gmr_rows.wet_qty > cur_each_gmr_rows.range_min_value) or
+           vn_wet_qty_in_charge_unit > cur_each_gmr_rows.range_min_value) or
            (cur_each_gmr_rows.position is null and
            cur_each_gmr_rows.range_min_op = '>' and
            cur_each_gmr_rows.range_max_op = '<' and
-           cur_each_gmr_rows.wet_qty > cur_each_gmr_rows.range_min_value and
-           cur_each_gmr_rows.wet_qty < cur_each_gmr_rows.range_max_value) or
+           vn_wet_qty_in_charge_unit > cur_each_gmr_rows.range_min_value and
+           vn_wet_qty_in_charge_unit < cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position is null and
            cur_each_gmr_rows.range_min_op = '>=' and
            cur_each_gmr_rows.range_max_op = '<' and
-           cur_each_gmr_rows.wet_qty >= cur_each_gmr_rows.range_min_value and
-           cur_each_gmr_rows.wet_qty < cur_each_gmr_rows.range_max_value) or
+           vn_wet_qty_in_charge_unit >= cur_each_gmr_rows.range_min_value and
+           vn_wet_qty_in_charge_unit < cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position is null and
            cur_each_gmr_rows.range_min_op = '>' and
            cur_each_gmr_rows.range_max_op = '<=' and
-           cur_each_gmr_rows.wet_qty > cur_each_gmr_rows.range_min_value and
-           cur_each_gmr_rows.wet_qty <= cur_each_gmr_rows.range_max_value) or
+           vn_wet_qty_in_charge_unit > cur_each_gmr_rows.range_min_value and
+           vn_wet_qty_in_charge_unit <= cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position is null and
            cur_each_gmr_rows.range_min_op = '>=' and
            cur_each_gmr_rows.range_max_op = '<=' and
-           cur_each_gmr_rows.wet_qty >= cur_each_gmr_rows.range_min_value and
-           cur_each_gmr_rows.wet_qty <= cur_each_gmr_rows.range_max_value) then
-           vn_small_lot_charge := cur_each_gmr_rows.wet_qty *
+           vn_wet_qty_in_charge_unit >= cur_each_gmr_rows.range_min_value and
+           vn_wet_qty_in_charge_unit <= cur_each_gmr_rows.range_max_value) then
+           vn_small_lot_charge := vn_wet_qty_in_charge_unit *
                                  cur_each_gmr_rows.charge *
                                  cur_each_gmr_rows.fx_rate;
         end if;
