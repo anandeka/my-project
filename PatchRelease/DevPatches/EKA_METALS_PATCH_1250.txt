@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1250
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  13-Dec-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  71767
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Free Metal Utility 
+
+Sub-Module  			 :  Free Metal Utility 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* Transaction
+==================================================================
+
+Revision: 110796
+Author: ramachandran.r
+Date: 10:55:47 AM, Thursday, December 13, 2012
+Message:
+Free Metal 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_462.sql
+
