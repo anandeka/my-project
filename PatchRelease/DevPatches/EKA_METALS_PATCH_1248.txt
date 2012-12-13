@@ -34,6 +34,15 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
+Revision: 110791
+Author: janna
+Date: 10:00:39 AM, Thursday, December 13, 2012
+Message:
+SPQL Updation
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/99_DDL_EODDB_ALTER_SCRIPT.sql
+
+
 Revision: 110635
 Author: janna
 Date: 11:18:17 AM, Wednesday, December 12, 2012
@@ -44,7 +53,6 @@ Purchase Accrual :Other Charge fixGMR - Small Lot Charge Bug Bix
 GMR Dry and Wet Qty Convert GRD to GMR Qty
 ---
 
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/99_DDL_EODDB_ALTER_SCRIPT.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
 
 
