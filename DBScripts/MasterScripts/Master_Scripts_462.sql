@@ -1,0 +1,1 @@
+alter table FMPFD_PRICE_FIXATION_DETAILS add IS_CANCEL varchar(1) default 'N';
