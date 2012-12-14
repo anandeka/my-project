@@ -80,7 +80,8 @@ SELECT akc.corporate_id,
           TO_CHAR(pfqpp.qp_period_to_date, 'dd-Mon-yyyy')
        END) qp,
        NULL utility_ref_no,
-       NULL smelter
+       NULL smelter,
+       NULL status
   FROM pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        poch_price_opt_call_off_header poch,
@@ -243,7 +244,8 @@ SELECT akc.corporate_id,
           TO_CHAR(pfqpp.qp_period_to_date, 'dd-Mon-yyyy')
        END) qp,
        NULL utility_ref_no,
-       NULL smelter
+       NULL smelter,
+       null status
   FROM pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        poch_price_opt_call_off_header poch,
@@ -326,3 +328,217 @@ SELECT akc.corporate_id,
    AND ppfh.is_active(+) = 'Y'
    AND pfqpp.is_active(+) = 'Y'
    AND pfd.is_cancel = 'Y'
+union all
+select fmuh.corporate_id,
+       fmuh.corporate_id corporate_name,
+       null pcdi_id,
+       'Free Metal' section,
+       8 section_id,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pdm.product_desc underlying_product,
+       null product_type,
+       'Y' is_base_metal,
+       null is_concentrate,
+       emt.exchange_id,
+       emt.exchange_name exchange,
+       null strategy_id,
+       'NA' strategy,
+       null purchase_sales,
+       fmed.element_id,
+       fmed.element_name,
+       fmpfd.as_of_date trade_date,
+       null contract_ref_no,
+       null contract_type,
+       null delivery_item_ref_no,
+       null gmr_no,
+       null expected_delivery,
+       null quality,
+       null formula,
+       null premimum,
+       pum.price_unit_id,
+       pum.price_unit_name price_unit,
+       sum(fmpfd.qty_fixed) qty,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       qum.decimals qty_decimals,
+       null instrument,
+       null prompt_date,
+       null lots,
+       fmpfd.user_price price,
+       cm.cur_code pay_in_ccy,
+       null sub_section,
+       fmpfd.hedge_correction_date hedge_correction_date,
+       null activity_type,
+       null activity_date,
+       phd.companyname cpname,
+       null qp,
+       fmuh.utility_ref_no,
+       phd.companyname smelter,
+       null status
+  from fmuh_free_metal_utility_header fmuh,
+       fmed_free_metal_elemt_details  fmed,
+       fmeifd_index_formula_details   fmeifd,
+       dim_der_instrument_master      dim,
+       pdd_product_derivative_def     pdd,
+       emt_exchangemaster             emt,
+       aml_attribute_master_list      aml,
+       pdm_productmaster              pdm,
+       fmpfh_price_fixation_header    fmpfh,
+       fmpfd_price_fixation_details   fmpfd,
+       phd_profileheaderdetails       phd,
+       qum_quantity_unit_master       qum,
+       ppu_product_price_units        ppu,
+       pum_price_unit_master          pum,
+       cm_currency_master             cm,
+       cpc_corporate_profit_center    cpc
+ where fmuh.fmuh_id = fmed.fmuh_id
+   and fmed.fmed_id = fmeifd.fmed_id
+   and fmeifd.instrument_id = dim.instrument_id
+   and dim.product_derivative_id = pdd.derivative_def_id
+   and pdd.exchange_id = emt.exchange_id
+   and fmed.element_id = aml.attribute_id
+   and aml.underlying_product_id = pdm.product_id
+   and fmed.fmed_id = fmpfh.fmed_id
+   and fmpfh.fmpfh_id = fmpfd.fmpfh_id
+   and fmuh.smelter_id = phd.profileid
+   and fmed.qty_unit_id = qum.qty_unit_id
+   and fmed.price_unit_id = ppu.internal_price_unit_id
+   and ppu.price_unit_id = pum.price_unit_id
+   and pum.cur_id = cm.cur_id
+   and fmuh.profit_center_id = cpc.profit_center_id
+   and fmpfd.is_active = 'Y'
+--and fmuh.corporate_id = '{?CorporateID}'
+--and fmpfd.hedge_correction_date = to_date('{?AsOfDate}','dd-Mon-yyyy')
+ group by fmuh.corporate_id,
+          fmuh.corporate_id,
+          pdm.product_id,
+          pdm.product_desc,
+          pdm.product_desc,
+          emt.exchange_id,
+          emt.exchange_name,
+          fmed.element_id,
+          fmed.element_name,
+          fmpfd.as_of_date,
+          pum.price_unit_id,
+          pum.price_unit_name,
+          qum.qty_unit_id,
+          qum.qty_unit,
+          qum.decimals,
+          fmpfd.user_price,
+          cm.cur_code,
+          phd.companyname,
+          fmuh.utility_ref_no,
+          phd.companyname,
+          cpc.profit_center_id,
+          cpc.profit_center_short_name,
+          fmpfd.hedge_correction_date
+union all -- cancelled free metal utility
+select fmuh.corporate_id,
+       fmuh.corporate_id corporate_name,
+       null pcdi_id,
+       'Free Metal' section,
+       8 section_id,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pdm.product_desc underlying_product,
+       null product_type,
+       'Y' is_base_metal,
+       null is_concentrate,
+       emt.exchange_id,
+       emt.exchange_name exchange,
+       null strategy_id,
+       'NA' strategy,
+       null purchase_sales,
+       fmed.element_id,
+       fmed.element_name,
+       fmpfd.as_of_date trade_date,
+       null contract_ref_no,
+       null contract_type,
+       null delivery_item_ref_no,
+       null gmr_no,
+       null expected_delivery,
+       null quality,
+       null formula,
+       null premimum,
+       pum.price_unit_id,
+       pum.price_unit_name price_unit,
+       sum(fmpfd.qty_fixed) qty,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       qum.decimals qty_decimals,
+       null instrument,
+       null prompt_date,
+       null lots,
+       fmpfd.user_price price,
+       cm.cur_code pay_in_ccy,
+       null sub_section,
+       fmpfd.hedge_correction_date hedge_correction_date,
+       null activity_type,
+       null activity_date,
+       phd.companyname cpname,
+       null qp,
+       fmuh.utility_ref_no,
+       phd.companyname smelter,
+       'Cancelled' status
+  from fmuh_free_metal_utility_header fmuh,
+       fmed_free_metal_elemt_details  fmed,
+       fmeifd_index_formula_details   fmeifd,
+       dim_der_instrument_master      dim,
+       pdd_product_derivative_def     pdd,
+       emt_exchangemaster             emt,
+       aml_attribute_master_list      aml,
+       pdm_productmaster              pdm,
+       fmpfh_price_fixation_header    fmpfh,
+       fmpfd_price_fixation_details   fmpfd,
+       phd_profileheaderdetails       phd,
+       qum_quantity_unit_master       qum,
+       ppu_product_price_units        ppu,
+       pum_price_unit_master          pum,
+       cm_currency_master             cm,
+       cpc_corporate_profit_center    cpc
+ where fmuh.fmuh_id = fmed.fmuh_id
+   and fmed.fmed_id = fmeifd.fmed_id
+   and fmeifd.instrument_id = dim.instrument_id
+   and dim.product_derivative_id = pdd.derivative_def_id
+   and pdd.exchange_id = emt.exchange_id
+   and fmed.element_id = aml.attribute_id
+   and aml.underlying_product_id = pdm.product_id
+   and fmed.fmed_id = fmpfh.fmed_id
+   and fmpfh.fmpfh_id = fmpfd.fmpfh_id
+   and fmuh.smelter_id = phd.profileid
+   and fmed.qty_unit_id = qum.qty_unit_id
+   and fmed.price_unit_id = ppu.internal_price_unit_id
+   and ppu.price_unit_id = pum.price_unit_id
+   and pum.cur_id = cm.cur_id
+   and fmuh.profit_center_id = cpc.profit_center_id
+   and fmpfd.is_cancel = 'Y'
+--and fmuh.corporate_id = '{?CorporateID}'
+--and fmpfd.hedge_correction_date = to_date('{?AsOfDate}','dd-Mon-yyyy')
+ group by fmuh.corporate_id,
+          fmuh.corporate_id,
+          pdm.product_id,
+          pdm.product_desc,
+          pdm.product_desc,
+          emt.exchange_id,
+          emt.exchange_name,
+          fmed.element_id,
+          fmed.element_name,
+          fmpfd.as_of_date,
+          pum.price_unit_id,
+          pum.price_unit_name,
+          qum.qty_unit_id,
+          qum.qty_unit,
+          qum.decimals,
+          fmpfd.user_price,
+          cm.cur_code,
+          phd.companyname,
+          fmuh.utility_ref_no,
+          phd.companyname,
+          cpc.profit_center_id,
+          cpc.profit_center_short_name,
+          fmpfd.hedge_correction_date
