@@ -3988,7 +3988,8 @@ create or replace package body pkg_phy_custom_reports is
                 null
              end) clearer_comm_unit,
              dt.remarks,
-             emt.exchange_name
+             emt.exchange_name,
+             pm.period_type_name
         from dt_derivative_trade              dt,
              cpc_corporate_profit_center      cpc,
              ak_corporate                     ak,
@@ -4013,7 +4014,8 @@ create or replace package body pkg_phy_custom_reports is
              emt_exchangemaster               emt,
              bct_broker_commission_types      bct,
              cdc_mc_master_contract@eka_appdb cdcmc,
-             cm_currency_master               cmcl
+             cm_currency_master               cmcl,
+             pm_period_master                 pm
        where drm.dr_id = dt.dr_id
          and dt.broker_profile_id = phd_broker.profileid(+)
          and dt.clearer_profile_id = phd_clr.profileid(+)
@@ -4046,6 +4048,7 @@ create or replace package body pkg_phy_custom_reports is
          and dt.clearer_comm_type_id = bct.commission_type_id(+)
          and dt.master_contract_id = cdcmc.internal_contract_ref_no(+)
          and dt.clearer_comm_cur_id = cmcl.cur_id(+)
+         and drm.period_type_id=pm.period_type_id
       
       union all
       select 'Deleted' catogery,
@@ -4127,7 +4130,8 @@ create or replace package body pkg_phy_custom_reports is
                 null
              end) clearer_comm_unit,
              dt.remarks,
-             emt.exchange_name
+             emt.exchange_name,
+             pm.period_type_name
         from dt_derivative_trade              dt,
              cpc_corporate_profit_center      cpc,
              ak_corporate                     ak,
@@ -4152,7 +4156,8 @@ create or replace package body pkg_phy_custom_reports is
              emt_exchangemaster               emt,
              bct_broker_commission_types      bct,
              cdc_mc_master_contract@eka_appdb cdcmc,
-             cm_currency_master               cmcl
+             cm_currency_master               cmcl,
+             pm_period_master                 pm
        where drm.dr_id = dt.dr_id
          and dt.broker_profile_id = phd_broker.profileid(+)
          and dt.clearer_profile_id = phd_clr.profileid(+)
@@ -4184,6 +4189,7 @@ create or replace package body pkg_phy_custom_reports is
          and dt.clearer_comm_type_id = bct.commission_type_id(+)
          and dt.master_contract_id = cdcmc.internal_contract_ref_no(+)
          and dt.clearer_comm_cur_id = cmcl.cur_id(+)
+         and drm.period_type_id=pm.period_type_id
          and exists (select dt_in.internal_derivative_ref_no
                 from dt_derivative_trade dt_in
                where dt_in.dbd_id = pc_prev_dbd_id
@@ -4270,7 +4276,8 @@ create or replace package body pkg_phy_custom_reports is
                 null
              end) clearer_comm_unit,
              dt.remarks,
-             emt.exchange_name
+             emt.exchange_name,
+             pm.period_type_name
         from dt_derivative_trade              dt,
              cpc_corporate_profit_center      cpc,
              ak_corporate                     ak,
@@ -4295,7 +4302,8 @@ create or replace package body pkg_phy_custom_reports is
              emt_exchangemaster               emt,
              bct_broker_commission_types      bct,
              cdc_mc_master_contract@eka_appdb cdcmc,
-             cm_currency_master               cmcl
+             cm_currency_master               cmcl,
+             pm_period_master                 pm
        where drm.dr_id = dt.dr_id
          and dt.broker_profile_id = phd_broker.profileid(+)
          and dt.clearer_profile_id = phd_clr.profileid(+)
@@ -4328,6 +4336,7 @@ create or replace package body pkg_phy_custom_reports is
          and dt.clearer_comm_type_id = bct.commission_type_id(+)
          and dt.master_contract_id = cdcmc.internal_contract_ref_no(+)
          and dt.clearer_comm_cur_id = cmcl.cur_id(+)
+         and drm.period_type_id=pm.period_type_id
          and exists
        (select dtul.internal_derivative_ref_no
                 from dtul_derivative_trade_ul dtul
@@ -4399,7 +4408,8 @@ create or replace package body pkg_phy_custom_reports is
          clearer_comm_perunit,
          clearer_comm_unit,
          exchange,
-         remarks)
+         remarks,
+         period_type)
       values
         (dvj.internal_derivative_ref_no,
          dvj.catogery,
@@ -4458,7 +4468,8 @@ create or replace package body pkg_phy_custom_reports is
          dvj.clearer_comm_perunit,
          dvj.clearer_comm_unit,
          dvj.exchange_name,
-         dvj.remarks);
+         dvj.remarks,
+         dvj.period_type_name);
     
     end loop;
   
@@ -5887,6 +5898,25 @@ create or replace package body pkg_phy_custom_reports is
                                     pcdi.delivery_to_month || '-' ||
                                     pcdi.delivery_to_year
                                  end) del_to_date,
+                                 ---
+                                  (case
+                                   when pcdi.delivery_from_month is null and
+                                        pcdi.delivery_from_year is null then
+                                    pcdi.delivery_from_date
+                                   else
+                                    to_date('01-'||pcdi.delivery_from_month || '-' ||
+                                    pcdi.delivery_from_year,'dd-Mon-yyyy')
+                                 end) delivery_from_date,
+                                                                   
+                                  (case
+                                   when pcdi.delivery_to_month is null and
+                                        pcdi.delivery_to_year is null then
+                                    pcdi.delivery_to_date
+                                   else
+                                   last_day(to_date('01-'||pcdi.delivery_to_month || '-' ||
+                                    pcdi.delivery_to_year,'dd-Mon-yyyy'))
+                                 end) delivery_to_date,
+                                 -----
                                  diqs.total_qty del_item_total_qty,
                                  (case
                                    when pcm.purchase_sales = 'P' then
@@ -6003,7 +6033,9 @@ create or replace package body pkg_phy_custom_reports is
          contract_pp_to_price_fx_rate,
          m2m_price_to_price_fx_rate,
          m2m_premium_to_price_fx_rate,
-         price_type)
+         price_type,
+         delivery_from_date,
+         delivery_to_date)
       values
         (cur_di_detail.corporate_id,
          cur_di_detail.corporate,
@@ -6040,7 +6072,9 @@ create or replace package body pkg_phy_custom_reports is
          cur_di_detail.contract_pp_to_price_fx_rate,
          cur_di_detail.m2m_price_to_price_fx_rate,
          cur_di_detail.m2m_premium_to_price_fx_rate,
-         cur_di_detail.price_type);
+         cur_di_detail.price_type,
+         cur_di_detail.delivery_from_date,
+         cur_di_detail.delivery_to_date);
     end loop;
     commit;
   
