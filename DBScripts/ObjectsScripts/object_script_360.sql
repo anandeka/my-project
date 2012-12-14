@@ -1,0 +1,1 @@
+alter table IOC_D add(DESCRIPTION VARCHAR2(100));
