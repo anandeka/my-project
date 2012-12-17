@@ -15856,7 +15856,7 @@ sp_eodeom_process_log(pc_corporate_id,
       -- If Rate then multiply by total no of sub lots for the GMR, if Flat take the value as is
       --
     
-      if cur_each_gmr_rows.addn_charge_name = 'Sampling Charge' then
+      if cur_each_gmr_rows.addn_charge_name = 'SamplingCharge' OR cur_each_gmr_rows.addn_charge_name = 'Sampling Charge' then
         if cur_each_gmr_rows.is_wns_created = 'Y' then
           if cur_each_gmr_rows.charge_type = 'Rate' then
             vn_sampling_charge := cur_each_gmr_rows.charge *
