@@ -4949,7 +4949,6 @@ select akc.base_cur_id,
          cccp_conc_contract_cog_price   cccp,
          cm_currency_master             cm_cym_load,
          cm_currency_master             cm_cym_discharge,
-         sam_stock_assay_mapping        sam,
          v_qat_ppm                      qat_ppm,
          v_ppu_pum                      ppu,
          poch_price_opt_call_off_header poch,
@@ -4997,14 +4996,12 @@ select akc.base_cur_id,
      and spq.element_id = cccp.element_id
      and cym_load.national_currency = cm_cym_load.cur_id(+)
      and cym_discharge.national_currency = cm_cym_discharge.cur_id(+)
-     and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-     and sam.is_latest_pricing_assay = 'Y'
      and cccp.price_unit_id = ppu.product_price_unit_id
      and qat.quality_id = qat_ppm.quality_id
      and pcdi.pcdi_id = poch.pcdi_id
      and poch.poch_id = pocd.poch_id
      and spq.element_id = poch.element_id
-        -- GMRS should not be event based nor Price Allocation
+     -- GMRS should not be event based nor Price Allocation
      and nvl(pocd.qp_period_type, 'NA') <> 'Event'
      and pcdi.price_allocation_method <> 'Price Allocation'
      and poch.is_active = 'Y'
@@ -5176,7 +5173,6 @@ insert into isr1_isr_inventory
          cgcp_conc_gmr_cog_price    cccp,
          cm_currency_master         cm_cym_load,
          cm_currency_master         cm_cym_discharge,
-         sam_stock_assay_mapping    sam,
          v_qat_ppm                  qat_ppm,
          v_ppu_pum                  ppu,
          ucm_unit_conversion_master ucm,
@@ -5222,8 +5218,6 @@ insert into isr1_isr_inventory
      and spq.element_id = cccp.element_id
      and cym_load.national_currency = cm_cym_load.cur_id(+)
      and cym_discharge.national_currency = cm_cym_discharge.cur_id(+)
-     and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-     and sam.is_latest_pricing_assay = 'Y'
      and cccp.price_unit_id = ppu.product_price_unit_id
      and cccp.internal_grd_ref_no = grd.internal_grd_ref_no
      and qat.quality_id = qat_ppm.quality_id(+)
@@ -5504,7 +5498,7 @@ insert into isr_intrastat_grd
                isr1.discharge_country_cur_code,
                isr1.base_cur_id,
                isr1.base_cur_code,
-               isr1.price_to_base_exch_rate,
+               1 price_to_base_exch_rate, --Inventory section is in base currency, hence exchange rate is always 1
                isr1.base_to_load_country_ex_rate,
                isr1.base_to_disc_country_ex_rate,
                isr1.attribute_value,
@@ -5730,7 +5724,6 @@ insert into isr2_isr_invoice
          aml_attribute_master_list      aml,
          cm_currency_master             cm_cym_load,
          cm_currency_master             cm_cym_discharge,
-         sam_stock_assay_mapping        sam,
          v_qat_ppm                      qat_ppm,
          v_ppu_pum                      ppu,
          pdm_productmaster              pdm_aml,
@@ -5776,8 +5769,6 @@ insert into isr2_isr_invoice
      and qat.is_active = 'Y'
      and cym_load.national_currency = cm_cym_load.cur_id(+)
      and cym_discharge.national_currency = cm_cym_discharge.cur_id(+)
-     and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-     and sam.is_latest_pricing_assay = 'Y'
      and qat.quality_id = qat_ppm.quality_id(+)
      and ppu.product_id = aml.underlying_product_id
      and ppu.weight_unit_id = pdm_aml.base_quantity_unit
@@ -9309,7 +9300,6 @@ insert into temp_mas
      and grd.status = 'Active'
      and spq.is_stock_split = 'N'
      and sam.ash_id = ash.ash_id
-    -- and sam.is_latest_pricing_assay = 'Y'
      and ash.internal_grd_ref_no = spq.internal_grd_ref_no
      and spq.weg_avg_pricing_assay_id = ash_pricing.ash_id    
      and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
@@ -9333,7 +9323,9 @@ insert into temp_mas
      and rm.is_active = 'Y'
      and rm.is_deleted = 'N'
      and agmr.eff_date > vd_prev_eom_date
-     and agmr.eff_date <= pd_trade_date;
+     and agmr.eff_date <= pd_trade_date
+     and ash.assay_type in ('Pricing Assay','Shipment Assay')
+     and spq.assay_header_id = ash.ash_id;
      commit;
      sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -9424,7 +9416,6 @@ insert into temp_mas
      and grd.status = 'Active'
      and spq.is_stock_split = 'N'
      and sam.ash_id = ash.ash_id
-   --  and sam.is_latest_pricing_assay = 'Y'
      and ash.internal_grd_ref_no = spq.internal_grd_ref_no
      and spq.weg_avg_pricing_assay_id = ash_pricing.ash_id    
      and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
@@ -9448,7 +9439,9 @@ insert into temp_mas
      and rm.is_active = 'Y'
      and rm.is_deleted = 'N'
      and agmr.eff_date >= vd_acc_start_date
-     and agmr.eff_date <= vd_prev_eom_date;
+     and agmr.eff_date <= vd_prev_eom_date
+     and ash.assay_type in ('Pricing Assay','Shipment Assay')
+     and spq.assay_header_id = ash.ash_id;
 commit;
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -10014,7 +10007,7 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type = 'RM Out Process Stock'-- as per prachit, need to test this
+     and grd.tolling_stock_type = 'RM Out Process Stock'
      and grd.warehouse_profile_id = phd.profileid
      and pdm.base_quantity_unit = qum.qty_unit_id
      and gmr.corporate_id = akc.corporate_id
@@ -10168,7 +10161,7 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type = 'RM Out Process Stock' -- prachir same as finished new stock changed from In to out
+     and grd.tolling_stock_type = 'RM Out Process Stock'
      and grd.warehouse_profile_id = phd.profileid
      and pdm.base_quantity_unit = qum.qty_unit_id
      and gmr.corporate_id = akc.corporate_id
@@ -15863,7 +15856,7 @@ sp_eodeom_process_log(pc_corporate_id,
       -- If Rate then multiply by total no of sub lots for the GMR, if Flat take the value as is
       --
     
-      if cur_each_gmr_rows.addn_charge_name = 'SamplingCharge' then
+      if cur_each_gmr_rows.addn_charge_name = 'Sampling Charge' then
         if cur_each_gmr_rows.is_wns_created = 'Y' then
           if cur_each_gmr_rows.charge_type = 'Rate' then
             vn_sampling_charge := cur_each_gmr_rows.charge *
