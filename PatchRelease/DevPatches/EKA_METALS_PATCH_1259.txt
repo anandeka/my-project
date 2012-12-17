@@ -44,8 +44,6 @@ Metal Balance : Remove SAM Latest Pricing Assay Check Added Other Join
 COG Price : Taken Final Price
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
-
 
 Revision: 111146
 Date: 10:26:14 AM, Monday, December 17, 2012
@@ -60,7 +58,6 @@ Message:
 Sampling charge with and without white space
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
-
 
 
 
