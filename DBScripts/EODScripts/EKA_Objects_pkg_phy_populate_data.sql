@@ -13399,7 +13399,7 @@ commit;
                             from spq_stock_payable_qty    spq,
                                  asm_assay_sublot_mapping asm
                            where spq.is_stock_split = 'N'
-                             and spq.assay_header_id = asm.ash_id
+                             and spq.weg_avg_pricing_assay_id = asm.ash_id
                              and spq.dbd_id = pc_dbd_id
                            group by spq.internal_grd_ref_no)
   loop
