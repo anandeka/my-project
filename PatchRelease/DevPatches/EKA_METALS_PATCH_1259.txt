@@ -7,7 +7,7 @@ Created on*        		:  17-Dec-2012
 
 Bug / Enhancement*              :  BUG
 
-Bug ID*            		:  71003 71492 71578 71762
+Bug ID*            		:  71003 71492 71578 71762 72179
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,5 +33,35 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+
+Revision: 111145
+Date: 9:58:50 AM, Monday, December 17, 2012
+Message:
+GMR Other Charge SamplingCharge and Sampling Charge
+Intrastat : Remove SAM table
+Metal Balance : Remove SAM Latest Pricing Assay Check Added Other Join
+COG Price : Taken Final Price
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+Revision: 111146
+Date: 10:26:14 AM, Monday, December 17, 2012
+Message:
+GRD Dry Qty Updation Based on Weighted Avg Pricing Assay
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+
+Revision: 111147
+Date: 10:46:08 AM, Monday, December 17, 2012
+Message:
+Sampling charge with and without white space
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
 
 
