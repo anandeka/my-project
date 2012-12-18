@@ -504,83 +504,74 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
         vc_other_process_status := 1;
     end;
     if vc_other_process_status = 0 then
-      --dbms_mview.refresh('poch_price_opt_call_off_header', 'C');
-      --dbms_mview.refresh('pocd_price_option_calloff_dtls', 'C');
-      --dbms_mview.refresh('pofh_price_opt_fixation_header', 'c');
-      --dbms_mview.refresh('itm_incoterm_master', 'c');
-      --dbms_mview.refresh('gsm_gmr_stauts_master', 'c');
-      --dbms_mview.refresh('orm_origin_master', 'c');
-      dbms_mview.refresh('BGM_BP_GROUP_MASTER', 'c');
-      dbms_mview.refresh('BPC_BP_CORPORATES', 'c');
-      dbms_mview.refresh('BPSLD_BP_STORAGE_LOC_DET', 'c');
-      dbms_mview.refresh('CGM_COST_GROUP_MASTER', 'c');
-      dbms_mview.refresh('CPOG_CORP_PRODUCT_ORIGIN_GROUP', 'c');
-      dbms_mview.refresh('CPPM_COR_PRODUCT_PDD_MAPPING', 'c');
-      dbms_mview.refresh('GSM_GMR_STAUTS_MASTER', 'c');
-      dbms_mview.refresh('ITM_INCOTERM_MASTER', 'c');
-      dbms_mview.refresh('ORM_ORIGIN_MASTER', 'c');
-      dbms_mview.refresh('POG_PRODUCT_ORIGIN_GROUP', 'c');
-      dbms_mview.refresh('POM_PRODUCT_ORIGIN_MASTER', 'c');
-      dbms_mview.refresh('PPS_PRODUCT_PACKING_SIZE', 'c');
-      dbms_mview.refresh('PSM_PACKING_SIZE_MASTER', 'c');
-      dbms_mview.refresh('PTM_PACKING_TYPE_MASTER', 'c');
-      dbms_mview.refresh('SLD_STORAGE_LOCATION_DETAIL', 'c');
-      dbms_mview.refresh('POCH_PRICE_OPT_CALL_OFF_HEADER', 'c');
-      dbms_mview.refresh('POCD_PRICE_OPTION_CALLOFF_DTLS', 'c');
-      dbms_mview.refresh('pofh_price_opt_fixation_header', 'c');
-      dbms_mview.refresh('PPS_PRODUCT_PREMIUM_SETUP', 'c');
-      dbms_mview.refresh('VCS_VALUATION_CURVE_SETUP', 'c');
-      dbms_mview.refresh('VCA_VALUATION_CURVE_ATTRIBUTE', 'c');
-      dbms_mview.refresh('PFD_PRICE_FIXATION_DETAILS', 'c');
-      dbms_mview.refresh('PP_PRODUCT_PREMIUM', 'c');
-      dbms_mview.refresh('PPBM_PRODUCT_PREMIUM_BY_MONTH', 'c');
-      dbms_mview.refresh('QP_QUALITY_PREMIUM', 'c');
-      dbms_mview.refresh('QPBM_QUALITY_PREMIUM_BY_MONTH', 'c');
-      dbms_mview.refresh('ASH_ASSAY_HEADER', 'c');
-      dbms_mview.refresh('ASM_ASSAY_SUBLOT_MAPPING', 'c');
-      dbms_mview.refresh('PQCA_PQ_CHEMICAL_ATTRIBUTES', 'c');
-      dbms_mview.refresh('PQPA_PQ_PHYSICAL_ATTRIBUTES', 'c');
-      --dbms_mview.refresh('DIPQ_DELIVERY_ITEM_PAYABLE_QTY', 'c');
-      --dbms_mview.refresh('CIPQ_CONTRACT_ITEM_PAYABLE_QTY', 'c');
-      dbms_mview.refresh('RM_RATIO_MASTER', 'c');
-      dbms_mview.refresh('AML_ATTRIBUTE_MASTER_LIST', 'c');
-      dbms_mview.refresh('PPM_PRODUCT_PROPERTIES_MAPPING', 'c');
-      dbms_mview.refresh('QAV_QUALITY_ATTRIBUTE_VALUES', 'c');
-      dbms_mview.refresh('MDCD_M2M_DED_CHARGE_DETAILS', 'c');
-      dbms_mview.refresh('MDCBM_DED_CHARGES_BY_MONTH', 'c');
-      dbms_mview.refresh('MNM_MONTH_NAME_MASTER', 'c');
-      --dbms_mview.refresh('spq_stock_payable_qty', 'c');
-      dbms_mview.refresh('mv_qat_quality_valuation', 'c');
+      dbms_mview.refresh('BGM_BP_GROUP_MASTER', 'f');
+      dbms_mview.refresh('BPC_BP_CORPORATES', 'f');
+      dbms_mview.refresh('BPSLD_BP_STORAGE_LOC_DET', 'f');
+      dbms_mview.refresh('CGM_COST_GROUP_MASTER', 'f');
+      dbms_mview.refresh('CPOG_CORP_PRODUCT_ORIGIN_GROUP', 'f');
+      dbms_mview.refresh('CPPM_COR_PRODUCT_PDD_MAPPING', 'f');
+      dbms_mview.refresh('GSM_GMR_STAUTS_MASTER', 'f');
+      dbms_mview.refresh('ITM_INCOTERM_MASTER', 'f');
+      dbms_mview.refresh('ORM_ORIGIN_MASTER', 'f');
+      dbms_mview.refresh('POG_PRODUCT_ORIGIN_GROUP', 'f');
+      dbms_mview.refresh('POM_PRODUCT_ORIGIN_MASTER', 'f');
+      dbms_mview.refresh('PPS_PRODUCT_PACKING_SIZE', 'f');
+      dbms_mview.refresh('PSM_PACKING_SIZE_MASTER', 'f');
+      dbms_mview.refresh('PTM_PACKING_TYPE_MASTER', 'f');
+      dbms_mview.refresh('SLD_STORAGE_LOCATION_DETAIL', 'f');
+      dbms_mview.refresh('POCH_PRICE_OPT_CALL_OFF_HEADER', 'f');
+      dbms_mview.refresh('POCD_PRICE_OPTION_CALLOFF_DTLS', 'f');
+      dbms_mview.refresh('pofh_price_opt_fixation_header', 'f');
+      dbms_mview.refresh('PPS_PRODUCT_PREMIUM_SETUP', 'f');
+      dbms_mview.refresh('VCS_VALUATION_CURVE_SETUP', 'f');
+      dbms_mview.refresh('VCA_VALUATION_CURVE_ATTRIBUTE', 'f');
+      dbms_mview.refresh('PFD_PRICE_FIXATION_DETAILS', 'f');
+      dbms_mview.refresh('PP_PRODUCT_PREMIUM', 'f');
+      dbms_mview.refresh('PPBM_PRODUCT_PREMIUM_BY_MONTH', 'f');
+      dbms_mview.refresh('QP_QUALITY_PREMIUM', 'f');
+      dbms_mview.refresh('QPBM_QUALITY_PREMIUM_BY_MONTH', 'f');
+      dbms_mview.refresh('ASH_ASSAY_HEADER', 'f');
+      dbms_mview.refresh('ASM_ASSAY_SUBLOT_MAPPING', 'f');
+      dbms_mview.refresh('PQCA_PQ_CHEMICAL_ATTRIBUTES', 'f');
+      dbms_mview.refresh('PQPA_PQ_PHYSICAL_ATTRIBUTES', 'f');
+      dbms_mview.refresh('RM_RATIO_MASTER', 'f');
+      dbms_mview.refresh('AML_ATTRIBUTE_MASTER_LIST', 'f');
+      dbms_mview.refresh('PPM_PRODUCT_PROPERTIES_MAPPING', 'f');
+      dbms_mview.refresh('QAV_QUALITY_ATTRIBUTE_VALUES', 'f');
+      dbms_mview.refresh('MDCD_M2M_DED_CHARGE_DETAILS', 'f');
+      dbms_mview.refresh('MDCBM_DED_CHARGES_BY_MONTH', 'f');
+      dbms_mview.refresh('MNM_MONTH_NAME_MASTER', 'f');
+      dbms_mview.refresh('MV_QAT_QUALITY_VALUATION', 'c');
       dbms_mview.refresh('MV_CONC_QAT_QUALITY_VALUATION', 'c');
-      dbms_mview.refresh('DI_DEL_ITEM_EXP_QP_DETAILS', 'c');
-      dbms_mview.refresh('PCMTE_PCM_TOLLING_EXT', 'c');
-      dbms_mview.refresh('PQDT_PAYABLE_EXT_TOLLING', 'c');
-      dbms_mview.refresh('PQCAPD_PRD_QLTY_CATTR_PAY_DTLS', 'c');
-      dbms_mview.refresh('SAM_STOCK_ASSAY_MAPPING', 'c');
-      dbms_mview.refresh('II_INVOICABLE_ITEM', 'c');
-      dbms_mview.refresh('IID_INVOICABLE_ITEM_DETAILS', 'c');
-      dbms_mview.refresh('SCM_STOCK_COST_MAPPING', 'c');
-      dbms_mview.refresh('GTH_GMR_TREATMENT_HEADER', 'c');
-      dbms_mview.refresh('GRH_GMR_REFINING_HEADER', 'c');
-      dbms_mview.refresh('GPH_GMR_PENALTY_HEADER', 'c');
-      dbms_mview.refresh('SAC_STOCK_ASSAY_CONTENT', 'c');
-      dbms_mview.refresh('IIED_INV_ITEM_ELEMENT_DETAILS', 'c');
-      dbms_mview.refresh('INTC_INV_TREATMENT_CHARGES', 'c');
-      dbms_mview.refresh('INRC_INV_REFINING_CHARGES', 'c');
-      dbms_mview.refresh('IEPD_INV_EPENALTY_DETAILS', 'c');
-      dbms_mview.refresh('IAM_INVOICE_ASSAY_MAPPING', 'c');
-      dbms_mview.refresh('IAM_INVOICE_ACTION_MAPPING', 'c');
-      dbms_mview.refresh('AGMR_ACTION_GMR', 'c');
-      dbms_mview.refresh('REM_REGION_MASTER', 'c');
-      dbms_mview.refresh('BVD_BP_VAT_DETAILS', 'c');
-      dbms_mview.refresh('IOC_INVOICE_OTHER_CHARGE', 'c');
-      dbms_mview.refresh('YPD_YIELD_PCT_DETAIL', 'c');
-      dbms_mview.refresh('SBS_SMELTER_BASE_STOCK', 'c');
-      dbms_mview.refresh('PRRQS_PRR_QTY_STATUS', 'c');
-      dbms_mview.refresh('PSR_POOL_STOCK_REGISTER', 'c');
-      dbms_mview.refresh('PM_POOL_MASTER', 'c');
-      dbms_mview.refresh('GPAD_GMR_PRICE_ALLOC_DTLS', 'c');
-      dbms_mview.refresh('GPAH_GMR_PRICE_ALLOC_HEADER', 'c');
+      dbms_mview.refresh('DI_DEL_ITEM_EXP_QP_DETAILS', 'f');
+      dbms_mview.refresh('PCMTE_PCM_TOLLING_EXT', 'f');
+      dbms_mview.refresh('PQDT_PAYABLE_EXT_TOLLING', 'f');
+      dbms_mview.refresh('PQCAPD_PRD_QLTY_CATTR_PAY_DTLS', 'f');
+      dbms_mview.refresh('SAM_STOCK_ASSAY_MAPPING', 'f');
+      dbms_mview.refresh('II_INVOICABLE_ITEM', 'f');
+      dbms_mview.refresh('IID_INVOICABLE_ITEM_DETAILS', 'f');
+      dbms_mview.refresh('SCM_STOCK_COST_MAPPING', 'f');
+      dbms_mview.refresh('GTH_GMR_TREATMENT_HEADER', 'f');
+      dbms_mview.refresh('GRH_GMR_REFINING_HEADER', 'f');
+      dbms_mview.refresh('GPH_GMR_PENALTY_HEADER', 'f');
+      dbms_mview.refresh('SAC_STOCK_ASSAY_CONTENT', 'f');
+      dbms_mview.refresh('IIED_INV_ITEM_ELEMENT_DETAILS', 'f');
+      dbms_mview.refresh('INTC_INV_TREATMENT_CHARGES', 'f');
+      dbms_mview.refresh('INRC_INV_REFINING_CHARGES', 'f');
+      dbms_mview.refresh('IEPD_INV_EPENALTY_DETAILS', 'f');
+      dbms_mview.refresh('IAM_INVOICE_ASSAY_MAPPING', 'f');
+      dbms_mview.refresh('IAM_INVOICE_ACTION_MAPPING', 'f');
+      dbms_mview.refresh('AGMR_ACTION_GMR', 'f');
+      dbms_mview.refresh('REM_REGION_MASTER', 'f');
+      dbms_mview.refresh('BVD_BP_VAT_DETAILS', 'f');
+      dbms_mview.refresh('IOC_INVOICE_OTHER_CHARGE', 'f');
+      dbms_mview.refresh('YPD_YIELD_PCT_DETAIL', 'f');
+      dbms_mview.refresh('SBS_SMELTER_BASE_STOCK', 'f');
+      dbms_mview.refresh('PRRQS_PRR_QTY_STATUS', 'f');
+      dbms_mview.refresh('PSR_POOL_STOCK_REGISTER', 'f');
+      dbms_mview.refresh('PM_POOL_MASTER', 'f');
+      dbms_mview.refresh('GPAD_GMR_PRICE_ALLOC_DTLS', 'f');
+      dbms_mview.refresh('GPAH_GMR_PRICE_ALLOC_HEADER', 'f');
     end if;
   exception
     when others then
@@ -3664,6 +3655,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        corporate_id,
        weg_avg_pricing_assay_id,
        weg_avg_invoice_assay_id,
+       cot_int_action_ref_no,
+       orig_internal_action_ref_no,
        dbd_id)
       select ul.spq_id,
              ul.internal_action_ref_no,
@@ -3694,15 +3687,90 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.corporate_id,
              ul.weg_avg_pricing_assay_id,
              ul.weg_avg_invoice_assay_id,
+             null, -- ul.cot_int_action_ref_no,
+             null, -- Original internal action ref no, only if toggle case, for reference only
              pc_dbd_id
         from spql_stock_payable_qty_log@eka_appdb ul,
              axs_action_summary@eka_appdb         axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
+         and ul.cot_int_action_ref_no is null
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
     commit;
-  
+    insert into spql_stock_payable_qty_log
+      (spq_id,
+       internal_action_ref_no,
+       entry_type,
+       internal_gmr_ref_no,
+       action_no,
+       stock_type,
+       internal_grd_ref_no,
+       internal_dgrd_ref_no,
+       element_id,
+       payable_qty_delta,
+       qty_unit_id,
+       version,
+       is_active,
+       qty_type,
+       activity_action_id,
+       is_stock_split,
+       supplier_id,
+       smelter_id,
+       in_process_stock_id,
+       free_metal_stock_id,
+       free_metal_qty,
+       assay_content,
+       pledge_stock_id,
+       gepd_id,
+       assay_header_id,
+       is_final_assay,
+       corporate_id,
+       weg_avg_pricing_assay_id,
+       weg_avg_invoice_assay_id,
+       cot_int_action_ref_no,
+       orig_internal_action_ref_no,
+       dbd_id)
+      select ul.spq_id,
+             ul.cot_int_action_ref_no,
+             ul.entry_type,
+             ul.internal_gmr_ref_no,
+             ul.action_no,
+             ul.stock_type,
+             ul.internal_grd_ref_no,
+             ul.internal_dgrd_ref_no,
+             ul.element_id,
+             ul.payable_qty_delta,
+             ul.qty_unit_id,
+             ul.version,
+             ul.is_active,
+             ul.qty_type,
+             ul.activity_action_id,
+             ul.is_stock_split,
+             ul.supplier_id,
+             ul.smelter_id,
+             null, -- ul.in_process_stock_id,
+             ul.free_metal_stock_id,
+             ul.free_metal_qty,
+             ul.assay_content,
+             ul.pledge_stock_id,
+             ul.gepd_id,
+             ul.assay_header_id,
+             ul.is_final_assay,
+             ul.corporate_id,
+             ul.weg_avg_pricing_assay_id,
+             ul.weg_avg_invoice_assay_id,
+             ul.cot_int_action_ref_no,
+             ul.internal_action_ref_no, -- Original internal action ref no, only if toggle case, for reference only
+             pc_dbd_id
+        from spql_stock_payable_qty_log@eka_appdb ul,
+             axs_action_summary@eka_appdb         axs
+       where ul.cot_int_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and ul.cot_int_action_ref_no is not null
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
     insert into dipchul_di_payblecon_header_ul
       (dipchul_id,
        internal_action_ref_no,
