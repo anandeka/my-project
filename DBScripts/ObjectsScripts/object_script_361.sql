@@ -1,0 +1,1 @@
+alter table PFD_PRICE_FIXATION_DETAILS add alloc_gmr_warehouse_name varchar2(500);
