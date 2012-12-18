@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1262
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  18-Dec-2012
+
+Bug / Enhancement*              :  Enh
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Assay
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 111401
+Author: ramachandran.r
+Date: 5:23:49 PM, Tuesday, December 18, 2012
+Message:
+Parents stock added as part of Assay propagation SAM table.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_61.txt
+
+
+Revision: 111404
+Author: ramachandran.r
+Date: 5:25:34 PM, Tuesday, December 18, 2012
+Message:
+Parents stock added as part of Assay propagation SAM table.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_29.sql
+
