@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1261
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek vijay
+ 
+Created on*        		:  18-Dec-2012
+
+Bug / Enhancement*              :  Enh
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Priicng
+
+Sub-Module  			 :  Allocation
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 111367
+Author: abhishek.vijay
+Date: 2:45:16 PM, Tuesday, December 18, 2012
+Message:
+add new column in price fixation details allocated gmr  warehouse ref no 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_361.sql
+
+
+
+
+
