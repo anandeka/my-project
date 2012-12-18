@@ -34,13 +34,13 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
-Revision: 111401
-Author: ramachandran.r
-Date: 5:23:49 PM, Tuesday, December 18, 2012
+Revision: 111470
+Author: rajeshwar.reddy
+Date: 20:49:59, 18 December 2012
 Message:
-Parents stock added as part of Assay propagation SAM table.
+QEP asynchronous and Parent stock added as part of Assay propagation SAM table.
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_61.txt
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_363.sql
 
 
 Revision: 111404
