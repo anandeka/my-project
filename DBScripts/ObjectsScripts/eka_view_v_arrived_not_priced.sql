@@ -6,7 +6,7 @@ with price_fixation as(select pfd.pofh_id,
  and pfd.is_active='Y'
  group by pfd.pofh_id)
 
--- 1. SCT& Traxys Event Based Query + Conc:
+-- 1. SCT Traxys Event Based Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
        'GMR Level Pricing' section_name,
@@ -216,7 +216,7 @@ select phd.companyname cp_name,
 
 union all
 
--- 2. SCT& Traxys Non Event Based(DI) Query + Conc:
+-- 2. SCT Traxys Non Event Based(DI) Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
        'DI Level Pricing' section_name,
@@ -361,7 +361,7 @@ select phd.companyname cp_name,
        round((nvl(pfd.priced_qty, 0)), 4) > 0
   and nvl(diqs.title_transferred_qty, 0)<>0  --- it should not show when Gmr is not created.   
 union all
--- 3. PCT& Traxys Event Based Query + Conc:
+-- 3. PCT Traxys Event Based Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
        'GMR Level Pricing' section_name,
@@ -569,7 +569,7 @@ select phd.companyname cp_name,
           ucm.multiplication_factor,
           qum_under.qty_unit
 union all
--- 4. PCT& Traxys Non Event Based(DI) Query + Conc:
+-- 4. PCT Traxys Non Event Based(DI) Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
        'DI Level Pricing' section_name,
