@@ -51,3 +51,11 @@ Parents stock added as part of Assay propagation SAM table.
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_29.sql
 
+Revision: 111480
+Author: rajeshwar.reddy
+Date: 21:56:09, 18 December 2012
+Message:
+Assay o/p doc changes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_468.sql
+
