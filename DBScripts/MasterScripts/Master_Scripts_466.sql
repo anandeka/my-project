@@ -248,12 +248,7 @@ DECLARE
           WHERE invs.internal_invoice_ref_no = ioc.internal_invoice_ref_no
             AND ioc.other_charge_cost_id = scm.cost_id(+)
             AND ioc.other_charge_cost_id = pcmac.addn_charge_id(+)
-            AND ioc.other_charge_cost_id IN (
-                   SELECT mcc.mcc_id
-                     FROM mcc_miscellaneous_comm_charges mcc
-                   UNION ALL
-                   SELECT mcc.charge_id
-                     FROM mcc_miscellaneous_comm_charges mcc)
+            AND ioc.other_charge_cost_id IN (mcc.mcc_id,mcc.charge_id)
             AND mcc.element_id = aml.attribute_id(+)
             AND ioc.invoice_cur_id = cm.cur_id(+)
             AND ioc.rate_price_unit = ppu.internal_price_unit_id(+)
@@ -261,6 +256,7 @@ DECLARE
             AND ppu.price_unit_id = pum.price_unit_id(+)
             AND ioc.qty_unit_id = qum.qty_unit_id(+)
             AND ioc.flat_amount_cur_unit_id = cm_ioc.cur_id(+)
+            AND mcc.charge_name IN ('Fixed RC Charges', 'Fixed TC Charges', 'Premium')
             AND cm_pum.cur_id(+) = pum.cur_id
             AND ioc.internal_invoice_ref_no = ?)
    SELECT *
