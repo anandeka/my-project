@@ -65,3 +65,11 @@ update PCBPHUL_PC_BASE_PRC_HEADER_UL pcbph
 update PCBPHUL_PC_BASE_PRC_HEADER_UL pcbph 
    set pcbph.valuation_price_percentage =98
    where PCBPH.PCBPH_ID=485;
+
+UPDATE sam_stock_assay_mapping
+   SET sam.is_output_assay = 'Y'
+ WHERE sam.ash_id IN (
+             SELECT ash.ash_id
+               FROM ash_assay_header ash, sam_stock_assay_mapping sam1
+              WHERE ash.assay_type = 'Output Assay'
+                    AND ash.ash_id = sam1.ash_id);
