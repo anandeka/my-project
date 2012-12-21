@@ -13146,38 +13146,6 @@ commit;
 
   begin
   
-    -- For Internal movement records update Latest Invoice Number
-    for cur_update_inv in (select grd_parent.internal_gmr_ref_no parent_internal_gmr_ref_no,
-                                  grd.internal_gmr_ref_no child_internal_gmr_ref_no,
-                                  gmr.latest_internal_invoice_ref_no,
-                                  gmr.is_final_invoiced,
-                                  gmr.is_provisional_invoiced
-                             from grd_goods_record_detail   grd,
-                                  grd_goods_record_detail   grd_parent,
-                                  gmr_goods_movement_record gmr
-                            where grd.parent_internal_grd_ref_no is not null
-                              and grd_parent.internal_grd_ref_no =
-                                  grd.parent_internal_grd_ref_no
-                              and gmr.internal_gmr_ref_no =
-                                  grd_parent.internal_gmr_ref_no
-                              and gmr.dbd_id = pc_dbd_id
-                              and grd.dbd_id = pc_dbd_id
-                              and grd_parent.dbd_id = pc_dbd_id)
-    loop
-      update gmr_goods_movement_record gmr
-         set gmr.latest_internal_invoice_ref_no = cur_update_inv.latest_internal_invoice_ref_no,
-             gmr.is_provisional_invoiced        = cur_update_inv.is_provisional_invoiced,
-             gmr.is_final_invoiced              = cur_update_inv.is_final_invoiced
-       where gmr.dbd_id = pc_dbd_id
-         and gmr.internal_gmr_ref_no =
-             cur_update_inv.child_internal_gmr_ref_no;
-    end loop;
-    commit;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            100,
-                            'Update for Internal movement records update Latest Invoice Number');
     -- Update Pricing QP Start Date and End Date in PCI
     for cur_price_qp in ( --Called off
                          select t.pcdi_id,
