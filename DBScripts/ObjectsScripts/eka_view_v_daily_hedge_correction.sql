@@ -24,6 +24,7 @@ SELECT akc.corporate_id,
        pcm.contract_type,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
        nvl(gmr.gmr_ref_no,pfd.allocated_gmr_ref_no) gmr_no,
+       nvl(phd_warehouse.companyname,pfd.alloc_gmr_warehouse_name) Warehouse,
        --gmr.gmr_ref_no gmr_no,
        ((CASE
          WHEN pcdi.basis_type = 'Arrival' THEN
@@ -122,7 +123,8 @@ SELECT akc.corporate_id,
        pum_price_unit_master pum,
        qum_quantity_unit_master qum,
        axs_action_summary axs,
-       phd_profileheaderdetails phd
+       phd_profileheaderdetails phd,
+       phd_profileheaderdetails phd_warehouse
  WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    AND pcdi.pcdi_id = poch.pcdi_id
    AND poch.element_id = aml.attribute_id
@@ -138,6 +140,7 @@ SELECT akc.corporate_id,
    AND ppfh.ppfh_id = pfqpp.ppfh_id(+)
    --AND pcm.internal_contract_ref_no = gmr.internal_contract_ref_no(+)
    and pofh.internal_gmr_ref_no =gmr.internal_gmr_ref_no(+)
+   and gmr.warehouse_profile_id=phd_warehouse.profileid(+)
    AND pcm.corporate_id = akc.corporate_id
    AND pcm.trader_id = akcu.user_id(+)
    AND pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
@@ -193,7 +196,8 @@ SELECT akc.corporate_id,
        pcm.contract_ref_no,
        pcm.contract_type,
        pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
-        nvl(gmr.gmr_ref_no,pfd.allocated_gmr_ref_no) gmr_no,
+       nvl(gmr.gmr_ref_no,pfd.allocated_gmr_ref_no) gmr_no,
+       nvl(phd_warehouse.companyname,pfd.alloc_gmr_warehouse_name) Warehouse,
        ((CASE
          WHEN pcdi.basis_type = 'Arrival' THEN
           (CASE
@@ -286,7 +290,8 @@ SELECT akc.corporate_id,
        pum_price_unit_master pum,
        qum_quantity_unit_master qum,
        axs_action_summary axs,
-       phd_profileheaderdetails phd
+       phd_profileheaderdetails phd,
+       phd_profileheaderdetails phd_warehouse
  WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    AND pcdi.pcdi_id = poch.pcdi_id
    AND poch.element_id = aml.attribute_id
@@ -302,6 +307,7 @@ SELECT akc.corporate_id,
    AND ppfh.ppfh_id = pfqpp.ppfh_id(+)
    --AND pcm.internal_contract_ref_no = gmr.internal_contract_ref_no(+)
    and pofh.internal_gmr_ref_no =gmr.internal_gmr_ref_no(+)
+   and gmr.warehouse_profile_id=phd_warehouse.profileid(+)
    AND pcm.corporate_id = akc.corporate_id
    AND pcm.trader_id = akcu.user_id(+)
    AND pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
@@ -354,6 +360,7 @@ select fmuh.corporate_id,
        null contract_type,
        null delivery_item_ref_no,
        null gmr_no,
+       null Warehouse,
        null expected_delivery,
        null quality,
        null formula,
@@ -461,6 +468,7 @@ select fmuh.corporate_id,
        null contract_type,
        null delivery_item_ref_no,
        null gmr_no,
+       null Warehouse,
        null expected_delivery,
        null quality,
        null formula,
