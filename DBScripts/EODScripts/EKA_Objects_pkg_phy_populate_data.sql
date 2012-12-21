@@ -3842,37 +3842,57 @@ insert into gmr_goods_movement_record
 --
 -- Update FI AND PI Flag
 --          
-Update gmr_goods_movement_record gmr
-set (gmr.is_final_invoiced, gmr.is_provisional_invoiced, gmr.latest_internal_invoice_ref_no) = (
-select case when (SUM(case
-               when is1.invoice_type_name = 'Final' or  is1.invoice_type_name = 'DirectFinal' then
-                1
-               else
-                0
-             end)) = 0 then 'N' ELSE 'Y' END  fi_done,
-case when (SUM(case
-               when is1.invoice_type_name = 'Provisional' then
-                1
-               else
-                0
-             end)) = 0 then 'N' ELSE 'Y' END  Pi_done,
-substr(max(to_char(axs.created_date, 'yyyymmddhh24missff9') ||iam.internal_invoice_ref_no),24) latest_internal_invoice_ref_no            
-from is_invoice_summary          is1,
-     iid_invoicable_item_details iid,
-     iam_invoice_action_mapping@eka_appdb iam,
-     axs_action_summary axs
- where is1.is_active ='Y'
-   and is1.corporate_id = pc_corporate_id
-and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
- and is1.dbd_id = gvc_dbd_id
-   and is1.internal_invoice_ref_no = iid.internal_invoice_ref_no
-   and gmr.dbd_id = gvc_dbd_id
-   and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-  and iam.internal_invoice_ref_no = is1.internal_invoice_ref_no
-   and iam.invoice_action_ref_no = axs.internal_action_ref_no
-   and nvl(is1.is_free_metal,'N') <> 'Y'
- group by iid.internal_gmr_ref_no)
- where gmr.dbd_id = gvc_dbd_id ;
+for cur_gmr_invoice in(        
+SELECT   iid.internal_gmr_ref_no,
+         CASE
+            WHEN (SUM (CASE
+                          WHEN is1.invoice_type_name = 'Final'
+                           OR is1.invoice_type_name = 'DirectFinal'
+                             THEN 1
+                          ELSE 0
+                       END
+                      )
+                 ) = 0
+               THEN 'N'
+            ELSE 'Y'
+         END fi_done,
+         CASE
+            WHEN (SUM (CASE
+                          WHEN is1.invoice_type_name = 'Provisional'
+                             THEN 1
+                          ELSE 0
+                       END
+                      )
+                 ) = 0
+               THEN 'N'
+            ELSE 'Y'
+         END pi_done,
+         SUBSTR
+            (MAX (   TO_CHAR (axs.created_date, 'yyyymmddhh24missff9')
+                  || iam.internal_invoice_ref_no
+                 ),
+             24
+            ) latest_internal_invoice_ref_no
+    FROM is_invoice_summary is1,
+         iid_invoicable_item_details iid,
+         iam_invoice_action_mapping@eka_appdb iam,
+         axs_action_summary axs
+   WHERE is1.is_active = 'Y'
+     AND is1.invoice_type_name IN ('Final', 'Provisional', 'DirectFinal')
+     AND is1.dbd_id = gvc_dbd_id
+     AND is1.internal_invoice_ref_no = iid.internal_invoice_ref_no
+     AND iam.internal_invoice_ref_no = is1.internal_invoice_ref_no
+     AND iam.invoice_action_ref_no = axs.internal_action_ref_no
+     AND NVL (is1.is_free_metal, 'N') <> 'Y'
+GROUP BY iid.internal_gmr_ref_no)loop
+update gmr_goods_movement_record gmr
+   set gmr.is_provisional_invoiced        = cur_gmr_invoice.pi_done,
+       gmr.is_final_invoiced              = cur_gmr_invoice.fi_done,
+       gmr.latest_internal_invoice_ref_no = cur_gmr_invoice.latest_internal_invoice_ref_no
+ where gmr.dbd_id = gvc_dbd_id
+   and gmr.internal_gmr_ref_no = cur_gmr_invoice.internal_gmr_ref_no;
+end loop;
+COMMIT;
   exception
     when others then
       vobj_error_log.extend;
@@ -4403,19 +4423,16 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
   begin
     insert into pcbph_pc_base_price_header
       (pcbph_id,
-       --   optionality_desc,
        version,
        is_active,
        internal_contract_ref_no,
        price_description,
        element_id,
        is_free_metal_applicable,
+       valuation_price_percentage,
        dbd_id)
       select decode(pcbph_id, 'Empty_String', null, pcbph_id),
-             /*  decode(optionality_desc,
-                                                                                                                                                                                                                                                              'Empty_String',
-                                                                                                                                                                                                                                                              null,
-                                                                                                                                                                                                                                                              optionality_desc),*/
+             
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(internal_contract_ref_no,
@@ -4431,6 +4448,7 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                     'Empty_String',
                     null,
                     is_free_metal_applicable),
+                    nvl(valuation_price_percentage,100),
              gvc_dbd_id
         from (select pcbphul.pcbph_id,
                      substr(max(case
@@ -4439,12 +4457,6 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                                    pcbphul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                     /*  substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                            when pcbphul.optionality_desc is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                             to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                             pcbphul.optionality_desc
-                                                                                                                                                                                                                                                                                                                                                                                                                          end),
-                                                                                                                                                                                                                                                                                                                                                                                                                      24) optionality_desc,*/
                      substr(max(case
                                   when pcbphul.version is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4475,6 +4487,12 @@ and is1.invoice_type_name in ('Final', 'Provisional','DirectFinal')
                                    pcbphul.is_free_metal_applicable
                                 end),
                             24) is_free_metal_applicable,
+                     substr(max(case
+                                  when pcbphul.valuation_price_percentage is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcbphul.valuation_price_percentage
+                                end),
+                            24) valuation_price_percentage,
                      gvc_dbd_id
                 from pcbphul_pc_base_prc_header_ul pcbphul,
                      axs_action_summary            axs,

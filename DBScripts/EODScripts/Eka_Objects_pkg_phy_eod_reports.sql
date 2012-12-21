@@ -12689,9 +12689,10 @@ select gmr_ref_no,
            and sld.is_active = 'Y'
            and qum.is_active = 'Y'
            and pm.is_active(+) = 'Y'
-           and grd.internal_grd_ref_no=sam.internal_grd_ref_no
+         --  and grd.internal_grd_ref_no=sam.internal_grd_ref_no
+         AND grd.internal_grd_ref_no = sam.parent_stock_ref_no
            and sam.is_active='Y'
-           AND sam.is_latest_weighted_avg_pricing = 'Y'
+        --   AND sam.is_latest_weighted_avg_pricing = 'Y'
            and ash_parent.ash_id = sam.ash_id
         union
         select gmr.gmr_ref_no,
@@ -12809,9 +12810,10 @@ select gmr_ref_no,
            and qat.is_active = 'Y'
            and sld.is_active = 'Y'
            and pm.is_active(+) = 'Y'
-            and grd.internal_grd_ref_no=sam.internal_grd_ref_no
+           -- and grd.internal_grd_ref_no=sam.internal_grd_ref_no
+           and grd.internal_grd_ref_no = sam.parent_stock_ref_no
            and sam.is_active='Y'
-           AND sam.is_latest_weighted_avg_pricing = 'Y'
+           --  AND sam.is_latest_weighted_avg_pricing = 'Y'
            and ash_parent.ash_id = sam.ash_id
            ) t;
   
