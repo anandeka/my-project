@@ -7,7 +7,7 @@ Created on*        		:  21-Dec-2012
 
 Bug / Enhancement*              :  BUG
 
-Bug ID*            		:  71535
+Bug ID*            		:  67677 
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,3 +33,19 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+Revision: 111768
+Author: janna
+Date: 2:01:23 PM, Friday, December 21, 2012
+Message:
+Transfer : PCBPHUL Valuation Price % Added
+Populate : PCBPH Valuation Price % Added And GMR Invoice Flag Update with Cursor
+COG Price : Considered Valuation Price %
+EOD Reports: Feed consumption query change based on SAM.PARENT_STOCK_REF_NO
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/102_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
