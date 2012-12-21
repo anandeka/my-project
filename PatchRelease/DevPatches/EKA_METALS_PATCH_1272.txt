@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_PATCH_1272
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  SUresh Gottipati
+ 
+Created on*        		:  21-Dec-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:   
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  REPORTS
+
+Sub-Module  			 :  REPORTS
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 111826
+Author: suresh.gottipati
+Date: 4:57:10 PM, Friday, December 21, 2012
+Message:
+Added Warehouse column
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_daily_hedge_correction.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql
+
+Revision: 111825
+Author: suresh.gottipati
+Date: 4:55:45 PM, Friday, December 21, 2012
+Message:
+Added Warehouse column
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt
+
+
+
