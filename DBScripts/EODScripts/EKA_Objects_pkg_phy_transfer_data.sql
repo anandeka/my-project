@@ -39,7 +39,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -3734,7 +3734,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        orig_internal_action_ref_no,
        dbd_id)
       select ul.spq_id,
-             ul.cot_int_action_ref_no,
+             ul.internal_action_ref_no,
              ul.entry_type,
              ul.internal_gmr_ref_no,
              ul.action_no,
@@ -4356,5 +4356,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
