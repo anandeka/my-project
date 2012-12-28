@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1277
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  28-Dec-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  71155  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  AuditLog
+
+Sub-Module  			 :  AuditLog
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 112362
+Author: pradeep.kumar
+Date: 2:49:02 PM, Friday, December 28, 2012
+Message:
+-- created view for audit log listing screen
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_list_audit_log.sql
+
