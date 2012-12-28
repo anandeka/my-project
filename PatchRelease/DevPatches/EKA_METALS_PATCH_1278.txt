@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1278
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  28-Dec-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:    
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Data correction
+
+Sub-Module  			 :  Data correction
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 112366
+Author: sivachalabathi.s
+Date: 2:57:52 PM, Friday, December 28, 2012
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_368.sql
