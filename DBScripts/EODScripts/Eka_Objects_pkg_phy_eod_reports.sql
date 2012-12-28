@@ -94,7 +94,7 @@ create or replace package pkg_phy_eod_reports is
                                       pd_trade_date   date,
                                       pc_process_id   varchar2,
                                       pc_process      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -13003,7 +13003,7 @@ for cur_tc in (
 select fc.internal_gmr_ref_no,
        fc.internal_grd_ref_no,
        t.element_id,
-       fc.original_grd_qty * fc.dry_wet_qty_ratio *
+       fc.original_grd_qty * fc.dry_wet_qty_ratio/100 *
        ucm.multiplication_factor converted_qty,
        t.tc_value
   from getc_gmr_element_tc_charges t,
@@ -13062,7 +13062,7 @@ for cur_pc in (
 select fc.internal_gmr_ref_no,
        fc.internal_grd_ref_no,
        t.element_id,
-       fc.original_grd_qty * fc.dry_wet_qty_ratio *
+       fc.original_grd_qty * fc.dry_wet_qty_ratio/100 *
        ucm.multiplication_factor converted_qty,
        t.pc_value
   from gepc_gmr_element_pc_charges t,
@@ -15985,7 +15985,7 @@ sp_eodeom_process_log(pc_corporate_id,
           end if;
           if cur_each_gmr_rows.is_invoiced ='N' or (cur_each_gmr_rows.is_invoiced ='Y' and vn_dummy > 0) Then
               begin
-                select count(distinct grd.container_no)
+               /* select count(distinct grd.container_no)
                   into vn_total_containers
                   from grd_goods_record_detail grd
                  where grd.status = 'Active'
@@ -15996,7 +15996,23 @@ sp_eodeom_process_log(pc_corporate_id,
                    and grd.container_size = cur_each_gmr_rows.container_size
                    and grd.process_id = pc_process_id
                  group by grd.container_size,
-                          grd.internal_gmr_ref_no;
+                          grd.internal_gmr_ref_no;*/
+                select count(distinct agrd.container_no)
+                into vn_total_containers
+                from agmr_action_gmr agmr,
+                     agrd_action_grd@eka_appdb agrd
+                where agrd.action_no = agmr.action_no
+                and agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+                and agrd.status = 'Active'
+                and agrd.is_deleted = 'N'
+                and agmr.is_apply_container_charge = 'Y'
+                and agmr.gmr_latest_action_action_id in
+                 ('airDetail', 'shipmentDetail', 'railDetail', 'truckDetail',
+                  'warehouseReceipt')
+                  and agmr.is_internal_movement = 'N'
+                  and agmr.is_deleted = 'N'
+                  and agmr.internal_gmr_ref_no = cur_each_gmr_rows.internal_gmr_ref_no
+		          and agrd.container_size=cur_each_gmr_rows.container_size;         
                 -- We have multipe container sizes, we need to keep adding for this GMR                  
                 vn_container_charge :=  vn_container_charge +   (cur_each_gmr_rows.charge *
                                          cur_each_gmr_rows.fx_rate * vn_total_containers);       
