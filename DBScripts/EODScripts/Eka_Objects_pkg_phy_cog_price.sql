@@ -29,7 +29,7 @@ create or replace package pkg_phy_cog_price is
                                          pc_user_id      varchar2,
                                          pc_dbd_id       varchar2,
                                          pc_process      varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -158,7 +158,8 @@ create or replace package body pkg_phy_cog_price is
              pcbph.price_description,
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
-             pocd.final_price_unit_id
+             pocd.final_price_unit_id,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -186,7 +187,8 @@ create or replace package body pkg_phy_cog_price is
              pcbpd.tonnage_basis,
              pcbpd.fx_to_base,
              pcbpd.qty_to_be_priced,
-             pcbph.price_description
+             pcbph.price_description,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from pci_physical_contract_item pci,
              pcipf_pci_pricing_formula  pcipf,
              pcbph_pc_base_price_header pcbph,
@@ -424,7 +426,8 @@ create or replace package body pkg_phy_cog_price is
                   end;
                 end if;
                 begin
-                  select dqd.price,
+                  select dqd.price *
+                         cur_called_off_rows.valuation_price_percentage,
                          dqd.price_unit_id
                     into vn_unfixed_val_price,
                          vc_unfixed_val_price_unit_id
@@ -685,7 +688,8 @@ create or replace package body pkg_phy_cog_price is
               end;
             end if;
             begin
-              select dqd.price,
+              select dqd.price *
+                     cur_not_called_off_rows.valuation_price_percentage,
                      dqd.price_unit_id
                 into vn_unfixed_val_price,
                      vc_unfixed_val_price_unit_id
@@ -1052,7 +1056,8 @@ create or replace package body pkg_phy_cog_price is
              pcbpd.price_basis,
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
-             pocd.final_price_unit_id
+             pocd.final_price_unit_id,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -1259,7 +1264,7 @@ create or replace package body pkg_phy_cog_price is
           end if;
         
           begin
-            select dqd.price,
+            select dqd.price * cur_gmr_ele_rows.valuation_price_percentage,
                    dqd.price_unit_id
               into vn_unfixed_val_price,
                    vc_unfixed_val_price_unit_id
@@ -1571,7 +1576,8 @@ create or replace package body pkg_phy_cog_price is
              pcbph.price_description,
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
-             pocd.final_price_unit_id
+             pocd.final_price_unit_id,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -1596,7 +1602,8 @@ create or replace package body pkg_phy_cog_price is
              pcbpd.price_value,
              pcbpd.price_unit_id,
              pcbpd.qty_to_be_priced,
-             pcbph.price_description
+             pcbph.price_description,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from pci_physical_contract_item pci,
              pcipf_pci_pricing_formula  pcipf,
              pcbph_pc_base_price_header pcbph,
@@ -1650,6 +1657,14 @@ create or replace package body pkg_phy_cog_price is
   
   begin
     vc_error_message := 'Start';
+    sp_gather_stats('poch_price_opt_call_off_header');
+    sp_gather_stats('pocd_price_option_calloff_dtls');
+    sp_gather_stats('pcbpd_pc_base_price_detail');
+    sp_gather_stats('pcbph_pc_base_price_header');
+    sp_gather_stats('pofh_price_opt_fixation_header');
+    sp_gather_stats('pci_physical_contract_item');
+    sp_gather_stats('pcipf_pci_pricing_formula');
+  
     for cur_pcdi_rows in cur_pcdi
     loop
       vn_total_contract_value      := 0;
@@ -1857,7 +1872,8 @@ create or replace package body pkg_phy_cog_price is
               end if;
             
               begin
-                select dqd.price,
+                select dqd.price *
+                       cur_called_off_rows.valuation_price_percentage,
                        dqd.price_unit_id
                   into vn_unfixed_val_price,
                        vc_unfixed_val_price_unit_id
@@ -2114,7 +2130,8 @@ create or replace package body pkg_phy_cog_price is
               end;
             end if;
             begin
-              select dqd.price,
+              select dqd.price *
+                     cur_not_called_off_rows.valuation_price_percentage,
                      dqd.price_unit_id
                 into vn_unfixed_val_price,
                      vc_unfixed_val_price_unit_id
@@ -2501,7 +2518,8 @@ create or replace package body pkg_phy_cog_price is
              pdm.base_quantity_unit base_qty_unit_id,
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
-             pocd.final_price_unit_id
+             pocd.final_price_unit_id,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -2716,7 +2734,7 @@ create or replace package body pkg_phy_cog_price is
           end if;
         
           begin
-            select dqd.price,
+            select dqd.price * cur_gmr_ele_rows.valuation_price_percentage,
                    dqd.price_unit_id
               into vn_unfixed_val_price,
                    vc_unfixed_val_price_unit_id
@@ -2824,6 +2842,11 @@ create or replace package body pkg_phy_cog_price is
           else
             vc_price_unit_id := vc_unfixed_val_price_unit_id;
           end if;
+          --vn_total_quantity       := cur_gmr_rows.payable_qty;
+          vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
+          vn_total_contract_value := vn_total_contract_value +
+                                     ((vn_qty_to_be_priced / 100) *
+                                     (vn_fixed_value + vn_unfixed_value));
         end if;
         begin
           select ppu.product_price_unit_id
@@ -2835,11 +2858,6 @@ create or replace package body pkg_phy_cog_price is
           when others then
             vc_price_unit_id := null;
         end;
-        --vn_total_quantity       := cur_gmr_rows.payable_qty;
-        vn_total_quantity       := nvl(vn_fixed_qty,0) + nvl(vn_unfixed_qty,0);
-        vn_total_contract_value := vn_total_contract_value +
-                                   ((vn_qty_to_be_priced / 100) *
-                                   (vn_fixed_value + vn_unfixed_value));
       
       end loop;
       if vn_total_quantity<>0 then
@@ -3050,7 +3068,8 @@ create or replace package body pkg_phy_cog_price is
              gpah.gpah_id,
              nvl(gpah.final_price, 0) final_price,
              gpah.finalize_date,
-             pocd.final_price_unit_id
+             pocd.final_price_unit_id,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,
@@ -3088,18 +3107,17 @@ create or replace package body pkg_phy_cog_price is
          and gpah.element_id = poch.element_id
          and gpad.gpah_id = gpah.gpah_id
        group by gpah.internal_gmr_ref_no,
-                pofh.pofh_id,
                 pcbpd.element_id,
                 pcbpd.pcbpd_id,
-                nvl(gpah.final_price, 0),
                 pcbpd.qty_to_be_priced,
                 pcbpd.price_basis,
                 pdm.product_id,
                 pdm.base_quantity_unit,
-                gpah.gpah_id, 
+                gpah.gpah_id,
+                nvl(gpah.final_price, 0),
                 gpah.finalize_date,
-                pocd.final_price_unit_id
-                
+                pocd.final_price_unit_id,
+                pcbph.valuation_price_percentage / 100
       union
       select grd.internal_gmr_ref_no,
              pcbpd.element_id,
@@ -3111,7 +3129,8 @@ create or replace package body pkg_phy_cog_price is
              null gpah_id,
              0 final_price,
              null finalize_date,
-             null final_price_unit_id
+             null final_price_unit_id,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,
@@ -3150,13 +3169,13 @@ create or replace package body pkg_phy_cog_price is
                  and gpah.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gpah.element_id = pcbpd.element_id)
        group by grd.internal_gmr_ref_no,
-                pofh.pofh_id,
                 pcbpd.element_id,
                 pcbpd.pcbpd_id,
                 pcbpd.qty_to_be_priced,
                 pcbpd.price_basis,
                 pdm.product_id,
-                pdm.base_quantity_unit;
+                pdm.base_quantity_unit,
+                pcbph.valuation_price_percentage / 100;
   
     vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count           number := 1;
@@ -3515,7 +3534,7 @@ create or replace package body pkg_phy_cog_price is
           end if;
         
           begin
-            select dqd.price,
+            select dqd.price * cur_gmr_ele_rows.valuation_price_percentage,
                    dqd.price_unit_id
               into vn_unfixed_val_price,
                    vc_unfixed_val_price_unit_id
@@ -3728,5 +3747,5 @@ create or replace package body pkg_phy_cog_price is
       sp_insert_error_log(vobj_error_log);
       commit;
   end;
-end; 
+end;
 /
