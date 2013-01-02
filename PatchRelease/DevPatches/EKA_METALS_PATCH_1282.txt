@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1282
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chaturvedi
+ 
+Created on*        		:  02-Jan-2013
+
+Bug / Enhancement*      :  Bug
+
+Bug ID*            		:  72145
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Invoice 
+
+Sub-Module  			:  Invoice o/p Doc.
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details 	:  N/A
+ 
+FS Amendment details   	:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 112692
+Author: mayank.chaturvedi
+Date: 3:42:59 PM, Wednesday, January 02, 2013
+Message:
+-Patch for bug id 72145 pledge o/p doc
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_472.sql
