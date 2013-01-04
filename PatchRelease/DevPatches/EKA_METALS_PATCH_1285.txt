@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1285
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  04-Jan-2013
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Assay 
+
+Sub-Module  			:  N/A
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details 	:  N/A
+ 
+FS Amendment details   	:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 112845
+Author: abhishek.vijay
+Date: 3:08:56 PM, Friday, January 04, 2013
+Message:
+update spql trigger 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_SPQL.sql
+
