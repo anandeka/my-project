@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1284
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar reddy
+ 
+Created on*        		:  04-Jan-2013
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Assay 
+
+Sub-Module  			:  N/A
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details 	:  N/A
+ 
+FS Amendment details   	:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 112827
+Author: rajeshwar.reddy
+Date: 11:26:00, 04 January 2013
+Message:
+added Comments field for Assay
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_372.sql
+
+
+Revision: 112835
+Author: rajeshwar.reddy
+Date: 12:51:24, 04 January 2013
+Message:
+added Comments field for Assay
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_473.sql
