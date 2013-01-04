@@ -41,4 +41,14 @@ Message:
 update spql trigger 
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_SPQL.sql
+Revision: 112856
+Author: abhishek.vijay
+Date: 3:28:52 PM, Friday, January 04, 2013
+Message:
+update spql trigger and cancel price fixation issue 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_32.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_33.sql
+
+
 
