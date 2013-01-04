@@ -1,0 +1,1 @@
+alter table is_d add prov_percentage varchar2(15);
