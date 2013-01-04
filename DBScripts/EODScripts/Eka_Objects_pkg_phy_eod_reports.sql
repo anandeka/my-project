@@ -94,7 +94,7 @@ create or replace package pkg_phy_eod_reports is
                                       pd_trade_date   date,
                                       pc_process_id   varchar2,
                                       pc_process      varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -12620,7 +12620,7 @@ select gmr_ref_no,
                cm_pay.cur_id pay_cur_id,
                cm_pay.cur_code pay_cur_code,
                spq.qty_type,
-               ash_parent.internal_grd_ref_no parent_internal_grd_ref_no
+               sam.parent_stock_ref_no parent_internal_grd_ref_no
           from gmr_goods_movement_record   gmr,
                grd_goods_record_detail     grd,
                ak_corporate                akc,
@@ -12644,8 +12644,7 @@ select gmr_ref_no,
                pdm_productmaster           pdm_conc,
                qum_quantity_unit_master    qum_conc,
                cm_currency_master          cm_pay,
-               sam_stock_assay_mapping     sam,
-               ash_assay_header            ash_parent
+               sam_stock_assay_mapping     sam
          where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
            and gmr.corporate_id = pc_corporate_id
            and grd.status = 'Active'
@@ -12689,11 +12688,10 @@ select gmr_ref_no,
            and sld.is_active = 'Y'
            and qum.is_active = 'Y'
            and pm.is_active(+) = 'Y'
-         --  and grd.internal_grd_ref_no=sam.internal_grd_ref_no
-         AND grd.internal_grd_ref_no = sam.parent_stock_ref_no
+           and grd.internal_grd_ref_no=sam.internal_grd_ref_no
            and sam.is_active='Y'
-        --   AND sam.is_latest_weighted_avg_pricing = 'Y'
-           and ash_parent.ash_id = sam.ash_id
+           and ash.assay_type IN ('Weighted Avg Pricing Assay', 'Shipment Assay')
+           and ash.ash_id = sam.ash_id
         union
         select gmr.gmr_ref_no,
                gmr.internal_gmr_ref_no,
@@ -12735,7 +12733,7 @@ select gmr_ref_no,
                cm_pay.cur_id pay_cur_id,
                cm_pay.cur_code pay_cur_code,
                'Penalty' qty_type,
-               ash_parent.internal_grd_ref_no
+               sam.parent_stock_ref_no
           from gmr_goods_movement_record gmr,
                grd_goods_record_detail grd,
                ak_corporate akc,
@@ -12768,8 +12766,7 @@ select gmr_ref_no,
                qum_quantity_unit_master qum_conc,
                cm_currency_master cm_pay,
                pqca_pq_chemical_attributes pqca,
-               sam_stock_assay_mapping     sam,
-               ash_assay_header            ash_parent
+               sam_stock_assay_mapping     sam
          where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
            and gmr.corporate_id = pc_corporate_id
            and grd.status = 'Active'
@@ -12810,12 +12807,10 @@ select gmr_ref_no,
            and qat.is_active = 'Y'
            and sld.is_active = 'Y'
            and pm.is_active(+) = 'Y'
-           -- and grd.internal_grd_ref_no=sam.internal_grd_ref_no
-           and grd.internal_grd_ref_no = sam.parent_stock_ref_no
+            and grd.internal_grd_ref_no=sam.internal_grd_ref_no
            and sam.is_active='Y'
-           --  AND sam.is_latest_weighted_avg_pricing = 'Y'
-           and ash_parent.ash_id = sam.ash_id
-           ) t;
+            AND ash.assay_type IN ('Weighted Avg Pricing Assay', 'Shipment Assay')
+            and ash.ash_id = sam.ash_id) t;
   
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
@@ -16012,7 +16007,7 @@ sp_eodeom_process_log(pc_corporate_id,
                   and agmr.is_internal_movement = 'N'
                   and agmr.is_deleted = 'N'
                   and agmr.internal_gmr_ref_no = cur_each_gmr_rows.internal_gmr_ref_no
-		          and agrd.container_size=cur_each_gmr_rows.container_size;         
+                  and agrd.container_size=cur_each_gmr_rows.container_size;         
                 -- We have multipe container sizes, we need to keep adding for this GMR                  
                 vn_container_charge :=  vn_container_charge +   (cur_each_gmr_rows.charge *
                                          cur_each_gmr_rows.fx_rate * vn_total_containers);       
