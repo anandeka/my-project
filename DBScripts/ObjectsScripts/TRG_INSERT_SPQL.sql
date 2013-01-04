@@ -1,5 +1,6 @@
-/* Formatted on 2012/09/24 11:56 (Formatter Plus v4.8.8) */
-DROP TRIGGER "TRG_INSERT_SPQL";
+/* Formatted on 2013/01/04 15:05 (Formatter Plus v4.8.8) */
+DROP TRIGGER trg_insert_spql;
+
 CREATE OR REPLACE TRIGGER "TRG_INSERT_SPQL"
    AFTER INSERT OR UPDATE
    ON spq_stock_payable_qty
@@ -54,62 +55,60 @@ BEGIN
                          :NEW.ext_payable_qty - :OLD.ext_payable_qty,
                          :NEW.VERSION, 'Update', 'Y',
                          (SELECT (CASE
-                                     WHEN (SELECT ash.assay_type
+                                     WHEN (SELECT COUNT (*)
                                              FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                          :NEW.assay_header_id) =
-                                                              'Shipment Assay'
+                                            WHERE (   ash.pricing_assay_ash_id =
+                                                          :NEW.assay_header_id
+                                                   OR ash.ash_id =
+                                                          :NEW.assay_header_id
+                                                  )
+                                              AND ash.assay_type =
+                                                     'Weighted Avg Pricing Assay') =
+                                                                             0
                                         THEN (SELECT DISTINCT ash.ash_id
                                                          FROM ash_assay_header ash
                                                         WHERE ash.internal_grd_ref_no =
                                                                  :NEW.internal_grd_ref_no
                                                           AND ash.assay_type =
                                                                  'Shipment Assay')
-                                     WHEN (SELECT ash.assay_type
-                                             FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                          :NEW.assay_header_id) =
-                                                               'Pricing Assay'
-                                        THEN (SELECT ash.ash_id
-                                                FROM ash_assay_header ash
-                                               WHERE ash.pricing_assay_ash_id =
-                                                          :NEW.assay_header_id
-                                                 AND ash.assay_type =
-                                                        'Weighted Avg Pricing Assay')
                                      ELSE (SELECT ash.ash_id
                                              FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                          :NEW.assay_header_id)
+                                            WHERE (   ash.pricing_assay_ash_id =
+                                                          :NEW.assay_header_id
+                                                   OR ash.ash_id =
+                                                          :NEW.assay_header_id
+                                                  )
+                                              AND ash.assay_type =
+                                                     'Weighted Avg Pricing Assay')
                                   END
                                  )
                             FROM DUAL),
                          (SELECT (CASE
-                                     WHEN (SELECT ash.assay_type
+                                     WHEN (SELECT COUNT (*)
                                              FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                      :NEW.ext_assay_header_id) =
-                                                              'Shipment Assay'
+                                            WHERE (   ash.invoice_ash_id =
+                                                         :NEW.ext_assay_header_id
+                                                   OR ash.ash_id =
+                                                         :NEW.ext_assay_header_id
+                                                  )
+                                              AND ash.assay_type =
+                                                     'Weighted Avg Invoice Assay') =
+                                                                             0
                                         THEN (SELECT DISTINCT ash.ash_id
                                                          FROM ash_assay_header ash
                                                         WHERE ash.internal_grd_ref_no =
                                                                  :NEW.internal_grd_ref_no
                                                           AND ash.assay_type =
                                                                  'Shipment Assay')
-                                     WHEN (SELECT ash.assay_type
-                                             FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                          :NEW.assay_header_id) =
-                                                             'Invoicing Assay'
-                                        THEN (SELECT ash.ash_id
-                                                FROM ash_assay_header ash
-                                               WHERE ash.pricing_assay_ash_id =
-                                                        :NEW.ext_assay_header_id
-                                                 AND ash.assay_type =
-                                                        'Weighted Avg Invoice Assay')
                                      ELSE (SELECT ash.ash_id
                                              FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                      :NEW.ext_assay_header_id)
+                                            WHERE (   ash.invoice_ash_id =
+                                                         :NEW.ext_assay_header_id
+                                                   OR ash.ash_id =
+                                                         :NEW.ext_assay_header_id
+                                                  )
+                                              AND ash.assay_type =
+                                                     'Weighted Avg Invoice Assay')
                                   END
                                  )
                             FROM DUAL),
@@ -192,62 +191,60 @@ BEGIN
                                                          ),
                          :NEW.VERSION, 'Update', 'Y',
                          (SELECT (CASE
-                                     WHEN (SELECT ash.assay_type
+                                     WHEN (SELECT COUNT (*)
                                              FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                          :NEW.assay_header_id) =
-                                                              'Shipment Assay'
+                                            WHERE (   ash.pricing_assay_ash_id =
+                                                          :NEW.assay_header_id
+                                                   OR ash.ash_id =
+                                                          :NEW.assay_header_id
+                                                  )
+                                              AND ash.assay_type =
+                                                     'Weighted Avg Pricing Assay') =
+                                                                             0
                                         THEN (SELECT DISTINCT ash.ash_id
                                                          FROM ash_assay_header ash
                                                         WHERE ash.internal_grd_ref_no =
                                                                  :NEW.internal_grd_ref_no
                                                           AND ash.assay_type =
                                                                  'Shipment Assay')
-                                     WHEN (SELECT ash.assay_type
-                                             FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                          :NEW.assay_header_id) =
-                                                               'Pricing Assay'
-                                        THEN (SELECT ash.ash_id
-                                                FROM ash_assay_header ash
-                                               WHERE ash.pricing_assay_ash_id =
-                                                          :NEW.assay_header_id
-                                                 AND ash.assay_type =
-                                                        'Weighted Avg Pricing Assay')
                                      ELSE (SELECT ash.ash_id
                                              FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                          :NEW.assay_header_id)
+                                            WHERE (   ash.pricing_assay_ash_id =
+                                                          :NEW.assay_header_id
+                                                   OR ash.ash_id =
+                                                          :NEW.assay_header_id
+                                                  )
+                                              AND ash.assay_type =
+                                                     'Weighted Avg Pricing Assay')
                                   END
                                  )
                             FROM DUAL),
                          (SELECT (CASE
-                                     WHEN (SELECT ash.assay_type
+                                     WHEN (SELECT COUNT (*)
                                              FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                      :NEW.ext_assay_header_id) =
-                                                              'Shipment Assay'
+                                            WHERE (   ash.invoice_ash_id =
+                                                         :NEW.ext_assay_header_id
+                                                   OR ash.ash_id =
+                                                         :NEW.ext_assay_header_id
+                                                  )
+                                              AND ash.assay_type =
+                                                     'Weighted Avg Invoice Assay') =
+                                                                             0
                                         THEN (SELECT DISTINCT ash.ash_id
                                                          FROM ash_assay_header ash
                                                         WHERE ash.internal_grd_ref_no =
                                                                  :NEW.internal_grd_ref_no
                                                           AND ash.assay_type =
                                                                  'Shipment Assay')
-                                     WHEN (SELECT ash.assay_type
-                                             FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                          :NEW.assay_header_id) =
-                                                             'Invoicing Assay'
-                                        THEN (SELECT ash.ash_id
-                                                FROM ash_assay_header ash
-                                               WHERE ash.pricing_assay_ash_id =
-                                                        :NEW.ext_assay_header_id
-                                                 AND ash.assay_type =
-                                                        'Weighted Avg Invoice Assay')
                                      ELSE (SELECT ash.ash_id
                                              FROM ash_assay_header ash
-                                            WHERE ash.ash_id =
-                                                      :NEW.ext_assay_header_id)
+                                            WHERE (   ash.invoice_ash_id =
+                                                         :NEW.ext_assay_header_id
+                                                   OR ash.ash_id =
+                                                         :NEW.ext_assay_header_id
+                                                  )
+                                              AND ash.assay_type =
+                                                     'Weighted Avg Invoice Assay')
                                   END
                                  )
                             FROM DUAL),
@@ -296,62 +293,60 @@ BEGIN
                       :NEW.ext_payable_qty - :OLD.ext_payable_qty,
                       :NEW.VERSION, 'Update', 'N',
                       (SELECT (CASE
-                                  WHEN (SELECT ash.assay_type
+                                  WHEN (SELECT COUNT (*)
                                           FROM ash_assay_header ash
-                                         WHERE ash.ash_id =
-                                                          :NEW.assay_header_id) =
-                                                              'Shipment Assay'
+                                         WHERE (   ash.pricing_assay_ash_id =
+                                                          :NEW.assay_header_id
+                                                OR ash.ash_id =
+                                                          :NEW.assay_header_id
+                                               )
+                                           AND ash.assay_type =
+                                                  'Weighted Avg Pricing Assay') =
+                                                                             0
                                      THEN (SELECT DISTINCT ash.ash_id
                                                       FROM ash_assay_header ash
                                                      WHERE ash.internal_grd_ref_no =
                                                               :NEW.internal_grd_ref_no
                                                        AND ash.assay_type =
                                                               'Shipment Assay')
-                                  WHEN (SELECT ash.assay_type
-                                          FROM ash_assay_header ash
-                                         WHERE ash.ash_id =
-                                                          :NEW.assay_header_id) =
-                                                               'Pricing Assay'
-                                     THEN (SELECT ash.ash_id
-                                             FROM ash_assay_header ash
-                                            WHERE ash.pricing_assay_ash_id =
-                                                          :NEW.assay_header_id
-                                              AND ash.assay_type =
-                                                     'Weighted Avg Pricing Assay')
                                   ELSE (SELECT ash.ash_id
                                           FROM ash_assay_header ash
-                                         WHERE ash.ash_id =
-                                                          :NEW.assay_header_id)
+                                         WHERE (   ash.pricing_assay_ash_id =
+                                                          :NEW.assay_header_id
+                                                OR ash.ash_id =
+                                                          :NEW.assay_header_id
+                                               )
+                                           AND ash.assay_type =
+                                                  'Weighted Avg Pricing Assay')
                                END
                               )
                          FROM DUAL),
                       (SELECT (CASE
-                                  WHEN (SELECT ash.assay_type
+                                  WHEN (SELECT COUNT (*)
                                           FROM ash_assay_header ash
-                                         WHERE ash.ash_id =
-                                                      :NEW.ext_assay_header_id) =
-                                                              'Shipment Assay'
+                                         WHERE (   ash.invoice_ash_id =
+                                                      :NEW.ext_assay_header_id
+                                                OR ash.ash_id =
+                                                      :NEW.ext_assay_header_id
+                                               )
+                                           AND ash.assay_type =
+                                                  'Weighted Avg Invoice Assay') =
+                                                                             0
                                      THEN (SELECT DISTINCT ash.ash_id
                                                       FROM ash_assay_header ash
                                                      WHERE ash.internal_grd_ref_no =
                                                               :NEW.internal_grd_ref_no
                                                        AND ash.assay_type =
                                                               'Shipment Assay')
-                                  WHEN (SELECT ash.assay_type
-                                          FROM ash_assay_header ash
-                                         WHERE ash.ash_id =
-                                                          :NEW.assay_header_id) =
-                                                             'Invoicing Assay'
-                                     THEN (SELECT ash.ash_id
-                                             FROM ash_assay_header ash
-                                            WHERE ash.pricing_assay_ash_id =
-                                                      :NEW.ext_assay_header_id
-                                              AND ash.assay_type =
-                                                     'Weighted Avg Invoice Assay')
                                   ELSE (SELECT ash.ash_id
                                           FROM ash_assay_header ash
-                                         WHERE ash.ash_id =
-                                                      :NEW.ext_assay_header_id)
+                                         WHERE (   ash.invoice_ash_id =
+                                                      :NEW.ext_assay_header_id
+                                                OR ash.ash_id =
+                                                      :NEW.ext_assay_header_id
+                                               )
+                                           AND ash.assay_type =
+                                                  'Weighted Avg Invoice Assay')
                                END
                               )
                          FROM DUAL),
@@ -392,58 +387,60 @@ BEGIN
                    :NEW.ext_assay_header_id, :NEW.ext_assay_content,
                    :NEW.ext_payable_qty, :NEW.VERSION, 'Insert', 'Y',
                    (SELECT (CASE
-                               WHEN (SELECT ash.assay_type
+                               WHEN (SELECT COUNT (*)
                                        FROM ash_assay_header ash
-                                      WHERE ash.ash_id = :NEW.assay_header_id) =
-                                                              'Shipment Assay'
+                                      WHERE (   ash.pricing_assay_ash_id =
+                                                          :NEW.assay_header_id
+                                             OR ash.ash_id =
+                                                          :NEW.assay_header_id
+                                            )
+                                        AND ash.assay_type =
+                                                  'Weighted Avg Pricing Assay') =
+                                                                             0
                                   THEN (SELECT DISTINCT ash.ash_id
                                                    FROM ash_assay_header ash
                                                   WHERE ash.internal_grd_ref_no =
                                                            :NEW.internal_grd_ref_no
                                                     AND ash.assay_type =
                                                               'Shipment Assay')
-                               WHEN (SELECT ash.assay_type
-                                       FROM ash_assay_header ash
-                                      WHERE ash.ash_id = :NEW.assay_header_id) =
-                                                               'Pricing Assay'
-                                  THEN (SELECT ash.ash_id
-                                          FROM ash_assay_header ash
-                                         WHERE ash.pricing_assay_ash_id =
-                                                          :NEW.assay_header_id
-                                           AND ash.assay_type =
-                                                  'Weighted Avg Pricing Assay')
                                ELSE (SELECT ash.ash_id
                                        FROM ash_assay_header ash
-                                      WHERE ash.ash_id = :NEW.assay_header_id)
+                                      WHERE (   ash.pricing_assay_ash_id =
+                                                          :NEW.assay_header_id
+                                             OR ash.ash_id =
+                                                          :NEW.assay_header_id
+                                            )
+                                        AND ash.assay_type =
+                                                  'Weighted Avg Pricing Assay')
                             END
                            )
                       FROM DUAL),
                    (SELECT (CASE
-                               WHEN (SELECT ash.assay_type
+                               WHEN (SELECT COUNT (*)
                                        FROM ash_assay_header ash
-                                      WHERE ash.ash_id =
-                                                      :NEW.ext_assay_header_id) =
-                                                              'Shipment Assay'
+                                      WHERE (   ash.invoice_ash_id =
+                                                      :NEW.ext_assay_header_id
+                                             OR ash.ash_id =
+                                                      :NEW.ext_assay_header_id
+                                            )
+                                        AND ash.assay_type =
+                                                  'Weighted Avg Invoice Assay') =
+                                                                             0
                                   THEN (SELECT DISTINCT ash.ash_id
                                                    FROM ash_assay_header ash
                                                   WHERE ash.internal_grd_ref_no =
                                                            :NEW.internal_grd_ref_no
                                                     AND ash.assay_type =
                                                               'Shipment Assay')
-                               WHEN (SELECT ash.assay_type
-                                       FROM ash_assay_header ash
-                                      WHERE ash.ash_id = :NEW.assay_header_id) =
-                                                             'Invoicing Assay'
-                                  THEN (SELECT ash.ash_id
-                                          FROM ash_assay_header ash
-                                         WHERE ash.pricing_assay_ash_id =
-                                                      :NEW.ext_assay_header_id
-                                           AND ash.assay_type =
-                                                  'Weighted Avg Invoice Assay')
                                ELSE (SELECT ash.ash_id
                                        FROM ash_assay_header ash
-                                      WHERE ash.ash_id =
-                                                      :NEW.ext_assay_header_id)
+                                      WHERE (   ash.invoice_ash_id =
+                                                      :NEW.ext_assay_header_id
+                                             OR ash.ash_id =
+                                                      :NEW.ext_assay_header_id
+                                            )
+                                        AND ash.assay_type =
+                                                  'Weighted Avg Invoice Assay')
                             END
                            )
                       FROM DUAL),
