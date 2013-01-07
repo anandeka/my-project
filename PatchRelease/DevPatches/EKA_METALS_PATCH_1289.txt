@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1269
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  07-Jan-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  72127
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 113032
+Author: anupkumar.agarwal
+Date: 3:45:26 PM, Monday, January 07, 2013
+Message:
+Data correction for gmr shipped Qty In gmr And Agmr table For Warehouse receipt 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_34.sql
+
+
