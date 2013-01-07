@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1290
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  07-Jan-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+
+Sub-Module  			 :  Physical
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 113046
+Author: abhishek.vijay
+Date: 4:54:39 PM, Monday, January 07, 2013
+Message:
+update price description from details to header 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_35.sql
+
+
+
+
