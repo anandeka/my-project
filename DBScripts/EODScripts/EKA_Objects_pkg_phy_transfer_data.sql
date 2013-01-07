@@ -39,7 +39,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -1398,7 +1398,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.price_description,
              ul.element_id,
              ul. is_free_metal_applicable,
-             valuation_price_percentage,
+             ul.valuation_price_percentage,
              pc_dbd_id
         from pcbphul_pc_base_prc_header_ul@eka_appdb ul,
              axs_action_summary@eka_appdb            axs
@@ -4356,5 +4356,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /

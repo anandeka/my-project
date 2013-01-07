@@ -24,7 +24,7 @@ create or replace package pkg_phy_conc_realized_pnl is
                                         pc_dbd_id       varchar2,
                                         pc_user_id      varchar2);
 
-end; 
+end;
 /
 create or replace package body pkg_phy_conc_realized_pnl is
   procedure sp_calc_phy_conc_realize_today(pc_corporate_id varchar2,
@@ -2142,7 +2142,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              prch.qty_unit_id,
              qty_unit,
              quality_id,
-             quality_name,
+             prch.quality_name,
              prch.price_description price_string,
              prch.price_fixation_status,
              incoterm_id,
@@ -2277,7 +2277,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              prch.qty_unit_id,
              qty_unit,
              quality_id,
-             quality_name,
+             prch.quality_name,
              prch.price_description price_string,
              prch.price_fixation_status,
              incoterm_id,
@@ -2410,7 +2410,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              prch.qty_unit_id,
              qty_unit,
              quality_id,
-             quality_name,
+             prch.quality_name,
              prch.price_description price_string,
              prch.price_fixation_status,
              incoterm_id,
@@ -2546,7 +2546,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              prch.qty_unit_id,
              qty_unit,
              quality_id,
-             quality_name,
+             prch.quality_name,
              prch.price_description price_string,
              prch.price_fixation_status,
              incoterm_id,

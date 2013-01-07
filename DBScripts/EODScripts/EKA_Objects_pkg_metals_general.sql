@@ -680,7 +680,7 @@ create or replace package body pkg_metals_general is
                 vn_tier_penalty := vn_tier_penalty + vn_penalty_charge;
                 /** vn_range_gap;*/
               /* dbms_output.put_line(' Variable  Penalty charge for this ' ||                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     vn_penalty_charge);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            dbms_output.put_line('---------------------------');*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              dbms_output.put_line('---------------------------');*/
               --calculate total Penalty charge
               end loop;
             end if;
@@ -3988,19 +3988,15 @@ create or replace package body pkg_metals_general is
                       grd.qty * asm.dry_wet_qty_ratio / 100 dry_weight,
                       grd.qty_unit_id net_weight_unit,
                       pci.pcpq_id
-                 from gmr_goods_movement_record gmr,
-                      grd_goods_record_detail   grd,
-                      -- sam_stock_assay_mapping     sam,
+                 from gmr_goods_movement_record   gmr,
+                      grd_goods_record_detail     grd,
                       ash_assay_header            ash,
                       asm_assay_sublot_mapping    asm,
                       pqca_pq_chemical_attributes pqca,
                       rm_ratio_master             rm,
                       aml_attribute_master_list   aml,
-                      pci_physical_contract_item  pci,
-                      v_spq_latest_assay          spq
+                      pci_physical_contract_item  pci
                 where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                     --  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-                     --  and sam.ash_id = ash.ash_id
                   and ash.ash_id = asm.ash_id
                   and asm.asm_id = pqca.asm_id
                   and rm.ratio_id = pqca.unit_of_measure
@@ -4014,10 +4010,7 @@ create or replace package body pkg_metals_general is
                       pci.internal_contract_item_ref_no
                   and gmr.internal_gmr_ref_no = pc_inter_gmr_ref_no
                   and grd.internal_grd_ref_no = pc_inter_grd_ref_no
-                  and spq.internal_grd_ref_no = grd.internal_grd_ref_no
-                     -- and spq.element_id = pqca.element_id
-                  and spq.dbd_id = pc_dbd_id
-                  and spq.weg_avg_pricing_assay_id = ash.ash_id)
+                  and grd.weg_avg_pricing_assay_id = ash.ash_id)
     loop
       vn_element_pc_charge := 0;
       vn_tier_penalty      := 0;

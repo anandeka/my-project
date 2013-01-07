@@ -3841,7 +3841,7 @@ insert into gmr_goods_movement_record
            group by gmrul.internal_gmr_ref_no) t;
 --
 -- Update FI AND PI Flag
---          
+--  
 for cur_gmr_invoice in(        
 SELECT   iid.internal_gmr_ref_no,
          CASE
@@ -3872,7 +3872,13 @@ SELECT   iid.internal_gmr_ref_no,
                   || iam.internal_invoice_ref_no
                  ),
              24
-            ) latest_internal_invoice_ref_no
+            ) latest_internal_invoice_ref_no,
+            SUBSTR
+            (MAX (   TO_CHAR (axs.created_date, 'yyyymmddhh24missff9')
+                  || is1.invoice_ref_no
+                 ),
+             24
+            ) invoice_ref_no
     FROM is_invoice_summary is1,
          iid_invoicable_item_details iid,
          iam_invoice_action_mapping@eka_appdb iam,
@@ -3888,11 +3894,12 @@ GROUP BY iid.internal_gmr_ref_no)loop
 update gmr_goods_movement_record gmr
    set gmr.is_provisional_invoiced        = cur_gmr_invoice.pi_done,
        gmr.is_final_invoiced              = cur_gmr_invoice.fi_done,
-       gmr.latest_internal_invoice_ref_no = cur_gmr_invoice.latest_internal_invoice_ref_no
+       gmr.latest_internal_invoice_ref_no = cur_gmr_invoice.latest_internal_invoice_ref_no,
+       gmr.invoice_ref_no = cur_gmr_invoice.invoice_ref_no
  where gmr.dbd_id = gvc_dbd_id
    and gmr.internal_gmr_ref_no = cur_gmr_invoice.internal_gmr_ref_no;
 end loop;
-COMMIT;
+commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -4423,6 +4430,7 @@ COMMIT;
   begin
     insert into pcbph_pc_base_price_header
       (pcbph_id,
+       --   optionality_desc,
        version,
        is_active,
        internal_contract_ref_no,
@@ -4432,7 +4440,6 @@ COMMIT;
        valuation_price_percentage,
        dbd_id)
       select decode(pcbph_id, 'Empty_String', null, pcbph_id),
-             
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(internal_contract_ref_no,
@@ -4448,7 +4455,7 @@ COMMIT;
                     'Empty_String',
                     null,
                     is_free_metal_applicable),
-                    nvl(valuation_price_percentage,100),
+                    nvl(valuation_price_percentage,100), 
              gvc_dbd_id
         from (select pcbphul.pcbph_id,
                      substr(max(case
@@ -9196,6 +9203,44 @@ update gmr_goods_movement_record gmr
  where gmr.dbd_id = gvc_dbd_id
  and gmr.internal_gmr_ref_no = cur_dgrd.internal_gmr_ref_no;
 end loop;
+commit;
+--
+-- For concentrates GMRs for which we are calcualting GMR Price
+--
+for cur_grd in (
+select grd.internal_gmr_ref_no,
+       grd.product_id
+  from grd_goods_record_detail grd, pdm_productmaster pdm, pdtm_product_type_master pdtm
+  where grd.tolling_stock_type in ('None Tolling')
+  and grd.product_id = pdm.product_id
+  and pdm.product_type_id = pdtm.product_type_id
+  and pdtm.product_type_name ='Composite'
+  and grd.dbd_id = gvc_dbd_id
+ group by grd.internal_gmr_ref_no,
+       grd.product_id) loop
+Update gmr_goods_movement_record gmr
+set gmr.product_id = cur_grd.product_id
+where gmr.internal_gmr_ref_no = cur_grd.internal_gmr_ref_no
+and gmr.dbd_id =   gvc_dbd_id;     
+end loop;       
+commit;
+for cur_grd in (
+select grd.internal_gmr_ref_no,
+       grd.product_id
+  from dgrd_delivered_grd grd, pdm_productmaster pdm, pdtm_product_type_master pdtm
+  where grd.tolling_stock_type in ('None Tolling')
+  and grd.product_id = pdm.product_id
+  and pdm.product_type_id = pdtm.product_type_id
+  and pdtm.product_type_name ='Composite'
+  and grd.dbd_id = gvc_dbd_id
+ group by grd.internal_gmr_ref_no,
+       grd.product_id) loop
+Update gmr_goods_movement_record gmr
+set gmr.product_id = cur_grd.product_id
+where gmr.internal_gmr_ref_no = cur_grd.internal_gmr_ref_no
+and gmr.dbd_id =   gvc_dbd_id;     
+end loop;       
+commit;
 --
 -- Added on 1st Aug 2012 By janna
 -- We have to nake sure that no where else we are using the below logic as
@@ -13143,9 +13188,9 @@ commit;
                                            pc_user_id      varchar2) is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-
+    vc_previous_eom_id                 varchar2(1);
+    vc_previous_year_eom_id                 varchar2(1);
   begin
-  
     -- Update Pricing QP Start Date and End Date in PCI
     for cur_price_qp in ( --Called off
                          select t.pcdi_id,
@@ -13305,8 +13350,9 @@ commit;
                         102,
                         'Updated shipment date,arrival date for PCDI table');
 
-
+ --
  -- Update Loading Date for GMR
+ --
   for cur_loading_date in (select vd.internal_gmr_ref_no,
                                   max(vd.loading_date) loading_date
                              from vd_voyage_detail vd
@@ -13325,19 +13371,25 @@ commit;
                           pc_dbd_id,
                           103,
                           'End of GMR Loading Date Update');
+ --
   -- Update Contract Details and CP for GMR
+  --
   for cur_gmr in (select gmr.internal_gmr_ref_no,
                          pcm.contract_ref_no,
                          pcm.internal_contract_ref_no,
                          pcm.contract_type,
                          pcm.cp_id,
-                         phd.companyname cp_name
+                         phd.companyname cp_name,
+                         cm.cur_id,
+                         cm.cur_code,
+                         cm.decimals
                     from gmr_goods_movement_record  gmr,
                          grd_goods_record_detail    grd,
                          pci_physical_contract_item pci,
                          pcdi_pc_delivery_item      pcdi,
                          pcm_physical_contract_main pcm,
-                         phd_profileheaderdetails   phd
+                         phd_profileheaderdetails   phd,
+                         cm_currency_master cm
                    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                      and grd.internal_contract_item_ref_no =
                          pci.internal_contract_item_ref_no
@@ -13350,18 +13402,25 @@ commit;
                      and pcdi.dbd_id = pcm.dbd_id
                      and pcm.dbd_id = pc_dbd_id
                      and pcm.cp_id = phd.profileid
+                     and pcm.invoice_currency_id = cm.cur_id
                    group by gmr.internal_gmr_ref_no,
                             pcm.contract_ref_no,
                             pcm.internal_contract_ref_no,
                             pcm.contract_type,
                             pcm.cp_id,
-                            phd.companyname)
+                            phd.companyname,
+                            cm.cur_id,
+                            cm.cur_code,
+                            cm.decimals)
   loop
     update gmr_goods_movement_record gmr
        set gmr.contract_ref_no          = cur_gmr.contract_ref_no,
            gmr.gmr_type                 = cur_gmr.contract_type,
            gmr.cp_id                    = cur_gmr.cp_id,
            gmr.cp_name                  = cur_gmr.cp_name,
+           gmr.invoice_cur_id           = cur_gmr.cur_id,
+           gmr.invoice_cur_code         = cur_gmr.cur_code,
+           gmr.invoice_cur_decimals     = cur_gmr.decimals,
            gmr.internal_contract_ref_no = decode(gmr.internal_contract_ref_no,
                                                  null,
                                                  cur_gmr.internal_contract_ref_no,
@@ -13376,21 +13435,61 @@ commit;
                           104,
                           'End of GMR Contract Details Update');
 
+--
+-- GRD to GMR Conversion Factor
+--
+for cur_grd_convert in(
+select grd.internal_gmr_ref_no,
+       grd.qty_unit_id grd_qty_unit_id,
+       gmr.qty_unit_id gmr_qty_unit_id,
+       ucm.multiplication_factor
+  from grd_goods_record_detail   grd,
+       gmr_goods_movement_record gmr,
+       ucm_unit_conversion_master ucm
+ where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+   and gmr.is_deleted = 'N'
+   and grd.status = 'Active'
+   and grd.is_deleted = 'N'
+   and grd.dbd_id = pc_dbd_id
+   and gmr.dbd_id = pc_dbd_id
+   and grd.qty_unit_id = gmr.qty_unit_id
+   and ucm.from_qty_unit_id = grd.qty_unit_id
+   and ucm.to_qty_unit_id = gmr.qty_unit_id
+   and grd.qty_unit_id <> gmr.qty_unit_id
+   ) loop
+Update grd_goods_record_detail grd
+set grd.grd_to_gmr_qty_factor = cur_grd_convert.multiplication_factor
+where grd.internal_gmr_ref_no = cur_grd_convert.internal_gmr_ref_no
+and grd.qty_unit_id =cur_grd_convert.grd_qty_unit_id
+and grd.dbd_id = pc_dbd_id; 
+end loop;   
+commit;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          105,
+                          'End of Update GRD GMR Factor');
   --
   -- Update Dry Qty in GRD
   --
 
   for cur_grd_dry_qty in (select spq.internal_grd_ref_no,
-                                 min((nvl(asm.dry_wet_qty_ratio, 100) / 100)) dry_wet_qty_ratio
+                                 min((nvl(asm.dry_wet_qty_ratio, 100) / 100)) dry_wet_qty_ratio,
+                                 max(spq.assay_header_id) assay_header_id,
+                                 max(spq.weg_avg_pricing_assay_id) weg_avg_pricing_assay_id
                             from spq_stock_payable_qty    spq,
                                  asm_assay_sublot_mapping asm
                            where spq.is_stock_split = 'N'
                              and spq.weg_avg_pricing_assay_id = asm.ash_id
                              and spq.dbd_id = pc_dbd_id
+                             and spq.is_active ='Y'
                            group by spq.internal_grd_ref_no)
   loop
     update grd_goods_record_detail grd
-       set grd.dry_qty = cur_grd_dry_qty.dry_wet_qty_ratio * grd.qty
+       set grd.dry_qty = cur_grd_dry_qty.dry_wet_qty_ratio * grd.qty,
+           grd.dry_wet_ratio = cur_grd_dry_qty.dry_wet_qty_ratio,
+           grd.assay_header_id = cur_grd_dry_qty.assay_header_id,
+           grd.weg_avg_pricing_assay_id = cur_grd_dry_qty.weg_avg_pricing_assay_id
      where grd.dbd_id = gvc_dbd_id
        and grd.internal_grd_ref_no = cur_grd_dry_qty.internal_grd_ref_no;
   end loop;
@@ -13398,11 +13497,46 @@ commit;
  sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          105,
+                          106,
                           'End of Update GRD Dry Qty');
+for cur_grd_quality in(
+select qat.quality_id,
+       qat.quality_name
+  from qat_quality_attributes qat) loop
+update grd_goods_record_detail grd
+   set grd.quality_name = cur_grd_quality.quality_name
+ where grd.dbd_id = pc_dbd_id
+   and grd.quality_id = cur_grd_quality.quality_id;
+end loop;
+commit;
+
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          107,
+                          'End of Update GRD Quality');
+FOR cur_profit_center in(
+select *
+  from cpc_corporate_profit_center cpc
+ where cpc.corporateid = pc_corporate_id) loop
+update grd_goods_record_detail grd
+   set grd.profit_center_short_name = cur_profit_center.profit_center_short_name,
+       grd.profit_center_name       = cur_profit_center.profit_center_name
+ where grd.profit_center_id = cur_profit_center.profit_center_id
+   and grd.dbd_id = pc_dbd_id;
+end loop;
+commit;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          108,
+                          'End of Update GRD Profit Center');
   for cur_containers in (select grd.internal_gmr_ref_no,
                                 sum(nvl(grd.no_of_containers, 0)) no_of_containers,
-                                sum(nvl(grd.no_of_bags, 0)) no_of_bags
+                                sum(nvl(grd.no_of_bags, 0)) no_of_bags,
+                                sum(grd.qty * nvl(grd.grd_to_gmr_qty_factor,1)) wet_qty,
+                                sum(grd.dry_qty * nvl(grd.grd_to_gmr_qty_factor,1)) dry_qty,
+                                max(grd.quality_name) quality_name
                            from grd_goods_record_detail grd
                           where grd.dbd_id = pc_dbd_id
                             and grd.status = 'Active'
@@ -13411,7 +13545,10 @@ commit;
   loop
     update gmr_goods_movement_record gmr
        set gmr.no_of_containers = cur_containers.no_of_containers,
-           gmr.no_of_bags       = cur_containers.no_of_bags
+           gmr.no_of_bags       = cur_containers.no_of_bags,
+           gmr.dry_qty          = cur_containers.dry_qty,
+           gmr.wet_qty          = cur_containers.wet_qty,
+           gmr.quality_name     = cur_containers.quality_name
      where gmr.dbd_id = pc_dbd_id
        and gmr.internal_gmr_ref_no = cur_containers.internal_gmr_ref_no;
   end loop;
@@ -13419,10 +13556,10 @@ commit;
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          106,
+                          109,
                           'End of GMR Containers and Bags');
   for cur_shipped_qty in (select agmr.internal_gmr_ref_no,
-                                 agmr.qty shipped_qty
+                                 nvl(agmr.qty,0) shipped_qty
                             from agmr_action_gmr agmr
                            where (agmr.internal_gmr_ref_no, agmr.action_no) in
                                  (select agmr.internal_gmr_ref_no,
@@ -13441,36 +13578,296 @@ commit;
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          107,
+                          110,
                           'End of GMR Shipped Qty Update');
 for cur_sublots in(  
-  select ash.internal_gmr_ref_no,
-       sum(ash.no_of_sublots) no_of_sublots
-  from ash_assay_header        ash,
-       grd_goods_record_detail grd
- where ash.internal_grd_ref_no = grd.internal_grd_ref_no
-   and grd.status = 'Active'
-   and grd.dbd_id = pc_dbd_id
-   and ash.ash_id in
-       (select spq.weg_avg_pricing_assay_id
-          from spq_stock_payable_qty spq
-         where spq.internal_grd_ref_no = grd.internal_grd_ref_no
-           and spq.is_stock_split = 'N'
-           and spq.is_active = 'Y'
-           and spq.dbd_id = pc_dbd_id)
- group by ash.internal_gmr_ref_no) loop
- Update gmr_goods_movement_record gmr
- set gmr.no_of_sublots = cur_sublots.no_of_sublots
- where gmr.internal_gmr_ref_no = cur_sublots.internal_gmr_ref_no
- and gmr.dbd_id = pc_dbd_id;
+ select ash.internal_gmr_ref_no,
+        nvl(sum(ash.no_of_sublots), 0) no_of_sublots
+   from ash_assay_header        ash,
+        grd_goods_record_detail grd
+  where grd.dbd_id = pc_dbd_id
+    and grd.status = 'Active'
+    and ash.internal_grd_ref_no = grd.internal_grd_ref_no
+    and ash.ash_id = grd.weg_avg_pricing_assay_id
+  group by ash.internal_gmr_ref_no) loop
+ update gmr_goods_movement_record gmr
+    set gmr.no_of_sublots = cur_sublots.no_of_sublots
+  where gmr.internal_gmr_ref_no = cur_sublots.internal_gmr_ref_no
+    and gmr.dbd_id = pc_dbd_id;
 end loop;
 commit;
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          108,
+                          111,
                           'End of GMR Sublots Update');
+
+for cur_gmr_whname in(
+select phd.* from phd_profileheaderdetails phd) loop
+update gmr_goods_movement_record gmr
+   set gmr.warehouse_name = cur_gmr_whname.companyname
+ where gmr.dbd_id = pc_dbd_id
+   and gmr.warehouse_profile_id = cur_gmr_whname.profileid;
+   Update gepd_gmr_element_pledge_detail gepd
+   set gepd.pledge_cp_name = cur_gmr_whname.profileid
+   where gepd.dbd_id= pc_dbd_id
+   and gepd.pledge_cp_id = cur_gmr_whname.profileid;
+end loop; 
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          112,
+                          'End of GMR Warehouse Name Update');
+commit;                          
+
+--
+-- Update Assay Final Status for Arrived Report
+--                      
+for cur_assay in( 
+SELECT   gmr.internal_gmr_ref_no,
+            CASE
+               WHEN COUNT
+                         (DISTINCT grd.internal_grd_ref_no) =
+                      SUM
+                         (CASE
+                             WHEN ash.is_final_assay_fully_finalized = 'Y'
+                                THEN 1
+                             ELSE 0
+                          END
+                         )
+                  THEN 'Assay Finalized'
+               WHEN SUM (CASE
+                            WHEN ash.is_final_assay_fully_finalized = 'Y'
+                               THEN 1
+                            ELSE 0
+                         END
+                        ) <> 0
+                  THEN 'Partial Assay Finalized'
+               ELSE 'Not Assay Finalized'
+            END assay_final_status
+       FROM gmr_goods_movement_record gmr,
+            grd_goods_record_detail grd,
+            ash_assay_header ash
+      WHERE gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+        AND gmr.internal_gmr_ref_no = ash.internal_gmr_ref_no
+        AND grd.internal_grd_ref_no = ash.internal_grd_ref_no
+        AND gmr.dbd_id = grd.dbd_id
+        AND gmr.is_deleted = 'N'
+        AND grd.status = 'Active'
+        AND ash.is_active = 'Y'
+        and gmr.dbd_id = pc_dbd_id
+   GROUP BY gmr.internal_gmr_ref_no) loop
+   Update gmr_goods_movement_record gmr
+   set gmr.assay_final_status = cur_assay.assay_final_status
+   where gmr.internal_gmr_ref_no = cur_assay.internal_gmr_ref_no
+   and gmr.dbd_id = pc_dbd_id;
+end loop;   
+commit;  
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          113,
+                          'End of GMR Assay Status');
+  for cur_pcdi in (select pcdi.pcdi_id,
+                          pcpd.product_id,
+                          pdm.product_desc
+                     from pcdi_pc_delivery_item      pcdi,
+                          pcpd_pc_product_definition pcpd,
+                          pdm_productmaster          pdm
+                    where pcdi.internal_contract_ref_no =
+                          pcpd.internal_contract_ref_no
+                      and pcpd.product_id = pdm.product_id
+                      and pcdi.dbd_id = gvc_dbd_id
+                      and pcpd.dbd_id = gvc_dbd_id
+                      and pcpd.input_output = 'Input'
+                      and pcpd.is_active = 'Y'
+                    group by pcdi.pcdi_id,
+                             pcpd.product_id,
+                             pdm.product_desc)
+  loop
+    update grd_goods_record_detail grd
+       set grd.conc_product_id   = cur_pcdi.product_id,
+           grd.conc_product_name = cur_pcdi.product_desc
+     where grd.pcdi_id = cur_pcdi.pcdi_id
+       and grd.dbd_id = gvc_dbd_id;
+  end loop;       
+commit;       
+ sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          114,
+                          'End of GRD Concentrate Product Update'); 
+update gepd_gmr_element_pledge_detail gepd
+   set gepd.pledge_input_gmr_ref_no = (select gmr.gmr_ref_no from gmr_goods_movement_record gmr
+                                        where gmr.internal_gmr_ref_no =
+                                              gepd.pledge_input_gmr
+                                          and gmr.dbd_id = pc_dbd_id)
+ where gepd.dbd_id = pc_dbd_id;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          115,
+                          'End of GEPD GMR ref No Update'); 
+update gepd_gmr_element_pledge_detail gepd
+   set gepd.supplier_cp_name = (select phd.companyname
+                                  from phd_profileheaderdetails phd
+                                 where phd.profileid = gepd.supplier_cp_id)
+ where gepd.dbd_id = pc_dbd_id;
+commit;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          116,
+                          'End of GEPD Profie Name Update'); 
+  for cur_aml in (select * from aml_attribute_master_list)
+  loop
+    update gepd_gmr_element_pledge_detail gepd
+       set gepd.element_name = cur_aml.attribute_name
+     where gepd.dbd_id = pc_dbd_id
+       and gepd.element_id = cur_aml.attribute_id;
+  end loop;
+commit;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          117,
+                          'End of GEPD Element Name Update'); 
+  for cur_qum in (select qum.qty_unit_id,
+                         qum.qty_unit
+                    from qum_quantity_unit_master qum)
+  loop
+    update grd_goods_record_detail grd
+       set grd.qty_unit = cur_qum.qty_unit
+     where grd.dbd_id = pc_dbd_id
+       and grd.qty_unit_id = cur_qum.qty_unit_id;
+  end loop;
+  commit;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          118,
+                          'End of GRD Quantity Unit Update'); 
+  for cur_grd_pdm in (select pdm.product_id,
+                             pdm.product_desc product_name
+                        from pdm_productmaster pdm)
+  loop
+    update grd_goods_record_detail grd
+       set grd.product_name = cur_grd_pdm.product_name
+     where grd.dbd_id = pc_dbd_id
+       and grd.product_id = cur_grd_pdm.product_id;
+      update pcpd_pc_product_definition pcpd
+       set pcpd.product_name = cur_grd_pdm.product_name
+     where pcpd.dbd_id = pc_dbd_id
+       and pcpd.product_id = cur_grd_pdm.product_id;
+      
+  end loop;
+commit;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          119,
+                          'End of GRD Product Update'); 
+  for cur_gsm in (select * from gsm_gmr_stauts_master gsm)
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.gmr_status = cur_gsm.status
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.status_id = cur_gsm.status_id;
+  end loop;
+ commit; 
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          120,
+                          'End of GMR Status From GSM Update');  
+  for cur_sld in (select sld.storage_loc_id,
+                         sld.storage_location_name
+                    from sld_storage_location_detail sld)
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.shed_name = cur_sld.storage_location_name
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.shed_id = cur_sld.storage_location_name;
+  end loop;
+commit;
+ sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          121,
+                          'End of GMR Shed Name Update');  
+  for cur_itm in (select * from itm_incoterm_master itm)
+  loop
+    update pci_physical_contract_item pci
+       set pci.m2m_incoterm_desc = cur_itm.incoterm
+     where pci.dbd_id = pc_dbd_id
+       and pci.m2m_inco_term = cur_itm.incoterm_id;
+  end loop;
+commit; 
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          122,
+                          'End of PCI Incoterm Update'); 
+---
+-- GMR Discharge and Loading Details
+--
+for cur_city in(
+select cim.city_id,
+       cim.city_name,
+       sm.state_name,
+       cym.country_name,
+       cym.region_id,
+       rem.region_name,
+       cm.cur_id,
+       cm.cur_code
+  from cim_citymaster    cim,
+       sm_state_master   sm,
+       cym_countrymaster cym,
+       rem_region_master rem,
+       cm_currency_master cm
+ where cim.state_id = sm.state_id(+)
+   and sm.country_id = cym.country_id(+)
+   and cym.region_id = rem.region_id(+)
+   and cym.national_currency = cm.cur_id(+)) loop
+update gmr_goods_movement_record gmr
+   set gmr.discharge_city_name    = cur_city.city_name,
+       gmr.discharge_state_name   = cur_city.state_name,
+       gmr.discharge_country_name = cur_city.country_name,
+       gmr.discharge_region_id    = cur_city.region_id,
+       gmr.discharge_region_name  = cur_city.region_name,
+       gmr.discharge_country_cur_id = cur_city.cur_id,
+       gmr.discharge_country_cur_code = cur_city.cur_code
+ where gmr.dbd_id = pc_dbd_id
+   and gmr.discharge_city_id = cur_city.city_id;
+ update gmr_goods_movement_record gmr
+   set gmr.loading_city_name    = cur_city.city_name,
+       gmr.loading_state_name   = cur_city.state_name,
+       gmr.loading_country_name = cur_city.country_name,
+       gmr.loading_region_id    = cur_city.region_id,
+       gmr.loading_region_name  = cur_city.region_name,
+       gmr.loading_country_cur_id = cur_city.cur_id,
+       gmr.loading_country_cur_code = cur_city.cur_code
+ where gmr.dbd_id = pc_dbd_id
+   and gmr.loading_city_id = cur_city.city_id;
+end loop;  
+commit; 
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          123,
+                          'End of GMR Load and Discharge Update'); 
+
+  for cur_pcm_cur in (select * from cm_currency_master)
+  loop
+    update pcm_physical_contract_main pcm
+       set pcm.invoice_cur_code = cur_pcm_cur.cur_code,
+       pcm.invoice_cur_decimals = cur_pcm_cur.decimals
+     where pcm.invoice_currency_id = cur_pcm_cur.cur_id
+       and pcm.dbd_id = pc_dbd_id;
+  end loop;
+commit;
   sp_gather_stats('GRD_GOODS_RECORD_DETAIL');
+  sp_gather_stats('GMR_GOODS_MOVEMENT_RECORD');
   sp_gather_stats('SPQ_STOCK_PAYABLE_QTY');
   sp_create_exchange_data(pc_corporate_id,
                           pd_trade_date,
@@ -13481,7 +13878,7 @@ commit;
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          107,
+                          124,
                           'End of Populate Exchange Data');
   exception
     when others then
@@ -13756,7 +14153,6 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           993,
                           'delete from ged over');
-    
     insert into ged_gmr_exchange_detail
       (corporate_id,
        internal_gmr_ref_no,
@@ -13766,7 +14162,17 @@ sp_precheck_process_log(pc_corporate_id,
        derivative_def_name,
        exchange_id,
        exchange_name,
-       element_id)
+       element_id,
+       price_source_id,
+       price_source_name,
+       available_price_id,
+       available_price_name,
+       price_unit_name,
+       ppu_price_unit_id,
+       price_unit_id,
+       delivery_calender_id,
+       is_daily_cal_applicable,
+       is_monthly_cal_applicable)
       select pc_corporate_id,
              pofh.internal_gmr_ref_no,
              ppfd.instrument_id,
@@ -13775,7 +14181,17 @@ sp_precheck_process_log(pc_corporate_id,
              pdd.derivative_def_name,
              emt.exchange_id,
              emt.exchange_name,
-             pcbpd.element_id
+             pcbpd.element_id,
+             ps.price_source_id,
+                     ps.price_source_name,
+                     apm.available_price_id,
+                     apm.available_price_name,
+                     pum.price_unit_name,
+                     vdip.ppu_price_unit_id,
+                     div.price_unit_id,
+                     dim.delivery_calender_id,
+                     pdc.is_daily_cal_applicable,
+                     pdc.is_monthly_cal_applicable
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -13783,7 +14199,13 @@ sp_precheck_process_log(pc_corporate_id,
              ppfd_phy_price_formula_details ppfd,
              dim_der_instrument_master      dim,
              pdd_product_derivative_def     pdd,
-             emt_exchangemaster             emt
+             emt_exchangemaster             emt,
+                     div_der_instrument_valuation div,
+                     ps_price_source              ps,
+                     apm_available_price_master   apm,
+                     pum_price_unit_master        pum,
+                     v_der_instrument_price_unit  vdip,
+                     pdc_prompt_delivery_calendar pdc
        where pofh.pocd_id = pocd.pocd_id
          and pocd.pcbpd_id = pcbpd.pcbpd_id
          and pcbpd.pcbpd_id = ppfh.pcbpd_id
@@ -13800,6 +14222,13 @@ sp_precheck_process_log(pc_corporate_id,
          and ppfh.is_active = 'Y'
          and ppfd.is_active = 'Y'
          and ppfd.dbd_id = pc_dbd_id
+         and dim.instrument_id = div.instrument_id
+         and div.is_deleted = 'N'
+         and div.price_source_id = ps.price_source_id
+         and div.available_price_id = apm.available_price_id
+         And div.price_unit_id = pum.price_unit_id
+         and dim.instrument_id = vdip.instrument_id
+         and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id
        group by pofh.internal_gmr_ref_no,
                 ppfd.instrument_id,
                 dim.instrument_name,
@@ -13807,13 +14236,24 @@ sp_precheck_process_log(pc_corporate_id,
                 pdd.derivative_def_name,
                 emt.exchange_id,
                 emt.exchange_name,
-                pcbpd.element_id;    
+                pcbpd.element_id,
+             ps.price_source_id,
+                     ps.price_source_name,
+                     apm.available_price_id,
+                     apm.available_price_name,
+                     pum.price_unit_name,
+                     vdip.ppu_price_unit_id,
+                     div.price_unit_id,
+                     dim.delivery_calender_id,
+                     pdc.is_daily_cal_applicable,
+                     pdc.is_monthly_cal_applicable;    
 commit;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
                           993,
                           'Insert into ged over');                
+
 sp_gather_stats('ged_gmr_exchange_detail');
 sp_gather_stats('ced_contract_exchange_detail');
                 

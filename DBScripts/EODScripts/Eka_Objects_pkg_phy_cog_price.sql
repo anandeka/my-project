@@ -228,6 +228,7 @@ create or replace package body pkg_phy_cog_price is
     vc_fixed_price_unit_id   varchar2(15);
   
   begin
+  
     for cur_pcdi_rows in cur_pcdi
     loop
       vn_total_contract_value      := 0;
@@ -1656,15 +1657,11 @@ create or replace package body pkg_phy_cog_price is
     vc_data_missing_for          varchar2(1000);
   
   begin
-    vc_error_message := 'Start';
+    sp_gather_stats('pcbph_pc_base_price_header');
+    sp_gather_stats('pcbpd_pc_base_price_detail');
     sp_gather_stats('poch_price_opt_call_off_header');
     sp_gather_stats('pocd_price_option_calloff_dtls');
-    sp_gather_stats('pcbpd_pc_base_price_detail');
-    sp_gather_stats('pcbph_pc_base_price_header');
-    sp_gather_stats('pofh_price_opt_fixation_header');
-    sp_gather_stats('pci_physical_contract_item');
-    sp_gather_stats('pcipf_pci_pricing_formula');
-  
+    vc_error_message := 'Start';
     for cur_pcdi_rows in cur_pcdi
     loop
       vn_total_contract_value      := 0;
@@ -1703,7 +1700,11 @@ create or replace package body pkg_phy_cog_price is
                                          vn_total_quantity *
                                          (vn_qty_to_be_priced / 100) *
                                          cur_called_off_rows.final_price;
-              vc_price_unit_id        := cur_called_off_rows.final_price_unit_id;
+              select ppu.price_unit_id
+                into vc_price_unit_id
+                from v_ppu_pum ppu
+               where ppu.product_price_unit_id =
+                     cur_called_off_rows.final_price_unit_id;
             
             else
               for cc1 in (select pofh.pofh_id
@@ -2348,8 +2349,7 @@ create or replace package body pkg_phy_cog_price is
     cursor cur_gmr is
       select gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
-             grd.product_id,
-             grd.internal_grd_ref_no internal_grd_ref_no,
+             gmr.product_id,
              tt.instrument_id,
              tt.instrument_name,
              tt.price_source_id,
@@ -2362,150 +2362,20 @@ create or replace package body pkg_phy_cog_price is
              tt.delivery_calender_id,
              tt.is_daily_cal_applicable,
              tt.is_monthly_cal_applicable,
-             spq.element_id,
-             spq.payable_qty,
-             spq.qty_unit_id payable_qty_unit_id
+             gpq.element_id,
+             gpq.payable_qty,
+             gpq.qty_unit_id payable_qty_unit_id
         from gmr_goods_movement_record gmr,
-             (select grd.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     grd.quality_id,
-                     grd.product_id
-                from grd_goods_record_detail grd
-               where grd.process_id = pc_process_id
-                 and grd.status = 'Active'
-                 and grd.tolling_stock_type in ('None Tolling')
-                 and grd.is_deleted = 'N'
-               group by grd.internal_gmr_ref_no,
-                        grd.quality_id,
-                        grd.product_id,
-                        grd.internal_grd_ref_no) grd,
-             pdm_productmaster pdm,
-             pdtm_product_type_master pdtm,
-             v_gmr_payable_qty spq,
-             (select qat.process_id,
-                     qat.internal_gmr_ref_no,
-                     qat.instrument_id,
-                     qat.element_id,
-                     dim.instrument_name,
-                     ps.price_source_id,
-                     ps.price_source_name,
-                     apm.available_price_id,
-                     apm.available_price_name,
-                     pum.price_unit_name,
-                     vdip.ppu_price_unit_id,
-                     div.price_unit_id,
-                     dim.delivery_calender_id,
-                     pdc.is_daily_cal_applicable,
-                     pdc.is_monthly_cal_applicable
-                from v_gmr_exchange_detail        qat,
-                     dim_der_instrument_master    dim,
-                     div_der_instrument_valuation div,
-                     ps_price_source              ps,
-                     apm_available_price_master   apm,
-                     pum_price_unit_master        pum,
-                     v_der_instrument_price_unit  vdip,
-                     pdc_prompt_delivery_calendar pdc
-               where qat.instrument_id = dim.instrument_id
-                 and dim.instrument_id = div.instrument_id
-                 and div.is_deleted = 'N'
-                 and div.price_source_id = ps.price_source_id
-                 and div.available_price_id = apm.available_price_id
-                 and div.price_unit_id = pum.price_unit_id
-                 and dim.instrument_id = vdip.instrument_id
-                 and dim.delivery_calender_id =
-                     pdc.prompt_delivery_calendar_id) tt
-       where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-         and grd.product_id = pdm.product_id
-         and pdm.product_type_id = pdtm.product_type_id
-         and pdtm.product_type_name = 'Composite'
-         and spq.process_id = pc_process_id
-         and tt.element_id = spq.element_id
-         and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
+             gpq_gmr_payable_qty       gpq,
+             ged_gmr_exchange_detail   tt
+       where gmr.gmr_type = 'CONCENTRATES'
+         and gpq.process_id = pc_process_id
+         and tt.element_id = gpq.element_id
+         and tt.internal_gmr_ref_no = gpq.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
-         and gmr.process_id = tt.process_id(+)
-         and gmr.is_deleted = 'N'
-         and spq.payable_qty > 0
-      union all
-      select gmr.internal_gmr_ref_no,
-             gmr.gmr_ref_no,
-             grd.product_id,
-             grd.internal_dgrd_ref_no internal_grd_ref_no,
-             tt.instrument_id,
-             tt.instrument_name,
-             tt.price_source_id,
-             tt.price_source_name,
-             tt.available_price_id,
-             tt.available_price_name,
-             tt.price_unit_name,
-             tt.ppu_price_unit_id,
-             tt.price_unit_id,
-             tt.delivery_calender_id,
-             tt.is_daily_cal_applicable,
-             tt.is_monthly_cal_applicable,
-             spq.element_id,
-             spq.payable_qty,
-             spq.qty_unit_id payable_qty_unit_id
-        from gmr_goods_movement_record gmr,
-             (select grd.internal_gmr_ref_no,
-                     grd.internal_dgrd_ref_no,
-                     grd.quality_id,
-                     grd.product_id
-                from dgrd_delivered_grd grd
-               where grd.process_id = pc_process_id
-                 and grd.status = 'Active'
-                 and grd.tolling_stock_type in ('None Tolling')
-               group by grd.internal_gmr_ref_no,
-                        grd.quality_id,
-                        grd.product_id,
-                        grd.internal_dgrd_ref_no) grd,
-             pdm_productmaster pdm,
-             pdtm_product_type_master pdtm,
-             v_gmr_payable_qty spq,
-             (select qat.process_id,
-                     qat.internal_gmr_ref_no,
-                     qat.instrument_id,
-                     qat.element_id,
-                     dim.instrument_name,
-                     ps.price_source_id,
-                     ps.price_source_name,
-                     apm.available_price_id,
-                     apm.available_price_name,
-                     pum.price_unit_name,
-                     vdip.ppu_price_unit_id,
-                     div.price_unit_id,
-                     dim.delivery_calender_id,
-                     pdc.is_daily_cal_applicable,
-                     pdc.is_monthly_cal_applicable
-                from v_gmr_exchange_detail        qat,
-                     dim_der_instrument_master    dim,
-                     div_der_instrument_valuation div,
-                     ps_price_source              ps,
-                     apm_available_price_master   apm,
-                     pum_price_unit_master        pum,
-                     v_der_instrument_price_unit  vdip,
-                     pdc_prompt_delivery_calendar pdc
-               where qat.instrument_id = dim.instrument_id
-                 and dim.instrument_id = div.instrument_id
-                 and div.is_deleted = 'N'
-                 and div.price_source_id = ps.price_source_id
-                 and div.available_price_id = apm.available_price_id
-                 and div.price_unit_id = pum.price_unit_id
-                 and dim.instrument_id = vdip.instrument_id
-                 and dim.delivery_calender_id =
-                     pdc.prompt_delivery_calendar_id) tt
-       where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-         and grd.product_id = pdm.product_id
-         and pdm.product_type_id = pdtm.product_type_id
-         and pdm.product_type_id = 'Composite'
-         and spq.process_id = pc_process_id
-         and tt.element_id = spq.element_id
-         and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
-         and gmr.process_id = pc_process_id
-         and gmr.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
-         and gmr.process_id = tt.process_id(+)
-         and gmr.is_deleted = 'N'
-         and spq.payable_qty > 0;
+         and gmr.corporate_id = tt.corporate_id(+)
+         and gmr.is_deleted = 'N';
   
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is
       select pofh.internal_gmr_ref_no,
@@ -2593,7 +2463,11 @@ create or replace package body pkg_phy_cog_price is
                                      vn_total_quantity *
                                      (vn_qty_to_be_priced / 100) *
                                      cur_gmr_ele_rows.final_price;
-          vc_price_unit_id        := cur_gmr_ele_rows.final_price_unit_id;
+          select ppu.price_unit_id
+            into vc_price_unit_id
+            from v_ppu_pum ppu
+           where ppu.product_price_unit_id =
+                 cur_gmr_ele_rows.final_price_unit_id;
         else
         
           vc_price_basis := cur_gmr_ele_rows.price_basis;
@@ -2842,11 +2716,13 @@ create or replace package body pkg_phy_cog_price is
           else
             vc_price_unit_id := vc_unfixed_val_price_unit_id;
           end if;
+        
           --vn_total_quantity       := cur_gmr_rows.payable_qty;
           vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
           vn_total_contract_value := vn_total_contract_value +
                                      ((vn_qty_to_be_priced / 100) *
                                      (vn_fixed_value + vn_unfixed_value));
+        
         end if;
         begin
           select ppu.product_price_unit_id
@@ -2858,13 +2734,13 @@ create or replace package body pkg_phy_cog_price is
           when others then
             vc_price_unit_id := null;
         end;
-      
       end loop;
-      if vn_total_quantity<>0 then
-      vn_average_price := round(vn_total_contract_value / vn_total_quantity,
-                                4);
+      if vn_total_quantity <> 0 then
+        vn_average_price := round(vn_total_contract_value /
+                                  vn_total_quantity,
+                                  4);
       else
-      vn_average_price := 0;
+        vn_average_price := 0;
       end if;
       begin
         select cm.cur_id,
@@ -2909,8 +2785,7 @@ create or replace package body pkg_phy_cog_price is
            price_unit_weight_unit,
            fixed_qty,
            unfixed_qty,
-           price_basis,
-           internal_grd_ref_no)
+           price_basis)
         values
           (pc_process_id,
            pc_corporate_id,
@@ -2928,8 +2803,7 @@ create or replace package body pkg_phy_cog_price is
            vn_price_weight_unit,
            vn_fixed_qty,
            vn_unfixed_qty,
-           vc_price_basis,
-           cur_gmr_rows.internal_grd_ref_no);
+           vc_price_basis);
       end if;
     end loop;
     commit;
@@ -2975,88 +2849,32 @@ create or replace package body pkg_phy_cog_price is
     cursor cur_gmr is
       select gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
-             grd.product_id,
-             grd.internal_grd_ref_no internal_grd_ref_no,
-             tt.instrument_id,
-             tt.instrument_name,
-             tt.price_source_id,
-             tt.price_source_name,
-             tt.available_price_id,
-             tt.available_price_name,
-             tt.price_unit_name,
-             tt.ppu_price_unit_id,
-             tt.price_unit_id,
-             tt.delivery_calender_id,
-             tt.is_daily_cal_applicable,
-             tt.is_monthly_cal_applicable,
-             spq.element_id,
-             spq.payable_qty,
-             spq.qty_unit_id payable_qty_unit_id
-        from (select grd.internal_gmr_ref_no,
-                     grd.internal_grd_ref_no,
-                     grd.quality_id,
-                     grd.product_id
-                from grd_goods_record_detail grd
-               where grd.process_id = pc_process_id
-                 and grd.status = 'Active'
-                 and grd.tolling_stock_type in ('None Tolling')
-                 and grd.is_deleted = 'N'
-              union
-              select grd.internal_gmr_ref_no,
-                     grd.internal_dgrd_ref_no internal_grd_ref_no,
-                     grd.quality_id,
-                     grd.product_id
-                from dgrd_delivered_grd grd
-               where grd.process_id = pc_process_id
-                 and grd.status = 'Active'
-                 and grd.tolling_stock_type in ('None Tolling')) grd,
-             pdm_productmaster pdm,
-             pdtm_product_type_master pdtm,
-             v_gmr_payable_qty spq,
-             gmr_goods_movement_record gmr,
-             (select qat.internal_gmr_ref_no,
-                     qat.instrument_id,
-                     qat.element_id,
-                     dim.instrument_name,
-                     ps.price_source_id,
-                     ps.price_source_name,
-                     apm.available_price_id,
-                     apm.available_price_name,
-                     pum.price_unit_name,
-                     vdip.ppu_price_unit_id,
-                     div.price_unit_id,
-                     dim.delivery_calender_id,
-                     pdc.is_daily_cal_applicable,
-                     pdc.is_monthly_cal_applicable
-                from page_price_alloc_gmr_exchange qat,
-                     dim_der_instrument_master     dim,
-                     div_der_instrument_valuation  div,
-                     ps_price_source               ps,
-                     apm_available_price_master    apm,
-                     pum_price_unit_master         pum,
-                     v_der_instrument_price_unit   vdip,
-                     pdc_prompt_delivery_calendar  pdc
-               where qat.instrument_id = dim.instrument_id
-                 and dim.instrument_id = div.instrument_id
-                 and div.is_deleted = 'N'
-                 and div.price_source_id = ps.price_source_id
-                 and div.available_price_id = apm.available_price_id
-                 and div.price_unit_id = pum.price_unit_id
-                 and dim.instrument_id = vdip.instrument_id
-                 and dim.delivery_calender_id =
-                     pdc.prompt_delivery_calendar_id
-                 and qat.process_id = pc_process_id) tt
-       where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-         and grd.product_id = pdm.product_id
-         and pdm.product_type_id = pdtm.product_type_id
-         and pdtm.product_type_name = 'Composite'
-         and spq.process_id = pc_process_id
-         and tt.element_id = spq.element_id
-         and tt.internal_gmr_ref_no = spq.internal_gmr_ref_no
+             gmr.product_id,
+             page.instrument_id,
+             page.instrument_name,
+             page.price_source_id,
+             page.price_source_name,
+             page.available_price_id,
+             page.available_price_name,
+             page.price_unit_name,
+             page.ppu_price_unit_id,
+             page.price_unit_id,
+             page.delivery_calender_id,
+             page.is_daily_cal_applicable,
+             page.is_monthly_cal_applicable,
+             gpq.element_id,
+             gpq.payable_qty,
+             gpq.qty_unit_id payable_qty_unit_id
+        from gpq_gmr_payable_qty           gpq,
+             gmr_goods_movement_record     gmr,
+             page_price_alloc_gmr_exchange page
+       where gmr.gmr_type = 'CONCENTRATES'
+         and gpq.process_id = pc_process_id
+         and page.element_id = gpq.element_id
+         and page.internal_gmr_ref_no = gpq.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
-         and grd.internal_gmr_ref_no = tt.internal_gmr_ref_no(+)
-         and gmr.is_deleted = 'N'
-         and spq.payable_qty > 0;
+         and gmr.internal_gmr_ref_no = page.internal_gmr_ref_no(+)
+         and gmr.is_deleted = 'N';
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is
       select gpah.internal_gmr_ref_no,
              pcbpd.element_id,
@@ -3169,6 +2987,7 @@ create or replace package body pkg_phy_cog_price is
                  and gpah.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gpah.element_id = pcbpd.element_id)
        group by grd.internal_gmr_ref_no,
+                pofh.pofh_id,
                 pcbpd.element_id,
                 pcbpd.pcbpd_id,
                 pcbpd.qty_to_be_priced,
@@ -3220,7 +3039,17 @@ create or replace package body pkg_phy_cog_price is
        derivative_def_name,
        exchange_id,
        exchange_name,
-       element_id)
+       element_id,
+       price_source_id,
+       price_source_name,
+       available_price_id,
+       available_price_name,
+       price_unit_name,
+       ppu_price_unit_id,
+       price_unit_id,
+       delivery_calender_id,
+       is_daily_cal_applicable,
+       is_monthly_cal_applicable)
       select pcdi.process_id,
              gpah.internal_gmr_ref_no,
              ppfd.instrument_id,
@@ -3229,7 +3058,17 @@ create or replace package body pkg_phy_cog_price is
              pdd.derivative_def_name,
              emt.exchange_id,
              emt.exchange_name,
-             pcbpd.element_id
+             pcbpd.element_id,
+             ps.price_source_id,
+             ps.price_source_name,
+             apm.available_price_id,
+             apm.available_price_name,
+             pum.price_unit_name,
+             vdip.ppu_price_unit_id,
+             div.price_unit_id,
+             dim.delivery_calender_id,
+             pdc.is_daily_cal_applicable,
+             pdc.is_monthly_cal_applicable
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,
@@ -3243,7 +3082,13 @@ create or replace package body pkg_phy_cog_price is
              ppfd_phy_price_formula_details ppfd,
              dim_der_instrument_master      dim,
              pdd_product_derivative_def     pdd,
-             emt_exchangemaster             emt
+             emt_exchangemaster             emt,
+             div_der_instrument_valuation   div,
+             ps_price_source                ps,
+             apm_available_price_master     apm,
+             pum_price_unit_master          pum,
+             v_der_instrument_price_unit    vdip,
+             pdc_prompt_delivery_calendar   pdc
        where poch.poch_id = pocd.poch_id
          and gpad.pfd_id = pfd.pfd_id
          and pcdi.pcdi_id = poch.pcdi_id
@@ -3271,6 +3116,13 @@ create or replace package body pkg_phy_cog_price is
          and dim.product_derivative_id = pdd.derivative_def_id
          and pdd.exchange_id = emt.exchange_id(+)
          and gpad.gpah_id = gpah.gpah_id
+         and dim.instrument_id = div.instrument_id
+         and div.is_deleted = 'N'
+         and div.price_source_id = ps.price_source_id
+         and div.available_price_id = apm.available_price_id
+         and div.price_unit_id = pum.price_unit_id
+         and dim.instrument_id = vdip.instrument_id
+         and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id
        group by pcdi.process_id,
                 gpah.internal_gmr_ref_no,
                 ppfd.instrument_id,
@@ -3279,7 +3131,17 @@ create or replace package body pkg_phy_cog_price is
                 pdd.derivative_def_name,
                 emt.exchange_id,
                 emt.exchange_name,
-                pcbpd.element_id;
+                pcbpd.element_id,
+                ps.price_source_id,
+                ps.price_source_name,
+                apm.available_price_id,
+                apm.available_price_name,
+                pum.price_unit_name,
+                vdip.ppu_price_unit_id,
+                div.price_unit_id,
+                dim.delivery_calender_id,
+                pdc.is_daily_cal_applicable,
+                pdc.is_monthly_cal_applicable;
     commit;
     --
     -- Populate Price Allocation GMR Exchange Details where it is not allocated
@@ -3293,7 +3155,17 @@ create or replace package body pkg_phy_cog_price is
        derivative_def_name,
        exchange_id,
        exchange_name,
-       element_id)
+       element_id,
+       price_source_id,
+       price_source_name,
+       available_price_id,
+       available_price_name,
+       price_unit_name,
+       ppu_price_unit_id,
+       price_unit_id,
+       delivery_calender_id,
+       is_daily_cal_applicable,
+       is_monthly_cal_applicable)
       select pcdi.process_id,
              grd.internal_gmr_ref_no,
              ppfd.instrument_id,
@@ -3302,7 +3174,17 @@ create or replace package body pkg_phy_cog_price is
              pdd.derivative_def_name,
              emt.exchange_id,
              emt.exchange_name,
-             pcbpd.element_id
+             pcbpd.element_id,
+             ps.price_source_id,
+             ps.price_source_name,
+             apm.available_price_id,
+             apm.available_price_name,
+             pum.price_unit_name,
+             vdip.ppu_price_unit_id,
+             div.price_unit_id,
+             dim.delivery_calender_id,
+             pdc.is_daily_cal_applicable,
+             pdc.is_monthly_cal_applicable
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,
@@ -3315,7 +3197,13 @@ create or replace package body pkg_phy_cog_price is
              dim_der_instrument_master      dim,
              pdd_product_derivative_def     pdd,
              emt_exchangemaster             emt,
-             grd_goods_record_detail        grd
+             grd_goods_record_detail        grd,
+             div_der_instrument_valuation   div,
+             ps_price_source                ps,
+             apm_available_price_master     apm,
+             pum_price_unit_master          pum,
+             v_der_instrument_price_unit    vdip,
+             pdc_prompt_delivery_calendar   pdc
        where poch.poch_id = pocd.poch_id
          and pcdi.pcdi_id = poch.pcdi_id
          and pocd.pocd_id = pofh.pocd_id(+)
@@ -3340,6 +3228,13 @@ create or replace package body pkg_phy_cog_price is
          and pdd.exchange_id = emt.exchange_id(+)
          and grd.pcdi_id = pcdi.pcdi_id
          and grd.process_id = pc_process_id
+         and dim.instrument_id = div.instrument_id
+         and div.is_deleted = 'N'
+         and div.price_source_id = ps.price_source_id
+         and div.available_price_id = apm.available_price_id
+         and div.price_unit_id = pum.price_unit_id
+         and dim.instrument_id = vdip.instrument_id
+         and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id
          and not exists
        (select *
                 from gpah_gmr_price_alloc_header gpah
@@ -3355,7 +3250,16 @@ create or replace package body pkg_phy_cog_price is
                 emt.exchange_id,
                 emt.exchange_name,
                 pcbpd.element_id,
-                pcdi.pcdi_id;
+                ps.price_source_id,
+                ps.price_source_name,
+                apm.available_price_id,
+                apm.available_price_name,
+                pum.price_unit_name,
+                vdip.ppu_price_unit_id,
+                div.price_unit_id,
+                dim.delivery_calender_id,
+                pdc.is_daily_cal_applicable,
+                pdc.is_monthly_cal_applicable;
     commit;
     for cur_gmr_rows in cur_gmr
     loop
@@ -3380,7 +3284,11 @@ create or replace package body pkg_phy_cog_price is
                                      vn_total_quantity *
                                      (vn_qty_to_be_priced / 100) *
                                      cur_gmr_ele_rows.final_price;
-          vc_price_unit_id        := cur_gmr_ele_rows.final_price_unit_id;
+          select ppu.price_unit_id
+            into vc_price_unit_id
+            from v_ppu_pum ppu
+           where ppu.product_price_unit_id =
+                 cur_gmr_ele_rows.final_price_unit_id;
         else
         
           begin
@@ -3658,8 +3566,13 @@ create or replace package body pkg_phy_cog_price is
                                      (vn_fixed_value + vn_unfixed_value));
         end if;
       end loop;
-      vn_average_price := round(vn_total_contract_value / vn_total_quantity,
-                                4);
+      if vn_total_quantity <> 0 then
+        vn_average_price := round(vn_total_contract_value /
+                                  vn_total_quantity,
+                                  4);
+      else
+        vn_average_price := 0;
+      end if;
       begin
         select cm.cur_id,
                cm.cur_code,
@@ -3703,8 +3616,7 @@ create or replace package body pkg_phy_cog_price is
            price_unit_weight_unit,
            fixed_qty,
            unfixed_qty,
-           price_basis,
-           internal_grd_ref_no)
+           price_basis)
         values
           (pc_process_id,
            pc_corporate_id,
@@ -3722,8 +3634,7 @@ create or replace package body pkg_phy_cog_price is
            vn_price_weight_unit,
            vn_fixed_qty,
            vn_unfixed_qty,
-           vc_price_basis,
-           cur_gmr_rows.internal_grd_ref_no);
+           vc_price_basis);
       end if;
     end loop;
     commit;

@@ -358,6 +358,17 @@ create or replace package body pkg_phy_physical_process is
     pd_trade_date,
     pc_process);*/
     commit;
+    vc_err_msg := 'sp_misc_updates ';
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    pkg_phy_eod_reports.sp_misc_updates(pc_corporate_id,
+                                        pd_trade_date,
+                                        pc_process_id,
+                                        pc_process,
+                                        pc_user_id);
+  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -768,8 +779,7 @@ create or replace package body pkg_phy_physical_process is
       if pc_process = 'EOM' then
         pkg_phy_eod_reports.sp_phy_purchase_accural(pc_corporate_id,
                                                     pd_trade_date,
-                                                    pc_process_id,
-                                                    pc_dbd_id);
+                                                    pc_process_id);
       end if;
       commit;
       if pkg_process_status.sp_get(pc_corporate_id,
@@ -4044,7 +4054,6 @@ create or replace package body pkg_phy_physical_process is
     delete from bccp_base_contract_cog_price
      where process_id = pc_process_id;
     delete from bgcp_base_gmr_cog_price where process_id = pc_process_id;
-    delete from cr_customs_report where process_id = pc_process_id;
     delete from mas_metal_account_summary where process_id = pc_process_id;
     delete from md_metal_debt where process_id = pc_process_id;
     delete from dpr_daily_position_record where process_id = pc_process_id;
@@ -4072,6 +4081,20 @@ create or replace package body pkg_phy_physical_process is
      where dbd_id = vc_dbd_id;
     delete from page_price_alloc_gmr_exchange
      where process_id = pc_process_id;
+    delete from gfoc_gmr_freight_other_charge
+     where process_id = pc_process_id;
+    delete from ped_penalty_element_details
+     where process_id = pc_process_id;
+    delete from ped_penalty_element_details
+     where process_id = pc_process_id;
+    delete from getc_gmr_element_tc_charges
+     where process_id = pc_process_id;
+    delete from gepc_gmr_element_pc_charges
+     where process_id = pc_process_id;
+    delete from gerc_gmr_element_rc_charges
+     where process_id = pc_process_id;
+    delete from ciscs_cisc_summary where process_id = pc_process_id;
+    delete from gpq_gmr_payable_qty where process_id = pc_process_id;
   
     --
     commit;
