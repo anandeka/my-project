@@ -13374,6 +13374,13 @@ commit;
  --
   -- Update Contract Details and CP for GMR
   --
+sp_gather_stats('gmr_goods_movement_record');   
+sp_gather_stats('grd_goods_record_detail');
+sp_gather_stats('spq_stock_payable_qty');
+sp_gather_stats('pci_physical_contract_item');
+sp_gather_stats('pcdi_pc_delivery_item');
+sp_gather_stats('pcm_physical_contract_main');
+sp_gather_stats('phd_profileheaderdetails');
   for cur_gmr in (select gmr.internal_gmr_ref_no,
                          pcm.contract_ref_no,
                          pcm.internal_contract_ref_no,
@@ -13396,10 +13403,10 @@ commit;
                      and pci.pcdi_id = pcdi.pcdi_id
                      and pcdi.internal_contract_ref_no =
                          pcm.internal_contract_ref_no
-                     and gmr.dbd_id = grd.dbd_id
-                     and grd.dbd_id = pci.dbd_id
-                     and pcdi.dbd_id = pcdi.dbd_id
-                     and pcdi.dbd_id = pcm.dbd_id
+                     and gmr.dbd_id = pc_dbd_id
+                     and grd.dbd_id = pc_dbd_id
+                     and pci.dbd_id = pc_dbd_id
+                     and pcdi.dbd_id = pc_dbd_id
                      and pcm.dbd_id = pc_dbd_id
                      and pcm.cp_id = phd.profileid
                      and pcm.invoice_currency_id = cm.cur_id
@@ -13531,6 +13538,7 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           108,
                           'End of Update GRD Profit Center');
+                         
   for cur_containers in (select grd.internal_gmr_ref_no,
                                 sum(nvl(grd.no_of_containers, 0)) no_of_containers,
                                 sum(nvl(grd.no_of_bags, 0)) no_of_bags,
@@ -13622,7 +13630,11 @@ commit;
 
 --
 -- Update Assay Final Status for Arrived Report
---                      
+--    
+sp_gather_stats('gmr_goods_movement_record');   
+sp_gather_stats('grd_goods_record_detail');   
+sp_gather_stats('ash_assay_header');
+                 
 for cur_assay in( 
 SELECT   gmr.internal_gmr_ref_no,
             CASE
@@ -13651,11 +13663,11 @@ SELECT   gmr.internal_gmr_ref_no,
       WHERE gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
         AND gmr.internal_gmr_ref_no = ash.internal_gmr_ref_no
         AND grd.internal_grd_ref_no = ash.internal_grd_ref_no
-        AND gmr.dbd_id = grd.dbd_id
+        AND gmr.dbd_id = pc_dbd_id
+        and grd.dbd_id = pc_dbd_id
         AND gmr.is_deleted = 'N'
         AND grd.status = 'Active'
         AND ash.is_active = 'Y'
-        and gmr.dbd_id = pc_dbd_id
    GROUP BY gmr.internal_gmr_ref_no) loop
    Update gmr_goods_movement_record gmr
    set gmr.assay_final_status = cur_assay.assay_final_status
@@ -13663,6 +13675,8 @@ SELECT   gmr.internal_gmr_ref_no,
    and gmr.dbd_id = pc_dbd_id;
 end loop;   
 commit;  
+sp_gather_stats('pcdi_pc_delivery_item');
+sp_gather_stats('pcpd_pc_product_definition');
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
@@ -13787,7 +13801,7 @@ sp_precheck_process_log(pc_corporate_id,
     update gmr_goods_movement_record gmr
        set gmr.shed_name = cur_sld.storage_location_name
      where gmr.dbd_id = pc_dbd_id
-       and gmr.shed_id = cur_sld.storage_location_name;
+       and gmr.shed_id = cur_sld.storage_loc_id;
   end loop;
 commit;
  sp_precheck_process_log(pc_corporate_id,
@@ -13866,6 +13880,15 @@ sp_precheck_process_log(pc_corporate_id,
        and pcm.dbd_id = pc_dbd_id;
   end loop;
 commit;
+
+for cur_pcm_cp in(select * from phd_profileheaderdetails phd) loop
+    update pcm_physical_contract_main pcm
+       set pcm.cp_name = cur_pcm_cp.companyname
+     where pcm.cp_id = cur_pcm_cp.profileid
+       and pcm.dbd_id = pc_dbd_id;
+  end loop;
+commit;
+
   sp_gather_stats('GRD_GOODS_RECORD_DETAIL');
   sp_gather_stats('GMR_GOODS_MOVEMENT_RECORD');
   sp_gather_stats('SPQ_STOCK_PAYABLE_QTY');

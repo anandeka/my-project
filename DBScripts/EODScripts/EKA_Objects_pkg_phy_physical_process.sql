@@ -52,7 +52,7 @@ create or replace package pkg_phy_physical_process is
                                 pc_process_id   varchar2);
   procedure sp_phy_rebuild_stats;
 
-end; 
+end;
 /
 create or replace package body pkg_phy_physical_process is
 
@@ -361,6 +361,15 @@ create or replace package body pkg_phy_physical_process is
                                            pd_trade_date,
                                            pc_process);
     commit;
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+    pkg_phy_eod_reports.sp_misc_updates(pc_corporate_id,
+                                        pd_trade_date,
+                                        pc_process_id,
+                                        pc_process,
+                                        pc_user_id);
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -823,8 +832,7 @@ create or replace package body pkg_phy_physical_process is
       if pc_process = 'EOM' then
         pkg_phy_eod_reports.sp_phy_purchase_accural(pc_corporate_id,
                                                     pd_trade_date,
-                                                    pc_process_id,
-                                                    pc_dbd_id);
+                                                    pc_process_id);
         commit;
       end if;
     
@@ -3936,7 +3944,7 @@ create or replace package body pkg_phy_physical_process is
     delete from gmrul_gmr_ul where dbd_id = vc_dbd_id;
     delete from mogrdul_moved_out_grd_ul where dbd_id = vc_dbd_id;
     delete from pcadul_pc_agency_detail_ul where dbd_id = vc_dbd_id;
-    commit;    
+    commit;
     delete from pcbpdul_pc_base_price_dtl_ul where dbd_id = vc_dbd_id;
     delete from pcbphul_pc_base_prc_header_ul where dbd_id = vc_dbd_id;
     delete from pcdbul_pc_delivery_basis_ul where dbd_id = vc_dbd_id;
@@ -4053,14 +4061,14 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     delete from poud_phy_open_unreal_daily
      where process_id = pc_process_id;
-     commit;
+    commit;
     delete from psu_phy_stock_unrealized where process_id = pc_process_id;
     delete from md_m2m_daily where process_id = pc_process_id;
     delete from tgsc_temp_gmr_sec_cost where process_id = pc_process_id;
     delete from gscs_gmr_sec_cost_summary where process_id = pc_process_id;
     delete from cisc_contract_item_sec_cost
      where process_id = pc_process_id;
-     commit;
+    commit;
     delete from gpd_gmr_price_daily where process_id = pc_process_id;
     delete from pcpch_pc_payble_content_header where dbd_id = vc_dbd_id;
     delete from pqd_payable_quality_details where dbd_id = vc_dbd_id;
@@ -4105,8 +4113,9 @@ create or replace package body pkg_phy_physical_process is
     delete from spd_stock_price_daily where process_id = pc_process_id;
     delete from is_invoice_summary where dbd_id = vc_dbd_id;
     commit;
-    update is_invoice_summary iss set iss.process_id = null
-           where iss.process_id = pc_process_id;
+    update is_invoice_summary iss
+       set iss.process_id = null
+     where iss.process_id = pc_process_id;
     commit;
     delete from cdl_cost_delta_log where dbd_id = vc_dbd_id;
     delete from invs_inventory_sales where process_id = pc_process_id;
@@ -4121,11 +4130,11 @@ create or replace package body pkg_phy_physical_process is
     delete from pa_purchase_accural where process_id = pc_process_id;
     delete from pa_purchase_accural_gmr where process_id = pc_process_id;
     delete from isr_intrastat_grd where process_id = pc_process_id;
-	delete from isr1_isr_inventory where process_id = pc_process_id;
+    delete from isr1_isr_inventory where process_id = pc_process_id;
     delete from isr2_isr_invoice where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
      where process_id = pc_process_id;
-     commit;
+    commit;
     delete from fcr_feed_consumption_report
      where process_id = pc_process_id;
     delete from stock_monthly_yeild_data where process_id = pc_process_id;
@@ -4133,18 +4142,17 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     delete from cccp_conc_contract_cog_price
      where process_id = pc_process_id;
-     commit;
+    commit;
     delete from cgcp_conc_gmr_cog_price where process_id = pc_process_id;
     delete from bccp_base_contract_cog_price
      where process_id = pc_process_id;
     delete from bgcp_base_gmr_cog_price where process_id = pc_process_id;
-    delete from cr_customs_report where process_id = pc_process_id;
     delete from mas_metal_account_summary where process_id = pc_process_id;
     delete from md_metal_debt where process_id = pc_process_id;
     delete from dpr_daily_position_record where process_id = pc_process_id;
     delete from prch_phy_realized_conc_header
      where process_id = pc_process_id;
-     commit;
+    commit;
     delete from prce_phy_realized_conc_element
      where process_id = pc_process_id;
     delete from rgmrc_realized_gmr_conc where process_id = pc_process_id;
@@ -4187,9 +4195,18 @@ create or replace package body pkg_phy_physical_process is
     delete from gmp_gmr_market_price where process_id = pc_process_id;
     commit;
     delete from page_price_alloc_gmr_exchange
-    where process_id = pc_process_id;
+     where process_id = pc_process_id;
     delete from tpr_traders_position_report
-    where process_id = pc_process_id;
+     where process_id = pc_process_id;
+    commit;
+    delete from gfoc_gmr_freight_other_charge
+     where process_id = pc_process_id;
+    delete from ped_penalty_element_details
+     where process_id = pc_process_id;
+    delete from ped_penalty_element_details
+     where process_id = pc_process_id;
+    delete from ciscs_cisc_summary where process_id = pc_process_id;
+    delete from gpq_gmr_payable_qty where process_id = pc_process_id;
     commit;
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
@@ -4203,12 +4220,12 @@ create or replace package body pkg_phy_physical_process is
     update cdl_cost_delta_log t
        set t.process_id = null
      where t.process_id = pc_process_id;
-  commit;
+    commit;
     vn_logno := vn_logno + 1;
     -- Washout rollback
     delete from sswh_spe_settle_washout_header where dbd_id = vc_dbd_id;
     delete from sswd_spe_settle_washout_detail where dbd_id = vc_dbd_id;
-  commit;
+    commit;
     update sswh_spe_settle_washout_header
        set process_id = null
      where process_id = pc_process_id;
@@ -4218,7 +4235,7 @@ create or replace package body pkg_phy_physical_process is
     update sswd_spe_settle_washout_detail
        set process_id = null
      where process_id = pc_process_id;
-  commit;
+    commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
@@ -4265,5 +4282,5 @@ create or replace package body pkg_phy_physical_process is
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end; 
+end;
 /
