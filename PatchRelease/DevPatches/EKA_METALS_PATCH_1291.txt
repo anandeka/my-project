@@ -34,9 +34,23 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
-Bug fixed: 
+SQL FILES :
+===========
+Revision: 113157
+Author: sivachalabathi.s
+Date: 4:57:56 PM, Tuesday, January 08, 2013
+Message: cp address display changes : Sims M + R GmbH (EKA_Address type (Billing))
+	Postfach 1440                (EKA_Address)
+	59178                        (EKA_Zipcode)
+	Bergkamen                     (EKA_City)
+	Bergkamen                     (EKA_State)
+	Germany                       (EKA_Country)
+	--
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql
 
-----
+
+RPT FILES : 
+===========
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt		(Revision: 113059)
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt		(Revision: 113059)
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt			(Revision: 113067)
