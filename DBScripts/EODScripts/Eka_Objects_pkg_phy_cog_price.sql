@@ -1083,7 +1083,6 @@ create or replace package body pkg_phy_cog_price is
     vn_price_weight_unit         number;
     vc_price_weight_unit_id      varchar2(15);
     vc_price_qty_unit            varchar2(15);
-    vc_pcbpd_id                  varchar2(15);
     vc_fixed_price_unit_id       varchar2(15);
     vn_fixed_value               number;
     vn_fixed_qty                 number;
@@ -1113,7 +1112,6 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_qty               := 0;
       vn_fixed_value               := 0;
       vn_unfixed_value             := 0;
-      vc_pcbpd_id                  := cur_gmr_rows.pcbpd_id;
       vn_total_quantity            := cur_gmr_rows.qty;
       vc_unfixed_val_price_unit_id := null;
       vc_unfixed_val_price_unit_id := null;
@@ -2421,7 +2419,6 @@ create or replace package body pkg_phy_cog_price is
     vc_price_weight_unit_id      varchar2(15);
     vc_price_qty_unit            varchar2(15);
     vc_price_unit_id             varchar2(15);
-    vc_pcbpd_id                  varchar2(15);
     vc_prompt_month              varchar2(15);
     vc_prompt_year               number;
     vn_qty_to_be_priced          number;
@@ -2471,7 +2468,6 @@ create or replace package body pkg_phy_cog_price is
         else
         
           vc_price_basis := cur_gmr_ele_rows.price_basis;
-          vc_pcbpd_id    := cur_gmr_ele_rows.pcbpd_id;
         
           begin
             select nvl(sum((pfd.user_price * pfd.qty_fixed)), 0),
@@ -3006,7 +3002,6 @@ create or replace package body pkg_phy_cog_price is
     vc_price_weight_unit_id      varchar2(15);
     vc_price_qty_unit            varchar2(15);
     vc_price_unit_id             varchar2(15);
-    vc_pcbpd_id                  varchar2(15);
     vc_prompt_month              varchar2(15);
     vc_prompt_year               number;
     vn_qty_to_be_priced          number;
@@ -3275,7 +3270,6 @@ create or replace package body pkg_phy_cog_price is
       loop
       
         vc_price_basis := cur_gmr_ele_rows.price_basis;
-        vc_pcbpd_id    := cur_gmr_ele_rows.pcbpd_id;
         if cur_gmr_ele_rows.final_price <> 0 and
            cur_gmr_ele_rows.finalize_date <= pd_trade_date then
           vn_total_quantity       := cur_gmr_rows.payable_qty;
@@ -3289,6 +3283,7 @@ create or replace package body pkg_phy_cog_price is
             from v_ppu_pum ppu
            where ppu.product_price_unit_id =
                  cur_gmr_ele_rows.final_price_unit_id;
+        
         else
         
           begin
@@ -3550,21 +3545,21 @@ create or replace package body pkg_phy_cog_price is
           else
             vc_price_unit_id := vc_unfixed_val_price_unit_id;
           end if;
-          begin
-            select ppu.product_price_unit_id
-              into vc_price_unit_id
-              from v_ppu_pum ppu
-             where ppu.price_unit_id = vc_price_unit_id
-               and ppu.product_id = cur_gmr_rows.product_id;
-          exception
-            when others then
-              vc_price_unit_id := null;
-          end;
           vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
           vn_total_contract_value := vn_total_contract_value +
                                      ((vn_qty_to_be_priced / 100) *
                                      (vn_fixed_value + vn_unfixed_value));
         end if;
+        begin
+          select ppu.product_price_unit_id
+            into vc_price_unit_id
+            from v_ppu_pum ppu
+           where ppu.price_unit_id = vc_price_unit_id
+             and ppu.product_id = cur_gmr_rows.product_id;
+        exception
+          when others then
+            vc_price_unit_id := null;
+        end;
       end loop;
       if vn_total_quantity <> 0 then
         vn_average_price := round(vn_total_contract_value /
