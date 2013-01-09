@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1296
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  09-Jan-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  71988
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 113262
+Author: abhishek.vijay
+Date: 6:10:30 PM, Wednesday, January 09, 2013
+Message:
+price fixation document changes 
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+
+Revision: 113260
+Author: abhishek.vijay
+Date: 6:09:02 PM, Wednesday, January 09, 2013
+Message:
+price fixation document changes and bug 71988
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_374.sql
+
+
+
