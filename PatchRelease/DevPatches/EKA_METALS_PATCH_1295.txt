@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1295
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  09-Jan-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  72179
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 113226
+Date: 1:57:58 PM, Wednesday, January 09, 2013
+Message:
+GMR Price allocation price unit was corrected. It was populating PUM price unit and hence currency and qty was updated as null
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+
+
