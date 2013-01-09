@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1298
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  09-Jan-2013
+
+Bug / Enhancement*      :   Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Logistics
+
+Sub-Module  			:  Logistics
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details 	:  N/A
+ 
+FS Amendment details   	:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 113272
+Author: pradeep.kumar
+Date: 7:22:53 PM, Wednesday, January 09, 2013
+Message:
+-- Added new column (SENDERS_REF_NO)in GMR & GMRUL
+-- Data Correction For Senders_ref_no in GMR Provided
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_36.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_375.sql
+
