@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1300
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  10-Jan-2013
+
+Bug / Enhancement*      :  Bug
+
+Bug ID*            		:  65718 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	    :  Logistics
+
+Sub-Module  			:  Logistics o/p Doc.
+ 
+Section   		   	    :  N/A
+ 
+Screen		           	:  N/A
+ 
+FS Number and Clause No.:  N/A
+ 
+FS Enhancement details 	:  N/A
+ 
+FS Amendment details   	:  N/A
+
+Dependent patches:		:  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 113363
+Author: pradeep.kumar
+Date: 3:17:47 PM, Thursday, January 10, 2013
+Message:
+-- populating state name in purchase & sale side in DGM
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_480.sql
+
+Revision: 113362
+Author: pradeep.kumar
+Date: 3:14:38 PM, Thursday, January 10, 2013
+Message:
+-- Added new columns in SDD_D & SAD_D
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_376.sql
+
