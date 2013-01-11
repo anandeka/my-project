@@ -256,7 +256,7 @@ DECLARE
             AND ppu.price_unit_id = pum.price_unit_id(+)
             AND ioc.qty_unit_id = qum.qty_unit_id(+)
             AND ioc.flat_amount_cur_unit_id = cm_ioc.cur_id(+)
-            AND mcc.charge_name IN ('Fixed RC Charges', 'Fixed TC Charges', 'Premium')
+            AND mcc.charge_name IN (''Fixed RC Charges'', ''Fixed TC Charges'', ''Premium'')
             AND cm_pum.cur_id(+) = pum.cur_id
             AND ioc.internal_invoice_ref_no = ?)
    SELECT *
