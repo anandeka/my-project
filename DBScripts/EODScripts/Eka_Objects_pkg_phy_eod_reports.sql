@@ -9261,7 +9261,7 @@ insert into temp_mas
            else
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
-         pdm.base_quantity_unit qty_unit_id,
+         pdm_aml.base_quantity_unit qty_unit_id,
          qum.qty_unit
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
@@ -9361,7 +9361,7 @@ insert into temp_mas
            else
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
-         pdm.base_quantity_unit qty_unit_id,
+         pdm_aml.base_quantity_unit qty_unit_id,
          qum.qty_unit
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
@@ -9465,7 +9465,7 @@ insert into temp_mas
            else
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
-         pdm.base_quantity_unit qty_unit_id,
+         pdm_aml.base_quantity_unit qty_unit_id,
          qum.qty_unit
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
@@ -9566,7 +9566,7 @@ insert into temp_mas
            else
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
-         pdm.base_quantity_unit qty_unit_id,
+         pdm_aml.base_quantity_unit qty_unit_id,
          qum.qty_unit
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
