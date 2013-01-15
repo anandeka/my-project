@@ -4160,6 +4160,10 @@ create or replace package body pkg_phy_physical_process is
     delete from ar_arrival_report where process_id = pc_process_id;
     delete from are_arrival_report_element
      where process_id = pc_process_id;
+	  delete from aro_ar_original
+     where process_id = pc_process_id;
+     delete from areo_ar_element_original
+     where process_id = pc_process_id;
     delete from fc_feed_consumption where process_id = pc_process_id;
     delete from fce_feed_consumption_element
      where process_id = pc_process_id;

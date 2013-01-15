@@ -12746,6 +12746,36 @@ where gmr.dbd_id = gvc_dbd_id;
        weg_avg_pricing_assay_id,
        weg_avg_invoice_assay_id,
        dbd_id)
+select spq_id,
+internal_gmr_ref_no,
+action_no,
+stock_type,
+internal_grd_ref_no,
+internal_dgrd_ref_no,
+element_id,
+payable_qty,
+qty_unit_id,
+version,
+is_active,
+qty_type,
+activity_action_id,
+is_stock_split,
+supplier_id,
+smelter_id,
+in_process_stock_id,
+free_metal_stock_id,
+free_metal_qty,
+assay_content, 
+decode(pledge_stock_id,'Empty_String',null,pledge_stock_id) pledge_stock_id,
+decode(gepd_id,'Empty_String',null,gepd_id) gepd_id,
+assay_header_id,  
+is_final_assay, 
+corporate_id,  
+internal_action_ref_no,  
+weg_avg_pricing_assay_id, 
+weg_avg_invoice_assay_id,                                          
+gvc_dbd_id
+from (
       select spqul.spq_id,
              substr(max(case
                           when spqul.internal_gmr_ref_no is not null then
@@ -12783,7 +12813,7 @@ where gmr.dbd_id = gvc_dbd_id;
                            spqul.element_id
                         end),
                     24) element_id,
-             round(sum(nvl(spqul.payable_qty_delta, 0)), 10),
+             round(sum(nvl(spqul.payable_qty_delta, 0)), 10) payable_qty,
              substr(max(case
                           when spqul.qty_unit_id is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -12907,7 +12937,7 @@ where gmr.dbd_id = gvc_dbd_id;
          and spqul.dbd_id = dbd_ul.dbd_id
          and dbd_ul.corporate_id = pc_corporate_id
          and dbd_ul.process = gvc_process
-       group by spqul.spq_id;
+       group by spqul.spq_id);
    commit;
 
 for cur_spq_update in(
@@ -13617,7 +13647,7 @@ update gmr_goods_movement_record gmr
  where gmr.dbd_id = pc_dbd_id
    and gmr.warehouse_profile_id = cur_gmr_whname.profileid;
    Update gepd_gmr_element_pledge_detail gepd
-   set gepd.pledge_cp_name = cur_gmr_whname.profileid
+   set gepd.pledge_cp_name = cur_gmr_whname.companyname
    where gepd.dbd_id= pc_dbd_id
    and gepd.pledge_cp_id = cur_gmr_whname.profileid;
 end loop; 
@@ -13674,7 +13704,25 @@ SELECT   gmr.internal_gmr_ref_no,
    where gmr.internal_gmr_ref_no = cur_assay.internal_gmr_ref_no
    and gmr.dbd_id = pc_dbd_id;
 end loop;   
-commit;  
+commit; 
+Update gmr_goods_movement_record gmr
+set gmr.gmr_arrival_status = (case
+                     when (gmr.wns_status = 'Completed' and
+                          gmr.assay_final_status = 'Assay Finalized') then
+                      'Assay Finalized'
+                     when (gmr.wns_status = 'Completed' and
+                          gmr.assay_final_status = 'Partial Assay Finalized') then
+                      'Partial Assay Finalized'
+                     when (gmr.wns_status = 'Completed' and
+                          gmr.assay_final_status = 'Not Assay Finalized') then
+                      'Weight Finalized'
+                     when (gmr.wns_status = 'Partial') then
+                      'Partial Weight Finalized'
+                     else
+                      'Arrived'
+                   end)
+where gmr.dbd_id = pc_dbd_id;
+commit;                    
 sp_gather_stats('pcdi_pc_delivery_item');
 sp_gather_stats('pcpd_pc_product_definition');
 sp_precheck_process_log(pc_corporate_id,
@@ -13754,6 +13802,10 @@ sp_precheck_process_log(pc_corporate_id,
        set grd.qty_unit = cur_qum.qty_unit
      where grd.dbd_id = pc_dbd_id
        and grd.qty_unit_id = cur_qum.qty_unit_id;
+    update spq_stock_payable_qty spq
+    set spq.qty_unit = cur_qum.qty_unit
+    where spq.dbd_id = pc_dbd_id
+    and spq.qty_unit_id = cur_qum.qty_unit_id;
   end loop;
   commit;
 sp_precheck_process_log(pc_corporate_id,
@@ -13762,11 +13814,16 @@ sp_precheck_process_log(pc_corporate_id,
                           118,
                           'End of GRD Quantity Unit Update'); 
   for cur_grd_pdm in (select pdm.product_id,
-                             pdm.product_desc product_name
-                        from pdm_productmaster pdm)
+                             pdm.product_desc product_name,
+                             pdm.base_quantity_unit base_qty_unit_id,
+                             qum.qty_unit base_qty_unit
+                        from pdm_productmaster pdm,qum_quantity_unit_master qum
+                        where pdm.base_quantity_unit = qum.qty_unit_id)
   loop
     update grd_goods_record_detail grd
-       set grd.product_name = cur_grd_pdm.product_name
+       set grd.product_name = cur_grd_pdm.product_name,
+       grd.base_qty_unit_id = cur_grd_pdm.base_qty_unit_id,
+       grd.base_qty_unit = cur_grd_pdm.base_qty_unit 
      where grd.dbd_id = pc_dbd_id
        and grd.product_id = cur_grd_pdm.product_id;
       update pcpd_pc_product_definition pcpd
@@ -13888,6 +13945,26 @@ for cur_pcm_cp in(select * from phd_profileheaderdetails phd) loop
        and pcm.dbd_id = pc_dbd_id;
   end loop;
 commit;
+
+for cur_ucm in
+(select * from ucm_unit_conversion_master ucm) loop
+update grd_goods_record_detail grd
+set grd.base_qty_conv_factor =  cur_ucm.multiplication_factor
+where grd.qty_unit_id = cur_ucm.from_qty_unit_id
+and grd.base_qty_unit_id = cur_ucm.to_qty_unit_id
+and grd.dbd_id = pc_dbd_id;
+end loop;
+commit;
+
+for cur_pcmte in
+(select * from pcmte_pcm_tolling_ext pcmte) loop
+Update gmr_goods_movement_record gmr
+set gmr.tolling_service_type = cur_pcmte.tolling_service_type
+where gmr.dbd_id = pc_dbd_id
+and gmr.internal_contract_ref_no = cur_pcmte.int_contract_ref_no;
+end loop;
+commit;
+
 
   sp_gather_stats('GRD_GOODS_RECORD_DETAIL');
   sp_gather_stats('GMR_GOODS_MOVEMENT_RECORD');

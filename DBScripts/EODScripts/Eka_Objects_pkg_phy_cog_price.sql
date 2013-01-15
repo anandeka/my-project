@@ -2869,6 +2869,7 @@ create or replace package body pkg_phy_cog_price is
          and page.element_id = gpq.element_id
          and page.internal_gmr_ref_no = gpq.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
+         and page.process_id = pc_process_id
          and gmr.internal_gmr_ref_no = page.internal_gmr_ref_no(+)
          and gmr.is_deleted = 'N';
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is

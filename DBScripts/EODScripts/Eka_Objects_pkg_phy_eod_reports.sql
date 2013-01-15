@@ -10609,7 +10609,8 @@ end;
         vn_eel_error_count        number := 1;
         vn_log_counter            number :=225;
         vc_previous_year_eom_id   varchar2(15);
-        vc_previous_eom_id   varchar2(15);
+        vc_previous_eom_id        varchar2(15);
+        vn_spq_qty_factor         number;
     CURSOR cur_price_units_out IS
             SELECT cm.cur_id
             FROM   cm_currency_master cm;
@@ -10854,27 +10855,30 @@ begin
       when no_data_found then
         vc_previous_year_eom_id := null;
     end;
+    
 -- 
 -- GMR Is New Flag for MTD and YTD
---     
+--    
 update gmr_goods_movement_record gmr
    set gmr.is_new_mtd = 'Y'
- where gmr.process_id = pc_process_id
-   and 'TRUE' =
-       (case when trunc(gmr.eff_date, 'Mon') = trunc(pd_trade_date, 'Mon') and
-        gmr.eff_date is not null then 'TRUE' when
-        trunc(gmr.loading_date, 'Mon') = trunc(pd_trade_date, 'Mon') and
-        gmr.loading_date is not null then 'TRUE' else 'FALSE' end);
+ where gmr.process_id = pc_process_id 
+ and gmr.is_deleted ='N'
+  and not exists
+  (select * from gmr_goods_movement_record gmr_prev
+  where gmr_prev.process_id =  vc_previous_eom_id
+  and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no);
 
 update gmr_goods_movement_record gmr
    set gmr.is_new_ytd = 'Y'
- where gmr.process_id = pc_process_id
-   and 'TRUE' =
-       (case when trunc(gmr.eff_date, 'YYYY') = trunc(pd_trade_date, 'YYYY') and
-        gmr.eff_date is not null then 'TRUE' when
-        trunc(gmr.loading_date, 'YYYY') = trunc(pd_trade_date, 'YYYY') and
-        gmr.loading_date is not null then 'TRUE' else 'FALSE' end);
+ where gmr.process_id = pc_process_id 
+ and gmr.is_deleted ='N'
+  and not exists
+  (select * from gmr_goods_movement_record gmr_prev
+  where gmr_prev.process_id =  vc_previous_year_eom_id
+  and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no);
+        
 commit;
+
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -10887,19 +10891,21 @@ commit;
 begin
   for cur_assay_mtd in (select gpq.internal_gmr_ref_no
                           from gpq_gmr_payable_qty gpq,
-                               gpq_gmr_payable_qty gpq_prev
+                               gpq_gmr_payable_qty gpq_prev_month
                          where gpq.internal_gmr_ref_no =
-                               gpq_prev.internal_gmr_ref_no
-                           and gpq.element_id = gpq_prev.element_id
+                               gpq_prev_month.internal_gmr_ref_no
+                           and gpq.element_id = gpq_prev_month.element_id
                            and gpq.process_id = pc_process_id
-                           and gpq_prev.process_id = vc_previous_eom_id
-                           and (gpq.payable_qty <> gpq_prev.payable_qty or
-                               gpq.qty_unit_id <> gpq_prev.qty_unit_id))
+                           and gpq_prev_month.process_id = vc_previous_eom_id
+                           and (gpq.payable_qty <> gpq_prev_month.payable_qty or
+                               gpq.qty_unit_id <> gpq_prev_month.qty_unit_id)
+                          group by gpq.internal_gmr_ref_no)
   loop
     update gmr_goods_movement_record gmr
        set gmr.is_assay_updated_mtd = 'Y'
      where gmr.process_id = pc_process_id
-       and gmr.internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no;
+       and gmr.internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
+       and gmr.is_deleted ='N';
   end loop;
 end;
 commit;
@@ -10907,28 +10913,30 @@ commit;
 begin
   for cur_assay_ytd in (select gpq.internal_gmr_ref_no
                           from gpq_gmr_payable_qty gpq,
-                               gpq_gmr_payable_qty gpq_prev
+                               gpq_gmr_payable_qty gpq_prev_year
                          where gpq.internal_gmr_ref_no =
-                               gpq_prev.internal_gmr_ref_no
-                           and gpq.element_id = gpq_prev.element_id
+                               gpq_prev_year.internal_gmr_ref_no
+                           and gpq.element_id = gpq_prev_year.element_id
                            and gpq.process_id = pc_process_id
-                           and gpq_prev.process_id = vc_previous_year_eom_id
-                           and (gpq.payable_qty <> gpq_prev.payable_qty or
-                               gpq.qty_unit_id <> gpq_prev.qty_unit_id))
+                           and gpq_prev_year.process_id = vc_previous_year_eom_id
+                           and (gpq.payable_qty <> gpq_prev_year.payable_qty or
+                               gpq.qty_unit_id <> gpq_prev_year.qty_unit_id)
+                           group by gpq.internal_gmr_ref_no)
   loop
     update gmr_goods_movement_record gmr
        set gmr.is_assay_updated_ytd = 'Y'
      where gmr.process_id = pc_process_id
-       and gmr.internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no;
+       and gmr.internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no
+       and gmr.is_deleted ='N';
   end loop;
 end;
-       
 commit;
  sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           111,
                           'End of GMR Assay Update Flag');
+                          
  exception when others then 
            vobj_error_log.extend;
            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
@@ -12262,121 +12270,292 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
                             pc_process      varchar2) as
 
   cursor cur_arrival is
-    select gmr.gmr_ref_no,
-           gmr.internal_gmr_ref_no,
-           grd.internal_grd_ref_no,
-           grd.internal_stock_ref_no,
-           gmr.corporate_id,
-           gmr.warehouse_profile_id,
-           gmr.warehouse_name,
-           gmr.shed_id,
-           gmr.shed_name storage_location_name,
-           grd.product_id,
-           grd.product_name,
-           grd.quality_id,
-           grd.quality_name,
-           grd.qty wet_qty,
-           grd.dry_qty,
-           grd.qty_unit_id qty_unit_id,
-           grd.qty_unit qty_unit,
-           spq.element_id,
-           aml.attribute_name,
-           aml.underlying_product_id,
-           pdm_und.product_desc underlying_product_name,
-           pdm_und.base_quantity_unit base_quantity_unit_id,
-           qum_und.qty_unit base_quantity_unit,
-           spq.assay_content assay_qty,
-           spq.qty_unit_id assay_qty_unit_id,
-           qum.qty_unit assay_qty_unit,
-           spq.payable_qty,
-           spq.qty_unit_id payable_qty_unit_id,
-           qum.qty_unit payable_qty_unit,
-           (case
-             when (gmr.wns_status = 'Completed' and
-                  gmr.assay_final_status = 'Assay Finalized') then
-              'Assay Finalized'
-             when (gmr.wns_status = 'Completed' and
-                  gmr.assay_final_status = 'Partial Assay Finalized') then
-              'Partial Assay Finalized'
-             when (gmr.wns_status = 'Completed' and
-                  gmr.assay_final_status = 'Not Assay Finalized') then
-              'Weight Finalized'
-             when (gmr.wns_status = 'Partial') then
-              'Partial Weight Finalized'
-             else
-              'Arrived'
-           end) arrival_status,
-           dense_rank() over(partition by grd.internal_grd_ref_no order by spq.element_id) ele_rank,
-           pdm_conc.base_quantity_unit conc_base_qty_unit_id,
-           qum_conc.qty_unit  conc_base_qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           pcmte_pcm_tolling_ext pcmte,
-           spq_stock_payable_qty spq,
-           aml_attribute_master_list aml,
-           pdm_productmaster  pdm_und,
-           qum_quantity_unit_master qum_und,
-           qum_quantity_unit_master qum,
-           pdm_productmaster  pdm_conc,
-           qum_quantity_unit_master qum_conc
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and grd.status = 'Active'
-       and grd.tolling_stock_type = 'None Tolling'
-       and gmr.is_internal_movement = 'N'
-      and  gmr.internal_contract_ref_no = pcmte.int_contract_ref_no
-       and pcmte.tolling_service_type = 'S'
-       and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-       and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
-       and spq.is_stock_split = 'N'
-      and  spq.element_id = aml.attribute_id
-       and aml.underlying_product_id=pdm_und.product_id
-       and pdm_und.base_quantity_unit=qum_und.qty_unit_id
-       and spq.qty_unit_id = qum.qty_unit_id
-       and gmr.gmr_status in ('In Warehouse', 'Landed')
-       and gmr.is_deleted = 'N'
-       and grd.product_id=pdm_conc.product_id
-       and pdm_conc.base_quantity_unit=qum_conc.qty_unit_id
-       and gmr.process_id = pc_process_id
-       and spq.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and gmr.eff_date >= trunc(pd_trade_date, 'yyyy')
-       and gmr.eff_date <= pd_trade_date
-       and spq.is_active = 'Y'
-       and aml.is_active = 'Y';
-  vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-  vn_eel_error_count number := 1;
-  vn_assay_qty       number;
-  vn_payable_qty     number;
-  vn_wet_qty         number;
-  vn_dry_qty         number;
-  vc_corporate_name  varchar2(100);
- begin
- select akc.corporate_name into vc_corporate_name from ak_corporate akc
- where akc.corporate_id = pc_corporate_id;
- 
+    select gmr_ref_no,
+           internal_gmr_ref_no,
+           internal_grd_ref_no,
+           internal_stock_ref_no,
+           corporate_id,
+           warehouse_profile_id,
+           warehouse_name,
+           shed_id,
+           storage_location_name,
+           product_id,
+           product_name,
+           quality_id,
+           quality_name,
+           wet_qty,
+           dry_qty,
+           qty_unit_id,
+           qty_unit,
+           element_id,
+           attribute_name,
+           underlying_product_id,
+           underlying_product_name,
+           base_quantity_unit_id,
+           base_quantity_unit,
+           assay_content,
+           assay_qty_unit_id,
+           assay_qty_unit,
+           payable_qty,
+           payable_qty_unit_id,
+           payable_qty_unit,
+           arrival_status,
+           conc_base_qty_unit_id,
+           conc_base_qty_unit,
+           grd_base_qty_conv_factor,
+           pcdi_id,
+           pay_cur_id,
+           pay_cur_code,
+           pay_cur_decimals,
+           section_name,
+           qty_type,
+           dense_rank() over(partition by internal_grd_ref_no order by section_name, element_id) ele_rank, -- Let the Penalty element be at end,
+           grd_to_gmr_qty_factor
+      from (select gmr.gmr_ref_no,
+                   gmr.internal_gmr_ref_no,
+                   grd.internal_grd_ref_no,
+                   grd.internal_stock_ref_no,
+                   gmr.corporate_id,
+                   gmr.warehouse_profile_id,
+                   gmr.warehouse_name,
+                   gmr.shed_id,
+                   gmr.shed_name storage_location_name,
+                   grd.product_id,
+                   grd.product_name,
+                   grd.quality_id,
+                   grd.quality_name,
+                   grd.qty wet_qty,
+                   grd.dry_qty,
+                   grd.qty_unit_id qty_unit_id,
+                   grd.qty_unit qty_unit,
+                   spq.element_id,
+                   aml.attribute_name,
+                   aml.underlying_product_id,
+                   pdm_und.product_desc underlying_product_name,
+                   pdm_und.base_quantity_unit base_quantity_unit_id,
+                   qum_und.qty_unit base_quantity_unit,
+                   spq.assay_content assay_content,
+                   spq.qty_unit_id assay_qty_unit_id,
+                   spq.qty_unit assay_qty_unit,
+                   spq.payable_qty payable_qty,
+                   spq.qty_unit_id payable_qty_unit_id,
+                   spq.qty_unit payable_qty_unit,
+                   gmr.gmr_arrival_status arrival_status,
+                   grd.base_qty_unit_id conc_base_qty_unit_id,
+                   grd.base_qty_unit conc_base_qty_unit,
+                   nvl(grd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
+                   grd.pcdi_id,
+                   gmr.invoice_cur_id pay_cur_id,
+                   gmr.invoice_cur_code pay_cur_code,
+                   gmr.invoice_cur_decimals pay_cur_decimals,
+                   'Non Penalty' section_name,
+                   nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
+                   spq.qty_type
+              from gmr_goods_movement_record gmr,
+                   grd_goods_record_detail   grd,
+                   spq_stock_payable_qty     spq,
+                   aml_attribute_master_list aml,
+                   pdm_productmaster         pdm_und,
+                   qum_quantity_unit_master  qum_und
+             where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+               and grd.status = 'Active'
+               and grd.tolling_stock_type = 'None Tolling'
+               and gmr.is_internal_movement = 'N'
+               and gmr.tolling_service_type = 'S'
+               and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+               and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
+               and spq.is_stock_split = 'N'
+               and spq.element_id = aml.attribute_id
+               and aml.underlying_product_id = pdm_und.product_id
+               and pdm_und.base_quantity_unit = qum_und.qty_unit_id
+               and gmr.gmr_status in ('In Warehouse', 'Landed')
+               and gmr.is_deleted = 'N'
+               and gmr.process_id = pc_process_id
+               and spq.process_id = pc_process_id
+               and grd.process_id = pc_process_id
+               and spq.is_active = 'Y'
+            union all
+            select gmr.gmr_ref_no,
+                   gmr.internal_gmr_ref_no,
+                   grd.internal_grd_ref_no,
+                   grd.internal_stock_ref_no,
+                   gmr.corporate_id,
+                   gmr.warehouse_profile_id,
+                   gmr.warehouse_name,
+                   gmr.shed_id,
+                   gmr.shed_name storage_location_name,
+                   grd.product_id,
+                   grd.product_name,
+                   grd.quality_id,
+                   grd.quality_name,
+                   grd.qty wet_qty,
+                   grd.dry_qty,
+                   grd.qty_unit_id qty_unit_id,
+                   grd.qty_unit qty_unit,
+                   ped.element_id,
+                   aml.attribute_name,
+                   aml.underlying_product_id,
+                   pdm_und.product_desc underlying_product_name,
+                   pdm_und.base_quantity_unit base_quantity_unit_id,
+                   qum_und.qty_unit base_quantity_unit,
+                   ped.assay_qty assay_content,
+                   ped.assay_qty_unit_id assay_qty_unit_id,
+                   qum_ped.qty_unit assay_qty_unit,
+                   0 payable_qty,
+                   ped.assay_qty_unit_id payable_qty_unit_id,
+                   qum_ped.qty_unit payable_qty_unit,
+                   gmr.gmr_arrival_status arrival_status,
+                   grd.base_qty_unit_id conc_base_qty_unit_id,
+                   grd.base_qty_unit conc_base_qty_unit,
+                   nvl(grd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
+                   grd.pcdi_id,
+                   gmr.invoice_cur_id pay_cur_id,
+                   gmr.invoice_cur_code pay_cur_code,
+                   gmr.invoice_cur_decimals pay_cur_decimals,
+                   'Penalty' section_name,
+                   nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
+                   'Penalty' qty_type
+              from gmr_goods_movement_record   gmr,
+                   grd_goods_record_detail     grd,
+                   ped_penalty_element_details ped,
+                   aml_attribute_master_list   aml,
+                   pdm_productmaster           pdm_und,
+                   qum_quantity_unit_master    qum_und,
+                   qum_quantity_unit_master    qum_ped
+             where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+               and grd.status = 'Active'
+               and grd.tolling_stock_type = 'None Tolling'
+               and gmr.is_internal_movement = 'N'
+               and gmr.tolling_service_type = 'S'
+               and aml.underlying_product_id = pdm_und.product_id
+               and pdm_und.base_quantity_unit = qum_und.qty_unit_id
+               and gmr.gmr_status in ('In Warehouse', 'Landed')
+               and gmr.is_deleted = 'N'
+               and gmr.process_id = pc_process_id
+               and grd.process_id = pc_process_id
+               and ped.process_id = pc_process_id
+               and ped.internal_gmr_ref_no = grd.internal_gmr_ref_no
+               and ped.internal_grd_ref_no = grd.internal_grd_ref_no
+               and ped.element_id = aml.attribute_id
+               and ped.assay_qty_unit_id = qum_ped.qty_unit_id);
+  vobj_error_log                tableofpelerrorlog := tableofpelerrorlog();
+  vn_eel_error_count            number := 1;
+  vn_counter                    number := 1;
+  vn_wet_qty                    number;
+  vn_dry_qty                    number;
+  vc_corporate_name             varchar2(100);
+  vn_spq_qty_conv_factor        number;
+  vn_assay_qty                  number;
+  vn_payable_qty                number;
+  vn_gmr_price                  number;
+  vc_gmr_price_untit_id         varchar2(15);
+  vc_price_unit_weight_unit_id  varchar2(15);
+  vn_gmr_price_unit_weight      number;
+  vc_gmr_price_unit_cur_id      varchar2(15);
+  vc_gmr_price_unit_cur_code    varchar2(15);
+  vn_payable_amt_in_price_cur   number;
+  vn_payable_amt_in_pay_cur     number;
+  vc_price_cur_id               varchar2(15);
+  vc_price_cur_code             varchar2(15);
+  vn_cont_price_cur_id_factor   number;
+  vn_cont_price_cur_decimals    number;
+  vn_fx_rate_price_to_pay       number;
+  vn_payable_to_price_wt_factor number;
+  vn_gmr_refine_charge          number;
+  vn_gmr_penality_charge        number;
+  vn_gmr_base_tc                number;
+  vn_gmr_esc_descalator_tc      number;
+  vc_previous_eom_id            varchar2(15);
+  vc_previous_year_eom_id       varchar2(15);
+  vn_log_counter                number := 3111;
+  vd_acc_start_date             date;
+
+begin
+
+  select akc.corporate_name
+    into vc_corporate_name
+    from ak_corporate akc
+   where akc.corporate_id = pc_corporate_id;
+  begin
+    select start_date
+      into vd_acc_start_date
+      from cfy_corporate_financial_year@eka_appdb
+     where pd_trade_date between start_date and end_date
+       and corporateid = pc_corporate_id;
+  exception
+    when no_data_found then
+      vd_acc_start_date := null;
+  end;
+  --
+  -- Previous EOM ID
+  --
+  begin
+    select tdc.process_id
+      into vc_previous_eom_id
+      from tdc_trade_date_closure tdc
+     where tdc.corporate_id = pc_corporate_id
+       and tdc.process = pc_process
+       and tdc.trade_date =
+           (select max(tdc_in.trade_date)
+              from tdc_trade_date_closure tdc_in
+             where tdc_in.corporate_id = pc_corporate_id
+               and tdc_in.process = pc_process
+               and tdc_in.trade_date < pd_trade_date);
+  exception
+    when no_data_found then
+      vc_previous_eom_id := null;
+  end;
+  --
+  -- Previous Year EOM ID
+  --
+  begin
+    select tdc.process_id
+      into vc_previous_year_eom_id
+      from tdc_trade_date_closure tdc
+     where tdc.corporate_id = pc_corporate_id
+       and tdc.process = pc_process
+       and tdc.trade_date =
+           (select max(tdc_in.trade_date)
+              from tdc_trade_date_closure tdc_in
+             where tdc_in.corporate_id = pc_corporate_id
+               and tdc_in.process = pc_process
+               and tdc_in.trade_date < vd_acc_start_date);
+  exception
+    when no_data_found then
+      vc_previous_year_eom_id := null;
+  end;
   for cur_arrival_rows in cur_arrival
   loop
-  vn_wet_qty     := pkg_general.f_get_converted_quantity(cur_arrival_rows.product_id,
-                                                             cur_arrival_rows.qty_unit_id,
-                                                             cur_arrival_rows.conc_base_qty_unit_id,
-                                                             cur_arrival_rows.wet_qty);
-
-  vn_dry_qty     := pkg_general.f_get_converted_quantity(cur_arrival_rows.product_id,
-                                                             cur_arrival_rows.qty_unit_id,
-                                                             cur_arrival_rows.conc_base_qty_unit_id,
-                                                             cur_arrival_rows.dry_qty); 
-
-  vn_assay_qty:=pkg_general.f_get_converted_quantity(cur_arrival_rows.underlying_product_id,
-                                                     cur_arrival_rows.assay_qty_unit_id,
-                                                     cur_arrival_rows.base_quantity_unit_id,
-                                                     cur_arrival_rows.assay_qty);
-  vn_payable_qty:=pkg_general.f_get_converted_quantity(cur_arrival_rows.underlying_product_id,
-                                                     cur_arrival_rows.payable_qty_unit_id,
-                                                     cur_arrival_rows.base_quantity_unit_id,
-                                                     cur_arrival_rows.payable_qty);                                                     
-                                                     
+    vn_counter := vn_counter + 1;
+  
+    begin
+      select ucm.multiplication_factor
+        into vn_spq_qty_conv_factor
+        from ucm_unit_conversion_master ucm
+       where ucm.from_qty_unit_id = cur_arrival_rows.assay_qty_unit_id
+         and ucm.to_qty_unit_id = cur_arrival_rows.base_quantity_unit_id;
+    exception
+      when others then
+        vn_spq_qty_conv_factor := -1;
+    end;
+    --
+    -- Wet, Dry, Payable And Assay Quantities are stored in product Base Quantity Unit
+    --
+  
+    vn_wet_qty   := cur_arrival_rows.wet_qty *
+                    cur_arrival_rows.grd_base_qty_conv_factor;
+    vn_dry_qty   := cur_arrival_rows.dry_qty *
+                    cur_arrival_rows.grd_base_qty_conv_factor;
+    vn_assay_qty := cur_arrival_rows.assay_content * vn_spq_qty_conv_factor;
+    if cur_arrival_rows.section_name = 'Non Penalty' then
+      vn_payable_qty := cur_arrival_rows.payable_qty *
+                        vn_spq_qty_conv_factor;
+    else
+      vn_payable_qty := 0;
+    end if;
+  
     if cur_arrival_rows.ele_rank = 1 then
-      insert into ar_arrival_report
+      insert into aro_ar_original
         (process_id,
          eod_trade_date,
          corporate_id,
@@ -12399,7 +12578,12 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
          grd_qty_unit_id,
          grd_qty_unit,
          conc_base_qty_unit_id,
-         conc_base_qty_unit)
+         conc_base_qty_unit,
+         other_charges_amt,
+         pay_cur_id,
+         pay_cur_code,
+         pay_cur_decimal,
+         grd_to_gmr_qty_factor)
       values
         (pc_process_id,
          pd_trade_date,
@@ -12423,10 +12607,228 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
          cur_arrival_rows.qty_unit_id,
          cur_arrival_rows.qty_unit,
          cur_arrival_rows.conc_base_qty_unit_id,
-         cur_arrival_rows.conc_base_qty_unit);
-    end if;
+         cur_arrival_rows.conc_base_qty_unit,
+         0, --other_charges_amt,
+         cur_arrival_rows.pay_cur_id,
+         cur_arrival_rows.pay_cur_code,
+         cur_arrival_rows.pay_cur_decimals,
+         cur_arrival_rows.grd_to_gmr_qty_factor);
     
-    insert into are_arrival_report_element
+    end if;
+    --
+    -- Get the Price for the GMR and Element
+    --
+    if cur_arrival_rows.section_name = 'Non Penalty' and
+       cur_arrival_rows.payable_qty <> 0 then
+      begin
+        select cgcp.contract_price,
+               cgcp.price_unit_id,
+               cgcp.price_unit_weight_unit_id,
+               cgcp.price_unit_cur_id,
+               cgcp.price_unit_cur_code,
+               cgcp.price_unit_weight
+          into vn_gmr_price,
+               vc_gmr_price_untit_id,
+               vc_price_unit_weight_unit_id,
+               vc_gmr_price_unit_cur_id,
+               vc_gmr_price_unit_cur_code,
+               vn_gmr_price_unit_weight
+          from cgcp_conc_gmr_cog_price cgcp
+         where cgcp.internal_gmr_ref_no =
+               cur_arrival_rows.internal_gmr_ref_no
+           and cgcp.process_id = pc_process_id
+           and cgcp.element_id = cur_arrival_rows.element_id;
+      exception
+        when others then
+          begin
+            select cccp.contract_price,
+                   cccp.price_unit_id,
+                   cccp.price_unit_weight_unit_id,
+                   cccp.price_unit_cur_id,
+                   cccp.price_unit_cur_code,
+                   cccp.price_unit_weight
+              into vn_gmr_price,
+                   vc_gmr_price_untit_id,
+                   vc_price_unit_weight_unit_id,
+                   vc_gmr_price_unit_cur_id,
+                   vc_gmr_price_unit_cur_code,
+                   vn_gmr_price_unit_weight
+              from cccp_conc_contract_cog_price cccp
+             where cccp.pcdi_id = cur_arrival_rows.pcdi_id
+               and cccp.process_id = pc_process_id
+               and cccp.element_id = cur_arrival_rows.element_id;
+          exception
+            when others then
+              vn_gmr_price                 := null;
+              vc_gmr_price_untit_id        := null;
+              vc_price_unit_weight_unit_id := null;
+              vc_gmr_price_unit_cur_id     := null;
+              vc_gmr_price_unit_cur_code   := null;
+          end;
+        
+      end;
+    
+      pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
+                                         vc_price_cur_id,
+                                         vc_price_cur_code,
+                                         vn_cont_price_cur_id_factor,
+                                         vn_cont_price_cur_decimals);
+      --
+      -- Quantity Conversion between Payable to Price Units
+      --
+      if cur_arrival_rows.payable_qty_unit_id <>
+         vc_price_unit_weight_unit_id then
+        begin
+          select ucm.multiplication_factor
+            into vn_payable_to_price_wt_factor
+            from ucm_unit_conversion_master ucm
+           where ucm.from_qty_unit_id =
+                 cur_arrival_rows.payable_qty_unit_id
+             and ucm.to_qty_unit_id = vc_price_unit_weight_unit_id;
+        exception
+          when others then
+            vn_payable_to_price_wt_factor := -1;
+        end;
+      else
+        vn_payable_to_price_wt_factor := 1;
+      end if;
+      begin
+        select cet.exch_rate
+          into vn_fx_rate_price_to_pay
+          from cet_corporate_exch_rate cet
+         where cet.corporate_id = pc_corporate_id
+           and cet.from_cur_id = vc_gmr_price_unit_cur_id
+           and cet.to_cur_id = cur_arrival_rows.pay_cur_id;
+      exception
+        when no_data_found then
+          vn_fx_rate_price_to_pay := -1;
+      end;
+      --
+      -- Calculate TC Charges, Use Dry or Wet Quantity As Configured in the Contract
+      --    
+      begin
+        select round((case
+                       when getc.weight_type = 'Dry' then
+                        cur_arrival_rows.dry_qty * ucm.multiplication_factor *
+                        getc.base_tc_value
+                       else
+                        cur_arrival_rows.wet_qty * ucm.multiplication_factor *
+                        getc.base_tc_value
+                     end),
+                     cur_arrival_rows.pay_cur_decimals),
+               round((case
+                       when getc.weight_type = 'Dry' then
+                        cur_arrival_rows.dry_qty * ucm.multiplication_factor *
+                        getc.esc_desc_tc_value
+                       else
+                        cur_arrival_rows.wet_qty * ucm.multiplication_factor *
+                        getc.esc_desc_tc_value
+                     end),
+                     cur_arrival_rows.pay_cur_decimals)
+          into vn_gmr_base_tc,
+               vn_gmr_esc_descalator_tc
+          from getc_gmr_element_tc_charges getc,
+               ucm_unit_conversion_master  ucm
+         where getc.process_id = pc_process_id
+           and getc.internal_gmr_ref_no =
+               cur_arrival_rows.internal_gmr_ref_no
+           and getc.internal_grd_ref_no =
+               cur_arrival_rows.internal_grd_ref_no
+           and getc.element_id = cur_arrival_rows.element_id
+           and ucm.from_qty_unit_id = cur_arrival_rows.qty_unit_id
+           and ucm.to_qty_unit_id = getc.tc_weight_unit_id;
+      exception
+        when others then
+          vn_gmr_base_tc           := 0;
+          vn_gmr_esc_descalator_tc := 0;
+      end;
+    else
+      vn_gmr_price                  := null;
+      vc_gmr_price_untit_id         := null;
+      vc_price_unit_weight_unit_id  := null;
+      vc_gmr_price_unit_cur_id      := null;
+      vc_gmr_price_unit_cur_code    := null;
+      vn_payable_to_price_wt_factor := null;
+      vn_gmr_base_tc                := 0;
+      vn_gmr_esc_descalator_tc      := 0;
+      vn_fx_rate_price_to_pay       := null;
+    end if;
+    --
+    -- Calculate Penalty Charges, Use Dry or Wet Quantity As Configured in the Contract
+    --    
+    if cur_arrival_rows.section_name = 'Penalty' then
+      begin
+        select round((case
+                       when gepc.weight_type = 'Dry' then
+                        cur_arrival_rows.dry_qty * ucm.multiplication_factor *
+                        gepc.pc_value
+                       else
+                        cur_arrival_rows.wet_qty * ucm.multiplication_factor *
+                        gepc.pc_value
+                     end),
+                     cur_arrival_rows.pay_cur_decimals)
+          into vn_gmr_penality_charge
+          from gepc_gmr_element_pc_charges gepc,
+               ucm_unit_conversion_master  ucm
+         where gepc.process_id = pc_process_id
+           and gepc.internal_gmr_ref_no =
+               cur_arrival_rows.internal_gmr_ref_no
+           and gepc.internal_grd_ref_no =
+               cur_arrival_rows.internal_grd_ref_no
+           and gepc.element_id = cur_arrival_rows.element_id
+           and ucm.from_qty_unit_id = cur_arrival_rows.qty_unit_id
+           and ucm.to_qty_unit_id = gepc.pc_weight_unit_id;
+      exception
+        when others then
+          vn_gmr_penality_charge := 0;
+      end;
+    else
+      vn_gmr_penality_charge := 0;
+    end if;
+    --
+    -- Calcualte Payable Amount and RC Charges
+    --
+    if cur_arrival_rows.section_name = 'Non Penalty' and
+       cur_arrival_rows.payable_qty <> 0 then
+      vn_payable_amt_in_price_cur := round((vn_gmr_price /
+                                           nvl(vn_gmr_price_unit_weight, 1)) *
+                                           (vn_payable_to_price_wt_factor *
+                                           cur_arrival_rows.payable_qty) *
+                                           vn_cont_price_cur_id_factor,
+                                           vn_cont_price_cur_decimals);
+      vn_payable_amt_in_pay_cur   := round(vn_payable_amt_in_price_cur *
+                                           vn_fx_rate_price_to_pay,
+                                           cur_arrival_rows.pay_cur_decimals);
+      --
+      -- Calculate RC Charges
+      --    
+    
+      begin
+        select round(gerc.rc_value * ucm.multiplication_factor *
+                     cur_arrival_rows.payable_qty,
+                     cur_arrival_rows.pay_cur_decimals)
+          into vn_gmr_refine_charge
+          from gerc_gmr_element_rc_charges gerc,
+               ucm_unit_conversion_master  ucm
+         where gerc.process_id = pc_process_id
+           and gerc.internal_gmr_ref_no =
+               cur_arrival_rows.internal_gmr_ref_no
+           and gerc.internal_grd_ref_no =
+               cur_arrival_rows.internal_grd_ref_no
+           and gerc.element_id = cur_arrival_rows.element_id
+           and ucm.from_qty_unit_id = cur_arrival_rows.payable_qty_unit_id
+           and ucm.to_qty_unit_id = gerc.rc_weight_unit_id;
+      exception
+        when others then
+          vn_gmr_refine_charge := 0;
+      end;
+    else
+      vn_payable_amt_in_price_cur := 0;
+      vn_payable_amt_in_pay_cur   := 0;
+      vn_gmr_refine_charge        := 0;
+      vn_fx_rate_price_to_pay     := null;
+    end if;
+    insert into areo_ar_element_original
       (process_id,
        internal_gmr_ref_no,
        internal_grd_ref_no,
@@ -12437,7 +12839,18 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
        asaay_qty_unit,
        payable_qty,
        payable_qty_unit_id,
-       payable_qty_unit)
+       payable_qty_unit,
+       price,
+       price_unit_id,
+       payable_amt_price_ccy,
+       payable_amt_pay_ccy,
+       fx_rate_price_to_pay,
+       base_tc_charges_amt,
+       esc_desc_tc_charges_amt,
+       rc_charges_amt,
+       pc_charges_amt,
+       section_name,
+       qty_type)
     values
       (pc_process_id,
        cur_arrival_rows.internal_gmr_ref_no,
@@ -12449,9 +12862,680 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
        cur_arrival_rows.base_quantity_unit,
        vn_payable_qty,
        cur_arrival_rows.base_quantity_unit_id,
-       cur_arrival_rows.base_quantity_unit);
+       cur_arrival_rows.base_quantity_unit,
+       vn_gmr_price,
+       vc_gmr_price_untit_id,
+       vn_payable_amt_in_price_cur,
+       vn_payable_amt_in_pay_cur,
+       vn_fx_rate_price_to_pay,
+       vn_gmr_base_tc,
+       vn_gmr_esc_descalator_tc,
+       vn_gmr_refine_charge,
+       vn_gmr_penality_charge,
+       cur_arrival_rows.section_name,
+       cur_arrival_rows.qty_type);
+  
+    if vn_counter = 100 then
+      commit;
+      sp_write_log(pc_corporate_id,
+                   pd_trade_date,
+                   'Arrival Assay change Insert',
+                   'finished inserting 100');
+      vn_counter := 0;
+    end if;
   end loop;
   commit;
+  vn_log_counter := vn_log_counter + 1; 
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'Arrival report main insert over');
+  for cur_aro_gmr_qty in (select aro.internal_gmr_ref_no,
+                                 sum(aro.grd_wet_qty *
+                                     aro.grd_to_gmr_qty_factor) gmr_qty
+                            from aro_ar_original aro
+                           where aro.process_id = pc_process_id
+                           group by aro.internal_gmr_ref_no)
+  loop
+    update aro_ar_original aro
+       set aro.gmr_qty = cur_aro_gmr_qty.gmr_qty
+     where aro.process_id = pc_process_id
+       and aro.internal_gmr_ref_no = cur_aro_gmr_qty.internal_gmr_ref_no;
+  end loop;
+  commit;
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'Arrival report GMR Qty Updation Over');
+  --  
+  -- Update Other Charges
+  --
+
+  for cur_oc in (select gfoc.internal_gmr_ref_no,
+                        gfoc.small_lot_charge + gfoc.container_charge +
+                        gfoc.sampling_charge + gfoc.handling_charge +
+                        gfoc.location_value + gfoc.freight_allowance as other_charges
+                   from gfoc_gmr_freight_other_charge gfoc
+                  where gfoc.process_id = pc_process_id)
+  loop
+  
+    update aro_ar_original aro
+       set aro.other_charges_amt = round((cur_oc.other_charges *
+                                         aro.grd_wet_qty / aro.gmr_qty),
+                                         aro.pay_cur_decimal)
+     where aro.process_id = pc_process_id
+       and aro.internal_gmr_ref_no = cur_oc.internal_gmr_ref_no;
+  end loop;
+  commit;
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'Arrival report Other Charge Updation Over');
+  --
+  -- Populate MTD New Data
+  --
+  insert into ar_arrival_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     stock_ref_no,
+     product_id,
+     product_name,
+     quality_id,
+     quality_name,
+     arrival_status,
+     warehouse_id,
+     warehouse_name,
+     shed_id,
+     shed_name,
+     grd_wet_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     grd_qty_unit,
+     conc_base_qty_unit_id,
+     conc_base_qty_unit,
+     is_new,
+     mtd_ytd,
+     other_charges_amt,
+     pay_cur_id,
+     pay_cur_code,
+     pay_cur_decimal,
+     grd_to_gmr_qty_factor,
+     gmr_qty)
+    select pc_process_id,
+           pd_trade_date,
+           corporate_id,
+           corporate_name,
+           gmr_ref_no,
+           internal_gmr_ref_no,
+           internal_grd_ref_no,
+           stock_ref_no,
+           product_id,
+           product_name,
+           quality_id,
+           quality_name,
+           arrival_status,
+           warehouse_id,
+           warehouse_name,
+           shed_id,
+           shed_name,
+           grd_wet_qty,
+           grd_dry_qty,
+           grd_qty_unit_id,
+           grd_qty_unit,
+           conc_base_qty_unit_id,
+           conc_base_qty_unit,
+           'Y', -- is_new,
+           'MTD', -- mtd_ytd,
+           other_charges_amt,
+           pay_cur_id,
+           pay_cur_code,
+           pay_cur_decimal,
+           grd_to_gmr_qty_factor,
+           gmr_qty
+      from aro_ar_original aro
+     where aro.process_id = pc_process_id
+       and exists
+     (select *
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.internal_gmr_ref_no = aro.internal_gmr_ref_no
+               and gmr.is_new_mtd = 'Y'
+               and 'TRUE' =
+                   (case when
+                    trunc(gmr.eff_date, 'Mon') <= trunc(pd_trade_date, 'Mon') then
+                    'TRUE' when trunc(gmr.loading_date, 'Mon') <=
+                    trunc(pd_trade_date, 'Mon') and
+                    gmr.loading_date is not null then 'TRUE' else 'FALSE' end));
+  commit;
+  insert into are_arrival_report_element
+    (process_id,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     element_id,
+     element_name,
+     assay_qty,
+     asaay_qty_unit_id,
+     asaay_qty_unit,
+     payable_qty,
+     payable_qty_unit_id,
+     payable_qty_unit,
+     mtd_ytd,
+     section_name,
+     qty_type,
+     price,
+     price_unit_id,
+     payable_amt_price_ccy,
+     payable_amt_pay_ccy,
+     fx_rate_price_to_pay,
+     base_tc_charges_amt,
+     esc_desc_tc_charges_amt,
+     rc_charges_amt,
+     pc_charges_amt)
+    select pc_process_id,
+           internal_gmr_ref_no,
+           internal_grd_ref_no,
+           element_id,
+           element_name,
+           assay_qty,
+           asaay_qty_unit_id,
+           asaay_qty_unit,
+           payable_qty,
+           payable_qty_unit_id,
+           payable_qty_unit,
+           'MTD', --mtd_ytd,
+           section_name,
+           qty_type,
+           price,
+           price_unit_id,
+           payable_amt_price_ccy,
+           payable_amt_pay_ccy,
+           fx_rate_price_to_pay,
+           base_tc_charges_amt,
+           esc_desc_tc_charges_amt,
+           rc_charges_amt,
+           pc_charges_amt
+      from areo_ar_element_original areo
+     where areo.process_id = pc_process_id
+       and exists
+     (select *
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.internal_gmr_ref_no = areo.internal_gmr_ref_no
+               and gmr.is_new_mtd = 'Y'
+               and 'TRUE' =
+                   (case when
+                    trunc(gmr.eff_date, 'Mon') <= trunc(pd_trade_date, 'Mon') then
+                    'TRUE' when trunc(gmr.loading_date, 'Mon') <=
+                    trunc(pd_trade_date, 'Mon') and
+                    gmr.loading_date is not null then 'TRUE' else 'FALSE' end));
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'Populate MTD New Data Over');
+  --
+  -- Populate MTD Delta Data
+  --
+  insert into ar_arrival_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     stock_ref_no,
+     product_id,
+     product_name,
+     quality_id,
+     quality_name,
+     arrival_status,
+     warehouse_id,
+     warehouse_name,
+     shed_id,
+     shed_name,
+     grd_wet_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     grd_qty_unit,
+     conc_base_qty_unit_id,
+     conc_base_qty_unit,
+     is_new,
+     mtd_ytd,
+     other_charges_amt,
+     pay_cur_id,
+     pay_cur_code,
+     pay_cur_decimal,
+     grd_to_gmr_qty_factor,
+     gmr_qty)
+    select pc_process_id,
+           pd_trade_date,
+           aro_current.corporate_id,
+           aro_current.corporate_name,
+           aro_current.gmr_ref_no,
+           aro_current.internal_gmr_ref_no,
+           aro_current.internal_grd_ref_no,
+           aro_current.stock_ref_no,
+           aro_current.product_id,
+           aro_current.product_name,
+           aro_current.quality_id,
+           aro_current.quality_name,
+           aro_current.arrival_status,
+           aro_current.warehouse_id,
+           aro_current.warehouse_name,
+           aro_current.shed_id,
+           aro_current.shed_name,
+           aro_current.grd_wet_qty - aro_previous.grd_wet_qty,
+           aro_current.grd_dry_qty - aro_previous.grd_dry_qty,
+           aro_current.grd_qty_unit_id,
+           aro_current.grd_qty_unit,
+           aro_current.conc_base_qty_unit_id,
+           aro_current.conc_base_qty_unit,
+           'N', -- is_new,
+           'MTD', -- mtd_ytd,
+           aro_current.other_charges_amt - aro_previous.other_charges_amt,
+           aro_current.pay_cur_id,
+           aro_current.pay_cur_code,
+           aro_current.pay_cur_decimal,
+           aro_current.grd_to_gmr_qty_factor,
+           aro_current.gmr_qty
+      from aro_ar_original aro_current,
+           aro_ar_original aro_previous
+     where aro_current.process_id = pc_process_id
+       and aro_previous.process_id = vc_previous_eom_id
+       and aro_current.internal_gmr_ref_no =
+           aro_previous.internal_gmr_ref_no
+       and aro_current.internal_grd_ref_no =
+           aro_previous.internal_grd_ref_no
+       and exists
+     (select *
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.internal_gmr_ref_no = aro_current.internal_gmr_ref_no
+               and gmr.is_assay_updated_mtd = 'Y');
+  commit;
+
+  insert into are_arrival_report_element
+    (process_id,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     element_id,
+     element_name,
+     assay_qty,
+     asaay_qty_unit_id,
+     asaay_qty_unit,
+     payable_qty,
+     payable_qty_unit_id,
+     payable_qty_unit,
+     mtd_ytd,
+     section_name,
+     qty_type,
+     price,
+     price_unit_id,
+     payable_amt_price_ccy,
+     payable_amt_pay_ccy,
+     fx_rate_price_to_pay,
+     base_tc_charges_amt,
+     esc_desc_tc_charges_amt,
+     rc_charges_amt,
+     pc_charges_amt)
+    select pc_process_id,
+           areo_current.internal_gmr_ref_no,
+           areo_current.internal_grd_ref_no,
+           areo_current.element_id,
+           areo_current.element_name,
+           areo_current.assay_qty - areo_prev.assay_qty,
+           areo_current.asaay_qty_unit_id,
+           areo_current.asaay_qty_unit,
+           areo_current.payable_qty - areo_prev.payable_qty,
+           areo_current.payable_qty_unit_id,
+           areo_current.payable_qty_unit,
+           'MTD', --mtd_ytd,
+           areo_current.section_name,
+           areo_current.qty_type,
+           areo_current.price,
+           areo_current.price_unit_id,
+           areo_current.payable_amt_price_ccy -
+           areo_prev.payable_amt_price_ccy,
+           areo_current.payable_amt_pay_ccy - areo_prev.payable_amt_pay_ccy,
+           areo_current.fx_rate_price_to_pay,
+           areo_current.base_tc_charges_amt - areo_prev.base_tc_charges_amt,
+           areo_current.esc_desc_tc_charges_amt -
+           areo_prev.esc_desc_tc_charges_amt,
+           areo_current.rc_charges_amt - areo_prev.rc_charges_amt,
+           areo_current.pc_charges_amt - areo_prev.pc_charges_amt
+      from areo_ar_element_original areo_current,
+           areo_ar_element_original areo_prev
+     where areo_current.process_id = pc_process_id
+       and areo_prev.process_id = vc_previous_eom_id
+       and areo_current.internal_gmr_ref_no = areo_prev.internal_gmr_ref_no
+       and areo_current.internal_grd_ref_no = areo_prev.internal_grd_ref_no
+       and areo_current.element_id = areo_prev.element_id
+       and exists (select *
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.internal_gmr_ref_no =
+                   areo_current.internal_gmr_ref_no
+               and gmr.is_assay_updated_mtd = 'Y');
+  commit;
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'Populate MTD Delta Data Over');
+
+  --
+  -- Populate YTD New Data
+  --               
+  insert into ar_arrival_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     stock_ref_no,
+     product_id,
+     product_name,
+     quality_id,
+     quality_name,
+     arrival_status,
+     warehouse_id,
+     warehouse_name,
+     shed_id,
+     shed_name,
+     grd_wet_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     grd_qty_unit,
+     conc_base_qty_unit_id,
+     conc_base_qty_unit,
+     is_new,
+     mtd_ytd,
+     other_charges_amt,
+     pay_cur_id,
+     pay_cur_code,
+     pay_cur_decimal,
+     grd_to_gmr_qty_factor,
+     gmr_qty)
+    select pc_process_id,
+           pd_trade_date,
+           corporate_id,
+           corporate_name,
+           gmr_ref_no,
+           internal_gmr_ref_no,
+           internal_grd_ref_no,
+           stock_ref_no,
+           product_id,
+           product_name,
+           quality_id,
+           quality_name,
+           arrival_status,
+           warehouse_id,
+           warehouse_name,
+           shed_id,
+           shed_name,
+           grd_wet_qty,
+           grd_dry_qty,
+           grd_qty_unit_id,
+           grd_qty_unit,
+           conc_base_qty_unit_id,
+           conc_base_qty_unit,
+           'Y', -- is_new,
+           'YTD', -- mtd_ytd,
+           other_charges_amt,
+           pay_cur_id,
+           pay_cur_code,
+           pay_cur_decimal,
+           grd_to_gmr_qty_factor,
+           gmr_qty
+      from aro_ar_original aro
+     where aro.process_id = pc_process_id
+       and exists
+     (select *
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.internal_gmr_ref_no = aro.internal_gmr_ref_no
+               and gmr.is_new_ytd = 'Y'
+               and 'TRUE' =
+                   (case when trunc(gmr.eff_date, 'YYYY') <=
+                    trunc(pd_trade_date, 'YYYY') then 'TRUE' when
+                    trunc(gmr.loading_date, 'YYYY') <=
+                    trunc(pd_trade_date, 'YYYY') and
+                    gmr.loading_date is not null then 'TRUE' else 'FALSE' end));
+  commit;
+  insert into are_arrival_report_element
+    (process_id,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     element_id,
+     element_name,
+     assay_qty,
+     asaay_qty_unit_id,
+     asaay_qty_unit,
+     payable_qty,
+     payable_qty_unit_id,
+     payable_qty_unit,
+     mtd_ytd,
+     section_name,
+     qty_type,
+     price,
+     price_unit_id,
+     payable_amt_price_ccy,
+     payable_amt_pay_ccy,
+     fx_rate_price_to_pay,
+     base_tc_charges_amt,
+     esc_desc_tc_charges_amt,
+     rc_charges_amt,
+     pc_charges_amt)
+    select pc_process_id,
+           internal_gmr_ref_no,
+           internal_grd_ref_no,
+           element_id,
+           element_name,
+           assay_qty,
+           asaay_qty_unit_id,
+           asaay_qty_unit,
+           payable_qty,
+           payable_qty_unit_id,
+           payable_qty_unit,
+           'YTD', --mtd_ytd,
+           section_name,
+           qty_type,
+           price,
+           price_unit_id,
+           payable_amt_price_ccy,
+           payable_amt_pay_ccy,
+           fx_rate_price_to_pay,
+           base_tc_charges_amt,
+           esc_desc_tc_charges_amt,
+           rc_charges_amt,
+           pc_charges_amt
+      from areo_ar_element_original areo
+     where areo.process_id = pc_process_id
+       and exists
+     (select *
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.internal_gmr_ref_no = areo.internal_gmr_ref_no
+               and gmr.is_new_ytd = 'Y'
+               and 'TRUE' =
+                   (case when trunc(gmr.eff_date, 'yyyy') <=
+                    trunc(pd_trade_date, 'yyyy') then 'TRUE' when
+                    trunc(gmr.loading_date, 'yyyy') <=
+                    trunc(pd_trade_date, 'yyyy') and
+                    gmr.loading_date is not null then 'TRUE' else 'FALSE' end));
+  commit;
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'Populate YTD New Data Over');
+  --
+  -- Populate YTD Delta Data
+  --
+  insert into ar_arrival_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     stock_ref_no,
+     product_id,
+     product_name,
+     quality_id,
+     quality_name,
+     arrival_status,
+     warehouse_id,
+     warehouse_name,
+     shed_id,
+     shed_name,
+     grd_wet_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     grd_qty_unit,
+     conc_base_qty_unit_id,
+     conc_base_qty_unit,
+     is_new,
+     mtd_ytd,
+     other_charges_amt,
+     pay_cur_id,
+     pay_cur_code,
+     pay_cur_decimal,
+     grd_to_gmr_qty_factor,
+     gmr_qty)
+    select pc_process_id,
+           pd_trade_date,
+           aro_current.corporate_id,
+           aro_current.corporate_name,
+           aro_current.gmr_ref_no,
+           aro_current.internal_gmr_ref_no,
+           aro_current.internal_grd_ref_no,
+           aro_current.stock_ref_no,
+           aro_current.product_id,
+           aro_current.product_name,
+           aro_current.quality_id,
+           aro_current.quality_name,
+           aro_current.arrival_status,
+           aro_current.warehouse_id,
+           aro_current.warehouse_name,
+           aro_current.shed_id,
+           aro_current.shed_name,
+           aro_current.grd_wet_qty - aro_previous.grd_wet_qty,
+           aro_current.grd_dry_qty - aro_previous.grd_dry_qty,
+           aro_current.grd_qty_unit_id,
+           aro_current.grd_qty_unit,
+           aro_current.conc_base_qty_unit_id,
+           aro_current.conc_base_qty_unit,
+           'N', -- is_new,
+           'YTD', -- mtd_ytd,
+           aro_current.other_charges_amt - aro_previous.other_charges_amt,
+           aro_current.pay_cur_id,
+           aro_current.pay_cur_code,
+           aro_current.pay_cur_decimal,
+           aro_current.grd_to_gmr_qty_factor,
+           aro_current.gmr_qty
+      from aro_ar_original aro_current,
+           aro_ar_original aro_previous
+     where aro_current.process_id = pc_process_id
+       and aro_previous.process_id = vc_previous_year_eom_id
+       and aro_current.internal_gmr_ref_no =
+           aro_previous.internal_gmr_ref_no
+       and aro_current.internal_grd_ref_no =
+           aro_previous.internal_grd_ref_no
+       and exists
+     (select *
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.internal_gmr_ref_no = aro_current.internal_gmr_ref_no
+               and gmr.is_assay_updated_ytd = 'Y');
+  commit;
+
+  insert into are_arrival_report_element
+    (process_id,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     element_id,
+     element_name,
+     assay_qty,
+     asaay_qty_unit_id,
+     asaay_qty_unit,
+     payable_qty,
+     payable_qty_unit_id,
+     payable_qty_unit,
+     mtd_ytd,
+     section_name,
+     qty_type,
+     price,
+     price_unit_id,
+     payable_amt_price_ccy,
+     payable_amt_pay_ccy,
+     fx_rate_price_to_pay,
+     base_tc_charges_amt,
+     esc_desc_tc_charges_amt,
+     rc_charges_amt,
+     pc_charges_amt)
+    select pc_process_id,
+           areo_current.internal_gmr_ref_no,
+           areo_current.internal_grd_ref_no,
+           areo_current.element_id,
+           areo_current.element_name,
+           areo_current.assay_qty - areo_prev.assay_qty,
+           areo_current.asaay_qty_unit_id,
+           areo_current.asaay_qty_unit,
+           areo_current.payable_qty - areo_prev.payable_qty,
+           areo_current.payable_qty_unit_id,
+           areo_current.payable_qty_unit,
+           'YTD', --mtd_ytd,
+           areo_current.section_name,
+           areo_current.qty_type,
+           areo_current.price,
+           areo_current.price_unit_id,
+           areo_current.payable_amt_price_ccy -
+           areo_prev.payable_amt_price_ccy,
+           areo_current.payable_amt_pay_ccy - areo_prev.payable_amt_pay_ccy,
+           areo_current.fx_rate_price_to_pay,
+           areo_current.base_tc_charges_amt - areo_prev.base_tc_charges_amt,
+           areo_current.esc_desc_tc_charges_amt -
+           areo_prev.esc_desc_tc_charges_amt,
+           areo_current.rc_charges_amt - areo_prev.rc_charges_amt,
+           areo_current.pc_charges_amt - areo_prev.pc_charges_amt
+      from areo_ar_element_original areo_current,
+           areo_ar_element_original areo_prev
+     where areo_current.process_id = pc_process_id
+       and areo_prev.process_id = vc_previous_year_eom_id
+       and areo_current.internal_gmr_ref_no = areo_prev.internal_gmr_ref_no
+       and areo_current.internal_grd_ref_no = areo_prev.internal_grd_ref_no
+       and areo_current.element_id = areo_prev.element_id
+       and exists (select *
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.internal_gmr_ref_no =
+                   areo_current.internal_gmr_ref_no
+               and gmr.is_assay_updated_ytd = 'Y');
+  commit;
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'Populate YTD Delta Data Over');
 exception
   when others then
     vobj_error_log.extend;
@@ -14686,8 +15770,7 @@ select *
             from cgcp_conc_gmr_cog_price cgcp
            where cgcp.internal_gmr_ref_no = cc.internal_gmr_ref_no
              and cgcp.process_id = pc_process_id
-             and cgcp.element_id = cc.element_id
-             and rownum < 2; -- DATA AT GRD LEVEL
+             and cgcp.element_id = cc.element_id;
     exception
       when others then
         begin
@@ -15870,6 +16953,7 @@ vn_log_counter := vn_log_counter + 1;
                                                          '',
                                                          sysdate,
                                                          pd_trade_date);                          
-end;                                      
+end; 
+
 end; 
 /
