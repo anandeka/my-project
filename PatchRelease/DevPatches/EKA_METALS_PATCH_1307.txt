@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1307
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sivachalabathi
+ 
+Created on*        		:  15-Jan-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 113681
+Author: sivachalabathi.s
+Date: 5:07:06 PM, Tuesday, January 15, 2013
+Message:
+format updated, no change in query
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_DOC_OTHER_CHARGES_INVOICE.sql
