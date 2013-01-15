@@ -5,7 +5,7 @@ Created by*        		:  Janna
  
 Created on*        		:  15-Jan-2012
 
-Bug / Enhancement*              :  BUG
+Bug / Enhancement*              :  BUG/Enhancement
 
 Bug ID*            		:  
 ==================================================================
@@ -33,4 +33,23 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
-
+Revision: 113714
+Date: 7:23:38 PM, Tuesday, January 15, 2013
+Message:
+Populate Data:
+Minor fixes
+SPQ GEPQ_ID and Pledge Stock ID using Empty_String
+COG Price
+Process_id missing in GMR Price allocation added
+Physical Process
+Rollback of ARO and AREO
+EOD Reports
+Arrival Report Rewitten with delta logic
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/104_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_tata.sql

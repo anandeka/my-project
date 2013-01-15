@@ -5,7 +5,7 @@ Created by*        		:  Janna
  
 Created on*        		:  15-Jan-2012
 
-Bug / Enhancement*              :  BUG
+Bug / Enhancement*              :  Enhancement
 
 Bug ID*            		:  
 ==================================================================
@@ -34,3 +34,9 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
+Revision: 113713
+Date: 7:17:02 PM, Tuesday, January 15, 2013
+Message:
+Arrival Report (Insert MTD in Drop down)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_379.sql
