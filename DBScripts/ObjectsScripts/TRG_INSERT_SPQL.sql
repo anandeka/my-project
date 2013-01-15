@@ -1,4 +1,4 @@
-/* Formatted on 2013/01/04 15:05 (Formatter Plus v4.8.8) */
+/* Formatted on 2013/01/15 15:57 (Formatter Plus v4.8.8) */
 DROP TRIGGER trg_insert_spql;
 
 CREATE OR REPLACE TRIGGER "TRG_INSERT_SPQL"
@@ -25,7 +25,8 @@ BEGIN
                          free_metal_stock_id,
                          free_metal_qty,
                          assay_content,
-                         pledge_stock_id, gepd_id,
+                         pledge_stock_id,
+                         gepd_id,
                          assay_header_id, is_final_assay,
                          corporate_id, is_pure_free_metal_elem,
                          ext_assay_header_id,
@@ -47,7 +48,28 @@ BEGIN
                          :NEW.free_metal_stock_id,
                          :NEW.free_metal_qty - NVL (:OLD.free_metal_qty, 0),
                          :NEW.assay_content - :OLD.assay_content,
-                         :NEW.pledge_stock_id, :NEW.gepd_id,
+                         (SELECT (CASE
+                                     WHEN (SELECT axs.action_id
+                                             FROM axs_action_summary axs
+                                            WHERE axs.internal_action_ref_no =
+                                                     :NEW.internal_action_ref_no) =
+                                                        'cancelPledgeTransfer'
+                                        THEN 'Empty_String'
+                                     ELSE :NEW.pledge_stock_id
+                                  END
+                                 )
+                            FROM DUAL),
+                         (SELECT (CASE
+                                     WHEN (SELECT axs.action_id
+                                             FROM axs_action_summary axs
+                                            WHERE axs.internal_action_ref_no =
+                                                     :NEW.internal_action_ref_no) =
+                                                        'cancelPledgeTransfer'
+                                        THEN 'Empty_String'
+                                     ELSE :NEW.gepd_id
+                                  END
+                                 )
+                            FROM DUAL),
                          :NEW.assay_header_id, :NEW.is_final_assay,
                          :NEW.corporate_id, :NEW.is_pure_free_metal_elem,
                          :NEW.ext_assay_header_id,
@@ -128,7 +150,8 @@ BEGIN
                          free_metal_stock_id,
                          free_metal_qty,
                          assay_content,
-                         pledge_stock_id, gepd_id,
+                         pledge_stock_id,
+                         gepd_id,
                          assay_header_id, is_final_assay,
                          corporate_id, is_pure_free_metal_elem,
                          ext_assay_header_id,
@@ -171,7 +194,28 @@ BEGIN
                                                             :NEW.qty_unit_id,
                                                             :OLD.assay_content
                                                            ),
-                         :NEW.pledge_stock_id, :NEW.gepd_id,
+                         (SELECT (CASE
+                                     WHEN (SELECT axs.action_id
+                                             FROM axs_action_summary axs
+                                            WHERE axs.internal_action_ref_no =
+                                                     :NEW.internal_action_ref_no) =
+                                                        'cancelPledgeTransfer'
+                                        THEN 'Empty_String'
+                                     ELSE :NEW.pledge_stock_id
+                                  END
+                                 )
+                            FROM DUAL),
+                         (SELECT (CASE
+                                     WHEN (SELECT axs.action_id
+                                             FROM axs_action_summary axs
+                                            WHERE axs.internal_action_ref_no =
+                                                     :NEW.internal_action_ref_no) =
+                                                        'cancelPledgeTransfer'
+                                        THEN 'Empty_String'
+                                     ELSE :NEW.gepd_id
+                                  END
+                                 )
+                            FROM DUAL),
                          :NEW.assay_header_id, :NEW.is_final_assay,
                          :NEW.corporate_id, :NEW.is_pure_free_metal_elem,
                          :NEW.ext_assay_header_id,
@@ -264,7 +308,8 @@ BEGIN
                       smelter_id, free_metal_stock_id,
                       free_metal_qty,
                       assay_content,
-                      pledge_stock_id, gepd_id,
+                      pledge_stock_id,
+                      gepd_id,
                       assay_header_id, is_final_assay,
                       corporate_id, is_pure_free_metal_elem,
                       ext_assay_header_id,
@@ -285,7 +330,28 @@ BEGIN
                       :NEW.smelter_id, :NEW.free_metal_stock_id,
                       :NEW.free_metal_qty - NVL (:OLD.free_metal_qty, 0),
                       :NEW.assay_content - :OLD.assay_content,
-                      :NEW.pledge_stock_id, :NEW.gepd_id,
+                      (SELECT (CASE
+                                  WHEN (SELECT axs.action_id
+                                          FROM axs_action_summary axs
+                                         WHERE axs.internal_action_ref_no =
+                                                   :NEW.internal_action_ref_no) =
+                                                        'cancelPledgeTransfer'
+                                     THEN 'Empty_String'
+                                  ELSE :NEW.pledge_stock_id
+                               END
+                              )
+                         FROM DUAL),
+                      (SELECT (CASE
+                                  WHEN (SELECT axs.action_id
+                                          FROM axs_action_summary axs
+                                         WHERE axs.internal_action_ref_no =
+                                                   :NEW.internal_action_ref_no) =
+                                                        'cancelPledgeTransfer'
+                                     THEN 'Empty_String'
+                                  ELSE :NEW.gepd_id
+                               END
+                              )
+                         FROM DUAL),
                       :NEW.assay_header_id, :NEW.is_final_assay,
                       :NEW.corporate_id, :NEW.is_pure_free_metal_elem,
                       :NEW.ext_assay_header_id,
@@ -365,7 +431,9 @@ BEGIN
                    qty_type, activity_action_id,
                    is_stock_split, supplier_id, smelter_id,
                    free_metal_stock_id, free_metal_qty,
-                   assay_content, pledge_stock_id, gepd_id,
+                   assay_content,
+                   pledge_stock_id,
+                   gepd_id,
                    assay_header_id, is_final_assay,
                    corporate_id, is_pure_free_metal_elem,
                    ext_assay_header_id, ext_assay_content,
@@ -381,7 +449,29 @@ BEGIN
                    :NEW.qty_type, :NEW.activity_action_id,
                    :NEW.is_stock_split, :NEW.supplier_id, :NEW.smelter_id,
                    :NEW.free_metal_stock_id, :NEW.free_metal_qty,
-                   :NEW.assay_content, :NEW.pledge_stock_id, :NEW.gepd_id,
+                   :NEW.assay_content,
+                   (SELECT (CASE
+                               WHEN (SELECT axs.action_id
+                                       FROM axs_action_summary axs
+                                      WHERE axs.internal_action_ref_no =
+                                                   :NEW.internal_action_ref_no) =
+                                                        'cancelPledgeTransfer'
+                                  THEN 'Empty_String'
+                               ELSE :NEW.pledge_stock_id
+                            END
+                           )
+                      FROM DUAL),
+                   (SELECT (CASE
+                               WHEN (SELECT axs.action_id
+                                       FROM axs_action_summary axs
+                                      WHERE axs.internal_action_ref_no =
+                                                   :NEW.internal_action_ref_no) =
+                                                        'cancelPledgeTransfer'
+                                  THEN 'Empty_String'
+                               ELSE :NEW.gepd_id
+                            END
+                           )
+                      FROM DUAL),
                    :NEW.assay_header_id, :NEW.is_final_assay,
                    :NEW.corporate_id, :NEW.is_pure_free_metal_elem,
                    :NEW.ext_assay_header_id, :NEW.ext_assay_content,
