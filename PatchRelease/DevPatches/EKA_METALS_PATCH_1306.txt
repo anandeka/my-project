@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1306
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+ 
+Created on*        		:  15-Jan-2013
+
+Bug / Enhancement*              :  Bug -73173
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Pledge
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 113671
+Author: anupkumar.agarwal
+Date: 4:01:59 PM, Tuesday, January 15, 2013
+Message:
+bUG fIX 73173 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_SPQL.sql
+
+
+
+
+
+
