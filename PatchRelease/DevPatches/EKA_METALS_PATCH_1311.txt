@@ -49,3 +49,11 @@ Message:
 -object script for bug :- 73188
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_380.sql
+
+Revision: 113845
+Author: mayank.chaturvedi
+Date: 8:31:06 PM, Wednesday, January 16, 2013
+Message:
+-IOC(Other Charge) and IVD (Invoice Vat Details) Issues in Invoice O/P Document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_485.sql
