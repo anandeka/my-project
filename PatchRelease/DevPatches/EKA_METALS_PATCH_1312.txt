@@ -40,6 +40,14 @@ GMR Price allocation Final Price Column corrected
 Arrival Report : Penalty Element Data not populated earlier corrected
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+
+
+Revision: 113958
+Date: 6:45:44 PM, Thursday, January 17, 2013
+Message:
+Arrival Report : TC has to be calcualted when payable qty zero for payable elements because TC may be assay based.
+----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
 
 
