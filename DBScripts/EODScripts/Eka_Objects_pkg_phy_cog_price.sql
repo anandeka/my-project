@@ -1,4 +1,4 @@
-create or replace package pkg_phy_cog_price is
+acreate or replace package pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
                                        pd_trade_date   date,
                                        pc_process_id   varchar2,
@@ -1687,7 +1687,6 @@ create or replace package body pkg_phy_cog_price is
                                        (vn_qty_to_be_priced / 100) *
                                        vn_contract_price;
             vc_price_unit_id        := cur_called_off_rows.price_unit_id;
-          
           elsif cur_called_off_rows.price_basis in ('Index', 'Formula') then
             vn_qty_to_be_priced := cur_called_off_rows.qty_to_be_priced;
             vn_total_quantity   := cur_pcdi_rows.payable_qty;
@@ -2881,7 +2880,7 @@ create or replace package body pkg_phy_cog_price is
              pdm.product_id,
              pdm.base_quantity_unit base_qty_unit_id,
              gpah.gpah_id,
-             nvl(gpah.final_price, 0) final_price,
+             nvl(gpah.final_price_in_pricing_cur, 0) final_price,
              gpah.finalize_date,
              pocd.final_price_unit_id,
              pcbph.valuation_price_percentage / 100 valuation_price_percentage
@@ -2929,7 +2928,7 @@ create or replace package body pkg_phy_cog_price is
                 pdm.product_id,
                 pdm.base_quantity_unit,
                 gpah.gpah_id,
-                nvl(gpah.final_price, 0),
+                nvl(gpah.final_price_in_pricing_cur, 0),
                 gpah.finalize_date,
                 pocd.final_price_unit_id,
                 pcbph.valuation_price_percentage / 100

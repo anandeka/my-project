@@ -2995,10 +2995,10 @@ commit;
 for cur_charges in
 (
 select is1.internal_invoice_ref_no,
-       nvl(is1.freight_allowance_amt, 0) /
+       nvl(is1.freight_allowance_amt,0) /
        iid.gmr_count freight_allowance_amt,
        (nvl(is1.total_other_charge_amount, 0) -
-       nvl(is1.freight_allowance_amt, 0)) /
+       nvl(is1.freight_allowance_amt,0)) /
        iid.gmr_count total_other_charge_amount,
        iid.internal_gmr_ref_no
   from is_invoice_summary          is1,
@@ -12014,6 +12014,7 @@ sp_gather_stats('ted_treatment_element_details');
 sp_gather_stats('tsq_temp_stock_quality');
 sp_gather_stats('ucm_unit_conversion_master');
 sp_gather_stats('vd_voyage_detail');
+sp_gather_stats('gepd_gmr_element_pledge_detail'); 
 commit;
 
 vn_log_counter := vn_log_counter + 1;
@@ -12394,10 +12395,10 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
                    grd.qty_unit qty_unit,
                    ped.element_id,
                    aml.attribute_name,
-                   aml.underlying_product_id,
-                   pdm_und.product_desc underlying_product_name,
-                   pdm_und.base_quantity_unit base_quantity_unit_id,
-                   qum_und.qty_unit base_quantity_unit,
+                   null underlying_product_id,
+                   null underlying_product_name,
+                   null base_quantity_unit_id,
+                   null base_quantity_unit,
                    ped.assay_qty assay_content,
                    ped.assay_qty_unit_id assay_qty_unit_id,
                    qum_ped.qty_unit assay_qty_unit,
@@ -12419,16 +12420,12 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
                    grd_goods_record_detail     grd,
                    ped_penalty_element_details ped,
                    aml_attribute_master_list   aml,
-                   pdm_productmaster           pdm_und,
-                   qum_quantity_unit_master    qum_und,
                    qum_quantity_unit_master    qum_ped
              where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                and grd.status = 'Active'
                and grd.tolling_stock_type = 'None Tolling'
                and gmr.is_internal_movement = 'N'
                and gmr.tolling_service_type = 'S'
-               and aml.underlying_product_id = pdm_und.product_id
-               and pdm_und.base_quantity_unit = qum_und.qty_unit_id
                and gmr.gmr_status in ('In Warehouse', 'Landed')
                and gmr.is_deleted = 'N'
                and gmr.process_id = pc_process_id
@@ -12527,7 +12524,8 @@ begin
   for cur_arrival_rows in cur_arrival
   loop
     vn_counter := vn_counter + 1;
-  
+   if cur_arrival_rows.section_name = 'Non Penalty' then
+    
     begin
       select ucm.multiplication_factor
         into vn_spq_qty_conv_factor
@@ -12538,6 +12536,7 @@ begin
       when others then
         vn_spq_qty_conv_factor := -1;
     end;
+    end if;
     --
     -- Wet, Dry, Payable And Assay Quantities are stored in product Base Quantity Unit
     --
@@ -12546,12 +12545,14 @@ begin
                     cur_arrival_rows.grd_base_qty_conv_factor;
     vn_dry_qty   := cur_arrival_rows.dry_qty *
                     cur_arrival_rows.grd_base_qty_conv_factor;
-    vn_assay_qty := cur_arrival_rows.assay_content * vn_spq_qty_conv_factor;
+    
     if cur_arrival_rows.section_name = 'Non Penalty' then
       vn_payable_qty := cur_arrival_rows.payable_qty *
                         vn_spq_qty_conv_factor;
+                        vn_assay_qty := cur_arrival_rows.assay_content * vn_spq_qty_conv_factor;                        
     else
       vn_payable_qty := 0;
+      vn_assay_qty :=0;-- We do not show this for penalty elements
     end if;
   
     if cur_arrival_rows.ele_rank = 1 then
@@ -16954,6 +16955,5 @@ vn_log_counter := vn_log_counter + 1;
                                                          sysdate,
                                                          pd_trade_date);                          
 end; 
-
 end; 
 /
