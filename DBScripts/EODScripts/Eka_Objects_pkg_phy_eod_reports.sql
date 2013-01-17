@@ -12754,6 +12754,48 @@ begin
       vn_gmr_esc_descalator_tc      := 0;
       vn_fx_rate_price_to_pay       := null;
     end if;
+   --
+   -- If TC is assay based and payable qty is zero, we still need to calcualte TC
+   -- 
+     if cur_arrival_rows.section_name = 'Non Penalty' and
+       cur_arrival_rows.payable_qty = 0 then
+       begin
+        select round((case
+                       when getc.weight_type = 'Dry' then
+                        cur_arrival_rows.dry_qty * ucm.multiplication_factor *
+                        getc.base_tc_value
+                       else
+                        cur_arrival_rows.wet_qty * ucm.multiplication_factor *
+                        getc.base_tc_value
+                     end),
+                     cur_arrival_rows.pay_cur_decimals),
+               round((case
+                       when getc.weight_type = 'Dry' then
+                        cur_arrival_rows.dry_qty * ucm.multiplication_factor *
+                        getc.esc_desc_tc_value
+                       else
+                        cur_arrival_rows.wet_qty * ucm.multiplication_factor *
+                        getc.esc_desc_tc_value
+                     end),
+                     cur_arrival_rows.pay_cur_decimals)
+          into vn_gmr_base_tc,
+               vn_gmr_esc_descalator_tc
+          from getc_gmr_element_tc_charges getc,
+               ucm_unit_conversion_master  ucm
+         where getc.process_id = pc_process_id
+           and getc.internal_gmr_ref_no =
+               cur_arrival_rows.internal_gmr_ref_no
+           and getc.internal_grd_ref_no =
+               cur_arrival_rows.internal_grd_ref_no
+           and getc.element_id = cur_arrival_rows.element_id
+           and ucm.from_qty_unit_id = cur_arrival_rows.qty_unit_id
+           and ucm.to_qty_unit_id = getc.tc_weight_unit_id;
+      exception
+        when others then
+          vn_gmr_base_tc           := 0;
+          vn_gmr_esc_descalator_tc := 0;
+      end;
+       end if;
     --
     -- Calculate Penalty Charges, Use Dry or Wet Quantity As Configured in the Contract
     --    
