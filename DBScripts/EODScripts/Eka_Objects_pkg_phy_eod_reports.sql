@@ -12893,7 +12893,10 @@ begin
        rc_charges_amt,
        pc_charges_amt,
        section_name,
-       qty_type)
+       qty_type,
+       element_base_qty_unit_id,
+       element_base_qty_unit
+       )
     values
       (pc_process_id,
        cur_arrival_rows.internal_gmr_ref_no,
@@ -12916,7 +12919,9 @@ begin
        vn_gmr_refine_charge,
        vn_gmr_penality_charge,
        cur_arrival_rows.section_name,
-       cur_arrival_rows.qty_type);
+       cur_arrival_rows.qty_type,
+       cur_arrival_rows.base_quantity_unit_id,
+       cur_arrival_rows.base_quantity_unit);
   
     if vn_counter = 100 then
       commit;
@@ -13083,7 +13088,9 @@ begin
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      rc_charges_amt,
-     pc_charges_amt)
+     pc_charges_amt,
+     element_base_qty_unit_id,
+     element_base_qty_unit)
     select pc_process_id,
            internal_gmr_ref_no,
            internal_grd_ref_no,
@@ -13106,7 +13113,9 @@ begin
            base_tc_charges_amt,
            esc_desc_tc_charges_amt,
            rc_charges_amt,
-           pc_charges_amt
+           pc_charges_amt,
+           element_base_qty_unit_id,
+           element_base_qty_unit
       from areo_ar_element_original areo
      where areo.process_id = pc_process_id
        and exists
@@ -13232,7 +13241,9 @@ vn_log_counter := vn_log_counter + 1;
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      rc_charges_amt,
-     pc_charges_amt)
+     pc_charges_amt,
+     element_base_qty_unit_id,
+     element_base_qty_unit)
     select pc_process_id,
            areo_current.internal_gmr_ref_no,
            areo_current.internal_grd_ref_no,
@@ -13257,7 +13268,9 @@ vn_log_counter := vn_log_counter + 1;
            areo_current.esc_desc_tc_charges_amt -
            areo_prev.esc_desc_tc_charges_amt,
            areo_current.rc_charges_amt - areo_prev.rc_charges_amt,
-           areo_current.pc_charges_amt - areo_prev.pc_charges_amt
+           areo_current.pc_charges_amt - areo_prev.pc_charges_amt,
+           areo_current.element_base_qty_unit_id,
+           areo_current.element_base_qty_unit
       from areo_ar_element_original areo_current,
            areo_ar_element_original areo_prev
      where areo_current.process_id = pc_process_id
@@ -13383,7 +13396,9 @@ vn_log_counter := vn_log_counter + 1;
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      rc_charges_amt,
-     pc_charges_amt)
+     pc_charges_amt,
+     element_base_qty_unit_id,
+     element_base_qty_unit)
     select pc_process_id,
            internal_gmr_ref_no,
            internal_grd_ref_no,
@@ -13406,7 +13421,9 @@ vn_log_counter := vn_log_counter + 1;
            base_tc_charges_amt,
            esc_desc_tc_charges_amt,
            rc_charges_amt,
-           pc_charges_amt
+           pc_charges_amt,
+           element_base_qty_unit_id,
+           element_base_qty_unit
       from areo_ar_element_original areo
      where areo.process_id = pc_process_id
        and exists
@@ -13533,7 +13550,9 @@ vn_log_counter := vn_log_counter + 1;
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      rc_charges_amt,
-     pc_charges_amt)
+     pc_charges_amt,
+     element_base_qty_unit_id,
+     element_base_qty_unit)
     select pc_process_id,
            areo_current.internal_gmr_ref_no,
            areo_current.internal_grd_ref_no,
@@ -13558,7 +13577,9 @@ vn_log_counter := vn_log_counter + 1;
            areo_current.esc_desc_tc_charges_amt -
            areo_prev.esc_desc_tc_charges_amt,
            areo_current.rc_charges_amt - areo_prev.rc_charges_amt,
-           areo_current.pc_charges_amt - areo_prev.pc_charges_amt
+           areo_current.pc_charges_amt - areo_prev.pc_charges_amt,
+           areo_current.element_base_qty_unit_id,
+           areo_current.element_base_qty_unit
       from areo_ar_element_original areo_current,
            areo_ar_element_original areo_prev
      where areo_current.process_id = pc_process_id
