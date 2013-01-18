@@ -33,21 +33,11 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
-Revision: 113945
-Date: 5:14:16 PM, Thursday, January 17, 2013
-Message:
 GMR Price allocation Final Price Column corrected
 Arrival Report : Penalty Element Data not populated earlier corrected
-----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
-
-
-Revision: 113958
-Date: 6:45:44 PM, Thursday, January 17, 2013
-Message:
 Arrival Report : TC has to be calcualted when payable qty zero for payable elements because TC may be assay based.
-----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Arrival Report : Element Qty UNit not shown corrected
 
-
-
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/105_DDL_EODDB_ALTER_SCRIPT.sql (Revision: 113998)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql(Revision: 113995)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql(Revision: 113945)
