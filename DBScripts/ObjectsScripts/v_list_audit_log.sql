@@ -41,7 +41,7 @@ AS
               WHERE axs.action_id = axm.action_id
                 AND cam.internal_action_ref_no = axs.internal_action_ref_no
                 AND cam.internal_treasury_ref_no =
-                                                  cam.internal_treasury_ref_no
+                                                  ct.internal_treasury_ref_no
                 AND axs.created_by = aku.user_id
              UNION ALL
              -- INVOICE QUERY
