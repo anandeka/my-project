@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_1314
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  18-Jan-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:   N.A.
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice Document/domain
+
+Sub-Module  			 :  Invoice Document/domain
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 114130
+Author: sivachalabathi.s
+Date: 12:32:17 AM, Saturday, January 19, 2013
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MARKET_DATA_DOMAIN.sql
+
+---
+Revision: 114110
+Author: sivachalabathi.s
+Date: 7:01:38 PM, Friday, January 18, 2013
+Message:
+fax updated
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalNote.rpt
+
+Revision: 114101
+Author: sivachalabathi.s
+Date: 6:29:32 PM, Friday, January 18, 2013
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TotalInvoiceUtilityReport.rpt
+
