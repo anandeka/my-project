@@ -41,7 +41,7 @@ select to_char(cfq.trade_date, 'dd-Mon-rrrr') trade_date,
    and cfq.is_deleted = 'N'
    and dim.is_active = 'Y'
 union all
-select 
+select
        to_char(dq.trade_date, 'dd-Mon-rrrr') trade_date,
        'Derivatives' data_type,
         pdd.traded_on derivative_type,
@@ -50,13 +50,13 @@ select
         apm.available_price_name price_type,
         pp.price_point_name price_point,
         (case when irm.instrument_type in('Option Put','Option Call','OTC Put Option','OTC Call Option') then
-            null 
+            null
           else
             dqd.price
           end) price,
         pum.price_unit_name price_unit,
         (case when irm.instrument_type in('Option Put','Option Call','OTC Put Option','OTC Call Option') then
-            dqd.price 
+            dqd.price
           else
             null
           end) option_market_price,
@@ -64,7 +64,9 @@ select
         dqd.gamma gamma,
         dqd.theta theta,
         dqd.wega vega,
-        drm.prompt_date maturity_date,
+        (case when pp.price_point_name is not null then
+             null else
+        drm.prompt_date end) maturity_date,
         null rate_type,
         null valuation_curve,
         null valuation_point,
@@ -77,7 +79,7 @@ select
        drm_derivative_master       drm,
        dim_der_instrument_master   dim,
        irm_instrument_type_master irm,
-       pdd_product_derivative_def pdd,       
+       pdd_product_derivative_def pdd,
        ps_price_source             ps,
        apm_available_price_master  apm,
        pum_price_unit_master       pum,
@@ -86,7 +88,7 @@ select
    and dq.instrument_id = dim.instrument_id
    and dqd.dr_id = drm.dr_id
    and dim.instrument_type_id = irm.instrument_type_id
-   and dim.product_derivative_id = pdd.derivative_def_id  
+   and dim.product_derivative_id = pdd.derivative_def_id
    and dq.price_source_id = ps.price_source_id
    and dqd.available_price_id = apm.available_price_id
    and dqd.price_unit_id = pum.price_unit_id
