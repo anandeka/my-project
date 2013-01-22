@@ -5,9 +5,9 @@ create or replace package pkg_phy_populate_data is
   -- Purpose : 
   gvc_dbd_id varchar2(15);
 
-  gvc_process    varchar2(15);
-  gvc_process_id varchar2(15);
-
+  gvc_process     varchar2(15);
+  gvc_process_id  varchar2(15);
+  gvn_log_counter number := 750;
   procedure sp_phy_populate_table_data(pc_corporate_id varchar2,
                                        pd_trade_date   date,
                                        pc_user_id      varchar2,
@@ -232,10 +232,10 @@ create or replace package body PKG_PHY_POPULATE_DATA is
    pc_user_id      varchar2,
    pc_dbd_id       varchar2,
    pc_process      varchar2) is
-    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count number := 1;
-    vn_logno           number := 0;
+   vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+   vn_eel_error_count number := 1;
   begin
+ 
     gvc_dbd_id  := pc_dbd_id;
     gvc_process := pc_process;
     select tdc.process_id
@@ -251,11 +251,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_agd_data');
     sp_phy_create_agd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -265,11 +265,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_agh_data');
     sp_phy_create_agh_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -279,11 +279,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_cigc_data');
     sp_phy_create_cigc_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -293,11 +293,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_cs_data');
     sp_phy_create_cs_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -307,11 +307,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_dgrd_data');
     sp_phy_create_dgrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -321,11 +321,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_gmr_data');
     sp_phy_create_gmr_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -335,11 +335,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_mogrd_data');
     sp_phy_create_mogrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -349,11 +349,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcad_data');
     sp_phy_create_pcad_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -363,11 +363,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcbpd_data');
     sp_phy_create_pcbpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -377,11 +377,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcbph_data');
     sp_phy_create_pcbph_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -391,11 +391,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcdb_data');
     sp_phy_create_pcdb_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -405,11 +405,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcdd_data');
     sp_phy_create_pcdd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -419,11 +419,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcdiob_data');
     sp_phy_create_pcdiob_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -433,11 +433,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcdipe_data');
     sp_phy_create_pcdipe_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -447,11 +447,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcdiqd_data');
     sp_phy_create_pcdiqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -461,11 +461,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcdi_data');
     sp_phy_create_pcdi_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -475,11 +475,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcipf_data');
     sp_phy_create_pcipf_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -489,11 +489,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pci_data');
     sp_phy_create_pci_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -503,11 +503,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcjv_data');
     sp_phy_create_pcjv_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -517,11 +517,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcm_data');
     sp_phy_create_pcm_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -531,11 +531,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
       goto cancel_process;
     end if;
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcpdqd_data');
     sp_phy_create_pcpdqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -544,11 +544,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcpd_data');
     sp_phy_create_pcpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -557,11 +557,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcpq_data');
     sp_phy_create_pcpq_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -570,11 +570,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcqpd_data');
     sp_phy_create_pcqpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -583,11 +583,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pffxd_data');
     sp_phy_create_pffxd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -596,11 +596,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pfqpp_data');
     sp_phy_create_pfqpp_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -609,11 +609,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_ppfd_data');
     sp_phy_create_ppfd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -622,11 +622,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_ppfh_data');
     sp_phy_create_ppfh_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -635,11 +635,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_ciqs_data');
     sp_phy_create_ciqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -648,11 +648,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_diqs_data');
     sp_phy_create_diqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -661,11 +661,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_cqs_data');
     sp_phy_create_cqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -674,11 +674,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_grd_data');
     sp_phy_create_grd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -687,11 +687,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_vd_data');
     sp_phy_create_vd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -700,11 +700,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcpch_data');
     sp_phy_create_pcpch_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -713,11 +713,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pqd_data');
     sp_phy_create_pqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -726,11 +726,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcepc_data');
     sp_phy_create_pcepc_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -739,11 +739,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcth_data');
     sp_phy_create_pcth_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -752,11 +752,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_ted_data');
     sp_phy_create_ted_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -765,11 +765,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_tqd_data');
     sp_phy_create_tqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -778,11 +778,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcetc_data');
     sp_phy_create_pcetc_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -791,11 +791,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcar_data');
     sp_phy_create_pcar_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -804,11 +804,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcaesl_data');
     sp_phy_create_pcaesl_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -817,11 +817,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_arqd_data');
     sp_phy_create_arqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -830,11 +830,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcaph_data');
     sp_phy_create_pcaph_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -843,11 +843,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcap_data');
     sp_phy_create_pcap_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -856,11 +856,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pqdp_data');
     sp_phy_create_pqdp_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -869,11 +869,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pad_data');
     sp_phy_create_pad_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -882,11 +882,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcrh_data');
     sp_phy_create_pcrh_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -895,11 +895,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_rqd_data');
     sp_phy_create_rqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -908,11 +908,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_red_data');
     sp_phy_create_red_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -921,11 +921,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_pcerc_data');
     sp_phy_create_pcerc_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -934,11 +934,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_dith_data');
     sp_phy_create_dith_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -948,11 +948,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_dirh_data');
     sp_phy_create_dirh_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -962,11 +962,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_diph_data');
     sp_phy_create_diph_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -976,11 +976,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_cipq_data');
     sp_phy_create_cipq_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -990,11 +990,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_dipq_data');
     sp_phy_create_dipq_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -1004,11 +1004,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_spq_data');
     sp_phy_create_spq_data(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
@@ -1018,27 +1018,27 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                  pd_trade_date) = 'Cancel' then
       goto cancel_process;
     end if;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_dipch_data');
     sp_phy_create_dipch_data(pc_corporate_id, pd_trade_date, pc_user_id);
   
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_create_invs');
     sp_phy_create_invs(pc_corporate_id, pd_trade_date, pc_user_id);
     commit;
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'sp_phy_update_contract_details');
      sp_phy_update_contract_details(pc_corporate_id,
                                            pd_trade_date,
@@ -1046,11 +1046,11 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                            pc_process,
                                            pc_user_id);
     commit;                                                                                      
-    vn_logno := vn_logno + 1;
+    gvn_log_counter := gvn_log_counter + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             pc_dbd_id,
-                            vn_logno,
+                            gvn_log_counter,
                             'End of Populate Data');
   
     <<cancel_process>>
@@ -1072,6 +1072,7 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
+
 
   procedure sp_phy_create_agd_data(pc_corporate_id varchar2,
                                    pd_trade_date   date,
@@ -13218,8 +13219,6 @@ commit;
                                            pc_user_id      varchar2) is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-    vc_previous_eom_id                 varchar2(1);
-    vc_previous_year_eom_id                 varchar2(1);
   begin
     -- Update Pricing QP Start Date and End Date in PCI
     for cur_price_qp in ( --Called off
@@ -13361,10 +13360,11 @@ commit;
          and pci.dbd_id = pc_dbd_id;
     end loop;
    commit;
+   gvn_log_counter :=  gvn_log_counter + 1;
    sp_precheck_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_dbd_id,
-                        101,
+                        gvn_log_counter,
                         'Updated Pricing QP Start Date and End Date in PCI');
 
     --added by siva
@@ -13374,10 +13374,12 @@ commit;
      where pcdi.dbd_id = pc_dbd_id
        and pcdi.is_active = 'Y';
     commit;
+	 gvn_log_counter :=  gvn_log_counter + 1;
+  
    sp_precheck_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_dbd_id,
-                        102,
+                        gvn_log_counter,
                         'Updated shipment date,arrival date for PCDI table');
 
  --
@@ -13396,10 +13398,12 @@ commit;
        and gmr.internal_gmr_ref_no = cur_loading_date.internal_gmr_ref_no;
   end loop;
   commit;
+   gvn_log_counter :=  gvn_log_counter + 1;
+  
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          103,
+                          gvn_log_counter,
                           'End of GMR Loading Date Update');
  --
   -- Update Contract Details and CP for GMR
@@ -13466,10 +13470,12 @@ sp_gather_stats('phd_profileheaderdetails');
        and gmr.internal_gmr_ref_no = cur_gmr.internal_gmr_ref_no;
   end loop;
   commit;
+  gvn_log_counter :=  gvn_log_counter + 1;
+  
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          104,
+                          gvn_log_counter,
                           'End of GMR Contract Details Update');
 
 --
@@ -13501,10 +13507,11 @@ and grd.qty_unit_id =cur_grd_convert.grd_qty_unit_id
 and grd.dbd_id = pc_dbd_id; 
 end loop;   
 commit;
+gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          105,
+                          gvn_log_counter,
                           'End of Update GRD GMR Factor');
   --
   -- Update Dry Qty in GRD
@@ -13531,10 +13538,11 @@ sp_precheck_process_log(pc_corporate_id,
        and grd.internal_grd_ref_no = cur_grd_dry_qty.internal_grd_ref_no;
   end loop;
   commit;
+  gvn_log_counter :=  gvn_log_counter + 1;
  sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          106,
+                          gvn_log_counter,
                           'End of Update GRD Dry Qty');
 for cur_grd_quality in(
 select qat.quality_id,
@@ -13546,11 +13554,11 @@ update grd_goods_record_detail grd
    and grd.quality_id = cur_grd_quality.quality_id;
 end loop;
 commit;
-
-sp_precheck_process_log(pc_corporate_id,
+ gvn_log_counter :=  gvn_log_counter + 1;
+ sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          107,
+                          gvn_log_counter,
                           'End of Update GRD Quality');
 FOR cur_profit_center in(
 select *
@@ -13563,10 +13571,11 @@ update grd_goods_record_detail grd
    and grd.dbd_id = pc_dbd_id;
 end loop;
 commit;
+gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          108,
+                          gvn_log_counter,
                           'End of Update GRD Profit Center');
                          
   for cur_containers in (select grd.internal_gmr_ref_no,
@@ -13591,10 +13600,11 @@ sp_precheck_process_log(pc_corporate_id,
        and gmr.internal_gmr_ref_no = cur_containers.internal_gmr_ref_no;
   end loop;
   commit;
+  gvn_log_counter :=  gvn_log_counter + 1;
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          109,
+                          gvn_log_counter,
                           'End of GMR Containers and Bags');
   for cur_shipped_qty in (select agmr.internal_gmr_ref_no,
                                  nvl(agmr.qty,0) shipped_qty
@@ -13613,10 +13623,11 @@ sp_precheck_process_log(pc_corporate_id,
        and gmr.internal_gmr_ref_no = cur_shipped_qty.internal_gmr_ref_no;
   end loop;
   commit;
+  gvn_log_counter :=  gvn_log_counter + 1;
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          110,
+                          gvn_log_counter,
                           'End of GMR Shipped Qty Update');
 for cur_sublots in(  
  select ash.internal_gmr_ref_no,
@@ -13634,10 +13645,11 @@ for cur_sublots in(
     and gmr.dbd_id = pc_dbd_id;
 end loop;
 commit;
+gvn_log_counter :=  gvn_log_counter + 1;
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          111,
+                          gvn_log_counter,
                           'End of GMR Sublots Update');
 
 for cur_gmr_whname in(
@@ -13651,10 +13663,11 @@ update gmr_goods_movement_record gmr
    where gepd.dbd_id= pc_dbd_id
    and gepd.pledge_cp_id = cur_gmr_whname.profileid;
 end loop; 
+gvn_log_counter :=  gvn_log_counter + 1;
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          112,
+                          gvn_log_counter,
                           'End of GMR Warehouse Name Update');
 commit;                          
 
@@ -13705,6 +13718,12 @@ SELECT   gmr.internal_gmr_ref_no,
    and gmr.dbd_id = pc_dbd_id;
 end loop;   
 commit; 
+gvn_log_counter :=  gvn_log_counter + 1;
+ sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of Update GMR Assay Status');
 Update gmr_goods_movement_record gmr
 set gmr.gmr_arrival_status = (case
                      when (gmr.wns_status = 'Completed' and
@@ -13722,14 +13741,15 @@ set gmr.gmr_arrival_status = (case
                       'Arrived'
                    end)
 where gmr.dbd_id = pc_dbd_id;
-commit;                    
+commit;   
 sp_gather_stats('pcdi_pc_delivery_item');
 sp_gather_stats('pcpd_pc_product_definition');
+gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          113,
-                          'End of GMR Assay Status');
+                          gvn_log_counter,
+                          'End of GMR Arrival Status Update');
   for cur_pcdi in (select pcdi.pcdi_id,
                           pcpd.product_id,
                           pdm.product_desc
@@ -13754,10 +13774,11 @@ sp_precheck_process_log(pc_corporate_id,
        and grd.dbd_id = gvc_dbd_id;
   end loop;       
 commit;       
+gvn_log_counter :=  gvn_log_counter + 1;
  sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          114,
+                          gvn_log_counter,
                           'End of GRD Concentrate Product Update'); 
 update gepd_gmr_element_pledge_detail gepd
    set gepd.pledge_input_gmr_ref_no = (select gmr.gmr_ref_no from gmr_goods_movement_record gmr
@@ -13765,10 +13786,11 @@ update gepd_gmr_element_pledge_detail gepd
                                               gepd.pledge_input_gmr
                                           and gmr.dbd_id = pc_dbd_id)
  where gepd.dbd_id = pc_dbd_id;
+ gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          115,
+                          gvn_log_counter,
                           'End of GEPD GMR ref No Update'); 
 update gepd_gmr_element_pledge_detail gepd
    set gepd.supplier_cp_name = (select phd.companyname
@@ -13776,10 +13798,11 @@ update gepd_gmr_element_pledge_detail gepd
                                  where phd.profileid = gepd.supplier_cp_id)
  where gepd.dbd_id = pc_dbd_id;
 commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          116,
+                          gvn_log_counter,
                           'End of GEPD Profie Name Update'); 
   for cur_aml in (select * from aml_attribute_master_list)
   loop
@@ -13789,10 +13812,11 @@ sp_precheck_process_log(pc_corporate_id,
        and gepd.element_id = cur_aml.attribute_id;
   end loop;
 commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          117,
+                          gvn_log_counter,
                           'End of GEPD Element Name Update'); 
   for cur_qum in (select qum.qty_unit_id,
                          qum.qty_unit
@@ -13808,10 +13832,11 @@ sp_precheck_process_log(pc_corporate_id,
     and spq.qty_unit_id = cur_qum.qty_unit_id;
   end loop;
   commit;
+   gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          118,
+                          gvn_log_counter,
                           'End of GRD Quantity Unit Update'); 
   for cur_grd_pdm in (select pdm.product_id,
                              pdm.product_desc product_name,
@@ -13833,10 +13858,11 @@ sp_precheck_process_log(pc_corporate_id,
       
   end loop;
 commit;
+   gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          119,
+                          gvn_log_counter,
                           'End of GRD Product Update'); 
   for cur_gsm in (select * from gsm_gmr_stauts_master gsm)
   loop
@@ -13846,10 +13872,11 @@ sp_precheck_process_log(pc_corporate_id,
        and gmr.status_id = cur_gsm.status_id;
   end loop;
  commit; 
+    gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          120,
+                          gvn_log_counter,
                           'End of GMR Status From GSM Update');  
   for cur_sld in (select sld.storage_loc_id,
                          sld.storage_location_name
@@ -13861,10 +13888,11 @@ sp_precheck_process_log(pc_corporate_id,
        and gmr.shed_id = cur_sld.storage_loc_id;
   end loop;
 commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
  sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          121,
+                          gvn_log_counter,
                           'End of GMR Shed Name Update');  
   for cur_itm in (select * from itm_incoterm_master itm)
   loop
@@ -13874,10 +13902,11 @@ commit;
        and pci.m2m_inco_term = cur_itm.incoterm_id;
   end loop;
 commit; 
+ gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          122,
+                          gvn_log_counter,
                           'End of PCI Incoterm Update'); 
 ---
 -- GMR Discharge and Loading Details
@@ -13922,10 +13951,11 @@ update gmr_goods_movement_record gmr
    and gmr.loading_city_id = cur_city.city_id;
 end loop;  
 commit; 
+ gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          123,
+                          gvn_log_counter,
                           'End of GMR Load and Discharge Update'); 
 
   for cur_pcm_cur in (select * from cm_currency_master)
@@ -13937,6 +13967,12 @@ sp_precheck_process_log(pc_corporate_id,
        and pcm.dbd_id = pc_dbd_id;
   end loop;
 commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of PCM Currency Update'); 
 
 for cur_pcm_cp in(select * from phd_profileheaderdetails phd) loop
     update pcm_physical_contract_main pcm
@@ -13945,6 +13981,13 @@ for cur_pcm_cp in(select * from phd_profileheaderdetails phd) loop
        and pcm.dbd_id = pc_dbd_id;
   end loop;
 commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
+
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of PCM CP Update'); 
 
 for cur_ucm in
 (select * from ucm_unit_conversion_master ucm) loop
@@ -13955,6 +13998,12 @@ and grd.base_qty_unit_id = cur_ucm.to_qty_unit_id
 and grd.dbd_id = pc_dbd_id;
 end loop;
 commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GRD Qty Unit Update'); 
 
 for cur_pcmte in
 (select * from pcmte_pcm_tolling_ext pcmte) loop
@@ -13964,21 +14013,126 @@ where gmr.dbd_id = pc_dbd_id
 and gmr.internal_contract_ref_no = cur_pcmte.int_contract_ref_no;
 end loop;
 commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of PCM TOLLING_SERVICE_TYPE Update'); 
+for cur_grd_gmr_supp in(
+select gmr_supp.internal_gmr_ref_no,
+       gmr_supp.gmr_ref_no
+  from gmr_goods_movement_record gmr_supp
+ where gmr_supp.dbd_id = pc_dbd_id) loop
+update grd_goods_record_detail grd
+   set grd.supp_gmr_ref_no = cur_grd_gmr_supp.gmr_ref_no
+ where grd.supp_internal_gmr_ref_no = cur_grd_gmr_supp.internal_gmr_ref_no
+   and grd.dbd_id = pc_dbd_id;
+end loop;
+commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of grd.supp_gmr_ref_no Update'); 
+delete  eud_element_underlying_details where corporate_id = pc_corporate_id;
+commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of Delete EUD'); 
+INSERT INTO eud_element_underlying_details
+select pc_corporate_id,
+       aml.attribute_id     element_id,
+       aml.attribute_name   element_name,
+       pdm_und.product_id   underlying_product_id,
+       pdm_und.product_desc underlying_product_name,
+       qum_und.qty_unit_id  underlying_base_qty_unit_id,
+       qum_und.qty_unit     underlying_base_qty_unit
+  from aml_attribute_master_list aml,
+       pdm_productmaster         pdm_und,
+       qum_quantity_unit_master  qum_und
+ where aml.underlying_product_id = pdm_und.product_id
+   and pdm_und.base_quantity_unit = qum_und.qty_unit_id;
+commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of Insert EUD'); 
+sp_gather_stats('psr_pool_stock_register');
+sp_gather_stats('pm_pool_master');
+sp_gather_stats('grd_goods_record_detail');
 
-
+begin
+for c1 in(
+select pm.pool_id,
+       pm.pool_name,
+       grd.parent_internal_grd_ref_no
+  from psr_pool_stock_register psr,
+       pm_pool_master          pm,
+       grd_goods_record_detail grd
+ where psr.pool_id = pm.pool_id
+ and grd.parent_internal_grd_ref_no = psr.internal_grd_ref_no
+ and grd.dbd_id =pc_dbd_id)loop
+  update grd_goods_record_detail grd
+    set grd.parent_grd_pool_id   =c1.pool_id,
+        grd.parent_grd_pool_name = c1.pool_name
+  where grd.dbd_id = pc_dbd_id
+  and grd.parent_internal_grd_ref_no = c1.parent_internal_grd_ref_no;
+ end loop;
+end;
+commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GRD.POOL_ID Update'); 
+for cur_fp in(
+select wrd.internal_gmr_ref_no,
+       sfp.feeding_point_id,
+       sfp.feeding_point_name
+  from wrd_warehouse_receipt_detail@eka_appdb wrd,
+       sfp_smelter_feeding_point@eka_appdb    sfp
+ where wrd.feeding_point_id = sfp.feeding_point_id
+  and wrd.action_no = 1) loop
+Update gmr_goods_movement_record gmr
+set gmr.feeding_point_id = cur_fp.feeding_point_id,
+gmr.feeding_point_name = cur_fp.feeding_point_name
+where gmr.internal_gmr_ref_no = cur_fp.internal_gmr_ref_no
+and gmr.dbd_id = pc_dbd_id;
+end loop; 
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GMR.FEEDING_POINT_ID  Update'); 
   sp_gather_stats('GRD_GOODS_RECORD_DETAIL');
   sp_gather_stats('GMR_GOODS_MOVEMENT_RECORD');
   sp_gather_stats('SPQ_STOCK_PAYABLE_QTY');
+  sp_gather_stats('EUD_ELEMENT_UNDERLYING_DETAILS');
+  gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'Start of sp_create_exchange_data'); 
   sp_create_exchange_data(pc_corporate_id,
                           pd_trade_date,
                           pc_user_id,
                           gvc_dbd_id,
                           pc_process);
-
+ gvn_log_counter :=  gvn_log_counter + 1;
   sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          124,
+                          gvn_log_counter,
                           'End of Populate Exchange Data');
   exception
     when others then
@@ -14002,6 +14156,9 @@ procedure sp_create_exchange_data(pc_corporate_id varchar2,
                                        pc_dbd_id       varchar2,
                                        pc_process      varchar2)
 is
+  vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+  vn_eel_error_count number := 1;
+  
 begin
 sp_gather_stats('pci_physical_contract_item');
 sp_gather_stats('pcm_physical_contract_main');
@@ -14016,10 +14173,12 @@ sp_gather_stats('ppfd_phy_price_formula_details');
 sp_gather_stats('ppfh_phy_price_formula_header');
 delete from ced_contract_exchange_detail ced
 where ced.corporate_id = pc_corporate_id;
+commit;
+gvn_log_counter := gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          991,
+                          gvn_log_counter,
                           'Delete from ced over');
 commit;
 insert into ced_contract_exchange_detail
@@ -14239,19 +14398,21 @@ insert into ced_contract_exchange_detail
                 emt.exchange_name,
                 tt.pcdi_id;
     commit;
+gvn_log_counter := gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          992,
+                          gvn_log_counter,
                           'Insert ced over');
     
     delete from ged_gmr_exchange_detail ged
      where ged.corporate_id = pc_corporate_id;
     commit;
+gvn_log_counter := gvn_log_counter + 1;    
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          993,
+                          gvn_log_counter,
                           'delete from ged over');
     insert into ged_gmr_exchange_detail
       (corporate_id,
@@ -14348,15 +14509,30 @@ sp_precheck_process_log(pc_corporate_id,
                      pdc.is_daily_cal_applicable,
                      pdc.is_monthly_cal_applicable;    
 commit;
+gvn_log_counter := gvn_log_counter + 1;  
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
-                          993,
+                          gvn_log_counter,
                           'Insert into ged over');                
 
 sp_gather_stats('ged_gmr_exchange_detail');
 sp_gather_stats('ced_contract_exchange_detail');
-                
+ exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_create_exchange_data',
+                                                           'M2M-013',
+                                                           'Code:' || sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);                
 end;  
 end pkg_phy_populate_data; 
 /

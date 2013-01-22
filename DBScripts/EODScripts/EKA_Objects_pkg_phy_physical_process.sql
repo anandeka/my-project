@@ -4212,6 +4212,13 @@ create or replace package body pkg_phy_physical_process is
     delete from ciscs_cisc_summary where process_id = pc_process_id;
     delete from gpq_gmr_payable_qty where process_id = pc_process_id;
     commit;
+    delete from fco_feed_consumption_original fco
+     where process_id = pc_process_id;
+    delete from fceo_feed_con_element_original fceo
+     where process_id = pc_process_id;
+    commit;
+    delete from fcg_feed_consumption_gmr fcg
+     where process_id = pc_process_id;
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
     --
