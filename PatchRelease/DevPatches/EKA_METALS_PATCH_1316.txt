@@ -3,10 +3,10 @@ Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
  
-Created on*        		:  22-Jan-2012
+Created on*        		:  23-Jan-2012
 
 Bug / Enhancement*              :  BUG
-Bug ID*            		:  67642
+Bug ID*            		:  67642,73445
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -44,6 +44,14 @@ Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_p
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_tata.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+
+
+Revision: 114440
+Date: 10:56:11 AM, Wednesday, January 23, 2013
+Message:
+Arrival and Feed consumption for assay update data at GMR level only
+----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
 
 
