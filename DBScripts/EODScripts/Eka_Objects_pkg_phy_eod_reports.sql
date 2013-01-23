@@ -13185,151 +13185,182 @@ gvn_log_counter := gvn_log_counter + 1;
   --
   -- Populate MTD Delta Data
   --
-  insert into ar_arrival_report
-    (process_id,
-     eod_trade_date,
-     corporate_id,
-     corporate_name,
-     gmr_ref_no,
-     internal_gmr_ref_no,
-     internal_grd_ref_no,
-     stock_ref_no,
-     product_id,
-     product_name,
-     quality_id,
-     quality_name,
-     arrival_status,
-     warehouse_id,
-     warehouse_name,
-     shed_id,
-     shed_name,
-     grd_wet_qty,
-     grd_dry_qty,
-     grd_qty_unit_id,
-     grd_qty_unit,
-     conc_base_qty_unit_id,
-     conc_base_qty_unit,
-     is_new,
-     mtd_ytd,
-     other_charges_amt,
-     pay_cur_id,
-     pay_cur_code,
-     pay_cur_decimal,
-     grd_to_gmr_qty_factor,
-     gmr_qty)
-    select pc_process_id,
-           pd_trade_date,
-           aro_current.corporate_id,
-           aro_current.corporate_name,
-           aro_current.gmr_ref_no,
-           aro_current.internal_gmr_ref_no,
-           aro_current.internal_grd_ref_no,
-           aro_current.stock_ref_no,
-           aro_current.product_id,
-           aro_current.product_name,
-           aro_current.quality_id,
-           aro_current.quality_name,
-           aro_current.arrival_status,
-           aro_current.warehouse_id,
-           aro_current.warehouse_name,
-           aro_current.shed_id,
-           aro_current.shed_name,
-           aro_current.grd_wet_qty - aro_previous.grd_wet_qty,
-           aro_current.grd_dry_qty - aro_previous.grd_dry_qty,
-           aro_current.grd_qty_unit_id,
-           aro_current.grd_qty_unit,
-           aro_current.conc_base_qty_unit_id,
-           aro_current.conc_base_qty_unit,
-           'N', -- is_new,
-           'MTD', -- mtd_ytd,
-           aro_current.other_charges_amt - aro_previous.other_charges_amt,
-           aro_current.pay_cur_id,
-           aro_current.pay_cur_code,
-           aro_current.pay_cur_decimal,
-           aro_current.grd_to_gmr_qty_factor,
-           aro_current.gmr_qty
-      from aro_ar_original aro_current,
-           aro_ar_original aro_previous
-     where aro_current.process_id = pc_process_id
-       and aro_previous.process_id = vc_previous_eom_id
-       and aro_current.internal_gmr_ref_no =
-           aro_previous.internal_gmr_ref_no
-       and aro_current.internal_grd_ref_no =
-           aro_previous.internal_grd_ref_no
-       and exists
-     (select *
-              from gmr_goods_movement_record gmr
-             where gmr.process_id = pc_process_id
-               and gmr.internal_gmr_ref_no = aro_current.internal_gmr_ref_no
-               and gmr.is_assay_updated_mtd = 'Y');
+insert into ar_arrival_report
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   gmr_ref_no,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   stock_ref_no,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   arrival_status,
+   warehouse_id,
+   warehouse_name,
+   shed_id,
+   shed_name,
+   grd_wet_qty,
+   grd_dry_qty,
+   grd_qty_unit_id,
+   grd_qty_unit,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   is_new,
+   mtd_ytd,
+   other_charges_amt,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimal,
+   grd_to_gmr_qty_factor,
+   gmr_qty)
+  select pc_process_id,
+         pd_trade_date,
+         aro_current.corporate_id,
+         aro_current.corporate_name,
+         aro_current.gmr_ref_no,
+         aro_current.internal_gmr_ref_no,
+         null internal_grd_ref_no,
+         null stock_ref_no,
+         aro_current.product_id,
+         aro_current.product_name,
+         aro_current.quality_id,
+         aro_current.quality_name,
+         aro_current.arrival_status,
+         aro_current.warehouse_id,
+         aro_current.warehouse_name,
+         aro_current.shed_id,
+         aro_current.shed_name,
+         sum(aro_current.grd_wet_qty) - sum(aro_previous.grd_wet_qty),
+         sum(aro_current.grd_dry_qty) - sum(aro_previous.grd_dry_qty),
+         null grd_qty_unit_id,
+         null grd_qty_unit,
+         aro_current.conc_base_qty_unit_id,
+         aro_current.conc_base_qty_unit,
+         'N', -- is_new,
+         'MTD', -- mtd_ytd,
+         sum(aro_current.other_charges_amt) - sum(aro_previous.other_charges_amt),
+         aro_current.pay_cur_id,
+         aro_current.pay_cur_code,
+         aro_current.pay_cur_decimal,
+         null grd_to_gmr_qty_factor,
+         aro_current.gmr_qty
+    from aro_ar_original aro_current,
+         aro_ar_original aro_previous
+   where aro_current.process_id = pc_process_id
+     and aro_previous.process_id = vc_previous_eom_id
+     and aro_current.internal_gmr_ref_no = aro_previous.internal_gmr_ref_no
+     and exists
+   (select *
+            from gmr_goods_movement_record gmr
+           where gmr.process_id = pc_process_id
+             and gmr.internal_gmr_ref_no = aro_current.internal_gmr_ref_no
+             and gmr.is_assay_updated_mtd = 'Y')
+   group by pc_process_id,
+            pd_trade_date,
+            aro_current.corporate_id,
+            aro_current.corporate_name,
+            aro_current.gmr_ref_no,
+            aro_current.internal_gmr_ref_no,
+            aro_current.product_id,
+            aro_current.product_name,
+            aro_current.quality_id,
+            aro_current.quality_name,
+            aro_current.arrival_status,
+            aro_current.warehouse_id,
+            aro_current.warehouse_name,
+            aro_current.shed_id,
+            aro_current.shed_name,
+            aro_current.conc_base_qty_unit_id,
+            aro_current.conc_base_qty_unit,
+            aro_current.pay_cur_id,
+            aro_current.pay_cur_code,
+            aro_current.pay_cur_decimal,
+            aro_current.gmr_qty;
   commit;
 
-  insert into are_arrival_report_element
-    (process_id,
-     internal_gmr_ref_no,
-     internal_grd_ref_no,
-     element_id,
-     element_name,
-     assay_qty,
-     asaay_qty_unit_id,
-     asaay_qty_unit,
-     payable_qty,
-     payable_qty_unit_id,
-     payable_qty_unit,
-     mtd_ytd,
-     section_name,
-     qty_type,
-     price,
-     price_unit_id,
-     payable_amt_price_ccy,
-     payable_amt_pay_ccy,
-     fx_rate_price_to_pay,
-     base_tc_charges_amt,
-     esc_desc_tc_charges_amt,
-     rc_charges_amt,
-     pc_charges_amt,
-     element_base_qty_unit_id,
-     element_base_qty_unit)
-    select pc_process_id,
-           areo_current.internal_gmr_ref_no,
-           areo_current.internal_grd_ref_no,
-           areo_current.element_id,
-           areo_current.element_name,
-           areo_current.assay_qty - areo_prev.assay_qty,
-           areo_current.asaay_qty_unit_id,
-           areo_current.asaay_qty_unit,
-           areo_current.payable_qty - areo_prev.payable_qty,
-           areo_current.payable_qty_unit_id,
-           areo_current.payable_qty_unit,
-           'MTD', --mtd_ytd,
-           areo_current.section_name,
-           areo_current.qty_type,
-           areo_current.price,
-           areo_current.price_unit_id,
-           areo_current.payable_amt_price_ccy -
-           areo_prev.payable_amt_price_ccy,
-           areo_current.payable_amt_pay_ccy - areo_prev.payable_amt_pay_ccy,
-           areo_current.fx_rate_price_to_pay,
-           areo_current.base_tc_charges_amt - areo_prev.base_tc_charges_amt,
-           areo_current.esc_desc_tc_charges_amt -
-           areo_prev.esc_desc_tc_charges_amt,
-           areo_current.rc_charges_amt - areo_prev.rc_charges_amt,
-           areo_current.pc_charges_amt - areo_prev.pc_charges_amt,
-           areo_current.element_base_qty_unit_id,
-           areo_current.element_base_qty_unit
-      from areo_ar_element_original areo_current,
-           areo_ar_element_original areo_prev
-     where areo_current.process_id = pc_process_id
-       and areo_prev.process_id = vc_previous_eom_id
-       and areo_current.internal_gmr_ref_no = areo_prev.internal_gmr_ref_no
-       and areo_current.internal_grd_ref_no = areo_prev.internal_grd_ref_no
-       and areo_current.element_id = areo_prev.element_id
-       and exists (select *
-              from gmr_goods_movement_record gmr
-             where gmr.process_id = pc_process_id
-               and gmr.internal_gmr_ref_no =
-                   areo_current.internal_gmr_ref_no
-               and gmr.is_assay_updated_mtd = 'Y');
+insert into are_arrival_report_element
+  (process_id,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   element_id,
+   element_name,
+   assay_qty,
+   asaay_qty_unit_id,
+   asaay_qty_unit,
+   payable_qty,
+   payable_qty_unit_id,
+   payable_qty_unit,
+   mtd_ytd,
+   section_name,
+   qty_type,
+   price,
+   price_unit_id,
+   payable_amt_price_ccy,
+   payable_amt_pay_ccy,
+   fx_rate_price_to_pay,
+   base_tc_charges_amt,
+   esc_desc_tc_charges_amt,
+   rc_charges_amt,
+   pc_charges_amt,
+   element_base_qty_unit_id,
+   element_base_qty_unit)
+  select pc_process_id,
+         areo_current.internal_gmr_ref_no,
+         null internal_grd_ref_no,
+         areo_current.element_id,
+         areo_current.element_name,
+         sum(areo_current.assay_qty) - sum(areo_prev.assay_qty),
+         areo_current.asaay_qty_unit_id,
+         areo_current.asaay_qty_unit,
+         sum(areo_current.payable_qty) - sum(areo_prev.payable_qty),
+         areo_current.payable_qty_unit_id,
+         areo_current.payable_qty_unit,
+         'MTD', --mtd_ytd,
+         areo_current.section_name,
+         areo_current.qty_type,
+         null price,
+         null price_unit_id,
+         sum(areo_current.payable_amt_price_ccy) -
+         sum(areo_prev.payable_amt_price_ccy),
+         sum(areo_current.payable_amt_pay_ccy) -
+         sum(areo_prev.payable_amt_pay_ccy),
+         null fx_rate_price_to_pay,
+         sum(areo_current.base_tc_charges_amt) -
+         sum(areo_prev.base_tc_charges_amt),
+         sum(areo_current.esc_desc_tc_charges_amt) -
+         sum(areo_prev.esc_desc_tc_charges_amt),
+         sum(areo_current.rc_charges_amt) - sum(areo_prev.rc_charges_amt),
+         sum(areo_current.pc_charges_amt) - sum(areo_prev.pc_charges_amt),
+         areo_current.element_base_qty_unit_id,
+         areo_current.element_base_qty_unit
+    from areo_ar_element_original areo_current,
+         areo_ar_element_original areo_prev
+   where areo_current.process_id = pc_process_id
+     and areo_prev.process_id = vc_previous_eom_id
+     and areo_current.internal_gmr_ref_no = areo_prev.internal_gmr_ref_no
+     and areo_current.element_id = areo_prev.element_id
+     and exists
+   (select *
+            from gmr_goods_movement_record gmr
+           where gmr.process_id = pc_process_id
+             and gmr.internal_gmr_ref_no = areo_current.internal_gmr_ref_no
+             and gmr.is_assay_updated_mtd = 'Y')
+   group by pc_process_id,
+            areo_current.internal_gmr_ref_no,
+            areo_current.element_id,
+            areo_current.element_name,
+            areo_current.asaay_qty_unit_id,
+            areo_current.asaay_qty_unit,
+            areo_current.payable_qty_unit_id,
+            areo_current.payable_qty_unit,
+            areo_current.section_name,
+            areo_current.qty_type,
+            areo_current.element_base_qty_unit_id,
+            areo_current.element_base_qty_unit;
   commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -13532,8 +13563,8 @@ gvn_log_counter := gvn_log_counter + 1;
            aro_current.corporate_name,
            aro_current.gmr_ref_no,
            aro_current.internal_gmr_ref_no,
-           aro_current.internal_grd_ref_no,
-           aro_current.stock_ref_no,
+           null internal_grd_ref_no,
+           null stock_ref_no,
            aro_current.product_id,
            aro_current.product_name,
            aro_current.quality_id,
@@ -13543,19 +13574,19 @@ gvn_log_counter := gvn_log_counter + 1;
            aro_current.warehouse_name,
            aro_current.shed_id,
            aro_current.shed_name,
-           aro_current.grd_wet_qty - aro_previous.grd_wet_qty,
-           aro_current.grd_dry_qty - aro_previous.grd_dry_qty,
-           aro_current.grd_qty_unit_id,
-           aro_current.grd_qty_unit,
+           sum(aro_current.grd_wet_qty) - sum(aro_previous.grd_wet_qty),
+           sum(aro_current.grd_dry_qty) - sum(aro_previous.grd_dry_qty),
+           null grd_qty_unit_id,
+           null grd_qty_unit,
            aro_current.conc_base_qty_unit_id,
            aro_current.conc_base_qty_unit,
            'N', -- is_new,
            'YTD', -- mtd_ytd,
-           aro_current.other_charges_amt - aro_previous.other_charges_amt,
+           sum(aro_current.other_charges_amt) - sum(aro_previous.other_charges_amt),
            aro_current.pay_cur_id,
            aro_current.pay_cur_code,
            aro_current.pay_cur_decimal,
-           aro_current.grd_to_gmr_qty_factor,
+           null grd_to_gmr_qty_factor,
            aro_current.gmr_qty
       from aro_ar_original aro_current,
            aro_ar_original aro_previous
@@ -13563,82 +13594,112 @@ gvn_log_counter := gvn_log_counter + 1;
        and aro_previous.process_id = vc_previous_year_eom_id
        and aro_current.internal_gmr_ref_no =
            aro_previous.internal_gmr_ref_no
-       and aro_current.internal_grd_ref_no =
-           aro_previous.internal_grd_ref_no
        and exists
      (select *
               from gmr_goods_movement_record gmr
              where gmr.process_id = pc_process_id
                and gmr.internal_gmr_ref_no = aro_current.internal_gmr_ref_no
-               and gmr.is_assay_updated_ytd = 'Y');
+               and gmr.is_assay_updated_ytd = 'Y')
+group by  aro_current.corporate_id,
+           aro_current.corporate_name,
+           aro_current.gmr_ref_no,
+           aro_current.internal_gmr_ref_no,
+           aro_current.product_id,
+           aro_current.product_name,
+           aro_current.quality_id,
+           aro_current.quality_name,
+           aro_current.arrival_status,
+           aro_current.warehouse_id,
+           aro_current.warehouse_name,
+           aro_current.shed_id,
+           aro_current.shed_name,
+           aro_current.conc_base_qty_unit_id,
+           aro_current.conc_base_qty_unit,
+           aro_current.pay_cur_id,
+           aro_current.pay_cur_code,
+           aro_current.pay_cur_decimal,
+           aro_current.gmr_qty;
   commit;
 
-  insert into are_arrival_report_element
-    (process_id,
-     internal_gmr_ref_no,
-     internal_grd_ref_no,
-     element_id,
-     element_name,
-     assay_qty,
-     asaay_qty_unit_id,
-     asaay_qty_unit,
-     payable_qty,
-     payable_qty_unit_id,
-     payable_qty_unit,
-     mtd_ytd,
-     section_name,
-     qty_type,
-     price,
-     price_unit_id,
-     payable_amt_price_ccy,
-     payable_amt_pay_ccy,
-     fx_rate_price_to_pay,
-     base_tc_charges_amt,
-     esc_desc_tc_charges_amt,
-     rc_charges_amt,
-     pc_charges_amt,
-     element_base_qty_unit_id,
-     element_base_qty_unit)
-    select pc_process_id,
-           areo_current.internal_gmr_ref_no,
-           areo_current.internal_grd_ref_no,
-           areo_current.element_id,
-           areo_current.element_name,
-           areo_current.assay_qty - areo_prev.assay_qty,
-           areo_current.asaay_qty_unit_id,
-           areo_current.asaay_qty_unit,
-           areo_current.payable_qty - areo_prev.payable_qty,
-           areo_current.payable_qty_unit_id,
-           areo_current.payable_qty_unit,
-           'YTD', --mtd_ytd,
-           areo_current.section_name,
-           areo_current.qty_type,
-           areo_current.price,
-           areo_current.price_unit_id,
-           areo_current.payable_amt_price_ccy -
-           areo_prev.payable_amt_price_ccy,
-           areo_current.payable_amt_pay_ccy - areo_prev.payable_amt_pay_ccy,
-           areo_current.fx_rate_price_to_pay,
-           areo_current.base_tc_charges_amt - areo_prev.base_tc_charges_amt,
-           areo_current.esc_desc_tc_charges_amt -
-           areo_prev.esc_desc_tc_charges_amt,
-           areo_current.rc_charges_amt - areo_prev.rc_charges_amt,
-           areo_current.pc_charges_amt - areo_prev.pc_charges_amt,
-           areo_current.element_base_qty_unit_id,
-           areo_current.element_base_qty_unit
-      from areo_ar_element_original areo_current,
-           areo_ar_element_original areo_prev
-     where areo_current.process_id = pc_process_id
-       and areo_prev.process_id = vc_previous_year_eom_id
-       and areo_current.internal_gmr_ref_no = areo_prev.internal_gmr_ref_no
-       and areo_current.internal_grd_ref_no = areo_prev.internal_grd_ref_no
-       and areo_current.element_id = areo_prev.element_id
-       and exists (select *
-              from gmr_goods_movement_record gmr
-             where gmr.process_id = pc_process_id
-               and gmr.internal_gmr_ref_no =
-                   areo_current.internal_gmr_ref_no
-               and gmr.is_assay_updated_ytd = 'Y');
+insert into are_arrival_report_element
+  (process_id,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   element_id,
+   element_name,
+   assay_qty,
+   asaay_qty_unit_id,
+   asaay_qty_unit,
+   payable_qty,
+   payable_qty_unit_id,
+   payable_qty_unit,
+   mtd_ytd,
+   section_name,
+   qty_type,
+   price,
+   price_unit_id,
+   payable_amt_price_ccy,
+   payable_amt_pay_ccy,
+   fx_rate_price_to_pay,
+   base_tc_charges_amt,
+   esc_desc_tc_charges_amt,
+   rc_charges_amt,
+   pc_charges_amt,
+   element_base_qty_unit_id,
+   element_base_qty_unit)
+  select pc_process_id,
+         areo_current.internal_gmr_ref_no,
+         null internal_grd_ref_no,
+         areo_current.element_id,
+         areo_current.element_name,
+         sum(areo_current.assay_qty) - sum(areo_prev.assay_qty),
+         areo_current.asaay_qty_unit_id,
+         areo_current.asaay_qty_unit,
+         sum(areo_current.payable_qty) - sum(areo_prev.payable_qty),
+         areo_current.payable_qty_unit_id,
+         areo_current.payable_qty_unit,
+         'YTD', --mtd_ytd,
+         areo_current.section_name,
+         areo_current.qty_type,
+         null price,
+         null price_unit_id,
+         sum(areo_current.payable_amt_price_ccy) -
+         sum(areo_prev.payable_amt_price_ccy),
+         sum(areo_current.payable_amt_pay_ccy) -
+         sum(areo_prev.payable_amt_pay_ccy),
+         null fx_rate_price_to_pay,
+         sum(areo_current.base_tc_charges_amt) -
+         sum(areo_prev.base_tc_charges_amt),
+         sum(areo_current.esc_desc_tc_charges_amt) -
+         sum(areo_prev.esc_desc_tc_charges_amt),
+         sum(areo_current.rc_charges_amt) - sum(areo_prev.rc_charges_amt),
+         sum(areo_current.pc_charges_amt) - sum(areo_prev.pc_charges_amt),
+         areo_current.element_base_qty_unit_id,
+         areo_current.element_base_qty_unit
+    from areo_ar_element_original areo_current,
+         areo_ar_element_original areo_prev
+   where areo_current.process_id = pc_process_id
+     and areo_prev.process_id = vc_previous_year_eom_id
+     and areo_current.internal_gmr_ref_no = areo_prev.internal_gmr_ref_no
+     and areo_current.element_id = areo_prev.element_id
+     and exists
+   (select *
+            from gmr_goods_movement_record gmr
+           where gmr.process_id = pc_process_id
+             and gmr.internal_gmr_ref_no = areo_current.internal_gmr_ref_no
+             and gmr.is_assay_updated_ytd = 'Y')
+   group by pc_process_id,
+            areo_current.internal_gmr_ref_no,
+            areo_current.element_id,
+            areo_current.element_name,
+            areo_current.asaay_qty_unit_id,
+            areo_current.asaay_qty_unit,
+            areo_current.payable_qty_unit_id,
+            areo_current.payable_qty_unit,
+            areo_current.section_name,
+            areo_current.qty_type,
+            areo_current.element_base_qty_unit_id,
+            areo_current.element_base_qty_unit;
   commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -13718,7 +13779,6 @@ select gmr_ref_no,
        grd_to_gmr_qty_factor
   from fct_fc_temp t
  where t.corporate_id = pc_corporate_id;
-  
   vobj_error_log                tableofpelerrorlog := tableofpelerrorlog();
   vn_eel_error_count            number := 1;
   vn_wet_qty                    number;
@@ -14965,8 +15025,8 @@ insert into fcg_feed_consumption_gmr
           fco_current.corporate_name,
           fco_current.gmr_ref_no,
           fco_current.internal_gmr_ref_no,
-          fco_current.internal_grd_ref_no,
-          fco_current.stock_ref_no,
+          null internal_grd_ref_no,
+          null stock_ref_no,
           fco_current.product_id,
           fco_current.product_name,
           fco_current.quality_id,
@@ -14977,32 +15037,54 @@ insert into fcg_feed_consumption_gmr
           fco_current.warehouse_name,
           fco_current.shed_id,
           fco_current.shed_name,
-          fco_current.grd_wet_qty - fco_previous.grd_wet_qty,
-          fco_current.grd_dry_qty - fco_previous.grd_dry_qty,
-          fco_current.grd_qty_unit_id,
-          fco_current.grd_qty_unit,
+          sum(fco_current.grd_wet_qty) - sum(fco_previous.grd_wet_qty),
+          sum(fco_current.grd_dry_qty) - sum(fco_previous.grd_dry_qty),
+          null grd_qty_unit_id,
+          null grd_qty_unit,
           fco_current.conc_base_qty_unit_id,
           fco_current.conc_base_qty_unit,
-          fco_current.original_grd_qty,
-          fco_current.original_grd_qty_unit_id,
-          fco_current.dry_wet_qty_ratio,
+          null original_grd_qty,
+          null original_grd_qty_unit_id,
+          null dry_wet_qty_ratio,
           fco_current.pay_cur_id,
           fco_current.pay_cur_code,
           fco_current.parent_internal_gmr_ref_no,
-          fco_current.parent_internal_grd_ref_no,
+          null parent_internal_grd_ref_no,
           'N', --is_new,
           'MTD', --mtd_ytd,
           fco_current.feeding_point_id,
           fco_current.feeding_point_name,
-          fco_current.other_charges_amt - fco_previous.other_charges_amt
+          sum(fco_current.other_charges_amt) - sum(fco_previous.other_charges_amt)
      from fco_feed_consumption_original fco_current,
           fcot_fco_temp                 fco_previous
     where fco_current.process_id = pc_process_id
       and fco_previous.corporate_id = pc_corporate_id
       and fco_current.internal_gmr_ref_no =
           fco_previous.internal_gmr_ref_no
-      and fco_current.internal_grd_ref_no =
-          fco_previous.internal_grd_ref_no;
+     group by fco_current.process_id,
+          fco_current.eod_trade_date,
+          fco_current.corporate_id,
+          fco_current.corporate_name,
+          fco_current.gmr_ref_no,
+          fco_current.internal_gmr_ref_no,
+          fco_current.product_id,
+          fco_current.product_name,
+          fco_current.quality_id,
+          fco_current.quality_name,
+          fco_current.pile_name,
+          fco_current.parent_gmr_ref_no,
+          fco_current.warehouse_id,
+          fco_current.warehouse_name,
+          fco_current.shed_id,
+          fco_current.shed_name,
+          fco_current.conc_base_qty_unit_id,
+          fco_current.conc_base_qty_unit,
+          fco_current.pay_cur_id,
+          fco_current.pay_cur_code,
+          fco_current.parent_internal_gmr_ref_no,
+          fco_current.feeding_point_id,
+          fco_current.feeding_point_name;     
+   
     commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -15097,35 +15179,35 @@ insert into fce_feed_consumption_element
    element_base_qty_unit)
   select fceo_current.process_id,
          fceo_current.internal_gmr_ref_no,
-         fceo_current.internal_grd_ref_no,
+         null internal_grd_ref_no,
          fceo_current.element_id,
          fceo_current.element_name,
-         fceo_current.assay_qty - fceo_prev.assay_qty,
+         sum(fceo_current.assay_qty) - sum(fceo_prev.assay_qty),
          fceo_current.asaay_qty_unit_id,
          fceo_current.asaay_qty_unit,
-         fceo_current.payable_qty - fceo_prev.payable_qty,
+         sum(fceo_current.payable_qty) - sum(fceo_prev.payable_qty),
          fceo_current.payable_qty_unit_id,
          fceo_current.payable_qty_unit,
          fceo_current.underlying_product_id,
          fceo_current.underlying_base_qty_unit_id,
-         fceo_current.original_asaay_qty_unit_id,
-         fceo_current.original_payable_qty_unit_id,
+         null original_asaay_qty_unit_id,
+         null original_payable_qty_unit_id,
          fceo_current.payable_returnable_type,
-         fceo_current.rc_charges_amt - fceo_prev.rc_charges_amt ,
-         fceo_current.pc_charges_amt - fceo_prev.pc_charges_amt ,
-         fceo_current.original_payable_qty,
+         sum(fceo_current.rc_charges_amt) - sum(fceo_prev.rc_charges_amt) ,
+         sum(fceo_current.pc_charges_amt) - sum(fceo_prev.pc_charges_amt) ,
+         null original_payable_qty,
          fceo_current.parent_internal_gmr_ref_no,
-         fceo_current.parent_internal_grd_ref_no,
+         null parent_internal_grd_ref_no,
          'MTD', --mtd_ytd,
          fceo_current.section_name,
          fceo_current.qty_type,
-         fceo_current.price,
-         fceo_current.price_unit_id,
-         fceo_current.payable_amt_price_ccy - fceo_prev.payable_amt_price_ccy,
-         fceo_current.payable_amt_pay_ccy - fceo_prev.payable_amt_pay_ccy,
-         fceo_current.fx_rate_price_to_pay,
-         fceo_current.base_tc_charges_amt - fceo_prev.base_tc_charges_amt,
-         fceo_current.esc_desc_tc_charges_amt - fceo_prev.esc_desc_tc_charges_amt,
+         null price,
+         null price_unit_id,
+         sum(fceo_current.payable_amt_price_ccy) - sum(fceo_prev.payable_amt_price_ccy),
+         sum(fceo_current.payable_amt_pay_ccy) - sum(fceo_prev.payable_amt_pay_ccy),
+         null fx_rate_price_to_pay,
+         sum(fceo_current.base_tc_charges_amt) - sum(fceo_prev.base_tc_charges_amt),
+         sum(fceo_current.esc_desc_tc_charges_amt) - sum(fceo_prev.esc_desc_tc_charges_amt),
          fceo_current.element_base_qty_unit_id,
          fceo_current.element_base_qty_unit
     from fceo_feed_con_element_original fceo_current,
@@ -15133,8 +15215,23 @@ insert into fce_feed_consumption_element
    where fceo_current.process_id = pc_process_id
      and fceo_prev.corporate_id = pc_corporate_id
      and fceo_current.internal_gmr_ref_no = fceo_prev.internal_gmr_ref_no
-     and fceo_current.internal_grd_ref_no = fceo_prev.internal_grd_ref_no
-     and fceo_current.element_id = fceo_prev.element_id;
+     and fceo_current.element_id = fceo_prev.element_id
+     group by fceo_current.process_id,
+         fceo_current.internal_gmr_ref_no,
+         fceo_current.element_id,
+         fceo_current.element_name,
+         fceo_current.asaay_qty_unit_id,
+         fceo_current.asaay_qty_unit,
+         fceo_current.payable_qty_unit_id,
+         fceo_current.payable_qty_unit,
+         fceo_current.underlying_product_id,
+         fceo_current.underlying_base_qty_unit_id,
+         fceo_current.payable_returnable_type,
+         fceo_current.parent_internal_gmr_ref_no,
+         fceo_current.section_name,
+         fceo_current.qty_type,
+         fceo_current.element_base_qty_unit_id,
+         fceo_current.element_base_qty_unit;
  
 commit;
  gvn_log_counter := gvn_log_counter + 1;
@@ -15236,8 +15333,8 @@ commit;
           fco_current.corporate_name,
           fco_current.gmr_ref_no,
           fco_current.internal_gmr_ref_no,
-          fco_current.internal_grd_ref_no,
-          fco_current.stock_ref_no,
+          null internal_grd_ref_no,
+          null stock_ref_no,
           fco_current.product_id,
           fco_current.product_name,
           fco_current.quality_id,
@@ -15248,32 +15345,53 @@ commit;
           fco_current.warehouse_name,
           fco_current.shed_id,
           fco_current.shed_name,
-          fco_current.grd_wet_qty - fco_previous.grd_wet_qty,
-          fco_current.grd_dry_qty - fco_previous.grd_dry_qty,
-          fco_current.grd_qty_unit_id,
-          fco_current.grd_qty_unit,
+          sum(fco_current.grd_wet_qty) - sum(fco_previous.grd_wet_qty),
+          sum(fco_current.grd_dry_qty) - sum(fco_previous.grd_dry_qty),
+          null rd_qty_unit_id,
+          null grd_qty_unit,
           fco_current.conc_base_qty_unit_id,
           fco_current.conc_base_qty_unit,
-          fco_current.original_grd_qty,
-          fco_current.original_grd_qty_unit_id,
-          fco_current.dry_wet_qty_ratio,
+          null original_grd_qty,
+          null original_grd_qty_unit_id,
+          null dry_wet_qty_ratio,
           fco_current.pay_cur_id,
           fco_current.pay_cur_code,
           fco_current.parent_internal_gmr_ref_no,
-          fco_current.parent_internal_grd_ref_no,
+          null parent_internal_grd_ref_no,
           'N', --is_new,
           'YTD', --mtd_ytd,
           fco_current.feeding_point_id,
           fco_current.feeding_point_name,
-          fco_current.other_charges_amt - fco_previous.other_charges_amt
+          sum(fco_current.other_charges_amt) - sum(fco_previous.other_charges_amt)
      from fco_feed_consumption_original fco_current,
           fcot_fco_temp                 fco_previous
     where fco_current.process_id = pc_process_id
       and fco_previous.corporate_id = pc_corporate_id
       and fco_current.internal_gmr_ref_no =
           fco_previous.internal_gmr_ref_no
-      and fco_current.internal_grd_ref_no =
-          fco_previous.internal_grd_ref_no;
+group by fco_current.process_id,
+          fco_current.eod_trade_date,
+          fco_current.corporate_id,
+          fco_current.corporate_name,
+          fco_current.gmr_ref_no,
+          fco_current.internal_gmr_ref_no,
+          fco_current.product_id,
+          fco_current.product_name,
+          fco_current.quality_id,
+          fco_current.quality_name,
+          fco_current.pile_name,
+          fco_current.parent_gmr_ref_no,
+          fco_current.warehouse_id,
+          fco_current.warehouse_name,
+          fco_current.shed_id,
+          fco_current.shed_name,
+          fco_current.conc_base_qty_unit_id,
+          fco_current.conc_base_qty_unit,
+          fco_current.pay_cur_id,
+          fco_current.pay_cur_code,
+          fco_current.parent_internal_gmr_ref_no,
+          fco_current.feeding_point_id,
+          fco_current.feeding_point_name;
     commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -15367,35 +15485,35 @@ insert into fce_feed_consumption_element
    element_base_qty_unit)
   select fceo_current.process_id,
          fceo_current.internal_gmr_ref_no,
-         fceo_current.internal_grd_ref_no,
+         null internal_grd_ref_no,
          fceo_current.element_id,
          fceo_current.element_name,
-         fceo_current.assay_qty - fceo_prev.assay_qty,
+         sum(fceo_current.assay_qty) - sum(fceo_prev.assay_qty),
          fceo_current.asaay_qty_unit_id,
          fceo_current.asaay_qty_unit,
-         fceo_current.payable_qty - fceo_prev.payable_qty,
+         sum(fceo_current.payable_qty) - sum(fceo_prev.payable_qty),
          fceo_current.payable_qty_unit_id,
          fceo_current.payable_qty_unit,
          fceo_current.underlying_product_id,
          fceo_current.underlying_base_qty_unit_id,
-         fceo_current.original_asaay_qty_unit_id,
-         fceo_current.original_payable_qty_unit_id,
+         null original_asaay_qty_unit_id,
+         null original_payable_qty_unit_id,
          fceo_current.payable_returnable_type,
-         fceo_current.rc_charges_amt - fceo_prev.rc_charges_amt ,
-         fceo_current.pc_charges_amt - fceo_prev.pc_charges_amt ,
-         fceo_current.original_payable_qty,
-         fceo_current.parent_internal_gmr_ref_no,
-         fceo_current.parent_internal_grd_ref_no,
+         sum(fceo_current.rc_charges_amt) - sum(fceo_prev.rc_charges_amt) ,
+         sum(fceo_current.pc_charges_amt) - sum(fceo_prev.pc_charges_amt) ,
+         null original_payable_qty,
+         null parent_internal_gmr_ref_no,
+         null parent_internal_grd_ref_no,
          'YTD', --mtd_ytd,
          fceo_current.section_name,
          fceo_current.qty_type,
-         fceo_current.price,
-         fceo_current.price_unit_id,
-         fceo_current.payable_amt_price_ccy - fceo_prev.payable_amt_price_ccy,
-         fceo_current.payable_amt_pay_ccy - fceo_prev.payable_amt_pay_ccy,
-         fceo_current.fx_rate_price_to_pay,
-         fceo_current.base_tc_charges_amt - fceo_prev.base_tc_charges_amt,
-         fceo_current.esc_desc_tc_charges_amt - fceo_prev.esc_desc_tc_charges_amt,
+         null price,
+         null price_unit_id,
+         sum(fceo_current.payable_amt_price_ccy) - sum(fceo_prev.payable_amt_price_ccy),
+         sum(fceo_current.payable_amt_pay_ccy) - sum(fceo_prev.payable_amt_pay_ccy),
+         null fx_rate_price_to_pay,
+         sum(fceo_current.base_tc_charges_amt) - sum(fceo_prev.base_tc_charges_amt),
+         sum(fceo_current.esc_desc_tc_charges_amt) - sum(fceo_prev.esc_desc_tc_charges_amt),
          fceo_current.element_base_qty_unit_id,
          fceo_current.element_base_qty_unit
     from fceo_feed_con_element_original fceo_current,
@@ -15403,8 +15521,22 @@ insert into fce_feed_consumption_element
    where fceo_current.process_id = pc_process_id
      and fceo_prev.corporate_id = pc_corporate_id
      and fceo_current.internal_gmr_ref_no = fceo_prev.internal_gmr_ref_no
-     and fceo_current.internal_grd_ref_no = fceo_prev.internal_grd_ref_no
-     and fceo_current.element_id = fceo_prev.element_id;
+     and fceo_current.element_id = fceo_prev.element_id
+     group by fceo_current.process_id,
+         fceo_current.internal_gmr_ref_no,
+         fceo_current.element_id,
+         fceo_current.element_name,
+         fceo_current.asaay_qty_unit_id,
+         fceo_current.asaay_qty_unit,
+         fceo_current.payable_qty_unit_id,
+         fceo_current.payable_qty_unit,
+         fceo_current.underlying_product_id,
+         fceo_current.underlying_base_qty_unit_id,
+         fceo_current.payable_returnable_type,
+         fceo_current.section_name,
+         fceo_current.qty_type,
+         fceo_current.element_base_qty_unit_id,
+         fceo_current.element_base_qty_unit;
  
 commit;
  gvn_log_counter := gvn_log_counter + 1;
