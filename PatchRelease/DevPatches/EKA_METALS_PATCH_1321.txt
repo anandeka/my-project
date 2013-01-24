@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1321
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  24-Jan-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 114718
+Author: anupkumar.agarwal
+Date: 6:32:17 PM, Thursday, January 24, 2013
+Message:
+Nvl Check Added For no of bags and no of pieces 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_GRDL.sql
+
+
+
+
+
+
