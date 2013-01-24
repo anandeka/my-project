@@ -14076,9 +14076,10 @@ select pm.pool_id,
   from psr_pool_stock_register psr,
        pm_pool_master          pm,
        grd_goods_record_detail grd
- where psr.pool_id = pm.pool_id
+ where grd.dbd_id =pc_dbd_id
+ and grd.status ='Active'
  and grd.parent_internal_grd_ref_no = psr.internal_grd_ref_no
- and grd.dbd_id =pc_dbd_id)loop
+ and  psr.pool_id = pm.pool_id)loop
   update grd_goods_record_detail grd
     set grd.parent_grd_pool_id   =c1.pool_id,
         grd.parent_grd_pool_name = c1.pool_name
@@ -14092,7 +14093,30 @@ sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
                           gvn_log_counter,
-                          'End of GRD.POOL_ID Update'); 
+                          'End of GRD.POOL_ID Update 1'); 
+for cur_pool in(                          
+select pm.pool_id,
+       pm.pool_name,
+       grd.internal_grd_ref_no
+  from psr_pool_stock_register psr,
+       pm_pool_master          pm,
+       grd_goods_record_detail grd
+ where psr.pool_id = pm.pool_id
+   and grd.internal_grd_ref_no = psr.internal_grd_ref_no
+   and grd.dbd_id = pc_dbd_id) loop
+update grd_goods_record_detail grd
+    set grd.pool_id   =cur_pool.pool_id,
+        grd.pool_name = cur_pool.pool_name
+  where grd.dbd_id = pc_dbd_id
+  and grd.internal_grd_ref_no = cur_pool.internal_grd_ref_no;   
+end loop;
+commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GRD.POOL_ID Update 2')  ; 
 for cur_fp in(
 select wrd.internal_gmr_ref_no,
        sfp.feeding_point_id,
