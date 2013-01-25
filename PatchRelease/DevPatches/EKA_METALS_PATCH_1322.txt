@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1322
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  25-Jan-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  73544
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 114749
+Date: 9:29:52 AM, Friday, January 25, 2013
+Message:
+FC and AR Assay Update Value/Qty Fixed
+FC, TC for Assay Based Corrected GMR and GRD Ref Nos
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/108_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
