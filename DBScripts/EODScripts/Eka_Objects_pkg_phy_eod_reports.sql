@@ -12381,7 +12381,8 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
            section_name,
            qty_type,
            dense_rank() over(partition by internal_grd_ref_no order by section_name, element_id) ele_rank, -- Let the Penalty element be at end,
-           grd_to_gmr_qty_factor
+           grd_to_gmr_qty_factor,
+           gmr_wet_qty
       from (select gmr.gmr_ref_no,
                    gmr.internal_gmr_ref_no,
                    grd.internal_grd_ref_no,
@@ -12421,7 +12422,8 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
                    gmr.invoice_cur_decimals pay_cur_decimals,
                    'Non Penalty' section_name,
                    nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
-                   spq.qty_type
+                   spq.qty_type,
+                   gmr.wet_qty gmr_wet_qty
               from gmr_goods_movement_record gmr,
                    grd_goods_record_detail   grd,
                    spq_stock_payable_qty     spq,
@@ -12485,7 +12487,8 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
                    gmr.invoice_cur_decimals pay_cur_decimals,
                    'Penalty' section_name,
                    nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
-                   'Penalty' qty_type
+                   'Penalty' qty_type,
+                   gmr.wet_qty
               from gmr_goods_movement_record   gmr,
                    grd_goods_record_detail     grd,
                    ped_penalty_element_details ped,
@@ -12653,7 +12656,8 @@ begin
          pay_cur_id,
          pay_cur_code,
          pay_cur_decimal,
-         grd_to_gmr_qty_factor)
+         grd_to_gmr_qty_factor,
+         gmr_qty)
       values
         (pc_process_id,
          pd_trade_date,
@@ -12682,7 +12686,8 @@ begin
          cur_arrival_rows.pay_cur_id,
          cur_arrival_rows.pay_cur_code,
          cur_arrival_rows.pay_cur_decimals,
-         cur_arrival_rows.grd_to_gmr_qty_factor);
+         cur_arrival_rows.grd_to_gmr_qty_factor,
+         cur_arrival_rows.gmr_wet_qty);
     
     end if;
     --
@@ -13008,25 +13013,6 @@ begin
                         pc_process_id,
                         gvn_log_counter,
                         'Arrival report main insert over');
-  for cur_aro_gmr_qty in (select aro.internal_gmr_ref_no,
-                                 sum(aro.grd_wet_qty *
-                                     aro.grd_to_gmr_qty_factor) gmr_qty
-                            from aro_ar_original aro
-                           where aro.process_id = pc_process_id
-                           group by aro.internal_gmr_ref_no)
-  loop
-    update aro_ar_original aro
-       set aro.gmr_qty = cur_aro_gmr_qty.gmr_qty
-     where aro.process_id = pc_process_id
-       and aro.internal_gmr_ref_no = cur_aro_gmr_qty.internal_gmr_ref_no;
-  end loop;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Arrival report GMR Qty Updation Over');
   --  
   -- Update Other Charges
   --
@@ -13252,7 +13238,7 @@ insert into ar_arrival_report
          product_name,
          quality_id,
          quality_name,
-         arrival_status,
+         max(arrival_status),
          warehouse_id,
          warehouse_name,
          shed_id,
@@ -13338,7 +13324,7 @@ insert into ar_arrival_report
                  are_prev.product_name,
                  are_prev.quality_id,
                  are_prev.quality_name,
-                 are_prev.arrival_status,
+                 null arrival_status,
                  are_prev.warehouse_id,
                  are_prev.warehouse_name,
                  are_prev.shed_id,
@@ -13373,7 +13359,6 @@ insert into ar_arrival_report
                     are_prev.product_name,
                     are_prev.quality_id,
                     are_prev.quality_name,
-                    are_prev.arrival_status,
                     are_prev.warehouse_id,
                     are_prev.warehouse_name,
                     are_prev.shed_id,
@@ -13394,7 +13379,6 @@ insert into ar_arrival_report
             product_name,
             quality_id,
             quality_name,
-            arrival_status,
             warehouse_id,
             warehouse_name,
             shed_id,
@@ -13774,7 +13758,7 @@ insert into are_arrival_report_element
          product_name,
          quality_id,
          quality_name,
-         arrival_status,
+         max(arrival_status),
          warehouse_id,
          warehouse_name,
          shed_id,
@@ -13860,7 +13844,7 @@ insert into are_arrival_report_element
                  are_prev.product_name,
                  are_prev.quality_id,
                  are_prev.quality_name,
-                 are_prev.arrival_status,
+                 null arrival_status,
                  are_prev.warehouse_id,
                  are_prev.warehouse_name,
                  are_prev.shed_id,
@@ -13895,7 +13879,6 @@ insert into are_arrival_report_element
                     are_prev.product_name,
                     are_prev.quality_id,
                     are_prev.quality_name,
-                    are_prev.arrival_status,
                     are_prev.warehouse_id,
                     are_prev.warehouse_name,
                     are_prev.shed_id,
@@ -13918,7 +13901,6 @@ insert into are_arrival_report_element
             product_name,
             quality_id,
             quality_name,
-            arrival_status,
             warehouse_id,
             warehouse_name,
             shed_id,
@@ -14897,12 +14879,12 @@ select gmr.gmr_ref_no,
                         pc_process_id,
                         gvn_log_counter,
                         'Feed Consumption report Main Insert Over');   
-for cur_fco_gmr_qty in (select fco.parent_internal_gmr_ref_no,
-                                 sum(fco.grd_wet_qty *
-                                     fco.grd_to_gmr_qty_factor) gmr_qty
-                            from fco_feed_consumption_original fco
-                           where fco.process_id = pc_process_id
-                           group by fco.parent_internal_gmr_ref_no)
+for cur_fco_gmr_qty in (
+select gmr.internal_gmr_ref_no parent_internal_gmr_ref_no,
+       gmr.wet_qty             gmr_qty
+  from gmr_goods_movement_record gmr
+ where gmr.process_id = pc_process_id
+   and gmr.is_deleted = 'N')
   loop
     update fco_feed_consumption_original fco
        set fco.gmr_qty = cur_fco_gmr_qty.gmr_qty
@@ -15289,7 +15271,8 @@ insert into fcg_feed_consumption_gmr
     select fco.internal_gmr_ref_no,
            max(fco.eod_trade_date) eod_trade_date
       from fco_feed_consumption_original fco
-     where fco.internal_gmr_ref_no in
+     where fco.eod_trade_date < pd_trade_date
+     and fco.internal_gmr_ref_no in
            (select gmr.internal_gmr_ref_no
               from gmr_goods_movement_record gmr
              where gmr.is_assay_updated_mtd = 'Y'
@@ -16664,7 +16647,7 @@ gvn_log_counter := gvn_log_counter + 1;
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'CB Insert TEMP_STOCK_LATEST_ASSAY 1 Over');       
+                        'CB Insert TEMP_STOCK_LATEST_ASSAY 2 Over');       
 delete from cbt_cb_temp t
 where t.corporate_id = pc_corporate_id;
 commit;
@@ -19376,7 +19359,7 @@ procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
   vn_container_charge  number;
   vn_total_containers  number;
   vn_dummy             number;
-  vn_wet_qty_in_charge_unit number; -- Used for Small lot charges
+  vn_wet_dry_qty_in_charge_unit number; -- Used for Small lot charges
   cursor cur_all_gmr is
  select gmr.internal_gmr_ref_no,
         decode(gmr.wns_status, 'Completed', 'Y', 'N') is_wns_created,
@@ -19532,54 +19515,58 @@ gvn_log_counter := gvn_log_counter + 1;
         end if;
       end if;
       --
-      -- Small Lot Charge, This will be like a slab, if the GMR wet qty in the range, multiply the value by GMR Wet Qty
+      -- Small Lot Charge, This will be like a slab, if the GMR wetor dry qty in the range, multiply the value by GMR Wet or Dry Qty
       -- Convert GMR wet quantity unit to Charge Qty unit
       --
       if cur_each_gmr_rows.addn_charge_name = 'Small Lot Charges' then
          begin
           select ucm.multiplication_factor
-            into vn_wet_qty_in_charge_unit
+            into vn_wet_dry_qty_in_charge_unit
             from ucm_unit_conversion_master ucm
            where ucm.from_qty_unit_id = cur_each_gmr_rows.gmr_qty_unit_id
          and ucm.to_qty_unit_id = cur_each_gmr_rows.qty_unit_id;
          exception
          when others then
-         vn_wet_qty_in_charge_unit :=1;
+         vn_wet_dry_qty_in_charge_unit :=1;
          end;
-         vn_wet_qty_in_charge_unit := vn_wet_qty_in_charge_unit * cur_each_gmr_rows.wet_qty;
+         If cur_each_gmr_rows.charge_rate_basis ='Wet' Then
+            vn_wet_dry_qty_in_charge_unit := vn_wet_dry_qty_in_charge_unit * cur_each_gmr_rows.wet_qty;
+         else
+            vn_wet_dry_qty_in_charge_unit := vn_wet_dry_qty_in_charge_unit * cur_each_gmr_rows.dry_qty;
+         end if;
         if (cur_each_gmr_rows.position = 'Range Begining' and
            cur_each_gmr_rows.range_max_op = '<=' and
-           vn_wet_qty_in_charge_unit <= cur_each_gmr_rows.range_max_value) or
+           vn_wet_dry_qty_in_charge_unit <= cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position = 'Range Begining' and
            cur_each_gmr_rows.range_max_op = '<' and
-           vn_wet_qty_in_charge_unit < cur_each_gmr_rows.range_max_value) or
+           vn_wet_dry_qty_in_charge_unit < cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position = 'Range End' and
            cur_each_gmr_rows.range_min_op = '>=' and
-           vn_wet_qty_in_charge_unit >= cur_each_gmr_rows.range_min_value) or
+           vn_wet_dry_qty_in_charge_unit >= cur_each_gmr_rows.range_min_value) or
            (cur_each_gmr_rows.position = 'Range End' and
            cur_each_gmr_rows.range_min_op = '>' and
-           vn_wet_qty_in_charge_unit > cur_each_gmr_rows.range_min_value) or
+           vn_wet_dry_qty_in_charge_unit > cur_each_gmr_rows.range_min_value) or
            (cur_each_gmr_rows.position is null and
            cur_each_gmr_rows.range_min_op = '>' and
            cur_each_gmr_rows.range_max_op = '<' and
-           vn_wet_qty_in_charge_unit > cur_each_gmr_rows.range_min_value and
-           vn_wet_qty_in_charge_unit < cur_each_gmr_rows.range_max_value) or
+           vn_wet_dry_qty_in_charge_unit > cur_each_gmr_rows.range_min_value and
+           vn_wet_dry_qty_in_charge_unit < cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position is null and
            cur_each_gmr_rows.range_min_op = '>=' and
            cur_each_gmr_rows.range_max_op = '<' and
-           vn_wet_qty_in_charge_unit >= cur_each_gmr_rows.range_min_value and
-           vn_wet_qty_in_charge_unit < cur_each_gmr_rows.range_max_value) or
+           vn_wet_dry_qty_in_charge_unit >= cur_each_gmr_rows.range_min_value and
+           vn_wet_dry_qty_in_charge_unit < cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position is null and
            cur_each_gmr_rows.range_min_op = '>' and
            cur_each_gmr_rows.range_max_op = '<=' and
-           vn_wet_qty_in_charge_unit > cur_each_gmr_rows.range_min_value and
-           vn_wet_qty_in_charge_unit <= cur_each_gmr_rows.range_max_value) or
+           vn_wet_dry_qty_in_charge_unit > cur_each_gmr_rows.range_min_value and
+           vn_wet_dry_qty_in_charge_unit <= cur_each_gmr_rows.range_max_value) or
            (cur_each_gmr_rows.position is null and
            cur_each_gmr_rows.range_min_op = '>=' and
            cur_each_gmr_rows.range_max_op = '<=' and
-           vn_wet_qty_in_charge_unit >= cur_each_gmr_rows.range_min_value and
-           vn_wet_qty_in_charge_unit <= cur_each_gmr_rows.range_max_value) then
-           vn_small_lot_charge := vn_wet_qty_in_charge_unit *
+           vn_wet_dry_qty_in_charge_unit >= cur_each_gmr_rows.range_min_value and
+           vn_wet_dry_qty_in_charge_unit <= cur_each_gmr_rows.range_max_value) then
+           vn_small_lot_charge := vn_wet_dry_qty_in_charge_unit *
                                  cur_each_gmr_rows.charge *
                                  cur_each_gmr_rows.fx_rate;
         end if;

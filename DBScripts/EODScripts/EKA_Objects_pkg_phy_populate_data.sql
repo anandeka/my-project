@@ -13580,7 +13580,6 @@ sp_precheck_process_log(pc_corporate_id,
                          
   for cur_containers in (select grd.internal_gmr_ref_no,
                                 sum(nvl(grd.no_of_containers, 0)) no_of_containers,
-                                sum(nvl(grd.no_of_bags, 0)) no_of_bags,
                                 sum(grd.qty * nvl(grd.grd_to_gmr_qty_factor,1)) wet_qty,
                                 sum(grd.dry_qty * nvl(grd.grd_to_gmr_qty_factor,1)) dry_qty,
                                 max(grd.quality_name) quality_name
@@ -13592,7 +13591,6 @@ sp_precheck_process_log(pc_corporate_id,
   loop
     update gmr_goods_movement_record gmr
        set gmr.no_of_containers = cur_containers.no_of_containers,
-           gmr.no_of_bags       = cur_containers.no_of_bags,
            gmr.dry_qty          = cur_containers.dry_qty,
            gmr.wet_qty          = cur_containers.wet_qty,
            gmr.quality_name     = cur_containers.quality_name
@@ -13605,22 +13603,46 @@ sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
                           gvn_log_counter,
-                          'End of GMR Containers and Bags');
-  for cur_shipped_qty in (select agmr.internal_gmr_ref_no,
-                                 nvl(agmr.qty,0) shipped_qty
-                            from agmr_action_gmr agmr
-                           where (agmr.internal_gmr_ref_no, agmr.action_no) in
-                                 (select agmr.internal_gmr_ref_no,
-                                         max(agmr.action_no) action_no
-                                    from agmr_action_gmr    agmr
-                                   where agmr.eff_date <= pd_trade_date
-                                     and agmr.is_deleted = 'N'
-                                   group by agmr.internal_gmr_ref_no))
-  loop
-    update gmr_goods_movement_record gmr
-       set gmr.shipped_qty = cur_shipped_qty.shipped_qty
-     where gmr.dbd_id = pc_dbd_id
-       and gmr.internal_gmr_ref_no = cur_shipped_qty.internal_gmr_ref_no;
+                          'End of GMR Containers ');
+for cur_gmr_bags in(                          
+select agmr.internal_gmr_ref_no,
+       agrd.no_of_bags
+  from agmr_action_gmr agmr,
+       agrd_action_grd@eka_appdb agrd
+ where agrd.action_no = agmr.action_no
+   and agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+   and agrd.status = 'Active'
+   and agrd.is_deleted = 'N'
+   and agmr.gmr_latest_action_action_id in
+       ('airDetail', 'shipmentDetail', 'railDetail', 'truckDetail',
+        'warehouseReceipt')
+   and agmr.is_internal_movement = 'N'
+   and agmr.is_deleted = 'N') loop
+update gmr_goods_movement_record gmr
+   set gmr.no_of_bags = cur_gmr_bags.no_of_bags
+ where gmr.dbd_id = pc_dbd_id
+   and gmr.is_deleted = 'N'
+   and gmr.internal_gmr_ref_no = cur_gmr_bags.internal_gmr_ref_no;
+end loop;   
+commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
+ sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GMR Bahs Update ');
+   for cur_shipped_qty in (select agmr.internal_gmr_ref_no,
+                                  nvl(agmr.qty, 0) shipped_qty
+                             from agmr_action_gmr agmr
+                            where (agmr.internal_gmr_ref_no, agmr.action_no) in
+                                  (select agmr.internal_gmr_ref_no,
+                                          max(agmr.action_no) action_no
+                                     from agmr_action_gmr agmr
+                                    where agmr.eff_date <= pd_trade_date
+                                      and agmr.is_deleted = 'N'
+                                    group by agmr.internal_gmr_ref_no)) loop update gmr_goods_movement_record gmr set gmr.shipped_qty = cur_shipped_qty.shipped_qty
+ where gmr.dbd_id = pc_dbd_id
+   and gmr.internal_gmr_ref_no = cur_shipped_qty.internal_gmr_ref_no;
   end loop;
   commit;
   gvn_log_counter :=  gvn_log_counter + 1;
@@ -14103,11 +14125,14 @@ select pm.pool_id,
        grd_goods_record_detail grd
  where psr.pool_id = pm.pool_id
    and grd.internal_grd_ref_no = psr.internal_grd_ref_no
-   and grd.dbd_id = pc_dbd_id) loop
+   and grd.dbd_id = pc_dbd_id
+   and grd.status ='Active'
+   ) loop
 update grd_goods_record_detail grd
     set grd.pool_id   =cur_pool.pool_id,
         grd.pool_name = cur_pool.pool_name
   where grd.dbd_id = pc_dbd_id
+  and grd.status ='Active'
   and grd.internal_grd_ref_no = cur_pool.internal_grd_ref_no;   
 end loop;
 commit;
@@ -14129,7 +14154,8 @@ Update gmr_goods_movement_record gmr
 set gmr.feeding_point_id = cur_fp.feeding_point_id,
 gmr.feeding_point_name = cur_fp.feeding_point_name
 where gmr.internal_gmr_ref_no = cur_fp.internal_gmr_ref_no
-and gmr.dbd_id = pc_dbd_id;
+and gmr.dbd_id = pc_dbd_id
+and gmr.is_deleted ='N';
 end loop; 
 gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
