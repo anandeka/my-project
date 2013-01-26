@@ -13606,7 +13606,7 @@ sp_precheck_process_log(pc_corporate_id,
                           'End of GMR Containers ');
 for cur_gmr_bags in(                          
 select agmr.internal_gmr_ref_no,
-       agrd.no_of_bags
+       sum(nvl(agrd.no_of_bags,0)) no_of_bags
   from agmr_action_gmr agmr,
        agrd_action_grd@eka_appdb agrd
  where agrd.action_no = agmr.action_no
@@ -13617,7 +13617,8 @@ select agmr.internal_gmr_ref_no,
        ('airDetail', 'shipmentDetail', 'railDetail', 'truckDetail',
         'warehouseReceipt')
    and agmr.is_internal_movement = 'N'
-   and agmr.is_deleted = 'N') loop
+   and agmr.is_deleted = 'N'
+   group by agmr.internal_gmr_ref_no) loop
 update gmr_goods_movement_record gmr
    set gmr.no_of_bags = cur_gmr_bags.no_of_bags
  where gmr.dbd_id = pc_dbd_id
@@ -14099,7 +14100,6 @@ select pm.pool_id,
        pm_pool_master          pm,
        grd_goods_record_detail grd
  where grd.dbd_id =pc_dbd_id
- and grd.status ='Active'
  and grd.parent_internal_grd_ref_no = psr.internal_grd_ref_no
  and  psr.pool_id = pm.pool_id)loop
   update grd_goods_record_detail grd
