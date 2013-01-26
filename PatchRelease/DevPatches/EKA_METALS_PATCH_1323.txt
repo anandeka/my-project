@@ -36,6 +36,15 @@ Schema type (Transaction / EOD)* :EOD
 Revision: 114838
 Date: 8:10:59 PM, Friday, January 25, 2013
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+Revision: 114886
+Date: 4:59:42 PM, Saturday, January 26, 2013
+Message:
+No of Bags Updation Group By GMR
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+
+
+
 
