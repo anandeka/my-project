@@ -1,7 +1,7 @@
 declare
 
-  l_corporate_name varchar2(200) := 'Boliden1';
-  l_corporate_id   varchar2(10) := 'BL1';
+  l_corporate_name varchar2(200) := 'BLD1';
+  l_corporate_id   varchar2(10) := 'BL-1';
   l_image_name     varchar2(100) := '';
   l_group_id       varchar2(15) := 'GCD-1';
   l_ref_corp_id    varchar2(15) := 'LDE';
