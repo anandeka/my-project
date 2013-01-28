@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1326
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  28-Jan-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  73616
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 115037
+Date: 8:13:33 PM, Monday, January 28, 2013
+Message:
+73616
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/109_DDL_EODDB_ALTER_SCRIPT.sql
+
+
