@@ -1,12 +1,12 @@
-Patch No*          		:  EKA_METALS_PATCH_1323
+Patch No*          		:  EKA_METALS_PATCH_1325
 Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
  
-Created on*        		:  25-Jan-2012
+Created on*        		:  28-Jan-2012
 
 Bug / Enhancement*              :  BUG
-Bug ID*            		:  73569 73573 73572 73570 73589 72305
+Bug ID*            		:  
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,18 +33,13 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
-Revision: 114838
-Date: 8:10:59 PM, Friday, January 25, 2013
+Revision: 114953
+Author: jana
+Date: 1:21:49 PM, Monday, January 28, 2013
+Message:
+Arrival report : GMR qty of previous eod should not used for delta
+Feed consumption : For delta process_id and eod_trade_date should not be used
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
-
-Revision: 114886
-Date: 4:59:42 PM, Saturday, January 26, 2013
-Message:
-No of Bags Updation Group By GMR
-----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
-
-
 
 
