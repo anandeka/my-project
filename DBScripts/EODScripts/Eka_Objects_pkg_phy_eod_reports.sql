@@ -13256,7 +13256,7 @@ insert into ar_arrival_report
          pay_cur_code,
          pay_cur_decimal,
          grd_to_gmr_qty_factor,
-         gmr_qty
+         sum(gmr_qty)
     from (select aro_current.corporate_id,
                  aro_current.corporate_name,
                  aro_current.gmr_ref_no,
@@ -13342,7 +13342,7 @@ insert into ar_arrival_report
                  are_prev.pay_cur_code,
                  are_prev.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
-                 are_prev.gmr_qty
+                 0 gmr_qty
             from aro_ar_original are_prev
            where are_prev.process_id = vc_previous_eom_id
              and exists (select *
@@ -13392,8 +13392,7 @@ insert into ar_arrival_report
             pay_cur_id,
             pay_cur_code,
             pay_cur_decimal,
-            grd_to_gmr_qty_factor,
-            gmr_qty;
+            grd_to_gmr_qty_factor;
   commit;
   
 insert into are_arrival_report_element
@@ -13776,7 +13775,7 @@ insert into are_arrival_report_element
          pay_cur_code,
          pay_cur_decimal,
          grd_to_gmr_qty_factor,
-         gmr_qty
+         SUM(gmr_qty)
     from (select aro_current.corporate_id,
                  aro_current.corporate_name,
                  aro_current.gmr_ref_no,
@@ -13862,7 +13861,7 @@ insert into are_arrival_report_element
                  are_prev.pay_cur_code,
                  are_prev.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
-                 are_prev.gmr_qty
+                 0 gmr_qty
             from aro_ar_original are_prev
            where are_prev.process_id = vc_previous_year_eom_id
              and exists (select *
@@ -13914,8 +13913,7 @@ insert into are_arrival_report_element
             pay_cur_id,
             pay_cur_code,
             pay_cur_decimal,
-            grd_to_gmr_qty_factor,
-            gmr_qty;
+            grd_to_gmr_qty_factor;
 
 
 insert into are_arrival_report_element
@@ -15548,8 +15546,8 @@ commit;
     feeding_point_id,
     feeding_point_name,
     other_charges_amt)
-   select process_id,
-          eod_trade_date,
+   select pc_process_id,
+          pd_trade_date,
           corporate_id,
           corporate_name,
           gmr_ref_no,
@@ -15578,9 +15576,7 @@ commit;
           sum(other_charges_amt)
      from fcot_fco_temp t
     where t.corporate_id = pc_corporate_id
-    group by process_id,
-             eod_trade_date,
-             corporate_id,
+    group by corporate_id,
              corporate_name,
              gmr_ref_no,
              internal_gmr_ref_no,
@@ -16111,8 +16107,8 @@ commit;
     feeding_point_id,
     feeding_point_name,
     other_charges_amt)
-   select process_id,
-          eod_trade_date,
+   select pc_process_id,
+          pd_trade_date,
           corporate_id,
           corporate_name,
           gmr_ref_no,
@@ -16141,9 +16137,7 @@ commit;
           sum(other_charges_amt)
      from fcot_fco_temp t
     where t.corporate_id = pc_corporate_id
-    group by process_id,
-             eod_trade_date,
-             corporate_id,
+    group by corporate_id,
              corporate_name,
              gmr_ref_no,
              internal_gmr_ref_no,
