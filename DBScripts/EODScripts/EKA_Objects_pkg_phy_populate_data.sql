@@ -13374,7 +13374,7 @@ commit;
      where pcdi.dbd_id = pc_dbd_id
        and pcdi.is_active = 'Y';
     commit;
-	 gvn_log_counter :=  gvn_log_counter + 1;
+     gvn_log_counter :=  gvn_log_counter + 1;
   
    sp_precheck_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -14041,24 +14041,23 @@ sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
                           gvn_log_counter,
-                          'End of PCM TOLLING_SERVICE_TYPE Update'); 
-for cur_grd_gmr_supp in(
-select gmr_supp.internal_gmr_ref_no,
-       gmr_supp.gmr_ref_no
-  from gmr_goods_movement_record gmr_supp
- where gmr_supp.dbd_id = pc_dbd_id) loop
+                          'End of GMR Tolling Service Type Update'); 
 update grd_goods_record_detail grd
-   set grd.supp_gmr_ref_no = cur_grd_gmr_supp.gmr_ref_no
- where grd.supp_internal_gmr_ref_no = cur_grd_gmr_supp.internal_gmr_ref_no
-   and grd.dbd_id = pc_dbd_id;
-end loop;
+   set grd.supp_gmr_ref_no = (select gmr_supp.gmr_ref_no
+                                from gmr_goods_movement_record gmr_supp
+                               where gmr_supp.dbd_id = pc_dbd_id
+                               and grd.dbd_id = pc_dbd_id
+                                 and grd.supp_internal_gmr_ref_no =
+                                     gmr_supp.internal_gmr_ref_no)
+ where grd.dbd_id = pc_dbd_id;
+
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
                           gvn_log_counter,
-                          'End of grd.supp_gmr_ref_no Update'); 
+                          'End of GRD.SUPP_GMR_REF_NO Update'); 
 delete  eud_element_underlying_details where corporate_id = pc_corporate_id;
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;
@@ -14091,24 +14090,17 @@ sp_gather_stats('psr_pool_stock_register');
 sp_gather_stats('pm_pool_master');
 sp_gather_stats('grd_goods_record_detail');
 
-begin
-for c1 in(
-select pm.pool_id,
-       pm.pool_name,
-       grd.parent_internal_grd_ref_no
-  from psr_pool_stock_register psr,
-       pm_pool_master          pm,
-       grd_goods_record_detail grd
- where grd.dbd_id =pc_dbd_id
- and grd.parent_internal_grd_ref_no = psr.internal_grd_ref_no
- and  psr.pool_id = pm.pool_id)loop
-  update grd_goods_record_detail grd
-    set grd.parent_grd_pool_id   =c1.pool_id,
-        grd.parent_grd_pool_name = c1.pool_name
-  where grd.dbd_id = pc_dbd_id
-  and grd.parent_internal_grd_ref_no = c1.parent_internal_grd_ref_no;
- end loop;
-end;
+update grd_goods_record_detail grd
+   set (grd.parent_grd_pool_id, grd.parent_grd_pool_name) = --
+        (select pm.pool_id,
+                pm.pool_name
+           from psr_pool_stock_register psr,
+                pm_pool_master          pm
+          where psr.pool_id = pm.pool_id
+            and grd.parent_internal_grd_ref_no = psr.internal_grd_ref_no
+            and grd.dbd_id = pc_dbd_id)
+ where grd.dbd_id = pc_dbd_id;
+
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
@@ -14116,25 +14108,16 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of GRD.POOL_ID Update 1'); 
-for cur_pool in(                          
-select pm.pool_id,
-       pm.pool_name,
-       grd.internal_grd_ref_no
-  from psr_pool_stock_register psr,
-       pm_pool_master          pm,
-       grd_goods_record_detail grd
- where psr.pool_id = pm.pool_id
-   and grd.internal_grd_ref_no = psr.internal_grd_ref_no
-   and grd.dbd_id = pc_dbd_id
-   and grd.status ='Active'
-   ) loop
 update grd_goods_record_detail grd
-    set grd.pool_id   =cur_pool.pool_id,
-        grd.pool_name = cur_pool.pool_name
-  where grd.dbd_id = pc_dbd_id
-  and grd.status ='Active'
-  and grd.internal_grd_ref_no = cur_pool.internal_grd_ref_no;   
-end loop;
+   set (grd.pool_id, grd.pool_name) = --
+        (select pm.pool_id,
+                pm.pool_name
+           from psr_pool_stock_register psr,
+                pm_pool_master          pm
+          where psr.pool_id = pm.pool_id
+            and grd.internal_grd_ref_no = psr.internal_grd_ref_no
+            and grd.dbd_id = pc_dbd_id)
+ where grd.dbd_id = pc_dbd_id;
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
@@ -14163,6 +14146,41 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of GMR.FEEDING_POINT_ID  Update'); 
+                          
+--
+-- For MFT Stocks Update the Supplier GMR Invoice Currency Details
+--
+for cur_mft_grd in(
+select grd.internal_grd_ref_no,
+       grd.internal_gmr_ref_no,
+       grd.supp_internal_gmr_ref_no,
+       gmr.invoice_cur_id supp_invoice_cur_id,
+       gmr.invoice_cur_code supp_invoice_cur_code,
+       gmr.invoice_cur_decimals supp_invoice_cur_decimals
+  from grd_goods_record_detail   grd,
+       gmr_goods_movement_record gmr
+ where grd.dbd_id = pc_dbd_id
+   and gmr.dbd_id = pc_dbd_id
+   and gmr.internal_gmr_ref_no = grd.supp_internal_gmr_ref_no
+   and grd.status = 'Active'
+   and grd.tolling_stock_type = 'Clone Stock') loop
+Update grd_goods_record_detail grd
+set grd.invoice_cur_id = cur_mft_grd.supp_invoice_cur_id,
+    grd.invoice_cur_code = cur_mft_grd.supp_invoice_cur_code,
+    grd.invoice_cur_decimals = cur_mft_grd.supp_invoice_cur_decimals
+    where grd.internal_grd_ref_no = cur_mft_grd.internal_grd_ref_no
+    and grd.dbd_id = pc_dbd_id;
+end loop;   
+
+commit;
+
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of MFT Stock Invoice Currency Update'); 
+                          
   sp_gather_stats('GRD_GOODS_RECORD_DETAIL');
   sp_gather_stats('GMR_GOODS_MOVEMENT_RECORD');
   sp_gather_stats('SPQ_STOCK_PAYABLE_QTY');

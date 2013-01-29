@@ -1,0 +1,4 @@
+ALTER TABLE GRD_GOODS_RECORD_DETAIL ADD(
+INVOICE_CUR_ID                      VARCHAR2(15),        
+INVOICE_CUR_CODE                    VARCHAR2(15),        
+INVOICE_CUR_DECIMALS                NUMBER(2));
