@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1329
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  30-Jan-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  FC Report Issue
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 115202
+Author: janna
+Date: 12:07:18 AM, Wednesday, January 30, 2013
+Message:
+In feed consumption report-data should group by Stock consumed pay in currency.not PCT contract-pay in.
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/110_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
