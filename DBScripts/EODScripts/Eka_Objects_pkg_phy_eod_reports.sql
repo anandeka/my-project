@@ -5307,7 +5307,7 @@ group by corporate_id,
        invoice_or_invenotry;
 
     Commit;
-gvn_log_counter := gvn_log_counter + 1;	
+gvn_log_counter := gvn_log_counter + 1;    
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -5507,7 +5507,7 @@ insert into isr2_isr_invoice
           gmr.loading_date is not null then 'TRUE' else 'FALSE' end);
 
 commit;
-gvn_log_counter := gvn_log_counter + 1;	
+gvn_log_counter := gvn_log_counter + 1;    
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -5596,7 +5596,7 @@ and isr2.invoice_cur_id =  cur_inv_exch_rate.invoice_cur_id
 and isr2.shipment_date = cur_inv_exch_rate.shipment_date ;  
 end loop;          
 commit;
-gvn_log_counter := gvn_log_counter + 1;	
+gvn_log_counter := gvn_log_counter + 1;    
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -5859,7 +5859,7 @@ group by corporate_id,
          no_of_containers,
          internal_invoice_ref_no,
          invoice_ref_no           ;
-gvn_log_counter := gvn_log_counter + 1;			 
+gvn_log_counter := gvn_log_counter + 1;             
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -10743,7 +10743,7 @@ vn_log_counter := vn_log_counter + 1;
               grd.qty,
               grd.qty * asm.dry_wet_qty_ratio / 100 dry_qty,
               grd.qty_unit_id as grd_qty_unit_id,
-              sam.parent_stock_ref_no
+              ash.internal_grd_ref_no
          from gmr_goods_movement_record   gmr,
               grd_goods_record_detail     grd,
               pcpd_pc_product_definition  pcpd,
@@ -14279,7 +14279,7 @@ commit;
            gmr.invoice_cur_id pay_cur_id,
            gmr.invoice_cur_code pay_cur_code,
            spq.qty_type,
-           sam.parent_stock_ref_no parent_internal_grd_ref_no,
+           ash.internal_grd_ref_no parent_internal_grd_ref_no,
            'Non Penalty' section_name,
            nvl(grd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
            grd.supplier_pcdi_id pcdi_id,
@@ -19578,9 +19578,9 @@ gvn_log_counter := gvn_log_counter + 1;
                where ioc.internal_invoice_ref_no =
                      cur_each_gmr_rows.latest_internal_invoice_ref_no
                  and ioc.other_charge_cost_id in
-					(select scm.cost_id
-					from scm_service_charge_master scm
-					where scm.cost_component_name = 'Container Charges');-- Hard code value for Container Charges
+                    (select scm.cost_id
+                    from scm_service_charge_master scm
+                    where scm.cost_component_name = 'Container Charges');-- Hard code value for Container Charges
           end if;
           if cur_each_gmr_rows.is_invoiced ='N' or (cur_each_gmr_rows.is_invoiced ='Y' and vn_dummy > 0) Then
               begin
