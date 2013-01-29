@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1328
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  29-Jan-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  73245
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 115113
+Author: b.ravikumar
+Date: 2:46:58 PM, Tuesday, January 29, 2013
+Message:
+Bug #73245 Fix: filter added for successfully posted invoices.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_486.sql
+
+
