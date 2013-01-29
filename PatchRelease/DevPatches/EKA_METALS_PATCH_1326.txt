@@ -33,11 +33,11 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
-Revision: 115037
-Date: 8:13:33 PM, Monday, January 28, 2013
+Revision: 115084
+Date: 8:01:29 AM, Tuesday, January 29, 2013
 Message:
-73616
+Deleted CBR_TEST table
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/109_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/109_DDL_EODDB_ALTER_SCRIPT.sql
 
 
