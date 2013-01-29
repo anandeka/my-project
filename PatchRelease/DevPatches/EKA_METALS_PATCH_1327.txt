@@ -33,3 +33,12 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
+Revision: 115103
+Author: janna
+Date: 12:09:43 PM, Tuesday, January 29, 2013
+Message:
+Bug 73644 - Values are coming wrong for TC/RC/Penalty In delta section-Feed consumption(MTD/YTD report)
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
