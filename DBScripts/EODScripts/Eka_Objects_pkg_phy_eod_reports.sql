@@ -10752,8 +10752,7 @@ vn_log_counter := vn_log_counter + 1;
               pqca_pq_chemical_attributes pqca,
               rm_ratio_master             rm,
               ucm_unit_conversion_master  ucm,
-              aml_attribute_master_list aml,
-              sam_stock_assay_mapping sam
+              aml_attribute_master_list aml
         where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
           and grd.status = 'Active'
           and gmr.process_id = pc_process_id
@@ -10775,10 +10774,7 @@ vn_log_counter := vn_log_counter + 1;
           and ucm.to_qty_unit_id =
               (case when rm.ratio_name = '%' then ash.net_weight_unit else
                rm.qty_unit_id_denominator end)
-           and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-           and sam.is_active = 'Y'
-           and ash.assay_type in ('Weighted Avg Pricing Assay', 'Shipment Assay')
-           and ash.ash_id = sam.ash_id;
+           and ash.assay_type in ('Weighted Avg Pricing Assay', 'Shipment Assay');
         commit;
 vn_log_counter := vn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -14292,8 +14288,7 @@ commit;
            spq_stock_payable_qty          spq,
            ash_assay_header               ash,
            asm_assay_sublot_mapping       asm,
-           eud_element_underlying_details aml,
-           sam_stock_assay_mapping        sam
+           eud_element_underlying_details aml
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
        and grd.status = 'Active'
        and grd.tolling_stock_type = 'Clone Stock'
@@ -14309,11 +14304,8 @@ commit;
        and gmr.process_id = pc_process_id
        and spq.process_id = pc_process_id
        and grd.process_id = pc_process_id
-       and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-       and sam.is_active = 'Y'
-       and ash.assay_type in
+      and ash.assay_type in
            ('Weighted Avg Pricing Assay', 'Shipment Assay')
-       and ash.ash_id = sam.ash_id
        and (gmr.is_new_mtd = 'Y' or gmr.is_new_ytd = 'Y' or
            gmr.is_assay_updated_mtd = 'Y' or
            gmr.is_assay_updated_ytd = 'Y');

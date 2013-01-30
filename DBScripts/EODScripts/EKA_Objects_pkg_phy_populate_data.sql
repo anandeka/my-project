@@ -13703,26 +13703,34 @@ sp_gather_stats('ash_assay_header');
                  
 for cur_assay in( 
 SELECT   gmr.internal_gmr_ref_no,
-            CASE
-               WHEN COUNT
-                         (DISTINCT grd.internal_grd_ref_no) =
-                      SUM
-                         (CASE
-                             WHEN ash.is_final_assay_fully_finalized = 'Y'
-                                THEN 1
-                             ELSE 0
-                          END
-                         )
-                  THEN 'Assay Finalized'
-               WHEN SUM (CASE
-                            WHEN ash.is_final_assay_fully_finalized = 'Y'
-                               THEN 1
-                            ELSE 0
-                         END
-                        ) <> 0
-                  THEN 'Partial Assay Finalized'
-               ELSE 'Not Assay Finalized'
-            END assay_final_status
+         CASE
+            WHEN COUNT (DISTINCT grd.internal_grd_ref_no) =
+                   SUM
+                      (CASE
+                          WHEN ash.is_final_assay_fully_finalized = 'Y'
+                             THEN 1
+                          ELSE 0
+                       END
+                      )
+               THEN 'Assay Finalized'
+            WHEN SUM (CASE
+                         WHEN ash.is_final_assay_fully_finalized = 'Y'
+                            THEN 1
+                         ELSE 0
+                      END
+                     ) <> 0
+               THEN 'Partial Assay Finalized'
+            WHEN SUM (CASE
+                         WHEN ash.assay_type = 'Final Assay'
+                         AND ( nvl(ash.is_final_assay_fully_finalized,'N') = 'N'
+                             )
+                            THEN 1
+                         ELSE 0
+                      END
+                     ) <> 0
+               THEN 'Partial Assay Finalized'
+            ELSE 'Not Assay Finalized'
+         END assay_final_status
        FROM gmr_goods_movement_record gmr,
             grd_goods_record_detail grd,
             ash_assay_header ash
