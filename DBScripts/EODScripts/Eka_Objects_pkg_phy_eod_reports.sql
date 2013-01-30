@@ -16489,7 +16489,8 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
            t.conc_base_qty_unit,
            t.gmr_ref_no_for_price,
            t.section_name,
-           t.grd_to_gmr_qty_factor
+           t.grd_to_gmr_qty_factor,
+           t.parent_gmr_ref_no
       from cbt_cb_temp t
       where t.corporate_id = pc_corporate_id;
 
@@ -16691,7 +16692,8 @@ insert into cbt_cb_temp
    conc_base_qty_unit,
    gmr_ref_no_for_price,
    grd_to_gmr_qty_factor,
-   section_name)
+   section_name,
+   parent_gmr_ref_no)
     select gmr.gmr_ref_no,
          gmr.internal_gmr_ref_no,
          grd.internal_grd_ref_no,
@@ -16760,7 +16762,8 @@ insert into cbt_cb_temp
          grd.base_qty_unit conc_base_qty_unit,
          grd.supp_internal_gmr_ref_no gmr_ref_no_for_price,
          nvl(grd.grd_to_gmr_qty_factor,1),
-         'Non Penalty'
+         'Non Penalty',
+         grd.supp_gmr_ref_no
     from grd_goods_record_detail        grd,
          gmr_goods_movement_record      gmr,
          temp_stock_latest_assay        tspq,
@@ -16854,7 +16857,8 @@ gvn_log_counter := gvn_log_counter + 1;
      conc_base_qty_unit,
      gmr_ref_no_for_price,
      grd_to_gmr_qty_factor,
-     section_name)
+     section_name,
+     parent_gmr_ref_no)
     select gmr.gmr_ref_no,
            gmr.internal_gmr_ref_no,
            grd.internal_grd_ref_no,
@@ -16911,7 +16915,8 @@ gvn_log_counter := gvn_log_counter + 1;
            grd.base_qty_unit conc_base_qty_unit,
            grd.supp_internal_gmr_ref_no gmr_ref_no_for_price,
            nvl(grd.grd_to_gmr_qty_factor,1),
-           'Penalty'
+           'Penalty',
+           grd.supp_gmr_ref_no
       from grd_goods_record_detail     grd,
            gmr_goods_movement_record   gmr,
            sam_stock_assay_mapping     sam,
@@ -17009,7 +17014,8 @@ gvn_log_counter := gvn_log_counter + 1;
        conc_base_qty_unit,
        gmr_ref_no_for_price,
        grd_to_gmr_qty_factor,
-       section_name)
+       section_name,
+       parent_gmr_ref_no)
       select gmr.gmr_ref_no,
              gmr.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
@@ -17078,7 +17084,8 @@ gvn_log_counter := gvn_log_counter + 1;
              grd.base_qty_unit conc_base_qty_unit,
              gmr.internal_gmr_ref_no gmr_ref_no_for_price,
              nvl(grd_to_gmr_qty_factor,1),
-             'Non Penalty'
+             'Non Penalty',
+             gmr.gmr_ref_no
         from gmr_goods_movement_record      gmr,
              grd_goods_record_detail        grd,
              temp_stock_latest_assay        tspq,
@@ -17169,7 +17176,8 @@ insert into cbt_cb_temp
        conc_base_qty_unit,
        gmr_ref_no_for_price,
        grd_to_gmr_qty_factor,
-       section_name)
+       section_name,
+       parent_gmr_ref_no)
             select gmr.gmr_ref_no,
                    gmr.internal_gmr_ref_no,
                    grd.internal_grd_ref_no,
@@ -17226,7 +17234,8 @@ insert into cbt_cb_temp
                    grd.base_qty_unit conc_base_qty_unit,
                    gmr.internal_gmr_ref_no gmr_ref_no_for_price,
                    nvl(grd_to_gmr_qty_factor,1),
-                   'Penalty'
+                   'Penalty',
+                   gmr.gmr_ref_no
               from gmr_goods_movement_record gmr,
                    grd_goods_record_detail grd,
                    ash_assay_header ash,
@@ -17574,7 +17583,8 @@ insert into cbt_cb_temp
          parent_internal_gmr_ref_no,
          parent_internal_grd_ref_no,
          pay_cur_decimal,
-         grd_to_gmr_qty_factor)
+         grd_to_gmr_qty_factor,
+         parent_gmr_ref_no)
       values
         (pc_process_id,
          pd_trade_date,
@@ -17605,7 +17615,8 @@ insert into cbt_cb_temp
          cur_closing_rows.parent_internal_gmr_ref_no,
          cur_closing_rows.parent_internal_grd_ref_no,
          cur_closing_rows.pay_cur_decimal,
-         cur_closing_rows.grd_to_gmr_qty_factor
+         cur_closing_rows.grd_to_gmr_qty_factor,
+         cur_closing_rows.parent_gmr_ref_no
          );
     end if;
     insert into cbre_closing_bal_report_ele
