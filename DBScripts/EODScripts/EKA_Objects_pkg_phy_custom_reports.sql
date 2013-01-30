@@ -8458,7 +8458,7 @@ create or replace package body pkg_phy_custom_reports is
          'Approved');
       -- for dumy months--------
       --Physical total
-      while i <= 9
+      /*while i <= 9
       loop
         insert into temp_tpr
           (corporate_id,
@@ -8495,7 +8495,7 @@ create or replace package body pkg_phy_custom_reports is
            'Physical Total',
            'Approved');
         i := i + 1;
-      end loop;
+      end loop;*/
       --Options total
       insert into temp_tpr
         (corporate_id,
