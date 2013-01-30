@@ -1,0 +1,63 @@
+Patch No*          		:  EKA_METALS_PATCH_1330
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  30-Jan-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		: 73566,73417,73418,73432,73456 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 115248
+Author: suresh.gottipati
+Date: 2:38:34 PM, Wednesday, January 30, 2013
+Message:
+Tata Enhancements
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_385.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_bi_derivative.sql
+
+
+Revision: 115245
+Author: suresh.gottipati
+Date: 2:35:43 PM, Wednesday, January 30, 2013
+Message:
+Tata Enhancements
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BrokerMarginReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DeliveryScheduleReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TradersPositionReport.rpt
+
+
+
+
+
+
