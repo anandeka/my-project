@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1333
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  30-Jan-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  FC Report Issue + 73582
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 115233
+Author: janna
+Date: 1:42:40 PM, Wednesday, January 30, 2013
+Message:
+Bug ID:73582
+Feed Consumption GMR not appearing. Removed SAM.IS_ACTIVE = Y in PED Population and FC Population
+GMR-2001-BLD is not shown in Dec EOM YTD
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
+
