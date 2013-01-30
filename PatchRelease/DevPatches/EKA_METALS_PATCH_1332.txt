@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1332
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  30-Jan-2013
+
+Bug / Enhancement*      :  Bug
+
+Bug ID*            		:  73679
+==================================================================
+Branch (DEV / REL)*		        :  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	            :  Invoice
+
+Sub-Module  			        :  Invoice O/P Document
+ 
+Section   		   	            :  N/A
+ 
+Screen		           	        :  N/A
+ 
+FS Number and Clause No.	    :  N/A
+ 
+FS Enhancement details 		    :  N/A
+ 
+FS Amendment details   		    :  N/A
+
+Dependent patches:		        :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 115231
+Author: mayank.chaturvedi
+Date: 1:10:48 PM, Wednesday, January 30, 2013
+Message:
+-Issue For BUG ID :- 73679 INVOICE DOCUMENT ISSUE.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_487.sql
