@@ -44,6 +44,17 @@ Bug Fixes
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MARKET_DATA_DOMAIN.sql
 
 
+Revision: 115325
+Author: suresh.gottipati
+Date: 6:32:32 PM, Wednesday, January 30, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_488.sql
+
+
+
+
 
 
 
