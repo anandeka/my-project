@@ -35,16 +35,18 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
-Revision: 115315
+Revision: 115320
 Author: suresh.gottipati
-Date: 5:52:32 PM, Wednesday, January 30, 2013
+Date: 6:05:52 PM, Wednesday, January 30, 2013
 Message:
 Bug Fixes
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_MARKET_DATA_DOMAIN.sql
 
 
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
 
 
 
