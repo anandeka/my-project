@@ -497,7 +497,8 @@ select temp.derivative_ref_no,
            and dt.strategy_id = css.strategy_id(+)
               --  and irmf.is_active = 'Y'
               --    and irmf.is_deleted = 'N'
-           and dt.status = 'Verified'
+           --and dt.status = 'Verified'
+           and dt.status <>'Delete'
               /*and emt.exchange_code = 'LME' */
            and pdd.exchange_id = emt.exchange_id
            and akcu.user_id = dt.trader_id
@@ -1017,7 +1018,8 @@ select temp.derivative_ref_no,
                    and dt.strategy_id = css.strategy_id(+)
                       --   and irmf.is_active = 'Y'
                       --   and irmf.is_deleted = 'N'
-                   and dt.status = 'Verified'
+                  -- and dt.status = 'Verified'
+                   and dt.status <>'Delete'
                    and akcu.user_id = dt.trader_id
                    and dt.clearer_account_id = bca.account_id(+)
                    and dpm.purpose_id = dt.purpose_id
