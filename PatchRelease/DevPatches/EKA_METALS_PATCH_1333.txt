@@ -6,7 +6,7 @@ Created by*        		:  Janna
 Created on*        		:  30-Jan-2012
 
 Bug / Enhancement*              :  BUG
-Bug ID*            		:  FC Report Issue + 73582
+Bug ID*            		:  FC Report Issue + 73582,71563
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,17 +33,37 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
+Revision: 115281
+Author: janna
+Date: 4:25:27 PM, Wednesday, January 30, 2013
+Message:
+Add Parent GMR Ref No
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/111_DDL_EODDB_ALTER_SCRIPT.sql
+
+
 Revision: 115233
 Author: janna
 Date: 1:42:40 PM, Wednesday, January 30, 2013
 Message:
-Bug ID:73582
+Bug ID:73582,71563
 Feed Consumption GMR not appearing. Removed SAM.IS_ACTIVE = Y in PED Population and FC Population
 GMR-2001-BLD is not shown in Dec EOM YTD
+FC Report Pile Name is truncated in report
 
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+
+Revision: 115278
+Author: janna
+Date: 4:21:06 PM, Wednesday, January 30, 2013
+Message:
+Add Parent GMR Ref No
+----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
 
 
 
