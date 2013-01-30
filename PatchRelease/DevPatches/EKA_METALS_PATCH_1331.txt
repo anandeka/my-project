@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_1331
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  30-Jan-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		: 73566,73417,73418,73432,73456 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 115246
+Author: suresh.gottipati
+Date: 2:37:00 PM, Wednesday, January 30, 2013
+Message:
+Tata Enhancements
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
+
+
+
+
+
