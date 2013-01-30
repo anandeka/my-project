@@ -1,5 +1,5 @@
 create or replace view V_BI_MARKET_DATA_DOMAIN as
-select to_char(cfq.trade_date, 'dd-Mon-rrrr') trade_date,
+select cfq.trade_date trade_date,
        'Currency' data_type,
        pdd.traded_on derivative_type,
        dim.instrument_name instrument_name,
@@ -41,7 +41,7 @@ select to_char(cfq.trade_date, 'dd-Mon-rrrr') trade_date,
    and cfq.is_deleted = 'N'
    and dim.is_active = 'Y'
 union all
-select to_char(dq.trade_date, 'dd-Mon-rrrr') trade_date,
+select dq.trade_date trade_date,
        'Derivatives' data_type,
        pdd.traded_on derivative_type,
        dim.instrument_name instrument_name,
@@ -102,7 +102,7 @@ select to_char(dq.trade_date, 'dd-Mon-rrrr') trade_date,
    and dqd.is_deleted = 'N'
    and drm.price_point_id = pp.price_point_id(+)
 union all
-select to_char(qp.as_on_date, 'dd-Mon-rrrr') trade_date,
+select qp.as_on_date trade_date,
        'Quality Premium' data_type,
        null derivative_type,
        pdm.product_desc instrument_name,
@@ -151,7 +151,7 @@ select to_char(qp.as_on_date, 'dd-Mon-rrrr') trade_date,
    and pdm.is_deleted = 'N'
    and pdd.is_deleted = 'N'
 union all
-select to_char(pp.as_on_date, 'dd-Mon-rrrr') trade_date,
+select pp.as_on_date trade_date,
        'Product Premium' data_type,
        null derivative_type,
        pdm.product_desc instrument_name,
