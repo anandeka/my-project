@@ -33,3 +33,19 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
+Revision: 115466
+Author: janna
+Date: 6:15:49 PM, Thursday, January 31, 2013
+Message:
+COG Price : Price For Fixed Price Contracts Added in Base Metal and Concentrates
+Populate : GMR Added No of Stocks WNS Done
+EOD Report : Yield report removed ISS and removed GRD product and QUM join
+Other charge calcualtion for sampling changed from No of Sbulots to No of WNS Completed Stocks
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/112_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
