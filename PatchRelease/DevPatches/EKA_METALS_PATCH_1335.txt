@@ -1,0 +1,60 @@
+Patch No*          		:  EKA_METALS_PATCH_1335
+
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  31-Jan-2013
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  73622
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 115457
+Author: anandp
+Date: 18:00:44, 31 January 2013
+Message:
+For debit credit note issue -- Tata. 73622
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_489.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
