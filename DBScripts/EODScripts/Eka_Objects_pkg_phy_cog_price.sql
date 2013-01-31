@@ -1,4 +1,4 @@
-acreate or replace package pkg_phy_cog_price is
+create or replace package pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
                                        pd_trade_date   date,
                                        pc_process_id   varchar2,
@@ -883,6 +883,83 @@ create or replace package body pkg_phy_cog_price is
            vn_unfixed_qty,
            vc_price_basis);
       end if;
+    end loop;
+    commit;
+  
+    for cur_fixed_price in (select pc_process_id process_id,
+                                   pc_corporate_id corporate_id,
+                                   poch.pcdi_id,
+                                   pcbph.internal_contract_ref_no,
+                                   pcm.contract_ref_no,
+                                   pcbpd.price_value contract_price,
+                                   pcbpd.price_unit_id,
+                                   cm.cur_id price_unit_cur_id,
+                                   cm.cur_code price_unit_cur_code,
+                                   ppu.weight price_unit_weight,
+                                   qum.qty_unit_id price_unit_weight_unit_id,
+                                   qum.qty_unit price_unit_weight_unit,
+                                   0 fixed_qty,
+                                   0 unfixed_qty,
+                                   pcbpd.price_basis
+                              from poch_price_opt_call_off_header poch,
+                                   pocd_price_option_calloff_dtls pocd,
+                                   pcbpd_pc_base_price_detail     pcbpd,
+                                   pcbph_pc_base_price_header     pcbph,
+                                   pcm_physical_contract_main     pcm,
+                                   v_ppu_pum                      ppu,
+                                   cm_currency_master             cm,
+                                   qum_quantity_unit_master       qum
+                             where poch.poch_id = pocd.poch_id
+                               and pocd.pcbpd_id = pcbpd.pcbpd_id
+                               and pcbpd.pcbph_id = pcbph.pcbph_id
+                               and pcbpd.process_id = pc_process_id
+                               and pcbph.process_id = pc_process_id
+                               and pcm.process_id = pc_process_id
+                               and pcbph.internal_contract_ref_no =
+                                   pcm.internal_contract_ref_no
+                               and pcm.contract_type = 'BASEMETAL'
+                               and poch.is_active = 'Y'
+                               and pocd.is_active = 'Y'
+                               and pcbpd.is_active = 'Y'
+                               and pcbph.is_active = 'Y'
+                               and pcbpd.price_basis = 'Fixed'
+                               and ppu.product_price_unit_id =
+                                   pcbpd.price_unit_id
+                               and ppu.cur_id = cm.cur_id
+                               and ppu.weight_unit_id = qum.qty_unit_id)
+    loop
+      insert into bccp_base_contract_cog_price
+        (process_id,
+         corporate_id,
+         pcdi_id,
+         internal_contract_ref_no,
+         contract_ref_no,
+         contract_price,
+         price_unit_id,
+         price_unit_cur_id,
+         price_unit_cur_code,
+         price_unit_weight,
+         price_unit_weight_unit_id,
+         price_unit_weight_unit,
+         fixed_qty,
+         unfixed_qty,
+         price_basis)
+      values
+        (cur_fixed_price.process_id,
+         cur_fixed_price.corporate_id,
+         cur_fixed_price.pcdi_id,
+         cur_fixed_price.internal_contract_ref_no,
+         cur_fixed_price.contract_ref_no,
+         cur_fixed_price.contract_price,
+         cur_fixed_price.price_unit_id,
+         cur_fixed_price.price_unit_cur_id,
+         cur_fixed_price.price_unit_cur_code,
+         cur_fixed_price.price_unit_weight,
+         cur_fixed_price.price_unit_weight_unit_id,
+         cur_fixed_price.price_unit_weight_unit,
+         cur_fixed_price.fixed_qty,
+         cur_fixed_price.unfixed_qty,
+         cur_fixed_price.price_basis);
     end loop;
     commit;
     sp_gather_stats('bccp_base_contract_cog_price');
@@ -2300,6 +2377,95 @@ create or replace package body pkg_phy_cog_price is
            vn_unfixed_qty,
            vc_price_basis);
       end if;
+    end loop;
+    commit;
+  
+    --
+    -- Price For Fixed Price 
+    --
+    for cur_fixed_price in (select pc_process_id process_id,
+                                   pc_corporate_id corporate_id,
+                                   poch.pcdi_id,
+                                   pcbph.internal_contract_ref_no,
+                                   pcm.contract_ref_no,
+                                   pcbpd.element_id,
+                                   null as payable_qty,
+                                   null as payable_qty_unit_id,
+                                   pcbpd.price_value contract_price,
+                                   pcbpd.price_unit_id,
+                                   cm.cur_id price_unit_cur_id,
+                                   cm.cur_code price_unit_cur_code,
+                                   ppu.weight price_unit_weight,
+                                   qum.qty_unit_id price_unit_weight_unit_id,
+                                   qum.qty_unit price_unit_weight_unit,
+                                   0 fixed_qty,
+                                   0 unfixed_qty,
+                                   pcbpd.price_basis
+                              from poch_price_opt_call_off_header poch,
+                                   pocd_price_option_calloff_dtls pocd,
+                                   pcbpd_pc_base_price_detail     pcbpd,
+                                   pcbph_pc_base_price_header     pcbph,
+                                   pcm_physical_contract_main     pcm,
+                                   v_ppu_pum                      ppu,
+                                   cm_currency_master             cm,
+                                   qum_quantity_unit_master       qum
+                             where poch.poch_id = pocd.poch_id
+                               and pocd.pcbpd_id = pcbpd.pcbpd_id
+                               and pcbpd.pcbph_id = pcbph.pcbph_id
+                               and pcbpd.process_id = pc_process_id
+                               and pcbph.process_id = pc_process_id
+                               and pcm.process_id = pc_process_id
+                               and pcbph.internal_contract_ref_no =
+                                   pcm.internal_contract_ref_no
+                               and pcm.contract_type = 'CONCENTRATES'
+                               and poch.is_active = 'Y'
+                               and pocd.is_active = 'Y'
+                               and pcbpd.is_active = 'Y'
+                               and pcbph.is_active = 'Y'
+                               and pcbpd.price_basis = 'Fixed'
+                               and ppu.product_price_unit_id =
+                                   pcbpd.price_unit_id
+                               and ppu.cur_id = cm.cur_id
+                               and ppu.weight_unit_id = qum.qty_unit_id)
+    loop
+      insert into cccp_conc_contract_cog_price
+        (process_id,
+         corporate_id,
+         pcdi_id,
+         internal_contract_ref_no,
+         contract_ref_no,
+         element_id,
+         payable_qty,
+         payable_qty_unit_id,
+         contract_price,
+         price_unit_id,
+         price_unit_cur_id,
+         price_unit_cur_code,
+         price_unit_weight,
+         price_unit_weight_unit_id,
+         price_unit_weight_unit,
+         fixed_qty,
+         unfixed_qty,
+         price_basis)
+      values
+        (cur_fixed_price.process_id,
+         cur_fixed_price.corporate_id,
+         cur_fixed_price.pcdi_id,
+         cur_fixed_price.internal_contract_ref_no,
+         cur_fixed_price.contract_ref_no,
+         cur_fixed_price.element_id,
+         cur_fixed_price.payable_qty,
+         cur_fixed_price.payable_qty_unit_id,
+         cur_fixed_price.contract_price,
+         cur_fixed_price.price_unit_id,
+         cur_fixed_price.price_unit_cur_id,
+         cur_fixed_price.price_unit_cur_code,
+         cur_fixed_price.price_unit_weight,
+         cur_fixed_price.price_unit_weight_unit_id,
+         cur_fixed_price.price_unit_weight_unit,
+         cur_fixed_price.fixed_qty,
+         cur_fixed_price.unfixed_qty,
+         cur_fixed_price.price_basis);
     end loop;
     commit;
     sp_gather_stats('cccp_conc_contract_cog_price');

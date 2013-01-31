@@ -13578,22 +13578,30 @@ sp_precheck_process_log(pc_corporate_id,
                           gvn_log_counter,
                           'End of Update GRD Profit Center');
                          
-  for cur_containers in (select grd.internal_gmr_ref_no,
-                                sum(nvl(grd.no_of_containers, 0)) no_of_containers,
-                                sum(grd.qty * nvl(grd.grd_to_gmr_qty_factor,1)) wet_qty,
-                                sum(grd.dry_qty * nvl(grd.grd_to_gmr_qty_factor,1)) dry_qty,
-                                max(grd.quality_name) quality_name
-                           from grd_goods_record_detail grd
-                          where grd.dbd_id = pc_dbd_id
-                            and grd.status = 'Active'
-                            and grd.is_deleted = 'N'
-                          group by grd.internal_gmr_ref_no)
+  for cur_containers in (
+  select grd.internal_gmr_ref_no,
+       sum(nvl(grd.no_of_containers, 0)) no_of_containers,
+       sum(grd.qty * nvl(grd.grd_to_gmr_qty_factor, 1)) wet_qty,
+       sum(grd.dry_qty * nvl(grd.grd_to_gmr_qty_factor, 1)) dry_qty,
+       max(grd.quality_name) quality_name,
+       sum(case
+             when nvl(grd.is_weight_final, 'N') = 'Y' then
+              1
+             else
+              0
+           end) no_of_stocks_wns_done
+  from grd_goods_record_detail grd
+ where grd.dbd_id = pc_dbd_id
+   and grd.status = 'Active'
+   and grd.is_deleted = 'N'
+ group by grd.internal_gmr_ref_no)
   loop
     update gmr_goods_movement_record gmr
        set gmr.no_of_containers = cur_containers.no_of_containers,
            gmr.dry_qty          = cur_containers.dry_qty,
            gmr.wet_qty          = cur_containers.wet_qty,
-           gmr.quality_name     = cur_containers.quality_name
+           gmr.quality_name     = cur_containers.quality_name,
+           gmr.no_of_stocks_wns_done = cur_containers.no_of_stocks_wns_done
      where gmr.dbd_id = pc_dbd_id
        and gmr.internal_gmr_ref_no = cur_containers.internal_gmr_ref_no;
   end loop;

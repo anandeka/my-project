@@ -6641,8 +6641,7 @@ end;
              agmr_action_gmr           agmr,
              aml_attribute_master_list aml,
              pdm_productmaster         pdm,
-             dbd_database_dump         dbd,
-             is_invoice_summary        iss
+             dbd_database_dump         dbd
        where ypd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and ypd.internal_action_ref_no = axs.internal_action_ref_no
          and ypd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
@@ -6652,9 +6651,6 @@ end;
          and gmr.corporate_id = pc_corporate_id
          and axs.dbd_id = dbd.dbd_id
          and dbd.process = 'EOM'
-         and gmr.latest_internal_invoice_ref_no =
-             iss.internal_invoice_ref_no(+)
-         and gmr.process_id = iss.process_id(+)
          and gmr.is_deleted = 'N'
          and aml.is_active = 'Y'
          and pdm.is_active = 'Y'
@@ -6714,8 +6710,8 @@ end;
              pqca.is_returnable,
              pcm.cp_id,
              grd.product_id conc_product_id,
-             pdm.base_quantity_unit conc_qty_unit_id,
-             qum.qty_unit conc_qty_unit
+             grd.base_qty_unit_id conc_qty_unit_id,
+             grd.base_qty_unit conc_qty_unit
         from sac_stock_assay_content     sac,
              ash_assay_header            ash,
              asm_assay_sublot_mapping    asm,
@@ -6724,18 +6720,14 @@ end;
              pci_physical_contract_item  pci,
              pcdi_pc_delivery_item       pcdi,
              pcm_physical_contract_main  pcm,
-             pdm_productmaster           pdm,
-             ucm_unit_conversion_master  ucm,
-             qum_quantity_unit_master    qum
+             ucm_unit_conversion_master  ucm
        where ash.ash_id = asm.ash_id
          and asm.asm_id = pqca.asm_id
          and pqca.element_id = sac.element_id
          and pqca.is_active = 'Y'
          and ash.ash_id = sac.wtdavgpostion_ash_id
-         and grd.product_id = pdm.product_id
          and grd.qty_unit_id = ucm.from_qty_unit_id
-         and pdm.base_quantity_unit = ucm.to_qty_unit_id
-         and pdm.base_quantity_unit = qum.qty_unit_id
+         and grd.base_qty_unit_id = ucm.to_qty_unit_id
          and sac.internal_grd_ref_no = grd.internal_grd_ref_no
          and grd.internal_contract_item_ref_no =
              pci.internal_contract_item_ref_no
@@ -6751,9 +6743,7 @@ end;
          and ash.is_active = 'Y'
          and asm.is_active = 'Y'
          and pqca.is_active = 'Y'
-         and pdm.is_active = 'Y'
          and ucm.is_active = 'Y'
-         and qum.is_active = 'Y'
        group by sac.internal_gmr_ref_no,
                 sac.internal_grd_ref_no,
                 sac.element_id,
@@ -6762,8 +6752,8 @@ end;
                 sac.wtdavgpostion_ash_id,
                 ucm.multiplication_factor,
                 grd.product_id,
-                pdm.base_quantity_unit,
-                qum.qty_unit,
+                grd.base_qty_unit_id,
+                grd.base_qty_unit,
                 sac.latest_assay_id,
                 pqca.unit_of_measure,
                 pqca.typical,
@@ -19361,7 +19351,6 @@ procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
  select gmr.internal_gmr_ref_no,
         decode(gmr.wns_status, 'Completed', 'Y', 'N') is_wns_created,
         nvl(gmr.no_of_bags, 0) no_of_bags,
-        nvl(gmr.no_of_sublots, 0) no_of_sublots,
         gmr.dry_qty,
         gmr.wet_qty,
         nvl(gmr.is_apply_container_charge, 'N') is_apply_container_charge,
@@ -19377,7 +19366,8 @@ procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
         gmr.latest_internal_invoice_ref_no,
         gmr.shipped_qty,
         gmr.qty_unit_id gmr_qty_unit_id,
-        pcmac.int_contract_ref_no
+        pcmac.int_contract_ref_no,
+        gmr.no_of_stocks_wns_done
    from pcmac_pcm_addn_charges    pcmac,
         gmr_goods_movement_record gmr
   where gmr.internal_contract_ref_no = pcmac.int_contract_ref_no
@@ -19388,8 +19378,7 @@ procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
   group by gmr.internal_gmr_ref_no,
         decode(gmr.wns_status, 'Completed', 'Y', 'N'),
         nvl(gmr.no_of_bags, 0) ,
-        nvl(gmr.no_of_sublots, 0) ,
-        gmr.dry_qty,
+         gmr.dry_qty,
         gmr.wet_qty,
         nvl(gmr.is_apply_container_charge, 'N') ,
         nvl(gmr.is_apply_freight_allowance, 'N'),
@@ -19404,12 +19393,12 @@ procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
         gmr.latest_internal_invoice_ref_no,
         gmr.shipped_qty,
         gmr.qty_unit_id,
-        pcmac.int_contract_ref_no;
+        pcmac.int_contract_ref_no,
+        gmr.no_of_stocks_wns_done;
   cursor cur_each_gmr(pc_internal_gmr_ref_no varchar2) is
  select gmr.internal_gmr_ref_no,
         decode(gmr.wns_status, 'Completed', 'Y', 'N') is_wns_created,
         nvl(gmr.no_of_bags, 0) no_of_bags,
-        nvl(gmr.no_of_sublots, 0) no_of_sublots,
         gmr.dry_qty,
         gmr.wet_qty,
         nvl(gmr.is_apply_container_charge, 'N') is_apply_container_charge,
@@ -19425,7 +19414,8 @@ procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
         gmr.latest_internal_invoice_ref_no,
         gmr.shipped_qty,
         gmr.qty_unit_id gmr_qty_unit_id,
-        pcmac.*
+        pcmac.*,
+        gmr.no_of_stocks_wns_done
    from pcmac_pcm_addn_charges    pcmac,
         gmr_goods_movement_record gmr
   where gmr.internal_contract_ref_no = pcmac.int_contract_ref_no
@@ -19458,7 +19448,7 @@ gvn_log_counter := gvn_log_counter + 1;
           if cur_each_gmr_rows.charge_type = 'Rate' then
             vn_sampling_charge := cur_each_gmr_rows.charge *
                                   cur_each_gmr_rows.fx_rate *
-                                  cur_each_gmr_rows.no_of_sublots;
+                                  cur_each_gmr_rows.no_of_stocks_wns_done;
           else
             vn_sampling_charge := cur_each_gmr_rows.charge *
                                   cur_each_gmr_rows.fx_rate;
@@ -19619,8 +19609,7 @@ gvn_log_counter := gvn_log_counter + 1;
        is_wns_created,
        is_invoiced,
        no_of_bags,
-       no_of_sublots,
-       dry_qty,
+        dry_qty,
        wet_qty,
        small_lot_charge,
        container_charge,
@@ -19632,7 +19621,8 @@ gvn_log_counter := gvn_log_counter + 1;
        is_apply_freight_allowance,
        latest_internal_invoice_ref_no,
        shipped_qty,
-       gmr_qty_unit_id)
+       gmr_qty_unit_id,
+       no_of_stocks_wns_done)
     values
       (pc_process_id,
        cur_all_gmr_rows.internal_gmr_ref_no,
@@ -19640,7 +19630,6 @@ gvn_log_counter := gvn_log_counter + 1;
        cur_all_gmr_rows.is_wns_created,
        cur_all_gmr_rows.is_invoiced,
        cur_all_gmr_rows.no_of_bags,
-       cur_all_gmr_rows.no_of_sublots,
        cur_all_gmr_rows.dry_qty,
        cur_all_gmr_rows.wet_qty,
        vn_small_lot_charge,
@@ -19653,7 +19642,8 @@ gvn_log_counter := gvn_log_counter + 1;
        cur_all_gmr_rows.is_apply_freight_allowance,
        cur_all_gmr_rows.latest_internal_invoice_ref_no,
        cur_all_gmr_rows.shipped_qty,
-       cur_all_gmr_rows.gmr_qty_unit_id);
+       cur_all_gmr_rows.gmr_qty_unit_id,
+       cur_all_gmr_rows.no_of_stocks_wns_done);
     
   end loop;
   commit;
