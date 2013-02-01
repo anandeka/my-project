@@ -2337,7 +2337,7 @@ create or replace package body pkg_phy_cog_price is
           vn_price_unit_weight         := null;
       end;
       vc_error_message := ' Line 676 ';
-      if vn_average_price is not null and vc_price_unit_id is not null then
+      if vn_average_price <> 0 and vc_price_unit_id is not null then
         insert into cccp_conc_contract_cog_price
           (process_id,
            corporate_id,
@@ -2658,13 +2658,13 @@ create or replace package body pkg_phy_cog_price is
                and ppu.product_price_unit_id = pfd.price_unit_id
                and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
              group by ppu.price_unit_id;
+          
           exception
             when others then
               vn_fixed_value         := 0;
               vn_fixed_qty           := 0;
               vc_fixed_price_unit_id := null;
           end;
-        
           vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
           vn_unfixed_qty      := cur_gmr_rows.payable_qty - vn_fixed_qty;
           if cur_gmr_rows.is_daily_cal_applicable = 'Y' then

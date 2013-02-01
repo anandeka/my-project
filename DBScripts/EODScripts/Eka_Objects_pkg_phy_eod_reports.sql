@@ -19415,7 +19415,7 @@ procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
         gmr.shipped_qty,
         gmr.qty_unit_id gmr_qty_unit_id,
         pcmac.*,
-        gmr.no_of_stocks_wns_done
+        nvl(gmr.no_of_stocks_wns_done,0) no_of_stocks_wns_done
    from pcmac_pcm_addn_charges    pcmac,
         gmr_goods_movement_record gmr
   where gmr.internal_contract_ref_no = pcmac.int_contract_ref_no
@@ -19440,21 +19440,16 @@ gvn_log_counter := gvn_log_counter + 1;
     for cur_each_gmr_rows in cur_each_gmr(cur_all_gmr_rows.internal_gmr_ref_no)
     loop
       --
-      -- Sampling Charges, Only if WNS is created
-      -- If Rate then multiply by total no of sub lots for the GMR, if Flat take the value as is
+      -- Sampling Charges, If WNS is created for the GMR and Flat, apply the Flat Rate (on shipment)
+      -- If Charge Type is Rate, Multiply the Rate by Number of Stocks for which WNS is completed (on WNS Stocks)
       --
        if cur_each_gmr_rows.addn_charge_name = 'SamplingCharge' OR cur_each_gmr_rows.addn_charge_name = 'Sampling Charge' then
-        if cur_each_gmr_rows.is_wns_created = 'Y' then
-          if cur_each_gmr_rows.charge_type = 'Rate' then
-            vn_sampling_charge := cur_each_gmr_rows.charge *
-                                  cur_each_gmr_rows.fx_rate *
-                                  cur_each_gmr_rows.no_of_stocks_wns_done;
-          else
-            vn_sampling_charge := cur_each_gmr_rows.charge *
-                                  cur_each_gmr_rows.fx_rate;
+        if cur_each_gmr_rows.is_wns_created = 'Y' and cur_each_gmr_rows.charge_type ='Flat' then
+           vn_sampling_charge := cur_each_gmr_rows.charge * cur_each_gmr_rows.fx_rate;
+          elsif cur_each_gmr_rows.charge_type = 'Rate' then
+            vn_sampling_charge := cur_each_gmr_rows.charge * cur_each_gmr_rows.fx_rate * cur_each_gmr_rows.no_of_stocks_wns_done;
           end if;
         end if;
-      end if;
       --
       -- Handling Charges, If Rate then multiply by total no of sub lots for the GMR, If Flat take the value as is
       --
