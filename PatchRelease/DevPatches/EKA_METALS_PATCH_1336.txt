@@ -45,7 +45,17 @@ Other charge calcualtion for sampling changed from No of Sbulots to No of WNS Co
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/112_DDL_EODDB_ALTER_SCRIPT.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+
+Revision: 115525
+Author: janna
+Date: 8:44:55 AM, Friday, February 01, 2013
+Message:
+Sampling Charge If Flat should be applied only when all stock WNS done, if Rate multiply by No of of stocks wns done
+----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
 
 
