@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1336
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  01-Feb-2013
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  73303
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 115569
+Author: abhishek.vijay
+Date: 5:12:57 PM, Friday, February 01, 2013
+Message:
+remove filed from filter  in list of fx exposure 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_386.sql
+
+
+
+
+
