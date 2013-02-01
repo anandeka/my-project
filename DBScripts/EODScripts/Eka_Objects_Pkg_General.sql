@@ -140,7 +140,7 @@ create or replace package pkg_general is
                                            pc_process              in varchar2,
                                            pc_settlement_price     out number,
                                            pc_sum_of_forward_point out number);
-end;
+end; 
 /
 create or replace package body pkg_general is
 
@@ -350,7 +350,7 @@ create or replace package body pkg_general is
     vc_is_to_der_qty_unit    varchar2(1);
   
   begin
-  
+   if pc_from_qty_unit_id <> pc_to_qty_unit_id then
     vc_is_from_der_qty_unit := f_get_is_derived_qty_unit(pc_from_qty_unit_id);
     vc_is_to_der_qty_unit   := f_get_is_derived_qty_unit(pc_to_qty_unit_id);
   
@@ -394,7 +394,9 @@ create or replace package body pkg_general is
                         (vc_from_to_der_factor / vc_to_to_der_factor);
     
     end if;
-  
+   else
+    vc_conv_factor := 1;
+  end if;
     return vc_conv_factor;
   
   exception
@@ -418,6 +420,7 @@ create or replace package body pkg_general is
     vn_to_der_to_base_conv     number(20, 5) := 1;
   begin
     begin
+    if pc_from_qty_unit_id <> pc_to_qty_unit_id then
       vc_is_from_der_qty_unit_id := f_get_is_derived_qty_unit(pc_from_qty_unit_id);
       vc_is_to_der_qty_unit_id   := f_get_is_derived_qty_unit(pc_to_qty_unit_id);
       if (vc_is_from_der_qty_unit_id = 'Y') then
@@ -440,15 +443,22 @@ create or replace package body pkg_general is
            and dqu.product_id = pc_product_id
            and rownum < 2;
       end if;
+      if vc_base_form_qty_unit_id = vc_base_to_qty_unit_id then
+       vn_conv_factor := 1;
+      else
       select ucm.multiplication_factor
         into vn_conv_factor
         from ucm_unit_conversion_master ucm
        where ucm.from_qty_unit_id = vc_base_form_qty_unit_id
          and ucm.to_qty_unit_id = vc_base_to_qty_unit_id;
+      end if;
       vn_converted_qty := round(vn_from_der_to_base_conv /
                                 vn_to_der_to_base_conv * vn_conv_factor *
                                 pn_qty_to_be_converted,
                                 15);
+    else
+     vn_converted_qty := pn_qty_to_be_converted;
+    end if;
       return vn_converted_qty;
     exception
       when no_data_found then
@@ -2574,5 +2584,5 @@ create or replace package body pkg_general is
       sp_insert_error_log(vobj_error_log);
     end if;
   end;
-end;
+end; 
 /
