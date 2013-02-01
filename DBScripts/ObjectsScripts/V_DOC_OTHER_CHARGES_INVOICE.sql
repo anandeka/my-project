@@ -342,50 +342,56 @@ select 'Invoice' section_name,
        null vat_rate,
        null vat_amount,
        
-       -- Bank Details
-       (case
-         when isd.sales_purchase = 'P' then
-          ibp.beneficiary_name
-         else
-          ibs.beneficiary_name
-       end) beneficiary_name,
-       (case
-         when isd.sales_purchase = 'P' then
-          ibp.bank_name
-         else
-          ibs.bank_name
-       end) bank_name,
-       (case
-         when isd.sales_purchase = 'P' then
-          ibp.account_no
-         else
-          ibs.account_no
-       end) account_no,
-       (case
-         when isd.sales_purchase = 'P' then
-          ibp.iban
-         else
-          ibs.iban
-       end) iban,
-       (case
-         when isd.sales_purchase = 'P' then
-          ibp.aba_rtn
-         else
-          ibs.aba_rtn
-       end) aba_rtn,
-       (case
-         when isd.sales_purchase = 'P' then
-          ibp.instruction
-         else
-          ibs.instruction
-       end) instruction,
-       (case
-         when isd.sales_purchase = 'P' then
-          ibp.remarks
-         else
-          ibs.remarks
-       end) remarks,
-       
+       -- Bank Details       
+--       (case
+--         when isd.sales_purchase = 'P' then
+--          ibp.beneficiary_name
+--         else
+--          ibs.beneficiary_name
+--       end) beneficiary_name,
+       nvl2(ibp.beneficiary_name, ibp.beneficiary_name, ibs.beneficiary_name) beneficiary_name,
+--       (case
+--         when isd.sales_purchase = 'P' then
+--          ibp.bank_name
+--         else
+--          ibs.bank_name
+--       end) bank_name,
+       nvl2(ibp.bank_name, ibp.bank_name, ibs.bank_name) bank_name,
+--       (case
+--         when isd.sales_purchase = 'P' then
+--          ibp.account_no
+--         else
+--          ibs.account_no
+--       end) account_no,
+        nvl2(ibp.account_no, ibp.account_no, ibs.account_no) account_no,
+--       (case
+--         when isd.sales_purchase = 'P' then
+--          ibp.iban
+--         else
+--          ibs.iban
+--       end) iban,
+       nvl2(ibp.iban, ibp.iban, ibs.iban) iban,
+--       (case
+--         when isd.sales_purchase = 'P' then
+--          ibp.aba_rtn
+--         else
+--          ibs.aba_rtn
+--       end) aba_rtn,
+       nvl2(ibp.aba_rtn, ibp.aba_rtn, ibs.aba_rtn) aba_rtn,
+--       (case
+--         when isd.sales_purchase = 'P' then
+--          ibp.instruction
+--         else
+--          ibs.instruction
+--       end) instruction,
+        nvl2(ibp.instruction, ibp.instruction, ibs.instruction) instruction,
+--       (case
+--         when isd.sales_purchase = 'P' then
+--          ibp.remarks
+--         else
+--          ibs.remarks
+--       end) remarks,
+       nvl2(ibp.remarks, ibp.remarks, ibs.remarks) remarks,
        -- Summary Details
        isd.total_premium_amount,
        isd.freight_charge,
