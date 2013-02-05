@@ -62,6 +62,22 @@ select cpc.profit_center_id,
          else
           0
        end) else dt.clearer_comm_amt end) commission_value,
+       
+       round( (case
+         when dcod.clearer_comm_amt is null or
+              nvl(dcod.clearer_comm_amt, 0) = 0 then
+          (case
+         when dt.clearer_comm_amt is not null then
+          round((dt.clearer_comm_amt/ dt.total_quantity) *
+                dcod.quantity_closed,
+                4)
+         else
+          0
+       end) else dt.clearer_comm_amt end)*pkg_general.f_get_converted_currency_amt(dt.corporate_id,
+                                                                        dcod.clearer_comm_cur_id,
+                                                                        ak.base_cur_id,
+                                                                        sysdate,
+                                                                        1) ,4)commission_value_base,
        (case
          when dcod.clearer_comm_amt is null or
               nvl(dcod.clearer_comm_amt, 0) = 0 then
