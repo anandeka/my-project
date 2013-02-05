@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_1338
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  05-Feb-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  74192, 73471 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+
+Revision: 115720
+Author: janna
+Date: 11:47:54 AM, Tuesday, February 05, 2013
+Message:
+Arrival Report Separate Flags 
+YTD Yield Removed Group BY as It was wrong grouping and removing some wanted data
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/113_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
+
+
+
