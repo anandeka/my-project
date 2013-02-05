@@ -6808,9 +6808,7 @@ sp_gather_stats('tys_temp_yield_stock');
              stock.total_qty_in_wet,
              stock.total_qty_in_dry,
              stock.unit_of_measure,
-             round(sum(stock.total_qty_in_dry * stock.typical) /
-                   sum(stock.total_qty_in_dry),
-                   4) avg_typical,
+             stock.typical avg_typical,
              ytd.yield_pct,
              ytd.current_qty,
              ytd.qty_unit_id,
@@ -6830,29 +6828,7 @@ sp_gather_stats('tys_temp_yield_stock');
          and stock.element_id = ytd.element_id
          and ytd.corporate_id = akc.corporate_id
          and ytd.corporate_id = pc_corporate_id
-         and stock.corporate_id = pc_corporate_id
-       group by stock.internal_gmr_ref_no,
-                stock.element_id,
-                stock.cp_id,
-                stock.total_qty_in_wet,
-                stock.total_qty_in_dry,
-                stock.unit_of_measure,
-                ytd.yield_pct,
-                ytd.current_qty,
-                ytd.qty_unit_id,
-                ytd.gmr_ref_no,
-                ytd.ytd_year,
-                ytd.ytd_month,
-                ytd.ytd_group_column,
-                ytd.element_name,
-                ytd.element_product_id,
-                ytd.element_product_name,
-                stock.conc_product_id,
-                stock.conc_qty_unit_id,
-                stock.conc_qty_unit,
-                ytd.corporate_id,
-                akc.corporate_name,
-                pc_process_id;
+         and stock.corporate_id = pc_corporate_id;
     commit;
     gvn_log_counter := gvn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -10907,7 +10883,8 @@ begin
       when no_data_found then
         vc_previous_year_eom_id := null;
     end;
-    
+--
+-- Flag Updation for Feed Consumption Report     
 -- 
 -- GMR Is New Flag for MTD and YTD
 --    
@@ -10932,7 +10909,7 @@ update gmr_goods_movement_record gmr
 commit;
 vn_log_counter := vn_log_counter + 1;
 
-  sp_precheck_process_log(pc_corporate_id,
+  sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           vn_log_counter,
@@ -10985,11 +10962,105 @@ begin
 end;
 commit;
 vn_log_counter := vn_log_counter + 1;
- sp_precheck_process_log(pc_corporate_id,
+ sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           vn_log_counter,
                           'End of GMR Assay Update Flag');
+                          
+--
+-- Flag Updation for Arrival Report     
+-- 
+update gmr_goods_movement_record gmr
+   set gmr.is_new_mtd_ar = 'Y'
+ where gmr.process_id = pc_process_id 
+ and gmr.is_deleted ='N'
+  and gmr.gmr_status in ('In Warehouse', 'Landed')
+  and not exists
+  (select * from gmr_goods_movement_record gmr_prev
+  where gmr_prev.process_id =  vc_previous_eom_id
+  and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+  and gmr.gmr_status = gmr_prev.gmr_status);
+ commit; 
+vn_log_counter := vn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'End of GMR Is New MTD for AR');
+                          
+update gmr_goods_movement_record gmr
+   set gmr.is_new_ytd_ar = 'Y'
+ where gmr.process_id = pc_process_id 
+ and gmr.is_deleted ='N'
+  and gmr.gmr_status in ('In Warehouse', 'Landed')
+  and not exists
+  (select * from gmr_goods_movement_record gmr_prev
+  where gmr_prev.process_id =  vc_previous_year_eom_id
+  and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+  and gmr.gmr_status = gmr_prev.gmr_status);
+ commit; 
+vn_log_counter := vn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'End of GMR Is New YTD for AR');
+                          
+
+begin
+  for cur_assay_mtd in (select gpq.internal_gmr_ref_no
+                          from gpq_gmr_payable_qty gpq,
+                               gpq_gmr_payable_qty gpq_prev_month
+                         where gpq.internal_gmr_ref_no =
+                               gpq_prev_month.internal_gmr_ref_no
+                           and gpq.element_id = gpq_prev_month.element_id
+                           and gpq.process_id = pc_process_id
+                           and gpq_prev_month.process_id = vc_previous_eom_id
+                           and (gpq.payable_qty <> gpq_prev_month.payable_qty or
+                               gpq.qty_unit_id <> gpq_prev_month.qty_unit_id)
+                           and exists
+                           (select * from ar_arrival_report ar
+                           where ar.internal_gmr_ref_no = gpq.internal_gmr_ref_no
+                           and ar.mtd_ytd ='MTD')
+                          group by gpq.internal_gmr_ref_no)
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.is_assay_updated_mtd_ar = 'Y'
+     where gmr.process_id = pc_process_id
+       and gmr.internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
+       and gmr.is_deleted ='N';
+  end loop;
+end;
+commit;
+
+begin
+  for cur_assay_mtd in (select gpq.internal_gmr_ref_no
+                          from gpq_gmr_payable_qty gpq,
+                               gpq_gmr_payable_qty gpq_prev_month
+                         where gpq.internal_gmr_ref_no =
+                               gpq_prev_month.internal_gmr_ref_no
+                           and gpq.element_id = gpq_prev_month.element_id
+                           and gpq.process_id = pc_process_id
+                           and gpq_prev_month.process_id = vc_previous_year_eom_id
+                           and (gpq.payable_qty <> gpq_prev_month.payable_qty or
+                               gpq.qty_unit_id <> gpq_prev_month.qty_unit_id)
+                           and exists
+                           (select * from ar_arrival_report ar
+                           where ar.internal_gmr_ref_no = gpq.internal_gmr_ref_no
+                           and ar.mtd_ytd ='YTD')
+                          group by gpq.internal_gmr_ref_no)
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.is_assay_updated_ytd_ar = 'Y'
+     where gmr.process_id = pc_process_id
+       and gmr.internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
+       and gmr.is_deleted ='N';
+  end loop;
+end;
+commit;
+
+  
 gvn_log_counter := vn_log_counter;                          
  exception when others then 
            vobj_error_log.extend;
@@ -13098,7 +13169,7 @@ begin
               from gmr_goods_movement_record gmr
              where gmr.process_id = pc_process_id
                and gmr.internal_gmr_ref_no = aro.internal_gmr_ref_no
-               and gmr.is_new_mtd = 'Y'
+               and gmr.is_new_mtd_ar = 'Y'
                and 'TRUE' =
                    (case when
                     trunc(gmr.eff_date, 'Mon') <= trunc(pd_trade_date, 'Mon') then
@@ -13164,7 +13235,7 @@ begin
               from gmr_goods_movement_record gmr
              where gmr.process_id = pc_process_id
                and gmr.internal_gmr_ref_no = areo.internal_gmr_ref_no
-               and gmr.is_new_mtd = 'Y'
+               and gmr.is_new_mtd_ar = 'Y'
                and 'TRUE' =
                    (case when
                     trunc(gmr.eff_date, 'Mon') <= trunc(pd_trade_date, 'Mon') then
@@ -13279,7 +13350,7 @@ insert into ar_arrival_report
                    where gmr.process_id = pc_process_id
                      and gmr.internal_gmr_ref_no =
                          aro_current.internal_gmr_ref_no
-                     and gmr.is_assay_updated_mtd = 'Y')
+                     and gmr.is_assay_updated_mtd_ar = 'Y')
            group by aro_current.corporate_id,
                     aro_current.corporate_name,
                     aro_current.gmr_ref_no,
@@ -13336,7 +13407,7 @@ insert into ar_arrival_report
                    where gmr.process_id = pc_process_id
                      and gmr.internal_gmr_ref_no =
                          are_prev.internal_gmr_ref_no
-                     and gmr.is_assay_updated_mtd = 'Y')
+                     and gmr.is_assay_updated_mtd_ar = 'Y')
            group by are_prev.corporate_id,
                     are_prev.corporate_name,
                     are_prev.gmr_ref_no,
@@ -13463,7 +13534,7 @@ insert into are_arrival_report_element
                    where gmr.process_id = pc_process_id
                      and gmr.internal_gmr_ref_no =
                          areo_current.internal_gmr_ref_no
-                     and gmr.is_assay_updated_mtd = 'Y')
+                     and gmr.is_assay_updated_mtd_ar = 'Y')
            group by areo_current.internal_gmr_ref_no,
                     areo_current.element_id,
                     areo_current.element_name,
@@ -13507,7 +13578,7 @@ insert into are_arrival_report_element
                    where gmr.process_id = pc_process_id
                      and gmr.internal_gmr_ref_no =
                          areo_prev.internal_gmr_ref_no
-                     and gmr.is_assay_updated_mtd = 'Y')
+                     and gmr.is_assay_updated_mtd_ar = 'Y')
            group by areo_prev.internal_gmr_ref_no,
                     areo_prev.element_id,
                     areo_prev.element_name,
@@ -13616,7 +13687,7 @@ insert into are_arrival_report_element
               from gmr_goods_movement_record gmr
              where gmr.process_id = pc_process_id
                and gmr.internal_gmr_ref_no = aro.internal_gmr_ref_no
-               and gmr.is_new_ytd = 'Y'
+               and gmr.is_new_ytd_ar = 'Y'
                and 'TRUE' =
                    (case when trunc(gmr.eff_date, 'YYYY') <=
                     trunc(pd_trade_date, 'YYYY') then 'TRUE' when
@@ -13682,7 +13753,7 @@ insert into are_arrival_report_element
               from gmr_goods_movement_record gmr
              where gmr.process_id = pc_process_id
                and gmr.internal_gmr_ref_no = areo.internal_gmr_ref_no
-               and gmr.is_new_ytd = 'Y'
+               and gmr.is_new_ytd_ar = 'Y'
                and 'TRUE' =
                    (case when trunc(gmr.eff_date, 'yyyy') <=
                     trunc(pd_trade_date, 'yyyy') then 'TRUE' when
@@ -13798,7 +13869,7 @@ insert into are_arrival_report_element
                    where gmr.process_id = pc_process_id
                      and gmr.internal_gmr_ref_no =
                          aro_current.internal_gmr_ref_no
-                     and gmr.is_assay_updated_ytd = 'Y')
+                     and gmr.is_assay_updated_ytd_ar = 'Y')
            group by aro_current.corporate_id,
                     aro_current.corporate_name,
                     aro_current.gmr_ref_no,
@@ -13855,7 +13926,7 @@ insert into are_arrival_report_element
                    where gmr.process_id = pc_process_id
                      and gmr.internal_gmr_ref_no =
                          are_prev.internal_gmr_ref_no
-                     and gmr.is_assay_updated_ytd = 'Y')
+                     and gmr.is_assay_updated_ytd_ar = 'Y')
            group by are_prev.corporate_id,
                     are_prev.corporate_name,
                     are_prev.gmr_ref_no,
@@ -13984,7 +14055,7 @@ insert into are_arrival_report_element
                    where gmr.process_id = pc_process_id
                      and gmr.internal_gmr_ref_no =
                          areo_current.internal_gmr_ref_no
-                     and gmr.is_assay_updated_ytd = 'Y')
+                     and gmr.is_assay_updated_ytd_ar = 'Y')
            group by areo_current.internal_gmr_ref_no,
                     areo_current.element_id,
                     areo_current.element_name,
@@ -14028,7 +14099,7 @@ insert into are_arrival_report_element
                    where gmr.process_id = pc_process_id
                      and gmr.internal_gmr_ref_no =
                          areo_prev.internal_gmr_ref_no
-                     and gmr.is_assay_updated_ytd = 'Y')
+                     and gmr.is_assay_updated_ytd_ar = 'Y')
            group by areo_prev.internal_gmr_ref_no,
                     areo_prev.element_id,
                     areo_prev.element_name,
