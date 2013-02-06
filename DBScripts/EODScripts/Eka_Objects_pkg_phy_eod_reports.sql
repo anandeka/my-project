@@ -8983,7 +8983,6 @@ insert into temp_mas
      and sam.ash_id = ash.ash_id
      and ash.internal_grd_ref_no = spq.internal_grd_ref_no
      and spq.weg_avg_pricing_assay_id = ash_pricing.ash_id    
-     and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
      and asm.ash_id = ash_pricing.ash_id
      and aml.attribute_id = spq.element_id
      and aml.underlying_product_id = pdm.product_id
@@ -9100,7 +9099,6 @@ insert into temp_mas
      and sam.ash_id = ash.ash_id
      and ash.internal_grd_ref_no = spq.internal_grd_ref_no
      and spq.weg_avg_pricing_assay_id = ash_pricing.ash_id    
-     and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
      and asm.ash_id = ash_pricing.ash_id
      and aml.attribute_id = spq.element_id
      and aml.underlying_product_id = pdm.product_id
@@ -9259,10 +9257,10 @@ insert into temp_mas
          phd.companyname,
          case
            when rm.ratio_name = '%' then
-            ((((grd.qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
             pqca.typical / 100)
            else
-            ((((grd.qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
             pqca.typical)
          end stock_qty,
          (case
@@ -9360,10 +9358,10 @@ insert into temp_mas
          phd.companyname,
          case
            when rm.ratio_name = '%' then
-            ((((grd.qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
             pqca.typical / 100)
            else
-            ((((grd.qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
+            ((((grd.qty - grd.moved_out_qty ) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
             pqca.typical)
          end stock_qty,
          (case
@@ -9465,10 +9463,10 @@ insert into temp_mas
          phd.companyname,
          case
            when rm.ratio_name = '%' then
-            ((((grd.qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
             pqca.typical / 100)
            else
-            ((((grd.qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
             pqca.typical)
          end stock_qty,
          (case
@@ -9493,7 +9491,7 @@ insert into temp_mas
                  agmr_action_gmr           agmr
            where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
              and agmr.gmr_latest_action_action_id in
-                 ('RECORD_OUT_PUT_TOLLING')
+                 ('RECORD_OUT_PUT_TOLLING' ,'warehouseReceipt')--Internal Movement is updated as warehouseReceipt
              and agmr.is_deleted = 'N'
              and gmr.process_id = pc_process_id) agmr,
          phd_profileheaderdetails phd,
@@ -9567,10 +9565,10 @@ insert into temp_mas
          phd.companyname,
          case
            when rm.ratio_name = '%' then
-            ((((grd.qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
             pqca.typical / 100)
            else
-            ((((grd.qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
             pqca.typical)
          end stock_qty,
          (case
@@ -9595,7 +9593,7 @@ insert into temp_mas
                  agmr_action_gmr           agmr
            where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
              and agmr.gmr_latest_action_action_id in
-                 ('RECORD_OUT_PUT_TOLLING')
+                 ('RECORD_OUT_PUT_TOLLING','warehouseReceipt')--Internal Movement is updated as warehouseReceipt
              and agmr.is_deleted = 'N'
              and gmr.process_id = pc_process_id) agmr,
          phd_profileheaderdetails phd,
