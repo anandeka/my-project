@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1339
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  06-Feb-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  72666 and 69108
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 115849
+Author: janna
+Date: 3:12:58 PM, Wednesday, February 06, 2013
+Message:
+72666 and 69108
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
