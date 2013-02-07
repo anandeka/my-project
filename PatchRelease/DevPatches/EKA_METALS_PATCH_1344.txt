@@ -1,0 +1,41 @@
+Patch No*          		:  EKA_METALS_PATCH_1344
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  07-Feb-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD Reports
+
+Sub-Module  			 :  EOD Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+
+Revision: 115925
+Author: janna
+Date: 3:16:14 PM, Thursday, February 07, 2013
+Message:
+Bugs 73572, 73708
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+
+
