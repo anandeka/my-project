@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_PATCH_1340
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+ 
+Created on*        		:  07-Feb-2013
+
+Bug / Enhancement*              :  N/A
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Assay
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 115949
+Author: rajeshwar.reddy
+Date: 16:16:42, 07 February 2013
+Message:
+increased column size.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_387.sql
+
+Revision: 115944
+Author: rajeshwar.reddy
+Date: 16:12:44, 07 February 2013
+Message:
+for consolidation assays saving single entry in Parent table. 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_490.sql
+
+Revision: 115950
+Author: rajeshwar.reddy
+Date: 16:24:01, 07 February 2013
+Message:
+separated CP Address by comma.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_491.sql
+
