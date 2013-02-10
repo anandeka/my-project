@@ -4595,12 +4595,15 @@ end loop;
     vc_base_cur_id         varchar2(15);
     vc_base_cur_code       varchar2(15);
     vn_exch_rate           number;
+    vc_corporate_name      varchar2(100);
   begin
    
 select akc.base_cur_id,
-       akc.base_currency_name
+       akc.base_currency_name,
+       akc.corporate_name
   into vc_base_cur_id,
-       vc_base_cur_code
+       vc_base_cur_code,
+       vc_corporate_name
   from ak_corporate akc
  where akc.corporate_id = pc_corporate_id;
 
@@ -5129,7 +5132,8 @@ insert into isr_intrastat_grd
    import_date,
    incoterm_id,
    incoterm,
-   no_of_containers
+   no_of_containers,
+   corporate_name
    )
   select corporate_id,
        process_id,
@@ -5186,7 +5190,8 @@ insert into isr_intrastat_grd
        import_date,
        incoterm_id,
        incoterm,
-       no_of_containers
+       no_of_containers,
+       vc_corporate_name
   from (select isr1.corporate_id,
                isr1.process_id,
                isr1.contract_ref_no,
@@ -5664,7 +5669,8 @@ insert into isr_intrastat_grd
    final_invoice_date,
    no_of_containers,
    internal_invoice_ref_no,
-   invoice_ref_no)
+   invoice_ref_no,
+   corporate_name)
   select corporate_id,
          process_id,
          pd_trade_date,
@@ -5724,7 +5730,8 @@ insert into isr_intrastat_grd
          final_invoice_date,
          no_of_containers,
          internal_invoice_ref_no,
-         invoice_ref_no
+         invoice_ref_no,
+         vc_corporate_name
     from (select isr2.corporate_id,
                  isr2.process_id,
                  pd_trade_date,

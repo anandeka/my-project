@@ -13950,45 +13950,48 @@ sp_precheck_process_log(pc_corporate_id,
 ---
 -- GMR Discharge and Loading Details
 --
-for cur_city in(
-select cim.city_id,
-       cim.city_name,
-       sm.state_name,
-       cym.country_name,
-       cym.region_id,
-       rem.region_name,
-       cm.cur_id,
-       cm.cur_code
-  from cim_citymaster    cim,
-       sm_state_master   sm,
-       cym_countrymaster cym,
-       rem_region_master rem,
-       cm_currency_master cm
- where cim.state_id = sm.state_id(+)
-   and sm.country_id = cym.country_id(+)
-   and cym.region_id = rem.region_id(+)
-   and cym.national_currency = cm.cur_id(+)) loop
-update gmr_goods_movement_record gmr
-   set gmr.discharge_city_name    = cur_city.city_name,
-       gmr.discharge_state_name   = cur_city.state_name,
-       gmr.discharge_country_name = cur_city.country_name,
-       gmr.discharge_region_id    = cur_city.region_id,
-       gmr.discharge_region_name  = cur_city.region_name,
-       gmr.discharge_country_cur_id = cur_city.cur_id,
-       gmr.discharge_country_cur_code = cur_city.cur_code
- where gmr.dbd_id = pc_dbd_id
-   and gmr.discharge_city_id = cur_city.city_id;
- update gmr_goods_movement_record gmr
-   set gmr.loading_city_name    = cur_city.city_name,
-       gmr.loading_state_name   = cur_city.state_name,
-       gmr.loading_country_name = cur_city.country_name,
-       gmr.loading_region_id    = cur_city.region_id,
-       gmr.loading_region_name  = cur_city.region_name,
-       gmr.loading_country_cur_id = cur_city.cur_id,
-       gmr.loading_country_cur_code = cur_city.cur_code
- where gmr.dbd_id = pc_dbd_id
-   and gmr.loading_city_id = cur_city.city_id;
-end loop;  
+begin
+  for cur_city in (select cim.city_id,
+                          cim.city_name,
+                          sm.state_name,
+                          cym.country_name,
+                          cym.region_id,
+                          rem.region_name,
+                          cm.cur_id,
+                          cm.cur_code
+                     from cim_citymaster     cim,
+                          sm_state_master    sm,
+                          cym_countrymaster  cym,
+                          rem_region_master  rem,
+                          cm_currency_master cm
+                    where cim.state_id = sm.state_id(+)
+                      and cim.country_id = cym.country_id(+)
+                      and cym.region_id = rem.region_id(+)
+                      and cym.national_currency = cm.cur_id(+))
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.discharge_city_name        = cur_city.city_name,
+           gmr.discharge_state_name       = cur_city.state_name,
+           gmr.discharge_country_name     = cur_city.country_name,
+           gmr.discharge_region_id        = cur_city.region_id,
+           gmr.discharge_region_name      = cur_city.region_name,
+           gmr.discharge_country_cur_id   = cur_city.cur_id,
+           gmr.discharge_country_cur_code = cur_city.cur_code
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.discharge_city_id = cur_city.city_id;
+    update gmr_goods_movement_record gmr
+       set gmr.loading_city_name        = cur_city.city_name,
+           gmr.loading_state_name       = cur_city.state_name,
+           gmr.loading_country_name     = cur_city.country_name,
+           gmr.loading_region_id        = cur_city.region_id,
+           gmr.loading_region_name      = cur_city.region_name,
+           gmr.loading_country_cur_id   = cur_city.cur_id,
+           gmr.loading_country_cur_code = cur_city.cur_code
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.loading_city_id = cur_city.city_id;
+  end loop;
+end;
+  
 commit; 
  gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
