@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1345
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek vijay
+ 
+Created on*        		:  11-Feb-2012
+
+Bug / Enhancement*              :  N/A
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 116231
+Author: abhishek.vijay
+Date: 11:09:37 AM, Monday, February 11, 2013
+Message:
+add new  column for QEP performance 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_389.sql
+
+
+
+
