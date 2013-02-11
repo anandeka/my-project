@@ -345,8 +345,9 @@ create or replace package body pkg_phy_conc_realized_pnl is
          and dgrd.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
          and dgrd.process_id = gscs.process_id(+)
          and pcdi.item_price_type = pt.price_type_id(+)
-         and gmr.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
-         and gmr.process_id = gpd.process_id(+)
+         and gmr_qty.internal_gmr_ref_no = gpd.internal_gmr_ref_no(+)
+         and gmr_qty.process_id = gpd.process_id(+)
+         and gmr_qty.element_id = gpd.element_id(+)
          and cipde.element_id = aml.attribute_id
          and gmr_qty.process_id = pc_process_id
          and gmr_qty.internal_gmr_ref_no = gmr.internal_gmr_ref_no
@@ -980,14 +981,34 @@ create or replace package body pkg_phy_conc_realized_pnl is
       --
       vc_error_msg := '799';
     
-      pkg_metals_general.sp_get_gmr_treatment_charge(cur_realized_rows.internal_gmr_ref_no,
-                                                     cur_realized_rows.internal_grd_ref_no,
-                                                     cur_realized_rows.element_id,
-                                                     pc_dbd_id,
-                                                     vn_contract_price,
-                                                     vc_price_unit_id,
-                                                     vn_con_treatment_charge,
-                                                     vc_con_treatment_cur_id);
+      begin
+        select round((case
+                       when getc.weight_type = 'Dry' then
+                        vn_dry_qty * ucm.multiplication_factor *
+                        getc.base_tc_value
+                       else
+                        vn_wet_qty * ucm.multiplication_factor *
+                        getc.base_tc_value
+                     end),
+                     2),
+               getc.tc_cur_id
+          into vn_con_treatment_charge,
+               vc_con_treatment_cur_id
+          from getc_gmr_element_tc_charges getc,
+               ucm_unit_conversion_master  ucm
+         where getc.process_id = pc_process_id
+           and getc.internal_gmr_ref_no =
+               cur_realized_rows.internal_gmr_ref_no
+           and getc.internal_grd_ref_no =
+               cur_realized_rows.internal_grd_ref_no
+           and getc.element_id = cur_realized_rows.element_id
+           and ucm.from_qty_unit_id = cur_realized_rows.qty_unit_id
+           and ucm.to_qty_unit_id = getc.tc_weight_unit_id;
+      exception
+        when others then
+          vn_con_treatment_charge := 0;
+          vc_con_treatment_cur_id := null;
+      end;
     
       vn_con_treatment_charge := vn_con_treatment_charge *
                                  cur_realized_rows.ratio;
@@ -1027,14 +1048,28 @@ create or replace package body pkg_phy_conc_realized_pnl is
       --
       --- Contract Refine Charges
       --
-      pkg_metals_general.sp_get_gmr_refine_charge(cur_realized_rows.internal_gmr_ref_no,
-                                                  cur_realized_rows.internal_grd_ref_no,
-                                                  cur_realized_rows.element_id,
-                                                  pc_dbd_id,
-                                                  vn_contract_price,
-                                                  vc_price_unit_id,
-                                                  vn_con_refine_charge,
-                                                  vc_con_refine_cur_id);
+      begin
+        select round(gerc.rc_value * ucm.multiplication_factor *
+                     cur_realized_rows.payable_qty,
+                     2),
+               gerc.rc_cur_id
+          into vn_con_refine_charge,
+               vc_con_refine_cur_id
+          from gerc_gmr_element_rc_charges gerc,
+               ucm_unit_conversion_master  ucm
+         where gerc.process_id = pc_process_id
+           and gerc.internal_gmr_ref_no =
+               cur_realized_rows.internal_gmr_ref_no
+           and gerc.internal_grd_ref_no =
+               cur_realized_rows.internal_grd_ref_no
+           and gerc.element_id = cur_realized_rows.element_id
+           and ucm.from_qty_unit_id = cur_realized_rows.payable_qty_unit_id
+           and ucm.to_qty_unit_id = gerc.rc_weight_unit_id;
+      exception
+        when others then
+          vn_con_refine_charge := 0;
+          vc_con_refine_cur_id := null;
+      end;
     
       vn_con_refine_charge := vn_con_refine_charge *
                               cur_realized_rows.ratio;
@@ -1078,11 +1113,33 @@ create or replace package body pkg_phy_conc_realized_pnl is
       if cur_realized_rows.ele_rank = 1 then
         vc_error_msg := '911';
         vc_error_msg := '913';
-        pkg_metals_general.sp_get_gmr_penalty_charge_new(cur_realized_rows.internal_gmr_ref_no,
-                                                         cur_realized_rows.internal_grd_ref_no,
-                                                         pc_dbd_id,
-                                                         vn_con_penality_charge,
-                                                         vc_con_penality_cur_id);
+      
+        begin
+          select round((case
+                         when gepc.weight_type = 'Dry' then
+                          vn_dry_qty * ucm.multiplication_factor * gepc.pc_value
+                         else
+                          vn_wet_qty * ucm.multiplication_factor * gepc.pc_value
+                       end),
+                       2),
+                 gepc.pc_cur_id
+            into vn_con_penality_charge,
+                 vc_con_penality_cur_id
+            from gepc_gmr_element_pc_charges gepc,
+                 ucm_unit_conversion_master  ucm
+           where gepc.process_id = pc_process_id
+             and gepc.internal_gmr_ref_no =
+                 cur_realized_rows.internal_gmr_ref_no
+             and gepc.internal_grd_ref_no =
+                 cur_realized_rows.internal_grd_ref_no
+             and gepc.element_id = cur_realized_rows.element_id
+             and ucm.from_qty_unit_id = cur_realized_rows.qty_unit_id
+             and ucm.to_qty_unit_id = gepc.pc_weight_unit_id;
+        exception
+          when others then
+            vn_con_penality_charge := 0;
+            vc_con_penality_cur_id := null;
+        end;
       
         -- Convert to Base with Bank FX Rate
         vc_error_msg           := '914';

@@ -10888,6 +10888,7 @@ begin
       when no_data_found then
         vc_previous_year_eom_id := null;
     end;
+    
 --
 -- Flag Updation for Feed Consumption Report     
 -- 
@@ -18503,7 +18504,7 @@ select *
                 and ash.ash_id = asm.ash_id
                 and spq.dbd_id = pc_dbd_id
                 and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-                and spq.internal_dgrd_ref_no = dgrd.internal_gmr_ref_no
+                and spq.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
                 and spq.element_id = aml.attribute_id
                 and ash.ash_id = spq.weg_avg_pricing_assay_id
                 and asm.asm_id = pqca.asm_id
