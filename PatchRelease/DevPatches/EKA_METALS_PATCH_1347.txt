@@ -1,0 +1,62 @@
+Patch No*          		:  EKA_METALS_PATCH_1347
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  11-Feb-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  74261
+==================================================================
+Branch (DEV / REL)*		:  
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 116233
+Author: rajuga
+Date: 11:17:23 AM, Monday, February 11, 2013
+Message:
+Bug: 74261 - Issue:2
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_103_RFC_RPC.sql
+
+Revision: 116183
+Author: rajuga
+Date: 6:42:42 PM, Friday, February 08, 2013
+Message:
+Done changes as part of Bug: 74261
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport_Excel.rpt
+
+Revision: 116174
+Author: rajuga
+Date: 6:19:41 PM, Friday, February 08, 2013
+Message:
+Bug 74261 - Not able to generate monthly customs report in excel format
+(Changed CR table to ISR. Also done proper formatting.)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyCustomsReport_Excel.rpt
+
+==================================================================
