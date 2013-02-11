@@ -1,4 +1,4 @@
-/* Formatted on 2013/01/15 15:57 (Formatter Plus v4.8.8) */
+/* Formatted on 2013/02/11 16:33 (Formatter Plus v4.8.8) */
 DROP TRIGGER trg_insert_spql;
 
 CREATE OR REPLACE TRIGGER "TRG_INSERT_SPQL"
@@ -89,8 +89,8 @@ BEGIN
                                                                              0
                                         THEN (SELECT DISTINCT ash.ash_id
                                                          FROM ash_assay_header ash
-                                                        WHERE ash.internal_grd_ref_no =
-                                                                 :NEW.internal_grd_ref_no
+                                                        WHERE ash.ash_id =
+                                                                 :NEW.assay_header_id
                                                           AND ash.assay_type =
                                                                  'Shipment Assay')
                                      ELSE (SELECT ash.ash_id
@@ -118,8 +118,8 @@ BEGIN
                                                                              0
                                         THEN (SELECT DISTINCT ash.ash_id
                                                          FROM ash_assay_header ash
-                                                        WHERE ash.internal_grd_ref_no =
-                                                                 :NEW.internal_grd_ref_no
+                                                        WHERE ash.ash_id =
+                                                                 :NEW.ext_assay_header_id
                                                           AND ash.assay_type =
                                                                  'Shipment Assay')
                                      ELSE (SELECT ash.ash_id
@@ -247,8 +247,8 @@ BEGIN
                                                                              0
                                         THEN (SELECT DISTINCT ash.ash_id
                                                          FROM ash_assay_header ash
-                                                        WHERE ash.internal_grd_ref_no =
-                                                                 :NEW.internal_grd_ref_no
+                                                        WHERE ash.ash_id =
+                                                                 :NEW.assay_header_id
                                                           AND ash.assay_type =
                                                                  'Shipment Assay')
                                      ELSE (SELECT ash.ash_id
@@ -276,8 +276,8 @@ BEGIN
                                                                              0
                                         THEN (SELECT DISTINCT ash.ash_id
                                                          FROM ash_assay_header ash
-                                                        WHERE ash.internal_grd_ref_no =
-                                                                 :NEW.internal_grd_ref_no
+                                                        WHERE ash.ash_id =
+                                                                 :NEW.ext_assay_header_id
                                                           AND ash.assay_type =
                                                                  'Shipment Assay')
                                      ELSE (SELECT ash.ash_id
@@ -371,8 +371,8 @@ BEGIN
                                                                              0
                                      THEN (SELECT DISTINCT ash.ash_id
                                                       FROM ash_assay_header ash
-                                                     WHERE ash.internal_grd_ref_no =
-                                                              :NEW.internal_grd_ref_no
+                                                     WHERE ash.ash_id =
+                                                              :NEW.assay_header_id
                                                        AND ash.assay_type =
                                                               'Shipment Assay')
                                   ELSE (SELECT ash.ash_id
@@ -400,8 +400,8 @@ BEGIN
                                                                              0
                                      THEN (SELECT DISTINCT ash.ash_id
                                                       FROM ash_assay_header ash
-                                                     WHERE ash.internal_grd_ref_no =
-                                                              :NEW.internal_grd_ref_no
+                                                     WHERE ash.ash_id =
+                                                              :NEW.ext_assay_header_id
                                                        AND ash.assay_type =
                                                               'Shipment Assay')
                                   ELSE (SELECT ash.ash_id
@@ -489,8 +489,8 @@ BEGIN
                                                                              0
                                   THEN (SELECT DISTINCT ash.ash_id
                                                    FROM ash_assay_header ash
-                                                  WHERE ash.internal_grd_ref_no =
-                                                           :NEW.internal_grd_ref_no
+                                                  WHERE ash.ash_id =
+                                                           :NEW.assay_header_id
                                                     AND ash.assay_type =
                                                               'Shipment Assay')
                                ELSE (SELECT ash.ash_id
@@ -518,8 +518,8 @@ BEGIN
                                                                              0
                                   THEN (SELECT DISTINCT ash.ash_id
                                                    FROM ash_assay_header ash
-                                                  WHERE ash.internal_grd_ref_no =
-                                                           :NEW.internal_grd_ref_no
+                                                  WHERE ash.ash_id =
+                                                           :NEW.ext_assay_header_id
                                                     AND ash.assay_type =
                                                               'Shipment Assay')
                                ELSE (SELECT ash.ash_id
