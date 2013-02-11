@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1347
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  11-Feb-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 116313
+Author: anupkumar.agarwal
+Date: 4:41:12 PM, Monday, February 11, 2013
+Message:
+iSSUE fOR sALES sIDE aSSAY iD wAS nOT pOPOULATING 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_SPQL.sql
+
+
+
+==================================================================
