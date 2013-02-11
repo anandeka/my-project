@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1345
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  11-Feb-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  74466
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 116215
+Author: janna
+Date: 7:31:07 AM, Monday, February 11, 2013
+Message:
+ISR Update for Corporate Name and Loading Country Currency ID and Code
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/114_DDL_EODDB_ALTER_SCRIPT.sql
+
+
+
+Revision: 116207
+Author: janna
+Date: 8:42:13 PM, Sunday, February 10, 2013
+Message:
+Intrastat and custom report, corporate name populated
+GMR Loading country and Discharge country curreny population fixed. Joined Country code from Cisty Master, Instead of looking from state. Issue CIM had data with no State ID
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
