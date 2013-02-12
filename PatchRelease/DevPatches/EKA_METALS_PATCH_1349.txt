@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1349
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chatrvedi
+ 
+Created on*        		:  12-Feb-2012
+
+Bug / Enhancement*      :  Bug
+
+Bug ID*            		:  74471
+==================================================================
+Branch (DEV / REL)*		:  
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice 
+
+Sub-Module  		 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 116527
+Author: mayank.chaturvedi
+Date: 6:25:41 PM, Tuesday, February 12, 2013
+Message:
+-Issue For Bug id :- 74471 PFI O/P Doc issue.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_494.sql
+
+==================================================================
