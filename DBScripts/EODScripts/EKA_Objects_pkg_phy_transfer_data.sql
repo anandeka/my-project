@@ -1386,6 +1386,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        element_id,
        is_free_metal_applicable,
        valuation_price_percentage,
+       is_balance_pricing,
        dbd_id)
       select ul.pcbphul_id,
              ul.internal_action_ref_no,
@@ -1399,6 +1400,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.element_id,
              ul. is_free_metal_applicable,
              ul.valuation_price_percentage,
+             is_balance_pricing,
              pc_dbd_id
         from pcbphul_pc_base_prc_header_ul@eka_appdb ul,
              axs_action_summary@eka_appdb            axs

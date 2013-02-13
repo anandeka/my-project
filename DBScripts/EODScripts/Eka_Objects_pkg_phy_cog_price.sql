@@ -2545,7 +2545,12 @@ create or replace package body pkg_phy_cog_price is
              pofh.pofh_id,
              pcbpd.element_id,
              pcbpd.pcbpd_id,
-             pcbpd.qty_to_be_priced,
+             case
+               when pcbph.is_balance_pricing = 'Y' then
+                100
+               else
+                pcbpd.qty_to_be_priced
+             end qty_to_be_priced,
              pcbpd.price_basis,
              pdm.product_id,
              pdm.base_quantity_unit base_qty_unit_id,

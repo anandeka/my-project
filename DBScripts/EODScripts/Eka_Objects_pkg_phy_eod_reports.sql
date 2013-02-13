@@ -3379,7 +3379,8 @@ vn_log_counter := vn_log_counter + 1;
                     gmr.warehouse_name companyname
                from gmr_goods_movement_record gmr
               where gmr.is_deleted = 'N'
-                and gmr.process_id = pc_process_id)
+                and gmr.process_id = pc_process_id
+                and gmr.warehouse_profile_id is not null)
   loop
     -- This update is for Non Pledge GMR
     update pa_purchase_accural_gmr pa
@@ -10888,7 +10889,6 @@ begin
       when no_data_found then
         vc_previous_year_eom_id := null;
     end;
-    
 --
 -- Flag Updation for Feed Consumption Report     
 -- 
@@ -18504,7 +18504,7 @@ select *
                 and ash.ash_id = asm.ash_id
                 and spq.dbd_id = pc_dbd_id
                 and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-                and spq.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+                and spq.internal_dgrd_ref_no = dgrd.internal_gmr_ref_no
                 and spq.element_id = aml.attribute_id
                 and ash.ash_id = spq.weg_avg_pricing_assay_id
                 and asm.asm_id = pqca.asm_id
