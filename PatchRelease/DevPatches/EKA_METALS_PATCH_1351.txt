@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1351
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Mayank Chatrvedi
+ 
+Created on*        		:  13-Feb-2012
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice 
+
+Sub-Module  		 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		     :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 116641
+Author: mayank.chaturvedi
+Date: 5:20:08 PM, Wednesday, February 13, 2013
+Message:
+-Adding Description in Invoice Other Charge Section For Invoice output charge.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_495.sql
+
+==================================================================
