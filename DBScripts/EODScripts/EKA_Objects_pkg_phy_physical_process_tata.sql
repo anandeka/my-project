@@ -4040,6 +4040,7 @@ create or replace package body pkg_phy_physical_process is
     commit;
     delete from cmp_contract_market_price where process_id = pc_process_id;
     delete from gmp_gmr_market_price where process_id = pc_process_id;
+    delete from bdp_bi_dertivative_pnl where process_id = pc_process_id;    
     commit;
     delete from page_price_alloc_gmr_exchange
      where process_id = pc_process_id;

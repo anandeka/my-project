@@ -75,6 +75,17 @@ create or replace package pkg_phy_custom_reports is
                                       pc_process_id   varchar2,
                                       pc_user_id      varchar2);
 
+  procedure sp_unrealized_pnl_bkfx_rate(pc_corporate_id    varchar2,
+                                        pd_trade_date      date,
+                                        pc_process         varchar2,
+                                        pc_process_id      varchar2,
+                                        pc_user_id         varchar2,
+                                        pc_prev_process_id varchar2);
+  procedure sp_cdc_bank_fx_rate(pc_corporate_id     in varchar2,
+                                pd_trade_date       in date,
+                                pc_from_cur_id      in varchar2,
+                                pc_to_cur_id        in varchar2,
+                                pc_settlement_price out number);
 end; 
 /
 create or replace package body pkg_phy_custom_reports is
@@ -239,6 +250,20 @@ create or replace package body pkg_phy_custom_reports is
                               pc_process_id,
                               pc_user_id);
     commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_insert_pnl');
+  
+    sp_unrealized_pnl_bkfx_rate(pc_corporate_id,
+                                pd_trade_date,
+                                pc_process,
+                                pc_process_id,
+                                pc_user_id,
+                                pc_prev_process_id);
+  
     ----Note:  keep sp_update_strategy_attributes update procedue at end of custom reports call
     sp_update_strategy_attributes(pc_corporate_id,
                                   pd_trade_date,
@@ -6915,6 +6940,16 @@ create or replace package body pkg_phy_custom_reports is
          and eod.process_id = pc_process_id
          and eod.strategy_id = stg_rwo.startegy_id;
       commit;
+       update bdp_bi_dertivative_pnl bdp
+         set bdp.attribute_1 = stg_rwo.attribute_value_1,
+             bdp.attribute_2 = stg_rwo.attribute_value_2,
+             bdp.attribute_3 = stg_rwo.attribute_value_3,
+             bdp.attribute_4 = stg_rwo.attribute_value_4,
+             bdp.attribute_5 = stg_rwo.attribute_value_5
+       where bdp.corporate_id = pc_corporate_id
+         and bdp.process_id = pc_process_id
+         and bdp.strategy_id = stg_rwo.startegy_id;
+      commit;      
     end loop;
     commit;
   exception
@@ -7843,6 +7878,7 @@ create or replace package body pkg_phy_custom_reports is
                           pc_process_id,
                           vn_logno,
                           'TPR - insert temp_tpr for option (buy call) trades started');
+ -- as per the latests FS  Chnaged options logic                         
     insert into temp_tpr
       (corporate_id,
        section_name,
@@ -7870,8 +7906,12 @@ create or replace package body pkg_phy_custom_reports is
              dpd.profit_center_name,
              trunc(dpd.option_expiry_date, 'Mon') delivery_date,
              to_char(dpd.option_expiry_date, 'Mon-YYYY') delivery_month,
+            (case when dpd.in_out_at_money_status='Out of the Money' then
+             0
+             else
              sum(dpd.open_quantity * ucm.multiplication_factor *
-                 dpd.qty_sign) qty,
+                 dpd.qty_sign)
+             end) qty,
              dpd.base_qty_unit_id,
              dpd.base_qty_unit,
              null strategy_id,
@@ -7883,11 +7923,10 @@ create or replace package body pkg_phy_custom_reports is
          and ucm.from_qty_unit_id = dpd.quantity_unit_id
          and ucm.to_qty_unit_id = dpd.base_qty_unit_id
          and dpd.corporate_id = pc_corporate_id
-         and dpd.instrument_type in ('Option Call', 'OTC Call Option')
+         and dpd.instrument_type in ('Option Call', 'OTC Call Option','Option Put', 'OTC Put Option')
          and dpd.pnl_type = 'Unrealized'
-         and dpd.trade_type = 'Buy'
          and nvl(dpd.in_out_at_money_status, 'NA') in
-             ('At the Money', 'In the Money')
+             ('At the Money', 'In the Money','Out of the Money')
          and dpd.option_expiry_date > pd_trade_date
          and dpd.option_expiry_date is not null
        group by dpd.corporate_id,
@@ -7899,203 +7938,10 @@ create or replace package body pkg_phy_custom_reports is
                 trunc(dpd.option_expiry_date, 'Mon'),
                 to_char(dpd.option_expiry_date, 'Mon-YYYY'),
                 dpd.base_qty_unit_id,
-                dpd.base_qty_unit;
-    commit;
-    vn_logno := vn_logno + 1;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_logno,
-                          'TPR - insert temp_tpr for option (Sell Put) trades started');
-    insert into temp_tpr
-      (corporate_id,
-       section_name,
-       section_id,
-       product_id,
-       product_desc,
-       profit_center_id,
-       profit_center_short_name,
-       profit_center_name,
-       delivery_date,
-       delivery_month_display,
-       quantity,
-       quantity_unit_id,
-       quantity_unit,
-       strategy_id,
-       strategy_name,
-       approval_status)
-      select dpd.corporate_id,
-             'Options' section_name,
-             '15' section_id,
-             dpd.derivative_prodct_id,
-             dpd.derivative_prodct_name,
-             dpd.profit_center_id,
-             dpd.profit_center_short_name,
-             dpd.profit_center_name,
-             trunc(dpd.option_expiry_date, 'Mon') delivery_date,
-             to_char(dpd.option_expiry_date, 'Mon-YYYY') delivery_month,
-             sum(dpd.open_quantity * ucm.multiplication_factor *
-                 dpd.qty_sign) qty,
-             dpd.base_qty_unit_id,
-             dpd.base_qty_unit,
-             null strategy_id,
-             'Options' strategy_name,
-             'Approved' approval_status
-        from dpd_derivative_pnl_daily   dpd,
-             ucm_unit_conversion_master ucm
-       where dpd.process_id = pc_process_id
-         and ucm.from_qty_unit_id = dpd.quantity_unit_id
-         and ucm.to_qty_unit_id = dpd.base_qty_unit_id
-         and dpd.corporate_id = pc_corporate_id
-         and dpd.instrument_type in ('Option Put', 'OTC Put Option')
-         and dpd.pnl_type = 'Unrealized'
-         and dpd.trade_type = 'Sell'
-         and nvl(dpd.in_out_at_money_status, 'NA') in
-             ('At the Money', 'In the Money')
-         and dpd.option_expiry_date > pd_trade_date
-         and dpd.option_expiry_date is not null
-       group by dpd.corporate_id,
-                dpd.derivative_prodct_id,
-                dpd.derivative_prodct_name,
-                dpd.profit_center_id,
-                dpd.profit_center_short_name,
-                dpd.profit_center_name,
-                trunc(dpd.option_expiry_date, 'Mon'),
-                to_char(dpd.option_expiry_date, 'Mon-YYYY'),
-                dpd.base_qty_unit_id,
-                dpd.base_qty_unit;
-    commit;
-    vn_logno := vn_logno + 1;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_logno,
-                          'TPR - insert temp_tpr for option (Sell Call) trades started');
-    insert into temp_tpr
-      (corporate_id,
-       section_name,
-       section_id,
-       product_id,
-       product_desc,
-       profit_center_id,
-       profit_center_short_name,
-       profit_center_name,
-       delivery_date,
-       delivery_month_display,
-       quantity,
-       quantity_unit_id,
-       quantity_unit,
-       strategy_id,
-       strategy_name,
-       approval_status)
-      select dpd.corporate_id,
-             'Options' section_name,
-             '15' section_id,
-             dpd.derivative_prodct_id,
-             dpd.derivative_prodct_name,
-             dpd.profit_center_id,
-             dpd.profit_center_short_name,
-             dpd.profit_center_name,
-             trunc(dpd.option_expiry_date, 'Mon') delivery_date,
-             to_char(dpd.option_expiry_date, 'Mon-YYYY') delivery_month,
-             sum(dpd.open_quantity * ucm.multiplication_factor *
-                 dpd.qty_sign) qty,
-             dpd.base_qty_unit_id,
-             dpd.base_qty_unit,
-             null strategy_id,
-             'Options' strategy_name,
-             'Approved' approval_status
-        from dpd_derivative_pnl_daily   dpd,
-             ucm_unit_conversion_master ucm
-       where dpd.process_id = pc_process_id
-         and ucm.from_qty_unit_id = dpd.quantity_unit_id
-         and ucm.to_qty_unit_id = dpd.base_qty_unit_id
-         and dpd.corporate_id = pc_corporate_id
-         and dpd.instrument_type in ('Option Call', 'OTC Call Option')
-         and dpd.pnl_type = 'Unrealized'
-         and dpd.trade_type = 'Sell'
-         and nvl(dpd.in_out_at_money_status, 'NA') in ('Out of the Money')
-         and dpd.option_expiry_date > pd_trade_date
-         and dpd.option_expiry_date is not null
-       group by dpd.corporate_id,
-                dpd.derivative_prodct_id,
-                dpd.derivative_prodct_name,
-                dpd.profit_center_id,
-                dpd.profit_center_short_name,
-                dpd.profit_center_name,
-                trunc(dpd.option_expiry_date, 'Mon'),
-                to_char(dpd.option_expiry_date, 'Mon-YYYY'),
-                dpd.base_qty_unit_id,
-                dpd.base_qty_unit;
-    commit;
-    vn_logno := vn_logno + 1;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_logno,
-                          'TPR - insert temp_tpr for option (Buy Put) trades started');
-    insert into temp_tpr
-      (corporate_id,
-       section_name,
-       section_id,
-       product_id,
-       product_desc,
-       profit_center_id,
-       profit_center_short_name,
-       profit_center_name,
-       delivery_date,
-       delivery_month_display,
-       quantity,
-       quantity_unit_id,
-       quantity_unit,
-       strategy_id,
-       strategy_name,
-       approval_status)
-      select dpd.corporate_id,
-             'Options' section_name,
-             '15' section_id,
-             dpd.derivative_prodct_id,
-             dpd.derivative_prodct_name,
-             dpd.profit_center_id,
-             dpd.profit_center_short_name,
-             dpd.profit_center_name,
-             trunc(dpd.option_expiry_date, 'Mon') delivery_date,
-             to_char(dpd.option_expiry_date, 'Mon-YYYY') delivery_month,
-             sum(dpd.open_quantity * ucm.multiplication_factor *
-                 dpd.qty_sign) qty,
-             dpd.base_qty_unit_id,
-             dpd.base_qty_unit,
-             null strategy_id,
-             'Options' strategy_name,
-             'Approved' approval_status
-        from dpd_derivative_pnl_daily   dpd,
-             ucm_unit_conversion_master ucm
-       where dpd.process_id = pc_process_id
-         and ucm.from_qty_unit_id = dpd.quantity_unit_id
-         and ucm.to_qty_unit_id = dpd.base_qty_unit_id
-         and dpd.corporate_id = pc_corporate_id
-         and dpd.instrument_type in ('Option Put', 'OTC Put Option')
-         and dpd.pnl_type = 'Unrealized'
-         and dpd.trade_type = 'Buy'
-         and nvl(dpd.in_out_at_money_status, 'NA') in ('Out of the Money')
-         and dpd.option_expiry_date > pd_trade_date
-         and dpd.option_expiry_date is not null
-       group by dpd.corporate_id,
-                dpd.derivative_prodct_id,
-                dpd.derivative_prodct_name,
-                dpd.profit_center_id,
-                dpd.profit_center_short_name,
-                dpd.profit_center_name,
-                trunc(dpd.option_expiry_date, 'Mon'),
-                to_char(dpd.option_expiry_date, 'Mon-YYYY'),
-                dpd.base_qty_unit_id,
-                dpd.base_qty_unit;
-    vn_logno := vn_logno + 1;
-    sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_logno,
-                          'TPR - insert temp_tpr for option opening balance started');
+                dpd.base_qty_unit,
+                dpd.in_out_at_money_status;
+    commit;    
+    
     -- variable contracts                      
     insert into temp_tpr
       (corporate_id,
@@ -8991,5 +8837,714 @@ create or replace package body pkg_phy_custom_reports is
       sp_insert_error_log(vobj_error_log);
   end;
 
+  procedure sp_unrealized_pnl_bkfx_rate(pc_corporate_id    varchar2,
+                                        pd_trade_date      date,
+                                        pc_process         varchar2,
+                                        pc_process_id      varchar2,
+                                        pc_user_id         varchar2,
+                                        pc_prev_process_id varchar2) as
+    cursor cur_unrealized is
+      select dpd.process_id,
+             dpd.corporate_id,
+             dpd.corporate_name,
+             pdm.product_type_id product_type,
+             dpd.profit_center_id,
+             dpd.profit_center_short_name profit_center,
+             dpd.strategy_id,
+             dpd.strategy_name,
+             dpd.product_id,
+             dpd.product_name,
+             dpd.quality_id,
+             dpd.quality_name,
+             dpd.eod_trade_date eod_date,
+             tdc.process eod_eom_flag,
+             'Derivatives' position_type,
+             dpd.instrument_type || ' ' || (case
+               when dpd.trade_type = 'Buy' then
+                'Long'
+               else
+                'Short'
+             end) position_sub_type,
+             dpd.derivative_ref_no contract_ref_no,
+             dpd.external_ref_no,
+             dpd.trade_date issue_trade_date,
+             nvl(dpd.clearer_profile_id, dpd.cp_profile_id) cp_id,
+             nvl(dpd.clearer_name, dpd.cp_name) cp_name,
+             dpd.payment_term,
+             dpd.purpose_name derivative_purpose,
+             (case
+               when dpd.instrument_type = 'Option Call' then
+                'Call'
+               when dpd.instrument_type = 'Option Put' then
+                'Put'
+               else
+                ''
+             end) option_type,
+             dpd.strike_price strike_price,
+             dpd.strike_price_cur_code || '/' || dpd.strike_price_weight ||
+             dpd.strike_price_weight_unit strike_price_unit,
+             'NA' allocated_phy_refno,
+             dpd.group_cur_code,
+             cm_corp.cur_code corporate_base_currency,
+             dpd.qty_sign * dpd.open_quantity contract_quantity,
+             dpd.quantity_unit contract_quantity_uom,
+             dpd.qty_sign * dpd.trade_qty_in_exch_unit quantity_in_base_uom,
+             dpd.open_lots quantity_in_lots,
+             dpd.trade_price contract_price,
+             dpd.trade_price_cur_code || '/' || dpd.trade_price_weight ||
+             dpd.trade_price_weight_unit trade_price_unit,
+             dpd.instrument_id valuation_instrument_id, 
+             dpd.instrument_name valuation_instrument,
+             dpd.derivative_def_id,
+             dpd.derivative_def_name,
+             to_char(nvl(dpd.period_date, dpd.prompt_date), 'Mon-yyyy') valuation_month,
+             nvl(dpd.period_date, dpd.prompt_date) value_date,
+             dpd.settlement_price m2m_settlement_price,
+             dpd.settlement_price net_settlement_price,
+             dpd.sett_price_cur_code || '/' || dpd.sett_price_weight ||
+             dpd.sett_price_weight_unit settlement_price_unit,
+             dpd.market_value_in_trade_cur market_value_in_val_ccy, 
+             dpd.trade_main_cur_id market_value_cur_id,
+             dpd.trade_main_cur_code market_value_cur_code,
+             null prev_day_unr_pnl_in_base_cur,
+             null unrealized_pnl_in_base_cur,
+             null pnl_change_in_base_currency,
+             dpd.base_cur_id,
+             dpd.base_cur_code,
+             dpd.base_qty_unit base_quantity_uom,
+             dpd.average_from_date average_period_from,
+             dpd.average_to_date average_period_to,
+             dpd.premium_discount premium,
+             (case
+               when dpd.pd_price_cur_code is not null then
+                dpd.pd_price_cur_code || '/' || dpd.pd_price_weight ||
+                dpd.pd_price_weight_unit
+               else
+                'NA'
+             end) premium_price_unit,
+             dpd.clearer_comm_amt commision_value,
+             dpd.clearer_comm_cur_code commission_value_currency,
+             dpd.expiry_date,
+             dpd.prompt_date,
+             dpd.dr_id_name prompt_details,
+             to_char((case
+                       when dpd.period_date is null then
+                        (case
+                       when dpd.period_month is not null and
+                            dpd.period_year is not null then
+                        to_date('01-' || dpd.period_month || '-' || dpd.period_year,
+                                'dd-Mon-yyyy')
+                       else
+                        dpd.prompt_date
+                     end) else dpd.period_date end), 'Mon-YYYY') prompt_month_year,
+             to_char((case
+                       when dpd.period_date is null then
+                        (case
+                       when dpd.period_month is not null and
+                            dpd.period_year is not null then
+                        to_date('01-' || dpd.period_month || '-' || dpd.period_year,
+                                'dd-Mon-yyyy')
+                       else
+                        dpd.prompt_date
+                     end) else dpd.period_date end), 'YYYY') prompt_year,
+             null attribute_value_1,
+             null attribute_value_2,
+             null attribute_value_3,
+             null attribute_value_4,
+             null attribute_value_5,
+             dpd.fixed_avg_price,
+             dpd.unfixed_avg_price,
+             dpd.clearer_comm_in_base,
+             dpd.clearer_exch_rate clearer_cur_to_base,
+             dpd.trade_value_in_base,
+             dpd.market_value_in_base,
+             dpd.trade_type,
+             dpd.instrument_type,
+             dpd.instrument_sub_type,
+             dpd.pnl_in_trade_cur,
+             dpd.trade_cur_id,
+             dpd.trade_cur_code,
+             dpd.trade_cur_to_base_exch_rate,
+             dpd.sett_price_weight,
+             dpd.sett_price_cur_id,
+             dpd.pd_price_cur_id,
+             dpd.pd_price_weight_unit_id,
+             dpd.sett_price_weight_unit_id,
+             dpd.quantity_unit_id,
+             dpd.clearer_comm_cur_id,
+             dpd.clearer_comm_amt,
+             dpd.qty_sign      
+        from dpd_derivative_pnl_daily dpd,
+             tdc_trade_date_closure   tdc,
+             pdm_productmaster        pdm,
+             ak_corporate             akc,
+             cm_currency_master       cm_corp
+       where dpd.pnl_type = 'Unrealized'
+         and dpd.process_id = tdc.process_id
+         and dpd.corporate_id = tdc.corporate_id
+         and dpd.derivative_prodct_id = pdm.product_id
+         and dpd.corporate_id = akc.corporate_id
+         and cm_corp.cur_id = akc.base_cur_id
+         and dpd.process_id = pc_process_id
+      union all
+      select cpd.process_id,
+             cpd.corporate_id,
+             cpd.corporate_name,
+             pdm.product_type_id product_type,
+             cpd.profit_center_id,
+             cpd.profit_center_short_name profit_center,
+             cpd.strategy_id,
+             cpd.strategy_name,
+             'NA' product_id,
+             'NA' product_name,
+             'NA' quality_id,
+             'NA' quality_name,
+             cpd.eod_trade_date eod_date,
+             tdc.process eod_eom_flag,
+             'Fx' position_type,
+             'Fx  ' || cpd.home_cur_buy_sell position_sub_type,
+             cpd.ct_ref_no contract_ref_no,
+             ct.external_ref_no external_ref_no,
+             cpd.trade_date issue_trade_date,
+             'NA' cp_id,
+             'NA' cp_name,
+             pym.payment_term,
+             dpm.purpose_name derivative_purpose,
+             'NA' option_type,
+             0 strike_price,
+             'NA' strike_price_unit,
+             'NA' allocated_phy_refno,
+             cm_group_cur.cur_code,
+             cm_corp.cur_code corporate_base_currency,
+             (case
+               when cpd.home_cur_buy_sell = 'Sell' then
+                -1
+               else
+                1
+             end) * cpd.fx_currency_amount contract_quantity,
+             cpd.fx_currency contract_quantity_uom,
+             (case
+               when cpd.home_cur_buy_sell = 'Sell' then
+                -1
+               else
+                1
+             end) * cpd.home_currency_amount quantity_in_base_uom,
+             0 quantity_in_lots,
+             cpd.original_exchange_rate contract_price,
+             cpd.fx_currency || ' to ' || cpd.home_currency trade_price_unit,
+             cpd.instrument_id valuation_instrument_id,
+             cpd.instrument_name valuation_instrument,
+             cpd.currency_def_id derivative_def_id,
+             cpd.derivative_name derivative_def_name,
+             'NA' valuation_month,
+             cpd.prompt_date value_date,
+             cpd.market_exchange_rate m2m_settlement_price,
+             cpd.market_exchange_rate net_settlement_price,
+             cpd.fx_currency || ' to ' || cpd.home_currency settlement_price_unit,
+             null market_value_in_val_ccy,
+             cpd.home_cur_id market_value_cur_id,
+             cpd.home_currency market_value_cur_code,
+             null prev_day_unr_pnl_in_base_cur,
+             cpd.pnl_value_in_home_currency unrealized_pnl_in_base_cur,
+             null pnl_change_in_base_currency,
+             cpd.home_cur_id base_cur_id,
+             cpd.home_currency base_cur_code,
+             cpd.home_currency base_quantity_uom,
+             null average_period_from,
+             null average_period_to,
+             null premium,
+             'NA' premium_price_unit,
+             null commision_value,
+             'NA' commission_value_currency,
+             null expiry_date,
+             cpd.prompt_date,
+             null prompt_details,
+             to_char(cpd.prompt_date, 'Mon-YYYY') prompt_month_year,
+             to_char(cpd.prompt_date, 'YYYY') prompt_year,
+             null attribute_value_1,
+             null attribute_value_2,
+             null attribute_value_3,
+             null attribute_value_4,
+             null attribute_value_5,
+             0 fixed_avg_price,
+             0 unfixed_avg_price,
+             0 clearer_comm_in_base,
+             0 clearer_cur_to_base,
+             0 trade_value_in_base,
+             0 market_value_in_base,
+             'NA' trade_type,
+             'Forward' instrument_type,
+             'NA' instrument_sub_type,
+             null pnl_in_trade_cur,
+             null trade_cur_id,
+             null trade_cur_code,
+             null trade_cur_to_base_exch_rate,
+             null sett_price_weight,
+             null sett_price_cur_id,
+             null pd_price_cur_id,
+             null pd_price_weight_unit_id,
+             null sett_price_weight_unit_id,
+             null quantity_unit_id,
+             null clearer_comm_cur_id,
+             null clearer_comm_amt,
+             null qty_sign 
+      
+        from cpd_currency_pnl_daily        cpd,
+             tdc_trade_date_closure        tdc,
+             ct_currency_trade             ct,
+             pym_payment_terms_master      pym,
+             dpm_derivative_purpose_master dpm,
+             ak_corporate                  ak,
+             gcd_groupcorporatedetails     gcd_group_id,
+             cm_currency_master            cm_group_cur,
+             cm_currency_master            cm_corp,
+             pdm_productmaster             pdm
+       where upper(cpd.pnl_type) = 'UNREALIZED'
+         and cpd.process_id = tdc.process_id
+         and cpd.corporate_id = tdc.corporate_id
+         and ct.internal_treasury_ref_no = cpd.ct_internal_ref_no
+         and ct.process_id = cpd.process_id
+         and pym.payment_term_id(+) = ct.payment_terms_id
+         and dpm.purpose_id = ct.purpose_id
+         and cpd.corporate_id = ak.corporate_id
+         and ak.corporate_id = tdc.corporate_id
+         and gcd_group_id.groupid = ak.groupid
+         and cm_group_cur.cur_id = gcd_group_id.group_cur_id
+         and ak.base_cur_id = cm_corp.cur_id
+         and cpd.product_name = pdm.product_desc
+         and cpd.process_id = pc_process_id
+         and ct.process_id = pc_process_id;
+  
+    vn_trade_to_base_bank_fxrate   number;
+    vn_pnl_base_cur_cp_fxrate      number;
+    vn_market_price_in_trade_cur   number;
+    vn_qty_in_trade_wt_unit        number;
+    vc_trade_main_cur_id           varchar2(15);
+    vc_trade_main_cur_code         varchar2(15);
+    vn_trade_sub_cur_id_factor     number;
+    vn_trade_cur_decimals          number;
+    vn_total_trade_value_trade_cur number;
+    vn_pnl_value_in_trade_cur      number;
+    vn_total_market_val_trade_cur  number;
+    vn_clearer_to_base_bank_fxrate number;
+    vn_clearer_to_base             number;
+    
+  begin
+    for cur_unrealized_rows in cur_unrealized
+    loop
+      -- calucalting pnl in trade cur only for options else take pnl_in_trade_cur from DPD Table
+      if cur_unrealized_rows.instrument_type in
+         ('Option Put', 'Option Call', 'OTC Put Option', 'OTC Call Option') then
+        vn_qty_in_trade_wt_unit := pkg_general.f_get_converted_quantity(null, --product id
+                                                                        cur_unrealized_rows.quantity_unit_id,
+                                                                        cur_unrealized_rows.pd_price_weight_unit_id,
+                                                                        cur_unrealized_rows.contract_quantity);
+      
+        pkg_general.sp_get_main_cur_detail(cur_unrealized_rows.pd_price_cur_id,
+                                           vc_trade_main_cur_id,
+                                           vc_trade_main_cur_code,
+                                           vn_trade_sub_cur_id_factor,
+                                           vn_trade_cur_decimals);
+      
+        vn_total_trade_value_trade_cur := vn_qty_in_trade_wt_unit *
+                                          cur_unrealized_rows.premium *
+                                          vn_trade_sub_cur_id_factor;
+      
+        vn_market_price_in_trade_cur  := ((cur_unrealized_rows.m2m_settlement_price /
+                                         nvl(cur_unrealized_rows.sett_price_weight,
+                                               1)) *
+                                         pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                                   cur_unrealized_rows.sett_price_cur_id,
+                                                                                   cur_unrealized_rows.pd_price_cur_id,
+                                                                                   pd_trade_date,
+                                                                                   1)) /
+                                         (pkg_general.f_get_converted_quantity(cur_unrealized_rows.product_id,
+                                                                               cur_unrealized_rows.sett_price_weight_unit_id,
+                                                                               cur_unrealized_rows.pd_price_weight_unit_id,
+                                                                               1));
+        vn_total_market_val_trade_cur := vn_market_price_in_trade_cur *
+                                         vn_qty_in_trade_wt_unit *
+                                         vn_trade_sub_cur_id_factor;
+                                         
+                                         
+         vn_pnl_value_in_trade_cur :=(vn_total_market_val_trade_cur -
+                                       vn_total_trade_value_trade_cur)* cur_unrealized_rows.qty_sign ;
+        
+      
+      else
+        vn_pnl_value_in_trade_cur := cur_unrealized_rows.pnl_in_trade_cur;
+      end if;
+    
+      ----- pnl in base with bank fx rate
+      sp_cdc_bank_fx_rate(cur_unrealized_rows.corporate_id,
+                          pd_trade_date,
+                          cur_unrealized_rows.trade_cur_id,
+                          cur_unrealized_rows.base_cur_id,
+                          vn_trade_to_base_bank_fxrate);
+                          
+      if cur_unrealized_rows.position_type = 'Derivatives' then
+        vn_pnl_base_cur_cp_fxrate := vn_pnl_value_in_trade_cur *
+                                     vn_trade_to_base_bank_fxrate;
+      else
+      -- currency Trades  as same in CPD table taken
+        vn_pnl_base_cur_cp_fxrate := cur_unrealized_rows.unrealized_pnl_in_base_cur;
+      end if;
+      
+      -- clearer come to base with bank fx rate
+      sp_cdc_bank_fx_rate(cur_unrealized_rows.corporate_id,
+                          pd_trade_date,
+                          cur_unrealized_rows.clearer_comm_cur_id,
+                          cur_unrealized_rows.base_cur_id,
+                          vn_clearer_to_base_bank_fxrate);
+      if cur_unrealized_rows.position_type = 'Derivatives' then
+      vn_clearer_to_base:= cur_unrealized_rows.clearer_comm_amt*vn_clearer_to_base_bank_fxrate;
+      else
+      vn_clearer_to_base:=0;  
+      end if;                       
+    
+      insert into bdp_bi_dertivative_pnl
+        (process_id,
+         corporate_id,
+         corporate_name,
+         product_type,
+         profit_center_id,
+         profit_center,
+         strategy_id,
+         strategy_name,
+         product_id,
+         product_name,
+         quality_id,
+         quality_name,
+         eod_date,
+         eod_eom_flag,
+         position_type,
+         position_sub_type,
+         contract_ref_no,
+         external_ref_no,
+         issue_trade_date,
+         cp_id,
+         cp_name,
+         payment_term,
+         derivative_purpose,
+         option_type,
+         strike_price,
+         strike_price_unit,
+         allocated_phy_refno,
+         group_cur_code,
+         corporate_base_currency,
+         contract_quantity,
+         contract_quantity_uom,
+         quantity_in_base_uom,
+         quantity_in_lots,
+         contract_price,
+         trade_price_unit,
+         valuation_instrument_id,
+         valuation_instrument,
+         derivative_def_id,
+         derivative_def_name,
+         valuation_month,
+         value_date,
+         m2m_settlement_price,
+         net_settlement_price,
+         settlement_price_unit,
+         market_value_in_val_ccy,
+         market_value_cur_id,
+         market_value_cur_code,
+         prev_day_unr_pnl_in_base_cur,
+         unrealized_pnl_in_base_cur,
+         pnl_change_in_base_currency,
+         base_cur_id,
+         base_cur_code,
+         base_quantity_uom,
+         average_period_from,
+         average_period_to,
+         premium,
+         premium_price_unit,
+         commision_value,---
+         commission_value_currency,---
+         expiry_date,
+         prompt_date,
+         prompt_details,
+         prompt_month_year,
+         prompt_year,
+         attribute_1,
+         attribute_2,
+         attribute_3,
+         attribute_4,
+         attribute_5,
+         fixed_avg_price,
+         unfixed_avg_price,
+         clearer_comm_in_base,
+         clearer_cur_to_base,
+         trade_value_in_base,
+         market_value_in_base,
+         trade_type,
+         instrument_type,
+         instrument_sub_type,
+         pnl_in_trade_cur,
+         pnl_in_trade_cur_id,
+         pnl_in_trade_cur_code,
+         trade_cur_to_base_exch_rate,
+         trade_cur_to_base_bank_fx_rate,
+         clearer_cur_to_base_bk_fx_rate,
+         trade_clearer_comm_amt)
+      values
+        (cur_unrealized_rows.process_id,
+         cur_unrealized_rows.corporate_id,
+         cur_unrealized_rows.corporate_name,
+         cur_unrealized_rows.product_type,
+         cur_unrealized_rows.profit_center_id,
+         cur_unrealized_rows.profit_center,
+         cur_unrealized_rows.strategy_id,
+         cur_unrealized_rows.strategy_name,
+         cur_unrealized_rows.product_id,
+         cur_unrealized_rows.product_name,
+         cur_unrealized_rows.quality_id,
+         cur_unrealized_rows.quality_name,
+         cur_unrealized_rows.eod_date,
+         cur_unrealized_rows.eod_eom_flag,
+         cur_unrealized_rows.position_type,
+         cur_unrealized_rows.position_sub_type,
+         cur_unrealized_rows.contract_ref_no,
+         cur_unrealized_rows.external_ref_no,
+         cur_unrealized_rows.issue_trade_date,
+         cur_unrealized_rows.cp_id,
+         cur_unrealized_rows.cp_name,
+         cur_unrealized_rows.payment_term,
+         cur_unrealized_rows.derivative_purpose,
+         cur_unrealized_rows.option_type,
+         cur_unrealized_rows.strike_price,
+         cur_unrealized_rows.strike_price_unit,
+         cur_unrealized_rows.allocated_phy_refno,
+         cur_unrealized_rows.group_cur_code,
+         cur_unrealized_rows.corporate_base_currency,
+         cur_unrealized_rows.contract_quantity,
+         cur_unrealized_rows.contract_quantity_uom,
+         cur_unrealized_rows.quantity_in_base_uom,
+         cur_unrealized_rows.quantity_in_lots,
+         cur_unrealized_rows.contract_price,
+         cur_unrealized_rows.trade_price_unit,
+         cur_unrealized_rows.valuation_instrument_id,
+         cur_unrealized_rows.valuation_instrument,
+         cur_unrealized_rows.derivative_def_id,
+         cur_unrealized_rows.derivative_def_name,
+         cur_unrealized_rows.valuation_month,
+         cur_unrealized_rows.value_date,
+         cur_unrealized_rows.m2m_settlement_price,
+         cur_unrealized_rows.net_settlement_price,
+         cur_unrealized_rows.settlement_price_unit,
+         cur_unrealized_rows.market_value_in_val_ccy,
+         cur_unrealized_rows.market_value_cur_id,
+         cur_unrealized_rows.market_value_cur_code,
+         cur_unrealized_rows.prev_day_unr_pnl_in_base_cur,
+         vn_pnl_base_cur_cp_fxrate, ---
+         cur_unrealized_rows.pnl_change_in_base_currency,
+         cur_unrealized_rows.base_cur_id,
+         cur_unrealized_rows.base_cur_code,
+         cur_unrealized_rows.base_quantity_uom,
+         cur_unrealized_rows.average_period_from,
+         cur_unrealized_rows.average_period_to,
+         cur_unrealized_rows.premium,
+         cur_unrealized_rows.premium_price_unit,
+         vn_clearer_to_base,---
+         cur_unrealized_rows.commission_value_currency,--
+         cur_unrealized_rows.expiry_date,
+         cur_unrealized_rows.prompt_date,
+         cur_unrealized_rows.prompt_details,
+         cur_unrealized_rows.prompt_month_year,
+         cur_unrealized_rows.prompt_year,
+         cur_unrealized_rows.attribute_value_1,
+         cur_unrealized_rows.attribute_value_2,
+         cur_unrealized_rows.attribute_value_3,
+         cur_unrealized_rows.attribute_value_4,
+         cur_unrealized_rows.attribute_value_5,
+         cur_unrealized_rows.fixed_avg_price,
+         cur_unrealized_rows.unfixed_avg_price,
+         cur_unrealized_rows.clearer_comm_in_base,
+         cur_unrealized_rows.clearer_cur_to_base,
+         cur_unrealized_rows.trade_value_in_base,
+         cur_unrealized_rows.market_value_in_base,
+         cur_unrealized_rows.trade_type,
+         cur_unrealized_rows.instrument_type,
+         cur_unrealized_rows.instrument_sub_type,
+         vn_pnl_value_in_trade_cur,
+         cur_unrealized_rows.trade_cur_id,
+         cur_unrealized_rows.trade_cur_code,
+         cur_unrealized_rows.trade_cur_to_base_exch_rate,
+         vn_trade_to_base_bank_fxrate,
+         vn_clearer_to_base_bank_fxrate,
+         cur_unrealized_rows.clearer_comm_amt);
+    end loop;
+    commit;
+    -- update previous unrealized pnl base cur with Bank FX rate
+    begin
+      for cur_update in (select bdp_prev_day.contract_ref_no,
+                                bdp_prev_day.unrealized_pnl_in_base_cur
+                           from bdp_bi_dertivative_pnl bdp_prev_day
+                          where bdp_prev_day.process_id = pc_prev_process_id
+                            and corporate_id = pc_corporate_id)
+      loop
+        update bdp_bi_dertivative_pnl bdp_today
+           set bdp_today.prev_day_unr_pnl_in_base_cur = nvl(cur_update.unrealized_pnl_in_base_cur,
+                                                            0)
+         where bdp_today.contract_ref_no = cur_update.contract_ref_no
+           and bdp_today.process_id = pc_process_id;
+      end loop;
+    end;
+    commit;
+    -- update change in PNL with Bank Fx Rate
+    update bdp_bi_dertivative_pnl bdp
+       set bdp.pnl_change_in_base_currency = nvl(unrealized_pnl_in_base_cur,
+                                                 0) - nvl(prev_day_unr_pnl_in_base_cur,
+                                                          0)
+     where bdp.process_id = pc_process_id;
+    commit;
+  
+  end;
+  procedure sp_cdc_bank_fx_rate(pc_corporate_id     in varchar2,
+                                pd_trade_date       in date,
+                                pc_from_cur_id      in varchar2,
+                                pc_to_cur_id        in varchar2,
+                                pc_settlement_price out number) is
+  
+    vd_maturity_date date;
+  begin
+    if pc_from_cur_id = pc_to_cur_id then
+      pc_settlement_price := 1;
+    else
+      select max(cfq.trade_date)
+        into vd_maturity_date
+        from cfq_currency_forward_quotes    cfq,
+             cfqd_currency_fwd_quote_detail cfqd,
+             div_der_instrument_valuation   div,
+             dim_der_instrument_master      dim,
+             cci_corp_currency_instrument   cci,
+             pdd_product_derivative_def     pdd,
+             pdm_productmaster              pdm
+       where cfq.cfq_id = cfqd.cfq_id
+         and cfq.instrument_id = div.instrument_id
+         and cfq.price_source_id = div.price_source_id
+         and cfq.instrument_id = cci.instrument_id
+         and cfq.instrument_id = dim.instrument_id
+         and dim.product_derivative_id = pdd.derivative_def_id
+         and pdd.product_id = pdm.product_id
+         and pdm.base_cur_id = pc_from_cur_id
+         and pdm.quote_cur_id = pc_to_cur_id
+         and cfq.corporate_id = pc_corporate_id
+         and cfq.is_deleted = 'N'
+         and cfqd.is_deleted = 'N'
+         and div.is_deleted = 'N'
+         and dim.is_active = 'Y'
+         and cci.is_deleted = 'N'
+         and pdd.is_deleted = 'N'
+         and pdm.is_deleted = 'N'
+         and cci.corporate_id = pc_corporate_id
+         and cfq.trade_date <= pd_trade_date;
+    
+      begin
+        select cfqd.rate
+          into pc_settlement_price
+          from cfq_currency_forward_quotes    cfq,
+               cfqd_currency_fwd_quote_detail cfqd,
+               div_der_instrument_valuation   div,
+               dim_der_instrument_master      dim,
+               cci_corp_currency_instrument   cci,
+               pdd_product_derivative_def     pdd,
+               pdm_productmaster              pdm
+         where cfq.cfq_id = cfqd.cfq_id
+           and cfq.instrument_id = div.instrument_id
+           and cfq.price_source_id = div.price_source_id
+           and cfq.instrument_id = cci.instrument_id
+           and cfq.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.product_id = pdm.product_id
+           and pdm.base_cur_id = pc_from_cur_id
+           and pdm.quote_cur_id = pc_to_cur_id
+           and cfq.corporate_id = pc_corporate_id
+           and cfq.is_deleted = 'N'
+           and cfqd.is_deleted = 'N'
+           and div.is_deleted = 'N'
+           and dim.is_active = 'Y'
+           and cci.is_deleted = 'N'
+           and pdd.is_deleted = 'N'
+           and pdm.is_deleted = 'N'
+           and cfqd.is_spot = 'Y'
+           and cci.corporate_id = pc_corporate_id
+           and cfq.trade_date = vd_maturity_date;
+      exception
+        when no_data_found then
+          pc_settlement_price := 0;
+      end;
+    
+      if vd_maturity_date is null then
+        select max(cfq.trade_date)
+          into vd_maturity_date
+          from cfq_currency_forward_quotes    cfq,
+               cfqd_currency_fwd_quote_detail cfqd,
+               div_der_instrument_valuation   div,
+               dim_der_instrument_master      dim,
+               cci_corp_currency_instrument   cci,
+               pdd_product_derivative_def     pdd,
+               pdm_productmaster              pdm
+         where cfq.cfq_id = cfqd.cfq_id
+           and cfq.instrument_id = div.instrument_id
+           and cfq.price_source_id = div.price_source_id
+           and cfq.instrument_id = cci.instrument_id
+           and cfq.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.product_id = pdm.product_id
+           and pdm.base_cur_id = pc_to_cur_id
+           and pdm.quote_cur_id = pc_from_cur_id
+           and cfq.corporate_id = pc_corporate_id
+           and cfq.is_deleted = 'N'
+           and cfqd.is_deleted = 'N'
+           and div.is_deleted = 'N'
+           and dim.is_active = 'Y'
+           and cci.is_deleted = 'N'
+           and pdd.is_deleted = 'N'
+           and pdm.is_deleted = 'N'
+           and cfqd.is_spot = 'Y'
+           and cci.corporate_id = pc_corporate_id
+           and cfq.trade_date <= pd_trade_date;
+        begin
+          select 1 / cfqd.rate
+            into pc_settlement_price
+            from cfq_currency_forward_quotes    cfq,
+                 cfqd_currency_fwd_quote_detail cfqd,
+                 div_der_instrument_valuation   div,
+                 dim_der_instrument_master      dim,
+                 cci_corp_currency_instrument   cci,
+                 pdd_product_derivative_def     pdd,
+                 pdm_productmaster              pdm
+           where cfq.cfq_id = cfqd.cfq_id
+             and cfq.instrument_id = div.instrument_id
+             and cfq.price_source_id = div.price_source_id
+             and cfq.instrument_id = cci.instrument_id
+             and cfq.instrument_id = dim.instrument_id
+             and dim.product_derivative_id = pdd.derivative_def_id
+             and pdd.product_id = pdm.product_id
+             and pdm.base_cur_id = pc_to_cur_id
+             and pdm.quote_cur_id = pc_from_cur_id
+             and cfq.corporate_id = pc_corporate_id
+             and cfq.is_deleted = 'N'
+             and cfqd.is_deleted = 'N'
+             and div.is_deleted = 'N'
+             and dim.is_active = 'Y'
+             and cci.is_deleted = 'N'
+             and pdd.is_deleted = 'N'
+             and pdm.is_deleted = 'N'
+             and cfqd.is_spot = 'Y'
+             and cci.corporate_id = pc_corporate_id
+             and cfqd.is_spot = 'Y'
+             and cfq.trade_date = vd_maturity_date;
+        exception
+          when no_data_found then
+            pc_settlement_price := 0;
+        end;
+      end if;
+      pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
+    end if;
+  
+  end;
 end; 
 /
