@@ -35,7 +35,9 @@ create or replace package "PKG_EXECUTE_EOD" is
                                   pd_trade_date   date);
 
   procedure sp_refresh_mv;
-end pkg_execute_eod;
+end pkg_execute_eod; 
+ 
+ 
 /
 create or replace package body "PKG_EXECUTE_EOD" is
 
@@ -556,6 +558,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('mv_bi_phy_cont_journal_eom', 'c');
     dbms_mview.refresh('MV_BI_PHY_BOOK_JOURNAL_EOD', 'c');
     dbms_mview.refresh('MV_BI_PHY_BOOK_JOURNAL_EOM', 'c');
+    dbms_mview.refresh('MV_BI_DER_PNL_EODEOM', 'c');
     commit;
   exception
     when others then
@@ -567,5 +570,5 @@ create or replace package body "PKG_EXECUTE_EOD" is
       commit;
     
   end;
-end;
+end; 
 /
