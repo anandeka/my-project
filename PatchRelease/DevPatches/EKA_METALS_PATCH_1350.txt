@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_PATCH_1350
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  13-Feb-2012
+
+Bug / Enhancement*              :  BUG
+Bug ID*            		:  74526 73655 72848
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 116297
+Date: 4:08:17 PM, Monday, February 11, 2013
+Message:
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/115_DDL_EODDB_ALTER_SCRIPT.sql
+
+Revision: 116566
+Date: 10:16:16 AM, Wednesday, February 13, 2013
+Message:
+COG Price : Handled Balance Pricing Case
+Purchase Accrual WH Name Updation for Pledged GMRS
+PCBPH and UL Added Is Balance Pricing Column
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/116_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+
+
+Revision: 116567
+Date: 10:30:24 AM, Wednesday, February 13, 2013
+Message:
+EOD Price Balance Pricing Case to Be handled
+
+RC Charges -- Reverted change for sales
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
