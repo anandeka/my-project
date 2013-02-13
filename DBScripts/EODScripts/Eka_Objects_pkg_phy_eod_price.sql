@@ -3585,7 +3585,12 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              pofh.qty_to_be_fixed,
              pcbpd.element_id,
              pcbpd.pcbpd_id,
-             pcbpd.qty_to_be_priced,
+             case
+               when pcbph.is_balance_pricing = 'Y' then
+                100
+               else
+                pcbpd.qty_to_be_priced
+             end qty_to_be_priced,
              pocd.is_any_day_pricing,
              pcbpd.price_basis,
              pcbph.price_description,
