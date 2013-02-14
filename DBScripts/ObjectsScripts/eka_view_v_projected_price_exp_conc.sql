@@ -8,11 +8,12 @@ pfd_fixation_data as(
 select pfd.pofh_id, round(sum(nvl(pfd.qty_fixed, 0)), 5) qty_fixed
   from pfd_price_fixation_details pfd
 where pfd.is_active = 'Y'
+  and pfd.is_exposure='Y'
  --and nvl(pfd.is_price_request,'N') ='N'
 -- and  pfd.as_of_date > trunc(sysdate)
  group by pfd.pofh_id)
 
- --- not called off immediate pricing (any day pricing) + Excluding Event Based
+ ---  1 not called off immediate pricing (any day pricing) + Excluding Event Based
 select ak.corporate_id,
        ak.corporate_name,
        'Any Day Pricing' section,
@@ -195,7 +196,7 @@ select ak.corporate_id,
    and ppfh.is_active = 'Y'
    --and pcm.contract_ref_no='SCT-105-BLD'
  union all
- ---not called off immediate pricing (average pricing) + Excluding Event Based
+ --- 2 not called off immediate pricing (average pricing) + Excluding Event Based
  select ak.corporate_id,
        ak.corporate_name,
        'Average Pricing1' section,
@@ -378,7 +379,7 @@ select ak.corporate_id,
    --and pcm.contract_ref_no='PCT-41-BLD'
 --and ak.corporate_id = '{?CorporateID}'
 union all
---- for event bases  not called off
+---3 for event bases  not called off
 select ak.corporate_id,
        ak.corporate_name,
        'Any Day Pricing' section,
@@ -547,7 +548,7 @@ select ak.corporate_id,
    and dieqp.is_active = 'Y'
    --and pcm.contract_ref_no='SCT-105-BLD'
  union all
- ------ for not called off event based
+ ------ 4 for not called off event based
  select ak.corporate_id,
        ak.corporate_name,
        'Average Pricing2' section,
@@ -717,7 +718,7 @@ select ak.corporate_id,
 -- and ak.corporate_id = '{?CorporateID}'
 
    union all
---Any Day Pricing Concentrate +Contract
+-- 5 Any Day Pricing Concentrate +Contract
 select ak.corporate_id,
        ak.corporate_name,
        'Any Day Pricing' section,
@@ -892,7 +893,7 @@ select ak.corporate_id,
    --and pcm.contract_ref_no='SCT-105-BLD'
 --and ak.corporate_id = '{?CorporateID}'
 union all
---Any Day Pricing Concentrate +GMR
+-- 6 Any Day Pricing Concentrate +GMR
 select ak.corporate_id,
        ak.corporate_name,
        'Any Day Pricing' section,
@@ -1055,6 +1056,7 @@ select ak.corporate_id,
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
+   and pfd.is_exposure='Y'
   --and pcm.contract_ref_no='SCT-105-BLD'
 --and ak.corporate_id = '{?CorporateID}'
  group by ak.corporate_id,
@@ -1103,7 +1105,7 @@ select ak.corporate_id,
           dipq.is_price_optionality_present,
           dipq.price_option_call_off_status
 union all
---Average Pricing Concentrate+Contract
+-- 7 Average Pricing Concentrate+Contract
 select ak.corporate_id,
        ak.corporate_name,
        'Average Pricing3' section,
@@ -1275,7 +1277,7 @@ select ak.corporate_id,
    --and pcm.contract_ref_no='SCT-105-BLD'
 --and ak.corporate_id = '{?CorporateID}'
 union all
---Average Pricing Concentrate +GMR
+-- 8 Average Pricing Concentrate +GMR
 select ak.corporate_id,
        ak.corporate_name,
        'Average Pricing4' section,
@@ -1439,7 +1441,7 @@ select ak.corporate_id,
 --and ak.corporate_id = '{?CorporateID}'
 -----siva
 union all
-----Fixed by Price Request Concentrate+Contact
+---- 9 Fixed by Price Request Concentrate+Contact
 select ak.corporate_id,
        ak.corporate_name,
        'Fixed by Price Request' section,
@@ -1611,6 +1613,7 @@ select ak.corporate_id,
       --and ak.corporate_id = '{?CorporateID}'
       --  and  pfd.as_of_date >= sysdate
    and pfd.is_price_request = 'Y'
+   and pfd.is_exposure='Y'
    and /*pfd.as_of_date*/pfd.hedge_correction_date > trunc(sysdate)
    --and pcm.contract_ref_no='SCT-105-BLD'
  group by ak.corporate_id,
@@ -1664,7 +1667,7 @@ select ak.corporate_id,
           dipq.is_price_optionality_present,
           dipq.price_option_call_off_status
 union all
--- Fixed By Request Concentrate + Contrcat + Excluding Event Based
+-- 10 Fixed By Request Concentrate + Contrcat + Excluding Event Based
 select ak.corporate_id,
        ak.corporate_name,
        'Fixed by Price Request' section,
@@ -1821,7 +1824,7 @@ select ak.corporate_id,
    and dipq.qty_unit_id = qum.qty_unit_id
    --and pcm.contract_ref_no='SCT-105-BLD'
 union all
-   -- Fixed By Request Concentrate + Contrcat + Event Based
+   -- 11 Fixed By Request Concentrate + Contrcat + Event Based
 select ak.corporate_id,
        ak.corporate_name,
        'Fixed by Price Request' section,
@@ -1973,7 +1976,7 @@ select ak.corporate_id,
    and dipq.qty_unit_id = qum.qty_unit_id
    --and pcm.contract_ref_no='SCT-105-BLD'
 union all
-----Fixed by Price Request Concentrate+GMR
+----12 Fixed by Price Request Concentrate+GMR
 select ak.corporate_id,
        ak.corporate_name,
        'Fixed by Price Request' section,
@@ -2133,6 +2136,7 @@ select ak.corporate_id,
       --and ak.corporate_id = '{?CorporateID}'
       --  and  pfd.as_of_date >= sysdate
    and pfd.is_price_request = 'Y'
+   and pfd.is_exposure='Y'
    and /*pfd.as_of_date*/pfd.hedge_correction_date > trunc(sysdate)
    --and pcm.contract_ref_no='SCT-105-BLD'
  group by ak.corporate_id,

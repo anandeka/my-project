@@ -66,8 +66,9 @@ pofh_header_data as
                   round (sum (nvl (pfd.qty_fixed, 0)), 5) qty_fixed
              from pfd_price_fixation_details pfd
             where pfd.is_active = 'Y'
+            and pfd.is_exposure='Y'
          group by pfd.pofh_id)          
---Any Day Pricing Base Metal +Contract + Not Called Off + Excluding Event Based          
+--1 Any Day Pricing Base Metal +Contract + Not Called Off + Excluding Event Based          
 select ak.corporate_id,
        ak.corporate_name,
        'Any Day Pricing' section,
@@ -216,7 +217,7 @@ select ak.corporate_id,
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
 union all
---Any Day Pricing Base Metal +Contract + Not Called Off + Event Based
+-- 2 Any Day Pricing Base Metal +Contract + Not Called Off + Event Based
 select ak.corporate_id,
        ak.corporate_name,
        'Any Day Pricing' section,
@@ -354,7 +355,7 @@ select ak.corporate_id,
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'
    union all
---Any Day Pricing Base Metal +Contract + Called Off + Not Applicable
+-- 3 Any Day Pricing Base Metal +Contract + Called Off + Not Applicable
  select ak.corporate_id,
        ak.corporate_name,
        'Any Day Pricing' section,
@@ -515,7 +516,7 @@ select ak.corporate_id,
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
 union all
---Any Day Pricing Base Metal +GMR
+-- 4 Any Day Pricing Base Metal +GMR
 select ak.corporate_id,
        ak.corporate_name,
        'Any Day Pricing' section,
@@ -656,6 +657,7 @@ select ak.corporate_id,
  and poch.is_active = 'Y'
  and pocd.is_active = 'Y'
  and ppfh.is_active = 'Y'
+ and pfd.is_exposure='Y'
  group by ak.corporate_id,
           ak.corporate_name,
           cpc.profit_center_id,
@@ -701,7 +703,7 @@ select ak.corporate_id,
           pcdi.is_price_optionality_present,
           pcdi.price_option_call_off_status
    union all
---Average Pricing Base Metal+Contract + Not Called Off + Excluding Event Based
+-- 5 Average Pricing Base Metal+Contract + Not Called Off + Excluding Event Based
 select   ak.corporate_id,
        ak.corporate_name,
        'Average Pricing' section,
@@ -851,7 +853,7 @@ select   ak.corporate_id,
    and pdm.is_active = 'Y'
    and qum.is_active = 'Y'  
    and ppfh.is_active = 'Y' 
---Average Pricing Base Metal+Contract + Not Called Off + Event Based
+-- 6 Average Pricing Base Metal+Contract + Not Called Off + Event Based
 union all
 select   ak.corporate_id,
        ak.corporate_name,
@@ -983,7 +985,7 @@ select   ak.corporate_id,
    and qum.is_active = 'Y'  
    and ppfh.is_active = 'Y' 
  union all 
---Average Pricing Base Metal+Contract + Called Off + Not Applicable
+-- 7 Average Pricing Base Metal+Contract + Called Off + Not Applicable
    select ak.corporate_id,
        ak.corporate_name,
        'Average Pricing' section,       
@@ -1126,7 +1128,7 @@ select   ak.corporate_id,
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y' 
---Average Pricing Base Metal+GMR
+-- 8 Average Pricing Base Metal+GMR
    union all
    select ak.corporate_id,
        ak.corporate_name,
@@ -1261,7 +1263,7 @@ select   ak.corporate_id,
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
    and gmr.is_deleted = 'N'
- --Fixed by Price Request Base Metal +Contract + Not Called Off + Excluding Event Based 8
+ -- 9 Fixed by Price Request Base Metal +Contract + Not Called Off + Excluding Event Based 8
  union all
  select ak.corporate_id,
        ak.corporate_name,
@@ -1392,7 +1394,7 @@ select   ak.corporate_id,
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and qum.qty_unit_id = pdm.base_quantity_unit
 union all
---Fixed by Price Request Base Metal +Contract + Not Called Off + Event Based 9
+-- 10 Fixed by Price Request Base Metal +Contract + Not Called Off + Event Based 9
 select ak.corporate_id,
        ak.corporate_name,
        'Fixed by Price Request' section,
@@ -1517,7 +1519,7 @@ select ak.corporate_id,
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and qum.qty_unit_id = pdm.base_quantity_unit
 union all
---Fixed by Price Request Base Metal +Contract + Called Off + Not Applicable 10
+--11 Fixed by Price Request Base Metal +Contract + Called Off + Not Applicable 10
 select ak.corporate_id,
        ak.corporate_name,
        'Fixed by Price Request' section,
@@ -1657,6 +1659,7 @@ select ak.corporate_id,
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and qum.qty_unit_id = pocd.qty_to_be_fixed_unit_id
    and pfd.is_price_request = 'Y'
+   and pfd.is_exposure='Y'
    and /*pfd.as_of_date*/pfd.hedge_correction_date > trunc(sysdate) --siva
 --and ak.corporate_id = '{?CorporateID}'
  group by ak.corporate_id,
@@ -1703,7 +1706,7 @@ select ak.corporate_id,
           pcdi.transit_days,
           pcdi.is_price_optionality_present,
           pcdi.price_option_call_off_status
-----Fixed by Price Request Base Metal +GMR 11
+---- 12  Fixed by Price Request Base Metal +GMR 11
 union all
 select ak.corporate_id,
        ak.corporate_name,
@@ -1830,6 +1833,7 @@ select ak.corporate_id,
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
    and qum.qty_unit_id = pocd.qty_to_be_fixed_unit_id
    and pfd.is_price_request = 'Y'
+   and pfd.is_exposure='Y'
    and /*pfd.as_of_date*/pfd.hedge_correction_date > trunc(sysdate)
  group by ak.corporate_id,
           ak.corporate_name,

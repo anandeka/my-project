@@ -102,4 +102,5 @@ select pcm.contract_ref_no,
    and dipq.is_active = 'Y'
    and pcm.purchase_sales = 'P'
    and pcdi.price_allocation_method = 'Price Allocation'
+   and pfd.is_exposure='Y'
    and pocd.is_any_day_pricing = 'Y';

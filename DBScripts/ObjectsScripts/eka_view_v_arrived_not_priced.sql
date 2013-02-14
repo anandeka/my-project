@@ -4,6 +4,7 @@ with price_fixation as(select pfd.pofh_id,
   from pfd_price_fixation_details pfd
  where pfd.user_price is not null
  and pfd.is_active='Y'
+ and pfd.is_exposure='Y'
  group by pfd.pofh_id)
 
 -- 1. SCT Traxys Event Based Query + Conc:
@@ -1367,7 +1368,7 @@ select phd.companyname cp_name,
    and round(nvl(fmpfh.qty_to_be_fixed, 0), 4) -
        round(nvl(fmpfh.priced_qty, 0), 4) > 0
 union all
--- Pricing Method: Price Allocation, Any Day QP Concentrate
+-- 10 Pricing Method: Price Allocation, Any Day QP Concentrate
 select phd.companyname cp_name,
        phd.profileid,
        'Pricing Method: Price Allocation, Any Day QP' section_name,
@@ -1482,6 +1483,7 @@ select phd.companyname cp_name,
            and gpah.is_active = 'Y'
            and gpad.is_active = 'Y'
            and pfd.is_active = 'Y'
+           and pfd.is_exposure='Y'
          group by gmr.internal_gmr_ref_no,
                   gpah.element_id,
                   gpah.total_allocated_qty) gpah,
@@ -1605,7 +1607,7 @@ select phd.companyname cp_name,
           ucm.multiplication_factor,
           qum_under.qty_unit 
 union all
--- Pricing Method: Price Allocation, Any Day QP Base Metal
+--11 Pricing Method: Price Allocation, Any Day QP Base Metal
 select phd.companyname cp_name,
        phd.profileid,
        'Pricing Method: Price Allocation, Any Day QP' section_name,
@@ -1717,6 +1719,7 @@ select phd.companyname cp_name,
            and gpah.is_active = 'Y'
            and gpad.is_active = 'Y'
            and pfd.is_active = 'Y'
+           and pfd.is_exposure='Y'
          group by gpah.internal_gmr_ref_no) gpah,
        pcbph_pc_base_price_header pcbph,
        pcbpd_pc_base_price_detail pcbpd,
@@ -1752,6 +1755,7 @@ select phd.companyname cp_name,
    and pocd.pocd_id = pofh.pocd_id
    and pofh.pofh_id = pfd.pofh_id
    and pfd.is_active = 'Y'
+   and pfd.is_exposure='Y'
    and gpah.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and pocd.pcbpd_id = pcbpd.pcbpd_id
    and pcbpd.pcbph_id = pcbph.pcbph_id
