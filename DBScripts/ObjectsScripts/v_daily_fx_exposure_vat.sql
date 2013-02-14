@@ -53,8 +53,8 @@ select akc.corporate_id,
        null activity_date,
        null cpname,
        cm_vat.cur_code vat_cur_code,
-       cm_invoice.cur_code invoice_cur_code
-   
+       cm_invoice.cur_code invoice_cur_code,
+       null is_hedge_correction
   from ivd_invoice_vat_details ivd,
        (select iid.internal_contract_item_ref_no,
                iid.internal_contract_ref_no,
@@ -163,7 +163,8 @@ select akc.corporate_id,
        null activity_date,
        null cpname,
        cm_vat.cur_code vat_cur_code,
-       cm_invoice.cur_code invoice_cur_code
+       cm_invoice.cur_code invoice_cur_code,
+       null is_hedge_correction
   from ivd_invoice_vat_details ivd,
        (select iid.internal_contract_item_ref_no,
                iid.internal_contract_ref_no,
@@ -294,7 +295,8 @@ select akc.corporate_id,
          null activity_date,
          null cpname,
          null vat_cur_code,
-         null invoice_cur_code
+         null invoice_cur_code,
+         null is_hedge_correction
     from ct_currency_trade            ct,
          ak_corporate                 ak,
          cm_currency_master           cm_base,
@@ -409,7 +411,8 @@ select akc.corporate_id,
        null activity_date,
        phd.companyname cpname,
        null vat_cur_code,
-       null invoice_cur_code
+       null invoice_cur_code,
+       pfd.is_hedge_correction is_hedge_correction
   from pcdi_pc_delivery_item          pcdi,
        pcm_physical_contract_main     pcm,
        poch_price_opt_call_off_header poch,
@@ -570,7 +573,8 @@ select akc.corporate_id,
        axs.eff_date activity_date,
        phd.companyname cpname,
        null vat_cur_code,
-       null invoice_cur_code
+       null invoice_cur_code,
+       pfd.is_hedge_correction
   from pcdi_pc_delivery_item          pcdi,
        pcm_physical_contract_main     pcm,
        poch_price_opt_call_off_header poch,
@@ -718,7 +722,8 @@ select akc.corporate_id,
        axs.eff_date activity_date,
        phd.companyname cpname,
        null vat_cur_code,
-       null invoice_cur_code
+       null invoice_cur_code,
+       pfd.is_hedge_correction
   from pcdi_pc_delivery_item          pcdi,
        pcm_physical_contract_main     pcm,
        poch_price_opt_call_off_header poch,
