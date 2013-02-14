@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1356
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  14-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Online Reports
+
+Sub-Module  			 :  Customs and Intrastat Report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+
+Revision: 116752
+Author: janna
+Date: 9:16:09 AM, Thursday, February 14, 2013
+Message:
+Added Region Filter to Customs Report
+Intrastat Excel Report Enabled
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_106.sql
+
+

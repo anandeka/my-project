@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_1355
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  14-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 116753
+Author: janna
+Date: 9:19:32 AM, Thursday, February 14, 2013
+Message:
+Intrastat And Custom Report
+1) Corporate FX Rate Based on EOM Date
+2) Modified Data Type of INVOICE_DATE to Date from Varchar2
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/118_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
+
