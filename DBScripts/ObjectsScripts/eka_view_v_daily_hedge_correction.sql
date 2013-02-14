@@ -83,7 +83,8 @@ SELECT akc.corporate_id,
        NULL utility_ref_no,
        NULL smelter,
        NULL status,
-       pfd.is_hedge_correction
+       pfd.is_hedge_correction,
+       pfd.is_exposure
   FROM pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        poch_price_opt_call_off_header poch,
@@ -251,7 +252,8 @@ SELECT akc.corporate_id,
        NULL utility_ref_no,
        NULL smelter,
        null status,
-       pfd.is_hedge_correction
+       pfd.is_hedge_correction,
+       pfd.is_exposure
   FROM pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        poch_price_opt_call_off_header poch,
@@ -387,7 +389,8 @@ select fmuh.corporate_id,
        fmuh.utility_ref_no,
        phd.companyname smelter,
        null status,
-       null is_hedge_correction
+       null is_hedge_correction,
+       null is_exposure
   from fmuh_free_metal_utility_header fmuh,
        fmed_free_metal_elemt_details  fmed,
        fmeifd_index_formula_details   fmeifd,
@@ -496,7 +499,8 @@ select fmuh.corporate_id,
        fmuh.utility_ref_no,
        phd.companyname smelter,
        'Cancelled' status,
-       null is_hedge_correction
+       null is_hedge_correction,
+       null is_exposure
   from fmuh_free_metal_utility_header fmuh,
        fmed_free_metal_elemt_details  fmed,
        fmeifd_index_formula_details   fmeifd,
