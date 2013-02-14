@@ -4994,25 +4994,23 @@ sp_gather_stats('ISR1_ISR_INVENTORY');
 -- 
 for cur_price_to_base_rate in(
 select isr1.contract_price_unit_cur_id,
-       isr1.base_cur_id,
-       isr1.shipment_date
+       isr1.base_cur_id
   from isr1_isr_inventory isr1
  where isr1.process_id = pc_process_id
    and isr1.contract_price_unit_cur_id <> isr1.base_cur_id
  group by isr1.contract_price_unit_cur_id,
-          isr1.base_cur_id,isr1.shipment_date) loop
+          isr1.base_cur_id) loop
 
 select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                 cur_price_to_base_rate.contract_price_unit_cur_id,
                                                 cur_price_to_base_rate.base_cur_id,
-                                                cur_price_to_base_rate.shipment_date,
+                                                pd_trade_date,
                                                 1)
   into vn_exch_rate
   from dual;
 Update isr1_isr_inventory isr1
 set isr1.price_to_base_exch_rate = vn_exch_rate
 where  isr1.contract_price_unit_cur_id = cur_price_to_base_rate.contract_price_unit_cur_id
-   and isr1.shipment_date = cur_price_to_base_rate.shipment_date
    and isr1.process_id = pc_process_id;
 end loop;
 commit;
@@ -5021,25 +5019,22 @@ commit;
 --
 for cur_load_to_base_rate in(
 select isr1.loading_country_cur_id,
-       isr1.base_cur_id,
-       isr1.shipment_date
+       isr1.base_cur_id
   from isr1_isr_inventory isr1
  where isr1.process_id = pc_process_id
 and isr1.loading_country_cur_id <> isr1.base_cur_id
  group by isr1.loading_country_cur_id,
-          isr1.base_cur_id,
-          isr1.shipment_date) loop
+          isr1.base_cur_id) loop
 select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                 cur_load_to_base_rate.base_cur_id,
                                                 cur_load_to_base_rate.loading_country_cur_id,
-                                                cur_load_to_base_rate.shipment_date,
+                                                pd_trade_date,
                                                 1)
   into vn_exch_rate
   from dual;
 Update isr1_isr_inventory isr1
 set isr1.base_to_load_country_ex_rate = vn_exch_rate
 where isr1.loading_country_cur_id = cur_load_to_base_rate.loading_country_cur_id
-   and isr1.shipment_date = cur_load_to_base_rate.shipment_date
    and isr1.process_id = pc_process_id;  
 end loop;          
 commit;
@@ -5048,25 +5043,22 @@ commit;
 --
 for cur_dis_to_base_rate in(
 select isr1.discharge_country_cur_id,
-       isr1.base_cur_id,
-       isr1.shipment_date
+       isr1.base_cur_id
   from isr1_isr_inventory isr1
  where isr1.process_id = pc_process_id
 and isr1.discharge_country_cur_id <> isr1.base_cur_id
  group by isr1.discharGe_country_cur_id,
-          isr1.base_cur_id,
-          isr1.shipment_date) loop
+          isr1.base_cur_id) loop
 select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                 cur_dis_to_base_rate.base_cur_id,
                                                 cur_dis_to_base_rate.discharge_country_cur_id,
-                                                cur_dis_to_base_rate.shipment_date,
+                                                pd_trade_date,
                                                 1)
   into vn_exch_rate
   from dual;
 Update isr1_isr_inventory isr1
 set isr1.base_to_disc_country_ex_rate = vn_exch_rate
 where isr1.discharge_country_cur_id = cur_dis_to_base_rate.discharge_country_cur_id
-   and isr1.shipment_date = cur_dis_to_base_rate.shipment_date
    and isr1.process_id = pc_process_id;  
 end loop;
 commit;
@@ -5526,25 +5518,22 @@ sp_gather_stats('ISR2_ISR_INVOICE');
 --
 for cur_load_to_base_rate in(
 select isr2.loading_country_cur_id,
-       isr2.base_cur_id,
-       isr2.shipment_date
+       isr2.base_cur_id
   from isr2_isr_invoice isr2
  where isr2.process_id = pc_process_id
 and isr2.loading_country_cur_id <> isr2.base_cur_id
  group by isr2.loading_country_cur_id,
-          isr2.base_cur_id,
-          isr2.shipment_date) loop
+          isr2.base_cur_id) loop
 select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                 cur_load_to_base_rate.base_cur_id,
                                                 cur_load_to_base_rate.loading_country_cur_id,
-                                                cur_load_to_base_rate.shipment_date,
+                                                pd_trade_date,
                                                 1)
   into vn_exch_rate
   from dual;
 Update isr2_isr_invoice isr2
 set isr2.base_to_load_country_ex_rate = vn_exch_rate
 where isr2.loading_country_cur_id = cur_load_to_base_rate.loading_country_cur_id
-   and isr2.shipment_date = cur_load_to_base_rate.shipment_date
    and isr2.process_id = pc_process_id;  
 end loop;          
 commit;
@@ -5553,25 +5542,22 @@ commit;
 --
 for cur_dis_to_base_rate in(
 select isr2.dischagre_country_cur_id,
-       isr2.base_cur_id,
-       isr2.shipment_date
+       isr2.base_cur_id
   from isr2_isr_invoice isr2
  where isr2.process_id = pc_process_id
 and isr2.dischagre_country_cur_id <> isr2.base_cur_id
  group by isr2.dischagre_country_cur_id,
-          isr2.base_cur_id,
-          isr2.shipment_date) loop
+          isr2.base_cur_id) loop
 select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                 cur_dis_to_base_rate.base_cur_id,
                                                 cur_dis_to_base_rate.dischagre_country_cur_id,
-                                                cur_dis_to_base_rate.shipment_date,
+                                                pd_trade_date,
                                                 1)
   into vn_exch_rate
   from dual;
 Update isr2_isr_invoice isr2
 set isr2.base_to_disc_country_ex_rate = vn_exch_rate
 where isr2.dischagre_country_cur_id = cur_dis_to_base_rate.dischagre_country_cur_id
-   and isr2.shipment_date = cur_dis_to_base_rate.shipment_date
    and isr2.process_id = pc_process_id;  
 end loop;
 commit;
@@ -5580,26 +5566,23 @@ commit;
 --
 for cur_inv_exch_rate in(
 select isr2.invoice_cur_id,
-       isr2.base_cur_id,
-       isr2.shipment_date
+       isr2.base_cur_id
   from isr2_isr_invoice isr2
  where isr2.process_id = pc_process_id having
  isr2.invoice_cur_id <> isr2.base_cur_id
  group by isr2.invoice_cur_id,
-          isr2.base_cur_id,
-          isr2.shipment_date) loop
+          isr2.base_cur_id) loop
 select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                 cur_inv_exch_rate.invoice_cur_id,
                                                 cur_inv_exch_rate.base_cur_id,
-                                                cur_inv_exch_rate.shipment_date,
+                                                pd_trade_date,
                                                 1)
   into vn_exch_rate
   from dual;
 Update isr2_isr_invoice isr2
 set isr2.invoice_to_base_ex_rate =  vn_exch_rate
 where isr2.process_id = pc_process_id
-and isr2.invoice_cur_id =  cur_inv_exch_rate.invoice_cur_id
-and isr2.shipment_date = cur_inv_exch_rate.shipment_date ;  
+and isr2.invoice_cur_id =  cur_inv_exch_rate.invoice_cur_id;  
 end loop;          
 commit;
 gvn_log_counter := gvn_log_counter + 1;    
@@ -16567,7 +16550,6 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
   vn_wet_qty                    number;
   vn_dry_qty                    number;
   vc_corporate_name             varchar2(100);
-  vn_spq_qty_conv_factor        number;
   vn_assay_qty                  number;
   vn_payable_qty                number;
   vn_gmr_price                  number;
