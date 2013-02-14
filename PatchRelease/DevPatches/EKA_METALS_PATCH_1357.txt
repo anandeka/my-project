@@ -1,0 +1,102 @@
+Patch No*          		:  EKA_METALS_PATCH_1357
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  14-Feb-2012
+
+Bug / Enhancement*              :  Enhancement
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 116876
+Author: rajuga
+Date: 7:23:43 PM, Thursday, February 14, 2013
+Message:
+Hedge corrections Flag related changes.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_daily_hedge_correction.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql
+
+Revision: 116873
+Author: suresh.gottipati
+Date: 7:16:06 PM, Thursday, February 14, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_arrived_not_priced.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_apf_not_applied_shipment.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exp_conc.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_projected_price_exposure.sql
+
+Revision: 116831
+Author: rajuga
+Date: 4:13:05 PM, Thursday, February 14, 2013
+Message:
+Hedge corrections Flag related changes.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_106_RFC_RPC.sql
+
+
+Revision: 116875
+Author: rajuga
+Date: 7:23:25 PM, Thursday, February 14, 2013
+Message:
+Hedge Correction Flag related changes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyFXExposureReport_Excel.rpt
+
+Revision: 116872
+Author: rajuga
+Date: 7:08:43 PM, Thursday, February 14, 2013
+Message:
+Invoice Details will be started from fresh page after Invoice summary.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+
+Revision: 116822
+Author: rajuga
+Date: 3:47:53 PM, Thursday, February 14, 2013
+Message:
+Added Cancel Water mark symbol for Invoice documents.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AdvancePaymentDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/OCInvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProfomaDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProvisionalInvoiceBaseMetals.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+
+=============================================================================================================
