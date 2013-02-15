@@ -1,6 +1,7 @@
 create or replace view v_ak_corporate as
 select akc.corporate_id,
        akc.corporate_name,
+       pad.address_name,
        pad.address address1,
        null address2,
        null address3,
@@ -30,7 +31,8 @@ select akc.corporate_id,
        akc.corp_display_name2,
        pad.zip,
        akl.footeraddress,
-       akl.headeraddress
+       akl.headeraddress,
+       akl.foot_note, akl.organisation_no, akl.visiting_address       
   from ak_corporate             akc,
        phd_profileheaderdetails phd,
        pad_profile_addresses    pad,
