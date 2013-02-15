@@ -1,0 +1,63 @@
+Patch No*          		:  EKA_METALS_PATCH_1361
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  15-Feb-2012
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice O/P Doc
+
+Sub-Module 			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 116976
+Author: rajuga
+Date: 6:54:57 PM, Friday, February 15, 2013
+Message:
+Adding Visiting Address for DFI document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_498.sql
+
+Revision: 116977
+Author: rajuga
+Date: 6:55:34 PM, Friday, February 15, 2013
+Message:
+Adding Visiting Address to DFI document.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_AK_CORPORATE.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql
+
+Revision: 116979
+Author: rajuga
+Date: 6:56:43 PM, Friday, February 15, 2013
+Message:
+Added Visiting Address.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+
+==================================================================
