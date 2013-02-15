@@ -32,3 +32,14 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 116892
+Author: Janna
+Date: 10:01:16 AM, Friday, February 15, 2013
+Message:
+PFD MV Recreated with IS_EXPOSURE=N
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/119_DDL_EODDB_ALTER_SCRIPT.sql
+
+
+
