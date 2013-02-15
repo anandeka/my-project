@@ -49,7 +49,7 @@ fetchQryBM CLOB := 'INSERT INTO is_d
             invs.total_premium_amount AS premium_disc_amt,
             invs.provisional_pymt_pctg AS prov_percentage,
             invs.invoice_adjustment_amount As adjustment_amount,
-            NVL (akuser.login_name, '''') AS our_person_incharge, ?
+            NVL (GAB.FIRSTNAME||'' ''||GAB.LASTNAME, '') AS our_person_incharge, ?
        FROM is_invoice_summary invs,
             iid_invoicable_item_details iid,
             pcm_physical_contract_main pcm,
@@ -74,7 +74,8 @@ fetchQryBM CLOB := 'INSERT INTO is_d
             phd_profileheaderdetails phd1,
             phd_profileheaderdetails phd2,
             qum_quantity_unit_master qum_gmr,
-            AK_CORPORATE_USER akuser
+            AK_CORPORATE_USER akuser,
+            GAB_GLOBALADDRESSBOOK gab
       WHERE invs.internal_invoice_ref_no = iid.internal_invoice_ref_no(+)
         AND iid.internal_contract_item_ref_no = pci.internal_contract_item_ref_no(+)
         AND iid.internal_contract_ref_no = pcm.internal_contract_ref_no(+)
@@ -100,6 +101,7 @@ fetchQryBM CLOB := 'INSERT INTO is_d
         AND sad.notify_party_id = phd1.profileid(+)
         AND sd.notify_party_id = phd2.profileid(+)
         AND gmr.qty_unit_id = qum_gmr.qty_unit_id(+)
+        and AKUSER.GABID = GAB.GABID(+)
         AND pad.is_deleted(+) = ''N''
         AND pad.address_type(+) = ''Billing''
         AND pcpd.input_output(+) = ''Input''
@@ -144,7 +146,8 @@ fetchQryBM CLOB := 'INSERT INTO is_d
             invs.provisional_pymt_pctg,
             invs.total_premium_amount,
             invs.invoice_adjustment_amount,
-            AKUSER.LOGIN_NAME';
+            GAB.FIRSTNAME,
+            GAB.LASTNAME';
 
 fetchQryConcforFIs CLOB := 'INSERT INTO is_d
             (invoice_ref_no, invoice_type_name, invoice_creation_date,
@@ -208,7 +211,7 @@ fetchQryConcforFIs CLOB := 'INSERT INTO is_d
             invs.freight_allowance_amt AS freight_charge,
             invs.invoice_adjustment_amount AS adjustment_amount,
             invs.total_premium_amount AS total_premium_amount,
-            NVL (akuser.login_name, '''') AS our_person_incharge, ?
+            NVL (GAB.FIRSTNAME||'' ''||GAB.LASTNAME, '') AS our_person_incharge, ?
        FROM is_invoice_summary invs,
             iid_invoicable_item_details iid,
             pcm_physical_contract_main pcm,
@@ -236,6 +239,7 @@ fetchQryConcforFIs CLOB := 'INSERT INTO is_d
             qum_quantity_unit_master qum_gmr,
             cm_currency_master cm_pct,
             ak_corporate_user akuser,
+            GAB_GLOBALADDRESSBOOK gab,
             TEST t
       WHERE invs.internal_invoice_ref_no = iid.internal_invoice_ref_no(+)
         AND iid.internal_contract_item_ref_no = pci.internal_contract_item_ref_no(+)
@@ -264,6 +268,7 @@ fetchQryConcforFIs CLOB := 'INSERT INTO is_d
         AND sd.notify_party_id = phd2.profileid(+)
         AND gmr.qty_unit_id = qum_gmr.qty_unit_id(+)
         AND invs.invoice_cur_id = cm_pct.cur_id(+)
+        and AKUSER.GABID = GAB.GABID(+)
         AND pad.address_type(+) = ''Billing''
         AND pad.is_deleted(+) = ''N''
         AND pcpd.input_output IN (''Input'')
@@ -309,7 +314,8 @@ fetchQryConcforFIs CLOB := 'INSERT INTO is_d
             invs.invoice_adjustment_amount,
             invs.total_premium_amount,
             cm_pct.cur_code,
-            akuser.login_name,
+            GAB.FIRSTNAME,
+            GAB.LASTNAME,
             t.dry,
             t.wet';
 
@@ -376,7 +382,7 @@ fetchQryConcforPIs clob := 'INSERT INTO is_d
             invs.invoice_adjustment_amount AS adjustment_amount,
             invs.total_premium_amount AS total_premium_amount,
             invs.provisional_pymt_pctg AS prov_percentage,
-            NVL (akuser.login_name, '''') AS our_person_incharge, ?
+            NVL (GAB.FIRSTNAME||'' ''||GAB.LASTNAME, '') AS our_person_incharge, ?
        FROM is_invoice_summary invs,
             iid_invoicable_item_details iid,
             pcm_physical_contract_main pcm,
@@ -404,6 +410,7 @@ fetchQryConcforPIs clob := 'INSERT INTO is_d
             qum_quantity_unit_master qum_gmr,
             cm_currency_master cm_pct,
             ak_corporate_user akuser,
+            GAB_GLOBALADDRESSBOOK gab,
             TEST t
       WHERE invs.internal_invoice_ref_no = iid.internal_invoice_ref_no(+)
         AND iid.internal_contract_item_ref_no = pci.internal_contract_item_ref_no(+)
@@ -432,6 +439,7 @@ fetchQryConcforPIs clob := 'INSERT INTO is_d
         AND sd.notify_party_id = phd2.profileid(+)
         AND gmr.qty_unit_id = qum_gmr.qty_unit_id(+)
         AND invs.invoice_cur_id = cm_pct.cur_id(+)
+        and AKUSER.GABID = GAB.GABID(+)
         AND pad.address_type(+) = ''Billing''
         AND pad.is_deleted(+) = ''N''
         AND pcpd.input_output IN (''Input'')
@@ -478,7 +486,8 @@ fetchQryConcforPIs clob := 'INSERT INTO is_d
             invs.total_premium_amount,
             cm_pct.cur_code,
             invs.provisional_pymt_pctg,
-            akuser.login_name,
+            GAB.FIRSTNAME,
+            GAB.LASTNAME,
             t.dry,
             t.wet';
 
@@ -525,7 +534,7 @@ fetchQryDC CLOB := 'INSERT INTO is_d
             NVL (phd1.companyname, phd2.companyname) AS notify_party,
             pci.contract_type AS sales_purchase,
             invs.invoice_status AS invoice_status,
-            NVL (akuser.login_name, '''') AS our_person_incharge, ?
+            NVL (GAB.FIRSTNAME||'' ''||GAB.LASTNAME, '') AS our_person_incharge, ?
        FROM is_invoice_summary invs,
             iid_invoicable_item_details iid,
             pcm_physical_contract_main pcm,
@@ -551,7 +560,8 @@ fetchQryDC CLOB := 'INSERT INTO is_d
             phd_profileheaderdetails phd1,
             phd_profileheaderdetails phd2,
             qum_quantity_unit_master qum_gmr,
-            ak_corporate_user akuser
+            ak_corporate_user akuser,
+            GAB_GLOBALADDRESSBOOK gab
       WHERE invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
         AND iid.internal_contract_item_ref_no =
                                              pci.internal_contract_item_ref_no
@@ -580,6 +590,7 @@ fetchQryDC CLOB := 'INSERT INTO is_d
         AND sad.consignee_id = phd1.profileid(+)
         AND sd.consignee_id = phd2.profileid(+)
         AND gmr.qty_unit_id = qum_gmr.qty_unit_id(+)
+        and AKUSER.GABID = GAB.GABID(+)
         AND pad.is_deleted(+) = ''N''
         AND pad.address_type(+) = ''Billing''
         AND invs.internal_invoice_ref_no = ?
@@ -620,7 +631,8 @@ fetchQryDC CLOB := 'INSERT INTO is_d
             qum_gmr.qty_unit,
             pci.contract_type,
             invs.amount_to_pay_before_adj,
-            akuser.login_name,
+            GAB.FIRSTNAME,
+            GAB.LASTNAME,
             invs.invoice_status';
 
 fetchQryAPI CLOB := 'INSERT INTO is_d
@@ -656,7 +668,7 @@ fetchQryAPI CLOB := 'INSERT INTO is_d
             invs.total_tax_amount AS total_tax_amount,
             invs.total_other_charge_amount AS total_other_charge_amount,
             invs.internal_comments AS internal_comments,
-            akuser.login_name AS our_person_incharge, ?
+            NVL (GAB.FIRSTNAME||'' ''||GAB.LASTNAME, '') AS our_person_incharge, ?
        FROM is_invoice_summary invs,
             apid_adv_payment_item_details apid,
             pcm_physical_contract_main pcm,
@@ -670,7 +682,8 @@ fetchQryAPI CLOB := 'INSERT INTO is_d
             qum_quantity_unit_master qum,
             ppu_product_price_units ppu,
             pum_price_unit_master pum,
-            ak_corporate_user akuser
+            ak_corporate_user akuser,
+            GAB_GLOBALADDRESSBOOK gab
       WHERE invs.internal_invoice_ref_no = apid.internal_invoice_ref_no
         AND apid.contract_item_ref_no = pci.internal_contract_item_ref_no
         AND invs.internal_contract_ref_no = pcm.internal_contract_ref_no
@@ -678,6 +691,7 @@ fetchQryAPI CLOB := 'INSERT INTO is_d
         AND pcm.internal_contract_ref_no = akuser.user_id(+)
         AND pcpd.product_id = pdm.product_id
         AND pcpd.qty_unit_id = qum.qty_unit_id
+        and AKUSER.GABID = GAB.GABID(+)
         AND pcpd.input_output = ''Input''
         AND pci.quality_id = qat.quality_id
         AND pcm.cp_id = phd.profileid(+)
@@ -709,7 +723,8 @@ fetchQryAPI CLOB := 'INSERT INTO is_d
             invs.internal_invoice_ref_no,
             invs.invoiced_qty,
             qum.qty_unit,
-            akuser.login_name,
+            GAB.FIRSTNAME,
+            GAB.LASTNAME,
             invs.internal_comments';            
 
 fetchQryPFI clob := 'INSERT INTO pfi_d
@@ -745,7 +760,7 @@ fetchQryPFI clob := 'INSERT INTO pfi_d
             pcm.purchase_sales AS sales_purchase,
             invs.total_tax_amount AS total_tax_amount,
             invs.total_other_charge_amount AS total_other_charge_amount,
-            NVL (akuser.login_name, '''') AS our_person_incharge, ?
+            NVL (GAB.FIRSTNAME||'' ''||GAB.LASTNAME, '') AS our_person_incharge, ?
        FROM pfid_profoma_invoice_details pfid,
             is_invoice_summary invs,
             pcm_physical_contract_main pcm,
@@ -757,7 +772,8 @@ fetchQryPFI clob := 'INSERT INTO pfi_d
             qat_quality_attributes qat,
             pdm_productmaster pdm,
             qum_quantity_unit_master qum,
-            ak_corporate_user akuser
+            ak_corporate_user akuser,
+            GAB_GLOBALADDRESSBOOK gab
       WHERE invs.internal_invoice_ref_no = pfid.internal_invoice_ref_no
         AND pfid.internal_contract_item_ref_no =
                                              pci.internal_contract_item_ref_no
@@ -767,6 +783,7 @@ fetchQryPFI clob := 'INSERT INTO pfi_d
         AND pcpd.product_id = pdm.product_id
         AND pcpd.qty_unit_id = qum.qty_unit_id
         AND pci.quality_id = qat.quality_id
+        and AKUSER.GABID = GAB.GABID(+)
         AND pcpd.input_output = ''Input''
         AND pcm.cp_id = phd.profileid(+)
         AND invs.invoice_cur_id = cm.cur_id
@@ -787,7 +804,8 @@ fetchQryPFI clob := 'INSERT INTO pfi_d
             invs.total_tax_amount,
             invs.total_other_charge_amount,
             cm.cur_code,
-            akuser.login_name,
+            GAB.FIRSTNAME,
+            GAB.LASTNAME,
             qum.qty_unit';
             
 begin
