@@ -35,13 +35,13 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 
-Revision: 116976
+Revision: 116986
 Author: rajuga
-Date: 6:54:57 PM, Friday, February 15, 2013
+Date: 7:11:58 PM, Friday, February 15, 2013
 Message:
-Adding Visiting Address for DFI document.
+Visiting Address related script.
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_498.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_392.sql
 
 Revision: 116977
 Author: rajuga
