@@ -34,13 +34,22 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 
-Revision: 116966
-Author: mayank.chaturvedi
-Date: 6:11:20 PM, Friday, February 15, 2013
+Revision: 117009
+Author: anandp
+Date: 20:05:58, 15 February 2013
 Message:
--Patch For Invoice output Doc Enhancement.
+Changes done to get the first name and last name.
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_497.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_391.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_497.sql
+
+Revision: 117006
+Author: anandp
+Date: 20:03:49, 15 February 2013
+Message:
+Increased the column size.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_391.sql
+
+
 
 ==================================================================
