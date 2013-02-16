@@ -40,3 +40,37 @@ Message:
 Existing Section To Include All Data, Not Only from Accounting Start Date
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+Revision: 117030
+Author: jana
+Date: 4:03:31 PM, Saturday, February 16, 2013
+Message:
+SUMMARY SECTION ADDED,FORMAT UPDATED FOR LOOK AND FEEL
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingBalanceReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport.rpt
+
+
+
+
+Revision: 117028
+Author: rajuga
+Date: 4:01:55 PM, Saturday, February 16, 2013
+Message:
+Format changes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+
+
+Revision: 117026
+Author: rajuga
+Date: 3:04:01 PM, Saturday, February 16, 2013
+Message:
+Format changes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+
+
