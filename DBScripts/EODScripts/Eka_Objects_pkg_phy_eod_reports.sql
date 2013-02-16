@@ -8630,23 +8630,8 @@ commit;
                                        pc_process_id   varchar2) as
   vd_prev_eom_date   date;
   vc_prev_process_id number;
-  vd_acc_start_date date;
 
 begin
---
--- Financial year for calcualting Existing Stock Start Date
--- If data is missing we will assume finacial year start from Jan of the EOM Year
---
-begin
-  select start_date
-    into vd_acc_start_date
-    from cfy_corporate_financial_year@eka_appdb
-   where pd_trade_date between start_date and end_date
-     and corporateid = pc_corporate_id;
-exception
-  when others then
-    vd_acc_start_date := trunc(pd_trade_date, 'yyyy');
-end;
  --
  -- Get the Previous EOM Date for Calcualting New Stock
  --
@@ -8879,7 +8864,7 @@ insert into temp_mas
      and pqca.unit_of_measure = rm.ratio_id
      and rm.is_active = 'Y'
      and rm.is_deleted = 'N'
-     and agmr.eff_date >= vd_acc_start_date
+     
      and agmr.eff_date <= vd_prev_eom_date;
 commit;     
    gvn_log_counter := gvn_log_counter + 1;
@@ -9109,7 +9094,7 @@ insert into temp_mas
      and pqca.unit_of_measure = rm.ratio_id
      and rm.is_active = 'Y'
      and rm.is_deleted = 'N'
-     and agmr.eff_date >= vd_acc_start_date
+     
      and agmr.eff_date <= vd_prev_eom_date
      and ash.assay_type in ('Pricing Assay','Shipment Assay')
      and spq.assay_header_id = ash.ash_id;
@@ -9202,7 +9187,7 @@ insert into temp_mas
      and gmr.corporate_id = akc.corporate_id
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
-     and agmr.eff_date >= vd_acc_start_date
+     
      and agmr.eff_date <= pd_trade_date
      and grd.tolling_stock_type in
          ('MFT In Process Stock', 'Free Metal IP Stock', 'Delta FM IP Stock',
@@ -9408,7 +9393,7 @@ insert into temp_mas
      and pdm.product_type_id = pdtm.product_type_id
      and pdtm.product_type_name = 'Composite'
      and grd.product_id = pdm.product_id
-     and agmr.eff_date >= vd_acc_start_date
+     
      and agmr.eff_date <= vd_prev_eom_date;
      commit;
      gvn_log_counter := gvn_log_counter + 1;
@@ -9615,7 +9600,7 @@ insert into temp_mas
      and pdm.product_type_id = pdtm.product_type_id
      and pdtm.product_type_name = 'Composite'
      and grd.product_id = pdm.product_id
-     and agmr.eff_date >= vd_acc_start_date
+     
      and agmr.eff_date <= vd_prev_eom_date;
 --- Finished for concentrates internal movement end
 commit;
@@ -9851,7 +9836,7 @@ insert into temp_mas
      and pdm.product_type_id = pdtm.product_type_id
      and pdtm.product_type_name = 'Standard'
      and grd.product_id = pdm.product_id
-     and agmr.eff_date >= vd_acc_start_date
+     
      and agmr.eff_date <= vd_prev_eom_date;
      commit;     
      gvn_log_counter := gvn_log_counter + 1;
@@ -9928,7 +9913,7 @@ insert into temp_mas
      and pdm.product_type_id = pdtm.product_type_id
      and pdtm.product_type_name = 'Standard'
      and grd.product_id = pdm.product_id
-     and agmr.eff_date >= vd_acc_start_date
+     
      and agmr.eff_date <= vd_prev_eom_date;
      commit;
      gvn_log_counter := gvn_log_counter + 1;
@@ -10004,7 +9989,7 @@ insert into temp_mas
      and gmr.corporate_id = akc.corporate_id
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
-     and agmr.eff_date >= vd_acc_start_date 
+      
      and agmr.eff_date <= vd_prev_eom_date
      and grd.tolling_stock_type in ('MFT In Process Stock', 'Delta MFT IP Stock');
 commit;
@@ -10316,7 +10301,7 @@ insert into mas_metal_account_summary
        and grd.process_id = pc_process_id
        and spq.process_id = pc_process_id
        and agmr.eff_date <= pd_trade_date
-       and agmr.eff_date >= vd_acc_start_date
+       
      group by aml.underlying_product_id,
               pdm.product_desc,
               pdm.base_quantity_unit,
