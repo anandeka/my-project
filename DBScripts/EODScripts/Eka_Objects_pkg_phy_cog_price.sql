@@ -1736,6 +1736,7 @@ create or replace package body pkg_phy_cog_price is
     sp_gather_stats('pcbpd_pc_base_price_detail');
     sp_gather_stats('poch_price_opt_call_off_header');
     sp_gather_stats('pocd_price_option_calloff_dtls');
+    sp_gather_stats('pofh_price_opt_fixation_header');
     vc_error_message := 'Start';
     for cur_pcdi_rows in cur_pcdi
     loop
