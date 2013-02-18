@@ -13834,6 +13834,7 @@ sp_precheck_process_log(pc_corporate_id,
                       and pcpd.dbd_id = gvc_dbd_id
                       and pcpd.input_output = 'Input'
                       and pcpd.is_active = 'Y'
+                      and pcdi.is_active = 'Y'
                     group by pcdi.pcdi_id,
                              pcpd.product_id,
                              pdm.product_desc)
