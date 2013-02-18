@@ -202,7 +202,7 @@ select 'Other Taxes' section_name,
        -- Tax Details
        itd.tax_code,
        itd.tax_rate,
-       null applicable_on,
+       itd.applicable_on applicable_on,
        -- Premium Details
        null premium,
        null premium_gmr_ref_no,
