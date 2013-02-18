@@ -42,13 +42,16 @@ Bug: 74239
 Sender ref no is not showing in the self assay output document
 Bug 74249 - in service invoice o/p doc some of the collumns are missing
 Applicable ON field related changes.
-
+AR,MCB : format updated,qty unit was not displayed
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt			(Revision: 117120)
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt			(Revision: 117124)
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt		(Revision: 117125)
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt		(Revision: 117125)
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt		(Revision: 117125)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport.rpt		(Revision: 117144)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingBalanceReport.rpt	(Revision: 117144)
+
 
 
 
