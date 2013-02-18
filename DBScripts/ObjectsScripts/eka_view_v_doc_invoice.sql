@@ -1,4 +1,11 @@
 create or replace view v_doc_invoice as
+with separate_vat_info as
+(
+    select vpcm.internal_invoice_ref_no, ivd.cp_vat_no, ivd.our_vat_no
+      from vpcm_vat_parent_child_map vpcm, ivd_invoice_vat_details ivd
+     where vpcm.vat_internal_invoice_ref_no = ivd.internal_invoice_ref_no
+       and ivd.is_separate_invoice = 'Y'
+)   
 select 'Invoice' section_name,
        'Invoice' sub_section,
        ds.corporate_id,
@@ -269,8 +276,8 @@ select 'Invoice' section_name,
        null provisional_percentage,
        null provisional_API_Amount,
        -- VAT Details
-       vat.our_vat_no our_vat_reg_no,
-       vat.cp_vat_no cp_vat_reg_no,
+       nvl2(vat.internal_invoice_ref_no, vat.our_vat_no, svi.our_vat_no) our_vat_reg_no,
+       nvl2(vat.internal_invoice_ref_no, vat.cp_vat_no, svi.cp_vat_no) cp_vat_reg_no,
        vat.main_inv_vat_code vat_code,
        vat.vat_rate,
        vat.vat_amount_in_inv_cur vat_amount,
@@ -293,13 +300,15 @@ select 'Invoice' section_name,
        igd_inv_gmr_details_d   igd,
        ds_document_summary     ds,
        v_ak_corporate          akc,
-       ivd_invoice_vat_details vat/*,
+       ivd_invoice_vat_details vat,
+       separate_vat_info svi/*,
        cm_currency_master      vat_cm*/
  where isd.internal_doc_ref_no = igd.internal_doc_ref_no(+)
    and isd.internal_doc_ref_no = ds.internal_doc_ref_no(+)
    and ds.corporate_id = akc.corporate_id(+)
    and isd.internal_invoice_ref_no = vat.internal_invoice_ref_no(+)
    and vat.is_separate_invoice(+) = 'N'
+   and isd.internal_invoice_ref_no = svi.internal_invoice_ref_no(+)
 union all
 select 'Invoice' section_name,
        'Treatment Charge' sub_section,
@@ -866,7 +875,7 @@ select 'Other Taxes' section_name,
        -- Tax Details
        itd.tax_code,
        itd.tax_rate,
-       null applicable_on,
+       itd.applicable_on applicable_on,
        -- Premium Details
        null premium,
        null premium_gmr_ref_no,
