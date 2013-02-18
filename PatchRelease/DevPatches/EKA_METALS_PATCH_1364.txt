@@ -35,47 +35,33 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction
 ====================================================================================================================================
 
-Revision: 117120
-Author: rajuga
-Date: 6:26:10 PM, Monday, February 18, 2013
+RPT Files:
+=========
 Message:
 Bug: 74239
 Sender ref no is not showing in the self assay output document
-----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
-
-Revision: 117124
-Author: rajuga
-Date: 7:01:36 PM, Monday, February 18, 2013
-Message:
 Bug 74249 - in service invoice o/p doc some of the collumns are missing
-----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
-
-Revision: 117125
-Author: rajuga
-Date: 7:02:17 PM, Monday, February 18, 2013
-Message:
 Applicable ON field related changes.
-----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
 
-Revision: 117126
-Author: rajuga
-Date: 7:03:46 PM, Monday, February 18, 2013
-Message:
-CP VAT NO. and OUR VAT NO related changes.
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt			(Revision: 117120)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt			(Revision: 117124)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt		(Revision: 117125)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt		(Revision: 117125)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt		(Revision: 117125)
 
-Revision: 117127
-Author: rajuga
-Date: 7:04:38 PM, Monday, February 18, 2013
+
+
+SQL Files:
+
 Message:
-Applicable ON field related changes...
+1. Report menu name changes
+2.CP VAT NO. and OUR VAT NO related changes.
+3.Applicable ON field related changes...
+
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_DOC_OTHER_CHARGES_INVOICE.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_498_RML_Name_Change.sql		(Revision: 117142)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql			(Revision: 117126)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_DOC_OTHER_CHARGES_INVOICE.sql		(Revision: 117127)
 
 ====================================================================================================================================
