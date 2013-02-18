@@ -1,0 +1,81 @@
+Patch No*          		:  EKA_METALS_PATCH_1364
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  18-Feb-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports and Output Docs
+
+Sub-Module  			 :  Reports and Output Docs
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+====================================================================================================================================
+
+Revision: 117120
+Author: rajuga
+Date: 6:26:10 PM, Monday, February 18, 2013
+Message:
+Bug: 74239
+Sender ref no is not showing in the self assay output document
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+
+Revision: 117124
+Author: rajuga
+Date: 7:01:36 PM, Monday, February 18, 2013
+Message:
+Bug 74249 - in service invoice o/p doc some of the collumns are missing
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+
+Revision: 117125
+Author: rajuga
+Date: 7:02:17 PM, Monday, February 18, 2013
+Message:
+Applicable ON field related changes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+
+Revision: 117126
+Author: rajuga
+Date: 7:03:46 PM, Monday, February 18, 2013
+Message:
+CP VAT NO. and OUR VAT NO related changes.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql
+
+Revision: 117127
+Author: rajuga
+Date: 7:04:38 PM, Monday, February 18, 2013
+Message:
+Applicable ON field related changes...
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_DOC_OTHER_CHARGES_INVOICE.sql
+
+====================================================================================================================================
