@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1366
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  19-Feb-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  74789
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Document
+
+Sub-Module  			 :  Output Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 117223
+Author: rajuga
+Date: 4:05:59 PM, Tuesday, February 19, 2013
+Message:
+Bug 74789 - Issues in Service Invoice O/P doc
+(Fixed issue no:6.Payment Details  is coming blank)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+
+====================================================================================================================================
