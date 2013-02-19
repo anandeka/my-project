@@ -29,7 +29,7 @@ create or replace package pkg_phy_cog_price is
                                          pc_user_id      varchar2,
                                          pc_dbd_id       varchar2,
                                          pc_process      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -1644,6 +1644,7 @@ create or replace package body pkg_phy_cog_price is
          and dipq.is_active = 'Y';
     cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
       select poch.poch_id,
+             pofh.pofh_id,
              pcbpd.pcbpd_id,
              pcbpd.price_basis,
              pcbpd.price_value,
@@ -1667,6 +1668,7 @@ create or replace package body pkg_phy_cog_price is
          and pcbpd.process_id = pc_process_id
          and pcbph.process_id = pc_process_id
          and pocd.pocd_id = pofh.pocd_id
+         and pofh.internal_gmr_ref_no is null
          and pofh.is_active = 'Y'
          and poch.is_active = 'Y'
          and pocd.is_active = 'Y'
@@ -1737,6 +1739,22 @@ create or replace package body pkg_phy_cog_price is
     sp_gather_stats('poch_price_opt_call_off_header');
     sp_gather_stats('pocd_price_option_calloff_dtls');
     sp_gather_stats('pofh_price_opt_fixation_header');
+    sp_gather_stats('dq_derivative_quotes');
+    sp_gather_stats('dqd_derivative_quote_detail');
+    sp_gather_stats('cdim_corporate_dim');
+    sp_gather_stats('drm_derivative_master');
+    sp_gather_stats('cm_currency_master');
+    sp_gather_stats('qum_quantity_unit_master');
+    sp_gather_stats('pfd_price_fixation_details');
+    sp_gather_stats('pci_physical_contract_item');
+    sp_gather_stats('pcm_physical_contract_main');
+    sp_gather_stats('pcipf_pci_pricing_formula');
+    sp_gather_stats('pcbph_pc_base_price_header');
+    sp_gather_stats('pcbpd_pc_base_price_detail');
+    sp_gather_stats('ppfh_phy_price_formula_header');
+    sp_gather_stats('pfqpp_phy_formula_qp_pricing');
+    sp_gather_stats('ppu_product_price_units');
+    sp_gather_stats('pum_price_unit_master');
     vc_error_message := 'Start';
     for cur_pcdi_rows in cur_pcdi
     loop
@@ -1782,7 +1800,7 @@ create or replace package body pkg_phy_cog_price is
                      cur_called_off_rows.final_price_unit_id;
             
             else
-              for cc1 in (select pofh.pofh_id
+             /*for cc1 in (select pofh.pofh_id
                             from poch_price_opt_call_off_header poch,
                                  pocd_price_option_calloff_dtls pocd,
                                  pcbpd_pc_base_price_detail pcbpd,
@@ -1811,40 +1829,32 @@ create or replace package body pkg_phy_cog_price is
                              and pcbpd.process_id = pc_process_id
                              and pfqpp.process_id = pc_process_id
                              and ppfh.process_id = pc_process_id)
-              loop
+              loop*/
                 vc_error_message := ' Line 240 ';
-              
                 begin
-                  select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
-                         nvl(sum(pfd.qty_fixed), 0),
-                         ppu.price_unit_id
+                   select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
+                          nvl(sum(pfd.qty_fixed), 0),
+                          pum.price_unit_id
                     into vn_fixed_value,
                          vn_fixed_qty,
-                         vc_fixed_price_unit_id
-                    from poch_price_opt_call_off_header poch,
-                         pocd_price_option_calloff_dtls pocd,
-                         pofh_price_opt_fixation_header pofh,
-                         pfd_price_fixation_details     pfd,
-                         v_ppu_pum                      ppu
-                   where poch.poch_id = pocd.poch_id
-                     and pocd.pocd_id = pofh.pocd_id
-                     and pofh.pofh_id = cc1.pofh_id
-                     and pofh.pofh_id = pfd.pofh_id
-                     and pfd.hedge_correction_date <= pd_trade_date
-                     and poch.is_active = 'Y'
-                     and pocd.is_active = 'Y'
-                     and pofh.is_active = 'Y'
-                     and pfd.is_active = 'Y'
-                     and ppu.product_price_unit_id = pfd.price_unit_id
-                     and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
-                   group by ppu.price_unit_id;
+                         vc_fixed_price_unit_id                          
+                     from pfd_price_fixation_details pfd,
+                          ppu_product_price_units    ppu,
+                          pum_price_unit_master      pum
+                    where pfd.price_unit_id = ppu.internal_price_unit_id
+                      and ppu.price_unit_id = pum.price_unit_id
+                      and pfd.pofh_id = cur_called_off_rows.pofh_id-- cc1.pofh_id
+                      and pfd.is_active = 'Y'
+                      and pfd.hedge_correction_date <= pd_trade_date
+                      and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
+                    group by pum.price_unit_id;
                 exception
                   when others then
                     vn_fixed_value         := 0;
                     vn_fixed_qty           := 0;
                     vc_fixed_price_unit_id := null;
                 end;
-              end loop;
+           --  end loop;
               vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
             
               if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
@@ -3825,5 +3835,5 @@ create or replace package body pkg_phy_cog_price is
       sp_insert_error_log(vobj_error_log);
       commit;
   end;
-end;
+end; 
 /
