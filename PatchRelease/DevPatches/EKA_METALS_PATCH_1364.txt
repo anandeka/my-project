@@ -1,23 +1,23 @@
-Patch No*          		:  EKA_METALS_PATCH_1365
+Patch No*          		:  EKA_METALS_PATCH_1364
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Anand P H
+Created by*        		:  G.A.Raju
  
-Created on*        		:  19-Feb-2013
+Created on*        		:  18-Feb-2012
 
 Bug / Enhancement*              :  Bug
 
-Bug ID*            		:  74698
+Bug ID*            		:  
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Invoice
+Module  		   	 :  Reports and Output Docs
 
-Sub-Module  			 :  Invoice due date
+Sub-Module  			 :  Reports and Output Docs
  
 Section   		   	 :  N/A
  
@@ -31,17 +31,40 @@ FS Amendment details   		 :  N/A
 
 Dependent patches:		 :  N/A
 
-====================================================================================================================================
-Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
 ====================================================================================================================================
 
-Revision: 117163
-Author: anandp
-Date: 10:38:33, 19 February 2013
+RPT Files:
+=========
 Message:
-For bug no 74698
+Bug: 74239
+Sender ref no is not showing in the self assay output document
+Bug 74249 - in service invoice o/p doc some of the collumns are missing
+Applicable ON field related changes.
+AR,MCB : format updated,qty unit was not displayed
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_498.sql
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt			(Revision: 117120)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt			(Revision: 117124)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt		(Revision: 117125)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt		(Revision: 117125)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt		(Revision: 117125)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport.rpt		(Revision: 117144)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingBalanceReport.rpt	(Revision: 117144)
 
 
 
+
+SQL Files:
+
+Message:
+1. Report menu name changes
+2.CP VAT NO. and OUR VAT NO related changes.
+3.Applicable ON field related changes...
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_498_RML_Name_Change.sql		(Revision: 117142)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql			(Revision: 117126)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_DOC_OTHER_CHARGES_INVOICE.sql		(Revision: 117127)
+
+====================================================================================================================================
