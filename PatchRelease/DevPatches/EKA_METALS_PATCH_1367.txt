@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1367
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  19-Feb-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Output Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+===================================================================================================================
+Revision: 117237
+Author: pradeep.kumar
+Date: 4:55:55 PM, Tuesday, February 19, 2013
+Message:
+-- new columns added in SDD_D for warehouse receipt Doc Gen
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_393.sql
+
+
+Revision: 117238
+Author: pradeep.kumar
+Date: 4:56:32 PM, Tuesday, February 19, 2013
+Message:
+-- DC & DGM Script for warehouse receipt doc generation
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_499.sql
+
