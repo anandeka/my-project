@@ -1,5 +1,5 @@
 update PYME_PAYMENT_TERM_EXT pyme set PYME.FETCH_QUERY = '
-SELECT distinct axs.action_date
+SELECT max(axs.action_date)
   FROM gmr_goods_movement_record gmr,
        axs_action_summary axs,
        agrd_action_grd agrd,
