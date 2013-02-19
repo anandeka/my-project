@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1368
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  19-Feb-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  74769
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOM
+
+Sub-Module  			 :  EOM
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : EOD
+====================================================================================================================================
+
+Revision: 117287
+Author: sivachalabathi.s
+Date: 9:06:45 PM, Tuesday, February 19, 2013
+Message:
+eom was taking more time in cog price calculation of one query,fixed now
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+
+====================================================================================================================================
