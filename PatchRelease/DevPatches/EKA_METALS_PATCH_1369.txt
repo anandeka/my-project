@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1369
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  20-Feb-2013
+
+Bug / Enhancement*              :  enhancement
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics 
+
+Sub-Module  			 :  DOC GEN
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+===================================================================================================================
+Revision: 117357
+Author: pradeep.kumar
+Date: 5:04:15 PM, Wednesday, February 20, 2013
+Message:
+-- DGM Script changes for warehouse receipt doc gen...
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_500.sql
+
+Revision: 117355
+Author: pradeep.kumar
+Date: 5:02:16 PM, Wednesday, February 20, 2013
+Message:
+-- added new column MOVEMENT in SDD_D 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_394.sql
+
