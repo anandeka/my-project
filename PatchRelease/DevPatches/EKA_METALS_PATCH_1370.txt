@@ -52,4 +52,12 @@ Warehouse Receipt (New) Document Design
 ----
 Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/Warehouse_Receipt.rpt
 
+Revision: 117455
+Author: rajuga
+Date: 3:38:00 PM, Thursday, February 21, 2013
+Message:
+Warehouse Receipt (New) Document Design
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/Warehouse_Receipt.rpt
+
 ====================================================================================================================================
