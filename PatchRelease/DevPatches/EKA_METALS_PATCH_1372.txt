@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1372
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+ 
+Created on*        		:  21-Feb-2012
+
+Bug / Enhancement*              :  Enhancement*
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Doc Gen
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 117450
+Author: pradeep.kumar
+Date: 3:22:08 PM, Thursday, February 21, 2013
+Message:
+-- DGM Script CHANGES : added new columns in sddc_child_grd_d to show duty/customs status in WR Document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_501.sql
+
+Revision: 117448
+Author: pradeep.kumar
+Date: 3:19:43 PM, Thursday, February 21, 2013
+Message:
+-- added new columns in sddc_child_grd_d to show duty/customs status in WR Document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_395.sql
+
