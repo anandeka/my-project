@@ -1,4 +1,4 @@
-/* Formatted on 2013/02/08 16:07 (Formatter Plus v4.8.8) */
+/* Formatted on 2013/02/21 18:08 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE PROCEDURE "GENERATEPRICEFIXATIONDOCUMENT" (
    p_pfd_id           VARCHAR2,
    p_docrefno         VARCHAR2,
@@ -296,6 +296,7 @@ BEGIN
       AND pcbpd.is_active = 'Y'
       AND ppfh.is_active = 'Y'
       AND ppfh.ppfh_id = pfqpp.ppfh_id
+      AND NVL (pfd.is_hedge_correction, 'N') = 'N'
       AND pfd.pfd_id = p_pfd_id;
 
    /** for weighted avg price */
@@ -312,6 +313,7 @@ BEGIN
       AND pfd.is_hedge_correction = 'N'
       AND pfd.is_active = 'Y'
       AND pofh.is_active = 'Y'
+      AND NVL (pfd.is_hedge_correction, 'N') = 'N'
       AND pofh.pofh_id IN (SELECT pfd.pofh_id
                              FROM pfd_price_fixation_details pfd
                             WHERE pfd.pfd_id = p_pfd_id);
@@ -369,6 +371,7 @@ BEGIN
       AND pofh.pocd_id = pocd.pocd_id
       AND pocd.pricing_formula_id = ppfh.ppfh_id
       AND ppfh.ppfh_id = pfqpp.ppfh_id
+      AND NVL (pfd.is_hedge_correction, 'N') = 'N'
       AND pfd.pfd_id = p_pfd_id;
 
    IF (price_type = 'Average' AND is_delta_pricing = 'N')
@@ -404,6 +407,7 @@ BEGIN
              AND ppu.price_unit_id = pum.price_unit_id
              AND pfd.is_active = 'Y'
              AND pfam.is_active = 'Y'
+             AND NVL (pfd.is_hedge_correction, 'N') = 'N'
              AND (pfd.is_delta_pricing IS NULL OR pfd.is_delta_pricing != 'Y'
                  )
              AND pofh.pofh_id = p_pofh_id);
@@ -436,6 +440,7 @@ BEGIN
              AND pfd.price_unit_id = ppu.internal_price_unit_id
              AND ppu.price_unit_id = pum.price_unit_id
              AND pfd.is_active = 'Y'
+             AND NVL (pfd.is_hedge_correction, 'N') = 'N'
              AND pfam.is_active = 'Y'
              AND pfd.pfd_id = p_pfd_id);
    END IF;
