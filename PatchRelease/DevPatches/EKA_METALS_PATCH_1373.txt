@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1372
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek vijay
+ 
+Created on*        		:  21-Feb-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  74829
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Doc Gen
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 117488
+Author: abhishek.vijay
+Date: 6:10:52 PM, Thursday, February 21, 2013
+Message:
+hedge correction record is not coming in price fixation document 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+
+
+
