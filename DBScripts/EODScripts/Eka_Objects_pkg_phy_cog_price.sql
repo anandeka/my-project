@@ -29,7 +29,7 @@ create or replace package pkg_phy_cog_price is
                                          pc_user_id      varchar2,
                                          pc_dbd_id       varchar2,
                                          pc_process      varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -1800,63 +1800,31 @@ create or replace package body pkg_phy_cog_price is
                      cur_called_off_rows.final_price_unit_id;
             
             else
-             /*for cc1 in (select pofh.pofh_id
-                            from poch_price_opt_call_off_header poch,
-                                 pocd_price_option_calloff_dtls pocd,
-                                 pcbpd_pc_base_price_detail pcbpd,
-                                 ppfh_phy_price_formula_header ppfh,
-                                 pfqpp_phy_formula_qp_pricing pfqpp,
-                                 (select *
-                                    from pofh_price_opt_fixation_header pfh
-                                   where pfh.internal_gmr_ref_no is null
-                                     and pfh.is_active = 'Y') pofh,
-                                 v_ppu_pum ppu
-                           where poch.poch_id = pocd.poch_id
-                             and pocd.pcbpd_id = pcbpd.pcbpd_id
-                             and pcbpd.pcbpd_id = ppfh.pcbpd_id
-                             and ppfh.ppfh_id = pfqpp.ppfh_id
-                             and pocd.pocd_id = pofh.pocd_id(+)
-                             and pcbpd.pcbpd_id =
-                                 cur_called_off_rows.pcbpd_id
-                             and poch.poch_id = cur_called_off_rows.poch_id
-                             and ppfh.price_unit_id =
-                                 ppu.product_price_unit_id
-                             and poch.is_active = 'Y'
-                             and pocd.is_active = 'Y'
-                             and pcbpd.is_active = 'Y'
-                             and ppfh.is_active = 'Y'
-                             and pfqpp.is_active = 'Y'
-                             and pcbpd.process_id = pc_process_id
-                             and pfqpp.process_id = pc_process_id
-                             and ppfh.process_id = pc_process_id)
-              loop*/
-                vc_error_message := ' Line 240 ';
-                begin
-                   select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
-                          nvl(sum(pfd.qty_fixed), 0),
-                          pum.price_unit_id
-                    into vn_fixed_value,
-                         vn_fixed_qty,
-                         vc_fixed_price_unit_id                          
-                     from pfd_price_fixation_details pfd,
-                          ppu_product_price_units    ppu,
-                          pum_price_unit_master      pum
-                    where pfd.price_unit_id = ppu.internal_price_unit_id
-                      and ppu.price_unit_id = pum.price_unit_id
-                      and pfd.pofh_id = cur_called_off_rows.pofh_id-- cc1.pofh_id
-                      and pfd.is_active = 'Y'
-                      and pfd.hedge_correction_date <= pd_trade_date
-                      and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
-                    group by pum.price_unit_id;
-                exception
-                  when others then
-                    vn_fixed_value         := 0;
-                    vn_fixed_qty           := 0;
-                    vc_fixed_price_unit_id := null;
-                end;
-           --  end loop;
+              vc_error_message := ' Line 240 ';
+              begin
+                select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
+                       nvl(sum(pfd.qty_fixed), 0),
+                       pum.price_unit_id
+                  into vn_fixed_value,
+                       vn_fixed_qty,
+                       vc_fixed_price_unit_id
+                  from pfd_price_fixation_details pfd,
+                       ppu_product_price_units    ppu,
+                       pum_price_unit_master      pum
+                 where pfd.price_unit_id = ppu.internal_price_unit_id
+                   and ppu.price_unit_id = pum.price_unit_id
+                   and pfd.pofh_id = cur_called_off_rows.pofh_id -- cc1.pofh_id
+                   and pfd.is_active = 'Y'
+                   and pfd.hedge_correction_date <= pd_trade_date
+                   and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
+                 group by pum.price_unit_id;
+              exception
+                when others then
+                  vn_fixed_value         := 0;
+                  vn_fixed_qty           := 0;
+                  vc_fixed_price_unit_id := null;
+              end;
               vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
-            
               if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
                 vn_forward_days := 0;
                 vd_quotes_date  := pd_trade_date + 1;
@@ -2657,19 +2625,10 @@ create or replace package body pkg_phy_cog_price is
               into vn_fixed_value,
                    vn_fixed_qty,
                    vc_fixed_price_unit_id
-              from poch_price_opt_call_off_header poch,
-                   pocd_price_option_calloff_dtls pocd,
-                   pofh_price_opt_fixation_header pofh,
-                   pfd_price_fixation_details     pfd,
-                   v_ppu_pum                      ppu
-             where poch.poch_id = pocd.poch_id
-               and pocd.pocd_id = pofh.pocd_id
-               and pofh.pofh_id = cur_gmr_ele_rows.pofh_id
-               and pofh.pofh_id = pfd.pofh_id
+              from pfd_price_fixation_details pfd,
+                   v_ppu_pum                  ppu
+             where pfd.pofh_id = cur_gmr_ele_rows.pofh_id
                and pfd.hedge_correction_date <= pd_trade_date
-               and poch.is_active = 'Y'
-               and pocd.is_active = 'Y'
-               and pofh.is_active = 'Y'
                and pfd.is_active = 'Y'
                and ppu.product_price_unit_id = pfd.price_unit_id
                and (nvl(pfd.user_price, 0) * nvl(pfd.qty_fixed, 0)) <> 0
@@ -3054,125 +3013,21 @@ create or replace package body pkg_phy_cog_price is
          and gmr.internal_gmr_ref_no = page.internal_gmr_ref_no(+)
          and gmr.is_deleted = 'N';
     cursor cur_gmr_ele(pc_internal_gmr_ref_no varchar2, pc_element_id varchar2) is
-      select gpah.internal_gmr_ref_no,
-             pcbpd.element_id,
-             pcbpd.pcbpd_id,
-             pcbpd.qty_to_be_priced,
-             pcbpd.price_basis,
-             pdm.product_id,
-             pdm.base_quantity_unit base_qty_unit_id,
-             gpah.gpah_id,
-             nvl(gpah.final_price_in_pricing_cur, 0) final_price,
-             gpah.finalize_date,
-             pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
-        from poch_price_opt_call_off_header poch,
-             pocd_price_option_calloff_dtls pocd,
-             pofh_price_opt_fixation_header pofh,
-             pfd_price_fixation_details     pfd,
-             pcbpd_pc_base_price_detail     pcbpd,
-             pcbph_pc_base_price_header     pcbph,
-             gpah_gmr_price_alloc_header    gpah,
-             gpad_gmr_price_alloc_dtls      gpad,
-             pcdi_pc_delivery_item          pcdi,
-             aml_attribute_master_list      aml,
-             pdm_productmaster              pdm
-       where poch.poch_id = pocd.poch_id
-         and gpad.pfd_id = pfd.pfd_id
-         and pcdi.pcdi_id = poch.pcdi_id
-         and pocd.pocd_id = pofh.pocd_id(+)
-         and pcbpd.pcbpd_id = pocd.pcbpd_id
-         and pofh.pofh_id = pfd.pofh_id(+)
-         and pfd.is_active(+) = 'Y'
-         and pofh.is_active(+) = 'Y'
-         and pcbpd.pcbph_id = pcbph.pcbph_id
-         and pocd.pocd_id = gpah.pocd_id
-         and pocd.is_active = 'Y'
-         and poch.is_active = 'Y'
-         and gpah.is_active = 'Y'
-         and gpad.is_active = 'Y'
-         and pcdi.price_allocation_method = 'Price Allocation'
-         and nvl(pocd.is_any_day_pricing, 'N') = 'Y'
-         and pcbpd.process_id = pc_process_id
-         and pcbph.process_id = pc_process_id
-         and pcdi.process_id = pc_process_id
-         and pcbpd.element_id = aml.attribute_id
-         and aml.underlying_product_id = pdm.product_id
-         and gpah.internal_gmr_ref_no = pc_internal_gmr_ref_no
-         and pcbpd.element_id = pc_element_id
-         and gpah.element_id = poch.element_id
-         and gpad.gpah_id = gpah.gpah_id
-       group by gpah.internal_gmr_ref_no,
-                pcbpd.element_id,
-                pcbpd.pcbpd_id,
-                pcbpd.qty_to_be_priced,
-                pcbpd.price_basis,
-                pdm.product_id,
-                pdm.base_quantity_unit,
-                gpah.gpah_id,
-                nvl(gpah.final_price_in_pricing_cur, 0),
-                gpah.finalize_date,
-                pocd.final_price_unit_id,
-                pcbph.valuation_price_percentage / 100
-      union
-      select grd.internal_gmr_ref_no,
-             pcbpd.element_id,
-             pcbpd.pcbpd_id,
-             pcbpd.qty_to_be_priced,
-             pcbpd.price_basis,
-             pdm.product_id,
-             pdm.base_quantity_unit base_qty_unit_id,
-             null gpah_id,
-             0 final_price,
-             null finalize_date,
-             null final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
-        from poch_price_opt_call_off_header poch,
-             pocd_price_option_calloff_dtls pocd,
-             pofh_price_opt_fixation_header pofh,
-             pfd_price_fixation_details     pfd,
-             pcbpd_pc_base_price_detail     pcbpd,
-             pcbph_pc_base_price_header     pcbph,
-             pcdi_pc_delivery_item          pcdi,
-             aml_attribute_master_list      aml,
-             pdm_productmaster              pdm,
-             grd_goods_record_detail        grd
-       where poch.poch_id = pocd.poch_id
-         and pcdi.pcdi_id = poch.pcdi_id
-         and pocd.pocd_id = pofh.pocd_id
-         and pcbpd.pcbpd_id = pocd.pcbpd_id
-         and pofh.pofh_id = pfd.pofh_id(+)
-         and pfd.is_active(+) = 'Y'
-         and pofh.is_active(+) = 'Y'
-         and pcbpd.pcbph_id = pcbph.pcbph_id
-         and pocd.is_active = 'Y'
-         and poch.is_active = 'Y'
-         and pcdi.price_allocation_method = 'Price Allocation'
-         and nvl(pocd.is_any_day_pricing, 'N') = 'Y'
-         and pcbpd.process_id = pc_process_id
-         and pcbph.process_id = pc_process_id
-         and pcdi.process_id = pc_process_id
-         and pcbpd.element_id = aml.attribute_id
-         and aml.underlying_product_id = pdm.product_id
-         and pcbpd.element_id = pc_element_id
-         and grd.pcdi_id = pcdi.pcdi_id
-         and grd.internal_gmr_ref_no = pc_internal_gmr_ref_no
-         and grd.process_id = pc_process_id
-         and not exists
-       (select *
-                from gpah_gmr_price_alloc_header gpah
-               where gpah.is_active = 'Y'
-                 and gpah.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and gpah.element_id = pcbpd.element_id)
-       group by grd.internal_gmr_ref_no,
-                pofh.pofh_id,
-                pcbpd.element_id,
-                pcbpd.pcbpd_id,
-                pcbpd.qty_to_be_priced,
-                pcbpd.price_basis,
-                pdm.product_id,
-                pdm.base_quantity_unit,
-                pcbph.valuation_price_percentage / 100;
+      select gad.internal_gmr_ref_no,
+             gad.element_id,
+             gad.pcbpd_id,
+             gad.qty_to_be_priced,
+             gad.price_basis,
+             gad.product_id,
+             gad.base_qty_unit_id,
+             gad.gpah_id,
+             gad.final_price,
+             gad.finalize_date,
+             gad.final_price_unit_id,
+             gad.valuation_price_percentage
+        from gad_gmr_aloc_data gad
+       where gad.internal_gmr_ref_no = pc_internal_gmr_ref_no
+         and gad.element_id = pc_element_id;
   
     vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count           number := 1;
@@ -3320,6 +3175,12 @@ create or replace package body pkg_phy_cog_price is
                 pdc.is_daily_cal_applicable,
                 pdc.is_monthly_cal_applicable;
     commit;
+  
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          221,
+                          'PAGE Insert 1 Over');
     --
     -- Populate Price Allocation GMR Exchange Details where it is not allocated
     --
@@ -3438,6 +3299,179 @@ create or replace package body pkg_phy_cog_price is
                 pdc.is_daily_cal_applicable,
                 pdc.is_monthly_cal_applicable;
     commit;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          222,
+                          'PAGE Insert 1 Over');
+    delete from gad_gmr_aloc_data where corporate_id = pc_corporate_id;
+    commit;
+  
+    insert into gad_gmr_aloc_data
+      (corporate_id,
+       internal_gmr_ref_no,
+       element_id,
+       pcbpd_id,
+       qty_to_be_priced,
+       price_basis,
+       product_id,
+       base_qty_unit_id,
+       gpah_id,
+       final_price,
+       finalize_date,
+       final_price_unit_id,
+       valuation_price_percentage)
+      select pc_corporate_id,
+             gpah.internal_gmr_ref_no,
+             pcbpd.element_id,
+             pcbpd.pcbpd_id,
+             pcbpd.qty_to_be_priced,
+             pcbpd.price_basis,
+             pdm.product_id,
+             pdm.base_quantity_unit base_qty_unit_id,
+             gpah.gpah_id,
+             nvl(gpah.final_price_in_pricing_cur, 0) final_price,
+             gpah.finalize_date,
+             pocd.final_price_unit_id,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+        from poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             pcbpd_pc_base_price_detail     pcbpd,
+             pcbph_pc_base_price_header     pcbph,
+             gpah_gmr_price_alloc_header    gpah,
+             gpad_gmr_price_alloc_dtls      gpad,
+             pcdi_pc_delivery_item          pcdi,
+             aml_attribute_master_list      aml,
+             pdm_productmaster              pdm
+       where poch.poch_id = pocd.poch_id
+         and gpad.pfd_id = pfd.pfd_id
+         and pcdi.pcdi_id = poch.pcdi_id
+         and pocd.pocd_id = pofh.pocd_id(+)
+         and pcbpd.pcbpd_id = pocd.pcbpd_id
+         and pofh.pofh_id = pfd.pofh_id(+)
+         and pfd.is_active(+) = 'Y'
+         and pofh.is_active(+) = 'Y'
+         and pcbpd.pcbph_id = pcbph.pcbph_id
+         and pocd.pocd_id = gpah.pocd_id
+         and pocd.is_active = 'Y'
+         and poch.is_active = 'Y'
+         and gpah.is_active = 'Y'
+         and gpad.is_active = 'Y'
+         and pcdi.price_allocation_method = 'Price Allocation'
+         and nvl(pocd.is_any_day_pricing, 'N') = 'Y'
+         and pcbpd.process_id = pc_process_id
+         and pcbph.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcbpd.element_id = aml.attribute_id
+         and aml.underlying_product_id = pdm.product_id
+         and gpah.element_id = poch.element_id
+         and gpad.gpah_id = gpah.gpah_id
+       group by gpah.internal_gmr_ref_no,
+                pcbpd.element_id,
+                pcbpd.pcbpd_id,
+                pcbpd.qty_to_be_priced,
+                pcbpd.price_basis,
+                pdm.product_id,
+                pdm.base_quantity_unit,
+                gpah.gpah_id,
+                nvl(gpah.final_price_in_pricing_cur, 0),
+                gpah.finalize_date,
+                pocd.final_price_unit_id,
+                pcbph.valuation_price_percentage / 100;
+  
+    commit;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          223,
+                          'GAD Insert 1 Over');
+    insert into gad_gmr_aloc_data
+      (corporate_id,
+       internal_gmr_ref_no,
+       element_id,
+       pcbpd_id,
+       qty_to_be_priced,
+       price_basis,
+       product_id,
+       base_qty_unit_id,
+       gpah_id,
+       final_price,
+       finalize_date,
+       final_price_unit_id,
+       valuation_price_percentage)
+      select pc_corporate_id,
+             grd.internal_gmr_ref_no,
+             pcbpd.element_id,
+             pcbpd.pcbpd_id,
+             pcbpd.qty_to_be_priced,
+             pcbpd.price_basis,
+             pdm.product_id,
+             pdm.base_quantity_unit base_qty_unit_id,
+             null gpah_id,
+             0 final_price,
+             null finalize_date,
+             null final_price_unit_id,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+        from poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             pcbpd_pc_base_price_detail     pcbpd,
+             pcbph_pc_base_price_header     pcbph,
+             pcdi_pc_delivery_item          pcdi,
+             aml_attribute_master_list      aml,
+             pdm_productmaster              pdm,
+             grd_goods_record_detail        grd
+       where poch.poch_id = pocd.poch_id
+         and pcdi.pcdi_id = poch.pcdi_id
+         and pocd.pocd_id = pofh.pocd_id
+         and pcbpd.pcbpd_id = pocd.pcbpd_id
+         and pofh.pofh_id = pfd.pofh_id(+)
+         and pfd.is_active(+) = 'Y'
+         and pofh.is_active(+) = 'Y'
+         and pcbpd.pcbph_id = pcbph.pcbph_id
+         and pocd.is_active = 'Y'
+         and poch.is_active = 'Y'
+         and pcdi.price_allocation_method = 'Price Allocation'
+         and nvl(pocd.is_any_day_pricing, 'N') = 'Y'
+         and pcbpd.process_id = pc_process_id
+         and pcbph.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcbpd.element_id = aml.attribute_id
+         and aml.underlying_product_id = pdm.product_id
+         and grd.pcdi_id = pcdi.pcdi_id
+         and grd.process_id = pc_process_id
+         and not exists
+       (select *
+                from gpah_gmr_price_alloc_header gpah
+               where gpah.is_active = 'Y'
+                 and gpah.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                 and gpah.element_id = pcbpd.element_id)
+       group by grd.internal_gmr_ref_no,
+                pofh.pofh_id,
+                pcbpd.element_id,
+                pcbpd.pcbpd_id,
+                pcbpd.qty_to_be_priced,
+                pcbpd.price_basis,
+                pdm.product_id,
+                pdm.base_quantity_unit,
+                pcbph.valuation_price_percentage / 100;
+    commit;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          224,
+                          'GAD Insert 2 Over');
+    sp_gather_stats('page_price_alloc_gmr_exchange');
+    sp_gather_stats('gad_gmr_aloc_data');
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          225,
+                          'GMR Price Allocation Start');
+  
     for cur_gmr_rows in cur_gmr
     loop
       vn_total_contract_value      := 0;
@@ -3475,36 +3509,17 @@ create or replace package body pkg_phy_cog_price is
               into vn_fixed_value,
                    vn_fixed_qty,
                    vc_fixed_price_unit_id
-              from poch_price_opt_call_off_header poch,
-                   pocd_price_option_calloff_dtls pocd,
-                   pofh_price_opt_fixation_header pofh,
-                   pfd_price_fixation_details     pfd,
-                   pcbpd_pc_base_price_detail     pcbpd,
-                   pcbph_pc_base_price_header     pcbph,
-                   gpah_gmr_price_alloc_header    gpah,
-                   gpad_gmr_price_alloc_dtls      gpad,
-                   pcdi_pc_delivery_item          pcdi,
-                   v_ppu_pum                      ppu
-             where poch.poch_id = pocd.poch_id
-               and gpad.pfd_id = pfd.pfd_id
-               and pcdi.pcdi_id = poch.pcdi_id
-               and pocd.pocd_id = pofh.pocd_id(+)
-               and pcbpd.pcbpd_id = pocd.pcbpd_id
-               and pofh.pofh_id = pfd.pofh_id(+)
-               and pfd.is_active(+) = 'Y'
-               and pofh.is_active(+) = 'Y'
-               and pcbpd.pcbph_id = pcbph.pcbph_id
-               and pocd.pocd_id = gpah.pocd_id
-               and pocd.is_active = 'Y'
-               and poch.is_active = 'Y'
+              from gpah_gmr_price_alloc_header gpah,
+                   gpad_gmr_price_alloc_dtls   gpad,
+                   pfd_price_fixation_details  pfd,
+                   v_ppu_pum                   ppu
+             where gpad.pfd_id = pfd.pfd_id
+               and pfd.is_active = 'Y'
                and gpah.is_active = 'Y'
                and gpad.is_active = 'Y'
-               and pcbpd.process_id = pc_process_id
-               and pcbph.process_id = pc_process_id
-               and pcdi.process_id = pc_process_id
                and ppu.product_price_unit_id = pfd.price_unit_id
                and gpah.gpah_id = gpad.gpah_id
-               and gpah.element_id = poch.element_id
+               and gpah.element_id = cur_gmr_ele_rows.element_id
                and (nvl(pfd.user_price, 0) * nvl(gpad.allocated_qty, 0)) <> 0
                and gpah.gpah_id = cur_gmr_ele_rows.gpah_id
                and pfd.hedge_correction_date <= pd_trade_date
@@ -3835,5 +3850,5 @@ create or replace package body pkg_phy_cog_price is
       sp_insert_error_log(vobj_error_log);
       commit;
   end;
-end; 
+end;
 /
