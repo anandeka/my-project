@@ -16741,7 +16741,7 @@ insert into cbt_cb_temp
          grd.internal_grd_ref_no,
          grd.internal_stock_ref_no,
          grd.parent_internal_grd_ref_no,
-         grd_parent.internal_gmr_ref_no parent_internal_gmr_ref_no,
+         null parent_internal_gmr_ref_no,
          'Y' is_internal_movement,
          gmr.corporate_id,
          vc_corporate_name,
@@ -16815,8 +16815,7 @@ insert into cbt_cb_temp
          pqca_pq_chemical_attributes    pqca,
          pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
          rm_ratio_master                rm,
-         qum_quantity_unit_master       qum,
-         grd_goods_record_detail        grd_parent
+         qum_quantity_unit_master       qum
    where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
      and gmr.is_internal_movement = 'Y'
      and gmr.is_deleted = 'N'
@@ -16841,9 +16840,9 @@ insert into cbt_cb_temp
      and pqca.is_active = 'Y'
      and pqcapd.is_active = 'Y'
      and gmr.process_id = pc_process_id
-     and grd.process_id = pc_process_id
-     and grd.parent_internal_grd_ref_no = grd_parent.internal_grd_ref_no(+)
-     and grd_parent.process_id(+) = pc_process_id;
+     and grd.process_id = pc_process_id;
+--     and grd.parent_internal_grd_ref_no = grd_parent.internal_grd_ref_no(+)
+  --   and grd_parent.process_id(+) = pc_process_id;
     commit;
 gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -16906,7 +16905,7 @@ gvn_log_counter := gvn_log_counter + 1;
            grd.internal_grd_ref_no,
            grd.internal_stock_ref_no,
            grd.parent_internal_grd_ref_no,
-           grd_parent.internal_gmr_ref_no parent_internal_gmr_ref_no,
+           null parent_internal_gmr_ref_no,
            'Y' is_internal_movement,
            gmr.corporate_id,
            vc_corporate_name,
@@ -16968,8 +16967,8 @@ gvn_log_counter := gvn_log_counter + 1;
            aml_attribute_master_list   aml,
            pqca_pq_chemical_attributes pqca,
            rm_ratio_master             rm,
-           qum_quantity_unit_master    qum,
-           grd_goods_record_detail     grd_parent
+           qum_quantity_unit_master    qum--,
+          -- grd_goods_record_detail     grd_parent
      where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
        and gmr.is_internal_movement = 'Y'
        and gmr.is_deleted = 'N'
@@ -16997,10 +16996,9 @@ gvn_log_counter := gvn_log_counter + 1;
        and grd.current_qty <> 0
        and grd.tolling_stock_type in ('None Tolling')
        and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and grd.parent_internal_grd_ref_no =
-           grd_parent.internal_grd_ref_no(+)
-       and grd_parent.process_id(+) = pc_process_id;
+       and grd.process_id = pc_process_id;
+--       and grd.parent_internal_grd_ref_no = grd_parent.internal_grd_ref_no(+)
+  --     and grd_parent.process_id(+) = pc_process_id;
 commit;
 gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -17008,6 +17006,29 @@ gvn_log_counter := gvn_log_counter + 1;
                         pc_process_id,
                         gvn_log_counter,
                         'CB Insert CBT_CB_TEMP Penalty IM Over');
+
+gvn_log_counter := gvn_log_counter + 1;
+ sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'CB update CBT_CB_TEMP parent_internal_gmr_ref_no started');
+ update cbt_cb_temp ct
+     set ct.parent_internal_gmr_ref_no = (select max(grd.internal_gmr_ref_no)
+                                            from grd_goods_record_detail grd
+                                           where grd.internal_grd_ref_no =
+                                                 ct.parent_internal_grd_ref_no
+                                             and grd.process_id = pc_process_id)
+   where ct.parent_internal_gmr_ref_no is null
+     and ct.corporate_id = pc_corporate_id;
+commit; 
+gvn_log_counter := gvn_log_counter + 1;
+ sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'CB update CBT_CB_TEMP parent_internal_gmr_ref_no end');
+                       
 --
 -- all supplier stocks payable elements
 --
