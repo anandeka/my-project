@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1375
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  22-Feb-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  74827,75220,75225,75264,75265,75294
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+SQL Files
+===========
+
+Revision: 117637
+Author: sivachalabathi.s
+Date: 10:24:15 PM, Friday, February 22, 2013
+Message:
+BUG FIXES: 74827,75220,75225,75264,75265,75270,75271,75294
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/122_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
