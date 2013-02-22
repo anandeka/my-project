@@ -3181,6 +3181,14 @@ update pa_purchase_accural_gmr pa_gmr
            and pa_gmr_inn.tranascation_type = 'Calculated');
 end loop;
 commit;
+--- for pledge GMR calualted sectio should not include other,Fright charges(75274)
+update pa_purchase_accural_gmr pa_gmr
+   set pa_gmr.othercharges_amount = 0, 
+   pa_gmr.frightcharges_amount = 0
+ where pa_gmr.process_id = pc_process_id
+   and pa_gmr.is_pledge = 'Y'
+   and pa_gmr.tranascation_type = 'Calculated';
+ commit;  
   vn_log_counter := vn_log_counter + 1;
    sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -17712,13 +17720,16 @@ gvn_log_counter := gvn_log_counter + 1;
                         pc_process_id,
                         gvn_log_counter,
                         'CB Start Of Other Charge Updation');  
-
+-- updated suresh bug id:75225
 for cur_cbr_gmr_qty in (select cbr.parent_internal_gmr_ref_no,
-                                 sum(cbr.grd_wet_qty *
-                                     cbr.grd_to_gmr_qty_factor) gmr_qty
-                            from cbr_closing_balance_report cbr
-                           where cbr.process_id = pc_process_id
-                           group by cbr.parent_internal_gmr_ref_no)
+                               gmr.wet_qty gmr_qty
+                            from cbr_closing_balance_report cbr,
+                                 gmr_goods_movement_record  gmr
+                           where cbr.parent_internal_gmr_ref_no=gmr.internal_gmr_ref_no
+                             and cbr.process_id = pc_process_id
+                             and gmr.process_id=pc_process_id
+                             group by cbr.parent_internal_gmr_ref_no,
+                                     gmr.wet_qty)
   loop
     update cbr_closing_balance_report cbr
        set cbr.gmr_qty = cur_cbr_gmr_qty.gmr_qty

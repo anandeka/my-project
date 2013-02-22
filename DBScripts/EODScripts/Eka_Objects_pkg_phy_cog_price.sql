@@ -29,7 +29,7 @@ create or replace package pkg_phy_cog_price is
                                          pc_user_id      varchar2,
                                          pc_dbd_id       varchar2,
                                          pc_process      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -159,6 +159,7 @@ create or replace package body pkg_phy_cog_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
+             pocd.pay_in_price_unit_id,
              pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
@@ -323,8 +324,11 @@ create or replace package body pkg_phy_cog_price is
                   when others then
                     vn_fixed_value         := 0;
                     vn_fixed_qty           := 0;
-                    vc_fixed_price_unit_id := null;
+                    vc_fixed_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
                 end;
+                if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
+                 vc_fixed_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
+                end if;
                 vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
                 if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
                   vn_forward_days := 0;
@@ -536,11 +540,9 @@ create or replace package body pkg_phy_cog_price is
                   vn_fixed_qty   := 0;
                 end if;
                 vn_total_quantity := vn_fixed_qty + vn_unfixed_qty;
-                if vc_fixed_price_unit_id is not null then
+         
                   vc_price_unit_id := vc_fixed_price_unit_id;
-                else
-                  vc_price_unit_id := vc_unfixed_val_price_unit_id;
-                end if;
+              
               
                 begin
                   select ppu.product_price_unit_id
@@ -1135,6 +1137,7 @@ create or replace package body pkg_phy_cog_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
+             pocd.pay_in_price_unit_id,
              pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
@@ -1234,8 +1237,11 @@ create or replace package body pkg_phy_cog_price is
             when others then
               vn_fixed_value         := 0;
               vn_fixed_qty           := 0;
-              vc_fixed_price_unit_id := null;
+              vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
           end;
+          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
+          vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+          end if;
           vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
         
           if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
@@ -1447,12 +1453,9 @@ create or replace package body pkg_phy_cog_price is
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
           end if;
-          vn_total_quantity := vn_fixed_qty + vn_unfixed_qty;
-          if vc_fixed_price_unit_id is not null then
-            vc_price_unit_id := vc_fixed_price_unit_id;
-          else
-            vc_price_unit_id := vc_unfixed_val_price_unit_id;
-          end if;
+          vn_total_quantity := vn_fixed_qty + vn_unfixed_qty;         
+          vc_price_unit_id := vc_fixed_price_unit_id;
+         
           begin
             select ppu.product_price_unit_id
               into vc_price_unit_id
@@ -1654,6 +1657,7 @@ create or replace package body pkg_phy_cog_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
+             pocd.pay_in_price_unit_id,
              pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
@@ -1822,8 +1826,11 @@ create or replace package body pkg_phy_cog_price is
                 when others then
                   vn_fixed_value         := 0;
                   vn_fixed_qty           := 0;
-                  vc_fixed_price_unit_id := null;
+                  vc_fixed_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
               end;
+              if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
+              vc_fixed_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
+              end if;
               vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
               if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
                 vn_forward_days := 0;
@@ -2043,12 +2050,7 @@ create or replace package body pkg_phy_cog_price is
                                          ((vn_qty_to_be_priced / 100) *
                                          (vn_fixed_value +
                                          vn_unfixed_value));
-            
-              if vc_fixed_price_unit_id is not null then
-                vc_price_unit_id := vc_fixed_price_unit_id;
-              else
-                vc_price_unit_id := vc_unfixed_val_price_unit_id;
-              end if;
+                vc_price_unit_id := vc_fixed_price_unit_id;              
             end if;
             begin
               select ppu.product_price_unit_id
@@ -2536,6 +2538,7 @@ create or replace package body pkg_phy_cog_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
+             pocd.pay_in_price_unit_id,
              pcbph.valuation_price_percentage / 100 valuation_price_percentage
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
@@ -2638,8 +2641,12 @@ create or replace package body pkg_phy_cog_price is
             when others then
               vn_fixed_value         := 0;
               vn_fixed_qty           := 0;
-              vc_fixed_price_unit_id := null;
+              vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;-- suresh
           end;
+          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
+          vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+          end if;
+          
           vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
           vn_unfixed_qty      := cur_gmr_rows.payable_qty - vn_fixed_qty;
           if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
@@ -2846,12 +2853,8 @@ create or replace package body pkg_phy_cog_price is
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
           end if;
-        
-          if vc_fixed_price_unit_id is not null then
-            vc_price_unit_id := vc_fixed_price_unit_id;
-          else
-            vc_price_unit_id := vc_unfixed_val_price_unit_id;
-          end if;
+                
+            vc_price_unit_id := vc_fixed_price_unit_id;          
         
           --vn_total_quantity       := cur_gmr_rows.payable_qty;
           vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
@@ -3024,7 +3027,8 @@ create or replace package body pkg_phy_cog_price is
              gad.final_price,
              gad.finalize_date,
              gad.final_price_unit_id,
-             gad.valuation_price_percentage
+             gad.valuation_price_percentage,
+             gad.pay_in_price_unit_id
         from gad_gmr_aloc_data gad
        where gad.internal_gmr_ref_no = pc_internal_gmr_ref_no
          and gad.element_id = pc_element_id;
@@ -3400,7 +3404,8 @@ create or replace package body pkg_phy_cog_price is
        final_price,
        finalize_date,
        final_price_unit_id,
-       valuation_price_percentage)
+       valuation_price_percentage,
+       pay_in_price_unit_id)
       select pc_corporate_id,
              grd.internal_gmr_ref_no,
              pcbpd.element_id,
@@ -3413,7 +3418,8 @@ create or replace package body pkg_phy_cog_price is
              0 final_price,
              null finalize_date,
              null final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage,
+             pocd.pay_in_price_unit_id
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,
@@ -3457,7 +3463,8 @@ create or replace package body pkg_phy_cog_price is
                 pcbpd.price_basis,
                 pdm.product_id,
                 pdm.base_quantity_unit,
-                pcbph.valuation_price_percentage / 100;
+                pcbph.valuation_price_percentage / 100,
+                 pocd.pay_in_price_unit_id;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -3528,8 +3535,11 @@ create or replace package body pkg_phy_cog_price is
             when others then
               vn_fixed_value         := 0;
               vn_fixed_qty           := 0;
-              vc_fixed_price_unit_id := null;
+              vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
           end;
+          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
+          vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+          end if;
           vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
           vn_unfixed_qty      := cur_gmr_rows.payable_qty - vn_fixed_qty;
           if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
@@ -3736,12 +3746,7 @@ create or replace package body pkg_phy_cog_price is
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
           end if;
-        
-          if vc_fixed_price_unit_id is not null then
-            vc_price_unit_id := vc_fixed_price_unit_id;
-          else
-            vc_price_unit_id := vc_unfixed_val_price_unit_id;
-          end if;
+         vc_price_unit_id := vc_fixed_price_unit_id;      
           vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
           vn_total_contract_value := vn_total_contract_value +
                                      ((vn_qty_to_be_priced / 100) *
@@ -3850,5 +3855,5 @@ create or replace package body pkg_phy_cog_price is
       sp_insert_error_log(vobj_error_log);
       commit;
   end;
-end;
+end; 
 /

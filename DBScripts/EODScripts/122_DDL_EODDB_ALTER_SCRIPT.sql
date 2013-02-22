@@ -1,0 +1,1 @@
+alter table gad_gmr_aloc_data add PAY_IN_PRICE_UNIT_ID VARCHAR2 (30);
