@@ -67,7 +67,28 @@ pofh_header_data as
              from pfd_price_fixation_details pfd
             where pfd.is_active = 'Y'
             and pfd.is_exposure='Y'
-         group by pfd.pofh_id)          
+         group by pfd.pofh_id),
+ppfd as
+(select ppfd.ppfh_id,
+               ppfd.instrument_id,
+               emt.exchange_id,
+               emt.exchange_name
+          from ppfd_phy_price_formula_details ppfd,
+               dim_der_instrument_master      dim,
+               pdd_product_derivative_def     pdd,
+               emt_exchangemaster             emt
+         where ppfd.is_active = 'Y'
+           and ppfd.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.exchange_id = emt.exchange_id
+         group by ppfd.ppfh_id,
+                  ppfd.instrument_id,
+                  emt.exchange_id,
+                  emt.exchange_name),
+--Adding code  on 22nd Feb 2013         ::Raj               
+pcbpd_id_wise_str_dt_info as(
+    select * from table(f_get_pricing_mth_strt_end_dt))
+--End of code on 22nd Feb 2013                                  
 --1 Any Day Pricing Base Metal +Contract + Not Called Off + Excluding Event Based          
 select ak.corporate_id,
        ak.corporate_name,
@@ -173,22 +194,7 @@ select ak.corporate_id,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
        pdm_productmaster pdm,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        cpc_corporate_profit_center cpc,
        v_pci_multiple_premium vp, 
        pfqpp_table pfqpp,
@@ -309,22 +315,7 @@ select ak.corporate_id,
        pcpd_pc_product_definition pcpd,
        css_corporate_strategy_setup css,
        pdm_productmaster pdm,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        cpc_corporate_profit_center cpc,
        v_pci_multiple_premium vp, 
        pfqpp_table pfqpp,
@@ -364,8 +355,10 @@ select ak.corporate_id,
        pdm.product_id,
        pdm.product_desc product,
        pcm.contract_type product_type,       
-       f_get_pricing_month_start_date(pocd.pcbpd_id) qp_start_date,
-       f_get_pricing_month(pocd.pcbpd_id) qp_end_date,       
+       --f_get_pricing_month_start_date(pocd.pcbpd_id) qp_start_date,
+       pstrt.start_date qp_start_date,
+--       f_get_pricing_month(pocd.pcbpd_id) qp_end_date,       
+       to_char(pstrt.end_date,'dd-Mon-rrrr') qp_end_date,
        ppfd.instrument_id,
        0 pricing_days,       
        'Y' is_base_metal,
@@ -459,27 +452,13 @@ select ak.corporate_id,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
        pofh_header_data pofh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        pfd_fixation_data pfd,
        cpc_corporate_profit_center cpc,
        v_pci_multiple_premium vp,
        pfqpp_table pfqpp,
-       qum_quantity_unit_master qum
+       qum_quantity_unit_master qum,
+       pcbpd_id_wise_str_dt_info pstrt
  where ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.pcdi_id = diqs.pcdi_id
@@ -515,6 +494,8 @@ select ak.corporate_id,
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
+   and pocd.pcbpd_id = pstrt.pcbpd_id(+)
+   and pocd.poch_id = pstrt.poch_id(+)
 union all
 -- 4 Any Day Pricing Base Metal +GMR
 select ak.corporate_id,
@@ -596,22 +577,7 @@ select ak.corporate_id,
        pcbph_pc_base_price_header pcbph,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        pofh_price_opt_fixation_header pofh,
        pfd_price_fixation_details pfd,
        cpc_corporate_profit_center cpc,
@@ -809,22 +775,7 @@ select   ak.corporate_id,
        css_corporate_strategy_setup css,
        pfqpp_table pfqpp,    
        ppfh_phy_price_formula_header ppfh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        qum_quantity_unit_master qum,
        cpc_corporate_profit_center cpc,
        v_pci_multiple_premium vp
@@ -939,22 +890,7 @@ select   ak.corporate_id,
        di_del_item_exp_qp_details di,
        pfqpp_table pfqpp,    
        ppfh_phy_price_formula_header ppfh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        qum_quantity_unit_master qum,
        cpc_corporate_profit_center cpc,
        v_pci_multiple_premium vp
@@ -994,8 +930,10 @@ select   ak.corporate_id,
        pdm.product_id,
        pdm.product_desc product,
        pcm.contract_type product_type,
-       f_get_pricing_month_start_date(pocd.pcbpd_id) qp_start_date,
-       f_get_pricing_month(pocd.pcbpd_id) qp_end_date,
+       --f_get_pricing_month_start_date(pocd.pcbpd_id) qp_start_date,
+       pstrt.start_date qp_start_date,
+--       f_get_pricing_month(pocd.pcbpd_id) qp_end_date,       
+       to_char(pstrt.end_date,'dd-Mon-rrrr') qp_end_date,
        ppfd.instrument_id,
        0 pricing_days,
        'Y' is_base_metal,
@@ -1080,27 +1018,13 @@ select   ak.corporate_id,
        pocd_price_option_calloff_dtls pocd,
        pfqpp_table pfqpp,
        ppfh_phy_price_formula_header ppfh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        qum_quantity_unit_master qum,
        pofh_header_data pofh,
        cpc_corporate_profit_center cpc,
        --pfqpp_phy_formula_qp_pricing pfqpp,
-       v_pci_multiple_premium vp
+       v_pci_multiple_premium vp,
+       pcbpd_id_wise_str_dt_info pstrt
  where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
@@ -1128,6 +1052,8 @@ select   ak.corporate_id,
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y' 
+   and pocd.pcbpd_id = pstrt.pcbpd_id(+)
+    and pocd.poch_id = pstrt.poch_id(+)
 -- 8 Average Pricing Base Metal+GMR
    union all
    select ak.corporate_id,
@@ -1208,22 +1134,7 @@ select   ak.corporate_id,
        pocd_price_option_calloff_dtls pocd,
        pfqpp_table pfqpp,
        ppfh_phy_price_formula_header ppfh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        qum_quantity_unit_master qum,
        vd_voyage_detail vd,
        pofh_price_opt_fixation_header pofh,
@@ -1273,8 +1184,10 @@ select   ak.corporate_id,
        pdm.product_id,
        pdm.product_desc product,
        pcm.contract_type product_type,
-       f_get_pricing_month_start_date(pfqpp.pcbpd_id) qp_start_date,
-       f_get_pricing_month(pfqpp.pcbpd_id) qp_end_date,
+       --f_get_pricing_month_start_date(pfqpp.pcbpd_id) qp_start_date,
+       pstrt.start_date qp_start_date,
+       --f_get_pricing_month(pfqpp.pcbpd_id) qp_end_date,
+       to_char(pstrt.end_date,'dd-Mon-rrrr') qp_end_date,
        ppfd.instrument_id,
        0 pricing_days,
        'Y' is_base_metal,
@@ -1347,34 +1260,23 @@ select   ak.corporate_id,
   from pcm_physical_contract_main pcm,
        ak_corporate ak,       
        pcdi_pc_delivery_item pcdi,
+       poch_price_opt_call_off_header poch,
+       pocd_price_option_calloff_dtls pocd,
        diqs_delivery_item_qty_status diqs,
       pcpd_pc_product_definition pcpd,
       pdm_productmaster pdm,
       css_corporate_strategy_setup css,
       pfqpp_table pfqpp,     
       ppfh_phy_price_formula_header ppfh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        v_pci_multiple_premium vp,
        cpc_corporate_profit_center cpc,
-       qum_quantity_unit_master qum       
-       
+       qum_quantity_unit_master qum ,      
+       pcbpd_id_wise_str_dt_info pstrt
  where ak.corporate_id = pcm.corporate_id   
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.poch_id = pocd.poch_id
    and pcdi.pcdi_id = diqs.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pdm.product_id = pcpd.product_id
@@ -1392,7 +1294,11 @@ select   ak.corporate_id,
    and pcdi.price_option_call_off_status = 'Not Called Off'
    and pfqpp.is_qp_any_day_basis = 'Y'
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
+   and poch.is_active = 'Y'
+   and pocd.is_active = 'Y'
    and qum.qty_unit_id = pdm.base_quantity_unit
+   and pocd.pcbpd_id = pstrt.pcbpd_id(+)
+   and pocd.poch_id = pstrt.poch_id(+)
 union all
 -- 10 Fixed by Price Request Base Metal +Contract + Not Called Off + Event Based 9
 select ak.corporate_id,
@@ -1476,22 +1382,7 @@ select ak.corporate_id,
       css_corporate_strategy_setup css,
       pfqpp_table pfqpp,     
       ppfh_phy_price_formula_header ppfh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        v_pci_multiple_premium vp,
        cpc_corporate_profit_center cpc,
        qum_quantity_unit_master qum       
@@ -1528,8 +1419,10 @@ select ak.corporate_id,
        pdm.product_id,
        pdm.product_desc product,
        pcm.contract_type product_type,
-       f_get_pricing_month_start_date(pocd.pcbpd_id) qp_start_date,
-       f_get_pricing_month(pocd.pcbpd_id) qp_end_date,
+       --f_get_pricing_month_start_date(pocd.pcbpd_id) qp_start_date,
+       pstrt.start_date qp_start_date,
+       --f_get_pricing_month(pocd.pcbpd_id) qp_end_date,
+       to_char(pstrt.end_date,'dd-Mon-rrrr') qp_end_date,
        ppfd.instrument_id,
        0 pricing_days,
        'Y' is_base_metal,
@@ -1612,28 +1505,14 @@ select ak.corporate_id,
        pocd_price_option_calloff_dtls pocd,
        
        ppfh_phy_price_formula_header ppfh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        pofh_price_opt_fixation_header pofh,
        pfd_price_fixation_details pfd,
        v_pci_multiple_premium vp,
        cpc_corporate_profit_center cpc,
        qum_quantity_unit_master qum,
-       pfqpp_table pfqpp
+       pfqpp_table pfqpp,
+       pcbpd_id_wise_str_dt_info pstrt
  where ak.corporate_id = pcm.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
@@ -1661,6 +1540,8 @@ select ak.corporate_id,
    and pfd.is_price_request = 'Y'
    and pfd.is_exposure='Y'
    and /*pfd.as_of_date*/pfd.hedge_correction_date > trunc(sysdate) --siva
+   and pocd.pcbpd_id = pstrt.pcbpd_id(+)
+    and pocd.poch_id = pstrt.poch_id(+)
 --and ak.corporate_id = '{?CorporateID}'
  group by ak.corporate_id,
           ak.corporate_name,
@@ -1705,7 +1586,9 @@ select ak.corporate_id,
           pcdi.basis_type,
           pcdi.transit_days,
           pcdi.is_price_optionality_present,
-          pcdi.price_option_call_off_status
+          pcdi.price_option_call_off_status,
+          pstrt.start_date,
+          to_char(pstrt.end_date,'dd-Mon-rrrr')
 ---- 12  Fixed by Price Request Base Metal +GMR 11
 union all
 select ak.corporate_id,
@@ -1783,22 +1666,7 @@ select ak.corporate_id,
        pocd_price_option_calloff_dtls pocd,
        pfqpp_table  pfqpp,       
        ppfh_phy_price_formula_header ppfh,
-       (select ppfd.ppfh_id,
-               ppfd.instrument_id,
-               emt.exchange_id,
-               emt.exchange_name
-          from ppfd_phy_price_formula_details ppfd,
-               dim_der_instrument_master      dim,
-               pdd_product_derivative_def     pdd,
-               emt_exchangemaster             emt
-         where ppfd.is_active = 'Y'
-           and ppfd.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.exchange_id = emt.exchange_id
-         group by ppfd.ppfh_id,
-                  ppfd.instrument_id,
-                  emt.exchange_id,
-                  emt.exchange_name) ppfd,
+       ppfd ppfd,
        pofh_price_opt_fixation_header pofh,
        pfd_price_fixation_details pfd,
        gmr_goods_movement_record gmr,
