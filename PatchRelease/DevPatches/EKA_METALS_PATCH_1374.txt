@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1374
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  22-Feb-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  75270,75271,74827
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+SQL Files
+===========
+
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_502.sql		(Revision: 117638)
+
+
+RPT Files:
+============
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt		(Revision: 117634)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport.rpt			(Revision: 117621)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingBalanceReport.rpt		(Revision: 117621)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport.rpt		(Revision: 117621)
