@@ -535,7 +535,7 @@ create or replace package body pkg_phy_cog_price is
                 -- If Both Fixed and Unfixed Quantities are there then we have two prices
                 -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
                 --
-                if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+              --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
                   if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
                     select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
                                                                                vn_unfixed_val_price,
@@ -547,7 +547,7 @@ create or replace package body pkg_phy_cog_price is
                       from dual;
                   end if;
                 
-                end if;
+               -- end if;
                 if vn_unfixed_qty > 0 then
                   vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
                 else
@@ -1467,7 +1467,7 @@ create or replace package body pkg_phy_cog_price is
           -- If Both Fixed and Unfixed Quantities are there then we have two prices
           -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
           --
-          if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+        --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
             if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
               select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
                                                                          vn_unfixed_val_price,
@@ -1479,7 +1479,7 @@ create or replace package body pkg_phy_cog_price is
                 from dual;
             end if;
           
-          end if;
+        --  end if;
           if vn_unfixed_qty > 0 then
             vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
           else
@@ -2078,7 +2078,7 @@ create or replace package body pkg_phy_cog_price is
               -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
               --
               vc_error_message := ' Line 431 ';
-              if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+            --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
                 if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
                   select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
                                                                              vn_unfixed_val_price,
@@ -2090,7 +2090,7 @@ create or replace package body pkg_phy_cog_price is
                     from dual;
                 end if;
               
-              end if;
+           --   end if;
               vc_error_message := ' Line 444';
               if vn_unfixed_qty > 0 then
                 vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
@@ -2910,7 +2910,7 @@ create or replace package body pkg_phy_cog_price is
           -- If Both Fixed and Unfixed Quantities are there then we have two prices
           -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
           --
-          if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+        --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
             if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
               select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
                                                                          vn_unfixed_val_price,
@@ -2922,7 +2922,7 @@ create or replace package body pkg_phy_cog_price is
                 from dual;
             end if;
           
-          end if;
+       --   end if;
           if vn_unfixed_qty > 0 then
             vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
           else
@@ -3358,6 +3358,11 @@ create or replace package body pkg_phy_cog_price is
          and div.price_unit_id = pum.price_unit_id
          and dim.instrument_id = vdip.instrument_id
          and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id
+              and not exists
+       (select *
+                from cgcp_conc_gmr_cog_price cgcp
+               where cgcp.element_id = poch.element_id
+                 and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no)
          and not exists
        (select *
                 from gpah_gmr_price_alloc_header gpah
@@ -3530,6 +3535,11 @@ create or replace package body pkg_phy_cog_price is
          and aml.underlying_product_id = pdm.product_id
          and grd.pcdi_id = pcdi.pcdi_id
          and grd.process_id = pc_process_id
+           and not exists
+       (select *
+                from cgcp_conc_gmr_cog_price cgcp
+               where cgcp.element_id = poch.element_id
+                 and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no)
          and not exists
        (select *
                 from gpah_gmr_price_alloc_header gpah
@@ -3821,7 +3831,7 @@ create or replace package body pkg_phy_cog_price is
           -- If Both Fixed and Unfixed Quantities are there then we have two prices
           -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
           --
-          if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+       --   if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
             if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
               select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
                                                                          vn_unfixed_val_price,
@@ -3833,7 +3843,7 @@ create or replace package body pkg_phy_cog_price is
                 from dual;
             end if;
           
-          end if;
+         -- end if;
           if vn_unfixed_qty > 0 then
             vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
           else
