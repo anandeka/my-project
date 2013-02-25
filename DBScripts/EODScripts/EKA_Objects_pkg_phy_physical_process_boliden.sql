@@ -52,7 +52,7 @@ create or replace package pkg_phy_physical_process is
                                 pc_process_id   varchar2);
   procedure sp_phy_rebuild_stats;
 
-end;
+end; 
 /
 create or replace package body pkg_phy_physical_process is
 
@@ -1680,6 +1680,38 @@ create or replace package body pkg_phy_physical_process is
            (select sswh.sswh_id
               from sswh_spe_settle_washout_header sswh
              where sswh.process_id = pc_process_id);
+    --- added suresh   
+    update pca_physical_contract_action pca
+       set process_id = pc_process_id
+     where process_id is null
+       and (pca.internal_action_ref_no) in
+           (select axs.internal_action_ref_no
+              from axs_action_summary axs
+             where axs.internal_action_ref_no = pca.internal_action_ref_no
+               and axs.eff_date <= pd_trade_date
+               and axs.corporate_id = pc_corporate_id)
+       and pca.dbd_id in
+           (select dbd.dbd_id
+              from dbd_database_dump dbd
+             where dbd.corporate_id = pc_corporate_id
+               and dbd.process = gvc_process
+               and dbd.trade_date <= pd_trade_date);
+               
+      update cod_call_off_details cod
+       set process_id = pc_process_id
+     where process_id is null
+       and (cod.internal_action_ref_no) in
+           (select axs.internal_action_ref_no
+              from axs_action_summary axs
+             where axs.internal_action_ref_no = cod.internal_action_ref_no
+               and axs.eff_date <= pd_trade_date
+               and axs.corporate_id = pc_corporate_id)
+         and cod.dbd_id in
+           (select dbd.dbd_id
+              from dbd_database_dump dbd
+             where dbd.corporate_id = pc_corporate_id
+               and dbd.process = gvc_process
+               and dbd.trade_date <= pd_trade_date);            
   exception
     when others then
       vobj_error_log.extend;
@@ -4133,6 +4165,8 @@ create or replace package body pkg_phy_physical_process is
     update sswd_spe_settle_washout_detail
        set process_id = null
      where process_id = pc_process_id;
+    delete from pca_physical_contract_action where dbd_id = vc_dbd_id;
+    delete from cod_call_off_details where dbd_id = vc_dbd_id;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -4180,5 +4214,5 @@ create or replace package body pkg_phy_physical_process is
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end;
+end; 
 /

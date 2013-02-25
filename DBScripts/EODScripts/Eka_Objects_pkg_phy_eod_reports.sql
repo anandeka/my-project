@@ -444,7 +444,7 @@ create or replace package body pkg_phy_eod_reports is
                where psud.corporate_id = pc_corporate_id
                  and psud.process_id in (vc_prev_process_id, pc_process_id)
                  and psud.main_section = 'Physical'
-                 and psud.sub_section = 'Unrealized'
+                 and psud.sub_section = 'Inventory'
                  and psud.entity = 'Stock'
                group by psud.corporate_id,
                         psud.corporate_name,
@@ -496,7 +496,7 @@ create or replace package body pkg_phy_eod_reports is
                        group by mec1.corporate_id) prev_month_data
                where psum.corporate_id = pc_corporate_id
                  and psum.main_section = 'Physical'
-                 and psum.sub_section = 'Unrealized'
+                 and psum.sub_section = 'Inventory'
                  and psum.entity = 'Stock'
                  and psum.process_id = prev_month_data.month_process_id
                  and psum.corporate_id = prev_month_data.corporate_id
@@ -534,7 +534,7 @@ create or replace package body pkg_phy_eod_reports is
                 from pps_physical_pnl_summary psum
                where psum.corporate_id = pc_corporate_id
                  and psum.main_section = 'Physical'
-                 and psum.sub_section = 'Unrealized'
+                 and psum.sub_section = 'Inventory'
                  and psum.entity = 'Stock'
                  and psum.process_id = vc_prev_eom_ref_no
                group by psum.corporate_id,
@@ -1350,7 +1350,7 @@ create or replace package body pkg_phy_eod_reports is
              cpc.profit_center_short_name,
              cpc.profit_center_name,
              'Physical' as main_section,
-             'Unrealized' as sub_section,
+             'Inventory' as sub_section,
              'Stock' entity,
              sum(psu.pnl_in_base_cur),
              psu.base_cur_id,
@@ -1422,7 +1422,7 @@ create or replace package body pkg_phy_eod_reports is
              cpc.profit_center_short_name,
              cpc.profit_center_name,
              'Physical' as main_section,
-             'Unrealized' as sub_section,
+             'Inventory' as sub_section,
              'Stock' entity,
              sum(psue.pnl_in_base_cur),
              psue.base_cur_id,

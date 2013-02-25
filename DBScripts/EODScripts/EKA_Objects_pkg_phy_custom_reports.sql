@@ -2974,15 +2974,15 @@ create or replace package body pkg_phy_custom_reports is
                              and pcdi.price_option_call_off_status in
                                  ('Not Called Off')
                              and exists
-                           (select pcmul.internal_contract_ref_no
-                                    from pcmul_phy_contract_main_ul pcmul
-                                   where pcmul.dbd_id = pc_dbd_id
-                                     and pcmul.internal_contract_ref_no =
-                                         pcm.internal_contract_ref_no
-                                     and pcmul.entry_type = 'Update'
-                                     and pcm.approval_status = 'Approved'
-                                     and nvl(pcmul.contract_status, 'none') <>
-                                         'Cancelled')
+                           (select pca.internal_contract_ref_no
+                              from pca_physical_contract_action pca
+                            where pca.internal_contract_ref_no=pcm.internal_contract_ref_no
+                             and pca.process_id=pc_process_id
+                             union
+                             select cod.contract_ref_no
+                              from cod_call_off_details cod
+                                   where cod.contract_ref_no = pcm.internal_contract_ref_no
+                                   and cod.process_id=pc_process_id)
                              and exists
                            (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in
@@ -3178,15 +3178,15 @@ create or replace package body pkg_phy_custom_reports is
                              and pcdi.price_option_call_off_status in
                                  ('Not Applicable', 'Called Off')
                              and exists
-                           (select pcmul.internal_contract_ref_no
-                                    from pcmul_phy_contract_main_ul pcmul
-                                   where pcmul.dbd_id = pc_dbd_id
-                                     and pcmul.internal_contract_ref_no =
-                                         pcm.internal_contract_ref_no
-                                     and pcmul.entry_type = 'Update'
-                                     and pcm.approval_status = 'Approved'
-                                     and nvl(pcmul.contract_status, 'none') <>
-                                         'Cancelled')
+                           (select pca.internal_contract_ref_no
+                              from pca_physical_contract_action pca
+                            where pca.internal_contract_ref_no=pcm.internal_contract_ref_no
+                             and pca.process_id=pc_process_id
+                             union
+                             select cod.contract_ref_no
+                              from cod_call_off_details cod
+                                   where cod.contract_ref_no = pcm.internal_contract_ref_no
+                                   and cod.process_id=pc_process_id)
                              and exists
                            (select pcm_in.internal_contract_ref_no
                                     from pcm_physical_contract_main pcm_in

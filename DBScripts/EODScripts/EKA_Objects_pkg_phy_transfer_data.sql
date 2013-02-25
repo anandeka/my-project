@@ -3879,6 +3879,66 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
                 from sswh_spe_settle_washout_header sswh
                where sswh.dbd_id = pc_dbd_id);
     commit;
+   --- Added Suresh 
+    insert into pca_physical_contract_action
+    (pca_id,
+     internal_contract_ref_no,
+     internal_action_ref_no,
+     version,
+     is_active,
+     dbd_id)
+    select pca.pca_id,
+           pca.internal_contract_ref_no,
+           pca.internal_action_ref_no,
+           pca.version,
+           pca.is_active,
+           pc_dbd_id
+      from pca_physical_contract_action@eka_appdb pca,
+           axs_action_summary@eka_appdb              axs
+     where pca.internal_action_ref_no = axs.internal_action_ref_no
+       and axs.corporate_id = pc_corporate_id
+       and axs.created_date > pt_previous_pull_date
+       and axs.created_date <= pt_current_pull_date;
+  commit;
+  
+  insert into cod_call_off_details
+  (cod_id,
+   contract_ref_no,
+   pcdi_id,
+   internal_action_ref_no,
+   called_off_qty,
+   unit_of_measure,
+   pcpq_id,
+   quality_name,
+   inco_term_location,
+   incoterm_id,
+   internal_contract_item_ref_no,
+   version,
+   is_active,
+   call_off_date,
+   dbd_id)
+  select cod.cod_id,
+         cod.contract_ref_no,
+         cod.pcdi_id,
+         cod.internal_action_ref_no,
+         cod.called_off_qty,
+         cod.unit_of_measure,
+         cod.pcpq_id,
+         cod.quality_name,
+         cod.inco_term_location,
+         cod.incoterm_id,
+         cod.internal_contract_item_ref_no,
+         cod.version,
+         cod.is_active,
+         cod.call_off_date,
+         pc_dbd_id
+    from cod_call_off_details@eka_appdb cod,
+         axs_action_summary@eka_appdb   axs
+   where cod.internal_action_ref_no = axs.internal_action_ref_no
+     and axs.corporate_id = pc_corporate_id
+     and axs.created_date > pt_previous_pull_date
+     and axs.created_date <= pt_current_pull_date;
+    commit;
   exception
     when others then
       vobj_error_log.extend;
