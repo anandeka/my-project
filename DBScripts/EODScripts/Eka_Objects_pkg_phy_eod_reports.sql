@@ -95,7 +95,7 @@ create or replace package pkg_phy_eod_reports is
                                          pd_trade_date   date,
                                          pc_process_id   varchar2,
                                          pc_process      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -16946,7 +16946,7 @@ gvn_log_counter := gvn_log_counter + 1;
            null payable_qty_unit_id,
            null payable_qty_unit,
            grd.pool_name,
-           ash_pricing.ash_id,
+           grd_assay.latest_ash_id ash_id,
            grd.pcdi_id,
            gmr.invoice_cur_id pay_cur_id,
            gmr.invoice_cur_code pay_cur_code,
@@ -16958,45 +16958,47 @@ gvn_log_counter := gvn_log_counter + 1;
            nvl(grd.grd_to_gmr_qty_factor,1),
            'Penalty',
            grd.supp_gmr_ref_no
-      from grd_goods_record_detail     grd,
-           gmr_goods_movement_record   gmr,
-           sam_stock_assay_mapping     sam,
-           ash_assay_header            ash,
-           ash_assay_header            ash_pricing,
-           asm_assay_sublot_mapping    asm,
-           aml_attribute_master_list   aml,
-           pqca_pq_chemical_attributes pqca,
-           rm_ratio_master             rm,
-           qum_quantity_unit_master    qum--,
-          -- grd_goods_record_detail     grd_parent
-     where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-       and gmr.is_internal_movement = 'Y'
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and sam.internal_grd_ref_no = grd.internal_grd_ref_no
-       and sam.is_active = 'Y'
-       and sam.ash_id = ash.ash_id
-       and ash.assay_type = 'Pricing Assay'
-       and grd.assay_header_id = ash.ash_id
-       and ash.internal_grd_ref_no = grd.internal_grd_ref_no
-       and grd.assay_header_id = ash_pricing.pricing_assay_ash_id
-       and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
-       and asm.ash_id = ash_pricing.ash_id
-       and asm.asm_id = pqca.asm_id
-       and pqca.is_elem_for_pricing = 'N'
-       and pqca.element_id = aml.attribute_id
-       and pqca.unit_of_measure = rm.ratio_id
-       and qum.qty_unit_id =
-           (case when rm.ratio_name = '%' then grd.qty_unit_id else
-            rm.qty_unit_id_numerator end)
-      and gmr.eff_date <= pd_trade_date
-       and rm.is_active = 'Y'
-       and aml.is_active = 'Y'
-       and pqca.is_active = 'Y'
-       and grd.current_qty <> 0
-       and grd.tolling_stock_type in ('None Tolling')
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id;
+      from grd_goods_record_detail grd,
+       gmr_goods_movement_record gmr,
+       (select t.corporate_id,
+               t.internal_gmr_ref_no,
+               t.internal_grd_ref_no,
+               t.latest_ash_id
+          from temp_stock_latest_assay t
+          where t.corporate_id = pc_corporate_id
+         group by t.corporate_id,
+                  t.internal_gmr_ref_no,
+                  t.internal_grd_ref_no,
+                  t.latest_ash_id) grd_assay, 
+       ash_assay_header ash,
+       asm_assay_sublot_mapping asm,
+       aml_attribute_master_list aml,
+       pqca_pq_chemical_attributes pqca,
+       rm_ratio_master rm,
+       qum_quantity_unit_master qum
+ where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+   and gmr.is_internal_movement = 'Y'
+   and gmr.is_deleted = 'N'
+   and grd.status = 'Active'
+   and gmr.corporate_id = pc_corporate_id
+   and grd.internal_grd_ref_no = grd_assay.internal_grd_ref_no
+   and grd.internal_gmr_ref_no = grd_assay.internal_gmr_ref_no
+   and grd_assay.latest_ash_id = ash.ash_id
+   and ash.ash_id = asm.ash_id
+   and asm.asm_id = pqca.asm_id
+   and pqca.is_elem_for_pricing = 'N'
+   and pqca.element_id = aml.attribute_id
+   and pqca.unit_of_measure = rm.ratio_id
+   and qum.qty_unit_id = (case when rm.ratio_name = '%' then grd.qty_unit_id else
+        rm.qty_unit_id_numerator end)
+   and gmr.eff_date <= pd_trade_date
+   and rm.is_active = 'Y'
+   and aml.is_active = 'Y'
+   and pqca.is_active = 'Y'
+   and grd.current_qty <> 0
+   and grd.tolling_stock_type in ('None Tolling')
+   and gmr.process_id = pc_process_id
+   and grd.process_id = pc_process_id;
 --       and grd.parent_internal_grd_ref_no = grd_parent.internal_grd_ref_no(+)
   --     and grd_parent.process_id(+) = pc_process_id;
 commit;

@@ -3362,7 +3362,8 @@ create or replace package body pkg_phy_cog_price is
        (select *
                 from cgcp_conc_gmr_cog_price cgcp
                where cgcp.element_id = poch.element_id
-                 and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no)
+                 and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                 and cgcp.process_id=pc_process_id)
          and not exists
        (select *
                 from gpah_gmr_price_alloc_header gpah
@@ -3539,7 +3540,8 @@ create or replace package body pkg_phy_cog_price is
        (select *
                 from cgcp_conc_gmr_cog_price cgcp
                where cgcp.element_id = poch.element_id
-                 and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no)
+                 and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                 and cgcp.process_id=pc_process_id)
          and not exists
        (select *
                 from gpah_gmr_price_alloc_header gpah
@@ -3593,11 +3595,12 @@ create or replace package body pkg_phy_cog_price is
                                      vn_total_quantity *
                                      (vn_qty_to_be_priced / 100) *
                                      cur_gmr_ele_rows.final_price;
-          select ppu.price_unit_id
+         vc_price_unit_id:=cur_gmr_ele_rows.final_price_unit_id;                                     
+         /* select ppu.price_unit_id
             into vc_price_unit_id
             from v_ppu_pum ppu
            where ppu.product_price_unit_id =
-                 cur_gmr_ele_rows.final_price_unit_id;
+                 cur_gmr_ele_rows.final_price_unit_id;*/
         
         else
         
