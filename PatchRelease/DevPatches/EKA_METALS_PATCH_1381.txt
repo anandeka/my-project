@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_1380
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek vijay
+ 
+Created on*        		:  26-Feb-2012
+
+Bug / Enhancement*              :  Enh
+
+
+Bug ID*            		: N/A
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Pricing
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 117904
+Author: abhishek.vijay
+Date: 4:39:39 PM, Tuesday, February 26, 2013
+Message:
+added new column for hedge correction condition 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_398.sql
+
+
+
+
+
+
+
+
+
+
+
+
