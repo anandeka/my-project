@@ -377,6 +377,8 @@ select akc.corporate_id,
          when pfqpp.qp_pricing_period_type = 'Period' then
           to_char(pfqpp.qp_period_from_date, 'dd-Mon-yyyy') || ' to ' ||
           to_char(pfqpp.qp_period_to_date, 'dd-Mon-yyyy')
+          when pfqpp.qp_pricing_period_type = 'Date' then
+          to_char(pfqpp.qp_date, 'dd-Mon-yyyy')
        end) qp,
        (case
           when pcdi.basis_type = 'Arrival' then
@@ -540,6 +542,8 @@ select akc.corporate_id,
          when pfqpp.qp_pricing_period_type = 'Period' then
           to_char(pfqpp.qp_period_from_date, 'dd-Mon-yyyy') || ' to ' ||
           to_char(pfqpp.qp_period_to_date, 'dd-Mon-yyyy')
+         when pfqpp.qp_pricing_period_type = 'Date' then
+          to_char(pfqpp.qp_date, 'dd-Mon-yyyy')
        end) qp,
        (case
           when pcdi.basis_type = 'Arrival' then
@@ -690,6 +694,8 @@ select akc.corporate_id,
          when pfqpp.qp_pricing_period_type = 'Period' then
           to_char(pfqpp.qp_period_from_date, 'dd-Mon-yyyy') || ' to ' ||
           to_char(pfqpp.qp_period_to_date, 'dd-Mon-yyyy')
+          when pfqpp.qp_pricing_period_type = 'Date' then
+          to_char(pfqpp.qp_date, 'dd-Mon-yyyy')          
        end) qp,
        (case
           when pcdi.basis_type = 'Arrival' then

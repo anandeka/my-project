@@ -84,7 +84,7 @@ SELECT akc.corporate_id,
        NULL smelter,
        NULL status,
        pfd.is_hedge_correction,
-       pfd.is_exposure
+       nvl(pfd.is_exposure,'Y') is_exposure
   FROM pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        poch_price_opt_call_off_header poch,
@@ -253,7 +253,7 @@ SELECT akc.corporate_id,
        NULL smelter,
        null status,
        pfd.is_hedge_correction,
-       pfd.is_exposure
+       nvl(pfd.is_exposure,'Y') is_exposure
   FROM pcdi_pc_delivery_item pcdi,
        pcm_physical_contract_main pcm,
        poch_price_opt_call_off_header poch,
