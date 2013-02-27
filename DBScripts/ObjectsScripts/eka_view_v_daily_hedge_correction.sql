@@ -390,7 +390,7 @@ select fmuh.corporate_id,
        phd.companyname smelter,
        null status,
        null is_hedge_correction,
-       null is_exposure
+       'Y' is_exposure
   from fmuh_free_metal_utility_header fmuh,
        fmed_free_metal_elemt_details  fmed,
        fmeifd_index_formula_details   fmeifd,
@@ -500,7 +500,7 @@ select fmuh.corporate_id,
        phd.companyname smelter,
        'Cancelled' status,
        null is_hedge_correction,
-       null is_exposure
+       'Y' is_exposure
   from fmuh_free_metal_utility_header fmuh,
        fmed_free_metal_elemt_details  fmed,
        fmeifd_index_formula_details   fmeifd,
