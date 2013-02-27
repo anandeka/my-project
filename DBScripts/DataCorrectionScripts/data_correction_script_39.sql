@@ -1,0 +1,3 @@
+update PPL_PRICE_PROCESS_LIST ppl
+set PPL.PRICE_PROCESS_STATUS='Completed'
+where PPL.PRICE_PROCESS_STATUS is null
