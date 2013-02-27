@@ -29,7 +29,7 @@ create or replace package pkg_phy_cog_price is
                                          pc_user_id      varchar2,
                                          pc_dbd_id       varchar2,
                                          pc_process      varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -209,24 +209,24 @@ create or replace package body pkg_phy_cog_price is
          and pcbpd.is_active = 'Y'
          and pcbph.is_active = 'Y';
   
-    vn_contract_price        number;
-    vc_price_unit_id         varchar2(15);
-    vc_price_basis           varchar2(15);
-    vc_price_cur_id          varchar2(15);
-    vc_price_cur_code        varchar2(15);
-    vn_price_weight_unit     number;
-    vc_price_weight_unit_id  varchar2(15);
-    vc_price_qty_unit        varchar2(15);
-    vc_price_fixation_status varchar2(50);
-    vn_total_quantity        number;
-    vn_qty_to_be_priced      number;
-    vn_total_contract_value  number;
-    vn_average_price         number;
-    vd_quotes_date           date;
-    vn_error_no              number := 0;
-    vc_prompt_month          varchar2(15);
-    vc_prompt_year           number;
-    vc_fixed_price_unit_id   varchar2(15);    
+    vn_contract_price          number;
+    vc_price_unit_id           varchar2(15);
+    vc_price_basis             varchar2(15);
+    vc_price_cur_id            varchar2(15);
+    vc_price_cur_code          varchar2(15);
+    vn_price_weight_unit       number;
+    vc_price_weight_unit_id    varchar2(15);
+    vc_price_qty_unit          varchar2(15);
+    vc_price_fixation_status   varchar2(50);
+    vn_total_quantity          number;
+    vn_qty_to_be_priced        number;
+    vn_total_contract_value    number;
+    vn_average_price           number;
+    vd_quotes_date             date;
+    vn_error_no                number := 0;
+    vc_prompt_month            varchar2(15);
+    vc_prompt_year             number;
+    vc_fixed_price_unit_id     varchar2(15);
     vc_fixed_price_unit_id_pum varchar2(50);
   
   begin
@@ -240,8 +240,8 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_value             := 0;
       vc_fixed_price_unit_id       := null;
       vc_unfixed_val_price_unit_id := null;
-      vc_fixed_price_unit_id_pum   :=null;
-      
+      vc_fixed_price_unit_id_pum   := null;
+    
       if cur_pcdi_rows.price_option_call_off_status in
          ('Called Off', 'Not Applicable') then
         vc_price_fixation_status := null;
@@ -328,24 +328,26 @@ create or replace package body pkg_phy_cog_price is
                             pfd.price_unit_id;
                 exception
                   when others then
-                    vn_fixed_value         := 0;
-                    vn_fixed_qty           := 0;
-                    vc_fixed_price_unit_id := null;
-                    vc_fixed_price_unit_id_pum:=null;
+                    vn_fixed_value             := 0;
+                    vn_fixed_qty               := 0;
+                    vc_fixed_price_unit_id     := null;
+                    vc_fixed_price_unit_id_pum := null;
                 end;
                 -- added Suresh
-                if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
-                 vc_fixed_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
+                if vc_fixed_price_unit_id is null or
+                   vc_fixed_price_unit_id = '' then
+                  vc_fixed_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
                   begin
-                  select ppu.price_unit_id
-                  into vc_fixed_price_unit_id_pum
-                   from v_ppu_pum ppu
-                   where ppu.product_price_unit_id = vc_fixed_price_unit_id;
-                --   and ppu.product_id = cur_pcdi_rows.product_id
-                   exception
-                   when others then
-                   vc_fixed_price_unit_id_pum := null;
-                   end;
+                    select ppu.price_unit_id
+                      into vc_fixed_price_unit_id_pum
+                      from v_ppu_pum ppu
+                     where ppu.product_price_unit_id =
+                           vc_fixed_price_unit_id;
+                    --   and ppu.product_id = cur_pcdi_rows.product_id
+                  exception
+                    when others then
+                      vc_fixed_price_unit_id_pum := null;
+                  end;
                 end if;
                 ---
                 vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
@@ -535,19 +537,20 @@ create or replace package body pkg_phy_cog_price is
                 -- If Both Fixed and Unfixed Quantities are there then we have two prices
                 -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
                 --
-              --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
-                  if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
-                    select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
-                                                                               vn_unfixed_val_price,
-                                                                               vc_unfixed_val_price_unit_id,
-                                                                               vc_fixed_price_unit_id_pum,
-                                                                               pd_trade_date,
-                                                                               cur_pcdi_rows.product_id)
-                      into vn_unfixed_val_price
-                      from dual;
-                  end if;
-                
-               -- end if;
+                --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+                if vc_fixed_price_unit_id_pum <>
+                   vc_unfixed_val_price_unit_id then
+                  select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                                                                             vn_unfixed_val_price,
+                                                                             vc_unfixed_val_price_unit_id,
+                                                                             vc_fixed_price_unit_id_pum,
+                                                                             pd_trade_date,
+                                                                             cur_pcdi_rows.product_id)
+                    into vn_unfixed_val_price
+                    from dual;
+                end if;
+              
+                -- end if;
                 if vn_unfixed_qty > 0 then
                   vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
                 else
@@ -559,10 +562,10 @@ create or replace package body pkg_phy_cog_price is
                   vn_fixed_qty   := 0;
                 end if;
                 vn_total_quantity := vn_fixed_qty + vn_unfixed_qty;
-         
-                  vc_price_unit_id := vc_fixed_price_unit_id;              
               
-              /*  begin
+                vc_price_unit_id := vc_fixed_price_unit_id;
+              
+                /*  begin
                   select ppu.product_price_unit_id
                     into vc_price_unit_id
                     from v_ppu_pum ppu
@@ -1214,7 +1217,7 @@ create or replace package body pkg_phy_cog_price is
       vn_total_quantity            := cur_gmr_rows.qty;
       vc_unfixed_val_price_unit_id := null;
       vc_unfixed_val_price_unit_id := null;
-       vc_fixed_price_unit_id_pum  :=null;
+      vc_fixed_price_unit_id_pum   := null;
     
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no)
       loop
@@ -1237,7 +1240,7 @@ create or replace package body pkg_phy_cog_price is
               into vn_fixed_value,
                    vn_fixed_qty,
                    vc_fixed_price_unit_id_pum,
-                    vc_fixed_price_unit_id
+                   vc_fixed_price_unit_id
               from poch_price_opt_call_off_header poch,
                    pocd_price_option_calloff_dtls pocd,
                    pofh_price_opt_fixation_header pofh,
@@ -1258,27 +1261,27 @@ create or replace package body pkg_phy_cog_price is
                       pfd.price_unit_id;
           exception
             when others then
-              vn_fixed_value         := 0;
-              vn_fixed_qty           := 0;
-              vc_fixed_price_unit_id := null;
-              vc_fixed_price_unit_id_pum:=null;
+              vn_fixed_value             := 0;
+              vn_fixed_qty               := 0;
+              vc_fixed_price_unit_id     := null;
+              vc_fixed_price_unit_id_pum := null;
           end;
           -- added Suresh
-          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
-          vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
-           begin
-          select ppu.price_unit_id
-            into vc_fixed_price_unit_id_pum
-            from v_ppu_pum ppu
-           where ppu.product_price_unit_id = vc_fixed_price_unit_id;
-           --  and ppu.product_id = cur_gmr_rows.product_id
-        exception
-          when others then
-            vc_fixed_price_unit_id_pum := null;
-         end;
+          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id = '' then
+            vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+            begin
+              select ppu.price_unit_id
+                into vc_fixed_price_unit_id_pum
+                from v_ppu_pum ppu
+               where ppu.product_price_unit_id = vc_fixed_price_unit_id;
+              --  and ppu.product_id = cur_gmr_rows.product_id
+            exception
+              when others then
+                vc_fixed_price_unit_id_pum := null;
+            end;
           end if;
           ---
-          
+        
           vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
         
           if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
@@ -1467,19 +1470,19 @@ create or replace package body pkg_phy_cog_price is
           -- If Both Fixed and Unfixed Quantities are there then we have two prices
           -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
           --
-        --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
-            if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
-              select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
-                                                                         vn_unfixed_val_price,
-                                                                         vc_unfixed_val_price_unit_id,
-                                                                         vc_fixed_price_unit_id_pum,
-                                                                         pd_trade_date,
-                                                                         cur_gmr_rows.product_id)
-                into vn_unfixed_val_price
-                from dual;
-            end if;
-          
-        --  end if;
+          --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+          if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
+            select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                                                                       vn_unfixed_val_price,
+                                                                       vc_unfixed_val_price_unit_id,
+                                                                       vc_fixed_price_unit_id_pum,
+                                                                       pd_trade_date,
+                                                                       cur_gmr_rows.product_id)
+              into vn_unfixed_val_price
+              from dual;
+          end if;
+        
+          --  end if;
           if vn_unfixed_qty > 0 then
             vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
           else
@@ -1490,9 +1493,9 @@ create or replace package body pkg_phy_cog_price is
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
           end if;
-          vn_total_quantity := vn_fixed_qty + vn_unfixed_qty;         
-          vc_price_unit_id := vc_fixed_price_unit_id;
-         
+          vn_total_quantity := vn_fixed_qty + vn_unfixed_qty;
+          vc_price_unit_id  := vc_fixed_price_unit_id;
+        
           /*begin
             select ppu.product_price_unit_id
               into vc_price_unit_id
@@ -1773,7 +1776,7 @@ create or replace package body pkg_phy_cog_price is
     vn_price_unit_weight         number;
     vc_error_message             varchar2(100);
     vc_data_missing_for          varchar2(1000);
-    vc_fixed_price_unit_id_pum varchar2(50);
+    vc_fixed_price_unit_id_pum   varchar2(50);
   
   begin
     sp_gather_stats('pcbph_pc_base_price_header');
@@ -1807,11 +1810,11 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_value             := 0;
       vc_fixed_price_unit_id       := null;
       vc_unfixed_val_price_unit_id := null;
-      vc_fixed_price_unit_id_pum := null;
+      vc_fixed_price_unit_id_pum   := null;
       vc_price_option_call_off_sts := cur_pcdi_rows.price_option_call_off_status;
       vn_total_contract_value      := 0;
-      vc_price_unit_id        := null;
-      vc_fixed_price_unit_id := null;
+      vc_price_unit_id             := null;
+      vc_fixed_price_unit_id       := null;
       if vc_price_option_call_off_sts in ('Called Off', 'Not Applicable') then
         for cur_called_off_rows in cur_called_off(cur_pcdi_rows.pcdi_id,
                                                   cur_pcdi_rows.element_id)
@@ -1827,7 +1830,7 @@ create or replace package body pkg_phy_cog_price is
                                        (vn_qty_to_be_priced / 100) *
                                        vn_contract_price;
             vc_price_unit_id        := cur_called_off_rows.price_unit_id;
-             vc_fixed_price_unit_id := cur_called_off_rows.price_unit_id;
+            vc_fixed_price_unit_id  := cur_called_off_rows.price_unit_id;
           elsif cur_called_off_rows.price_basis in ('Index', 'Formula') then
             vn_qty_to_be_priced := cur_called_off_rows.qty_to_be_priced;
             vn_total_quantity   := cur_pcdi_rows.payable_qty;
@@ -1838,13 +1841,13 @@ create or replace package body pkg_phy_cog_price is
                                          vn_total_quantity *
                                          (vn_qty_to_be_priced / 100) *
                                          cur_called_off_rows.final_price;
-               vc_price_unit_id := cur_called_off_rows.final_price_unit_id;
-               vc_fixed_price_unit_id := cur_called_off_rows.final_price_unit_id;
-             /* select ppu.price_unit_id
-                into vc_price_unit_id
-                from v_ppu_pum ppu
-               where ppu.product_price_unit_id =
-                     cur_called_off_rows.final_price_unit_id;*/
+              vc_price_unit_id        := cur_called_off_rows.final_price_unit_id;
+              vc_fixed_price_unit_id  := cur_called_off_rows.final_price_unit_id;
+              /* select ppu.price_unit_id
+               into vc_price_unit_id
+               from v_ppu_pum ppu
+              where ppu.product_price_unit_id =
+                    cur_called_off_rows.final_price_unit_id;*/
             
             else
               vc_error_message := ' Line 240 ';
@@ -1870,25 +1873,26 @@ create or replace package body pkg_phy_cog_price is
                           pfd.price_unit_id;
               exception
                 when others then
-                  vn_fixed_value         := 0;
-                  vn_fixed_qty           := 0;
-                  vc_fixed_price_unit_id := null;
-                  vc_fixed_price_unit_id_pum:=null;
+                  vn_fixed_value             := 0;
+                  vn_fixed_qty               := 0;
+                  vc_fixed_price_unit_id     := null;
+                  vc_fixed_price_unit_id_pum := null;
               end;
               -- Added Suresh
-              if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
-              vc_fixed_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
-              begin
-                 select ppu.price_unit_id
-                into vc_fixed_price_unit_id_pum
-                from v_ppu_pum ppu
-                where ppu.product_price_unit_id = vc_fixed_price_unit_id;
-             exception
-          when others then
-            vc_fixed_price_unit_id_pum := null;
-          end;           
-          end if;
-          ----          
+              if vc_fixed_price_unit_id is null or
+                 vc_fixed_price_unit_id = '' then
+                vc_fixed_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
+                begin
+                  select ppu.price_unit_id
+                    into vc_fixed_price_unit_id_pum
+                    from v_ppu_pum ppu
+                   where ppu.product_price_unit_id = vc_fixed_price_unit_id;
+                exception
+                  when others then
+                    vc_fixed_price_unit_id_pum := null;
+                end;
+              end if;
+              ----          
               vn_unfixed_qty := vn_total_quantity - vn_fixed_qty;
               if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
                 vn_forward_days := 0;
@@ -2078,19 +2082,19 @@ create or replace package body pkg_phy_cog_price is
               -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
               --
               vc_error_message := ' Line 431 ';
-            --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
-                if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
-                  select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
-                                                                             vn_unfixed_val_price,
-                                                                             vc_unfixed_val_price_unit_id,
-                                                                             vc_fixed_price_unit_id_pum,
-                                                                             pd_trade_date,
-                                                                             cur_pcdi_rows.product_id)
-                    into vn_unfixed_val_price
-                    from dual;
-                end if;
-              
-           --   end if;
+              --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+              if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
+                select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                                                                           vn_unfixed_val_price,
+                                                                           vc_unfixed_val_price_unit_id,
+                                                                           vc_fixed_price_unit_id_pum,
+                                                                           pd_trade_date,
+                                                                           cur_pcdi_rows.product_id)
+                  into vn_unfixed_val_price
+                  from dual;
+              end if;
+            
+              --   end if;
               vc_error_message := ' Line 444';
               if vn_unfixed_qty > 0 then
                 vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
@@ -2108,10 +2112,10 @@ create or replace package body pkg_phy_cog_price is
                                          ((vn_qty_to_be_priced / 100) *
                                          (vn_fixed_value +
                                          vn_unfixed_value));
-                vc_price_unit_id := vc_fixed_price_unit_id;              
+              vc_price_unit_id        := vc_fixed_price_unit_id;
             end if;
-             vc_price_unit_id := vc_fixed_price_unit_id;
-           /* begin
+            vc_price_unit_id := vc_fixed_price_unit_id;
+            /* begin
               select ppu.product_price_unit_id
                 into vc_price_unit_id
                 from v_ppu_pum ppu
@@ -2332,7 +2336,7 @@ create or replace package body pkg_phy_cog_price is
                                        ((vn_qty_to_be_priced / 100) *
                                        vn_unfixed_val_price));
             vc_error_message        := ' Line 641 ';
-           begin
+            begin
               select ppu.product_price_unit_id
                 into vc_price_unit_id
                 from v_ppu_pum ppu
@@ -2649,8 +2653,8 @@ create or replace package body pkg_phy_cog_price is
     vc_prompt_date_text          varchar2(100); -- Setting the decode to this variable to make the Beautifier work
     vc_fixed_price_unit_id       varchar2(15);
     vc_data_missing_for          varchar2(1000);
-     vc_fixed_price_unit_id_pum  varchar2(50);
-   
+    vc_fixed_price_unit_id_pum   varchar2(50);
+  
   begin
   
     for cur_gmr_rows in cur_gmr
@@ -2662,9 +2666,9 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_value             := 0;
       vc_unfixed_val_price_unit_id := null;
       vc_unfixed_val_price_unit_id := null;
-      vc_fixed_price_unit_id_pum := null;
-      vc_price_unit_id           := null;
-      vc_fixed_price_unit_id     := null;
+      vc_fixed_price_unit_id_pum   := null;
+      vc_price_unit_id             := null;
+      vc_fixed_price_unit_id       := null;
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
                                           cur_gmr_rows.element_id)
       loop
@@ -2676,13 +2680,14 @@ create or replace package body pkg_phy_cog_price is
                                      vn_total_quantity *
                                      (vn_qty_to_be_priced / 100) *
                                      cur_gmr_ele_rows.final_price;
-          vc_price_unit_id :=  cur_gmr_ele_rows.final_price_unit_id;                     
-/*          select ppu.price_unit_id
-            into vc_price_unit_id
-            from v_ppu_pum ppu
-           where ppu.product_price_unit_id =
-                 cur_gmr_ele_rows.final_price_unit_id;
-*/        else
+          vc_price_unit_id        := cur_gmr_ele_rows.final_price_unit_id;
+          /*          select ppu.price_unit_id
+                      into vc_price_unit_id
+                      from v_ppu_pum ppu
+                     where ppu.product_price_unit_id =
+                           cur_gmr_ele_rows.final_price_unit_id;
+          */
+        else
         
           vc_price_basis := cur_gmr_ele_rows.price_basis;
         
@@ -2707,24 +2712,24 @@ create or replace package body pkg_phy_cog_price is
           
           exception
             when others then
-              vn_fixed_value         := 0;
-              vn_fixed_qty           := 0;
-              vc_fixed_price_unit_id := null;
-               vc_fixed_price_unit_id_pum:=null;
+              vn_fixed_value             := 0;
+              vn_fixed_qty               := 0;
+              vc_fixed_price_unit_id     := null;
+              vc_fixed_price_unit_id_pum := null;
           end;
-         -- Added Suresh 
-          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
-          vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
-           begin
-          select ppu.price_unit_id
-            into vc_fixed_price_unit_id_pum
-            from v_ppu_pum ppu
-           where ppu.product_price_unit_id = vc_fixed_price_unit_id;
---             and ppu.product_id = cur_gmr_rows.product_id;
-        exception
-          when others then
-            vc_fixed_price_unit_id_pum := null;
-        end;          
+          -- Added Suresh 
+          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id = '' then
+            vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+            begin
+              select ppu.price_unit_id
+                into vc_fixed_price_unit_id_pum
+                from v_ppu_pum ppu
+               where ppu.product_price_unit_id = vc_fixed_price_unit_id;
+              --             and ppu.product_id = cur_gmr_rows.product_id;
+            exception
+              when others then
+                vc_fixed_price_unit_id_pum := null;
+            end;
           end if;
           ---          
           vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
@@ -2910,19 +2915,19 @@ create or replace package body pkg_phy_cog_price is
           -- If Both Fixed and Unfixed Quantities are there then we have two prices
           -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
           --
-        --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
-            if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
-              select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
-                                                                         vn_unfixed_val_price,
-                                                                         vc_unfixed_val_price_unit_id,
-                                                                         vc_fixed_price_unit_id_pum,
-                                                                         pd_trade_date,
-                                                                         cur_gmr_rows.product_id)
-                into vn_unfixed_val_price
-                from dual;
-            end if;
-          
-       --   end if;
+          --  if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+          if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
+            select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                                                                       vn_unfixed_val_price,
+                                                                       vc_unfixed_val_price_unit_id,
+                                                                       vc_fixed_price_unit_id_pum,
+                                                                       pd_trade_date,
+                                                                       cur_gmr_rows.product_id)
+              into vn_unfixed_val_price
+              from dual;
+          end if;
+        
+          --   end if;
           if vn_unfixed_qty > 0 then
             vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
           else
@@ -2933,8 +2938,8 @@ create or replace package body pkg_phy_cog_price is
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
           end if;
-                
-            vc_price_unit_id := vc_fixed_price_unit_id;          
+        
+          vc_price_unit_id := vc_fixed_price_unit_id;
         
           --vn_total_quantity       := cur_gmr_rows.payable_qty;
           vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
@@ -2943,7 +2948,7 @@ create or replace package body pkg_phy_cog_price is
                                      (vn_fixed_value + vn_unfixed_value));
         
         end if;
-       /* begin
+        /* begin
           select ppu.product_price_unit_id
             into vc_price_unit_id
             from v_ppu_pum ppu
@@ -3142,7 +3147,7 @@ create or replace package body pkg_phy_cog_price is
     vc_prompt_date_text          varchar2(100); -- Setting the decode to this variable to make the Beautifier work
     vc_fixed_price_unit_id       varchar2(15);
     vc_data_missing_for          varchar2(1000);
-    vc_fixed_price_unit_id_pum varchar2(50);
+    vc_fixed_price_unit_id_pum   varchar2(50);
   begin
     --
     -- Populate Price Allocation GMR Exchange Details
@@ -3358,12 +3363,12 @@ create or replace package body pkg_phy_cog_price is
          and div.price_unit_id = pum.price_unit_id
          and dim.instrument_id = vdip.instrument_id
          and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id
-              and not exists
+         and not exists
        (select *
                 from cgcp_conc_gmr_cog_price cgcp
                where cgcp.element_id = poch.element_id
                  and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and cgcp.process_id=pc_process_id)
+                 and cgcp.process_id = pc_process_id)
          and not exists
        (select *
                 from gpah_gmr_price_alloc_header gpah
@@ -3411,7 +3416,8 @@ create or replace package body pkg_phy_cog_price is
        final_price,
        finalize_date,
        final_price_unit_id,
-       valuation_price_percentage)
+       valuation_price_percentage,
+       pay_in_price_unit_id)
       select pc_corporate_id,
              gpah.internal_gmr_ref_no,
              pcbpd.element_id,
@@ -3424,7 +3430,8 @@ create or replace package body pkg_phy_cog_price is
              nvl(gpah.final_price_in_pricing_cur, 0) final_price,
              gpah.finalize_date,
              pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage,
+             pocd.pay_in_price_unit_id
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,
@@ -3470,7 +3477,8 @@ create or replace package body pkg_phy_cog_price is
                 nvl(gpah.final_price_in_pricing_cur, 0),
                 gpah.finalize_date,
                 pocd.final_price_unit_id,
-                pcbph.valuation_price_percentage / 100;
+                pcbph.valuation_price_percentage / 100,
+                pocd.pay_in_price_unit_id;
   
     commit;
     sp_eodeom_process_log(pc_corporate_id,
@@ -3536,12 +3544,12 @@ create or replace package body pkg_phy_cog_price is
          and aml.underlying_product_id = pdm.product_id
          and grd.pcdi_id = pcdi.pcdi_id
          and grd.process_id = pc_process_id
-           and not exists
+         and not exists
        (select *
                 from cgcp_conc_gmr_cog_price cgcp
                where cgcp.element_id = poch.element_id
                  and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                 and cgcp.process_id=pc_process_id)
+                 and cgcp.process_id = pc_process_id)
          and not exists
        (select *
                 from gpah_gmr_price_alloc_header gpah
@@ -3557,7 +3565,7 @@ create or replace package body pkg_phy_cog_price is
                 pdm.product_id,
                 pdm.base_quantity_unit,
                 pcbph.valuation_price_percentage / 100,
-                 pocd.pay_in_price_unit_id;
+                pocd.pay_in_price_unit_id;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -3581,7 +3589,7 @@ create or replace package body pkg_phy_cog_price is
       vn_unfixed_value             := 0;
       vc_unfixed_val_price_unit_id := null;
       vc_unfixed_val_price_unit_id := null;
-       vc_fixed_price_unit_id_pum  :=null;
+      vc_fixed_price_unit_id_pum   := null;
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
                                           cur_gmr_rows.element_id)
       loop
@@ -3595,12 +3603,12 @@ create or replace package body pkg_phy_cog_price is
                                      vn_total_quantity *
                                      (vn_qty_to_be_priced / 100) *
                                      cur_gmr_ele_rows.final_price;
-         vc_price_unit_id:=cur_gmr_ele_rows.final_price_unit_id;                                     
-         /* select ppu.price_unit_id
-            into vc_price_unit_id
-            from v_ppu_pum ppu
-           where ppu.product_price_unit_id =
-                 cur_gmr_ele_rows.final_price_unit_id;*/
+          vc_price_unit_id        := cur_gmr_ele_rows.final_price_unit_id;
+          /* select ppu.price_unit_id
+           into vc_price_unit_id
+           from v_ppu_pum ppu
+          where ppu.product_price_unit_id =
+                cur_gmr_ele_rows.final_price_unit_id;*/
         
         else
         
@@ -3631,26 +3639,26 @@ create or replace package body pkg_phy_cog_price is
                       pfd.price_unit_id;
           exception
             when others then
-              vn_fixed_value         := 0;
-              vn_fixed_qty           := 0;
-              vc_fixed_price_unit_id := null;
-              vc_fixed_price_unit_id_pum:=null;
+              vn_fixed_value             := 0;
+              vn_fixed_qty               := 0;
+              vc_fixed_price_unit_id     := null;
+              vc_fixed_price_unit_id_pum := null;
           end;
           --Added Suresh
-          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id='' then
-          vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
-          begin
-          select ppu.price_unit_id
-            into vc_fixed_price_unit_id_pum
-            from v_ppu_pum ppu
-           where ppu.product_price_unit_id = vc_fixed_price_unit_id;
-          --   and ppu.product_id = cur_gmr_rows.product_id
-        exception
-          when others then
-            vc_fixed_price_unit_id_pum := null;
-        end; 
+          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id = '' then
+            vc_fixed_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+            begin
+              select ppu.price_unit_id
+                into vc_fixed_price_unit_id_pum
+                from v_ppu_pum ppu
+               where ppu.product_price_unit_id = vc_fixed_price_unit_id;
+              --   and ppu.product_id = cur_gmr_rows.product_id
+            exception
+              when others then
+                vc_fixed_price_unit_id_pum := null;
+            end;
           end if;
-         ----          
+          ----          
           vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
           vn_unfixed_qty      := cur_gmr_rows.payable_qty - vn_fixed_qty;
           if cur_gmr_rows.is_daily_cal_applicable = 'Y' then
@@ -3834,19 +3842,19 @@ create or replace package body pkg_phy_cog_price is
           -- If Both Fixed and Unfixed Quantities are there then we have two prices
           -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
           --
-       --   if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
-            if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
-              select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
-                                                                         vn_unfixed_val_price,
-                                                                         vc_unfixed_val_price_unit_id,
-                                                                         vc_fixed_price_unit_id_pum,
-                                                                         pd_trade_date,
-                                                                         cur_gmr_rows.product_id)
-                into vn_unfixed_val_price
-                from dual;
-            end if;
-          
-         -- end if;
+          --   if vn_fixed_value > 0 and vn_unfixed_val_price > 0 then
+          if vc_fixed_price_unit_id_pum <> vc_unfixed_val_price_unit_id then
+            select pkg_phy_pre_check_process.f_get_converted_price_pum(pc_corporate_id,
+                                                                       vn_unfixed_val_price,
+                                                                       vc_unfixed_val_price_unit_id,
+                                                                       vc_fixed_price_unit_id_pum,
+                                                                       pd_trade_date,
+                                                                       cur_gmr_rows.product_id)
+              into vn_unfixed_val_price
+              from dual;
+          end if;
+        
+          -- end if;
           if vn_unfixed_qty > 0 then
             vn_unfixed_value := vn_unfixed_qty * vn_unfixed_val_price;
           else
@@ -3857,13 +3865,13 @@ create or replace package body pkg_phy_cog_price is
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
           end if;
-         vc_price_unit_id := vc_fixed_price_unit_id;      
+          vc_price_unit_id        := vc_fixed_price_unit_id;
           vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
           vn_total_contract_value := vn_total_contract_value +
                                      ((vn_qty_to_be_priced / 100) *
                                      (vn_fixed_value + vn_unfixed_value));
         end if;
-      /*  begin
+        /*  begin
           select ppu.product_price_unit_id
             into vc_price_unit_id
             from v_ppu_pum ppu
@@ -3966,5 +3974,5 @@ create or replace package body pkg_phy_cog_price is
       sp_insert_error_log(vobj_error_log);
       commit;
   end;
-end; 
+end;
 /
