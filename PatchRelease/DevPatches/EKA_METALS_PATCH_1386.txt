@@ -9,7 +9,7 @@ Created on*        		:  27-Feb-2013
 Bug / Enhancement*              :  Bug
 
 
-Bug ID*            		: 75296,75428,75438
+Bug ID*            		: 75296,75428,75438,75455
 
 ==================================================================
 Branch (DEV / REL)*		:  Dev
@@ -43,8 +43,8 @@ Message:
 Bug Fixes
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_arrived_not_priced.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_daily_hedge_correction.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_daily_hedge_correction.sql(Revision: 118107)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_daily_fx_exposure_vat.sql(Revision: 118107)
 
 
 Revision: 118094
