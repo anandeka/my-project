@@ -52,6 +52,16 @@ Bug 73303
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_505.sql
 
+Revision: 118052
+Author: abhishek.vijay
+Date: 3:14:26 PM, Wednesday, February 27, 2013
+Message:
+Bug 75279
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_39.sql
+
+
+
 
 
 
