@@ -44,6 +44,16 @@ added new column for hedge correction condition
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_398.sql
 
+Revision: 118015
+Author: abhishek.vijay
+Date: 11:37:58 AM, Wednesday, February 27, 2013
+Message:
+Bug 73303
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_505.sql
+
+
+
 
 
 
