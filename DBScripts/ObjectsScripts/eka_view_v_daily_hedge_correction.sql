@@ -8,7 +8,7 @@ SELECT akc.corporate_id,
        cpc.profit_center_short_name profit_center,
        pdm.product_id,
        aml.underlying_product_id product,
-       pdm.product_desc underlying_product,
+       pdm_contract.product_desc underlying_product,    
        pcm.contract_type product_type,
        'Y' is_base_metal,
        'N' is_concentrate,
@@ -126,7 +126,8 @@ SELECT akc.corporate_id,
        qum_quantity_unit_master qum,
        axs_action_summary axs,
        phd_profileheaderdetails phd,
-       phd_profileheaderdetails phd_warehouse
+       phd_profileheaderdetails phd_warehouse,
+       pdm_productmaster        pdm_contract
  WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    AND pcdi.pcdi_id = poch.pcdi_id
    AND poch.element_id = aml.attribute_id
@@ -155,6 +156,7 @@ SELECT akc.corporate_id,
    AND ppu.price_unit_id = pum.price_unit_id(+)
    AND pdm.base_quantity_unit = qum.qty_unit_id
    AND pfd.hedge_correction_action_ref_no = axs.internal_action_ref_no
+   and pcpd.product_id=pdm_contract.product_id
    AND pcm.cp_id = phd.profileid
    AND pcbpd.price_basis <> 'Fixed'
    AND pcpd.input_output = 'Input'
@@ -183,7 +185,7 @@ SELECT akc.corporate_id,
        cpc.profit_center_short_name profit_center,
        aml.underlying_product_id product_id,
        pdm.product_desc product,
-       pdm.product_desc underlying_product,
+       pdm_contract.product_desc underlying_product,     
        pcm.contract_type product_type,
        'Y' is_base_metal,
        'N' is_concentrate,
@@ -295,7 +297,8 @@ SELECT akc.corporate_id,
        qum_quantity_unit_master qum,
        axs_action_summary axs,
        phd_profileheaderdetails phd,
-       phd_profileheaderdetails phd_warehouse
+       phd_profileheaderdetails phd_warehouse,
+       pdm_productmaster        pdm_contract
  WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
    AND pcdi.pcdi_id = poch.pcdi_id
    AND poch.element_id = aml.attribute_id
@@ -324,6 +327,7 @@ SELECT akc.corporate_id,
    AND ppu.price_unit_id = pum.price_unit_id(+)
    AND pdm.base_quantity_unit = qum.qty_unit_id
    AND pfd.hedge_correction_action_ref_no = axs.internal_action_ref_no(+)
+   and pcpd.product_id=pdm_contract.product_id
    AND pcm.cp_id = phd.profileid
    AND pcbpd.price_basis <> 'Fixed'
    AND pcpd.input_output = 'Input'
