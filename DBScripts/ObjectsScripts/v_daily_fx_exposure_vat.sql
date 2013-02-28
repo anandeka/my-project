@@ -418,7 +418,7 @@ select akc.corporate_id,
        null vat_cur_code,
        null invoice_cur_code,
        pfd.is_hedge_correction is_hedge_correction,
-       nvl(pfd.is_exposure,'Y')
+       nvl(pfd.is_exposure,'Y') is_exposure
   from pcdi_pc_delivery_item          pcdi,
        pcm_physical_contract_main     pcm,
        poch_price_opt_call_off_header poch,
@@ -583,7 +583,7 @@ select akc.corporate_id,
        null vat_cur_code,
        null invoice_cur_code,
        pfd.is_hedge_correction,
-       pfd.is_exposure
+       nvl(pfd.is_exposure,'Y') is_exposure
   from pcdi_pc_delivery_item          pcdi,
        pcm_physical_contract_main     pcm,
        poch_price_opt_call_off_header poch,
