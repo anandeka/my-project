@@ -1,0 +1,61 @@
+Patch No*          		:  EKA_METALS_PATCH_1392
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar	
+ 
+Created on*        		:  04-Mar-2013
+
+Bug / Enhancement*              :  Bug
+
+
+Bug ID*            		: 75389
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+
+Sub-Module  			 : Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 118439
+Author: pradeep.kumar
+Date: 6:45:58 PM, Monday, March 04, 2013
+Message:
+-- # 75389 - Added Supplier Representative field on GMR creation page
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_400.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
