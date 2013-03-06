@@ -44,3 +44,11 @@ Bug fix: 75408 - Sender Reference number to be added on W&S certificate, Self As
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_401.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_508.sql
+
+Revision: 118619
+Author: rajeshwar.reddy
+Date: 17:06:06, 06 March 2013
+Message:
+increased column(LOT_NO) size of ASH table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_402.sql
