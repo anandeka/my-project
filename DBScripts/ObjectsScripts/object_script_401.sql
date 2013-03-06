@@ -1,0 +1,1 @@
+alter table WNS_ASSAY_D add(senders_ref_no varchar2(500));
