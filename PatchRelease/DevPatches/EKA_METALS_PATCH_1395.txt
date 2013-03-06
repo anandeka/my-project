@@ -6,7 +6,7 @@ Created by*        		:  Janna
 Created on*        		:  06-Mar-2012
 
 Bug / Enhancement*              :  Bug
-Bug ID*            		:  74769
+Bug ID*            		:  75641
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -32,5 +32,16 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 118634
+Author: janna
+Date: 6:08:12 PM, Wednesday, March 06, 2013
+Message:
+Unique Index on DD table 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/124_DDL_EODDB_ALTER_SCRIPT.sql
+
+
+
 
 
