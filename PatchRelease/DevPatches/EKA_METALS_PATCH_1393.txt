@@ -1,0 +1,78 @@
+Patch No*          		:  EKA_METALS_PATCH_1393
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju	
+ 
+Created on*        		:  06-Mar-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  74249, 75341, 75306
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Docs
+
+Sub-Module  			 :  Output Docs
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* :Transaction
+====================================================================================================================================
+
+Revision: 118524
+Author: rajuga
+Date: 6:49:18 PM, Tuesday, March 05, 2013
+Message:
+Bug 74249 - in service invoice o/p doc some of the collumns are missing 
+(Query and Formatting has been changed to show all the data)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+
+Revision: 118473
+Author: rajuga
+Date: 1:01:43 PM, Tuesday, March 05, 2013
+Message:
+Bug: 75341 -  Invoice utility run date colummn is showing wrong date
+Bug: 75306 - Rolled back invoice utility document is not displaying properly - Pages are blank 
+Decreased Canceled Water mark symbol size.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TotalInvoiceUtilityReport.rpt
+
+Revision: 118472
+Author: rajuga
+Date: 1:01:11 PM, Tuesday, March 05, 2013
+Message:
+Canceled Symbol Image has been removed and kept Text object instead of that, 
+to avoid Non-display of Grids during this Canceled symbol.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AdvancePaymentDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/OCInvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PledgeInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProfomaDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProvisionalInvoiceBaseMetals.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+
+====================================================================================================================================
