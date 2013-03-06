@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1394
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B	
+ 
+Created on*        		:  06-Mar-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75408
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Assay o/p doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* :Transaction
+====================================================================================================================================
+
+Revision: 118616
+Author: rajeshwar.reddy
+Date: 16:56:42, 06 March 2013
+Message:
+Bug fix: 75408 - Sender Reference number to be added on W&S certificate, Self Assay
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_401.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_508.sql
