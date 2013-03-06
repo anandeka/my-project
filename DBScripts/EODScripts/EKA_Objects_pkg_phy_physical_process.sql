@@ -551,21 +551,6 @@ create or replace package body pkg_phy_physical_process is
                                                  pc_process,
                                                  pc_dbd_id);
       commit;
-      vn_logno := vn_logno + 1;
-      sp_eodeom_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_process_id,
-                            vn_logno,
-                            'sp_calc_customs_report');
-      vc_err_msg := 'sp_calc_customs_report';
-    
-      pkg_phy_eod_reports.sp_calc_customs_report(pc_corporate_id,
-                                                 pd_trade_date,
-                                                 pc_process_id,
-                                                 pc_user_id,
-                                                 pc_process);
-      commit;
-    
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
@@ -1769,6 +1754,38 @@ create or replace package body pkg_phy_physical_process is
            (select sswh.sswh_id
               from sswh_spe_settle_washout_header sswh
              where sswh.process_id = pc_process_id);
+    --- added suresh   
+    update pca_physical_contract_action pca
+       set process_id = pc_process_id
+     where process_id is null
+       and (pca.internal_action_ref_no) in
+           (select axs.internal_action_ref_no
+              from axs_action_summary axs
+             where axs.internal_action_ref_no = pca.internal_action_ref_no
+               and axs.eff_date <= pd_trade_date
+               and axs.corporate_id = pc_corporate_id)
+       and pca.dbd_id in
+           (select dbd.dbd_id
+              from dbd_database_dump dbd
+             where dbd.corporate_id = pc_corporate_id
+               and dbd.process = gvc_process
+               and dbd.trade_date <= pd_trade_date);
+               
+      update cod_call_off_details cod
+       set process_id = pc_process_id
+     where process_id is null
+       and (cod.internal_action_ref_no) in
+           (select axs.internal_action_ref_no
+              from axs_action_summary axs
+             where axs.internal_action_ref_no = cod.internal_action_ref_no
+               and axs.eff_date <= pd_trade_date
+               and axs.corporate_id = pc_corporate_id)
+         and cod.dbd_id in
+           (select dbd.dbd_id
+              from dbd_database_dump dbd
+             where dbd.corporate_id = pc_corporate_id
+               and dbd.process = gvc_process
+               and dbd.trade_date <= pd_trade_date);            
   exception
     when others then
       vobj_error_log.extend;
@@ -4197,6 +4214,7 @@ create or replace package body pkg_phy_physical_process is
     commit;
     delete from cmp_contract_market_price where process_id = pc_process_id;
     delete from gmp_gmr_market_price where process_id = pc_process_id;
+    delete from bdp_bi_dertivative_pnl where process_id = pc_process_id;    
     commit;
     delete from page_price_alloc_gmr_exchange
      where process_id = pc_process_id;
@@ -4246,6 +4264,8 @@ create or replace package body pkg_phy_physical_process is
     update sswd_spe_settle_washout_detail
        set process_id = null
      where process_id = pc_process_id;
+    delete from pca_physical_contract_action where dbd_id = vc_dbd_id;
+    delete from cod_call_off_details where dbd_id = vc_dbd_id;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
