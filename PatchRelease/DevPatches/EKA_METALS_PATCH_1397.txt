@@ -34,3 +34,26 @@ Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
 
+Revision: 116297
+Author: jana
+Date: 4:08:17 PM, Monday, February 11, 2013
+Message:
+Demo Fixes
+1) V_DER_INSTRUMENT_PRICE_UNIT Corrected(Duplicate Record Inventory M2M PNL)
+2) DGRD Weighted Average Pricing Assay Added
+4) M2M Penalty Not appearing corrected
+4) Duplicate Records in Concentrate Realized PNL corrected
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_der_instrument_price_unit.sql
+
+Revision: 118712
+Author: jana
+Date: 2:50:24 PM, Thursday, March 07, 2013
+Message:
+File renamed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_objects_pkg_phy_conc_realized_pnl.sql
+
+
+
