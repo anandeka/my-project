@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1398
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  07-Mar-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75607
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 118713
+Author: suresh.gottipati
+Date: 2:50:59 PM, Thursday, March 07, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BrokerList.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BrokerMarginReport.rpt
+
