@@ -10585,9 +10585,9 @@ insert into mas_metal_account_summary
                           pc_process_id,
                           gvn_log_counter,
                           'End of Metal Balance');  
-end;  
+end;
   
-  PROCEDURE sp_misc_updates
+PROCEDURE sp_misc_updates
     (
         pc_corporate_id VARCHAR2,
         pd_trade_date   DATE,
@@ -10897,6 +10897,47 @@ vn_log_counter := vn_log_counter + 1;
                           vn_log_counter,
                           'End of GMR Is New Update');
 
+
+                          
+--
+-- Flag Updation for Arrival Report     
+-- 
+update gmr_goods_movement_record gmr
+   set gmr.is_new_mtd_ar = 'Y'
+ where gmr.process_id = pc_process_id 
+ and gmr.is_deleted ='N'
+  and gmr.gmr_status in ('In Warehouse', 'Landed')
+  and not exists
+  (select * from gmr_goods_movement_record gmr_prev
+  where gmr_prev.process_id =  vc_previous_eom_id
+  and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+  and gmr.gmr_status = gmr_prev.gmr_status);
+ commit; 
+vn_log_counter := vn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'End of GMR Is New MTD for AR');
+                          
+update gmr_goods_movement_record gmr
+   set gmr.is_new_ytd_ar = 'Y'
+ where gmr.process_id = pc_process_id 
+ and gmr.is_deleted ='N'
+  and gmr.gmr_status in ('In Warehouse', 'Landed')
+  and not exists
+  (select * from gmr_goods_movement_record gmr_prev
+  where gmr_prev.process_id =  vc_previous_year_eom_id
+  and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+  and gmr.gmr_status = gmr_prev.gmr_status);
+ commit; 
+ 
+vn_log_counter := vn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'End of GMR Is New YTD for AR');
 -- 
 -- GMR Is Assay Updated Flag for MTD and YTD
 --     
@@ -10948,47 +10989,7 @@ vn_log_counter := vn_log_counter + 1;
                           pd_trade_date,
                           pc_process_id,
                           vn_log_counter,
-                          'End of GMR Assay Update Flag');
-                          
---
--- Flag Updation for Arrival Report     
--- 
-update gmr_goods_movement_record gmr
-   set gmr.is_new_mtd_ar = 'Y'
- where gmr.process_id = pc_process_id 
- and gmr.is_deleted ='N'
-  and gmr.gmr_status in ('In Warehouse', 'Landed')
-  and not exists
-  (select * from gmr_goods_movement_record gmr_prev
-  where gmr_prev.process_id =  vc_previous_eom_id
-  and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-  and gmr.gmr_status = gmr_prev.gmr_status);
- commit; 
-vn_log_counter := vn_log_counter + 1;
-sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_log_counter,
-                          'End of GMR Is New MTD for AR');
-                          
-update gmr_goods_movement_record gmr
-   set gmr.is_new_ytd_ar = 'Y'
- where gmr.process_id = pc_process_id 
- and gmr.is_deleted ='N'
-  and gmr.gmr_status in ('In Warehouse', 'Landed')
-  and not exists
-  (select * from gmr_goods_movement_record gmr_prev
-  where gmr_prev.process_id =  vc_previous_year_eom_id
-  and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-  and gmr.gmr_status = gmr_prev.gmr_status);
- commit; 
-vn_log_counter := vn_log_counter + 1;
-sp_eodeom_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_process_id,
-                          vn_log_counter,
-                          'End of GMR Is New YTD for AR');
-                          
+                          'End of GMR Assay Update Flag');                          
 
 begin
   for cur_assay_mtd in (select gpq.internal_gmr_ref_no
@@ -11011,7 +11012,8 @@ begin
        set gmr.is_assay_updated_mtd_ar = 'Y'
      where gmr.process_id = pc_process_id
        and gmr.internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
-       and gmr.is_deleted ='N';
+       and gmr.is_deleted ='N'
+       and gmr.is_new_mtd_ar ='N';
   end loop;
 end;
 commit;
@@ -11037,7 +11039,8 @@ begin
        set gmr.is_assay_updated_ytd_ar = 'Y'
      where gmr.process_id = pc_process_id
        and gmr.internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
-       and gmr.is_deleted ='N';
+       and gmr.is_deleted ='N'
+       and gmr.is_new_ytd_ar ='N';
   end loop;
 end;
 commit;
