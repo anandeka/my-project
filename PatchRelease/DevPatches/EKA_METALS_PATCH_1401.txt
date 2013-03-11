@@ -1,0 +1,68 @@
+Patch No*          		:  EKA_METALS_PATCH_1401
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+ 
+Created on*        		:  11-Mar-2013
+
+Bug / Enhancement*              :  Enhancement
+
+
+Bug ID*            		:  N/A
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 119140
+Author: varaprasad.b
+Date: 20:30:23, 11 March 2013
+Message:
+Added for Listing Reports.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_509.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
