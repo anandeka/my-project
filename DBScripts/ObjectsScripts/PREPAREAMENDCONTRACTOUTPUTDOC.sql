@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE  "PREPAREAMENDCONTRACTOUTPUTDOC" (
+CREATE OR REPLACE PROCEDURE "PREPAREAMENDCONTRACTOUTPUTDOC" (
    p_contractno    VARCHAR2,
    p_docrefno      VARCHAR2,
    p_activity_id   VARCHAR2
@@ -468,16 +468,20 @@ BEGIN
                );
 
    display_order := display_order + 1;
-
-   BEGIN
-      SELECT pcpd.is_quality_print_name_req, pcpd.quality_print_name
-        INTO qualityprintnamereq, qualityprintname
+   
+   DECLARE
+   CURSOR pcpd_cursor
+   IS SELECT pcpd.is_quality_print_name_req as qualityprintnamereq , pcpd.quality_print_name as qualityprintname
+        --INTO qualityprintnamereq, qualityprintname
         FROM pcpd_pc_product_definition pcpd, pcm_physical_contract_main pcm
        WHERE pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
          AND pcpd.internal_contract_ref_no = p_contractno;
-   END;
 
-   IF (qualityprintnamereq = 'Y')
+  BEGIN
+   FOR pcpd_cursor_rows IN pcpd_cursor
+   LOOP
+    display_order := display_order + 1;
+   IF (pcpd_cursor_rows.qualityprintnamereq = 'Y')
    THEN
       INSERT INTO acd_amend_contract_details
                   (doc_id, display_order, field_layout_id, section_name,
@@ -488,7 +492,7 @@ BEGIN
                   )
            VALUES (docid, display_order, NULL, 'Quality/Qualities',
                    'Quality/Qualities', 'Y', NULL,
-                   NULL, qualityprintname, NULL,
+                   NULL, pcpd_cursor_rows.qualityprintname, NULL,
                    NULL, 'N', 'N',
                    'N', 'FULL', 'N'
                   );
@@ -507,6 +511,8 @@ BEGIN
                    'N', 'FULL', 'N'
                   );
    END IF;
+    END LOOP;
+END;
 
    FOR delivery_rec IN cr_delivery
    LOOP
@@ -814,6 +820,5 @@ BEGIN
    ELSE
       generateamendcontractoutputdoc (old_doc_id, docid, p_contractno);
    END IF;
-END; 
+END;
 /
-
