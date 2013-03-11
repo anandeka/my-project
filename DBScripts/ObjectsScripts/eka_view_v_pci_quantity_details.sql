@@ -192,24 +192,25 @@ select pcdi.pcdi_id,
                                                1)
        end) else(pkg_general.f_get_converted_quantity(pcpd.product_id, pci.item_qty_unit_id, pdm.base_quantity_unit, 1)) end) baseqty_conv_rate,
        null price_fixation_status,
-       pkg_report_general.fn_get_element_qty(pci.internal_contract_item_ref_no,
-                                             ciqs.total_qty,
-                                             ciqs.item_qty_unit_id,
-                                             pcpq.assay_header_id,
-                                             aml.attribute_id) total_qty,
+        (case when rm.ratio_name = '%' then  
+                     ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                     ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,1) * 
+		     nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               )  total_qty,                                        
        (case when pcpq.unit_of_measure = 'Dry'
        then ciqs.open_qty
        else
-       pkg_report_general.fn_get_assay_dry_qty(pdm.product_id,
-                                               pcpq.assay_header_id,
-                                               ciqs.open_qty,
-                                               ciqs.item_qty_unit_id)
+       ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,1)
                                                end) item_open_qty,
-       pkg_report_general.fn_get_element_qty(pci.internal_contract_item_ref_no,
-                                             ciqs.open_qty,
-                                             ciqs.item_qty_unit_id,
-                                             pcpq.assay_header_id,
-                                             aml.attribute_id) open_qty,
+        (case when rm.ratio_name = '%' then  
+                     ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                     ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,1) * 
+		     nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               )    open_qty,
        0 price_fixed_qty,
        0 unfixed_qty,
        pci.item_qty_unit_id,

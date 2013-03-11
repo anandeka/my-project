@@ -1,4 +1,12 @@
 create or replace view v_gmr_stock_details as
+with city_country_mapping as(
+select 
+    cim.city_id, cym.country_id,
+    cym.country_name 
+from
+    cim_citymaster cim,
+    cym_countrymaster cym
+where cim.country_id = cym.country_id)
 select (case
          when grd.is_afloat = 'Y' then
           'Afloat'
@@ -22,18 +30,10 @@ select (case
        gab.firstname || ' ' || gab.lastname trader,
        pdd.derivative_def_name instrument_name,
        itm.incoterm,
-       (case
-         when grd.is_afloat = 'Y' then
-          cym_gmr.country_name
-         else
-          cym_sld.country_name
-       end) country_name,
-       (case
-         when grd.is_afloat = 'Y' then
-          cim_gmr.city_name
-         else
-          cim_sld.city_name
-       end) city_name,
+      (select ccm.country_name from city_country_mapping ccm where ccm.city_id =  (case
+                 when grd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end)) country_name,
+       (select ccm.city_name from cim_citymaster ccm where ccm.city_id =  (case
+                 when grd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end)) city_name,
        to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
        (case
          when nvl(gmr.contract_type, 'NA') = 'Purchase' then
@@ -61,18 +61,9 @@ select (case
        pci.del_distribution_item_no,
        gmr.gmr_ref_no,
        gmr.internal_gmr_ref_no,
-       (case
-         when grd.is_afloat = 'Y' then
-          cym_gmr.country_id
-         else
-          cym_sld.country_id
-       end) country_id,
-       (case
-         when grd.is_afloat = 'Y' then
-          cim_gmr.city_id
-         else
-          cim_sld.city_id
-       end) city_id,
+       (select ccm.country_id from city_country_mapping ccm where ccm.city_id =  (case
+                 when grd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end)) country_id,
+       (case when grd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end) city_id,      
        pdtm.product_type_name,
        gcd.groupid,
        blm.business_line_id,
@@ -103,10 +94,10 @@ select (case
   from grd_goods_record_detail      grd,
        gmr_goods_movement_record    gmr,
        sld_storage_location_detail  sld,
-       cim_citymaster               cim_sld,
-       cim_citymaster               cim_gmr,
-       cym_countrymaster            cym_sld,
-       cym_countrymaster            cym_gmr,
+--       cim_citymaster               cim_sld,
+--       cim_citymaster               cim_gmr,
+--       cym_countrymaster            cym_sld,
+--       cym_countrymaster            cym_gmr,
        v_pci_pcdi_details           pci,
        pdm_productmaster            pdm,
        pdtm_product_type_master     pdtm,
@@ -126,10 +117,10 @@ select (case
    and pdm.product_type_id = pdtm.product_type_id
    and pdm.base_quantity_unit = qum.qty_unit_id
    and grd.shed_id = sld.storage_loc_id(+)
-   and sld.city_id = cim_sld.city_id(+)
-   and gmr.discharge_city_id = cim_gmr.city_id(+)
-   and cim_sld.country_id = cym_sld.country_id(+)
-   and cim_gmr.country_id = cym_gmr.country_id(+)
+--   and sld.city_id = cim_sld.city_id(+)
+--   and gmr.discharge_city_id = cim_gmr.city_id(+)
+--   and cim_sld.country_id = cym_sld.country_id(+)
+--   and cim_gmr.country_id = cym_gmr.country_id(+)
    and grd.quality_id = qat.quality_id
    and gmr.corporate_id = qat.corporate_id
    and qat.instrument_id = dim.instrument_id
@@ -170,18 +161,18 @@ select (case
           gab.firstname || ' ' || gab.lastname,
           pdd.derivative_def_name,
           itm.incoterm,
-          (case
-            when grd.is_afloat = 'Y' then
-             cym_gmr.country_name
-            else
-             cym_sld.country_name
-          end),
-          (case
-            when grd.is_afloat = 'Y' then
-             cim_gmr.city_name
-            else
-             cim_sld.city_name
-          end),
+         (case
+                 when grd.is_afloat = 'Y' then
+                  gmr.discharge_city_id
+                 else
+                  sld.city_id
+               end),
+--          (case
+--            when grd.is_afloat = 'Y' then
+--             cim_gmr.city_name
+--            else
+--             cim_sld.city_name
+--          end),
           (case
             when nvl(gmr.contract_type, 'NA') = 'Purchase' then
              'P'
@@ -198,18 +189,18 @@ select (case
           pci.del_distribution_item_no,
           gmr.gmr_ref_no,
           gmr.internal_gmr_ref_no,
-          (case
-            when grd.is_afloat = 'Y' then
-             cym_gmr.country_id
-            else
-             cym_sld.country_id
-          end),
-          (case
-            when grd.is_afloat = 'Y' then
-             cim_gmr.city_id
-            else
-             cim_sld.city_id
-          end),
+--          (case
+--            when grd.is_afloat = 'Y' then
+--             cym_gmr.country_id
+--            else
+--             cym_sld.country_id
+--          end),
+--          (case
+--            when grd.is_afloat = 'Y' then
+--             cim_gmr.city_id
+--            else
+--             cim_sld.city_id
+--          end),
           pdtm.product_type_name,
           gcd.groupid,
           blm.business_line_id,
@@ -246,18 +237,10 @@ select (case
        gab.firstname || ' ' || gab.lastname trader,
        pdd.derivative_def_name instrument_name,
        itm.incoterm,
-       (case
-         when grd.is_afloat = 'Y' then
-          cym_gmr.country_name
-         else
-          cym_sld.country_name
-       end) country_name,
-       (case
-         when grd.is_afloat = 'Y' then
-          cim_gmr.city_name
-         else
-          cim_sld.city_name
-       end) city_name,
+        (select ccm.country_name from city_country_mapping ccm where ccm.city_id =  (case
+             when grd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end)) country_name,
+        (select ccm.city_name from cim_citymaster ccm where ccm.city_id =  (case
+             when grd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end)) city_name,
        to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
        (case
          when nvl(gmr.contract_type, 'NA') = 'Purchase' then
@@ -285,18 +268,9 @@ select (case
        pci.del_distribution_item_no,
        gmr.gmr_ref_no,
        gmr.internal_gmr_ref_no,
-       (case
-         when grd.is_afloat = 'Y' then
-          cym_gmr.country_id
-         else
-          cym_sld.country_id
-       end) country_id,
-       (case
-         when grd.is_afloat = 'Y' then
-          cim_gmr.city_id
-         else
-          cim_sld.city_id
-       end) city_id,
+        (select ccm.country_id from city_country_mapping ccm where ccm.city_id =  (case
+         when grd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end)) country_id,
+        (case when grd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end) city_id,
        pdtm.product_type_name,
        gcd.groupid,
        blm.business_line_id,
@@ -327,10 +301,10 @@ select (case
   from grd_goods_record_detail      grd,
        gmr_goods_movement_record    gmr,
        sld_storage_location_detail  sld,
-       cim_citymaster               cim_sld,
-       cim_citymaster               cim_gmr,
-       cym_countrymaster            cym_sld,
-       cym_countrymaster            cym_gmr,
+--       cim_citymaster               cim_sld,
+--       cim_citymaster               cim_gmr,
+--       cym_countrymaster            cym_sld,
+--       cym_countrymaster            cym_gmr,
        v_pci_pcdi_details           pci,
        pdm_productmaster            pdm,
        pdtm_product_type_master     pdtm,
@@ -350,10 +324,10 @@ select (case
    and pdm.product_type_id = pdtm.product_type_id
    and pdm.base_quantity_unit = qum.qty_unit_id
    and grd.shed_id = sld.storage_loc_id(+)
-   and sld.city_id = cim_sld.city_id(+)
-   and gmr.discharge_city_id = cim_gmr.city_id(+)
-   and cim_sld.country_id = cym_sld.country_id(+)
-   and cim_gmr.country_id = cym_gmr.country_id(+)
+--   and sld.city_id = cim_sld.city_id(+)
+--   and gmr.discharge_city_id = cim_gmr.city_id(+)
+--   and cim_sld.country_id = cym_sld.country_id(+)
+--   and cim_gmr.country_id = cym_gmr.country_id(+)
    and grd.quality_id = qat.quality_id
    and gmr.corporate_id = qat.corporate_id
    and qat.instrument_id = dim.instrument_id
@@ -395,17 +369,11 @@ select (case
           pdd.derivative_def_name,
           itm.incoterm,
           (case
-            when grd.is_afloat = 'Y' then
-             cym_gmr.country_name
-            else
-             cym_sld.country_name
-          end),
-          (case
-            when grd.is_afloat = 'Y' then
-             cim_gmr.city_name
-            else
-             cim_sld.city_name
-          end),
+                 when grd.is_afloat = 'Y' then
+                  gmr.discharge_city_id
+                 else
+                  sld.city_id
+               end),
           (case
             when nvl(gmr.contract_type, 'NA') = 'Purchase' then
              'P'
@@ -423,19 +391,7 @@ select (case
           pci.del_distribution_item_no,
           pci.internal_contract_item_ref_no,
           gmr.gmr_ref_no,
-          gmr.internal_gmr_ref_no,
-          (case
-            when grd.is_afloat = 'Y' then
-             cym_gmr.country_id
-            else
-             cym_sld.country_id
-          end),
-          (case
-            when grd.is_afloat = 'Y' then
-             cim_gmr.city_id
-            else
-             cim_sld.city_id
-          end),
+          gmr.internal_gmr_ref_no,          
           pdtm.product_type_name,
           gcd.groupid,
           blm.business_line_id,
@@ -472,18 +428,10 @@ select (case
        gab.firstname || ' ' || gab.lastname trader,
        pdd.derivative_def_name instrument_name,
        itm.incoterm,
-       (case
-         when dgrd.is_afloat = 'Y' then
-          cym_gmr.country_name
-         else
-          cym_sld.country_name
-       end) country_name,
-       (case
-         when dgrd.is_afloat = 'Y' then
-          cim_gmr.city_name
-         else
-          cim_sld.city_name
-       end) city_name,
+       (select ccm.country_name from city_country_mapping ccm where ccm.city_id =  (case
+             when dgrd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end)) country_name,
+        (select ccm.city_name from cim_citymaster ccm where ccm.city_id =  (case
+             when dgrd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end)) city_name,
        to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
        (case
          when nvl(gmr.contract_type, 'NA') = 'Purchase' then
@@ -509,18 +457,9 @@ select (case
        pci.del_distribution_item_no,
        gmr.gmr_ref_no,
        gmr.internal_gmr_ref_no,
-       (case
-         when dgrd.is_afloat = 'Y' then
-          cym_gmr.country_id
-         else
-          cym_sld.country_id
-       end) country_id,
-       (case
-         when dgrd.is_afloat = 'Y' then
-          cim_gmr.city_id
-         else
-          cim_sld.city_id
-       end) city_id,
+        (select ccm.country_id from city_country_mapping ccm where ccm.city_id =  (case
+         when dgrd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end)) country_id,
+        (case when dgrd.is_afloat = 'Y' then gmr.discharge_city_id else sld.city_id end) city_id,
        pdtm.product_type_name,
        gcd.groupid,
        blm.business_line_id,
@@ -551,10 +490,10 @@ select (case
   from dgrd_delivered_grd           dgrd,
        gmr_goods_movement_record    gmr,
        sld_storage_location_detail  sld,
-       cim_citymaster               cim_sld,
-       cim_citymaster               cim_gmr,
-       cym_countrymaster            cym_sld,
-       cym_countrymaster            cym_gmr,
+--       cim_citymaster               cim_sld,
+--       cim_citymaster               cim_gmr,
+--       cym_countrymaster            cym_sld,
+--       cym_countrymaster            cym_gmr,
        v_pci_pcdi_details           pci,
        pdm_productmaster            pdm,
        pdtm_product_type_master     pdtm,
@@ -574,10 +513,10 @@ select (case
    and pdm.product_type_id = pdtm.product_type_id
    and pdm.base_quantity_unit = qum.qty_unit_id
    and dgrd.shed_id = sld.storage_loc_id(+)
-   and sld.city_id = cim_sld.city_id(+)
-   and gmr.discharge_city_id = cim_gmr.city_id(+)
-   and cim_sld.country_id = cym_sld.country_id(+)
-   and cim_gmr.country_id = cym_gmr.country_id(+)
+--   and sld.city_id = cim_sld.city_id(+)
+--   and gmr.discharge_city_id = cim_gmr.city_id(+)
+--   and cim_sld.country_id = cym_sld.country_id(+)
+--   and cim_gmr.country_id = cym_gmr.country_id(+)
    and dgrd.quality_id = qat.quality_id
    and gmr.corporate_id = qat.corporate_id
    and qat.instrument_id = dim.instrument_id
@@ -619,17 +558,11 @@ select (case
           pdd.derivative_def_name,
           itm.incoterm,
           (case
-            when dgrd.is_afloat = 'Y' then
-             cym_gmr.country_name
-            else
-             cym_sld.country_name
-          end),
-          (case
-            when dgrd.is_afloat = 'Y' then
-             cim_gmr.city_name
-            else
-             cim_sld.city_name
-          end),
+                 when dgrd.is_afloat = 'Y' then
+                  gmr.discharge_city_id
+                 else
+                  sld.city_id
+               end),         
           (case
             when nvl(gmr.contract_type, 'NA') = 'Purchase' then
              'P'
@@ -645,19 +578,7 @@ select (case
           pci.contract_ref_no,
           pci.del_distribution_item_no,
           gmr.gmr_ref_no,
-          gmr.internal_gmr_ref_no,
-          (case
-            when dgrd.is_afloat = 'Y' then
-             cym_gmr.country_id
-            else
-             cym_sld.country_id
-          end),
-          (case
-            when dgrd.is_afloat = 'Y' then
-             cim_gmr.city_id
-            else
-             cim_sld.city_id
-          end),
+          gmr.internal_gmr_ref_no,         
           pdtm.product_type_name,
           gcd.groupid,
           blm.business_line_id,

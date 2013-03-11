@@ -1,4 +1,12 @@
 create or replace view v_gmr_concentrate_details as
+with city_country_mapping as(
+select 
+    cim.city_id, cym.country_id,
+    cym.country_name 
+from
+    cim_citymaster cim,
+    cym_countrymaster cym
+where cim.country_id = cym.country_id)
 select subsectionname,
        internal_contract_ref_no,
        inco_term_id,
@@ -90,15 +98,15 @@ select subsectionname,
                itm.incoterm,
                (case
                  when grd.is_afloat = 'Y' then
-                  cym_gmr.country_name
+                  (select country_name from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
                  else
-                  cym_sld.country_name
+                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
                end) country_name,
                (case
                  when grd.is_afloat = 'Y' then
-                  cim_gmr.city_name
+                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = gmr.discharge_city_id) 
                  else
-                  cim_sld.city_name
+                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = sld.city_id)
                end) city_name,
                to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
                (case
@@ -134,11 +142,12 @@ select subsectionname,
                qum.qty_unit comp_base_qty_unit,
                qum.qty_unit_id comp_base_qty_unit_id,
                null price_fixation_status,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           grd.qty,
-                                                           grd.qty_unit_id) total_qty,
+               (case when rm.ratio_name = '%' then  
+                     grd.qty *  nvl(asm.dry_wet_qty_ratio,1) * (pqca.typical /100)
+                else
+                    grd.qty * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               )  total_qty,                                                       
                (case when pcpq.unit_of_measure = 'Dry'
                then (nvl(grd.current_qty,
                                                             0) +
@@ -147,26 +156,15 @@ select subsectionname,
                                                        nvl(grd.title_transfer_out_qty,
                                                             0))
                 else
-               pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
-                                                       sam.ash_id,
-                                                       (nvl(grd.current_qty,
-                                                            0) +
-                                                       nvl(grd.release_shipped_qty,
-                                                            0) -
-                                                       nvl(grd.title_transfer_out_qty,
-                                                            0)),
-                                                       grd.qty_unit_id)
-                                                       end) item_open_qty,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           (nvl(grd.current_qty,
-                                                                0) +
-                                                           nvl(grd.release_shipped_qty,
-                                                                0) -
-                                                           nvl(grd.title_transfer_out_qty,
-                                                                0)),
-                                                           grd.qty_unit_id) open_qty,
+                (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) 
+                end)item_open_qty,   
+               (case when rm.ratio_name = '%' then  
+                     (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) *
+                    nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               )      open_qty,    
                0 price_fixed_qty,
                0 unfixed_qty,
                grd.qty_unit_id item_qty_unit_id,
@@ -177,15 +175,15 @@ select subsectionname,
                gmr.internal_gmr_ref_no,
                (case
                  when grd.is_afloat = 'Y' then
-                  cym_gmr.country_id
+                  (select country_id from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
                  else
-                  cym_sld.country_id
+                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
                end) country_id,
                (case
                  when grd.is_afloat = 'Y' then
-                  cim_gmr.city_id
+                  gmr.discharge_city_id
                  else
-                  cim_sld.city_id
+                  sld.city_id
                end) city_id,
                pdtm.product_type_name,
                gcd.groupid,
@@ -216,19 +214,20 @@ select subsectionname,
                aml.underlying_product_id,
                nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_quantity_unit_id,
                'CONCENTRATES' position_type,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           1,
-                                                           grd.qty_unit_id) assay_convertion_rate,
+               (case when rm.ratio_name = '%' then  
+                     1 * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    nvl(pqca.typical,1) * nvl(asm.dry_wet_qty_ratio,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               )  assay_convertion_rate,
                pci.approval_status
           from grd_goods_record_detail        grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
-               cim_citymaster                 cim_sld,
-               cim_citymaster                 cim_gmr,
-               cym_countrymaster              cym_sld,
-               cym_countrymaster              cym_gmr,
+--               cim_citymaster                 cim_sld,
+--               cim_citymaster                 cim_gmr,
+--               cym_countrymaster              cym_sld,
+--               cym_countrymaster              cym_gmr,
                v_pci_pcdi_details             pci,
                pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
@@ -258,10 +257,10 @@ select subsectionname,
            and pdm.product_type_id = pdtm.product_type_id
            and pdm.base_quantity_unit = qum.qty_unit_id
            and grd.shed_id = sld.storage_loc_id(+)
-           and sld.city_id = cim_sld.city_id(+)
-           and gmr.discharge_city_id = cim_gmr.city_id(+)
-           and cim_sld.country_id = cym_sld.country_id(+)
-           and cim_gmr.country_id = cym_gmr.country_id(+)
+--           and sld.city_id = cim_sld.city_id(+)
+--           and gmr.discharge_city_id = cim_gmr.city_id(+)
+--           and cim_sld.country_id = cym_sld.country_id(+)
+--           and cim_gmr.country_id = cym_gmr.country_id(+)
            and grd.internal_grd_ref_no = sam.internal_grd_ref_no
            and sam.stock_type = 'P'
            and sam.ash_id = ash.ash_id
@@ -332,15 +331,15 @@ select subsectionname,
                itm.incoterm,
                (case
                  when grd.is_afloat = 'Y' then
-                  cym_gmr.country_name
+                  (select country_name from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
                  else
-                  cym_sld.country_name
+                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
                end) country_name,
                (case
                  when grd.is_afloat = 'Y' then
-                  cim_gmr.city_name
+                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = gmr.discharge_city_id) 
                  else
-                  cim_sld.city_name
+                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = sld.city_id)
                end) city_name,
                to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
                (case
@@ -376,24 +375,23 @@ select subsectionname,
                qum.qty_unit comp_base_qty_unit,
                qum.qty_unit_id comp_base_qty_unit_id,
                null price_fixation_status,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           grd.net_weight,
-                                                           grd.net_weight_unit_id) total_qty,
+               (case when rm.ratio_name = '%' then  
+                     grd.net_weight * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    grd.net_weight * nvl(pqca.typical,1) * nvl(asm.dry_wet_qty_ratio,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               ) total_qty,
                (case when pcpq.unit_of_measure = 'Dry'
                then grd.current_qty
                else
-               pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
-                                                       sam.ash_id,
-                                                       grd.current_qty,
-                                                       grd.net_weight_unit_id)
+               grd.current_qty * nvl(asm.dry_wet_qty_ratio,1)
                                                        end) item_open_qty,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           grd.current_qty,
-                                                           grd.net_weight_unit_id) open_qty,
+               (case when rm.ratio_name = '%' then  
+                     grd.current_qty * nvl(asm.dry_wet_qty_ratio,1) * (pqca.typical /100)
+                else
+                    grd.current_qty * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               )     open_qty,                                                      
                0 price_fixed_qty,
                0 unfixed_qty,
                grd.net_weight_unit_id item_qty_unit_id,
@@ -404,15 +402,15 @@ select subsectionname,
                gmr.internal_gmr_ref_no,
                (case
                  when grd.is_afloat = 'Y' then
-                  cym_gmr.country_id
+                  (select country_id from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
                  else
-                  cym_sld.country_id
+                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
                end) country_id,
-               (case
+	       (case
                  when grd.is_afloat = 'Y' then
-                  cim_gmr.city_id
+                  gmr.discharge_city_id
                  else
-                  cim_sld.city_id
+                  sld.city_id
                end) city_id,
                pdtm.product_type_name,
                gcd.groupid,
@@ -443,19 +441,20 @@ select subsectionname,
                aml.underlying_product_id,
                nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_quantity_unit_id,
                'CONCENTRATES' position_type,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           1,
-                                                           grd.net_weight_unit_id) assay_convertion_rate,
+               (case when rm.ratio_name = '%' then  
+                     1 * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    1 * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               ) assay_convertion_rate,
                pci.approval_status
           from dgrd_delivered_grd             grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
-               cim_citymaster                 cim_sld,
-               cim_citymaster                 cim_gmr,
-               cym_countrymaster              cym_sld,
-               cym_countrymaster              cym_gmr,
+--               cim_citymaster                 cim_sld,
+--               cim_citymaster                 cim_gmr,
+--               cym_countrymaster              cym_sld,
+--               cym_countrymaster              cym_gmr,
                v_pci_pcdi_details             pci,
                pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
@@ -485,10 +484,10 @@ select subsectionname,
            and pdm.product_type_id = pdtm.product_type_id
            and pdm.base_quantity_unit = qum.qty_unit_id
            and grd.shed_id = sld.storage_loc_id(+)
-           and sld.city_id = cim_sld.city_id(+)
-           and gmr.discharge_city_id = cim_gmr.city_id(+)
-           and cim_sld.country_id = cym_sld.country_id(+)
-           and cim_gmr.country_id = cym_gmr.country_id(+)
+--           and sld.city_id = cim_sld.city_id(+)
+--           and gmr.discharge_city_id = cim_gmr.city_id(+)
+--           and cim_sld.country_id = cym_sld.country_id(+)
+--           and cim_gmr.country_id = cym_gmr.country_id(+)
            and grd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
            and sam.stock_type = 'S'
            and sam.ash_id = ash.ash_id
@@ -560,15 +559,15 @@ select subsectionname,
                itm.incoterm,
                (case
                  when grd.is_afloat = 'Y' then
-                  cym_gmr.country_name
+                  (select country_name from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
                  else
-                  cym_sld.country_name
+                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
                end) country_name,
                (case
                  when grd.is_afloat = 'Y' then
-                  cim_gmr.city_name
+                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = gmr.discharge_city_id) 
                  else
-                  cim_sld.city_name
+                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = sld.city_id)
                end) city_name,
                to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
                (case
@@ -604,11 +603,12 @@ select subsectionname,
                qum.qty_unit comp_base_qty_unit,
                qum.qty_unit_id comp_base_qty_unit_id,
                null price_fixation_status,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           grd.qty,
-                                                           grd.qty_unit_id) total_qty,
+               (case when rm.ratio_name = '%' then  
+                     grd.qty * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    grd.qty * nvl(asm.dry_wet_qty_ratio,1) *nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               ) total_qty,
               (case when pcpq.unit_of_measure = 'Dry'
               then (nvl(grd.current_qty,
                                                             0) +
@@ -617,26 +617,15 @@ select subsectionname,
                                                        nvl(grd.title_transfer_out_qty,
                                                             0))
                else
-               pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
-                                                       sam.ash_id,
-                                                       (nvl(grd.current_qty,
-                                                            0) +
-                                                       nvl(grd.release_shipped_qty,
-                                                            0) -
-                                                       nvl(grd.title_transfer_out_qty,
-                                                            0)),
-                                                       grd.qty_unit_id)
+               (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1)
                                                        end) item_open_qty,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           (nvl(grd.current_qty,
-                                                                0) +
-                                                           nvl(grd.release_shipped_qty,
-                                                                0) -
-                                                           nvl(grd.title_transfer_out_qty,
-                                                                0)),
-                                                           grd.qty_unit_id) open_qty,
+               (case when rm.ratio_name = '%' then  
+                     (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) *
+                             nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               )     open_qty,
                0 price_fixed_qty,
                0 unfixed_qty,
                grd.qty_unit_id item_qty_unit_id,
@@ -647,15 +636,15 @@ select subsectionname,
                gmr.internal_gmr_ref_no,
                (case
                  when grd.is_afloat = 'Y' then
-                  cym_gmr.country_id
+                  (select country_id from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
                  else
-                  cym_sld.country_id
+                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
                end) country_id,
-               (case
+	       (case
                  when grd.is_afloat = 'Y' then
-                  cim_gmr.city_id
+                  gmr.discharge_city_id
                  else
-                  cim_sld.city_id
+                  sld.city_id
                end) city_id,
                pdtm.product_type_name,
                gcd.groupid,
@@ -686,19 +675,20 @@ select subsectionname,
                aml.underlying_product_id,
                nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_quantity_unit_id,
                'CONCENTRATES' position_type,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           1,
-                                                           grd.qty_unit_id) assay_convertion_rate,
+               (case when rm.ratio_name = '%' then  
+                     1 * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    1 * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               ) assay_convertion_rate,
                pci.approval_status
           from grd_goods_record_detail        grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
-               cim_citymaster                 cim_sld,
-               cim_citymaster                 cim_gmr,
-               cym_countrymaster              cym_sld,
-               cym_countrymaster              cym_gmr,
+--               cim_citymaster                 cim_sld,
+--               cim_citymaster                 cim_gmr,
+--               cym_countrymaster              cym_sld,
+--               cym_countrymaster              cym_gmr,
                v_pci_pcdi_details             pci,
                pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
@@ -728,10 +718,10 @@ select subsectionname,
            and pdm.product_type_id = pdtm.product_type_id
            and pdm.base_quantity_unit = qum.qty_unit_id
            and grd.shed_id = sld.storage_loc_id(+)
-           and sld.city_id = cim_sld.city_id(+)
-           and gmr.discharge_city_id = cim_gmr.city_id(+)
-           and cim_sld.country_id = cym_sld.country_id(+)
-           and cim_gmr.country_id = cym_gmr.country_id(+)
+--           and sld.city_id = cim_sld.city_id(+)
+--           and gmr.discharge_city_id = cim_gmr.city_id(+)
+--           and cim_sld.country_id = cym_sld.country_id(+)
+--           and cim_gmr.country_id = cym_gmr.country_id(+)
            and grd.internal_grd_ref_no = sam.internal_grd_ref_no
            and sam.stock_type = 'P'
            and sam.ash_id = ash.ash_id
@@ -802,15 +792,15 @@ select subsectionname,
                itm.incoterm,
                (case
                  when grd.is_afloat = 'Y' then
-                  cym_gmr.country_name
+                  (select country_name from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
                  else
-                  cym_sld.country_name
+                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
                end) country_name,
                (case
                  when grd.is_afloat = 'Y' then
-                  cim_gmr.city_name
+                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = gmr.discharge_city_id) 
                  else
-                  cim_sld.city_name
+                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = sld.city_id)
                end) city_name,
                to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
                (case
@@ -846,24 +836,23 @@ select subsectionname,
                qum.qty_unit comp_base_qty_unit,
                qum.qty_unit_id comp_base_qty_unit_id,
                null price_fixation_status,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           grd.net_weight,
-                                                           grd.net_weight_unit_id) total_qty,
+               (case when rm.ratio_name = '%' then  
+                     grd.net_weight * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    grd.net_weight * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               ) total_qty,
                (case when pcpq.unit_of_measure = 'Dry'
                then grd.current_qty
                else
-               pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
-                                                       sam.ash_id,
-                                                       grd.current_qty,
-                                                       grd.net_weight_unit_id)
+               grd.current_qty * nvl(asm.dry_wet_qty_ratio,1)
                                                        end) item_open_qty,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           grd.current_qty,
-                                                           grd.net_weight_unit_id) open_qty,
+               (case when rm.ratio_name = '%' then  
+                     grd.current_qty * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    grd.current_qty * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               )  open_qty,
                0 price_fixed_qty,
                0 unfixed_qty,
                grd.net_weight_unit_id item_qty_unit_id,
@@ -874,15 +863,15 @@ select subsectionname,
                gmr.internal_gmr_ref_no,
                (case
                  when grd.is_afloat = 'Y' then
-                  cym_gmr.country_id
+                  (select country_id from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
                  else
-                  cym_sld.country_id
+                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
                end) country_id,
-               (case
+	       (case
                  when grd.is_afloat = 'Y' then
-                  cim_gmr.city_id
+                  gmr.discharge_city_id
                  else
-                  cim_sld.city_id
+                  sld.city_id
                end) city_id,
                pdtm.product_type_name,
                gcd.groupid,
@@ -913,19 +902,20 @@ select subsectionname,
                aml.underlying_product_id,
                nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_quantity_unit_id,
                'CONCENTRATES' position_type,
-               pkg_report_general.fn_get_element_assay_qty(aml.attribute_id,
-                                                           sam.ash_id,
-                                                           'Wet',
-                                                           1,
-                                                           grd.net_weight_unit_id) assay_convertion_rate,
+               (case when rm.ratio_name = '%' then  
+                     1 * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                else
+                    1 * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                end
+               )  assay_convertion_rate,
                pci.approval_status
           from dgrd_delivered_grd             grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
-               cim_citymaster                 cim_sld,
-               cim_citymaster                 cim_gmr,
-               cym_countrymaster              cym_sld,
-               cym_countrymaster              cym_gmr,
+--               cim_citymaster                 cim_sld,
+--               cim_citymaster                 cim_gmr,
+--               cym_countrymaster              cym_sld,
+--               cym_countrymaster              cym_gmr,
                v_pci_pcdi_details             pci,
                pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
@@ -955,10 +945,10 @@ select subsectionname,
            and pdm.product_type_id = pdtm.product_type_id
            and pdm.base_quantity_unit = qum.qty_unit_id
            and grd.shed_id = sld.storage_loc_id(+)
-           and sld.city_id = cim_sld.city_id(+)
-           and gmr.discharge_city_id = cim_gmr.city_id(+)
-           and cim_sld.country_id = cym_sld.country_id(+)
-           and cim_gmr.country_id = cym_gmr.country_id(+)
+--           and sld.city_id = cim_sld.city_id(+)
+--           and gmr.discharge_city_id = cim_gmr.city_id(+)
+--           and cim_sld.country_id = cym_sld.country_id(+)
+--           and cim_gmr.country_id = cym_gmr.country_id(+)
            and grd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
            and sam.stock_type = 'S'
            and sam.ash_id = ash.ash_id
