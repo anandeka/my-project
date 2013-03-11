@@ -95,7 +95,7 @@ create or replace package pkg_phy_eod_reports is
                                          pd_trade_date   date,
                                          pc_process_id   varchar2,
                                          pc_process      varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -5498,6 +5498,7 @@ insert into isr2_isr_invoice
      and ppu.product_id = aml.underlying_product_id
      and ppu.weight_unit_id = pdm_aml.base_quantity_unit
      and nvl(ppu.weight, 1) = 1
+     and ppu.cur_id = tgi.invoice_cur_id
      and aml.underlying_product_id = pdm_aml.product_id
      and gmr.discharge_country_id <> gmr.loading_country_id
      and ucm.from_qty_unit_id = spq.qty_unit_id
