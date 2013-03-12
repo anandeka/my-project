@@ -138,7 +138,7 @@ create or replace package "PKG_PHY_PRE_CHECK_PROCESS" is
                                    pd_trade_date   date,
                                    pc_dbd_id       varchar2,
                                    pc_user_id      varchar2);
-end; 
+end;
 /
 create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
 
@@ -179,7 +179,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
      where dbd.corporate_id = pc_corporate_id
        and dbd.process = pc_process
        and dbd.trade_date = pd_trade_date;
-   /* vn_logno := vn_logno + 1;
+    /* vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             gvc_dbd_id,
@@ -191,13 +191,13 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       goto cancel_process;
     end if;
     /*sp_pre_check_m2m_values(pc_corporate_id,
-                            pd_trade_date,
-                            gvc_dbd_id,
-                            pc_user_id,
-                            pc_process);*/
+    pd_trade_date,
+    gvc_dbd_id,
+    pc_user_id,
+    pc_process);*/
   
     vn_logno := vn_logno + 1;
-  /*  sp_precheck_process_log(pc_corporate_id,
+    /*  sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             gvc_dbd_id,
                             vn_logno,
@@ -212,7 +212,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                  gvc_dbd_id,
                                  pc_user_id,
                                  pc_process);
-  
+    
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -229,7 +229,7 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                                   gvc_dbd_id,
                                   pc_user_id,
                                   pc_process);
-  
+    
     vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
@@ -254,10 +254,10 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        'Cancel' then
       goto cancel_process;
     end if;
-    sp_phy_insert_ceqs_data(pc_corporate_id,
-                            pd_trade_date,
-                            gvc_dbd_id,
-                            pc_user_id);
+    /*sp_phy_insert_ceqs_data(pc_corporate_id,
+    pd_trade_date,
+    gvc_dbd_id,
+    pc_user_id);*/
   
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
@@ -7756,5 +7756,5 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
       commit;
     end loop;
   end;
-end; 
+end;
 /
