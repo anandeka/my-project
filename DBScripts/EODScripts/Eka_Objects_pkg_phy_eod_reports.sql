@@ -8736,7 +8736,7 @@ insert into temp_mas
          pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
          rm_ratio_master rm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -8763,8 +8763,9 @@ insert into temp_mas
      and pqca.unit_of_measure = rm.ratio_id
      and rm.is_active = 'Y'
      and rm.is_deleted = 'N'
-     and agmr.eff_date > vd_prev_eom_date
-     and agmr.eff_date <= pd_trade_date;
+    -- and agmr.eff_date > vd_prev_eom_date
+    -- and agmr.eff_date <= pd_trade_date;
+     and gmr.is_new_mtd_ar='Y';
      commit;
      gvn_log_counter := gvn_log_counter + 1;
      sp_eodeom_process_log(pc_corporate_id,
@@ -8843,7 +8844,7 @@ insert into temp_mas
          pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
          rm_ratio_master rm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -8873,8 +8874,8 @@ insert into temp_mas
      and pqca.unit_of_measure = rm.ratio_id
      and rm.is_active = 'Y'
      and rm.is_deleted = 'N'
-     
-     and agmr.eff_date <= vd_prev_eom_date;
+     and gmr.is_new_mtd_ar='N';
+    -- and agmr.eff_date <= vd_prev_eom_date;
 commit;     
    gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -8987,8 +8988,9 @@ insert into temp_mas
      and pqca.unit_of_measure = rm.ratio_id
      and rm.is_active = 'Y'
      and rm.is_deleted = 'N'
-     and agmr.eff_date > vd_prev_eom_date
-     and agmr.eff_date <= pd_trade_date
+   --  and agmr.eff_date > vd_prev_eom_date
+    -- and agmr.eff_date <= pd_trade_date
+     and gmr.is_new_mtd_ar='Y'
      and ash.assay_type in ('Pricing Assay','Shipment Assay')
      and spq.assay_header_id = ash.ash_id;
      commit;
@@ -9103,8 +9105,8 @@ insert into temp_mas
      and pqca.unit_of_measure = rm.ratio_id
      and rm.is_active = 'Y'
      and rm.is_deleted = 'N'
-     
-     and agmr.eff_date <= vd_prev_eom_date
+     and gmr.is_new_mtd_ar='N'
+    -- and agmr.eff_date <= vd_prev_eom_date
      and ash.assay_type in ('Pricing Assay','Shipment Assay')
      and spq.assay_header_id = ash.ash_id;
      commit;
@@ -9143,9 +9145,10 @@ insert into temp_mas
          'Inventory' position_type,
          'In Process Stock' stock_type,
          (case
-           when agmr.eff_date > vd_prev_eom_date and
-                agmr.eff_date <= pd_trade_date then
-            
+          /* when agmr.eff_date > vd_prev_eom_date and
+                agmr.eff_date <= pd_trade_date then*/
+           when axs.eff_date > vd_prev_eom_date and
+                axs.eff_date <= pd_trade_date then
           (case when grd.tolling_stock_type in
           ('Free Metal IP Stock', 'Delta FM IP Stock') then
             'New Stock - Free Metal Stocks'
@@ -9156,8 +9159,10 @@ insert into temp_mas
             'Existing Stock'
          end) section_name,
          (case
-           when agmr.eff_date > vd_prev_eom_date and
-                agmr.eff_date <= pd_trade_date then
+          /* when agmr.eff_date > vd_prev_eom_date and
+                agmr.eff_date <= pd_trade_date then*/
+            when axs.eff_date > vd_prev_eom_date and
+                axs.eff_date <= pd_trade_date then
             '3'
            else
             '2'
@@ -9171,6 +9176,8 @@ insert into temp_mas
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          aml_attribute_master_list aml,
+         axs_action_summary  axs,
+         dbd_database_dump   dbd,
          pdm_productmaster pdm,
          (select gmr.internal_gmr_ref_no,
                  agmr.eff_date
@@ -9196,7 +9203,9 @@ insert into temp_mas
      and gmr.corporate_id = akc.corporate_id
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
-     
+     and grd.internal_action_ref_no=axs.internal_action_ref_no
+     and axs.dbd_id=dbd.dbd_id
+     and dbd.process='EOM'          
      and agmr.eff_date <= pd_trade_date
      and grd.tolling_stock_type in
          ('MFT In Process Stock', 'Free Metal IP Stock', 'Delta FM IP Stock',
@@ -9279,7 +9288,7 @@ insert into temp_mas
          ak_corporate akc,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -9380,7 +9389,7 @@ insert into temp_mas
          ak_corporate akc,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -9485,7 +9494,7 @@ insert into temp_mas
          ak_corporate akc,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -9587,7 +9596,7 @@ insert into temp_mas
          ak_corporate akc,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -9673,7 +9682,7 @@ insert into temp_mas
          ak_corporate akc,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -9751,7 +9760,7 @@ insert into temp_mas
          ak_corporate akc,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -9830,7 +9839,7 @@ insert into temp_mas
          ak_corporate akc,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -9908,7 +9917,7 @@ insert into temp_mas
          ak_corporate akc,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
