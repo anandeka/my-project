@@ -6,7 +6,7 @@ Created by*        		:  Janna
 Created on*        		:  12-Mar-2012
 
 Bug / Enhancement*              :  Bug
-Bug ID*            		:  
+Bug ID*            		:  75826 75823 75818 75547
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -32,4 +32,30 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 119098
+Date: 6:43:53 PM, Monday, March 11, 2013
+Message:
+Intrastat PPU Join with Currency added
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+Revision: 118809
+Author: jana
+Date: 11:08:27 AM, Friday, March 08, 2013
+Message:
+COG Price Combo Price Fix
+Arrival Report Fix from Production, GMR Flags (sp_mis_updates) moved to main branch
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+
+
+Revision: 119183
+Date: 11:08:08 AM, Tuesday, March 12, 2013
+Message:
+75818 - In Intrastat report, CP name is not showing completely and after creating PI,in date column instead of showing shipment date it is showing invoice due date
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport_Excel.rpt
+
 
