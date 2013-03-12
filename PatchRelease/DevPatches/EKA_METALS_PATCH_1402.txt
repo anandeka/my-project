@@ -50,6 +50,14 @@ Arrival Report Fix from Production, GMR Flags (sp_mis_updates) moved to main bra
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
 
 
+Revision: 119197
+Date: 11:41:06 AM, Tuesday, March 12, 2013
+Message:
+CEQS Population Commented for Boliden
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process_boliden.sql
+
+
 Revision: 119183
 Date: 11:08:08 AM, Tuesday, March 12, 2013
 Message:
@@ -57,5 +65,6 @@ Message:
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport_Excel.rpt
+
 
 
