@@ -491,8 +491,8 @@ WITH ucm_mfact AS
                     gcd_groupcorporatedetails gcd_group,
                     cm_currency_master cm_gcd,
                     cm_currency_master cm_base,
-                    pum_price_unit_master pum_strike,
-                    v_latest_option_quotes    vlq
+                    pum_price_unit_master pum_strike
+--                    v_latest_option_quotes    vlq
               WHERE dt.corporate_id = ak.corporate_id
                 AND dt.trader_id = aku.user_id
                 AND aku.gabid = gab.gabid
@@ -527,8 +527,8 @@ WITH ucm_mfact AS
                 AND gcd_group.group_cur_id = cm_gcd.cur_id
                 AND ak.base_cur_id = cm_base.cur_id(+)
                 AND dt.strike_price_unit_id = pum_strike.price_unit_id(+)
-                AND dt.dr_id = vlq.dr_id(+)
-                AND dt.corporate_id = vlq.corporate_id(+) 
+--                AND dt.dr_id = vlq.dr_id(+)
+--                AND dt.corporate_id = vlq.corporate_id(+) 
  
  
  
