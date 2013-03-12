@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1405
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  12-Mar-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  74688
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOM
+
+Sub-Module  			 :  EOM
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+===========================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+===========================================================================================================
+Revision: 119290
+Author: ramachandran.r
+Date: 6:30:12 PM, Tuesday, March 12, 2013
+Message:
+Added for Posting status in EOM filter.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_510.sql
+
