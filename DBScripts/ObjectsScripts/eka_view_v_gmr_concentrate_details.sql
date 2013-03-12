@@ -1,12 +1,16 @@
 create or replace view v_gmr_concentrate_details as
 with city_country_mapping as(
 select 
-    cim.city_id, cym.country_id,
+    cim.city_id, 
+    cim.city_name,
+    cym.country_id,
     cym.country_name 
 from
     cim_citymaster cim,
     cym_countrymaster cym
-where cim.country_id = cym.country_id)
+where cim.country_id = cym.country_id
+and cim.is_active = 'Y'
+and cim.is_deleted = 'N')
 select subsectionname,
        internal_contract_ref_no,
        inco_term_id,
@@ -98,15 +102,15 @@ select subsectionname,
                itm.incoterm,
                (case
                  when grd.is_afloat = 'Y' then
-                  (select country_name from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
+                  cim_gmr.country_name
                  else
-                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
+                  cim_sld.country_name
                end) country_name,
                (case
                  when grd.is_afloat = 'Y' then
-                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = gmr.discharge_city_id) 
+                  cim_gmr.city_name 
                  else
-                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = sld.city_id)
+                  cim_sld.city_name
                end) city_name,
                to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
                (case
@@ -175,9 +179,9 @@ select subsectionname,
                gmr.internal_gmr_ref_no,
                (case
                  when grd.is_afloat = 'Y' then
-                  (select country_id from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
+                cim_gmr.country_id
                  else
-                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
+                  cim_sld.country_id
                end) country_id,
                (case
                  when grd.is_afloat = 'Y' then
@@ -224,10 +228,8 @@ select subsectionname,
           from grd_goods_record_detail        grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
---               cim_citymaster                 cim_sld,
---               cim_citymaster                 cim_gmr,
---               cym_countrymaster              cym_sld,
---               cym_countrymaster              cym_gmr,
+               city_country_mapping           cim_sld,
+               city_country_mapping           cim_gmr,
                v_pci_pcdi_details             pci,
                pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
@@ -257,10 +259,8 @@ select subsectionname,
            and pdm.product_type_id = pdtm.product_type_id
            and pdm.base_quantity_unit = qum.qty_unit_id
            and grd.shed_id = sld.storage_loc_id(+)
---           and sld.city_id = cim_sld.city_id(+)
---           and gmr.discharge_city_id = cim_gmr.city_id(+)
---           and cim_sld.country_id = cym_sld.country_id(+)
---           and cim_gmr.country_id = cym_gmr.country_id(+)
+           and sld.city_id = cim_sld.city_id(+)
+           and gmr.discharge_city_id = cim_gmr.city_id(+)
            and grd.internal_grd_ref_no = sam.internal_grd_ref_no
            and sam.stock_type = 'P'
            and sam.ash_id = ash.ash_id
@@ -289,6 +289,7 @@ select subsectionname,
            and akc.groupid = gcd.groupid
            and grd.is_deleted = 'N'
            and grd.status = 'Active'
+           and grd.tolling_stock_type = 'None Tolling'
            and grd.internal_contract_item_ref_no =
                pci.internal_contract_item_ref_no(+)
            and pci.pcpq_id = pcpq.pcpq_id(+)
@@ -329,17 +330,17 @@ select subsectionname,
                gab.firstname || ' ' || gab.lastname trader,
                null instrument_name,
                itm.incoterm,
-               (case
+              (case
                  when grd.is_afloat = 'Y' then
-                  (select country_name from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
+                  cim_gmr.country_name
                  else
-                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
+                  cim_sld.country_name
                end) country_name,
                (case
                  when grd.is_afloat = 'Y' then
-                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = gmr.discharge_city_id) 
+                  cim_gmr.city_name 
                  else
-                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = sld.city_id)
+                  cim_sld.city_name
                end) city_name,
                to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
                (case
@@ -400,13 +401,13 @@ select subsectionname,
                pci.del_distribution_item_no,
                gmr.gmr_ref_no,
                gmr.internal_gmr_ref_no,
-               (case
+              (case
                  when grd.is_afloat = 'Y' then
-                  (select country_id from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
+                cim_gmr.country_id
                  else
-                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
+                  cim_sld.country_id
                end) country_id,
-	       (case
+         (case
                  when grd.is_afloat = 'Y' then
                   gmr.discharge_city_id
                  else
@@ -451,10 +452,8 @@ select subsectionname,
           from dgrd_delivered_grd             grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
---               cim_citymaster                 cim_sld,
---               cim_citymaster                 cim_gmr,
---               cym_countrymaster              cym_sld,
---               cym_countrymaster              cym_gmr,
+              city_country_mapping                 cim_sld,
+               city_country_mapping                 cim_gmr,
                v_pci_pcdi_details             pci,
                pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
@@ -484,10 +483,8 @@ select subsectionname,
            and pdm.product_type_id = pdtm.product_type_id
            and pdm.base_quantity_unit = qum.qty_unit_id
            and grd.shed_id = sld.storage_loc_id(+)
---           and sld.city_id = cim_sld.city_id(+)
---           and gmr.discharge_city_id = cim_gmr.city_id(+)
---           and cim_sld.country_id = cym_sld.country_id(+)
---           and cim_gmr.country_id = cym_gmr.country_id(+)
+           and sld.city_id = cim_sld.city_id(+)
+           and gmr.discharge_city_id = cim_gmr.city_id(+)
            and grd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
            and sam.stock_type = 'S'
            and sam.ash_id = ash.ash_id
@@ -523,6 +520,7 @@ select subsectionname,
            and pci.profit_center_id = cpc.profit_center_id(+)
            and cpc.business_line_id = blm.business_line_id(+)
            and gmr.is_internal_movement = 'N'
+       --    and grd.tolling_stock_type = 'None Tolling'           
            and nvl(grd.inventory_status, 'NA') <> 'Out'
               -- and nvl(gmr.inventory_status, 'NA') <> 'Out'
            and nvl(grd.current_qty, 0) > 0
@@ -557,17 +555,17 @@ select subsectionname,
                gab.firstname || ' ' || gab.lastname trader,
                null instrument_name,
                itm.incoterm,
-               (case
+              (case
                  when grd.is_afloat = 'Y' then
-                  (select country_name from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
+                  cim_gmr.country_name
                  else
-                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
+                  cim_sld.country_name
                end) country_name,
                (case
                  when grd.is_afloat = 'Y' then
-                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = gmr.discharge_city_id) 
+                  cim_gmr.city_name 
                  else
-                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = sld.city_id)
+                  cim_sld.city_name
                end) city_name,
                to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
                (case
@@ -636,11 +634,11 @@ select subsectionname,
                gmr.internal_gmr_ref_no,
                (case
                  when grd.is_afloat = 'Y' then
-                  (select country_id from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
+                cim_gmr.country_id
                  else
-                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
+                  cim_sld.country_id
                end) country_id,
-	       (case
+               (case
                  when grd.is_afloat = 'Y' then
                   gmr.discharge_city_id
                  else
@@ -685,10 +683,8 @@ select subsectionname,
           from grd_goods_record_detail        grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
---               cim_citymaster                 cim_sld,
---               cim_citymaster                 cim_gmr,
---               cym_countrymaster              cym_sld,
---               cym_countrymaster              cym_gmr,
+               city_country_mapping                 cim_sld,
+               city_country_mapping                 cim_gmr,
                v_pci_pcdi_details             pci,
                pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
@@ -718,10 +714,8 @@ select subsectionname,
            and pdm.product_type_id = pdtm.product_type_id
            and pdm.base_quantity_unit = qum.qty_unit_id
            and grd.shed_id = sld.storage_loc_id(+)
---           and sld.city_id = cim_sld.city_id(+)
---           and gmr.discharge_city_id = cim_gmr.city_id(+)
---           and cim_sld.country_id = cym_sld.country_id(+)
---           and cim_gmr.country_id = cym_gmr.country_id(+)
+           and sld.city_id = cim_sld.city_id(+)
+           and gmr.discharge_city_id = cim_gmr.city_id(+)
            and grd.internal_grd_ref_no = sam.internal_grd_ref_no
            and sam.stock_type = 'P'
            and sam.ash_id = ash.ash_id
@@ -750,7 +744,8 @@ select subsectionname,
            and akc.groupid = gcd.groupid
            and grd.is_deleted = 'N'
            and grd.status = 'Active'
-           and grd.internal_contract_item_ref_no =
+                      and grd.tolling_stock_type = 'None Tolling'
+          and grd.internal_contract_item_ref_no =
                pci.internal_contract_item_ref_no(+)
            and pci.pcpq_id = pcpq.pcpq_id(+)
            and pci.inco_term_id = itm.incoterm_id(+)
@@ -790,17 +785,17 @@ select subsectionname,
                gab.firstname || ' ' || gab.lastname trader,
                null instrument_name,
                itm.incoterm,
-               (case
+              (case
                  when grd.is_afloat = 'Y' then
-                  (select country_name from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
+                  cim_gmr.country_name
                  else
-                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
+                  cim_sld.country_name
                end) country_name,
                (case
                  when grd.is_afloat = 'Y' then
-                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = gmr.discharge_city_id) 
+                  cim_gmr.city_name 
                  else
-                  (select ccm.city_name from cim_citymaster ccm where ccm.city_id = sld.city_id)
+                  cim_sld.city_name
                end) city_name,
                to_date('01-Feb-1900', 'dd-Mon-yyyy') delivery_date,
                (case
@@ -863,11 +858,11 @@ select subsectionname,
                gmr.internal_gmr_ref_no,
                (case
                  when grd.is_afloat = 'Y' then
-                  (select country_id from city_country_mapping ccm where ccm.city_id = gmr.discharge_city_id)
+                cim_gmr.country_id
                  else
-                  (select country_name from city_country_mapping ccm where ccm.city_id = sld.city_id)
+                  cim_sld.country_id
                end) country_id,
-	       (case
+              (case
                  when grd.is_afloat = 'Y' then
                   gmr.discharge_city_id
                  else
@@ -912,10 +907,8 @@ select subsectionname,
           from dgrd_delivered_grd             grd,
                gmr_goods_movement_record      gmr,
                sld_storage_location_detail    sld,
---               cim_citymaster                 cim_sld,
---               cim_citymaster                 cim_gmr,
---               cym_countrymaster              cym_sld,
---               cym_countrymaster              cym_gmr,
+               city_country_mapping                 cim_sld,
+               city_country_mapping                 cim_gmr,
                v_pci_pcdi_details             pci,
                pcpq_pc_product_quality        pcpq,
                pdm_productmaster              pdm,
@@ -945,10 +938,8 @@ select subsectionname,
            and pdm.product_type_id = pdtm.product_type_id
            and pdm.base_quantity_unit = qum.qty_unit_id
            and grd.shed_id = sld.storage_loc_id(+)
---           and sld.city_id = cim_sld.city_id(+)
---           and gmr.discharge_city_id = cim_gmr.city_id(+)
---           and cim_sld.country_id = cym_sld.country_id(+)
---           and cim_gmr.country_id = cym_gmr.country_id(+)
+           and sld.city_id = cim_sld.city_id(+)
+           and gmr.discharge_city_id = cim_gmr.city_id(+)
            and grd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
            and sam.stock_type = 'S'
            and sam.ash_id = ash.ash_id
