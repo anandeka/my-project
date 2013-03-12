@@ -1,0 +1,65 @@
+Patch No*          		:  EKA_METALS_PATCH_1403
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  12-Mar-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75853 75849
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 119142
+Author: rajuga
+Date: 8:39:13 PM, Monday, March 11, 2013
+Message:
+Bug 75853 - Position - Delivery/pricing/derivative report is not generating.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_concentrate_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_stock_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details.sql
+
+Revision: 119178
+Author: sivachalabathi.s
+Date: 10:52:34 AM, Tuesday, March 12, 2013
+Message:
+query updated
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_concentrate_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_stock_details.sql
+
+Revision: 119195
+Author: rajuga
+Date: 11:39:02 AM, Tuesday, March 12, 2013
+Message:
+View query has been changed.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_VIEW_V_FUTURE_OPTION_POSITION.sql
+
+====================================================================================================================================
