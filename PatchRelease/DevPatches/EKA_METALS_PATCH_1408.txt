@@ -33,3 +33,11 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
+Revision: 119365
+Date: 12:05:42 PM, Wednesday, March 13, 2013
+Message:
+Comment CED and GED Population as it is already done in Populate data
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+
+
