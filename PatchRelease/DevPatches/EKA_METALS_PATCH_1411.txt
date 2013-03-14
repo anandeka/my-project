@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1411
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  14-Mar-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  74686,74792
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Daily price exposure report
+
+Sub-Module  			 :  Daily price exposure report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+SQL Files:
+==========
+Added    : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_gmr_allocation_arrival_date.sql		        (Revision: 119568)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/Eka_Func_Get_Pricing_Month_Start_End_Date.sql	(Revision: 119570)
+
+
+RPT Files:
+==========
+Revision: 119567
+Author: sivachalabathi.s
+Date: 5:53:18 PM, Thursday, March 14, 2013
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DailyDetailPriceExposure_Excel.rpt
+
