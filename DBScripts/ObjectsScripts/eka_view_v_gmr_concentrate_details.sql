@@ -147,9 +147,9 @@ select subsectionname,
                qum.qty_unit_id comp_base_qty_unit_id,
                null price_fixation_status,
                (case when rm.ratio_name = '%' then  
-                     grd.qty *  nvl(asm.dry_wet_qty_ratio,1) * (pqca.typical /100)
+                     grd.qty *  nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical
                 else
-                    grd.qty * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                    grd.qty * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )  total_qty,                                                       
                (case when pcpq.unit_of_measure = 'Dry'
@@ -163,10 +163,10 @@ select subsectionname,
                 (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) 
                 end)item_open_qty,   
                (case when rm.ratio_name = '%' then  
-                     (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical 
                 else
-                    (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) *
-                    nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                    (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,100)/100 *
+                    pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )      open_qty,    
                0 price_fixed_qty,
@@ -219,9 +219,9 @@ select subsectionname,
                nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_quantity_unit_id,
                'CONCENTRATES' position_type,
                (case when rm.ratio_name = '%' then  
-                     1 * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     1 * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                    nvl(pqca.typical,1) * nvl(asm.dry_wet_qty_ratio,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                    pqca.typical * nvl(asm.dry_wet_qty_ratio,100)/100 * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )  assay_convertion_rate,
                pci.approval_status
@@ -377,9 +377,9 @@ select subsectionname,
                qum.qty_unit_id comp_base_qty_unit_id,
                null price_fixation_status,
                (case when rm.ratio_name = '%' then  
-                     grd.net_weight * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     grd.net_weight * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                    grd.net_weight * nvl(pqca.typical,1) * nvl(asm.dry_wet_qty_ratio,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                    grd.net_weight * pqca.typical * nvl(asm.dry_wet_qty_ratio,100)/100 * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                ) total_qty,
                (case when pcpq.unit_of_measure = 'Dry'
@@ -388,9 +388,9 @@ select subsectionname,
                grd.current_qty * nvl(asm.dry_wet_qty_ratio,1)
                                                        end) item_open_qty,
                (case when rm.ratio_name = '%' then  
-                     grd.current_qty * nvl(asm.dry_wet_qty_ratio,1) * (pqca.typical /100)
+                     grd.current_qty * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical
                 else
-                    grd.current_qty * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                    grd.current_qty * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )     open_qty,                                                      
                0 price_fixed_qty,
@@ -443,9 +443,9 @@ select subsectionname,
                nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_quantity_unit_id,
                'CONCENTRATES' position_type,
                (case when rm.ratio_name = '%' then  
-                     1 * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     1 * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                    1 * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                    1 * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                ) assay_convertion_rate,
                pci.approval_status
@@ -602,9 +602,9 @@ select subsectionname,
                qum.qty_unit_id comp_base_qty_unit_id,
                null price_fixation_status,
                (case when rm.ratio_name = '%' then  
-                     grd.qty * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     grd.qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                    grd.qty * nvl(asm.dry_wet_qty_ratio,1) *nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                    grd.qty * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                ) total_qty,
               (case when pcpq.unit_of_measure = 'Dry'
@@ -618,10 +618,10 @@ select subsectionname,
                (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1)
                                                        end) item_open_qty,
                (case when rm.ratio_name = '%' then  
-                     (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                    (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) *
-                             nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                    (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,100)/100 *
+                             pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )     open_qty,
                0 price_fixed_qty,
@@ -674,9 +674,9 @@ select subsectionname,
                nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_quantity_unit_id,
                'CONCENTRATES' position_type,
                (case when rm.ratio_name = '%' then  
-                     1 * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     1 * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                    1 * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
+                    1 * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                ) assay_convertion_rate,
                pci.approval_status
@@ -832,9 +832,9 @@ select subsectionname,
                qum.qty_unit_id comp_base_qty_unit_id,
                null price_fixation_status,
                (case when rm.ratio_name = '%' then  
-                     grd.net_weight * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     grd.net_weight * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                    grd.net_weight * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                    grd.net_weight * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                ) total_qty,
                (case when pcpq.unit_of_measure = 'Dry'
@@ -843,9 +843,9 @@ select subsectionname,
                grd.current_qty * nvl(asm.dry_wet_qty_ratio,1)
                                                        end) item_open_qty,
                (case when rm.ratio_name = '%' then  
-                     grd.current_qty * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     grd.current_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                    grd.current_qty * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                    grd.current_qty * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )  open_qty,
                0 price_fixed_qty,
@@ -898,9 +898,9 @@ select subsectionname,
                nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_quantity_unit_id,
                'CONCENTRATES' position_type,
                (case when rm.ratio_name = '%' then  
-                     1 * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     1 * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                    1 * nvl(asm.dry_wet_qty_ratio,1) * nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
+                    1 * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical * pkg_general.f_get_converted_quantity(grd.product_id, grd.net_weight_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )  assay_convertion_rate,
                pci.approval_status

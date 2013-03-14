@@ -1,3 +1,6 @@
+/*
+As a part of Projected Price Exposure Tuning issue
+*/
 create or replace type type_prc_mth_strt_dt as object(
     pcbpd_id varchar2(30),
     poch_id varchar2(30),

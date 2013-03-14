@@ -1,4 +1,8 @@
 create or replace view v_pci_quantity_details_by_qp as
+--Adding code  on 14th Mar 2013         ::Raj
+with pcbpd_id_wise_str_dt_info as(
+    select * from table(f_get_pricing_mth_strt_end_dt))
+--End of code on 14th Mar 2013
 select pcdi.pcdi_id,
        pci.internal_contract_item_ref_no,
        gcd.groupname corporate_group,
@@ -14,7 +18,8 @@ select pcdi.pcdi_id,
        itm.incoterm,
        cym.country_name,
        cim.city_name,
-       f_get_pricing_month(pocd.pcbpd_id) delivery_date,
+       --f_get_pricing_month(pocd.pcbpd_id) delivery_date,
+       to_char(pstrt.end_date, 'dd-Mon-yyyy') delivery_date,
        pcm.purchase_sales,
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             pci.item_qty_unit_id,
@@ -109,7 +114,8 @@ select pcdi.pcdi_id,
        diqs_delivery_item_qty_status  diqs,
        cym_countrymaster              cym,
        cim_citymaster                 cim,
-       v_pcdi_price_fixation_status   pfs
+       v_pcdi_price_fixation_status   pfs,
+       pcbpd_id_wise_str_dt_info pstrt
  where pcm.corporate_id = akc.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.price_option_call_off_status in ('Called Off','Not Applicable')
@@ -148,6 +154,8 @@ select pcdi.pcdi_id,
    and pci.internal_contract_item_ref_no =
        pfs.internal_contract_item_ref_no
    and pfs.price_fixation_status <> 'Fixed'
+   and pocd.pcbpd_id = pstrt.pcbpd_id(+)
+   and pocd.poch_id = pstrt.poch_id(+)
 union all
 -- Not Called Off :-
 select pcdi.pcdi_id,
@@ -165,7 +173,8 @@ select pcdi.pcdi_id,
        itm.incoterm,
        cym.country_name,
        cim.city_name,
-       f_get_pricing_month(pcbpd.pcbpd_id) delivery_date,
+       --f_get_pricing_month(pcbpd.pcbpd_id) delivery_date,
+       to_char(pstrt.end_date, 'dd-Mon-yyyy') delivery_date,
        pcm.purchase_sales,
        pkg_general.f_get_converted_quantity(pcpd.product_id,
                                             pci.item_qty_unit_id,
@@ -263,7 +272,8 @@ select pcdi.pcdi_id,
        diqs_delivery_item_qty_status  diqs,
        cym_countrymaster              cym,
        cim_citymaster                 cim,
-       v_pcdi_price_fixation_status   pfs
+       v_pcdi_price_fixation_status   pfs,
+       pcbpd_id_wise_str_dt_info pstrt
  where pcm.corporate_id = akc.corporate_id
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.price_option_call_off_status = 'Not Called Off'
@@ -306,6 +316,8 @@ select pcdi.pcdi_id,
    and pci.internal_contract_item_ref_no =
        pfs.internal_contract_item_ref_no
    and pfs.price_fixation_status <> 'Fixed'
+   and pcbpd.pcbpd_id = pstrt.pcbpd_id(+)
+   and pstrt.poch_id is null
 union all
 select tt.pcdi_id,
        tt.internal_contract_item_ref_no,
@@ -322,49 +334,58 @@ select tt.pcdi_id,
        tt.incoterm,
        tt.country_name,
        tt.city_name,
-       pkg_report_general.fn_get_element_pricing_month(tt.pcbpd_id,
-                                                       tt.attribute_id)delivery_date,
+--       pkg_report_general.fn_get_element_pricing_month(tt.pcbpd_id,
+--                                                       tt.attribute_id)delivery_date,
+       tt.delivery_date,
        tt.purchase_sales,
        tt.baseqty_conv_rate,
-       tt.price_fixation_status,
+       tt.price_fixation_status,      
        (case
          when tt.total_qty > 0 then
-          pkg_report_general.fn_get_element_qty(tt.internal_contract_item_ref_no,
-                                                tt.total_qty,
-                                                tt.item_qty_unit_id,
-                                                tt.assay_header_id,
-                                                tt.attribute_id)
+          (case when tt.ratio_name = '%' then  
+                     tt.total_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
+                else
+                     tt.total_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
+		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+                end
+               )
          else
           0
        end) total_qty,
        (case
          when tt.open_qty > 0 then
-          pkg_report_general.fn_get_element_qty(tt.internal_contract_item_ref_no,
-                                                tt.open_qty,
-                                                tt.item_qty_unit_id,
-                                                tt.assay_header_id,
-                                                tt.attribute_id)
+         (case when tt.ratio_name = '%' then  
+                     tt.open_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
+                else
+                     tt.open_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
+		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+                end
+               )
          else
           0
        end) open_qty,
        tt.percntg_of_qty_to_be_fixed, -- Newly Added
        (case
          when tt.price_fixed_qty > 0 then
-          pkg_report_general.fn_get_element_qty(tt.internal_contract_item_ref_no,
-                                                tt.price_fixed_qty,
-                                                tt.item_qty_unit_id,
-                                                tt.assay_header_id,
-                                                tt.attribute_id)
+         (case when tt.ratio_name = '%' then  
+                     tt.price_fixed_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
+                else
+                     tt.price_fixed_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
+		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+                end
+               )         
          else
           0
        end) price_fixed_qty,
        (case
          when tt.unfixed_qty > 0 then
-          pkg_report_general.fn_get_element_qty(tt.internal_contract_item_ref_no,
-                                                tt.unfixed_qty,
-                                                tt.item_qty_unit_id,
-                                                tt.assay_header_id,
-                                                tt.attribute_id)
+         (case when tt.ratio_name = '%' then  
+                     tt.unfixed_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
+                else
+                     tt.unfixed_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
+		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+                end
+               )         
          else
           0
        end) unfixed_qty,
@@ -400,11 +421,13 @@ select tt.pcdi_id,
        tt.comp_quality,
        (case
          when tt.open_qty > 0 then
-          pkg_report_general.fn_get_element_qty(tt.internal_contract_item_ref_no,
-                                                tt.open_qty,
-                                                tt.item_qty_unit_id,
-                                                tt.assay_header_id,
-                                                tt.attribute_id)
+         (case when tt.ratio_name = '%' then  
+                     tt.open_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
+                else
+                     tt.open_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
+		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+                end
+               )
          else
           0
        end) item_open_qty,
@@ -437,7 +460,8 @@ select pcdi.pcdi_id,
                 itm.incoterm,
                 cym.country_name,
                 cim.city_name,
-                f_get_pricing_month(pocd.pcbpd_id) delivery_date,
+                --f_get_pricing_month(pocd.pcbpd_id) delivery_date,
+                to_char(pstrt.end_date, 'dd-Mon-yyyy') delivery_date,
                 pcm.purchase_sales,
                 (case
                   when pdtm.product_type_name = 'Composite' then
@@ -527,7 +551,7 @@ select pcdi.pcdi_id,
                qat.quality_name comp_quality,
                qum.qty_unit comp_base_qty_unit,
                qum.qty_unit_id comp_base_qty_unit_id,
-                POCD.QP_PERIOD_TYPE,
+                POCD.QP_PERIOD_TYPE, rm.qty_unit_id_denominator, pqca.typical, asm.dry_wet_qty_ratio, rm.ratio_name,
                row_number() over(partition by pci.internal_contract_item_ref_no order by pci.internal_contract_item_ref_no, aml.attribute_id) contract_row
           from pcm_physical_contract_main     pcm,
                ciqs_contract_item_qty_status  ciqs,
@@ -565,7 +589,8 @@ select pcdi.pcdi_id,
                diqs_delivery_item_qty_status diqs,
                cym_countrymaster             cym,
                cim_citymaster                cim,
-               v_pcdi_price_fixation_status  pfs
+               v_pcdi_price_fixation_status  pfs,
+               pcbpd_id_wise_str_dt_info pstrt
          where pcm.corporate_id = akc.corporate_id
            and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
            and pcdi.pcdi_id = pci.pcdi_id
@@ -620,6 +645,8 @@ select pcdi.pcdi_id,
            and pcdb.country_id = cym.country_id
            and pfs.price_fixation_status <> 'Fixed'
            and pcdb.city_id = cim.city_id
+           and pocd.pcbpd_id = pstrt.pcbpd_id(+)
+           and pocd.poch_id = pstrt.poch_id(+)
 union all
 -- Not Called Off :-
 select pcdi.pcdi_id,
@@ -644,7 +671,8 @@ select pcdi.pcdi_id,
                 itm.incoterm,
                 cym.country_name,
                 cim.city_name,
-                f_get_pricing_month(pcbpd.pcbpd_id) delivery_date,
+                --f_get_pricing_month(pcbpd.pcbpd_id) delivery_date,
+                to_char(pstrt.end_date, 'dd-Mon-yyyy') delivery_date,
                 pcm.purchase_sales,
                 (case
                   when pdtm.product_type_name = 'Composite' then
@@ -734,7 +762,7 @@ select pcdi.pcdi_id,
                qat.quality_name comp_quality,
                qum.qty_unit comp_base_qty_unit,
                qum.qty_unit_id comp_base_qty_unit_id,
-               pfqpp.qp_pricing_period_type QP_PERIOD_TYPE,
+               pfqpp.qp_pricing_period_type QP_PERIOD_TYPE, rm.qty_unit_id_denominator, pqca.typical, asm.dry_wet_qty_ratio, rm.ratio_name,
                row_number() over(partition by pci.internal_contract_item_ref_no order by pci.internal_contract_item_ref_no, aml.attribute_id) contract_row
           from pcm_physical_contract_main     pcm,
                ciqs_contract_item_qty_status  ciqs,
@@ -775,7 +803,8 @@ select pcdi.pcdi_id,
                diqs_delivery_item_qty_status diqs,
                cym_countrymaster             cym,
                cim_citymaster                cim,
-               v_pcdi_price_fixation_status  pfs
+               v_pcdi_price_fixation_status  pfs,
+               pcbpd_id_wise_str_dt_info pstrt               
          where pcm.corporate_id = akc.corporate_id
            and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
            and pcdi.pcdi_id = pci.pcdi_id
@@ -833,6 +862,10 @@ select pcdi.pcdi_id,
            and akcu.gabid = gab.gabid
            and pcdb.country_id = cym.country_id
            and pfs.price_fixation_status <> 'Fixed'
-           and pcdb.city_id = cim.city_id) tt
+           and pcdb.city_id = cim.city_id
+           and pcbpd.pcbpd_id = pstrt.pcbpd_id(+)
+           and pstrt.poch_id is null
+           ) tt
  where tt.open_qty > 0
+
 

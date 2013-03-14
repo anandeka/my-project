@@ -5,7 +5,7 @@ create or replace function f_get_pricing_mth_strt_end_dt
 --    Created By:       G.A.Raju
 --    Purpose:            To get Pricing Start and End dates as an object
 --    Modified On:       
---    Modified By:---       
+--    Modified By:       
 */
 return type_tbl_prc_mth_strt_dt pipelined is
 cursor cur_qp_end_date is
@@ -61,6 +61,7 @@ where pcdi.pcdi_id = pci.pcdi_id
         and ppfh.ppfh_id = pfqpp.ppfh_id(+)
         and pcm.contract_status = 'In Position'
         and pcm.contract_type in ('BASEMETAL','CONCENTRATES')
+        and pcdi.price_option_call_off_status in ('Called Off','Not Applicable')
         and pcbpd.price_basis <> 'Fixed'
         and pci.item_qty > 0
         and pcdi.is_active = 'Y'
@@ -70,6 +71,78 @@ where pcdi.pcdi_id = pci.pcdi_id
         and pocd.is_active = 'Y'
         and pofh.is_active(+) = 'Y'
         and pcbpd.is_active = 'Y'
+union all
+select null poch_id,
+        pcbpd.pcbpd_id pcbpd_id,
+        pcm.contract_ref_no,
+        pcdi.pcdi_id,
+        pcdi.internal_contract_ref_no,
+        pci.internal_contract_item_ref_no,
+        pcdi.delivery_item_no,
+        pcdi.delivery_period_type,
+        pcdi.delivery_from_month,
+        pcdi.delivery_from_year,
+        pcdi.delivery_to_month,
+        pcdi.delivery_to_year,
+        pcdi.delivery_from_date,
+        pcdi.delivery_to_date,
+        pcdi.basis_type,
+        nvl(pcdi.transit_days, 0) transit_days,
+        pcdi.qp_declaration_date,
+        ppfh.ppfh_id,
+        ppfh.price_unit_id,
+        pfqpp.qp_pricing_period_type qp_period_type,
+        (case
+         when pfqpp.qp_pricing_period_type = 'Period' then
+          pfqpp.qp_period_from_date
+         when (pfqpp.qp_pricing_period_type = 'Month') then
+          to_date('01-' || pfqpp.qp_month || '-' || pfqpp.qp_year)
+         when (pfqpp.qp_pricing_period_type = 'Date') then
+          (pfqpp.qp_date)
+         else
+          qp_period_from_date
+       end) qp_start_date,
+        (case
+         when pfqpp.qp_pricing_period_type = 'Period' then
+          pfqpp.qp_period_to_date
+         when (pfqpp.qp_pricing_period_type = 'Month') then
+          last_day(to_date('01-' || pfqpp.qp_month || '-' || pfqpp.qp_year))
+         when (pfqpp.qp_pricing_period_type = 'Date') then
+         pfqpp.qp_date
+         else
+          qp_period_to_date
+       end) qp_end_date,
+        pfqpp.event_name,
+        pfqpp.no_of_event_months,
+        null pofh_id,
+        pcbpd.price_basis,
+        row_number() over (partition by pcbpd.pcbpd_id order by rownum) ordr
+      from pcdi_pc_delivery_item          pcdi,
+           pci_physical_contract_item     pci,
+           pcm_physical_contract_main     pcm,
+           pcipf_pci_pricing_formula  pcipf,
+           pcbph_pc_base_price_header pcbph,
+           pcbpd_pc_base_price_detail     pcbpd,
+           ppfh_phy_price_formula_header  ppfh,
+           pfqpp_phy_formula_qp_pricing   pfqpp          
+ where pcdi.pcdi_id = pci.pcdi_id
+       and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pci.internal_contract_item_ref_no =  pcipf.internal_contract_item_ref_no
+       and pcipf.pcbph_id = pcbph.pcbph_id
+       and pcbph.pcbph_id = pcbpd.pcbph_id
+       and pcbpd.pcbpd_id = ppfh.pcbpd_id(+)
+       and ppfh.ppfh_id = pfqpp.ppfh_id(+)
+       and pcm.contract_status = 'In Position'
+       and pcm.contract_type in ('BASEMETAL', 'CONCENTRATES')
+       and pcdi.price_option_call_off_status = 'Not Called Off'
+       and pcbpd.price_basis <> 'Fixed'
+       and pci.item_qty > 0
+       and pcdi.is_active = 'Y'
+       and pci.is_active = 'Y'
+       and pcm.is_active = 'Y'
+       and pcipf.is_active = 'Y'
+       and pcbph.is_active = 'Y'
+       and pcbpd.is_active = 'Y'           
 )
 select * from qry where ordr=1;
 

@@ -193,10 +193,10 @@ select pcdi.pcdi_id,
        end) else(pkg_general.f_get_converted_quantity(pcpd.product_id, pci.item_qty_unit_id, pdm.base_quantity_unit, 1)) end) baseqty_conv_rate,
        null price_fixation_status,
         (case when rm.ratio_name = '%' then  
-                     ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                     ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,1) * 
-		     nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
+                     ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,100)/100 * 
+             pqca.typical) * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )  total_qty,                                        
        (case when pcpq.unit_of_measure = 'Dry'
@@ -205,10 +205,10 @@ select pcdi.pcdi_id,
        ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,1)
                                                end) item_open_qty,
         (case when rm.ratio_name = '%' then  
-                     ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,1) *  (pqca.typical /100)
+                     ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
-                     ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,1) * 
-		     nvl(pqca.typical,1) * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
+                     ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,100)/100 * 
+             pqca.typical * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )    open_qty,
        0 price_fixed_qty,
