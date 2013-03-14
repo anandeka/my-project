@@ -1260,8 +1260,6 @@ select   ak.corporate_id,
   from pcm_physical_contract_main pcm,
        ak_corporate ak,       
        pcdi_pc_delivery_item pcdi,
-       poch_price_opt_call_off_header poch,
-       pocd_price_option_calloff_dtls pocd,
        diqs_delivery_item_qty_status diqs,
       pcpd_pc_product_definition pcpd,
       pdm_productmaster pdm,
@@ -1275,8 +1273,6 @@ select   ak.corporate_id,
        pcbpd_id_wise_str_dt_info pstrt
  where ak.corporate_id = pcm.corporate_id   
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-   and pcdi.pcdi_id = poch.pcdi_id
-   and poch.poch_id = pocd.poch_id
    and pcdi.pcdi_id = diqs.pcdi_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
    and pdm.product_id = pcpd.product_id
@@ -1294,11 +1290,9 @@ select   ak.corporate_id,
    and pcdi.price_option_call_off_status = 'Not Called Off'
    and pfqpp.is_qp_any_day_basis = 'Y'
    and nvl(pfqpp.is_spot_pricing, 'N') = 'N'
-   and poch.is_active = 'Y'
-   and pocd.is_active = 'Y'
    and qum.qty_unit_id = pdm.base_quantity_unit
-   and pocd.pcbpd_id = pstrt.pcbpd_id(+)
-   and pocd.poch_id = pstrt.poch_id(+)
+   and pfqpp.pcbpd_id = pstrt.pcbpd_id(+)
+   and pstrt.poch_id is null
 union all
 -- 10 Fixed by Price Request Base Metal +Contract + Not Called Off + Event Based 9
 select ak.corporate_id,
