@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1410
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  14-Mar-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  76019
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  O/P doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 119524
+Author: b.ravikumar
+Date: 3:15:03 PM, Thursday, March 14, 2013
+Message:
+Bug 76019 Fix: Column size increased.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_406.sql
+
+
+
+
