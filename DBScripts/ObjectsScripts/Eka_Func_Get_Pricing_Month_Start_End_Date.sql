@@ -5,7 +5,7 @@ create or replace function f_get_pricing_mth_strt_end_dt
 --    Created By:       G.A.Raju
 --    Purpose:            To get Pricing Start and End dates as an object
 --    Modified On:       
---    Modified By:       
+--    Modified By:---       
 */
 return type_tbl_prc_mth_strt_dt pipelined is
 cursor cur_qp_end_date is
