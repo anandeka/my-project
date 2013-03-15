@@ -1529,12 +1529,13 @@ create or replace package body pkg_phy_eod_reports is
                                     pc_process_id   varchar2) as
   -- Cursor For main Loop Only For Non Pledge GMRS
     cursor cur_pur_accural is
-    select * from patd_pa_temp_data t
-    where t.corporate_id = pc_corporate_id
-    and t.is_pledge ='N';  
+    select t.*
+      from patd_pa_temp_data t
+     where t.corporate_id = pc_corporate_id
+       and t.is_pledge = 'N';
   -- Cursor For main Loop Only For  Pledge GMRS
     cursor cur_pur_accural_pledge is
-    select * from patd_pa_temp_data t
+    select  t.*from patd_pa_temp_data t
     where t.corporate_id = pc_corporate_id
     and t.is_pledge ='Y';  
 -- Cursor For Price Update     
@@ -1558,9 +1559,11 @@ create or replace package body pkg_phy_eod_reports is
     vn_gmr_refine_charge         number;
     vn_gmr_penality_charge       number;
     vn_gmr_price                 number;
-    vc_gmr_price_untit_id        varchar2(15);
-    vn_gmr_price_unit_weight     varchar2(15);
-    vn_price_unit_weight_unit_id varchar2(15);
+    vc_gmr_price_unit_id         varchar2(15);
+    vn_gmr_price_unit_weight     number;
+    vc_price_unit_weight_unit_id varchar2(15);
+    vc_pay_price_unit_wt_unit_id varchar2(15);
+    vc_pay_price_unit_wt_unit varchar2(15);
     vc_gmr_price_unit_cur_id     varchar2(10);
     vc_gmr_price_unit_cur_code   varchar2(10);
     vn_payable_amt_in_price_cur  number;
@@ -1578,8 +1581,16 @@ create or replace package body pkg_phy_eod_reports is
     vn_base_currency_decimals    number;
     vc_corporate_name            varchar2(15);
     vc_base_cur_id               varchar2(15);
-    vc_base_cur_code               varchar2(15);
-      
+    vc_base_cur_code             varchar2(15);
+    vn_gmr_price_in_pay_in_cur   number;
+    vc_gmr_pay_cur_id            varchar2(15);
+    vc_pay_cur_id                varchar2(15);
+    vc_pay_cur_code              varchar2(15);
+    vn_pay_price_cur_id_factor   number;
+    vn_pay_price_cur_decimals    number;
+    vn_pay_in_price_unit_weight  number;
+    vc_pay_in_price_unit_id      varchar2(15);
+
   begin
   vn_log_counter := gvn_log_counter;
   select akc.corporate_name,
@@ -1710,7 +1721,7 @@ create or replace package body pkg_phy_eod_reports is
            nvl(gmr.is_apply_container_charge,'N'),
            nvl(gmr.is_apply_freight_allowance,'N'),
            gmr.latest_internal_invoice_ref_no,
-           nvl(gmr.no_of_sublots,0),
+           0,
            nvl(gmr.shipped_qty,0),
            gmr.qty_unit_id,
            1
@@ -1880,7 +1891,7 @@ create or replace package body pkg_phy_eod_reports is
            grd.weg_avg_pricing_assay_id,
            grd.is_afloat,
            'N',-- This is Not Pledge Section Data
-           nvl(gmr.no_of_sublots,0),
+           0,
            gmr.shipped_qty,
            gmr.qty_unit_id,
            1
@@ -2103,12 +2114,26 @@ insert into patd_pa_temp_data
                      cgcp.price_unit_id,
                      cgcp.price_unit_weight_unit_id,
                      cgcp.price_unit_cur_id,
-                     cgcp.price_unit_cur_code
+                     cgcp.price_unit_cur_code,
+                     cgcp.contract_price_in_pay_in,
+                     cgcp.fx_price_to_pay,
+                     cgcp.pay_in_price_unit_wt_unit_id,
+                     cgcp.price_unit_weight,
+                     cgcp.pay_in_price_unit_weight,
+                     cgcp.pay_in_price_unit_weight_unit,
+                     cgcp.pay_in_price_unit_id
                 into vn_gmr_price,
-                     vc_gmr_price_untit_id,
-                     vn_price_unit_weight_unit_id,
+                     vc_gmr_price_unit_id,
+                     vc_price_unit_weight_unit_id,
                      vc_gmr_price_unit_cur_id,
-                     vc_gmr_price_unit_cur_code
+                     vc_gmr_price_unit_cur_code,
+                     vn_gmr_price_in_pay_in_cur,
+                     vn_fx_rate_price_to_pay,
+                     vc_pay_price_unit_wt_unit_id,
+                     vn_gmr_price_unit_weight,
+                     vn_pay_in_price_unit_weight,
+                     vc_pay_price_unit_wt_unit,
+                     vc_pay_in_price_unit_id
                 from cgcp_conc_gmr_cog_price cgcp
                where cgcp.internal_gmr_ref_no =
                      vc_gmr_ref_no_for_price
@@ -2121,12 +2146,26 @@ insert into patd_pa_temp_data
                  cccp.price_unit_id,
                  cccp.price_unit_weight_unit_id,
                  cccp.price_unit_cur_id,
-                 cccp.price_unit_cur_code
+                 cccp.price_unit_cur_code,
+                 cccp.contract_price_in_pay_in,
+                 cccp.fx_price_to_pay,
+                 cccp.pay_in_price_unit_wt_unit_id,
+                 cccp.price_unit_weight,
+                 cccp.pay_in_price_unit_weight,
+                 cccp.pay_in_price_unit_weight_unit,
+                 cccp.pay_in_price_unit_id
             into vn_gmr_price,
-                 vc_gmr_price_untit_id,
-                 vn_price_unit_weight_unit_id,
+                 vc_gmr_price_unit_id,
+                 vc_price_unit_weight_unit_id,
                  vc_gmr_price_unit_cur_id,
-                 vc_gmr_price_unit_cur_code
+                 vc_gmr_price_unit_cur_code,
+                 vn_gmr_price_in_pay_in_cur,
+                 vn_fx_rate_price_to_pay,
+                 vc_pay_price_unit_wt_unit_id,
+                 vn_gmr_price_unit_weight,
+                 vn_pay_in_price_unit_weight,
+                 vc_pay_price_unit_wt_unit,
+                 vc_pay_in_price_unit_id
             from cccp_conc_contract_cog_price cccp
            where cccp.pcdi_id = cur_pur_accural_temp_rows.pcdi_id
              and cccp.process_id = pc_process_id
@@ -2134,25 +2173,43 @@ insert into patd_pa_temp_data
             exception
               when others then
                 vn_gmr_price                 := null;
-                vc_gmr_price_untit_id        := null;
-                vn_price_unit_weight_unit_id := null;
+                vc_gmr_price_unit_id        := null;
+                vc_price_unit_weight_unit_id := null;
                 vc_gmr_price_unit_cur_id     := null;
                 vc_gmr_price_unit_cur_code   := null;
+                vn_gmr_price_in_pay_in_cur   := null;
+                vn_fx_rate_price_to_pay      := null;
+                vn_gmr_price_unit_weight     := null;
+                vn_pay_in_price_unit_weight  := null;
+                vc_pay_price_unit_wt_unit_id := null;
+                vc_pay_in_price_unit_id      := null;
+                vc_pay_price_unit_wt_unit    := null;
             end;
-          
         end;
         update patd_pa_temp_data t
            set t.gmr_price                     = vn_gmr_price,
-               t.gmr_price_unit_id             = vc_gmr_price_untit_id,
-               t.gmr_price_unit_weight_unit_id = vn_price_unit_weight_unit_id,
+               t.gmr_price_unit_id             = vc_gmr_price_unit_id,
+               t.gmr_price_unit_weight_unit_id = vc_price_unit_weight_unit_id,
                t.gmr_price_unit_cur_id         = vc_gmr_price_unit_cur_id,
-               t.gmr_price_unit_cur_code       = vc_gmr_price_unit_cur_code
+               t.gmr_price_unit_cur_code       = vc_gmr_price_unit_cur_code,
+               t.gmr_price_in_pay_in           = vn_gmr_price_in_pay_in_cur,
+               t.fx_price_to_pay               = vn_fx_rate_price_to_pay,
+               t.pay_in_price_unit_weight      = vn_pay_in_price_unit_weight,
+               t.pay_in_price_unit_wt_unit_id  = vc_pay_price_unit_wt_unit_id,
+               t.gmr_price_unit_weight         = vn_gmr_price_unit_weight,
+               t.pay_in_price_unit_weight_unit = vc_pay_price_unit_wt_unit,
+               t.pay_in_price_unit_id          = vc_pay_in_price_unit_id
          where t.internal_gmr_ref_no =
                cur_pur_accural_temp_rows.internal_gmr_ref_no
            and t.element_id = cur_pur_accural_temp_rows.element_id
            and t.process_id = pc_process_id;
         end if;
     end loop;
+ commit;
+ Update patd_pa_temp_data patd
+ set patd.pay_in_price_unit_name =
+ (select ppu.price_unit_name from v_ppu_pum ppu
+ where ppu.product_price_unit_id = patd.pay_in_price_unit_id);
  commit;
  vn_log_counter := vn_log_counter + 1;
      sp_eodeom_process_log(pc_corporate_id,
@@ -2321,8 +2378,8 @@ sp_eodeom_process_log(pc_corporate_id,
       vn_payable_qty := null;
       vc_payable_qty_unit_id := null;
       vn_gmr_price                 := null;
-      vc_gmr_price_untit_id        := null;
-      vn_price_unit_weight_unit_id := null;
+      vc_gmr_price_unit_id        := null;
+      vc_price_unit_weight_unit_id := null;
       vc_gmr_price_unit_cur_id     := null;
       vc_gmr_price_unit_cur_code   := null;
       vn_payable_amt_in_price_cur  := null;
@@ -2334,15 +2391,26 @@ sp_eodeom_process_log(pc_corporate_id,
       if cur_pur_accural_rows.payable_type <> 'Penalty' then
         
                 vn_gmr_price                 := cur_pur_accural_rows.gmr_price;
-                vc_gmr_price_untit_id        := cur_pur_accural_rows.gmr_price_unit_id;
-                vn_price_unit_weight_unit_id := cur_pur_accural_rows.gmr_price_unit_weight_unit_id;
+                vn_gmr_price_in_pay_in_cur   := cur_pur_accural_rows.gmr_price_in_pay_in;
+                vc_gmr_price_unit_id        := cur_pur_accural_rows.gmr_price_unit_id;
+                vc_price_unit_weight_unit_id := cur_pur_accural_rows.gmr_price_unit_weight_unit_id;
                 vc_gmr_price_unit_cur_id     := cur_pur_accural_rows.gmr_price_unit_cur_id;
                 vc_gmr_price_unit_cur_code   := cur_pur_accural_rows.gmr_price_unit_cur_code;
+                vc_gmr_pay_cur_id            := cur_pur_accural_rows.pay_cur_id;
+                vn_gmr_price_unit_weight     := cur_pur_accural_rows.gmr_price_unit_weight;
+                vn_pay_in_price_unit_weight  := cur_pur_accural_rows.pay_in_price_unit_weight;
+                vc_pay_in_price_unit_id := cur_pur_accural_rows.pay_in_price_unit_id;
+                vc_pay_price_unit_wt_unit_id := cur_pur_accural_rows.pay_in_price_unit_wt_unit_id;
                 pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
                                            vc_price_cur_id,
                                            vc_price_cur_code,
                                            vn_cont_price_cur_id_factor,
-                                           vn_cont_price_cur_decimals);
+                                           vn_cont_price_cur_decimals);  
+                pkg_general.sp_get_main_cur_detail(vc_gmr_pay_cur_id,
+                                           vc_pay_cur_id,
+                                           vc_pay_cur_code,
+                                           vn_pay_price_cur_id_factor,
+                                           vn_pay_price_cur_decimals);                                                                                                                                  
      --                                       
      -- Janna 29th Aug 2012
      -- If the element is pledged we do not want to show the payable qty and payable amount
@@ -2354,24 +2422,20 @@ sp_eodeom_process_log(pc_corporate_id,
                                                       1)) *
                                                  (pkg_general.f_get_converted_quantity(cur_pur_accural_rows.conc_product_id,
                                                                                        cur_pur_accural_rows.payable_qty_unit_id,
-                                                                                       vn_price_unit_weight_unit_id,
+                                                                                       vc_price_unit_weight_unit_id,
                                                                                        cur_pur_accural_rows.payable_qty)) *
                                                  vn_cont_price_cur_id_factor,
                                                  vn_cont_price_cur_decimals);
-            begin
-              select cet.exch_rate
-                into vn_fx_rate_price_to_pay
-                from cet_corporate_exch_rate cet
-               where cet.corporate_id = pc_corporate_id
-                 and cet.from_cur_id = vc_gmr_price_unit_cur_id
-                 and cet.to_cur_id = cur_pur_accural_rows.pay_cur_id;
-            exception
-              when no_data_found then
-              vn_fx_rate_price_to_pay := - 1;
-            end;
-            vn_payable_amt_in_pay_cur := round(vn_payable_amt_in_price_cur *
-                                               vn_fx_rate_price_to_pay,
-                                               cur_pur_accural_rows.pay_cur_decimal);
+            vn_fx_rate_price_to_pay := cur_pur_accural_rows.fx_price_to_pay;
+            vn_payable_amt_in_pay_cur := round((vn_gmr_price_in_pay_in_cur /
+                                                 nvl(vn_pay_in_price_unit_weight,
+                                                      1)) *
+                                                 (pkg_general.f_get_converted_quantity(cur_pur_accural_rows.conc_product_id,
+                                                                                       cur_pur_accural_rows.payable_qty_unit_id,
+                                                                                       vc_pay_price_unit_wt_unit_id,
+                                                                                       cur_pur_accural_rows.payable_qty)) *
+                                                 vn_pay_price_cur_id_factor,
+                                                 vn_pay_price_cur_decimals);                                   
             vn_payable_qty := cur_pur_accural_rows.payable_qty;
             vc_payable_qty_unit_id := cur_pur_accural_rows.payable_qty_unit_id;
          elsif cur_pur_accural_rows.pledge_stock_id is null and cur_pur_accural_rows.payable_type ='Returnable' then
@@ -2426,8 +2490,11 @@ sp_eodeom_process_log(pc_corporate_id,
          frightcharges_amount,
          othercharges_amount,
          is_afloat ,
-         is_pledge)
-      values
+         is_pledge,
+         contract_price_in_pay_in,
+         pay_in_price_unit_id,
+         pay_in_price_unit_name)
+        values
         (cur_pur_accural_rows.corporate_id,
          pc_process_id,
          cur_pur_accural_rows.product_id,
@@ -2446,7 +2513,7 @@ sp_eodeom_process_log(pc_corporate_id,
          vn_payable_qty,
          vc_payable_qty_unit_id,
          vn_gmr_price,
-         vc_gmr_price_untit_id,
+         vc_gmr_price_unit_id,
          vc_gmr_price_unit_cur_id,
          vc_gmr_price_unit_cur_code,
          vn_fx_rate_price_to_pay,
@@ -2460,7 +2527,10 @@ sp_eodeom_process_log(pc_corporate_id,
          0, -- Fright charges amount,
          0, -- Other charges amount    
          cur_pur_accural_rows.is_afloat,
-         cur_pur_accural_rows.is_pledge
+         cur_pur_accural_rows.is_pledge,
+         vn_gmr_price_in_pay_in_cur,
+         vc_pay_in_price_unit_id,
+         cur_pur_accural_rows.pay_in_price_unit_name
          );
     end loop;
     commit;
@@ -2475,39 +2545,47 @@ sp_eodeom_process_log(pc_corporate_id,
 for cur_pur_accural_rows in cur_pur_accural_pledge
     loop
       vn_gmr_price                 := cur_pur_accural_rows.gmr_price;
-      vc_gmr_price_untit_id        := cur_pur_accural_rows.gmr_price_unit_id;
-      vn_price_unit_weight_unit_id := cur_pur_accural_rows.gmr_price_unit_weight_unit_id;
+      vc_gmr_price_unit_id        := cur_pur_accural_rows.gmr_price_unit_id;
+      vc_price_unit_weight_unit_id := cur_pur_accural_rows.gmr_price_unit_weight_unit_id;
       vc_gmr_price_unit_cur_id     := cur_pur_accural_rows.gmr_price_unit_cur_id;
       vc_gmr_price_unit_cur_code   := cur_pur_accural_rows.gmr_price_unit_cur_code;
+      vn_gmr_price_in_pay_in_cur   :=  cur_pur_accural_rows.gmr_price_in_pay_in;
+      vn_fx_rate_price_to_pay      := cur_pur_accural_rows.fx_price_to_pay;
+      vn_pay_in_price_unit_weight := cur_pur_accural_rows.pay_in_price_unit_weight;
+      vc_gmr_pay_cur_id           := cur_pur_accural_rows.pay_cur_id;
+      vc_pay_price_unit_wt_unit_id := cur_pur_accural_rows.pay_in_price_unit_wt_unit_id;
       
       pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
                                            vc_price_cur_id,
                                            vc_price_cur_code,
                                            vn_cont_price_cur_id_factor,
                                            vn_cont_price_cur_decimals);
+      pkg_general.sp_get_main_cur_detail(vc_gmr_pay_cur_id,
+                                           vc_pay_cur_id,
+                                           vc_pay_cur_code,
+                                           vn_pay_price_cur_id_factor,
+                                           vn_pay_price_cur_decimals);                                           
+                                           
       vn_payable_amt_in_price_cur := round((vn_gmr_price /
                                                  nvl(vn_gmr_price_unit_weight,
                                                       1)) *
                                                  (pkg_general.f_get_converted_quantity(cur_pur_accural_rows.conc_product_id,
                                                                                        cur_pur_accural_rows.payable_qty_unit_id,
-                                                                                       vn_price_unit_weight_unit_id,
+                                                                                       vc_price_unit_weight_unit_id,
                                                                                        cur_pur_accural_rows.payable_qty)) *
                                                  vn_cont_price_cur_id_factor,
                                                  vn_cont_price_cur_decimals);
-      begin
-      select cet.exch_rate
-        into vn_fx_rate_price_to_pay
-        from cet_corporate_exch_rate cet
-       where cet.corporate_id = pc_corporate_id
-         and cet.from_cur_id = vc_gmr_price_unit_cur_id
-         and cet.to_cur_id = cur_pur_accural_rows.pay_cur_id;
-      exception
-      when others then
-      vn_fx_rate_price_to_pay :=-1;
-      end;   
-      vn_payable_amt_in_pay_cur := round(vn_payable_amt_in_price_cur *
-                                               vn_fx_rate_price_to_pay,
-                                               cur_pur_accural_rows.pay_cur_decimal);
+      
+                                               
+       vn_payable_amt_in_pay_cur := round((vn_gmr_price_in_pay_in_cur /
+                                                 nvl(vn_pay_in_price_unit_weight,
+                                                      1)) *
+                                                 (pkg_general.f_get_converted_quantity(cur_pur_accural_rows.conc_product_id,
+                                                                                       cur_pur_accural_rows.payable_qty_unit_id,
+                                                                                       vc_pay_price_unit_wt_unit_id,
+                                                                                       cur_pur_accural_rows.payable_qty)) *
+                                                 vn_pay_price_cur_id_factor,
+                                                 vn_pay_price_cur_decimals);                                               
       vn_payable_qty := cur_pur_accural_rows.payable_qty;
       vc_payable_qty_unit_id := cur_pur_accural_rows.payable_qty_unit_id;
          
@@ -2543,7 +2621,10 @@ for cur_pur_accural_rows in cur_pur_accural_pledge
          is_afloat ,
          is_pledge,
          supp_internal_gmr_ref_no,
-         supp_gmr_ref_no)
+         supp_gmr_ref_no,
+         contract_price_in_pay_in,
+         pay_in_price_unit_id,
+         pay_in_price_unit_name)
       values
         (cur_pur_accural_rows.corporate_id,
          pc_process_id,
@@ -2563,7 +2644,7 @@ for cur_pur_accural_rows in cur_pur_accural_pledge
          vn_payable_qty,
          vc_payable_qty_unit_id,
          vn_gmr_price,
-         vc_gmr_price_untit_id,
+         vc_gmr_price_unit_id,
          vc_gmr_price_unit_cur_id,
          vc_gmr_price_unit_cur_code,
          vn_fx_rate_price_to_pay,
@@ -2576,7 +2657,11 @@ for cur_pur_accural_rows in cur_pur_accural_pledge
          cur_pur_accural_rows.is_afloat,
          cur_pur_accural_rows.is_pledge,
          cur_pur_accural_rows.supp_internal_gmr_ref_no,
-         cur_pur_accural_rows.supp_gmr_ref_no);
+         cur_pur_accural_rows.supp_gmr_ref_no,
+         vn_gmr_price_in_pay_in_cur,
+         cur_pur_accural_rows.pay_in_price_unit_id,
+         cur_pur_accural_rows.pay_in_price_unit_name
+         );
     end loop;
 -- End Loop for Pledge GMRs                  
 delete from pa_temp 
@@ -3078,8 +3163,11 @@ vn_log_counter := vn_log_counter + 1;
        internal_gmr_ref_no,
        is_afloat,
        is_pledge,
-       supp_internal_gmr_ref_no,        
-       supp_gmr_ref_no)
+       supp_internal_gmr_ref_no,
+       supp_gmr_ref_no,
+       contract_price_in_pay_in,
+       pay_in_price_unit_id,
+       pay_in_price_unit_name)
       select pa.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -3105,17 +3193,20 @@ vn_log_counter := vn_log_counter + 1;
              sum(pa.payable_amt_price_ccy),
              sum(pa.payable_amt_pay_ccy),
              pa.fx_rate_price_to_pay,
-             round(sum(pa.tcharges_amount),vn_base_currency_decimals),
-             round(sum(pa.rcharges_amount),vn_base_currency_decimals),
-             round(sum(pa.penalty_amount),vn_base_currency_decimals),
+             round(sum(pa.tcharges_amount), vn_base_currency_decimals),
+             round(sum(pa.rcharges_amount), vn_base_currency_decimals),
+             round(sum(pa.penalty_amount), vn_base_currency_decimals),
              0, -- frightcharges_amount
              0, -- other_charges
              'Calculated',
              pa.internal_gmr_ref_no,
              pa.is_afloat,
              pa.is_pledge,
-             pa.supp_internal_gmr_ref_no,        
-             pa.supp_gmr_ref_no
+             pa.supp_internal_gmr_ref_no,
+             pa.supp_gmr_ref_no,
+             pa.contract_price_in_pay_in,
+             pa.pay_in_price_unit_id,
+             pa.pay_in_price_unit_name
         from pa_purchase_accural pa
        where pa.process_id = pc_process_id
          and pa.corporate_id = pc_corporate_id
@@ -3142,8 +3233,11 @@ vn_log_counter := vn_log_counter + 1;
                 pa.internal_gmr_ref_no,
                 pa.is_afloat,
                 pa.is_pledge,
-                pa.supp_internal_gmr_ref_no,        
-                pa.supp_gmr_ref_no;
+                pa.supp_internal_gmr_ref_no,
+                pa.supp_gmr_ref_no,
+                pa.contract_price_in_pay_in,
+                pa.pay_in_price_unit_id,
+                pa.pay_in_price_unit_name;
     commit;
     vn_log_counter := vn_log_counter + 1;
    sp_eodeom_process_log(pc_corporate_id,
@@ -3440,7 +3534,8 @@ select gepd.pledge_input_gmr,
  group by gepd.pledge_input_gmr) loop
 update pa_purchase_accural_gmr pa
    set pa.pledged_gmr_ref_nos = cur_pledge_gmr_string.pledged_gmr_ref_no_string
- where pa.internal_gmr_ref_no = cur_pledge_gmr_string.pledge_input_gmr;
+ where pa.internal_gmr_ref_no = cur_pledge_gmr_string.pledge_input_gmr
+ and pa.process_id = pc_process_id;
 end loop;
  commit;
 
@@ -10739,7 +10834,8 @@ vn_log_counter := vn_log_counter + 1;
                           pd_trade_date,
                           pc_process_id,
                           vn_log_counter,
-                          'insert PED over');         
+                          'insert PED over');   
+sp_gather_stats('ped_penalty_element_details');                                
  insert into gpq_gmr_payable_qty
    (process_id,
     internal_gmr_ref_no,
@@ -12499,6 +12595,7 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
                and spq.process_id = pc_process_id
                and grd.process_id = pc_process_id
                and spq.is_active = 'Y'
+               and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or gmr.is_assay_updated_mtd_ar = 'Y' or gmr.is_assay_updated_ytd_ar = 'Y')
             union all
             select gmr.gmr_ref_no,
                    gmr.internal_gmr_ref_no,
@@ -12559,7 +12656,8 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
                and ped.internal_gmr_ref_no = grd.internal_gmr_ref_no
                and ped.internal_grd_ref_no = grd.internal_grd_ref_no
                and ped.element_id = aml.attribute_id
-               and ped.assay_qty_unit_id = qum_ped.qty_unit_id);
+               and ped.assay_qty_unit_id = qum_ped.qty_unit_id
+               and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or gmr.is_assay_updated_mtd_ar = 'Y' or gmr.is_assay_updated_ytd_ar = 'Y'));
   vobj_error_log                tableofpelerrorlog := tableofpelerrorlog();
   vn_eel_error_count            number := 1;
   vn_counter                    number := 1;
@@ -12590,6 +12688,15 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
   vc_previous_eom_id            varchar2(15);
   vc_previous_year_eom_id       varchar2(15);
   vd_acc_start_date             date;
+  vn_gmr_price_in_pay_in_cur   number;
+  vn_pay_price_unit_weight      number;
+  vc_pay_in_weight_unit_id  varchar2(15);
+  vn_payable_to_pay_in_wt_factor number;
+  vc_gmr_pay_cur_id            varchar2(15);
+  vc_pay_cur_id                varchar2(15);
+  vc_pay_cur_code              varchar2(15);
+  vn_pay_price_cur_id_factor   number;
+  vn_pay_price_cur_decimals    number;
 
 begin
 
@@ -12645,6 +12752,70 @@ begin
     when no_data_found then
       vc_previous_year_eom_id := null;
   end;
+  
+--
+-- Populate ARG_ARRIVAL_REPORT_GMR for this EOM for MTD
+--
+insert into arg_arrival_report_gmr
+  (process_id, internal_gmr_ref_no, mtd_ytd, prev_process_id)
+  select pc_process_id,
+         t.internal_gmr_ref_no,
+         'MTD',
+         tdc.process_id
+    from (
+    select aro.internal_gmr_ref_no,
+           max(aro.eod_trade_date) eod_trade_date
+      from aro_ar_original aro
+     where aro.eod_trade_date < pd_trade_date
+     and aro.internal_gmr_ref_no in
+           (select gmr.internal_gmr_ref_no
+              from gmr_goods_movement_record gmr
+             where gmr.is_assay_updated_mtd_ar = 'Y'
+               and gmr.process_id = pc_process_id)
+     group by aro.internal_gmr_ref_no) t,
+         tdc_trade_date_closure tdc
+   where tdc.corporate_id = pc_corporate_id
+     and tdc.process = 'EOM'
+     and tdc.trade_date = t.eod_trade_date;
+commit;  
+ gvn_log_counter := gvn_log_counter + 1; 
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'ARG_ARRIVAL_REPORT_GMR 1 over');   
+--
+-- Populate ARG_ARRIVAL_REPORT_GMR for this EOM for YTD
+--    
+insert into arg_arrival_report_gmr
+  (process_id, internal_gmr_ref_no, mtd_ytd, prev_process_id)
+  select pc_process_id,
+         t.internal_gmr_ref_no,
+         'YTD',
+         tdc.process_id
+    from (
+    select aro.internal_gmr_ref_no,
+           max(aro.eod_trade_date) eod_trade_date
+      from aro_ar_original aro
+     where aro.eod_trade_date < trunc(pd_trade_date,'YYYY')
+     and  aro.internal_gmr_ref_no in
+           (select gmr.internal_gmr_ref_no
+              from gmr_goods_movement_record gmr
+             where gmr.is_assay_updated_ytd_ar = 'Y'
+               and gmr.process_id = pc_process_id)
+     group by aro.internal_gmr_ref_no) t,
+         tdc_trade_date_closure tdc
+   where tdc.corporate_id = pc_corporate_id
+     and tdc.process = 'EOM'
+     and tdc.trade_date = t.eod_trade_date;
+ commit;
+  
+ gvn_log_counter := gvn_log_counter + 1; 
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'ARG_ARRIVAL_REPORT_GMR 2 over');    
   for cur_arrival_rows in cur_arrival
   loop
     vn_counter := vn_counter + 1;
@@ -12753,13 +12924,23 @@ begin
                cgcp.price_unit_weight_unit_id,
                cgcp.price_unit_cur_id,
                cgcp.price_unit_cur_code,
-               cgcp.price_unit_weight
+               cgcp.price_unit_weight,
+               cgcp.contract_price_in_pay_in,
+               cgcp.fx_price_to_pay,
+               cgcp.pay_in_price_unit_weight,
+               cgcp.pay_in_price_unit_wt_unit_id,
+               cgcp.pay_in_cur_id
           into vn_gmr_price,
                vc_gmr_price_untit_id,
                vc_price_unit_weight_unit_id,
                vc_gmr_price_unit_cur_id,
                vc_gmr_price_unit_cur_code,
-               vn_gmr_price_unit_weight
+               vn_gmr_price_unit_weight,
+               vn_gmr_price_in_pay_in_cur,
+               vn_fx_rate_price_to_pay,
+               vn_pay_price_unit_weight,
+               vc_pay_in_weight_unit_id,
+               vc_gmr_pay_cur_id
           from cgcp_conc_gmr_cog_price cgcp
          where cgcp.internal_gmr_ref_no =
                cur_arrival_rows.internal_gmr_ref_no
@@ -12773,13 +12954,23 @@ begin
                    cccp.price_unit_weight_unit_id,
                    cccp.price_unit_cur_id,
                    cccp.price_unit_cur_code,
-                   cccp.price_unit_weight
+                   cccp.price_unit_weight,
+                   cccp.contract_price_in_pay_in,
+                   cccp.fx_price_to_pay,
+                   cccp.pay_in_price_unit_weight,
+                   cccp.pay_in_price_unit_wt_unit_id,
+                   cccp.pay_in_cur_id
               into vn_gmr_price,
                    vc_gmr_price_untit_id,
                    vc_price_unit_weight_unit_id,
                    vc_gmr_price_unit_cur_id,
                    vc_gmr_price_unit_cur_code,
-                   vn_gmr_price_unit_weight
+                   vn_gmr_price_unit_weight,
+                   vn_gmr_price_in_pay_in_cur,
+                   vn_fx_rate_price_to_pay,
+                   vn_pay_price_unit_weight,
+                   vc_pay_in_weight_unit_id,
+                   vc_gmr_pay_cur_id
               from cccp_conc_contract_cog_price cccp
              where cccp.pcdi_id = cur_arrival_rows.pcdi_id
                and cccp.process_id = pc_process_id
@@ -12791,8 +12982,12 @@ begin
               vc_price_unit_weight_unit_id := null;
               vc_gmr_price_unit_cur_id     := null;
               vc_gmr_price_unit_cur_code   := null;
+              vn_gmr_price_in_pay_in_cur   := null;
+              vn_fx_rate_price_to_pay      := null;
+              vn_pay_price_unit_weight     := null;
+              vc_pay_in_weight_unit_id     := null;
+              vc_gmr_pay_cur_id            := null;
           end;
-        
       end;
     
       pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
@@ -12800,11 +12995,16 @@ begin
                                          vc_price_cur_code,
                                          vn_cont_price_cur_id_factor,
                                          vn_cont_price_cur_decimals);
+                                          
+      pkg_general.sp_get_main_cur_detail(vc_gmr_pay_cur_id,
+                                         vc_pay_cur_id,
+                                         vc_pay_cur_code,
+                                         vn_pay_price_cur_id_factor,
+                                         vn_pay_price_cur_decimals);                                         
       --
       -- Quantity Conversion between Payable to Price Units
       --
-      if cur_arrival_rows.payable_qty_unit_id <>
-         vc_price_unit_weight_unit_id then
+      if cur_arrival_rows.payable_qty_unit_id <> vc_price_unit_weight_unit_id then
         begin
           select ucm.multiplication_factor
             into vn_payable_to_price_wt_factor
@@ -12819,17 +13019,24 @@ begin
       else
         vn_payable_to_price_wt_factor := 1;
       end if;
-      begin
-        select cet.exch_rate
-          into vn_fx_rate_price_to_pay
-          from cet_corporate_exch_rate cet
-         where cet.corporate_id = pc_corporate_id
-           and cet.from_cur_id = vc_gmr_price_unit_cur_id
-           and cet.to_cur_id = cur_arrival_rows.pay_cur_id;
-      exception
-        when no_data_found then
-          vn_fx_rate_price_to_pay := -1;
-      end;
+      --
+      -- Quantity Conversion between Payable to Pay In Price Units
+      --
+      if cur_arrival_rows.payable_qty_unit_id <> vc_pay_in_weight_unit_id then
+        begin
+          select ucm.multiplication_factor
+            into vn_payable_to_pay_in_wt_factor
+            from ucm_unit_conversion_master ucm
+           where ucm.from_qty_unit_id =
+                 cur_arrival_rows.payable_qty_unit_id
+             and ucm.to_qty_unit_id = vc_pay_in_weight_unit_id;
+        exception
+          when others then
+            vn_payable_to_pay_in_wt_factor := -1;
+        end;
+      else
+        vn_payable_to_pay_in_wt_factor := 1;
+      end if;
       --
       -- Calculate TC Charges, Use Dry or Wet Quantity As Configured in the Contract
       --    
@@ -12876,9 +13083,12 @@ begin
       vc_gmr_price_unit_cur_id      := null;
       vc_gmr_price_unit_cur_code    := null;
       vn_payable_to_price_wt_factor := null;
+      vn_payable_to_pay_in_wt_factor:= null;
       vn_gmr_base_tc                := 0;
       vn_gmr_esc_descalator_tc      := 0;
       vn_fx_rate_price_to_pay       := null;
+      vn_gmr_price_in_pay_in_cur    := null;
+      vn_gmr_price_unit_weight      := null;
     end if;
    --
    -- If TC is assay based and payable qty is zero, we still need to calcualte TC
@@ -12965,9 +13175,12 @@ begin
                                            cur_arrival_rows.payable_qty) *
                                            vn_cont_price_cur_id_factor,
                                            vn_cont_price_cur_decimals);
-      vn_payable_amt_in_pay_cur   := round(vn_payable_amt_in_price_cur *
-                                           vn_fx_rate_price_to_pay,
-                                           cur_arrival_rows.pay_cur_decimals);
+       vn_payable_amt_in_pay_cur := round((vn_gmr_price_in_pay_in_cur /
+                                           nvl(vn_pay_price_unit_weight, 1)) *
+                                           (vn_payable_to_pay_in_wt_factor *
+                                           cur_arrival_rows.payable_qty) *
+                                           vn_pay_price_cur_id_factor,
+                                           vn_pay_price_cur_decimals);                                           
       --
       -- Calculate RC Charges
       --    
@@ -13021,7 +13234,8 @@ begin
        section_name,
        qty_type,
        element_base_qty_unit_id,
-       element_base_qty_unit
+       element_base_qty_unit,
+       price_in_pay_in
        )
     values
       (pc_process_id,
@@ -13047,7 +13261,8 @@ begin
        cur_arrival_rows.section_name,
        cur_arrival_rows.qty_type,
        cur_arrival_rows.base_quantity_unit_id,
-       cur_arrival_rows.base_quantity_unit);
+       cur_arrival_rows.base_quantity_unit,
+       vn_gmr_price_in_pay_in_cur);
   
     if vn_counter = 100 then
       commit;
@@ -13197,7 +13412,8 @@ begin
      rc_charges_amt,
      pc_charges_amt,
      element_base_qty_unit_id,
-     element_base_qty_unit)
+     element_base_qty_unit,
+     price_in_pay_in)
     select pc_process_id,
            internal_gmr_ref_no,
            internal_grd_ref_no,
@@ -13222,7 +13438,8 @@ begin
            rc_charges_amt,
            pc_charges_amt,
            element_base_qty_unit_id,
-           element_base_qty_unit
+           element_base_qty_unit,
+           price_in_pay_in
       from areo_ar_element_original areo
      where areo.process_id = pc_process_id
        and exists
@@ -13339,13 +13556,12 @@ insert into ar_arrival_report
                  null grd_to_gmr_qty_factor,
                  aro_current.gmr_qty
             from aro_ar_original aro_current
-           where aro_current.process_id = pc_process_id
-             and exists (select *
-                    from gmr_goods_movement_record gmr
-                   where gmr.process_id = pc_process_id
-                     and gmr.internal_gmr_ref_no =
-                         aro_current.internal_gmr_ref_no
-                     and gmr.is_assay_updated_mtd_ar = 'Y')
+           where (aro_current.internal_gmr_ref_no, aro_current.process_id) in
+         (select arg.internal_gmr_ref_no,
+                 pc_process_id
+            from arg_arrival_report_gmr arg
+           where arg.process_id = pc_process_id
+             and arg.mtd_ytd = 'MTD')
            group by aro_current.corporate_id,
                     aro_current.corporate_name,
                     aro_current.gmr_ref_no,
@@ -13396,13 +13612,12 @@ insert into ar_arrival_report
                  null grd_to_gmr_qty_factor,
                  0 gmr_qty
             from aro_ar_original are_prev
-           where are_prev.process_id = vc_previous_eom_id
-             and exists (select *
-                    from gmr_goods_movement_record gmr
-                   where gmr.process_id = pc_process_id
-                     and gmr.internal_gmr_ref_no =
-                         are_prev.internal_gmr_ref_no
-                     and gmr.is_assay_updated_mtd_ar = 'Y')
+   where (are_prev.internal_gmr_ref_no, are_prev.process_id) in
+         (select arg.internal_gmr_ref_no,
+                 arg.prev_process_id
+            from arg_arrival_report_gmr arg
+           where arg.process_id = pc_process_id
+             and arg.mtd_ytd = 'MTD')
            group by are_prev.corporate_id,
                     are_prev.corporate_name,
                     are_prev.gmr_ref_no,
@@ -13523,13 +13738,12 @@ insert into are_arrival_report_element
                  areo_current.element_base_qty_unit_id,
                  areo_current.element_base_qty_unit
             from areo_ar_element_original areo_current
-           where areo_current.process_id = pc_process_id
-             and exists (select *
-                    from gmr_goods_movement_record gmr
-                   where gmr.process_id = pc_process_id
-                     and gmr.internal_gmr_ref_no =
-                         areo_current.internal_gmr_ref_no
-                     and gmr.is_assay_updated_mtd_ar = 'Y')
+           where  (areo_current.internal_gmr_ref_no, areo_current.process_id) in
+         (select arg.internal_gmr_ref_no,
+                 pc_process_id
+            from arg_arrival_report_gmr arg
+           where arg.process_id = pc_process_id
+             and arg.mtd_ytd = 'MTD')
            group by areo_current.internal_gmr_ref_no,
                     areo_current.element_id,
                     areo_current.element_name,
@@ -13567,13 +13781,12 @@ insert into are_arrival_report_element
                  areo_prev.element_base_qty_unit_id,
                  areo_prev.element_base_qty_unit
             from areo_ar_element_original areo_prev
-           where areo_prev.process_id = vc_previous_eom_id
-             and exists (select *
-                    from gmr_goods_movement_record gmr
-                   where gmr.process_id = pc_process_id
-                     and gmr.internal_gmr_ref_no =
-                         areo_prev.internal_gmr_ref_no
-                     and gmr.is_assay_updated_mtd_ar = 'Y')
+           where (areo_prev.internal_gmr_ref_no, areo_prev.process_id) in
+         (select arg.internal_gmr_ref_no,
+                 arg.prev_process_id
+            from arg_arrival_report_gmr arg
+           where arg.process_id = pc_process_id
+             and arg.mtd_ytd = 'MTD')
            group by areo_prev.internal_gmr_ref_no,
                     areo_prev.element_id,
                     areo_prev.element_name,
@@ -13715,7 +13928,8 @@ insert into are_arrival_report_element
      rc_charges_amt,
      pc_charges_amt,
      element_base_qty_unit_id,
-     element_base_qty_unit)
+     element_base_qty_unit,
+     price_in_pay_in)
     select pc_process_id,
            internal_gmr_ref_no,
            internal_grd_ref_no,
@@ -13740,7 +13954,8 @@ insert into are_arrival_report_element
            rc_charges_amt,
            pc_charges_amt,
            element_base_qty_unit_id,
-           element_base_qty_unit
+           element_base_qty_unit,
+           price_in_pay_in
       from areo_ar_element_original areo
      where areo.process_id = pc_process_id
        and exists
@@ -13858,13 +14073,12 @@ insert into are_arrival_report_element
                  null grd_to_gmr_qty_factor,
                  aro_current.gmr_qty
             from aro_ar_original aro_current
-           where aro_current.process_id = pc_process_id
-             and exists (select *
-                    from gmr_goods_movement_record gmr
-                   where gmr.process_id = pc_process_id
-                     and gmr.internal_gmr_ref_no =
-                         aro_current.internal_gmr_ref_no
-                     and gmr.is_assay_updated_ytd_ar = 'Y')
+           where  (aro_current.internal_gmr_ref_no, aro_current.process_id) in
+         (select arg.internal_gmr_ref_no,
+                 pc_process_id
+            from arg_arrival_report_gmr arg
+           where arg.process_id = pc_process_id
+             and arg.mtd_ytd = 'YTD')
            group by aro_current.corporate_id,
                     aro_current.corporate_name,
                     aro_current.gmr_ref_no,
@@ -13915,13 +14129,12 @@ insert into are_arrival_report_element
                  null grd_to_gmr_qty_factor,
                  0 gmr_qty
             from aro_ar_original are_prev
-           where are_prev.process_id = vc_previous_year_eom_id
-             and exists (select *
-                    from gmr_goods_movement_record gmr
-                   where gmr.process_id = pc_process_id
-                     and gmr.internal_gmr_ref_no =
-                         are_prev.internal_gmr_ref_no
-                     and gmr.is_assay_updated_ytd_ar = 'Y')
+           where (are_prev.internal_gmr_ref_no, are_prev.process_id) in
+         (select arg.internal_gmr_ref_no,
+                 arg.prev_process_id
+            from arg_arrival_report_gmr arg
+           where arg.process_id = pc_process_id
+             and arg.mtd_ytd = 'YTD')
            group by are_prev.corporate_id,
                     are_prev.corporate_name,
                     are_prev.gmr_ref_no,
@@ -14044,14 +14257,13 @@ insert into are_arrival_report_element
                  areo_current.element_base_qty_unit_id,
                  areo_current.element_base_qty_unit
             from areo_ar_element_original areo_current
-           where areo_current.process_id = pc_process_id
-             and exists (select *
-                    from gmr_goods_movement_record gmr
-                   where gmr.process_id = pc_process_id
-                     and gmr.internal_gmr_ref_no =
-                         areo_current.internal_gmr_ref_no
-                     and gmr.is_assay_updated_ytd_ar = 'Y')
-           group by areo_current.internal_gmr_ref_no,
+           where  (areo_current.internal_gmr_ref_no, areo_current.process_id) in
+         (select arg.internal_gmr_ref_no,
+                 pc_process_id
+            from arg_arrival_report_gmr arg
+           where arg.process_id = pc_process_id
+             and arg.mtd_ytd = 'YTD')
+             group by areo_current.internal_gmr_ref_no,
                     areo_current.element_id,
                     areo_current.element_name,
                     areo_current.asaay_qty_unit_id,
@@ -14088,13 +14300,12 @@ insert into are_arrival_report_element
                  areo_prev.element_base_qty_unit_id,
                  areo_prev.element_base_qty_unit
             from areo_ar_element_original areo_prev
-           where areo_prev.process_id = vc_previous_year_eom_id
-             and exists (select *
-                    from gmr_goods_movement_record gmr
-                   where gmr.process_id = pc_process_id
-                     and gmr.internal_gmr_ref_no =
-                         areo_prev.internal_gmr_ref_no
-                     and gmr.is_assay_updated_ytd_ar = 'Y')
+           where (areo_prev.internal_gmr_ref_no, areo_prev.process_id) in
+         (select arg.internal_gmr_ref_no,
+                 arg.prev_process_id
+            from arg_arrival_report_gmr arg
+           where arg.process_id = pc_process_id
+             and arg.mtd_ytd = 'YTD')
            group by areo_prev.internal_gmr_ref_no,
                     areo_prev.element_id,
                     areo_prev.element_name,
@@ -14229,7 +14440,15 @@ select gmr_ref_no,
   vn_gmr_penality_charge        number;
   vn_gmr_base_tc                number;
   vn_gmr_esc_descalator_tc      number;
-  
+  vn_gmr_price_in_pay_in_cur   number;
+  vn_pay_price_unit_weight      number;
+  vc_pay_in_weight_unit_id  varchar2(15);
+  vn_payable_to_pay_in_wt_factor number;
+  vc_gmr_pay_cur_id            varchar2(15);
+  vc_pay_cur_id                varchar2(15);
+  vc_pay_cur_code              varchar2(15);
+  vn_pay_price_cur_id_factor   number;
+  vn_pay_price_cur_decimals    number;
   begin
   select akc.corporate_name
     into vc_corporate_name
@@ -14611,13 +14830,23 @@ select gmr.gmr_ref_no,
                cgcp.price_unit_weight_unit_id,
                cgcp.price_unit_cur_id,
                cgcp.price_unit_cur_code,
-               cgcp.price_unit_weight
+               cgcp.price_unit_weight,
+               cgcp.contract_price_in_pay_in,
+               cgcp.fx_price_to_pay,
+               cgcp.pay_in_price_unit_weight,
+               cgcp.pay_in_price_unit_wt_unit_id,
+               cgcp.pay_in_cur_id
           into vn_gmr_price,
                vc_gmr_price_untit_id,
                vc_price_unit_weight_unit_id,
                vc_gmr_price_unit_cur_id,
                vc_gmr_price_unit_cur_code,
-               vn_gmr_price_unit_weight
+               vn_gmr_price_unit_weight,
+               vn_gmr_price_in_pay_in_cur,
+               vn_fx_rate_price_to_pay,
+               vn_pay_price_unit_weight,
+               vc_pay_in_weight_unit_id,
+               vc_gmr_pay_cur_id
           from cgcp_conc_gmr_cog_price cgcp
          where cgcp.internal_gmr_ref_no =
                cur_feed_rows.supp_internal_gmr_ref_no
@@ -14631,13 +14860,23 @@ select gmr.gmr_ref_no,
                    cccp.price_unit_weight_unit_id,
                    cccp.price_unit_cur_id,
                    cccp.price_unit_cur_code,
-                   cccp.price_unit_weight
+                   cccp.price_unit_weight,
+                   cccp.contract_price_in_pay_in,
+                   cccp.fx_price_to_pay,
+                   cccp.pay_in_price_unit_weight,
+                   cccp.pay_in_price_unit_wt_unit_id,
+                   cccp.pay_in_cur_id
               into vn_gmr_price,
                    vc_gmr_price_untit_id,
                    vc_price_unit_weight_unit_id,
                    vc_gmr_price_unit_cur_id,
                    vc_gmr_price_unit_cur_code,
-                   vn_gmr_price_unit_weight
+                   vn_gmr_price_unit_weight,
+                   vn_gmr_price_in_pay_in_cur,
+                   vn_fx_rate_price_to_pay,
+                   vn_pay_price_unit_weight,
+                   vc_pay_in_weight_unit_id,
+                   vc_gmr_pay_cur_id
               from cccp_conc_contract_cog_price cccp
              where cccp.pcdi_id = cur_feed_rows.pcdi_id
                and cccp.process_id = pc_process_id
@@ -14649,6 +14888,11 @@ select gmr.gmr_ref_no,
               vc_price_unit_weight_unit_id := null;
               vc_gmr_price_unit_cur_id     := null;
               vc_gmr_price_unit_cur_code   := null;
+              vn_gmr_price_in_pay_in_cur   := null;
+              vn_fx_rate_price_to_pay      := null;
+              vn_pay_price_unit_weight     := null;
+              vc_pay_in_weight_unit_id     := null;
+              vc_gmr_pay_cur_id            := null;
           end;
         
       end;
@@ -14658,6 +14902,12 @@ select gmr.gmr_ref_no,
                                          vc_price_cur_code,
                                          vn_cont_price_cur_id_factor,
                                          vn_cont_price_cur_decimals);
+     pkg_general.sp_get_main_cur_detail(vc_gmr_pay_cur_id,
+                                         vc_pay_cur_id,
+                                         vc_pay_cur_code,
+                                         vn_pay_price_cur_id_factor,
+                                         vn_pay_price_cur_decimals);
+      --                                         
       --
       -- Quantity Conversion between Payable to Price Units
       --
@@ -14677,17 +14927,25 @@ select gmr.gmr_ref_no,
       else
         vn_payable_to_price_wt_factor := 1;
       end if;
-      begin
-        select cet.exch_rate
-          into vn_fx_rate_price_to_pay
-          from cet_corporate_exch_rate cet
-         where cet.corporate_id = pc_corporate_id
-           and cet.from_cur_id = vc_gmr_price_unit_cur_id
-           and cet.to_cur_id = cur_feed_rows.pay_cur_id;
-      exception
-        when no_data_found then
-          vn_fx_rate_price_to_pay := -1;
-      end;
+        --
+      -- Quantity Conversion between Payable to Ppay in rice Units
+      --
+      if cur_feed_rows.payable_qty_unit_id <>
+         vc_pay_in_weight_unit_id then
+        begin
+          select ucm.multiplication_factor
+            into vn_payable_to_pay_in_wt_factor
+            from ucm_unit_conversion_master ucm
+           where ucm.from_qty_unit_id =
+                 cur_feed_rows.payable_qty_unit_id
+             and ucm.to_qty_unit_id = vc_pay_in_weight_unit_id;
+        exception
+          when others then
+            vn_payable_to_pay_in_wt_factor := -1;
+        end;
+      else
+        vn_payable_to_pay_in_wt_factor := 1;
+      end if;
       --
       -- Calculate TC Charges, Use Dry or Wet Quantity As Configured in the Contract
       --    
@@ -14737,6 +14995,8 @@ select gmr.gmr_ref_no,
       vn_gmr_base_tc                := 0;
       vn_gmr_esc_descalator_tc      := 0;
       vn_fx_rate_price_to_pay       := null;
+      vn_gmr_price_in_pay_in_cur := null;
+      vn_payable_to_pay_in_wt_factor := null;
     end if;
    --
    -- If TC is assay based and payable qty is zero, we still need to calcualte TC
@@ -14823,9 +15083,14 @@ select gmr.gmr_ref_no,
                                            cur_feed_rows.payable_qty) *
                                            vn_cont_price_cur_id_factor,
                                            vn_cont_price_cur_decimals);
-      vn_payable_amt_in_pay_cur   := round(vn_payable_amt_in_price_cur *
-                                           vn_fx_rate_price_to_pay,
-                                           cur_feed_rows.pay_cur_decimals);
+      
+                                           
+     vn_payable_amt_in_pay_cur := round((vn_gmr_price_in_pay_in_cur /
+                                           nvl(vn_pay_price_unit_weight, 1)) *
+                                           (vn_payable_to_pay_in_wt_factor *
+                                           cur_feed_rows.payable_qty) *
+                                           vn_pay_price_cur_id_factor,
+                                           vn_pay_price_cur_decimals);                                           
       --
       -- Calculate RC Charges
       --    
@@ -14885,7 +15150,8 @@ select gmr.gmr_ref_no,
          pc_charges_amt,
          element_base_qty_unit_id,
          element_base_qty_unit,
-         pcdi_id)
+         pcdi_id,
+         price_in_pay_in)
       values
         (pc_process_id,
          cur_feed_rows.internal_gmr_ref_no,
@@ -14916,7 +15182,8 @@ select gmr.gmr_ref_no,
          vn_gmr_penality_charge,
          cur_feed_rows.base_quantity_unit_id,
          cur_feed_rows.base_quantity_unit,
-         cur_feed_rows.pcdi_id);
+         cur_feed_rows.pcdi_id,
+         vn_gmr_price_in_pay_in_cur);
     end loop;
     commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -15091,7 +15358,8 @@ insert into fce_feed_consumption_element
    esc_desc_tc_charges_amt,
    element_base_qty_unit_id,
    element_base_qty_unit,
-   mtd_ytd)
+   mtd_ytd,
+   price_in_pay_in)
   select process_id,
          internal_gmr_ref_no,
          internal_grd_ref_no,
@@ -15121,7 +15389,8 @@ insert into fce_feed_consumption_element
          esc_desc_tc_charges_amt,
          element_base_qty_unit_id,
          element_base_qty_unit,
-         'MTD'
+         'MTD',
+         price_in_pay_in
     from fceo_feed_con_element_original fceo
    where fceo.process_id = pc_process_id
      and exists
@@ -15257,7 +15526,8 @@ insert into fce_feed_consumption_element
    esc_desc_tc_charges_amt,
    element_base_qty_unit_id,
    element_base_qty_unit,
-   mtd_ytd)
+   mtd_ytd,
+   price_in_pay_in)
   select process_id,
          internal_gmr_ref_no,
          internal_grd_ref_no,
@@ -15287,7 +15557,8 @@ insert into fce_feed_consumption_element
          esc_desc_tc_charges_amt,
          element_base_qty_unit_id,
          element_base_qty_unit,
-         'YTD'
+         'YTD',
+         price_in_pay_in
     from fceo_feed_con_element_original fceo
    where fceo.process_id = pc_process_id
      and exists
@@ -16577,6 +16848,15 @@ procedure sp_closing_balance_report(pc_corporate_id varchar2,
   vn_gmr_base_tc                number;
   vn_gmr_esc_descalator_tc      number;
   vn_gmr_total_tc               number;
+  vn_gmr_price_in_pay_in_cur   number;
+  vn_pay_price_unit_weight      number;
+  vc_pay_in_weight_unit_id  varchar2(15);
+  vn_payable_to_pay_in_wt_factor number;
+  vc_gmr_pay_cur_id            varchar2(15);
+  vc_pay_cur_id                varchar2(15);
+  vc_pay_cur_code              varchar2(15);
+  vn_pay_price_cur_id_factor   number;
+  vn_pay_price_cur_decimals    number;
 
 begin
 select akc.corporate_name
@@ -17380,58 +17660,86 @@ insert into cbt_cb_temp
      
     if cur_closing_rows.section_name = 'Non Penalty' and
        cur_closing_rows.payable_qty <> 0 then
-      begin
-        select cgcp.contract_price,
-               cgcp.price_unit_id,
-               cgcp.price_unit_weight_unit_id,
-               cgcp.price_unit_cur_id,
-               cgcp.price_unit_cur_code,
-               cgcp.price_unit_weight
-          into vn_gmr_price,
-               vc_gmr_price_untit_id,
-               vc_price_unit_weight_unit_id,
-               vc_gmr_price_unit_cur_id,
-               vc_gmr_price_unit_cur_code,
-               vn_gmr_price_unit_weight
-          from cgcp_conc_gmr_cog_price cgcp
-         where cgcp.internal_gmr_ref_no =
-               cur_closing_rows.gmr_ref_no_for_price
-           and cgcp.process_id = pc_process_id
-           and cgcp.element_id = cur_closing_rows.element_id;
-      exception
-        when others then
-          begin
-            select cccp.contract_price,
-                   cccp.price_unit_id,
-                   cccp.price_unit_weight_unit_id,
-                   cccp.price_unit_cur_id,
-                   cccp.price_unit_cur_code,
-                   cccp.price_unit_weight
-              into vn_gmr_price,
-                   vc_gmr_price_untit_id,
-                   vc_price_unit_weight_unit_id,
-                   vc_gmr_price_unit_cur_id,
-                   vc_gmr_price_unit_cur_code,
-                   vn_gmr_price_unit_weight
-              from cccp_conc_contract_cog_price cccp
-             where cccp.pcdi_id = cur_closing_rows.pcdi_id
-               and cccp.process_id = pc_process_id
-               and cccp.element_id = cur_closing_rows.element_id;
-          exception
-            when others then
-              vn_gmr_price                 := null;
-              vc_gmr_price_untit_id        := null;
-              vc_price_unit_weight_unit_id := null;
-              vc_gmr_price_unit_cur_id     := null;
-              vc_gmr_price_unit_cur_code   := null;
-          end;
-        
-      end;
+begin
+  select cgcp.contract_price,
+         cgcp.price_unit_id,
+         cgcp.price_unit_weight_unit_id,
+         cgcp.price_unit_cur_id,
+         cgcp.price_unit_cur_code,
+         cgcp.price_unit_weight,
+         cgcp.contract_price_in_pay_in,
+         cgcp.fx_price_to_pay,
+         cgcp.pay_in_price_unit_weight,
+         cgcp.pay_in_price_unit_wt_unit_id,
+         cgcp.pay_in_cur_id
+    into vn_gmr_price,
+         vc_gmr_price_untit_id,
+         vc_price_unit_weight_unit_id,
+         vc_gmr_price_unit_cur_id,
+         vc_gmr_price_unit_cur_code,
+         vn_gmr_price_unit_weight,
+         vn_gmr_price_in_pay_in_cur,
+         vn_fx_rate_price_to_pay,
+         vn_pay_price_unit_weight,
+         vc_pay_in_weight_unit_id,
+         vc_gmr_pay_cur_id
+    from cgcp_conc_gmr_cog_price cgcp
+   where cgcp.internal_gmr_ref_no = cur_closing_rows.gmr_ref_no_for_price
+     and cgcp.process_id = pc_process_id
+     and cgcp.element_id = cur_closing_rows.element_id;
+exception
+  when others then
+    begin
+      select cccp.contract_price,
+             cccp.price_unit_id,
+             cccp.price_unit_weight_unit_id,
+             cccp.price_unit_cur_id,
+             cccp.price_unit_cur_code,
+             cccp.price_unit_weight,
+             cccp.contract_price_in_pay_in,
+             cccp.fx_price_to_pay,
+             cccp.pay_in_price_unit_weight,
+             cccp.pay_in_price_unit_wt_unit_id,
+             cccp.pay_in_cur_id
+        into vn_gmr_price,
+             vc_gmr_price_untit_id,
+             vc_price_unit_weight_unit_id,
+             vc_gmr_price_unit_cur_id,
+             vc_gmr_price_unit_cur_code,
+             vn_gmr_price_unit_weight,
+             vn_gmr_price_in_pay_in_cur,
+             vn_fx_rate_price_to_pay,
+             vn_pay_price_unit_weight,
+             vc_pay_in_weight_unit_id,
+             vc_gmr_pay_cur_id
+        from cccp_conc_contract_cog_price cccp
+       where cccp.pcdi_id = cur_closing_rows.pcdi_id
+         and cccp.process_id = pc_process_id
+         and cccp.element_id = cur_closing_rows.element_id;
+    exception
+      when others then
+        vn_gmr_price                 := null;
+        vc_gmr_price_untit_id        := null;
+        vc_price_unit_weight_unit_id := null;
+        vc_gmr_price_unit_cur_id     := null;
+        vc_gmr_price_unit_cur_code   := null;
+        vn_gmr_price_in_pay_in_cur   := null;
+        vn_fx_rate_price_to_pay      := null;
+        vn_pay_price_unit_weight     := null;
+        vc_pay_in_weight_unit_id     := null;
+        vc_gmr_pay_cur_id            := null;
+    end;
+end;
       pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
                                          vc_price_cur_id,
                                          vc_price_cur_code,
                                          vn_cont_price_cur_id_factor,
                                          vn_cont_price_cur_decimals);
+      pkg_general.sp_get_main_cur_detail(vc_gmr_pay_cur_id,
+                                         vc_pay_cur_id,
+                                         vc_pay_cur_code,
+                                         vn_pay_price_cur_id_factor,
+                                         vn_pay_price_cur_decimals);
       --
       -- Quantity Conversion between Payable to Price Units
       --
@@ -17451,17 +17759,27 @@ insert into cbt_cb_temp
       else
         vn_payable_to_price_wt_factor := 1;
       end if;
-      begin
-        select cet.exch_rate
-          into vn_fx_rate_price_to_pay
-          from cet_corporate_exch_rate cet
-         where cet.corporate_id = pc_corporate_id
-           and cet.from_cur_id = vc_gmr_price_unit_cur_id
-           and cet.to_cur_id = cur_closing_rows.pay_cur_id;
-      exception
-        when no_data_found then
-          vn_fx_rate_price_to_pay := -1;
-      end;
+
+   --
+      -- Quantity Conversion between Payable to Pay in Price Units
+      --
+      if cur_closing_rows.payable_qty_unit_id <>
+         vc_pay_in_weight_unit_id then
+        begin
+          select ucm.multiplication_factor
+            into vn_payable_to_pay_in_wt_factor
+            from ucm_unit_conversion_master ucm
+           where ucm.from_qty_unit_id =
+                 cur_closing_rows.payable_qty_unit_id
+             and ucm.to_qty_unit_id = vc_pay_in_weight_unit_id;
+        exception
+          when others then
+            vn_payable_to_pay_in_wt_factor := -1;
+        end;
+      else
+        vn_payable_to_pay_in_wt_factor := 1;
+      end if;      
+     
       --
       -- Calculate TC Charges, Use Dry or Wet Quantity As Configured in the Contract
       --    
@@ -17511,6 +17829,8 @@ insert into cbt_cb_temp
       vn_gmr_base_tc                := 0;
       vn_gmr_esc_descalator_tc      := 0;
       vn_fx_rate_price_to_pay       := null;
+      vn_payable_to_pay_in_wt_factor := null;
+      
     end if;
    --
    -- If TC is assay based and payable qty is zero, we still need to calcualte TC
@@ -17597,9 +17917,13 @@ insert into cbt_cb_temp
                                            cur_closing_rows.payable_qty) *
                                            vn_cont_price_cur_id_factor,
                                            cur_closing_rows.pay_cur_decimal);
-      vn_payable_amt_in_pay_cur   := round(vn_payable_amt_in_price_cur *
-                                           vn_fx_rate_price_to_pay,
-                                           cur_closing_rows.pay_cur_decimal);
+      
+      vn_payable_amt_in_pay_cur := round((vn_gmr_price_in_pay_in_cur /
+                                           nvl(vn_pay_price_unit_weight, 1)) * 
+                                           (vn_payable_to_pay_in_wt_factor *
+                                           cur_closing_rows.payable_qty) *
+                                           vn_pay_price_cur_id_factor,
+                                           cur_closing_rows.pay_cur_decimal);                                           
       --
       -- Calculate RC Charges
       --    

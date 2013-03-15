@@ -13615,13 +13615,7 @@ sp_precheck_process_log(pc_corporate_id,
        sum(nvl(grd.no_of_containers, 0)) no_of_containers,
        sum(grd.qty * nvl(grd.grd_to_gmr_qty_factor, 1)) wet_qty,
        sum(grd.dry_qty * nvl(grd.grd_to_gmr_qty_factor, 1)) dry_qty,
-       max(grd.quality_name) quality_name,
-       sum(case
-             when nvl(grd.is_weight_final, 'N') = 'Y' then
-              1
-             else
-              0
-           end) no_of_stocks_wns_done
+       max(grd.quality_name) quality_name
   from grd_goods_record_detail grd
  where grd.dbd_id = pc_dbd_id
    and grd.status = 'Active'
@@ -13632,8 +13626,7 @@ sp_precheck_process_log(pc_corporate_id,
        set gmr.no_of_containers = cur_containers.no_of_containers,
            gmr.dry_qty          = cur_containers.dry_qty,
            gmr.wet_qty          = cur_containers.wet_qty,
-           gmr.quality_name     = cur_containers.quality_name,
-           gmr.no_of_stocks_wns_done = cur_containers.no_of_stocks_wns_done
+           gmr.quality_name     = cur_containers.quality_name
      where gmr.dbd_id = pc_dbd_id
        and gmr.internal_gmr_ref_no = cur_containers.internal_gmr_ref_no;
   end loop;
@@ -13694,16 +13687,19 @@ commit;
                           'End of GMR Shipped Qty Update');
 for cur_sublots in(  
  select ash.internal_gmr_ref_no,
-        nvl(sum(ash.no_of_sublots), 0) no_of_sublots
+        count(*) no_of_stocks_wns_done
    from ash_assay_header        ash,
         grd_goods_record_detail grd
   where grd.dbd_id = pc_dbd_id
     and grd.status = 'Active'
     and ash.internal_grd_ref_no = grd.internal_grd_ref_no
-    and ash.ash_id = grd.weg_avg_pricing_assay_id
-  group by ash.internal_gmr_ref_no) loop
+    and ash.is_active ='Y'
+    and ash.activity_date <= pd_trade_date
+    and ash.assay_type ='Weighing and Sampling Assay'
+  group by ash.internal_gmr_ref_no
+  ) loop
  update gmr_goods_movement_record gmr
-    set gmr.no_of_sublots = cur_sublots.no_of_sublots
+    set gmr.no_of_stocks_wns_done = cur_sublots.no_of_stocks_wns_done
   where gmr.internal_gmr_ref_no = cur_sublots.internal_gmr_ref_no
     and gmr.dbd_id = pc_dbd_id;
 end loop;
@@ -13842,8 +13838,9 @@ sp_precheck_process_log(pc_corporate_id,
     update grd_goods_record_detail grd
        set grd.conc_product_id   = cur_pcdi.product_id,
            grd.conc_product_name = cur_pcdi.product_desc
-     where grd.pcdi_id = cur_pcdi.pcdi_id
-       and grd.dbd_id = gvc_dbd_id;
+     where grd.dbd_id = gvc_dbd_id
+     and grd.status ='Active'
+      and grd.pcdi_id = cur_pcdi.pcdi_id;
   end loop;       
 commit;       
 gvn_log_counter :=  gvn_log_counter + 1;

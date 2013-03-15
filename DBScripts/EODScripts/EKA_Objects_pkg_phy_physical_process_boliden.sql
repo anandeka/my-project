@@ -52,7 +52,7 @@ create or replace package pkg_phy_physical_process is
                                 pc_process_id   varchar2);
   procedure sp_phy_rebuild_stats;
 
-end; 
+end;
 /
 create or replace package body pkg_phy_physical_process is
 
@@ -4136,7 +4136,9 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     commit;
     delete from fcg_feed_consumption_gmr fcg
-     where process_id = pc_process_id;
+     where fcg.process_id = pc_process_id;
+    delete from arg_arrival_report_gmr arg
+     where arg.process_id = pc_process_id;
     --
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
@@ -4214,5 +4216,5 @@ create or replace package body pkg_phy_physical_process is
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end; 
+end;
 /

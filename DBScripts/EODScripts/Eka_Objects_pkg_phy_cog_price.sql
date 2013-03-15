@@ -73,26 +73,13 @@ create or replace package body pkg_phy_cog_price is
     cursor cur_pcdi is
       select pcdi.pcdi_id,
              pcdi.internal_contract_ref_no,
-             pcdi.delivery_item_no,
-             pcdi.delivery_period_type,
-             pcdi.delivery_from_month,
-             pcdi.delivery_from_year,
-             pcdi.delivery_to_month,
-             pcdi.delivery_to_year,
-             pcdi.delivery_from_date,
-             pcdi.delivery_to_date,
-             pd_trade_date eod_trade_date,
-             pcdi.basis_type,
              pcdi.price_option_call_off_status,
              pcm.contract_ref_no,
              diqs.total_qty item_qty,
              diqs.item_qty_unit_id item_qty_unit_id,
-             pcm.invoice_currency_id,
              pcpd.qty_unit_id,
              pcpd.product_id,
              qat.instrument_id,
-             akc.base_cur_id,
-             akc.base_currency_name,
              dim.instrument_name,
              ps.price_source_id,
              ps.price_source_name,
@@ -160,7 +147,15 @@ create or replace package body pkg_phy_cog_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage,
+             pocd.pay_in_price_unit_id,
+             pocd.pay_in_cur_id,
+             cm.cur_code pay_in_cur_code,
+             pofh.final_price_in_pay_in_cur,
+             pofh.fx_price_to_pay_in,
+             qum.qty_unit_id pay_in_price_unit_wt_unit_id,
+             qum.qty_unit pay_in_price_unit_weight_unit,
+             ppu.weight pay_in_price_unit_weight
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail pcbpd,
@@ -168,10 +163,15 @@ create or replace package body pkg_phy_cog_price is
              (select pofh.pocd_id,
                      pofh.pofh_id,
                      pofh.final_price_in_pricing_cur,
-                     pofh.finalize_date
+                     pofh.finalize_date,
+                     pofh.final_price final_price_in_pay_in_cur,
+                     pofh.avg_fx fx_price_to_pay_in
                 from pofh_price_opt_fixation_header pofh
                where pofh.is_active = 'Y'
-                 and pofh.internal_gmr_ref_no is null) pofh
+                 and pofh.internal_gmr_ref_no is null) pofh,
+             cm_currency_master cm,
+             v_ppu_pum ppu,
+             qum_quantity_unit_master qum
        where poch.pcdi_id = pc_pcdi_id
          and poch.poch_id = pocd.poch_id
          and pocd.pcbpd_id = pcbpd.pcbpd_id
@@ -182,8 +182,12 @@ create or replace package body pkg_phy_cog_price is
          and poch.is_active = 'Y'
          and pocd.is_active = 'Y'
          and pcbpd.is_active = 'Y'
-         and pcbph.is_active = 'Y';
-  
+         and pcbph.is_active = 'Y'
+         and pcbpd.price_basis <> 'Fixed' --We are inserting for Fixed Contracts at the end of SP;
+         and pocd.pay_in_cur_id = cm.cur_id
+         and pocd.pay_in_price_unit_id = ppu.product_price_unit_id
+         and ppu.weight_unit_id = qum.qty_unit_id
+       order by nvl(pofh.final_price_in_pricing_cur, 0) desc;
     cursor cur_not_called_off(pc_pcdi_id varchar2) is
       select pcbpd.pcbpd_id,
              pcbph.internal_contract_ref_no,
@@ -194,11 +198,19 @@ create or replace package body pkg_phy_cog_price is
              pcbpd.fx_to_base,
              pcbpd.qty_to_be_priced,
              pcbph.price_description,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage,
+             ppu.product_price_unit_id pay_in_price_unit_id,
+             ppu.cur_id pay_in_cur_id,
+             cm.cur_code pay_in_cur_code
         from pci_physical_contract_item pci,
              pcipf_pci_pricing_formula  pcipf,
              pcbph_pc_base_price_header pcbph,
-             pcbpd_pc_base_price_detail pcbpd
+             pcbpd_pc_base_price_detail pcbpd,
+             pcm_physical_contract_main pcm,
+             pcdi_pc_delivery_item      pcdi,
+             aml_attribute_master_list  aml,
+             v_ppu_pum                  ppu,
+             cm_currency_master         cm
        where pci.internal_contract_item_ref_no =
              pcipf.internal_contract_item_ref_no
          and pcipf.pcbph_id = pcbph.pcbph_id
@@ -212,7 +224,16 @@ create or replace package body pkg_phy_cog_price is
          and pci.is_active = 'Y'
          and pcipf.is_active = 'Y'
          and pcbpd.is_active = 'Y'
-         and pcbph.is_active = 'Y';
+         and pcbph.is_active = 'Y'
+         and pci.pcdi_id = pcdi.pcdi_id
+         and pcdi.process_id = pc_process_id
+         and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcm.process_id = pc_process_id
+         and aml.attribute_id = pcbpd.element_id
+         and ppu.product_id = aml.underlying_product_id
+         and ppu.cur_id = pcm.invoice_currency_id
+         and ppu.weight_unit_id = pcdi.qty_unit_id
+         and ppu.cur_id = cm.cur_id;
   
     vn_contract_price          number;
     vc_price_unit_id           varchar2(15);
@@ -233,7 +254,16 @@ create or replace package body pkg_phy_cog_price is
     vc_prompt_year             number;
     vc_fixed_price_unit_id     varchar2(15);
     vc_fixed_price_unit_id_pum varchar2(50);
-  
+    vc_pay_in_price_unit_id    varchar2(15);
+    vc_pay_in_cur_id           varchar2(15);
+    vc_pay_in_cur_code         varchar2(15);
+    vc_is_final_priced         varchar2(1);
+    vn_price_in_pay_in_cur     number;
+    vn_cfx_price_to_pay        number;
+    vc_pay_in_qty_unit_id      varchar2(15);
+    vc_pay_in_qty_unit         varchar2(15);
+    vn_pay_in_weight           number;
+    vn_avg_fx_rate             number;
   begin
   
     for cur_pcdi_rows in cur_pcdi
@@ -246,15 +276,30 @@ create or replace package body pkg_phy_cog_price is
       vc_fixed_price_unit_id       := null;
       vc_unfixed_val_price_unit_id := null;
       vc_fixed_price_unit_id_pum   := null;
-    
+      vc_pay_in_price_unit_id      := null;
+      vc_pay_in_cur_id             := null;
+      vc_pay_in_cur_code           := null;
+      vn_price_in_pay_in_cur       := 0;
+      vc_pay_in_qty_unit_id        := null;
+      vc_pay_in_qty_unit           := null;
+      vn_pay_in_weight             := null;
+      vn_avg_fx_rate               := 1;
       if cur_pcdi_rows.price_option_call_off_status in
          ('Called Off', 'Not Applicable') then
         vc_price_fixation_status := null;
         for cur_called_off_rows in cur_called_off(cur_pcdi_rows.pcdi_id)
         loop
-          vn_total_quantity   := cur_pcdi_rows.item_qty;
-          vn_qty_to_be_priced := cur_called_off_rows.qty_to_be_priced;
-          vc_price_basis      := cur_called_off_rows.price_basis;
+          vc_is_final_priced      := 'N'; -- Reset Everytime, To handle combo case
+          vc_pay_in_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
+          vc_pay_in_cur_id        := cur_called_off_rows.pay_in_cur_id;
+          vc_pay_in_cur_code      := cur_called_off_rows.pay_in_cur_code;
+          vn_total_quantity       := cur_pcdi_rows.item_qty;
+          vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
+          vc_price_basis          := cur_called_off_rows.price_basis;
+          vc_pay_in_qty_unit_id   := cur_called_off_rows.pay_in_price_unit_wt_unit_id;
+          vc_pay_in_qty_unit      := cur_called_off_rows.pay_in_price_unit_weight_unit;
+          vn_pay_in_weight        := cur_called_off_rows.pay_in_price_unit_weight;
+        
           if cur_called_off_rows.price_basis = 'Fixed' then
             vn_fixed_qty            := vn_total_quantity;
             vn_unfixed_qty          := 0;
@@ -264,6 +309,9 @@ create or replace package body pkg_phy_cog_price is
                                        (vn_qty_to_be_priced / 100) *
                                        vn_contract_price;
             vc_price_unit_id        := cur_called_off_rows.price_unit_id;
+            vn_avg_fx_rate          := vn_avg_fx_rate +
+                                       (cur_called_off_rows.fx_price_to_pay_in *
+                                       (vn_qty_to_be_priced / 100));
           elsif cur_called_off_rows.price_basis in ('Index', 'Formula') then
             if cur_called_off_rows.final_price <> 0 and
                cur_called_off_rows.finalize_date <= pd_trade_date then
@@ -272,6 +320,10 @@ create or replace package body pkg_phy_cog_price is
                                          (vn_qty_to_be_priced / 100) *
                                          cur_called_off_rows.final_price;
               vc_price_unit_id        := cur_called_off_rows.final_price_unit_id;
+              vc_is_final_priced      := 'Y';
+              vn_price_in_pay_in_cur  := vn_price_in_pay_in_cur +
+                                         (cur_called_off_rows.final_price_in_pay_in_cur *
+                                         (vn_qty_to_be_priced / 100));
             else
               begin
                 select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
@@ -308,8 +360,7 @@ create or replace package body pkg_phy_cog_price is
                   vc_fixed_price_unit_id_pum := null;
               end;
               -- added Suresh
-              if vc_fixed_price_unit_id is null or
-                 vc_fixed_price_unit_id = '' then
+              if vc_fixed_price_unit_id is null then
                 vc_fixed_price_unit_id := cur_called_off_rows.final_price_unit_id;
                 begin
                   select ppu.price_unit_id
@@ -548,10 +599,17 @@ create or replace package body pkg_phy_cog_price is
         vn_error_no := vn_error_no + 1;
         for cur_not_called_off_rows in cur_not_called_off(cur_pcdi_rows.pcdi_id)
         loop
-          vc_price_basis      := cur_not_called_off_rows.price_basis;
-          vn_total_quantity   := cur_pcdi_rows.item_qty;
-          vn_qty_to_be_priced := cur_not_called_off_rows.qty_to_be_priced;
-        
+          vc_price_basis          := cur_not_called_off_rows.price_basis;
+          vn_total_quantity       := cur_pcdi_rows.item_qty;
+          vn_qty_to_be_priced     := cur_not_called_off_rows.qty_to_be_priced;
+          vc_is_final_priced      := 'N';
+          vc_pay_in_price_unit_id := cur_not_called_off_rows.pay_in_price_unit_id;
+          vc_pay_in_cur_id        := cur_not_called_off_rows.pay_in_cur_id;
+          vc_pay_in_cur_code      := cur_not_called_off_rows.pay_in_cur_code;
+          vc_pay_in_qty_unit_id   := null;
+          vc_pay_in_qty_unit      := null;
+          vn_pay_in_weight        := null;
+          vn_avg_fx_rate          := 1;
           if cur_not_called_off_rows.price_basis = 'Fixed' then
             vn_contract_price        := cur_not_called_off_rows.price_value;
             vn_total_contract_value  := vn_total_contract_value +
@@ -822,6 +880,12 @@ create or replace package body pkg_phy_cog_price is
         when others then
           null;
       end;
+      if vc_is_final_priced = 'N' then
+        vn_price_in_pay_in_cur := null;
+        vn_avg_fx_rate         := 1;
+      else
+        vn_price_in_pay_in_cur := round(vn_price_in_pay_in_cur, 4);
+      end if;
       if vn_average_price is not null and vc_price_unit_id is not null then
         insert into bccp_base_contract_cog_price
           (process_id,
@@ -840,7 +904,16 @@ create or replace package body pkg_phy_cog_price is
            price_unit_weight_unit,
            fixed_qty,
            unfixed_qty,
-           price_basis)
+           price_basis,
+           is_final_priced,
+           pay_in_price_unit_id,
+           pay_in_cur_id,
+           pay_in_cur_code,
+           pay_in_price_unit_wt_unit_id,
+           pay_in_price_unit_weight_unit,
+           pay_in_price_unit_weight,
+           contract_price_in_pay_in,
+           fx_price_to_pay)
         values
           (pc_process_id,
            pc_corporate_id,
@@ -858,9 +931,61 @@ create or replace package body pkg_phy_cog_price is
            vc_price_unit_weight_unit,
            vn_fixed_qty,
            vn_unfixed_qty,
-           vc_price_basis);
+           vc_price_basis,
+           vc_is_final_priced,
+           vc_pay_in_price_unit_id,
+           vc_pay_in_cur_id,
+           vc_pay_in_cur_code,
+           vc_pay_in_qty_unit_id,
+           vc_pay_in_qty_unit,
+           vn_pay_in_weight,
+           vn_price_in_pay_in_cur,
+           vn_avg_fx_rate);
       end if;
     end loop;
+    commit;
+  
+    --
+    -- Where Price is Not Finalized Get the Corporate FX Rate from Price to Pay in and Update Exchange Rate 
+    --
+    for cur_corp_fx_rate in (select bccp.price_unit_cur_id,
+                                    bccp.pay_in_cur_id
+                               from bccp_base_contract_cog_price bccp
+                              where bccp.process_id = pc_process_id
+                                and bccp.is_final_priced = 'N'
+                                and bccp.price_unit_cur_id <>
+                                    bccp.pay_in_cur_id
+                              group by bccp.price_unit_cur_id,
+                                       bccp.pay_in_cur_id)
+    loop
+      begin
+        select cet.exch_rate
+          into vn_cfx_price_to_pay
+          from cet_corporate_exch_rate cet
+         where cet.from_cur_id = cur_corp_fx_rate.price_unit_cur_id
+           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id;
+      exception
+        when others then
+          vn_cfx_price_to_pay := -1;
+      end;
+      update bccp_base_contract_cog_price bccp
+         set bccp.fx_price_to_pay = vn_cfx_price_to_pay
+       where bccp.process_id = pc_process_id
+         and bccp.price_unit_cur_id = cur_corp_fx_rate.price_unit_cur_id
+         and bccp.pay_in_cur_id = cur_corp_fx_rate.pay_in_cur_id
+         and bccp.is_final_priced = 'N';
+    end loop;
+    commit;
+  
+    --
+    -- Update Price in Pay In Currency as Price in Pricing Currency X Exchange Rate from Price to Pay
+    --
+  
+    update bccp_base_contract_cog_price bccp
+       set bccp.contract_price_in_pay_in = bccp.contract_price *
+                                           bccp.fx_price_to_pay
+     where bccp.process_id = pc_process_id
+       and bccp.is_final_priced = 'N';
     commit;
   
     for cur_fixed_price in (select pc_process_id process_id,
@@ -877,19 +1002,32 @@ create or replace package body pkg_phy_cog_price is
                                    qum.qty_unit price_unit_weight_unit,
                                    0 fixed_qty,
                                    0 unfixed_qty,
-                                   pcbpd.price_basis
+                                   pcbpd.price_basis,
+                                   pocd.pay_in_cur_id,
+                                   pocd.pay_in_price_unit_id,
+                                   pffxd.fixed_fx_rate,
+                                   qum_pay.qty_unit_id pay_in_price_unit_wt_unit_id,
+                                   qum_pay.qty_unit pay_in_price_unit_weight_unit,
+                                   ppu_pay.weight pay_in_price_unit_weight,
+                                   cm_pay.cur_code pay_in_cur_code
                               from poch_price_opt_call_off_header poch,
                                    pocd_price_option_calloff_dtls pocd,
                                    pcbpd_pc_base_price_detail     pcbpd,
+                                   pffxd_phy_formula_fx_details   pffxd,
                                    pcbph_pc_base_price_header     pcbph,
                                    pcm_physical_contract_main     pcm,
                                    v_ppu_pum                      ppu,
                                    cm_currency_master             cm,
-                                   qum_quantity_unit_master       qum
+                                   qum_quantity_unit_master       qum,
+                                   v_ppu_pum                      ppu_pay,
+                                   cm_currency_master             cm_pay,
+                                   qum_quantity_unit_master       qum_pay
                              where poch.poch_id = pocd.poch_id
                                and pocd.pcbpd_id = pcbpd.pcbpd_id
                                and pcbpd.pcbph_id = pcbph.pcbph_id
                                and pcbpd.process_id = pc_process_id
+                               and pffxd.pffxd_id = pcbpd.pffxd_id
+                               and pffxd.process_id = pc_process_id
                                and pcbph.process_id = pc_process_id
                                and pcm.process_id = pc_process_id
                                and pcbph.internal_contract_ref_no =
@@ -903,7 +1041,12 @@ create or replace package body pkg_phy_cog_price is
                                and ppu.product_price_unit_id =
                                    pcbpd.price_unit_id
                                and ppu.cur_id = cm.cur_id
-                               and ppu.weight_unit_id = qum.qty_unit_id)
+                               and ppu.weight_unit_id = qum.qty_unit_id
+                               and ppu_pay.product_price_unit_id =
+                                   pocd.pay_in_price_unit_id
+                               and ppu_pay.cur_id = cm_pay.cur_id
+                               and ppu_pay.weight_unit_id =
+                                   qum_pay.qty_unit_id)
     loop
       insert into bccp_base_contract_cog_price
         (process_id,
@@ -920,7 +1063,16 @@ create or replace package body pkg_phy_cog_price is
          price_unit_weight_unit,
          fixed_qty,
          unfixed_qty,
-         price_basis)
+         price_basis,
+         is_final_priced,
+         pay_in_price_unit_id,
+         pay_in_cur_id,
+         pay_in_cur_code,
+         pay_in_price_unit_wt_unit_id,
+         pay_in_price_unit_weight_unit,
+         pay_in_price_unit_weight,
+         fx_price_to_pay,
+         contract_price_in_pay_in)
       values
         (cur_fixed_price.process_id,
          cur_fixed_price.corporate_id,
@@ -936,7 +1088,17 @@ create or replace package body pkg_phy_cog_price is
          cur_fixed_price.price_unit_weight_unit,
          cur_fixed_price.fixed_qty,
          cur_fixed_price.unfixed_qty,
-         cur_fixed_price.price_basis);
+         cur_fixed_price.price_basis,
+         'Y',
+         cur_fixed_price.pay_in_price_unit_id,
+         cur_fixed_price.pay_in_cur_id,
+         cur_fixed_price.pay_in_cur_code,
+         cur_fixed_price.pay_in_price_unit_wt_unit_id,
+         cur_fixed_price.pay_in_price_unit_weight_unit,
+         cur_fixed_price.pay_in_price_unit_weight,
+         
+         cur_fixed_price.fixed_fx_rate,
+         cur_fixed_price.fixed_fx_rate * cur_fixed_price.contract_price);
     end loop;
     commit;
     sp_gather_stats('bccp_base_contract_cog_price');
@@ -968,8 +1130,7 @@ create or replace package body pkg_phy_cog_price is
                                   pc_dbd_id       varchar2,
                                   pc_process      varchar2) is
     cursor cur_gmr is
-      select gmr.corporate_id,
-             grd.product_id,
+      select grd.product_id,
              grd.internal_grd_ref_no internal_grd_ref_no,
              gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
@@ -1036,8 +1197,7 @@ create or replace package body pkg_phy_cog_price is
          and gmr.is_deleted = 'N'
          and pofh.is_active = 'Y'
       union all
-      select gmr.corporate_id,
-             grd.product_id,
+      select grd.product_id,
              grd.internal_dgrd_ref_no internal_grd_ref_no,
              gmr.internal_gmr_ref_no,
              gmr.gmr_ref_no,
@@ -1112,11 +1272,22 @@ create or replace package body pkg_phy_cog_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage,
+             pocd.pay_in_price_unit_id,
+             pofh.final_price final_price_in_pay_in_cur,
+             pocd.pay_in_cur_id,
+             cm.cur_code pay_in_cur_code,
+             pofh.avg_fx fx_price_to_pay_in,
+             qum.qty_unit_id pay_in_price_unit_wt_unit_id,
+             qum.qty_unit pay_in_price_unit_weight_unit,
+             ppu.weight pay_in_price_unit_weight
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
-             pcbph_pc_base_price_header     pcbph
+             pcbph_pc_base_price_header     pcbph,
+             cm_currency_master             cm,
+             v_ppu_pum                      ppu,
+             qum_quantity_unit_master       qum
        where pofh.internal_gmr_ref_no = pc_internal_gmr_ref_no
          and pofh.pocd_id = pocd.pocd_id
          and pocd.pcbpd_id = pcbpd.pcbpd_id
@@ -1127,7 +1298,12 @@ create or replace package body pkg_phy_cog_price is
          and pofh.is_active = 'Y'
          and pocd.is_active = 'Y'
          and pcbpd.is_active = 'Y'
-         and pcbph.is_active = 'Y';
+         and pcbph.is_active = 'Y'
+         and pocd.pay_in_cur_id = cm.cur_code
+         and ppu.product_price_unit_id = pocd.pay_in_price_unit_id
+         and ppu.weight_unit_id = qum.qty_unit_id
+      
+       order by nvl(pofh.final_price_in_pricing_cur, 0) desc;
   
     vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count           number := 1;
@@ -1159,6 +1335,16 @@ create or replace package body pkg_phy_cog_price is
     vn_unfixed_value             number;
     vc_data_missing_for          varchar2(1000);
     vc_fixed_price_unit_id_pum   varchar2(50);
+    vc_pay_in_price_unit_id      varchar2(15);
+    vc_pay_in_cur_id             varchar2(15);
+    vc_pay_in_cur_code           varchar2(15);
+    vc_is_final_priced           varchar2(1);
+    vn_price_in_pay_in_cur       number;
+    vn_cfx_price_to_pay          number;
+    vc_pay_in_qty_unit_id        varchar2(15);
+    vc_pay_in_qty_unit           varchar2(15);
+    vn_pay_in_weight             number;
+    vn_avg_fx_rate               number;
   begin
     for cur_gmr_rows in cur_gmr
     loop
@@ -1171,11 +1357,22 @@ create or replace package body pkg_phy_cog_price is
       vc_unfixed_val_price_unit_id := null;
       vc_unfixed_val_price_unit_id := null;
       vc_fixed_price_unit_id_pum   := null;
+      vc_pay_in_qty_unit_id        := null;
+      vc_pay_in_qty_unit           := null;
+      vn_pay_in_weight             := null;
+      vn_avg_fx_rate               := 1;
     
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no)
       loop
-        vn_qty_to_be_priced := cur_gmr_ele_rows.qty_to_be_priced;
-        vc_price_basis      := cur_gmr_ele_rows.price_basis;
+        vc_is_final_priced      := 'N'; -- Reset Everytime, To handle combo case
+        vc_pay_in_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+        vc_pay_in_cur_id        := cur_gmr_ele_rows.pay_in_cur_id;
+        vc_pay_in_cur_code      := cur_gmr_ele_rows.pay_in_cur_code;
+        vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
+        vc_price_basis          := cur_gmr_ele_rows.price_basis;
+        vc_pay_in_qty_unit_id   := cur_gmr_ele_rows.pay_in_price_unit_wt_unit_id;
+        vc_pay_in_qty_unit      := cur_gmr_ele_rows.pay_in_price_unit_weight_unit;
+        vn_pay_in_weight        := cur_gmr_ele_rows.pay_in_price_unit_weight;
         if cur_gmr_ele_rows.final_price <> 0 and
            cur_gmr_ele_rows.finalize_date <= pd_trade_date then
         
@@ -1184,6 +1381,13 @@ create or replace package body pkg_phy_cog_price is
                                      (vn_qty_to_be_priced / 100) *
                                      cur_gmr_ele_rows.final_price;
           vc_price_unit_id        := cur_gmr_ele_rows.final_price_unit_id;
+          vc_is_final_priced      := 'Y';
+          vn_price_in_pay_in_cur  := vn_price_in_pay_in_cur +
+                                     (cur_gmr_ele_rows.final_price_in_pay_in_cur *
+                                     (vn_qty_to_be_priced / 100));
+        
+          vn_avg_fx_rate := vn_avg_fx_rate + (cur_gmr_ele_rows.fx_price_to_pay_in *
+                            (vn_qty_to_be_priced / 100));
         else
           begin
             select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
@@ -1220,7 +1424,7 @@ create or replace package body pkg_phy_cog_price is
               vc_fixed_price_unit_id_pum := null;
           end;
           -- added Suresh
-          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id = '' then
+          if vc_fixed_price_unit_id is null then
             vc_fixed_price_unit_id := cur_gmr_ele_rows.final_price_unit_id;
             begin
               select ppu.price_unit_id
@@ -1482,6 +1686,12 @@ create or replace package body pkg_phy_cog_price is
           vc_price_qty_unit       := null;
       end;
       if vn_average_price is not null and vc_price_unit_id is not null then
+        if vc_is_final_priced = 'N' then
+          vn_price_in_pay_in_cur := null;
+          vn_avg_fx_rate         := 1;
+        else
+          vn_price_in_pay_in_cur := round(vn_price_in_pay_in_cur, 4);
+        end if;
         insert into bgcp_base_gmr_cog_price
           (process_id,
            corporate_id,
@@ -1499,7 +1709,17 @@ create or replace package body pkg_phy_cog_price is
            fixed_qty,
            unfixed_qty,
            price_basis,
-           internal_grd_ref_no)
+           internal_grd_ref_no,
+           is_final_priced,
+           pay_in_price_unit_id,
+           pay_in_cur_id,
+           pay_in_cur_code,
+           pay_in_price_unit_wt_unit_id,
+           pay_in_price_unit_weight_unit,
+           pay_in_price_unit_weight,
+           
+           contract_price_in_pay_in,
+           fx_price_to_pay)
         values
           (pc_process_id,
            pc_corporate_id,
@@ -1517,10 +1737,64 @@ create or replace package body pkg_phy_cog_price is
            vn_fixed_qty,
            vn_unfixed_qty,
            vc_price_basis,
-           cur_gmr_rows.internal_grd_ref_no);
+           cur_gmr_rows.internal_grd_ref_no,
+           vc_is_final_priced,
+           vc_pay_in_price_unit_id,
+           vc_pay_in_cur_id,
+           vc_pay_in_cur_code,
+           vc_pay_in_qty_unit_id,
+           vc_pay_in_qty_unit,
+           vn_pay_in_weight,
+           vn_price_in_pay_in_cur,
+           vn_avg_fx_rate);
       end if;
     end loop;
     commit;
+  
+    --
+    -- Where Price is Not Finalized Get the Corporate FX Rate from Price to Pay in and Update Exchange Rate 
+    --
+    for cur_corp_fx_rate in (select bgcp.price_unit_cur_id,
+                                    bgcp.pay_in_cur_id
+                               from bgcp_base_gmr_cog_price bgcp
+                              where bgcp.process_id = pc_process_id
+                                and bgcp.is_final_priced = 'N'
+                                and bgcp.price_unit_cur_id <>
+                                    bgcp.pay_in_cur_id
+                              group by bgcp.price_unit_cur_id,
+                                       bgcp.pay_in_cur_id)
+    loop
+      begin
+        select cet.exch_rate
+          into vn_cfx_price_to_pay
+          from cet_corporate_exch_rate cet
+         where cet.from_cur_id = cur_corp_fx_rate.price_unit_cur_id
+           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id;
+      exception
+        when others then
+          vn_cfx_price_to_pay := -1;
+      end;
+    
+      update bgcp_base_gmr_cog_price bgcp
+         set bgcp.fx_price_to_pay = vn_cfx_price_to_pay
+       where bgcp.process_id = pc_process_id
+         and bgcp.price_unit_cur_id = cur_corp_fx_rate.price_unit_cur_id
+         and bgcp.pay_in_cur_id = cur_corp_fx_rate.pay_in_cur_id
+         and bgcp.is_final_priced = 'N';
+    end loop;
+    commit;
+  
+    --
+    -- Update Price in Pay In Currency as Price in Pricing Currency X Exchange Rate from Price to Pay
+    --
+  
+    update bgcp_base_gmr_cog_price bgcp
+       set bgcp.contract_price_in_pay_in = bgcp.contract_price *
+                                           bgcp.fx_price_to_pay
+     where bgcp.process_id = pc_process_id
+       and bgcp.is_final_priced = 'N';
+    commit;
+  
     sp_gather_stats('bgcp_base_gmr_cog_price');
   end;
   procedure sp_conc_contract_cog_price(pc_corporate_id varchar2,
@@ -1543,16 +1817,194 @@ create or replace package body pkg_phy_cog_price is
     --        Modify Description                        :
     --------------------------------------------------------------------------------------------
     cursor cur_pcdi is
-      select pcdi.pcdi_id,
+      select pcdi_id,
+             internal_contract_ref_no,
+             element_id,
+             payable_qty,
+             payable_qty_unit_id,
+             contract_ref_no,
+             product_id,
+             instrument_id,
+             instrument_name,
+             price_source_id,
+             price_source_name,
+             available_price_id,
+             available_price_name,
+             price_unit_name,
+             price_unit_id,
+             delivery_calender_id,
+             is_daily_cal_applicable,
+             is_monthly_cal_applicable,
+             price_option_call_off_status
+        from cpt1_conc_price_temp1
+       where corporate_id = pc_corporate_id;
+    cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
+      select t.poch_id,
+             t.pofh_id,
+             t.pcbpd_id,
+             t.price_basis,
+             t.price_value,
+             t.price_unit_id,
+             t.qty_to_be_priced,
+             t.final_price,
+             t.finalize_date,
+             t.final_price_unit_id,
+             t.valuation_price_percentage,
+             t.pay_in_price_unit_id,
+             t.final_price_in_pay_in_cur,
+             t.pay_in_cur_id,
+             t.pay_in_cur_code,
+             t.pay_in_price_unit_weight,
+             t.pay_in_price_unit_wt_unit_id,
+             t.pay_in_price_unit_weight_unit,
+             t.fx_price_to_pay_in
+        from cpt2_conc_price_temp2 t
+       where t.pcdi_id = pc_pcdi_id
+         and t.element_id = pc_element_id
+       order by nvl(t.final_price, 0) desc;
+    -- For combo Price if one part is not finalized, let it be at the end
+    -- so we know that it is not final priced at DI level
+    cursor cur_not_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
+      select pcbpd.pcbpd_id,
+             pcbpd.price_basis,
+             pcbpd.qty_to_be_priced,
+             pcbpd.price_unit_id,
+             pcbph.price_description,
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage,
+             ppu.product_price_unit_id pay_in_price_unit_id,
+             ppu.cur_id pay_in_cur_id,
+             cm.cur_code pay_in_cur_code
+        from pci_physical_contract_item pci,
+             pcipf_pci_pricing_formula  pcipf,
+             pcbph_pc_base_price_header pcbph,
+             pcbpd_pc_base_price_detail pcbpd,
+             pcm_physical_contract_main pcm,
+             pcdi_pc_delivery_item      pcdi,
+             aml_attribute_master_list  aml,
+             v_ppu_pum                  ppu,
+             cm_currency_master         cm
+       where pci.internal_contract_item_ref_no =
+             pcipf.internal_contract_item_ref_no
+         and pcipf.pcbph_id = pcbph.pcbph_id
+         and pcbph.pcbph_id = pcbpd.pcbph_id
+         and pci.pcdi_id = pc_pcdi_id
+         and pcbpd.element_id = pc_element_id
+         and pci.process_id = pc_process_id
+         and pcipf.process_id = pc_process_id
+         and pcbph.process_id = pc_process_id
+         and pcbpd.process_id = pc_process_id
+         and pci.is_active = 'Y'
+         and pcipf.is_active = 'Y'
+         and pcbpd.is_active = 'Y'
+         and pcbph.is_active = 'Y'
+         and pci.pcdi_id = pcdi.pcdi_id
+         and pcdi.process_id = pc_process_id
+         and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcm.process_id = pc_process_id
+         and aml.attribute_id = pcbpd.element_id
+         and ppu.product_id = aml.underlying_product_id
+         and ppu.cur_id = pcm.invoice_currency_id
+         and ppu.weight_unit_id = pcdi.qty_unit_id
+         and ppu.cur_id = cm.cur_id
+         and pcbpd.price_basis <> 'Fixed';
+    vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count           number := 1;
+    vc_prompt_date_text          varchar2(100); -- Setting the decode to this variable to make the Beautifier work
+    vc_price_unit_id             varchar2(15);
+    vn_total_quantity            number;
+    vn_total_contract_value      number;
+    vn_qty_to_be_priced          number;
+    vn_average_price             number;
+    vc_price_basis               varchar2(15);
+    vc_price_option_call_off_sts varchar2(50);
+    vd_prompt_date               date;
+    vd_valid_quote_date          date;
+    vn_fixed_value               number;
+    vn_fixed_qty                 number;
+    vc_fixed_price_unit_id       varchar2(15);
+    vn_unfixed_qty               number;
+    vn_unfixed_val_price         number;
+    vc_unfixed_val_price_unit_id varchar2(15);
+    vn_forward_days              number;
+    vd_quotes_date               date;
+    vc_market_quote_dr_id        varchar2(15);
+    vc_prompt_month              varchar2(15);
+    vc_prompt_year               varchar2(15);
+    vn_unfixed_value             number;
+    vc_price_unit_cur_id         varchar2(15);
+    vc_price_unit_cur_code       varchar2(15);
+    vc_price_unit_weight_unit_id varchar2(15);
+    vc_price_unit_weight_unit    varchar2(15);
+    vn_price_unit_weight         number;
+    vc_error_message             varchar2(100);
+    vc_data_missing_for          varchar2(1000);
+    vc_fixed_price_unit_id_pum   varchar2(50);
+    vn_total_fixed_qty           number;
+    vn_total_unfixed_qty         number;
+    vc_pay_in_price_unit_id      varchar2(15);
+    vc_pay_in_cur_id             varchar2(15);
+    vc_pay_in_cur_code           varchar2(15);
+    vc_is_final_priced           varchar2(1);
+    vn_price_in_pay_in_cur       number;
+    vn_cfx_price_to_pay          number;
+    vc_pay_in_qty_unit_id        varchar2(15);
+    vc_pay_in_qty_unit           varchar2(15);
+    vn_pay_in_weight             number;
+    vn_avg_fx_rate               number;
+  
+  begin
+    sp_gather_stats('pcbph_pc_base_price_header');
+    sp_gather_stats('pcbpd_pc_base_price_detail');
+    sp_gather_stats('poch_price_opt_call_off_header');
+    sp_gather_stats('pocd_price_option_calloff_dtls');
+    sp_gather_stats('pofh_price_opt_fixation_header');
+    sp_gather_stats('dq_derivative_quotes');
+    sp_gather_stats('dqd_derivative_quote_detail');
+    sp_gather_stats('cdim_corporate_dim');
+    sp_gather_stats('drm_derivative_master');
+    sp_gather_stats('cm_currency_master');
+    sp_gather_stats('qum_quantity_unit_master');
+    sp_gather_stats('pfd_price_fixation_details');
+    sp_gather_stats('pci_physical_contract_item');
+    sp_gather_stats('pcm_physical_contract_main');
+    sp_gather_stats('pcipf_pci_pricing_formula');
+    sp_gather_stats('pcbph_pc_base_price_header');
+    sp_gather_stats('pcbpd_pc_base_price_detail');
+    sp_gather_stats('ppfh_phy_price_formula_header');
+    sp_gather_stats('pfqpp_phy_formula_qp_pricing');
+    sp_gather_stats('ppu_product_price_units');
+    sp_gather_stats('pum_price_unit_master');
+    delete from cpt1_conc_price_temp1 where corporate_id = pc_corporate_id;
+    commit;
+    insert into cpt1_conc_price_temp1
+      (corporate_id,
+       pcdi_id,
+       internal_contract_ref_no,
+       element_id,
+       payable_qty,
+       payable_qty_unit_id,
+       contract_ref_no,
+       product_id,
+       instrument_id,
+       instrument_name,
+       price_source_id,
+       price_source_name,
+       available_price_id,
+       available_price_name,
+       price_unit_name,
+       price_unit_id,
+       delivery_calender_id,
+       is_daily_cal_applicable,
+       is_monthly_cal_applicable,
+       price_option_call_off_status)
+      select pc_corporate_id,
+             pcdi.pcdi_id,
              pcdi.internal_contract_ref_no,
              dipq.element_id,
              dipq.payable_qty,
              dipq.qty_unit_id payable_qty_unit_id,
-             pcdi.delivery_item_no,
-             pcdi.basis_type,
              pcm.contract_ref_no,
              pcpd.product_id,
-             aml.underlying_product_id,
              tt.instrument_id,
              tt.instrument_name,
              tt.price_source_id,
@@ -1623,19 +2075,54 @@ create or replace package body pkg_phy_cog_price is
          and pcdi.is_active = 'Y'
          and pcm.is_active = 'Y'
          and dipq.is_active = 'Y';
-    cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
-      select poch.poch_id,
+    commit;
+    delete from cpt2_conc_price_temp2 where corporate_id = pc_corporate_id;
+    commit;
+    insert into cpt2_conc_price_temp2
+      (corporate_id,
+       pcdi_id,
+       element_id,
+       poch_id,
+       pofh_id,
+       pcbpd_id,
+       price_basis,
+       price_value,
+       price_unit_id,
+       qty_to_be_priced,
+       final_price,
+       finalize_date,
+       final_price_unit_id,
+       valuation_price_percentage,
+       pay_in_price_unit_id,
+       final_price_in_pay_in_cur,
+       pay_in_cur_id,
+       pay_in_cur_code,
+       pay_in_price_unit_weight,
+       pay_in_price_unit_wt_unit_id,
+       pay_in_price_unit_weight_unit,
+       fx_price_to_pay_in)
+      select pc_corporate_id,
+             poch.pcdi_id,
+             pcbpd.element_id,
+             poch.poch_id,
              pofh.pofh_id,
              pcbpd.pcbpd_id,
              pcbpd.price_basis,
              pcbpd.price_value,
              pcbpd.price_unit_id,
              pcbpd.qty_to_be_priced,
-             pcbph.price_description,
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage,
+             pocd.pay_in_price_unit_id,
+             pofh.final_price_in_pay_in_cur,
+             pocd.pay_in_cur_id,
+             cm.cur_code pay_in_cur_code,
+             ppu.weight,
+             ppu.weight_unit_id,
+             qum.qty_unit,
+             nvl(pofh.avg_fx, 1) fx_price_to_pay_in
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail pcbpd,
@@ -1643,13 +2130,16 @@ create or replace package body pkg_phy_cog_price is
              (select pofh.pocd_id,
                      pofh.pofh_id,
                      pofh.final_price_in_pricing_cur,
-                     pofh.finalize_date
+                     pofh.finalize_date,
+                     pofh.final_price final_price_in_pay_in_cur,
+                     pofh.avg_fx
                 from pofh_price_opt_fixation_header pofh
                where pofh.is_active = 'Y'
-                 and pofh.internal_gmr_ref_no is null) pofh
-       where poch.pcdi_id = pc_pcdi_id
-         and pcbpd.element_id = pc_element_id
-         and poch.poch_id = pocd.poch_id
+                 and pofh.internal_gmr_ref_no is null) pofh,
+             cm_currency_master cm,
+             v_ppu_pum ppu,
+             qum_quantity_unit_master qum
+       where poch.poch_id = pocd.poch_id
          and pocd.pcbpd_id = pcbpd.pcbpd_id
          and pcbpd.pcbph_id = pcbph.pcbph_id
          and pcbpd.process_id = pc_process_id
@@ -1659,90 +2149,12 @@ create or replace package body pkg_phy_cog_price is
          and pocd.is_active = 'Y'
          and pcbpd.is_active = 'Y'
          and pcbph.is_active = 'Y'
-         and pcbpd.price_basis <> 'Fixed'; --We are inserting for Fixed Contracts at the end of SP
-    cursor cur_not_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
-      select pcbpd.pcbpd_id,
-             pcbpd.price_basis,
-             pcbpd.price_value,
-             pcbpd.price_unit_id,
-             pcbpd.qty_to_be_priced,
-             pcbph.price_description,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
-        from pci_physical_contract_item pci,
-             pcipf_pci_pricing_formula  pcipf,
-             pcbph_pc_base_price_header pcbph,
-             pcbpd_pc_base_price_detail pcbpd
-       where pci.internal_contract_item_ref_no =
-             pcipf.internal_contract_item_ref_no
-         and pcipf.pcbph_id = pcbph.pcbph_id
-         and pcbph.pcbph_id = pcbpd.pcbph_id
-         and pci.pcdi_id = pc_pcdi_id
-         and pcbpd.element_id = pc_element_id
-         and pci.process_id = pc_process_id
-         and pcipf.process_id = pc_process_id
-         and pcbph.process_id = pc_process_id
-         and pcbpd.process_id = pc_process_id
-         and pci.is_active = 'Y'
-         and pcipf.is_active = 'Y'
-         and pcbpd.is_active = 'Y'
-         and pcbph.is_active = 'Y';
-    vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
-    vn_eel_error_count           number := 1;
-    vc_prompt_date_text          varchar2(100); -- Setting the decode to this variable to make the Beautifier work
-    vn_contract_price            number;
-    vc_price_unit_id             varchar2(15);
-    vn_total_quantity            number;
-    vn_total_contract_value      number;
-    vn_qty_to_be_priced          number;
-    vn_average_price             number;
-    vc_price_basis               varchar2(15);
-    vc_price_option_call_off_sts varchar2(50);
-    vd_prompt_date               date;
-    vd_valid_quote_date          date;
-    vn_fixed_value               number;
-    vn_fixed_qty                 number;
-    vc_fixed_price_unit_id       varchar2(15);
-    vn_unfixed_qty               number;
-    vn_unfixed_val_price         number;
-    vc_unfixed_val_price_unit_id varchar2(15);
-    vn_forward_days              number;
-    vd_quotes_date               date;
-    vc_market_quote_dr_id        varchar2(15);
-    vc_prompt_month              varchar2(15);
-    vc_prompt_year               varchar2(15);
-    vn_unfixed_value             number;
-    vc_price_unit_cur_id         varchar2(15);
-    vc_price_unit_cur_code       varchar2(15);
-    vc_price_unit_weight_unit_id varchar2(15);
-    vc_price_unit_weight_unit    varchar2(15);
-    vn_price_unit_weight         number;
-    vc_error_message             varchar2(100);
-    vc_data_missing_for          varchar2(1000);
-    vc_fixed_price_unit_id_pum   varchar2(50);
-    vn_total_fixed_qty           number;
-    vn_total_unfixed_qty         number;
-  begin
-    sp_gather_stats('pcbph_pc_base_price_header');
-    sp_gather_stats('pcbpd_pc_base_price_detail');
-    sp_gather_stats('poch_price_opt_call_off_header');
-    sp_gather_stats('pocd_price_option_calloff_dtls');
-    sp_gather_stats('pofh_price_opt_fixation_header');
-    sp_gather_stats('dq_derivative_quotes');
-    sp_gather_stats('dqd_derivative_quote_detail');
-    sp_gather_stats('cdim_corporate_dim');
-    sp_gather_stats('drm_derivative_master');
-    sp_gather_stats('cm_currency_master');
-    sp_gather_stats('qum_quantity_unit_master');
-    sp_gather_stats('pfd_price_fixation_details');
-    sp_gather_stats('pci_physical_contract_item');
-    sp_gather_stats('pcm_physical_contract_main');
-    sp_gather_stats('pcipf_pci_pricing_formula');
-    sp_gather_stats('pcbph_pc_base_price_header');
-    sp_gather_stats('pcbpd_pc_base_price_detail');
-    sp_gather_stats('ppfh_phy_price_formula_header');
-    sp_gather_stats('pfqpp_phy_formula_qp_pricing');
-    sp_gather_stats('ppu_product_price_units');
-    sp_gather_stats('pum_price_unit_master');
+         and pcbpd.price_basis <> 'Fixed' -- We are inserting for Fixed Contracts at the end of SP
+         and pocd.pay_in_cur_id = cm.cur_id
+         and ppu.product_price_unit_id = pocd.pay_in_price_unit_id
+         and ppu.weight_unit_id = qum.qty_unit_id;
+  
+    commit;
     vc_error_message := 'Start';
     for cur_pcdi_rows in cur_pcdi
     loop
@@ -1760,12 +2172,27 @@ create or replace package body pkg_phy_cog_price is
       vc_fixed_price_unit_id       := null;
       vn_total_fixed_qty           := 0;
       vn_total_unfixed_qty         := 0;
+      vc_pay_in_price_unit_id      := null;
+      vc_pay_in_cur_id             := null;
+      vc_pay_in_cur_code           := null;
+      vn_price_in_pay_in_cur       := 0;
+      vc_pay_in_qty_unit_id        := null;
+      vc_pay_in_qty_unit           := null;
+      vn_pay_in_weight             := null;
+      vn_avg_fx_rate               := 1;
     
       if vc_price_option_call_off_sts in ('Called Off', 'Not Applicable') then
         for cur_called_off_rows in cur_called_off(cur_pcdi_rows.pcdi_id,
                                                   cur_pcdi_rows.element_id)
         loop
-          vc_price_basis := cur_called_off_rows.price_basis;
+          vc_is_final_priced      := 'N'; -- Reset Everytime, To handle combo case
+          vc_price_basis          := cur_called_off_rows.price_basis;
+          vc_pay_in_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
+          vc_pay_in_cur_id        := cur_called_off_rows.pay_in_cur_id;
+          vc_pay_in_cur_code      := cur_called_off_rows.pay_in_cur_code;
+          vc_pay_in_qty_unit_id   := cur_called_off_rows.pay_in_price_unit_wt_unit_id;
+          vc_pay_in_qty_unit      := cur_called_off_rows.pay_in_price_unit_weight_unit;
+          vn_pay_in_weight        := cur_called_off_rows.pay_in_price_unit_weight;
           if cur_called_off_rows.price_basis in ('Index', 'Formula') then
             vn_qty_to_be_priced := cur_called_off_rows.qty_to_be_priced;
             vn_total_quantity   := cur_pcdi_rows.payable_qty;
@@ -1781,6 +2208,14 @@ create or replace package body pkg_phy_cog_price is
               vn_total_fixed_qty      := vn_total_fixed_qty +
                                          (vn_total_quantity *
                                          (vn_qty_to_be_priced / 100));
+              vc_is_final_priced      := 'Y';
+              vn_price_in_pay_in_cur  := vn_price_in_pay_in_cur +
+                                         (cur_called_off_rows.final_price_in_pay_in_cur *
+                                         (vn_qty_to_be_priced / 100));
+              vn_avg_fx_rate          := vn_avg_fx_rate +
+                                         (cur_called_off_rows.fx_price_to_pay_in *
+                                         (vn_qty_to_be_priced / 100));
+            
             else
               vc_error_message := ' Line 240 ';
               begin
@@ -1812,8 +2247,7 @@ create or replace package body pkg_phy_cog_price is
               end;
               vn_total_fixed_qty := vn_total_fixed_qty + vn_fixed_qty;
               -- Added Suresh
-              if vc_fixed_price_unit_id is null or
-                 vc_fixed_price_unit_id = '' then
+              if vc_fixed_price_unit_id is null then
                 vc_fixed_price_unit_id := cur_called_off_rows.final_price_unit_id;
                 begin
                   select ppu.price_unit_id
@@ -2061,7 +2495,11 @@ create or replace package body pkg_phy_cog_price is
         for cur_not_called_off_rows in cur_not_called_off(cur_pcdi_rows.pcdi_id,
                                                           cur_pcdi_rows.element_id)
         loop
-          vc_price_basis := cur_not_called_off_rows.price_basis;
+          vc_is_final_priced      := 'N';
+          vc_price_basis          := cur_not_called_off_rows.price_basis;
+          vc_pay_in_price_unit_id := cur_not_called_off_rows.pay_in_price_unit_id;
+          vc_pay_in_cur_id        := cur_not_called_off_rows.pay_in_cur_id;
+          vc_pay_in_cur_code      := cur_not_called_off_rows.pay_in_cur_code;
           if cur_not_called_off_rows.price_basis in ('Index', 'Formula') then
             vn_total_fixed_qty := 0;
             if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
@@ -2299,6 +2737,12 @@ create or replace package body pkg_phy_cog_price is
           vn_price_unit_weight         := null;
       end;
       vc_error_message := ' Line 676 ';
+      if vc_is_final_priced = 'N' then
+        vn_price_in_pay_in_cur := null;
+        vn_avg_fx_rate         := 1;
+      else
+        vn_price_in_pay_in_cur := round(vn_price_in_pay_in_cur, 4);
+      end if;
       if vn_average_price <> 0 and vc_price_unit_id is not null then
         insert into cccp_conc_contract_cog_price
           (process_id,
@@ -2318,7 +2762,16 @@ create or replace package body pkg_phy_cog_price is
            price_unit_weight_unit,
            fixed_qty,
            unfixed_qty,
-           price_basis)
+           price_basis,
+           is_final_priced,
+           pay_in_price_unit_id,
+           pay_in_cur_id,
+           pay_in_cur_code,
+           pay_in_price_unit_wt_unit_id,
+           pay_in_price_unit_weight_unit,
+           pay_in_price_unit_weight,
+           contract_price_in_pay_in,
+           fx_price_to_pay)
         values
           (pc_process_id,
            pc_corporate_id,
@@ -2337,11 +2790,62 @@ create or replace package body pkg_phy_cog_price is
            vc_price_unit_weight_unit,
            vn_total_fixed_qty,
            vn_total_unfixed_qty,
-           vc_price_basis);
+           vc_price_basis,
+           vc_is_final_priced,
+           vc_pay_in_price_unit_id,
+           vc_pay_in_cur_id,
+           vc_pay_in_cur_code,
+           vc_pay_in_qty_unit_id,
+           vc_pay_in_qty_unit,
+           vn_pay_in_weight,
+           vn_price_in_pay_in_cur,
+           vn_avg_fx_rate);
       end if;
     end loop;
     commit;
   
+    --
+    -- Where Price is Not Finalized Get the Corporate FX Rate from Price to Pay in and Update Exchange Rate 
+    --
+    for cur_corp_fx_rate in (select cccp.price_unit_cur_id,
+                                    cccp.pay_in_cur_id
+                               from cccp_conc_contract_cog_price cccp
+                              where cccp.process_id = pc_process_id
+                                and cccp.is_final_priced = 'N'
+                                and cccp.price_unit_cur_id <>
+                                    cccp.pay_in_cur_id
+                              group by cccp.price_unit_cur_id,
+                                       cccp.pay_in_cur_id)
+    loop
+      begin
+        select cet.exch_rate
+          into vn_cfx_price_to_pay
+          from cet_corporate_exch_rate cet
+         where cet.from_cur_id = cur_corp_fx_rate.price_unit_cur_id
+           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id;
+      exception
+        when others then
+          vn_cfx_price_to_pay := -1;
+      end;
+      update cccp_conc_contract_cog_price cccp
+         set cccp.fx_price_to_pay = vn_cfx_price_to_pay
+       where cccp.process_id = pc_process_id
+         and cccp.price_unit_cur_id = cur_corp_fx_rate.price_unit_cur_id
+         and cccp.pay_in_cur_id = cur_corp_fx_rate.pay_in_cur_id
+         and cccp.is_final_priced = 'N';
+    end loop;
+    commit;
+  
+    --
+    -- Update Price in Pay In Currency as Price in Pricing Currency X Exchange Rate from Price to Pay
+    --
+  
+    update cccp_conc_contract_cog_price cccp
+       set cccp.contract_price_in_pay_in = cccp.contract_price *
+                                           cccp.fx_price_to_pay
+     where cccp.process_id = pc_process_id
+       and cccp.is_final_priced = 'N';
+    commit;
     --
     -- Price For Fixed Price
     --
@@ -2362,18 +2866,31 @@ create or replace package body pkg_phy_cog_price is
                                    qum.qty_unit price_unit_weight_unit,
                                    0 fixed_qty,
                                    0 unfixed_qty,
-                                   pcbpd.price_basis
+                                   pcbpd.price_basis,
+                                   pocd.pay_in_cur_id,
+                                   cm.cur_code as pay_in_cur_code,
+                                   pocd.pay_in_price_unit_id,
+                                   pffxd.fixed_fx_rate,
+                                   qum_pay.qty_unit_id pay_in_price_unit_wt_unit_id,
+                                   qum_pay.qty_unit pay_in_price_unit_weight_unit,
+                                   ppu_pay.weight pay_in_price_unit_weight
                               from poch_price_opt_call_off_header poch,
                                    pocd_price_option_calloff_dtls pocd,
                                    pcbpd_pc_base_price_detail     pcbpd,
+                                   pffxd_phy_formula_fx_details   pffxd,
                                    pcbph_pc_base_price_header     pcbph,
                                    pcm_physical_contract_main     pcm,
                                    v_ppu_pum                      ppu,
                                    cm_currency_master             cm,
-                                   qum_quantity_unit_master       qum
+                                   qum_quantity_unit_master       qum,
+                                   v_ppu_pum                      ppu_pay,
+                                   cm_currency_master             cm_pay,
+                                   qum_quantity_unit_master       qum_pay
                              where poch.poch_id = pocd.poch_id
                                and pocd.pcbpd_id = pcbpd.pcbpd_id
                                and pcbpd.pcbph_id = pcbph.pcbph_id
+                               and pffxd.pffxd_id = pcbpd.pffxd_id
+                               and pffxd.process_id = pc_process_id
                                and pcbpd.process_id = pc_process_id
                                and pcbph.process_id = pc_process_id
                                and pcm.process_id = pc_process_id
@@ -2388,7 +2905,12 @@ create or replace package body pkg_phy_cog_price is
                                and ppu.product_price_unit_id =
                                    pcbpd.price_unit_id
                                and ppu.cur_id = cm.cur_id
-                               and ppu.weight_unit_id = qum.qty_unit_id)
+                               and ppu.weight_unit_id = qum.qty_unit_id
+                               and ppu_pay.product_price_unit_id =
+                                   pocd.pay_in_price_unit_id
+                               and ppu_pay.cur_id = cm_pay.cur_id
+                               and ppu_pay.weight_unit_id =
+                                   qum_pay.qty_unit_id)
     loop
       insert into cccp_conc_contract_cog_price
         (process_id,
@@ -2408,7 +2930,16 @@ create or replace package body pkg_phy_cog_price is
          price_unit_weight_unit,
          fixed_qty,
          unfixed_qty,
-         price_basis)
+         price_basis,
+         is_final_priced,
+         pay_in_price_unit_id,
+         pay_in_cur_id,
+         pay_in_cur_code,
+         pay_in_price_unit_wt_unit_id,
+         pay_in_price_unit_weight_unit,
+         pay_in_price_unit_weight,
+         fx_price_to_pay,
+         contract_price_in_pay_in)
       values
         (cur_fixed_price.process_id,
          cur_fixed_price.corporate_id,
@@ -2427,7 +2958,16 @@ create or replace package body pkg_phy_cog_price is
          cur_fixed_price.price_unit_weight_unit,
          cur_fixed_price.payable_qty,
          0,
-         cur_fixed_price.price_basis);
+         cur_fixed_price.price_basis,
+         'Y',
+         cur_fixed_price.pay_in_price_unit_id,
+         cur_fixed_price.pay_in_cur_id,
+         cur_fixed_price.pay_in_cur_code,
+         cur_fixed_price.pay_in_price_unit_wt_unit_id,
+         cur_fixed_price.pay_in_price_unit_weight_unit,
+         cur_fixed_price.pay_in_price_unit_weight,
+         cur_fixed_price.fixed_fx_rate,
+         cur_fixed_price.fixed_fx_rate * cur_fixed_price.contract_price);
     end loop;
     commit;
     sp_gather_stats('cccp_conc_contract_cog_price');
@@ -2519,13 +3059,24 @@ create or replace package body pkg_phy_cog_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             pcbph.valuation_price_percentage / 100 valuation_price_percentage,
+             pocd.pay_in_price_unit_id,
+             pofh.final_price final_price_in_pay_in_cur,
+             pocd.pay_in_cur_id,
+             cm.cur_code pay_in_cur_code,
+             qum.qty_unit_id pay_in_price_unit_wt_unit_id,
+             qum.qty_unit pay_in_price_unit_weight_unit,
+             ppu.weight pay_in_price_unit_weight,
+             pofh.avg_fx fx_price_to_pay_in
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
              pcbph_pc_base_price_header     pcbph,
              aml_attribute_master_list      aml,
-             pdm_productmaster              pdm
+             pdm_productmaster              pdm,
+             cm_currency_master             cm,
+             v_ppu_pum                      ppu,
+             qum_quantity_unit_master       qum
        where pofh.internal_gmr_ref_no = pc_internal_gmr_ref_no
          and pofh.pocd_id = pocd.pocd_id
          and pocd.pcbpd_id = pcbpd.pcbpd_id
@@ -2539,7 +3090,13 @@ create or replace package body pkg_phy_cog_price is
          and pcbpd.is_active = 'Y'
          and pcbph.is_active = 'Y'
          and pcbpd.element_id = aml.attribute_id
-         and aml.underlying_product_id = pdm.product_id;
+         and aml.underlying_product_id = pdm.product_id
+         and pocd.pay_in_cur_id = cm.cur_id
+         and ppu.product_price_unit_id = pocd.pay_in_price_unit_id
+         and ppu.weight_unit_id = qum.qty_unit_id
+       order by nvl(pofh.final_price_in_pricing_cur, 0) desc;
+    -- For combo Price if one part is not finalized, let it be at the end
+    -- so we know that this GMR and element is not final priced
   
     vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count           number := 1;
@@ -2573,7 +3130,15 @@ create or replace package body pkg_phy_cog_price is
     vc_fixed_price_unit_id_pum   varchar2(50);
     vn_total_fixed_qty           number;
     vn_total_unfixed_qty         number;
-  
+    vc_pay_in_price_unit_id      varchar2(15);
+    vc_pay_in_cur_id             varchar2(15);
+    vc_pay_in_cur_code           varchar2(15);
+    vc_is_final_priced           varchar2(1);
+    vn_price_in_pay_in_cur       number;
+    vc_pay_in_qty_unit_id        varchar2(15);
+    vc_pay_in_qty_unit           varchar2(15);
+    vn_pay_in_weight             number;
+    vn_avg_fx_rate               number;
   begin
   
     for cur_gmr_rows in cur_gmr
@@ -2590,9 +3155,25 @@ create or replace package body pkg_phy_cog_price is
       vc_fixed_price_unit_id       := null;
       vn_total_fixed_qty           := 0;
       vn_total_unfixed_qty         := 0;
+      vc_pay_in_price_unit_id      := null;
+      vc_pay_in_cur_id             := null;
+      vc_pay_in_cur_code           := null;
+      vn_price_in_pay_in_cur       := 0;
+      vc_pay_in_qty_unit_id        := null;
+      vc_pay_in_qty_unit           := null;
+      vn_pay_in_weight             := null;
+      vn_avg_fx_rate               := 1;
+    
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
                                           cur_gmr_rows.element_id)
       loop
+        vc_is_final_priced      := 'N'; -- Reset Everytime, To handle combo case
+        vc_pay_in_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+        vc_pay_in_cur_id        := cur_gmr_ele_rows.pay_in_cur_id;
+        vc_pay_in_cur_code      := cur_gmr_ele_rows.pay_in_cur_code;
+        vc_pay_in_qty_unit_id   := cur_gmr_ele_rows.pay_in_price_unit_wt_unit_id;
+        vc_pay_in_qty_unit      := cur_gmr_ele_rows.pay_in_price_unit_weight_unit;
+        vn_pay_in_weight        := cur_gmr_ele_rows.pay_in_price_unit_weight;
         if cur_gmr_ele_rows.final_price <> 0 and
            cur_gmr_ele_rows.finalize_date <= pd_trade_date then
           vn_total_quantity       := cur_gmr_rows.payable_qty;
@@ -2605,6 +3186,15 @@ create or replace package body pkg_phy_cog_price is
           vn_total_fixed_qty      := vn_total_fixed_qty +
                                      (vn_total_quantity *
                                      (vn_qty_to_be_priced / 100));
+        
+          vc_is_final_priced     := 'Y';
+          vn_price_in_pay_in_cur := vn_price_in_pay_in_cur +
+                                    (cur_gmr_ele_rows.final_price_in_pay_in_cur *
+                                    (vn_qty_to_be_priced / 100));
+          vn_avg_fx_rate         := vn_avg_fx_rate +
+                                    (cur_gmr_ele_rows.fx_price_to_pay_in *
+                                    (vn_qty_to_be_priced / 100));
+        
         else
           vc_price_basis := cur_gmr_ele_rows.price_basis;
           begin
@@ -2635,7 +3225,7 @@ create or replace package body pkg_phy_cog_price is
           end;
           vn_total_fixed_qty := vn_total_fixed_qty + vn_fixed_qty;
           -- Added Suresh
-          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id = '' then
+          if vc_fixed_price_unit_id is null then
             vc_fixed_price_unit_id := cur_gmr_ele_rows.final_price_unit_id;
             begin
               select ppu.price_unit_id
@@ -2894,6 +3484,12 @@ create or replace package body pkg_phy_cog_price is
           vc_price_qty_unit       := null;
       end;
       if vn_average_price is not null and vc_price_unit_id is not null then
+        if vc_is_final_priced = 'N' then
+          vn_price_in_pay_in_cur := null;
+          vn_avg_fx_rate         := 1;
+        else
+          vn_price_in_pay_in_cur := round(vn_price_in_pay_in_cur, 4);
+        end if;
         insert into cgcp_conc_gmr_cog_price
           (process_id,
            corporate_id,
@@ -2911,7 +3507,16 @@ create or replace package body pkg_phy_cog_price is
            price_unit_weight_unit,
            fixed_qty,
            unfixed_qty,
-           price_basis)
+           price_basis,
+           is_final_priced,
+           pay_in_price_unit_id,
+           pay_in_cur_id,
+           pay_in_cur_code,
+           pay_in_price_unit_wt_unit_id,
+           pay_in_price_unit_weight_unit,
+           pay_in_price_unit_weight,
+           contract_price_in_pay_in,
+           fx_price_to_pay)
         values
           (pc_process_id,
            pc_corporate_id,
@@ -2929,7 +3534,16 @@ create or replace package body pkg_phy_cog_price is
            vn_price_weight_unit,
            vn_total_fixed_qty,
            vn_total_unfixed_qty,
-           vc_price_basis);
+           vc_price_basis,
+           vc_is_final_priced,
+           vc_pay_in_price_unit_id,
+           vc_pay_in_cur_id,
+           vc_pay_in_cur_code,
+           vc_pay_in_qty_unit_id,
+           vc_pay_in_qty_unit,
+           vn_pay_in_weight,
+           vn_price_in_pay_in_cur,
+           vn_avg_fx_rate);
       end if;
     end loop;
     commit;
@@ -3014,7 +3628,15 @@ create or replace package body pkg_phy_cog_price is
              gad.final_price,
              gad.finalize_date,
              gad.final_price_unit_id,
-             gad.valuation_price_percentage
+             gad.valuation_price_percentage,
+             gad.pay_in_price_unit_id,
+             gad.pay_in_cur_id,
+             gad.pay_in_cur_code pay_in_cur_code,
+             gad.final_price_in_pay_in_cur,
+             gad.pay_in_price_unit_weight,
+             gad.pay_in_price_unit_wt_unit_id,
+             gad.pay_in_price_unit_weight_unit,
+             gad.fx_price_to_pay_in
         from gad_gmr_aloc_data gad
        where gad.internal_gmr_ref_no = pc_internal_gmr_ref_no
          and gad.element_id = pc_element_id;
@@ -3051,6 +3673,16 @@ create or replace package body pkg_phy_cog_price is
     vc_fixed_price_unit_id_pum   varchar2(50);
     vn_total_fixed_qty           number;
     vn_total_unfixed_qty         number;
+    vc_pay_in_price_unit_id      varchar2(15);
+    vc_pay_in_cur_id             varchar2(15);
+    vc_pay_in_cur_code           varchar2(15);
+    vc_is_final_priced           varchar2(1);
+    vn_price_in_pay_in_cur       number;
+    vn_cfx_price_to_pay          number;
+    vc_pay_in_qty_unit_id        varchar2(15);
+    vc_pay_in_qty_unit           varchar2(15);
+    vn_pay_in_weight             number;
+    vn_avg_fx_rate               number;
   
   begin
     --
@@ -3300,7 +3932,7 @@ create or replace package body pkg_phy_cog_price is
                           pd_trade_date,
                           pc_process_id,
                           222,
-                          'PAGE Insert 1 Over');
+                          'PAGE Insert 2 Over');
     delete from gad_gmr_aloc_data where corporate_id = pc_corporate_id;
     commit;
   
@@ -3318,7 +3950,14 @@ create or replace package body pkg_phy_cog_price is
        finalize_date,
        final_price_unit_id,
        valuation_price_percentage,
-       pay_in_price_unit_id)
+       pay_in_price_unit_id,
+       final_price_in_pay_in_cur,
+       pay_in_cur_id,
+       pay_in_cur_code,
+       pay_in_price_unit_weight,
+       pay_in_price_unit_wt_unit_id,
+       pay_in_price_unit_weight_unit,
+       fx_price_to_pay_in)
       select pc_corporate_id,
              gpah.internal_gmr_ref_no,
              pcbpd.element_id,
@@ -3332,7 +3971,14 @@ create or replace package body pkg_phy_cog_price is
              gpah.finalize_date,
              pocd.final_price_unit_id,
              pcbph.valuation_price_percentage / 100 valuation_price_percentage,
-             pocd.final_price_unit_id pay_in_price_unit_id
+             pocd.pay_in_price_unit_id pay_in_price_unit_id,
+             gpah.final_price,
+             pocd.pay_in_cur_id,
+             cm.cur_code,
+             ppu.weight,
+             qum.qty_unit_id,
+             qum.qty_unit,
+             gpah.avg_fx
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,
@@ -3343,7 +3989,10 @@ create or replace package body pkg_phy_cog_price is
              gpad_gmr_price_alloc_dtls      gpad,
              pcdi_pc_delivery_item          pcdi,
              aml_attribute_master_list      aml,
-             pdm_productmaster              pdm
+             pdm_productmaster              pdm,
+             v_ppu_pum                      ppu,
+             cm_currency_master             cm,
+             qum_quantity_unit_master       qum
        where poch.poch_id = pocd.poch_id
          and gpad.pfd_id = pfd.pfd_id
          and pcdi.pcdi_id = poch.pcdi_id
@@ -3367,6 +4016,9 @@ create or replace package body pkg_phy_cog_price is
          and aml.underlying_product_id = pdm.product_id
          and gpah.element_id = poch.element_id
          and gpad.gpah_id = gpah.gpah_id
+         and pocd.pay_in_price_unit_id = ppu.product_price_unit_id
+         and ppu.cur_id = cm.cur_id
+         and ppu.weight_unit_id = qum.qty_unit_id
        group by gpah.internal_gmr_ref_no,
                 pcbpd.element_id,
                 pcbpd.pcbpd_id,
@@ -3378,7 +4030,15 @@ create or replace package body pkg_phy_cog_price is
                 nvl(gpah.final_price_in_pricing_cur, 0),
                 gpah.finalize_date,
                 pocd.final_price_unit_id,
-                pcbph.valuation_price_percentage / 100;
+                pcbph.valuation_price_percentage / 100,
+                pocd.pay_in_price_unit_id,
+                gpah.final_price,
+                pocd.pay_in_cur_id,
+                cm.cur_code,
+                ppu.weight,
+                qum.qty_unit_id,
+                qum.qty_unit,
+                gpah.avg_fx;
   
     commit;
     sp_eodeom_process_log(pc_corporate_id,
@@ -3400,7 +4060,14 @@ create or replace package body pkg_phy_cog_price is
        finalize_date,
        final_price_unit_id,
        valuation_price_percentage,
-       pay_in_price_unit_id)
+       pay_in_price_unit_id,
+       final_price_in_pay_in_cur,
+       pay_in_cur_id,
+       pay_in_cur_code,
+       pay_in_price_unit_weight,
+       pay_in_price_unit_wt_unit_id,
+       pay_in_price_unit_weight_unit,
+       fx_price_to_pay_in)
       select pc_corporate_id,
              grd.internal_gmr_ref_no,
              pcbpd.element_id,
@@ -3414,7 +4081,14 @@ create or replace package body pkg_phy_cog_price is
              null finalize_date,
              pocd.final_price_unit_id final_price_unit_id,
              pcbph.valuation_price_percentage / 100 valuation_price_percentage,
-             pocd.final_price_unit_id pay_in_price_unit_id
+             pocd.pay_in_price_unit_id pay_in_price_unit_id,
+             0 final_price_in_pay_in_cur,
+             pocd.pay_in_cur_id,
+             cm.cur_code,
+             ppu.weight,
+             qum.qty_unit_id,
+             qum.qty_unit,
+             null
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,
@@ -3424,7 +4098,10 @@ create or replace package body pkg_phy_cog_price is
              pcdi_pc_delivery_item          pcdi,
              aml_attribute_master_list      aml,
              pdm_productmaster              pdm,
-             grd_goods_record_detail        grd
+             grd_goods_record_detail        grd,
+             v_ppu_pum                      ppu,
+             cm_currency_master             cm,
+             qum_quantity_unit_master       qum
        where poch.poch_id = pocd.poch_id
          and pcdi.pcdi_id = poch.pcdi_id
          and pocd.pocd_id = pofh.pocd_id
@@ -3444,6 +4121,9 @@ create or replace package body pkg_phy_cog_price is
          and aml.underlying_product_id = pdm.product_id
          and grd.pcdi_id = pcdi.pcdi_id
          and grd.process_id = pc_process_id
+         and pocd.pay_in_price_unit_id = ppu.product_price_unit_id
+         and ppu.cur_id = cm.cur_id
+         and ppu.weight_unit_id = qum.qty_unit_id
             -- Though DI is Price Allocation, there could be some elements with Event Based Pricing
             -- For Which Price is Already Calcualted  in sp_conc_gmr_cog_price       
          and pocd.qp_period_type <> 'Event'
@@ -3454,15 +4134,20 @@ create or replace package body pkg_phy_cog_price is
                  and gpah.internal_gmr_ref_no = grd.internal_gmr_ref_no
                  and gpah.element_id = pcbpd.element_id)
        group by grd.internal_gmr_ref_no,
-                pofh.pofh_id,
                 pcbpd.element_id,
                 pcbpd.pcbpd_id,
                 pcbpd.qty_to_be_priced,
                 pcbpd.price_basis,
                 pdm.product_id,
                 pdm.base_quantity_unit,
+                pocd.final_price_unit_id,
                 pcbph.valuation_price_percentage / 100,
-                pocd.final_price_unit_id;
+                pocd.pay_in_price_unit_id,
+                pocd.pay_in_cur_id,
+                cm.cur_code,
+                ppu.weight,
+                qum.qty_unit_id,
+                qum.qty_unit;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -3489,11 +4174,25 @@ create or replace package body pkg_phy_cog_price is
       vc_fixed_price_unit_id_pum   := null;
       vn_total_fixed_qty           := 0;
       vn_total_unfixed_qty         := 0;
+      vc_pay_in_price_unit_id      := null;
+      vc_pay_in_cur_id             := null;
+      vc_pay_in_cur_code           := null;
+      vn_price_in_pay_in_cur       := 0;
+      vc_pay_in_qty_unit_id        := null;
+      vc_pay_in_qty_unit           := null;
+      vn_pay_in_weight             := null;
+      vn_avg_fx_rate               := 1;
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
                                           cur_gmr_rows.element_id)
       loop
-      
-        vc_price_basis := cur_gmr_ele_rows.price_basis;
+        vc_is_final_priced      := 'N'; -- Reset Everytime, To handle combo case
+        vc_pay_in_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+        vc_pay_in_cur_id        := cur_gmr_ele_rows.pay_in_cur_id;
+        vc_pay_in_cur_code      := cur_gmr_ele_rows.pay_in_cur_code;
+        vc_price_basis          := cur_gmr_ele_rows.price_basis;
+        vc_pay_in_qty_unit_id   := cur_gmr_ele_rows.pay_in_price_unit_wt_unit_id;
+        vc_pay_in_qty_unit      := cur_gmr_ele_rows.pay_in_price_unit_weight_unit;
+        vn_pay_in_weight        := cur_gmr_ele_rows.pay_in_price_unit_weight;
         if cur_gmr_ele_rows.final_price <> 0 and
            cur_gmr_ele_rows.finalize_date <= pd_trade_date then
           vn_total_quantity       := cur_gmr_rows.payable_qty;
@@ -3506,6 +4205,14 @@ create or replace package body pkg_phy_cog_price is
           vn_total_fixed_qty      := vn_total_fixed_qty +
                                      (vn_total_quantity *
                                      (vn_qty_to_be_priced / 100));
+          vc_is_final_priced      := 'Y';
+          vn_price_in_pay_in_cur  := vn_price_in_pay_in_cur +
+                                     (cur_gmr_ele_rows.final_price_in_pay_in_cur *
+                                     (vn_qty_to_be_priced / 100));
+          vn_avg_fx_rate          := vn_avg_fx_rate +
+                                     (cur_gmr_ele_rows.fx_price_to_pay_in *
+                                     (vn_qty_to_be_priced / 100));
+        
         else
           begin
             select nvl(sum((pfd.user_price * gpad.allocated_qty)), 0),
@@ -3541,7 +4248,7 @@ create or replace package body pkg_phy_cog_price is
           end;
           vn_total_fixed_qty := vn_total_fixed_qty + vn_fixed_qty;
           --Added Suresh
-          if vc_fixed_price_unit_id is null or vc_fixed_price_unit_id = '' then
+          if vc_fixed_price_unit_id is null then
             vc_fixed_price_unit_id := cur_gmr_ele_rows.final_price_unit_id;
             begin
               select ppu.price_unit_id
@@ -3798,6 +4505,12 @@ create or replace package body pkg_phy_cog_price is
           vc_price_qty_unit       := null;
       end;
       if vn_average_price is not null and vc_price_unit_id is not null then
+        if vc_is_final_priced = 'N' then
+          vn_price_in_pay_in_cur := null;
+          vn_avg_fx_rate         := 1;
+        else
+          vn_price_in_pay_in_cur := round(vn_price_in_pay_in_cur, 4);
+        end if;
         insert into cgcp_conc_gmr_cog_price
           (process_id,
            corporate_id,
@@ -3815,7 +4528,16 @@ create or replace package body pkg_phy_cog_price is
            price_unit_weight_unit,
            fixed_qty,
            unfixed_qty,
-           price_basis)
+           price_basis,
+           is_final_priced,
+           pay_in_price_unit_id,
+           pay_in_cur_id,
+           pay_in_cur_code,
+           pay_in_price_unit_wt_unit_id,
+           pay_in_price_unit_weight_unit,
+           pay_in_price_unit_weight,
+           contract_price_in_pay_in,
+           fx_price_to_pay)
         values
           (pc_process_id,
            pc_corporate_id,
@@ -3833,9 +4555,61 @@ create or replace package body pkg_phy_cog_price is
            vn_price_weight_unit,
            vn_total_fixed_qty,
            vn_total_unfixed_qty,
-           vc_price_basis);
+           vc_price_basis,
+           vc_is_final_priced,
+           vc_pay_in_price_unit_id,
+           vc_pay_in_cur_id,
+           vc_pay_in_cur_code,
+           vc_pay_in_qty_unit_id,
+           vc_pay_in_qty_unit,
+           vn_pay_in_weight,
+           vn_price_in_pay_in_cur,
+           vn_avg_fx_rate);
       end if;
     end loop;
+    commit;
+    --
+    -- Where Price is Not Finalized Get the Corporate FX Rate from Price to Pay in and Update Exchange Rate 
+    --
+    for cur_corp_fx_rate in (select cgcp.price_unit_cur_id,
+                                    cgcp.pay_in_cur_id
+                               from cgcp_conc_gmr_cog_price cgcp
+                              where cgcp.process_id = pc_process_id
+                                and cgcp.is_final_priced = 'N'
+                                and cgcp.price_unit_cur_id <>
+                                    cgcp.pay_in_cur_id
+                              group by cgcp.price_unit_cur_id,
+                                       cgcp.pay_in_cur_id)
+    loop
+      begin
+        select cet.exch_rate
+          into vn_cfx_price_to_pay
+          from cet_corporate_exch_rate cet
+         where cet.from_cur_id = cur_corp_fx_rate.price_unit_cur_id
+           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id;
+      exception
+        when others then
+          vn_cfx_price_to_pay := -1;
+      end;
+    
+      update cgcp_conc_gmr_cog_price cgcp
+         set cgcp.fx_price_to_pay = vn_cfx_price_to_pay
+       where cgcp.process_id = pc_process_id
+         and cgcp.price_unit_cur_id = cur_corp_fx_rate.price_unit_cur_id
+         and cgcp.pay_in_cur_id = cur_corp_fx_rate.pay_in_cur_id
+         and cgcp.is_final_priced = 'N';
+    end loop;
+    commit;
+  
+    --
+    -- Update Price in Pay In Currency as Price in Pricing Currency X Exchange Rate from Price to Pay
+    --
+  
+    update cgcp_conc_gmr_cog_price cgcp
+       set cgcp.contract_price_in_pay_in = cgcp.contract_price *
+                                           cgcp.fx_price_to_pay
+     where cgcp.process_id = pc_process_id
+       and cgcp.is_final_priced = 'N';
     commit;
     sp_gather_stats('cgcp_conc_gmr_cog_price');
   exception

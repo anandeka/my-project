@@ -4095,6 +4095,9 @@ create or replace package body pkg_phy_physical_process is
     commit;
     delete from fcg_feed_consumption_gmr fcg
      where process_id = pc_process_id;
+    delete from arg_arrival_report_gmr arg
+     where arg.process_id = pc_process_id;
+
     -- If below tables Process ID might have marked for previoud DBD IDs
     -- Since they were not eleigible for previous EODS, we have unmark the Procee ID now
     --
