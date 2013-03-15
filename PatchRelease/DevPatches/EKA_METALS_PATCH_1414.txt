@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_1414
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  15-Mar-2012
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75849
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  Report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 119719
+Author: rajuga
+Date: 5:46:04 PM, Friday, March 15, 2013
+Message:
+Bug 75849 - Issues in Physical Position - Delivery & Pricing report
+Previous Logic:- Showing Payable Quantity for Event based Concentrate - Contracts
+Change:- Now showing Open Payable quantity for Event based Concentrate - Contracts
+         And also showing NA if Exchange or Business Line Name are blank.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricing_Excel.rpt
+
+==================================================================
+
