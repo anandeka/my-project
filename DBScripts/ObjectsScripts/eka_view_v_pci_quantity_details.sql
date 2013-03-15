@@ -196,7 +196,7 @@ select pcdi.pcdi_id,
                      ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
                 else
                      ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,100)/100 * 
-             pqca.typical) * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
+             pqca.typical * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )  total_qty,                                        
        (case when pcpq.unit_of_measure = 'Dry'
