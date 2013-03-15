@@ -1,0 +1,54 @@
+Patch No*          		:  EKA_METALS_PATCH_1415
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  15-Mar-2012
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 119738
+Author: b.ravikumar
+Date: 6:40:10 PM, Friday, March 15, 2013
+Message:
+IS_SELF_BILLING added in IS_D
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_408.sql
+
+
+Revision: 119739
+Author: b.ravikumar
+Date: 6:44:36 PM, Friday, March 15, 2013
+Message:
+populating IS_SELF_BILLING which has added in IS_D
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_515.sql
+
