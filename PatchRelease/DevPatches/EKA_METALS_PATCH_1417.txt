@@ -6,7 +6,7 @@ Created by*        		:  Janna
 Created on*        		:  19-Mar-2012
 
 Bug / Enhancement*              :  Bug
-Bug ID*            		:  76078
+Bug ID*            		:  76078,75641
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,11 +33,6 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
-Revision: 120036
-Author: janna
-Date: 9:29:47 AM, Tuesday, March 19, 2013
-Message:
-Bug ID : 76078
-----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql		(Revision: 120036)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql		(Revision: 120144)
 
