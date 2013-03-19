@@ -233,9 +233,9 @@ create or replace package body pkg_phy_cog_price is
          and ppu.product_id = aml.underlying_product_id
          and ppu.cur_id = pcm.invoice_currency_id
          and ppu.weight_unit_id = pcdi.qty_unit_id
-         and ppu.cur_id = cm.cur_id;
+         and ppu.cur_id = cm.cur_id
+         and pcbpd.price_basis <> 'Fixed';
   
-    vn_contract_price          number;
     vc_price_unit_id           varchar2(15);
     vc_price_basis             varchar2(15);
     vc_price_cur_id            varchar2(15);
@@ -264,6 +264,7 @@ create or replace package body pkg_phy_cog_price is
     vc_pay_in_qty_unit         varchar2(15);
     vn_pay_in_weight           number;
     vn_avg_fx_rate             number;
+    vn_total_qty_for_avg_price number;
   begin
   
     for cur_pcdi_rows in cur_pcdi
@@ -284,6 +285,7 @@ create or replace package body pkg_phy_cog_price is
       vc_pay_in_qty_unit           := null;
       vn_pay_in_weight             := null;
       vn_avg_fx_rate               := 1;
+      vn_total_qty_for_avg_price   := 0;
       if cur_pcdi_rows.price_option_call_off_status in
          ('Called Off', 'Not Applicable') then
         vc_price_fixation_status := null;
@@ -299,31 +301,21 @@ create or replace package body pkg_phy_cog_price is
           vc_pay_in_qty_unit_id   := cur_called_off_rows.pay_in_price_unit_wt_unit_id;
           vc_pay_in_qty_unit      := cur_called_off_rows.pay_in_price_unit_weight_unit;
           vn_pay_in_weight        := cur_called_off_rows.pay_in_price_unit_weight;
-        
-          if cur_called_off_rows.price_basis = 'Fixed' then
-            vn_fixed_qty            := vn_total_quantity;
-            vn_unfixed_qty          := 0;
-            vn_contract_price       := cur_called_off_rows.price_value;
-            vn_total_contract_value := vn_total_contract_value +
-                                       vn_total_quantity *
-                                       (vn_qty_to_be_priced / 100) *
-                                       vn_contract_price;
-            vc_price_unit_id        := cur_called_off_rows.price_unit_id;
-            vn_avg_fx_rate          := vn_avg_fx_rate +
-                                       (cur_called_off_rows.fx_price_to_pay_in *
-                                       (vn_qty_to_be_priced / 100));
-          elsif cur_called_off_rows.price_basis in ('Index', 'Formula') then
+          if cur_called_off_rows.price_basis in ('Index', 'Formula') then
             if cur_called_off_rows.final_price <> 0 and
                cur_called_off_rows.finalize_date <= pd_trade_date then
-              vn_total_contract_value := vn_total_contract_value +
-                                         vn_total_quantity *
-                                         (vn_qty_to_be_priced / 100) *
-                                         cur_called_off_rows.final_price;
-              vc_price_unit_id        := cur_called_off_rows.final_price_unit_id;
-              vc_is_final_priced      := 'Y';
-              vn_price_in_pay_in_cur  := vn_price_in_pay_in_cur +
-                                         (cur_called_off_rows.final_price_in_pay_in_cur *
-                                         (vn_qty_to_be_priced / 100));
+              vn_total_contract_value    := vn_total_contract_value +
+                                            (vn_total_quantity *
+                                            (vn_qty_to_be_priced / 100)) *
+                                            cur_called_off_rows.final_price;
+              vc_price_unit_id           := cur_called_off_rows.final_price_unit_id;
+              vc_is_final_priced         := 'Y';
+              vn_price_in_pay_in_cur     := vn_price_in_pay_in_cur +
+                                            (cur_called_off_rows.final_price_in_pay_in_cur *
+                                            (vn_qty_to_be_priced / 100));
+              vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                            (vn_total_quantity *
+                                            (vn_qty_to_be_priced / 100));
             else
               begin
                 select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
@@ -583,45 +575,42 @@ create or replace package body pkg_phy_cog_price is
               end if;
               vn_total_quantity := vn_fixed_qty + vn_unfixed_qty;
             
-              vc_price_unit_id        := vc_fixed_price_unit_id;
-              vn_total_contract_value := vn_total_contract_value +
-                                         (vn_fixed_value + vn_unfixed_value);
+              vc_price_unit_id           := vc_fixed_price_unit_id;
+              vn_total_contract_value    := vn_total_contract_value +
+                                            (vn_fixed_value +
+                                            vn_unfixed_value);
+              vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                            vn_fixed_qty + vn_unfixed_qty;
             end if;
           end if;
         
         end loop;
-        vn_average_price := round(vn_total_contract_value /
-                                  cur_pcdi_rows.item_qty,
-                                  4);
+        if vn_total_qty_for_avg_price <> 0 then
+          vn_average_price := round(vn_total_contract_value /
+                                    vn_total_qty_for_avg_price,
+                                    4);
+        else
+          vn_average_price := 0;
+        end if;
       
         vn_error_no := vn_error_no + 1;
       elsif cur_pcdi_rows.price_option_call_off_status = 'Not Called Off' then
         vn_error_no := vn_error_no + 1;
         for cur_not_called_off_rows in cur_not_called_off(cur_pcdi_rows.pcdi_id)
         loop
-          vc_price_basis          := cur_not_called_off_rows.price_basis;
-          vn_total_quantity       := cur_pcdi_rows.item_qty;
-          vn_qty_to_be_priced     := cur_not_called_off_rows.qty_to_be_priced;
-          vc_is_final_priced      := 'N';
-          vc_pay_in_price_unit_id := cur_not_called_off_rows.pay_in_price_unit_id;
-          vc_pay_in_cur_id        := cur_not_called_off_rows.pay_in_cur_id;
-          vc_pay_in_cur_code      := cur_not_called_off_rows.pay_in_cur_code;
-          vc_pay_in_qty_unit_id   := null;
-          vc_pay_in_qty_unit      := null;
-          vn_pay_in_weight        := null;
-          vn_avg_fx_rate          := 1;
-          if cur_not_called_off_rows.price_basis = 'Fixed' then
-            vn_contract_price        := cur_not_called_off_rows.price_value;
-            vn_total_contract_value  := vn_total_contract_value +
-                                        vn_total_quantity *
-                                        (vn_qty_to_be_priced / 100) *
-                                        vn_contract_price;
-            vc_price_unit_id         := cur_not_called_off_rows.price_unit_id;
-            vc_price_fixation_status := 'Fixed';
-            vn_fixed_qty             := vn_total_quantity;
-            vn_unfixed_qty           := 0;
-            vn_error_no              := 3;
-          elsif cur_not_called_off_rows.price_basis in ('Index', 'Formula') then
+          vc_price_basis             := cur_not_called_off_rows.price_basis;
+          vn_total_quantity          := cur_pcdi_rows.item_qty;
+          vn_qty_to_be_priced        := cur_not_called_off_rows.qty_to_be_priced;
+          vc_is_final_priced         := 'N';
+          vc_pay_in_price_unit_id    := cur_not_called_off_rows.pay_in_price_unit_id;
+          vc_pay_in_cur_id           := cur_not_called_off_rows.pay_in_cur_id;
+          vc_pay_in_cur_code         := cur_not_called_off_rows.pay_in_cur_code;
+          vc_pay_in_qty_unit_id      := null;
+          vc_pay_in_qty_unit         := null;
+          vn_pay_in_weight           := null;
+          vn_avg_fx_rate             := 1;
+          vn_total_qty_for_avg_price := 0;
+          if cur_not_called_off_rows.price_basis in ('Index', 'Formula') then
             if cur_pcdi_rows.is_daily_cal_applicable = 'Y' then
               vn_forward_days := 0;
               vd_quotes_date  := pd_trade_date + 1;
@@ -823,10 +812,17 @@ create or replace package body pkg_phy_cog_price is
                 vc_price_unit_id := null;
             end;
           end if;
+          vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                        ((vn_qty_to_be_priced / 100) *
+                                        vn_total_quantity);
         end loop;
-        vn_average_price := round(vn_total_contract_value /
-                                  cur_pcdi_rows.item_qty,
-                                  4);
+        if vn_total_qty_for_avg_price <> 0 then
+          vn_average_price := round(vn_total_contract_value /
+                                    vn_total_qty_for_avg_price,
+                                    4);
+        else
+          vn_average_price := 0;
+        end if;
       end if;
       vn_error_no := 7;
       begin
@@ -886,7 +882,10 @@ create or replace package body pkg_phy_cog_price is
       else
         vn_price_in_pay_in_cur := round(vn_price_in_pay_in_cur, 4);
       end if;
-      if vn_average_price is not null and vc_price_unit_id is not null then
+      if vn_average_price is null then
+        vn_average_price := 0;
+      end if;
+      if vc_price_unit_id is not null and vn_average_price <> 0 then
         insert into bccp_base_contract_cog_price
           (process_id,
            corporate_id,
@@ -1345,6 +1344,7 @@ create or replace package body pkg_phy_cog_price is
     vc_pay_in_qty_unit           varchar2(15);
     vn_pay_in_weight             number;
     vn_avg_fx_rate               number;
+    vn_total_qty_for_avg_price   number;
   begin
     for cur_gmr_rows in cur_gmr
     loop
@@ -1361,6 +1361,7 @@ create or replace package body pkg_phy_cog_price is
       vc_pay_in_qty_unit           := null;
       vn_pay_in_weight             := null;
       vn_avg_fx_rate               := 1;
+      vn_total_qty_for_avg_price   := 0;
     
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no)
       loop
@@ -1386,8 +1387,12 @@ create or replace package body pkg_phy_cog_price is
                                      (cur_gmr_ele_rows.final_price_in_pay_in_cur *
                                      (vn_qty_to_be_priced / 100));
         
-          vn_avg_fx_rate := vn_avg_fx_rate + (cur_gmr_ele_rows.fx_price_to_pay_in *
-                            (vn_qty_to_be_priced / 100));
+          vn_avg_fx_rate             := vn_avg_fx_rate +
+                                        (cur_gmr_ele_rows.fx_price_to_pay_in *
+                                        (vn_qty_to_be_priced / 100));
+          vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                        (vn_total_quantity *
+                                        (vn_qty_to_be_priced / 100));
         else
           begin
             select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
@@ -1647,15 +1652,21 @@ create or replace package body pkg_phy_cog_price is
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
           end if;
-          vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
-          vc_price_unit_id        := vc_fixed_price_unit_id;
-          vn_total_contract_value := vn_total_contract_value +
-                                     (vn_fixed_value + vn_unfixed_value);
+          vn_total_quantity          := vn_fixed_qty + vn_unfixed_qty;
+          vc_price_unit_id           := vc_fixed_price_unit_id;
+          vn_total_contract_value    := vn_total_contract_value +
+                                        (vn_fixed_value + vn_unfixed_value);
+          vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                        vn_fixed_qty + vn_unfixed_qty;
         end if;
       end loop;
-    
-      vn_average_price := round(vn_total_contract_value / cur_gmr_rows.qty,
-                                4);
+      if vn_total_qty_for_avg_price <> 0 then
+        vn_average_price := round(vn_total_contract_value /
+                                  vn_total_qty_for_avg_price,
+                                  4);
+      else
+        vn_average_price := 0;
+      end if;
       --
       -- Convert the final price into Base Price Unit
       --
@@ -1685,7 +1696,10 @@ create or replace package body pkg_phy_cog_price is
           vc_price_weight_unit_id := null;
           vc_price_qty_unit       := null;
       end;
-      if vn_average_price is not null and vc_price_unit_id is not null then
+      if vn_average_price is null then
+        vn_average_price := 0;
+      end if;
+      if vn_average_price <> 0 and vc_price_unit_id is not null then
         if vc_is_final_priced = 'N' then
           vn_price_in_pay_in_cur := null;
           vn_avg_fx_rate         := 1;
@@ -1951,7 +1965,7 @@ create or replace package body pkg_phy_cog_price is
     vc_pay_in_qty_unit           varchar2(15);
     vn_pay_in_weight             number;
     vn_avg_fx_rate               number;
-  
+    vn_total_qty_for_avg_price   number;
   begin
     sp_gather_stats('pcbph_pc_base_price_header');
     sp_gather_stats('pcbpd_pc_base_price_detail');
@@ -2180,7 +2194,7 @@ create or replace package body pkg_phy_cog_price is
       vc_pay_in_qty_unit           := null;
       vn_pay_in_weight             := null;
       vn_avg_fx_rate               := 1;
-    
+      vn_total_qty_for_avg_price   := 0;
       if vc_price_option_call_off_sts in ('Called Off', 'Not Applicable') then
         for cur_called_off_rows in cur_called_off(cur_pcdi_rows.pcdi_id,
                                                   cur_pcdi_rows.element_id)
@@ -2199,22 +2213,25 @@ create or replace package body pkg_phy_cog_price is
           
             if cur_called_off_rows.final_price <> 0 and
                cur_called_off_rows.finalize_date <= pd_trade_date then
-              vn_total_contract_value := vn_total_contract_value +
-                                         vn_total_quantity *
-                                         (vn_qty_to_be_priced / 100) *
-                                         cur_called_off_rows.final_price;
-              vc_price_unit_id        := cur_called_off_rows.final_price_unit_id;
-              vc_fixed_price_unit_id  := cur_called_off_rows.final_price_unit_id;
-              vn_total_fixed_qty      := vn_total_fixed_qty +
-                                         (vn_total_quantity *
-                                         (vn_qty_to_be_priced / 100));
-              vc_is_final_priced      := 'Y';
-              vn_price_in_pay_in_cur  := vn_price_in_pay_in_cur +
-                                         (cur_called_off_rows.final_price_in_pay_in_cur *
-                                         (vn_qty_to_be_priced / 100));
-              vn_avg_fx_rate          := vn_avg_fx_rate +
-                                         (cur_called_off_rows.fx_price_to_pay_in *
-                                         (vn_qty_to_be_priced / 100));
+              vn_total_contract_value    := vn_total_contract_value +
+                                            vn_total_quantity *
+                                            (vn_qty_to_be_priced / 100) *
+                                            cur_called_off_rows.final_price;
+              vc_price_unit_id           := cur_called_off_rows.final_price_unit_id;
+              vc_fixed_price_unit_id     := cur_called_off_rows.final_price_unit_id;
+              vn_total_fixed_qty         := vn_total_fixed_qty +
+                                            (vn_total_quantity *
+                                            (vn_qty_to_be_priced / 100));
+              vc_is_final_priced         := 'Y';
+              vn_price_in_pay_in_cur     := vn_price_in_pay_in_cur +
+                                            (cur_called_off_rows.final_price_in_pay_in_cur *
+                                            (vn_qty_to_be_priced / 100));
+              vn_avg_fx_rate             := vn_avg_fx_rate +
+                                            (cur_called_off_rows.fx_price_to_pay_in *
+                                            (vn_qty_to_be_priced / 100));
+              vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                            (vn_total_quantity *
+                                            (vn_qty_to_be_priced / 100));
             
             else
               vc_error_message := ' Line 240 ';
@@ -2475,21 +2492,27 @@ create or replace package body pkg_phy_cog_price is
                 vn_fixed_value := 0;
                 vn_fixed_qty   := 0;
               end if;
-              vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
-              vn_qty_to_be_priced     := cur_called_off_rows.qty_to_be_priced;
-              vn_total_contract_value := vn_total_contract_value +
-                                         ((vn_fixed_value +
-                                         vn_unfixed_value));
-              vc_price_unit_id        := vc_fixed_price_unit_id;
+              vn_total_quantity          := vn_fixed_qty + vn_unfixed_qty;
+              vn_qty_to_be_priced        := cur_called_off_rows.qty_to_be_priced;
+              vn_total_contract_value    := vn_total_contract_value +
+                                            ((vn_fixed_value +
+                                            vn_unfixed_value));
+              vc_price_unit_id           := vc_fixed_price_unit_id;
+              vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                            vn_unfixed_qty + vn_fixed_qty;
             end if;
             vc_price_unit_id := vc_fixed_price_unit_id;
           end if;
         end loop;
         vn_total_unfixed_qty := cur_pcdi_rows.payable_qty -
                                 vn_total_fixed_qty;
-        vn_average_price     := round(vn_total_contract_value /
-                                      cur_pcdi_rows.payable_qty,
-                                      4);
+        if vn_total_qty_for_avg_price <> 0 then
+          vn_average_price := round(vn_total_contract_value /
+                                    vn_total_qty_for_avg_price,
+                                    4);
+        else
+          vn_average_price := 0;
+        end if;
       
       elsif vc_price_option_call_off_sts = 'Not Called Off' then
         for cur_not_called_off_rows in cur_not_called_off(cur_pcdi_rows.pcdi_id,
@@ -2700,14 +2723,21 @@ create or replace package body pkg_phy_cog_price is
               when others then
                 vc_price_unit_id := null;
             end;
-            vc_error_message := ' Line 647 ';
+            vc_error_message           := ' Line 647 ';
+            vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                          (vn_total_quantity *
+                                          (vn_qty_to_be_priced / 100));
           end if;
         end loop;
         vn_total_unfixed_qty := cur_pcdi_rows.payable_qty -
                                 vn_total_fixed_qty;
-        vn_average_price     := round(vn_total_contract_value /
-                                      cur_pcdi_rows.payable_qty,
-                                      4);
+        if vn_total_qty_for_avg_price <> 0 then
+          vn_average_price := round(vn_total_contract_value /
+                                    vn_total_qty_for_avg_price,
+                                    4);
+        else
+          vn_average_price := 0;
+        end if;
       
       end if;
       -- Get Price Unit Currency, Quantity Details
@@ -2742,6 +2772,9 @@ create or replace package body pkg_phy_cog_price is
         vn_avg_fx_rate         := 1;
       else
         vn_price_in_pay_in_cur := round(vn_price_in_pay_in_cur, 4);
+      end if;
+      if vn_average_price is null then
+        vn_average_price := 0;
       end if;
       if vn_average_price <> 0 and vc_price_unit_id is not null then
         insert into cccp_conc_contract_cog_price
@@ -3139,6 +3172,7 @@ create or replace package body pkg_phy_cog_price is
     vc_pay_in_qty_unit           varchar2(15);
     vn_pay_in_weight             number;
     vn_avg_fx_rate               number;
+    vn_total_qty_for_avg_price   number;
   begin
   
     for cur_gmr_rows in cur_gmr
@@ -3163,6 +3197,7 @@ create or replace package body pkg_phy_cog_price is
       vc_pay_in_qty_unit           := null;
       vn_pay_in_weight             := null;
       vn_avg_fx_rate               := 1;
+      vn_total_qty_for_avg_price   := 0;
     
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
                                           cur_gmr_rows.element_id)
@@ -3187,13 +3222,16 @@ create or replace package body pkg_phy_cog_price is
                                      (vn_total_quantity *
                                      (vn_qty_to_be_priced / 100));
         
-          vc_is_final_priced     := 'Y';
-          vn_price_in_pay_in_cur := vn_price_in_pay_in_cur +
-                                    (cur_gmr_ele_rows.final_price_in_pay_in_cur *
-                                    (vn_qty_to_be_priced / 100));
-          vn_avg_fx_rate         := vn_avg_fx_rate +
-                                    (cur_gmr_ele_rows.fx_price_to_pay_in *
-                                    (vn_qty_to_be_priced / 100));
+          vc_is_final_priced         := 'Y';
+          vn_price_in_pay_in_cur     := vn_price_in_pay_in_cur +
+                                        (cur_gmr_ele_rows.final_price_in_pay_in_cur *
+                                        (vn_qty_to_be_priced / 100));
+          vn_avg_fx_rate             := vn_avg_fx_rate +
+                                        (cur_gmr_ele_rows.fx_price_to_pay_in *
+                                        (vn_qty_to_be_priced / 100));
+          vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                        (vn_total_quantity *
+                                        (vn_qty_to_be_priced / 100));
         
         else
           vc_price_basis := cur_gmr_ele_rows.price_basis;
@@ -3443,17 +3481,18 @@ create or replace package body pkg_phy_cog_price is
             vn_fixed_qty   := 0;
           end if;
         
-          vc_price_unit_id        := vc_fixed_price_unit_id;
-          vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
-          vn_total_contract_value := vn_total_contract_value +
-                                     (vn_fixed_value + vn_unfixed_value);
-        
+          vc_price_unit_id           := vc_fixed_price_unit_id;
+          vn_total_quantity          := vn_fixed_qty + vn_unfixed_qty;
+          vn_total_contract_value    := vn_total_contract_value +
+                                        (vn_fixed_value + vn_unfixed_value);
+          vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                        vn_fixed_qty + vn_unfixed_qty;
         end if;
       end loop;
       vn_total_unfixed_qty := cur_gmr_rows.payable_qty - vn_total_fixed_qty;
-      if vn_total_quantity <> 0 then
+      if vn_total_qty_for_avg_price <> 0 then
         vn_average_price := round(vn_total_contract_value /
-                                  cur_gmr_rows.payable_qty,
+                                  vn_total_qty_for_avg_price,
                                   4);
       else
         vn_average_price := 0;
@@ -3483,7 +3522,10 @@ create or replace package body pkg_phy_cog_price is
           vc_price_weight_unit_id := null;
           vc_price_qty_unit       := null;
       end;
-      if vn_average_price is not null and vc_price_unit_id is not null then
+      if vn_average_price is null then
+        vn_average_price := 0;
+      end if;
+      if vn_average_price <> 0 and vc_price_unit_id is not null then
         if vc_is_final_priced = 'N' then
           vn_price_in_pay_in_cur := null;
           vn_avg_fx_rate         := 1;
@@ -3683,6 +3725,7 @@ create or replace package body pkg_phy_cog_price is
     vc_pay_in_qty_unit           varchar2(15);
     vn_pay_in_weight             number;
     vn_avg_fx_rate               number;
+    vn_total_qty_for_avg_price   number;
   
   begin
     --
@@ -4182,6 +4225,7 @@ create or replace package body pkg_phy_cog_price is
       vc_pay_in_qty_unit           := null;
       vn_pay_in_weight             := null;
       vn_avg_fx_rate               := 1;
+      vn_total_qty_for_avg_price   := 0;
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no,
                                           cur_gmr_rows.element_id)
       loop
@@ -4195,23 +4239,26 @@ create or replace package body pkg_phy_cog_price is
         vn_pay_in_weight        := cur_gmr_ele_rows.pay_in_price_unit_weight;
         if cur_gmr_ele_rows.final_price <> 0 and
            cur_gmr_ele_rows.finalize_date <= pd_trade_date then
-          vn_total_quantity       := cur_gmr_rows.payable_qty;
-          vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
-          vn_total_contract_value := vn_total_contract_value +
-                                     vn_total_quantity *
-                                     (vn_qty_to_be_priced / 100) *
-                                     cur_gmr_ele_rows.final_price;
-          vc_price_unit_id        := cur_gmr_ele_rows.final_price_unit_id;
-          vn_total_fixed_qty      := vn_total_fixed_qty +
-                                     (vn_total_quantity *
-                                     (vn_qty_to_be_priced / 100));
-          vc_is_final_priced      := 'Y';
-          vn_price_in_pay_in_cur  := vn_price_in_pay_in_cur +
-                                     (cur_gmr_ele_rows.final_price_in_pay_in_cur *
-                                     (vn_qty_to_be_priced / 100));
-          vn_avg_fx_rate          := vn_avg_fx_rate +
-                                     (cur_gmr_ele_rows.fx_price_to_pay_in *
-                                     (vn_qty_to_be_priced / 100));
+          vn_total_quantity          := cur_gmr_rows.payable_qty;
+          vn_qty_to_be_priced        := cur_gmr_ele_rows.qty_to_be_priced;
+          vn_total_contract_value    := vn_total_contract_value +
+                                        vn_total_quantity *
+                                        (vn_qty_to_be_priced / 100) *
+                                        cur_gmr_ele_rows.final_price;
+          vc_price_unit_id           := cur_gmr_ele_rows.final_price_unit_id;
+          vn_total_fixed_qty         := vn_total_fixed_qty +
+                                        (vn_total_quantity *
+                                        (vn_qty_to_be_priced / 100));
+          vc_is_final_priced         := 'Y';
+          vn_price_in_pay_in_cur     := vn_price_in_pay_in_cur +
+                                        (cur_gmr_ele_rows.final_price_in_pay_in_cur *
+                                        (vn_qty_to_be_priced / 100));
+          vn_avg_fx_rate             := vn_avg_fx_rate +
+                                        (cur_gmr_ele_rows.fx_price_to_pay_in *
+                                        (vn_qty_to_be_priced / 100));
+          vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                        (vn_total_quantity *
+                                        (vn_qty_to_be_priced / 100));
         
         else
           begin
@@ -4465,16 +4512,18 @@ create or replace package body pkg_phy_cog_price is
             vn_fixed_value := 0;
             vn_fixed_qty   := 0;
           end if;
-          vc_price_unit_id        := vc_fixed_price_unit_id;
-          vn_total_quantity       := vn_fixed_qty + vn_unfixed_qty;
-          vn_total_contract_value := vn_total_contract_value +
-                                     (vn_fixed_value + vn_unfixed_value);
+          vc_price_unit_id           := vc_fixed_price_unit_id;
+          vn_total_quantity          := vn_fixed_qty + vn_unfixed_qty;
+          vn_total_contract_value    := vn_total_contract_value +
+                                        (vn_fixed_value + vn_unfixed_value);
+          vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                        vn_fixed_qty + vn_unfixed_qty;
         end if;
       end loop;
       vn_total_unfixed_qty := cur_gmr_rows.payable_qty - vn_total_fixed_qty;
-      if vn_total_quantity <> 0 then
+      if vn_total_qty_for_avg_price <> 0 then
         vn_average_price := round(vn_total_contract_value /
-                                  cur_gmr_rows.payable_qty,
+                                  vn_total_qty_for_avg_price,
                                   4);
       else
         vn_average_price := 0;
@@ -4504,7 +4553,10 @@ create or replace package body pkg_phy_cog_price is
           vc_price_weight_unit_id := null;
           vc_price_qty_unit       := null;
       end;
-      if vn_average_price is not null and vc_price_unit_id is not null then
+      if vn_average_price is null then
+        vn_average_price := 0;
+      end if;
+      if vn_average_price <> 0 and vc_price_unit_id is not null then
         if vc_is_final_priced = 'N' then
           vn_price_in_pay_in_cur := null;
           vn_avg_fx_rate         := 1;
