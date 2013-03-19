@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1418
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan
+ 
+Created on*        		:  19-Mar-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  Migrated GMRs WnS RefNo & Assay RefNo data correction.
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Assay
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 120053
+Author: srinivasanmurugesan
+Date: 12:21:43 PM, Tuesday, March 19, 2013
+Message:
+WnS of Migrated GMRs updated with AssayRefNo,WnSRefNo and WnSGroupId.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_40.sql
+
+
