@@ -14575,6 +14575,7 @@ commit;
        and spq.weg_avg_pricing_assay_id = ash.ash_id
        and ash.ash_id = asm.ash_id
        and spq.element_id = aml.element_id
+       and aml.corporate_id = pc_corporate_id
        and gmr.is_deleted = 'N'
        and gmr.process_id = pc_process_id
        and spq.process_id = pc_process_id
@@ -17117,6 +17118,7 @@ insert into cbt_cb_temp
      and gmr.corporate_id = tspq.corporate_id
      and gmr.internal_gmr_ref_no = tspq.internal_gmr_ref_no
      and tspq.element_id = aml.element_id
+     and aml.corporate_id = pc_corporate_id     
      and pqca.element_id = tspq.element_id
      and tspq.latest_ash_id = ash_pricing.ash_id
      and asm.ash_id = ash_pricing.ash_id
@@ -17476,6 +17478,7 @@ gvn_log_counter := gvn_log_counter + 1;
          and rm.is_active = 'Y'
          and pqca.is_active = 'Y'
          and pqcapd.is_active = 'Y'
+         and aml.corporate_id = pc_corporate_id
          and gmr.eff_date <= pd_trade_date
          and gmr.process_id = pc_process_id
          and grd.process_id = pc_process_id;
