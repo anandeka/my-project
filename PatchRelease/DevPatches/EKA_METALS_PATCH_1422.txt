@@ -1,0 +1,42 @@
+Patch No*          		:  EKA_METALS_PATCH_1422
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  19-Mar-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  74846
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 120122
+Author: b.ravikumar
+Date: 5:30:32 PM, Tuesday, March 19, 2013
+Message:
+Bug 74846: OCI issue, watermark issue is fixed others are working as expected.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_521.sql
+
