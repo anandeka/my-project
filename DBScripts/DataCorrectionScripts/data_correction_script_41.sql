@@ -15,7 +15,7 @@ DECLARE
                    AND asm.asm_id = pqca.asm_id
                    AND ash.is_active = 'Y'
                    AND gmr.internal_gmr_ref_no = ash.internal_gmr_ref_no
-                   AND ash.assay_type = 'Weighing and Sampling Assay'
+                   AND ash.assay_type in ( 'Weighing and Sampling Assay','Provisional Assay')
               GROUP BY gmr.gmr_ref_no, asm.asm_id) t,
              axs_action_summary axs,
              gmr_goods_movement_record gmr
