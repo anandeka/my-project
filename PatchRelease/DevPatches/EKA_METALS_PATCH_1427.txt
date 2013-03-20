@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1427
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  20-Mar-2013
+
+Bug / Enhancement*              :  Enhancement
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 120331
+Author: b.ravikumar
+Date: 7:18:48 PM, Wednesday, March 20, 2013
+Message:
+SELF_BILLING added for VAT invoices.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_412.sql
+
+Revision: 120332
+Author: b.ravikumar
+Date: 7:20:24 PM, Wednesday, March 20, 2013
+Message:
+SELF_BILLING added for VAT invoices.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_525.sql
+
+
+
+
+
+
