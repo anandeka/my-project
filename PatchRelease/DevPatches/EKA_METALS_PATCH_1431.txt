@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1431
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  21-Mar-2013
+
+Bug / Enhancement*              :  Bugs & Enhancements
+
+Bug ID*            		:  75979, 75413, 75410, 74249, 75348
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Docs
+
+Sub-Module  			 :  O/P Docs
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 120461
+Author: rajuga
+Date: 7:29:40 PM, Thursday, March 21, 2013
+Message:
+Bug resolved:
+75979
+75413
+75410
+74249
+75348
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighingandSampling.rpt
+
+==================================================================
