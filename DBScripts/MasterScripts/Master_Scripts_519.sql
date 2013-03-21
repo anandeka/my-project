@@ -30,14 +30,14 @@ fetchQryIOCOCI CLOB := 'INSERT INTO ioc_d
                 ioc.amount_in_inv_cur AS invoice_amount,
                 cm.cur_code AS invoice_cur_name,
                 (CASE
-                    WHEN ioc.rate_price_unit = 'Bags'
-                    AND ioc.charge_type = 'Rate'
-                       THEN cm.cur_code || '/' || 'Bag'
+                    WHEN ioc.rate_price_unit = ''Bags''
+                    AND ioc.charge_type = ''Rate''
+                       THEN cm.cur_code || ''/'' || ''Bag''
                     WHEN scm.cost_component_name IN
-                           ('Assay Charge', 'Sampling Charge',
-                            'Ocular Inspection Charge')
-                    AND ioc.charge_type = 'Rate'
-                       THEN cm_lot.cur_code || '/' || 'Lot'
+                           (''Assay Charge'', ''Sampling Charge'',
+                            ''Ocular Inspection Charge'')
+                    AND ioc.charge_type = ''Rate''
+                       THEN cm_lot.cur_code || ''/'' || ''Lot''
                     ELSE pum.price_unit_name
                  END
                 ) AS rate_price_unit_name,
@@ -45,27 +45,27 @@ fetchQryIOCOCI CLOB := 'INSERT INTO ioc_d
                 NVL (ioc.other_charge_desc,
                      aml.attribute_name) AS description,
                 (CASE
-                    WHEN ioc.rate_price_unit = 'Bags'
-                       THEN 'Bags'
+                    WHEN ioc.rate_price_unit = ''Bags''
+                       THEN ''Bags''
                     WHEN scm.cost_component_name IN
-                           ('Assay Charge', 'Sampling Charge',
-                            'Ocular Inspection Charge')
-                       THEN 'Lots'
+                           (''Assay Charge'', ''Sampling Charge'',
+                            ''Ocular Inspection Charge'')
+                       THEN ''Lots''
                     WHEN scm.cost_component_name IN
-                                            ('AssayCharge', 'SamplingCharge')
-                       THEN 'Lots'
+                                            (''AssayCharge'', ''SamplingCharge'')
+                       THEN ''Lots''
                     ELSE qum.qty_unit
                  END
                 ) AS quantity_unit,
                 (CASE
                     WHEN scm.cost_component_name IN
-                           ('Assay Charge', 'Sampling Charge',
-                            'Ocular Inspection Charge')
-                    AND ioc.charge_type = 'Rate'
+                           (''Assay Charge'', ''Sampling Charge'',
+                            ''Ocular Inspection Charge'')
+                    AND ioc.charge_type = ''Rate''
                        THEN cm_lot.cur_code
-                    WHEN scm.cost_component_name IN ('Handling Charge')
+                    WHEN scm.cost_component_name IN (''Handling Charge'')
                        THEN cm.cur_code
-                    WHEN ioc.charge_type = 'Rate'
+                    WHEN ioc.charge_type = ''Rate''
                        THEN cm_pum.cur_code
                     ELSE cm_ioc.cur_code
                  END
@@ -104,7 +104,7 @@ fetchQryIOCOCI CLOB := 'INSERT INTO ioc_d
             AND ioc.internal_invoice_ref_no = ?)
    SELECT *
      FROM TEST t
-    WHERE t.other_charge_cost_name NOT IN ('Freight Allowance')';
+    WHERE t.other_charge_cost_name NOT IN (''Freight Allowance'')';
 
 
 begin
