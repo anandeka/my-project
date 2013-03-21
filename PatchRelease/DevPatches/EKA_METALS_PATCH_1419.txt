@@ -38,7 +38,6 @@ Date: 14:36:15, 19 March 2013
 Message:
 WnS O/P doc changes.
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_410.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_516.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_517.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_518.sql
