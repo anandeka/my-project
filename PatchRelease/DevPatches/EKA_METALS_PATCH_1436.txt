@@ -6,7 +6,7 @@ Created by*        		:  Janna
 Created on*        		:  22-Mar-2012
 
 Bug / Enhancement*              :  Bug
-Bug ID*            		:  
+Bug ID*            		:  75805,75412
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -32,4 +32,17 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 120638
+Author: janna
+Date: 6:36:15 PM, Friday, March 22, 2013
+Message:
+Sales Accrual Report Created and Purchase Accrual Extended For Base Metal
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/126_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
 

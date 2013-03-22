@@ -6,7 +6,7 @@ Created by*        		:  Janna
 Created on*        		:  22-Mar-2012
 
 Bug / Enhancement*              :  Bug
-Bug ID*            		:  
+Bug ID*            		:  75805,75412
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -32,4 +32,44 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
+
+Revision: 120645
+Author: janna
+Date: 7:04:35 PM, Friday, March 22, 2013
+Message:
+New Sales Accrual Report Released
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_111_RFC_RPC.sql
+
+
+RPT Files
+
+Revision: 120633
+Author: janna
+Date: 6:18:29 PM, Friday, March 22, 2013
+Message:
+Sales Accrual Report Created and Purchase Accrual Extended For Base Metal
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SalesAccrualReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SalesAccrualReport_Excel.rpt
+
+
+Revision: 120639
+Author: janna
+Date: 6:40:22 PM, Friday, March 22, 2013
+Message:
+Contract Status for Sales
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractStatusReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractStatusReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyContractStatusReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyContractStatusReport_Excel.rpt
+
+
+
+
+
+
 
