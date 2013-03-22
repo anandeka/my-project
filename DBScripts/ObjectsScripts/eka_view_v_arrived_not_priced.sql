@@ -1,4 +1,4 @@
-create or replace view v_arrived_not_priced as 
+create or replace view v_arrived_not_priced as
 with price_fixation as(select pfd.pofh_id,
        sum(pfd.qty_fixed) priced_qty
   from pfd_price_fixation_details pfd
@@ -57,11 +57,21 @@ select phd.companyname cp_name,
        to_char(pofh.qp_start_date, 'dd-Mon-yyyy') || ' to ' ||
        to_char(pofh.qp_end_date, 'dd-Mon-yyyy') qp,
        pcbph.price_description pricing_method,
-       sum(nvl(spq.payable_qty, 0))*(pocd.percntg_of_qty_to_be_fixed/100) payable_qty,
+       sum(nvl(spq.payable_qty, 0))*((case
+         when pcbph.is_balance_pricing = 'Y' then
+          100
+         else
+          pocd.percntg_of_qty_to_be_fixed
+       end)/100) payable_qty,
        qum_payable_qty.qty_unit payable_qty_unit,
        qum_payable_qty.decimals payable_qty_decimals,
        null price_fixation_qty_allocated,
-       round(sum(nvl(spq.payable_qty, 0)), 4)*(pocd.percntg_of_qty_to_be_fixed/100) -
+       round(sum(nvl(spq.payable_qty, 0)), 4)*((case
+         when pcbph.is_balance_pricing = 'Y' then
+          100
+         else
+          pocd.percntg_of_qty_to_be_fixed
+       end)/100) -
        round(nvl(pfd.priced_qty, 0), 4) unpriced_qty,
        nvl(pfd.priced_qty, 0) priced_qty,
        null di_executed_qty,
@@ -171,7 +181,7 @@ select phd.companyname cp_name,
    and diqs.is_active = 'Y'
    and pocd.qp_period_type = 'Event'
    having
- round(sum(nvl(spq.payable_qty, 0)), 4)*(pocd.percntg_of_qty_to_be_fixed/100) -
+ round(sum(nvl(spq.payable_qty, 0)), 4)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) -
        round((nvl(pfd.priced_qty, 0)), 4) > 0 ---- it should not show the fully priced
  group by phd.companyname,
           phd.profileid,
@@ -214,7 +224,7 @@ select phd.companyname cp_name,
           pfd.priced_qty,
           ucm.multiplication_factor,
           qum_under.qty_unit,
-          pocd.percntg_of_qty_to_be_fixed
+          (case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)
 
 union all
 
@@ -255,7 +265,7 @@ select phd.companyname cp_name,
        to_char(pofh.qp_start_date, 'dd-Mon-yyyy') || ' to ' ||
        to_char(pofh.qp_end_date, 'dd-Mon-yyyy') qp,
        pcbph.price_description pricing_method,
-       nvl(dipq.payable_qty, 0)*(pocd.percntg_of_qty_to_be_fixed/100) payable_qty,
+       nvl(dipq.payable_qty, 0)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) payable_qty,
        qum_payable_qty.qty_unit payable_qty_unit,
        qum_payable_qty.decimals payable_qty_decimals,
        (case
@@ -265,7 +275,7 @@ select phd.companyname cp_name,
          else
           'NA'
        end) price_fixation_qty_allocated,
-       round(nvl(dipq.payable_qty, 0), 4)*(pocd.percntg_of_qty_to_be_fixed/100) -
+       round(nvl(dipq.payable_qty, 0), 4)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) -
        round((nvl(pfd.priced_qty, 0)), 4) unpriced_qty,
        nvl(pfd.priced_qty, 0) priced_qty,
        nvl(diqs.title_transferred_qty, 0) di_executed_qty,
@@ -359,7 +369,7 @@ select phd.companyname cp_name,
    and nvl(dipq.qty_type, 'Payable') = 'Payable'
    and diqs.is_active = 'Y'
    and pocd.qp_period_type <> 'Event'   
-   and round(nvl(dipq.payable_qty, 0), 4)*(pocd.percntg_of_qty_to_be_fixed/100) -
+   and round(nvl(dipq.payable_qty, 0), 4)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) -
        round((nvl(pfd.priced_qty, 0)), 4) > 0
   and nvl(diqs.title_transferred_qty, 0)<>0  --- it should not show when Gmr is not created.   
 union all
@@ -413,11 +423,11 @@ select phd.companyname cp_name,
        to_char(pofh.qp_start_date, 'dd-Mon-yyyy') || ' to ' ||
        to_char(pofh.qp_end_date, 'dd-Mon-yyyy') qp,
        pcbph.price_description pricing_method,
-       sum(nvl(spq.payable_qty, 0))*(pocd.percntg_of_qty_to_be_fixed/100) payable_qty,
+       sum(nvl(spq.payable_qty, 0))*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) payable_qty,
        qum_payable_qty.qty_unit payable_qty_unit,
        qum_payable_qty.decimals payable_qty_decimals,
        null price_fixation_qty_allocated,
-       round(sum(nvl(spq.payable_qty, 0)), 4)*(pocd.percntg_of_qty_to_be_fixed/100) -
+       round(sum(nvl(spq.payable_qty, 0)), 4)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) -
        round((nvl(pfd.priced_qty, 0)), 4) unpriced_qty,
        nvl(pfd.priced_qty, 0) priced_qty,
        null di_executed_qty,
@@ -527,7 +537,7 @@ select phd.companyname cp_name,
    and diqs.is_active = 'Y'
    and pocd.qp_period_type = 'Event'
    having
- round(sum(nvl(spq.payable_qty, 0)), 4)*(pocd.percntg_of_qty_to_be_fixed/100) -
+ round(sum(nvl(spq.payable_qty, 0)), 4)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) -
        round((nvl(pfd.priced_qty, 0)), 4) > 0
  group by phd.companyname,
           phd.profileid,
@@ -570,7 +580,7 @@ select phd.companyname cp_name,
           pfd.priced_qty,
           ucm.multiplication_factor,
           qum_under.qty_unit,
-          pocd.percntg_of_qty_to_be_fixed
+          (case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)
 union all
 -- 4. PCT Traxys Non Event Based(DI) Query + Conc:
 select phd.companyname cp_name,
@@ -609,7 +619,7 @@ select phd.companyname cp_name,
        to_char(pofh.qp_start_date, 'dd-Mon-yyyy') || ' to ' ||
        to_char(pofh.qp_end_date, 'dd-Mon-yyyy') qp,
        pcbph.price_description pricing_method,
-       nvl(dipq.payable_qty, 0) *(pocd.percntg_of_qty_to_be_fixed/100) payable_qty,
+       nvl(dipq.payable_qty, 0) *((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) payable_qty,
        qum_payable_qty.qty_unit payable_qty_unit,
        qum_payable_qty.decimals payable_qty_decimals,
        (case
@@ -619,7 +629,7 @@ select phd.companyname cp_name,
          else
           'NA'
        end) price_fixation_qty_allocated,
-       round(nvl(dipq.payable_qty, 0), 4)*(pocd.percntg_of_qty_to_be_fixed/100) -
+       round(nvl(dipq.payable_qty, 0), 4)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) -
        round((nvl(pfd.priced_qty, 0)), 4) unpriced_qty,
        nvl(pfd.priced_qty, 0) priced_qty,
        nvl(diqs.title_transferred_qty, 0) di_executed_qty,
@@ -714,7 +724,7 @@ select phd.companyname cp_name,
    and pcbph.is_active = 'Y'
    and diqs.is_active = 'Y'
    and pocd.qp_period_type <> 'Event'
-   and round(nvl(dipq.payable_qty, 0), 4)*(pocd.percntg_of_qty_to_be_fixed/100) -
+   and round(nvl(dipq.payable_qty, 0), 4)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) -
        round((nvl(pfd.priced_qty, 0)), 4) > 0
    and nvl(diqs.title_transferred_qty, 0)<>0    --- it should not show when Gmr is not created.    
 union all
@@ -1420,11 +1430,11 @@ select phd.companyname cp_name,
        to_char(pofh.qp_start_date, 'dd-Mon-yyyy') || ' to ' ||
        to_char(pofh.qp_end_date, 'dd-Mon-yyyy') qp,
        pcbph.price_description pricing_method,
-       sum(nvl(spq.payable_qty, 0))*(pocd.percntg_of_qty_to_be_fixed/100) payable_qty,
+       sum(nvl(spq.payable_qty, 0))*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) payable_qty,
        qum_payable_qty.qty_unit payable_qty_unit,
        qum_payable_qty.decimals payable_qty_decimals,
        to_char(round(nvl(gpah.total_allocated_qty, 0), 4)) price_fixation_qty_allocated,
-       sum(nvl(spq.payable_qty, 0)*(pocd.percntg_of_qty_to_be_fixed/100) - gpah.priced_qty) unpriced_qty,
+       sum(nvl(spq.payable_qty, 0)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) - gpah.priced_qty) unpriced_qty,
        sum(gpah.priced_qty) priced_qty,
        nvl(diqs.title_transferred_qty, 0) di_executed_qty,
        null utility_ref_no,
@@ -1562,7 +1572,7 @@ select phd.companyname cp_name,
    and pocd.qp_period_type <> 'Event' 
    and pocd.is_any_day_pricing = 'Y'
    and pcdi.price_allocation_method = 'Price Allocation' having
- sum(nvl(spq.payable_qty, 0)*(pocd.percntg_of_qty_to_be_fixed/100) - gpah.priced_qty) > 0
+ sum(nvl(spq.payable_qty, 0)*((case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)/100) - gpah.priced_qty) > 0
  group by phd.companyname,
           phd.profileid,
           pcm.contract_type,
@@ -1608,7 +1618,7 @@ select phd.companyname cp_name,
           grd.is_afloat,
           ucm.multiplication_factor,
           qum_under.qty_unit,
-          pocd.percntg_of_qty_to_be_fixed 
+          (case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end) 
 union all
 --11 Pricing Method: Price Allocation, Any Day QP Base Metal
 select phd.companyname cp_name,
@@ -1784,4 +1794,4 @@ select phd.companyname cp_name,
    and pocd.qp_period_type <> 'Event'  
    and pocd.is_any_day_pricing = 'Y'
    and pcdi.price_allocation_method = 'Price Allocation'
-   and (round(nvl(pofh.qty_to_be_fixed, 0), 4) - round(gpah.priced_qty, 4)) > 0
+   and (round(nvl(pofh.qty_to_be_fixed, 0), 4) - round(gpah.priced_qty, 4)) > 0 
