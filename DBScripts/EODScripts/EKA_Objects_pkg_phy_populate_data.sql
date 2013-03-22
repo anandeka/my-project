@@ -2267,7 +2267,8 @@ insert into cs_cost_store
        is_warrant,
        warrant_no,
        dbd_id,
-       tolling_stock_type)
+       tolling_stock_type,
+       pcdi_id)
       select decode(internal_dgrd_ref_no,
                     'Empty_String',
                     null,
@@ -2434,7 +2435,9 @@ insert into cs_cost_store
              decode(is_warrant, 'Empty_String', null, is_warrant),
              decode(warrant_no, 'Empty_String', null, warrant_no),
              gvc_dbd_id,
-             decode(tolling_stock_type, 'Empty_String', null, tolling_stock_type)
+             decode(tolling_stock_type, 'Empty_String', null, tolling_stock_type),
+             decode(pcdi_id, 'Empty_String', null, pcdi_id)
+             
         from (select dgrdul.internal_dgrd_ref_no,
                      substr(max(case
                                   when dgrdul.action_no is not null then
@@ -2914,7 +2917,13 @@ insert into cs_cost_store
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
                                    dgrdul.tolling_stock_type
                                 end),
-                            24) tolling_stock_type
+                            24) tolling_stock_type,
+                     substr(max(case
+                                  when dgrdul.pcdi_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   dgrdul.pcdi_id
+                                end),
+                            24) pcdi_id
                 from dgrdul_delivered_grd_ul dgrdul,
                      axs_action_summary      axs,
                      dbd_database_dump       dbd,
@@ -13431,7 +13440,9 @@ sp_gather_stats('phd_profileheaderdetails');
                          phd.companyname cp_name,
                          cm.cur_id,
                          cm.cur_code,
-                         cm.decimals
+                         cm.decimals,
+                         pcm.is_tolling_contract,
+                         decode(pcm.purchase_sales,'P','Purchase', 'Sales') pcm_contract_type
                     from gmr_goods_movement_record  gmr,
                          grd_goods_record_detail    grd,
                          pci_physical_contract_item pci,
@@ -13460,7 +13471,9 @@ sp_gather_stats('phd_profileheaderdetails');
                             phd.companyname,
                             cm.cur_id,
                             cm.cur_code,
-                            cm.decimals)
+                            cm.decimals,
+                            pcm.is_tolling_contract,
+                            decode(pcm.purchase_sales,'P','Purchase', 'Sales'))
   loop
     update gmr_goods_movement_record gmr
        set gmr.contract_ref_no          = cur_gmr.contract_ref_no,
@@ -13473,7 +13486,9 @@ sp_gather_stats('phd_profileheaderdetails');
            gmr.internal_contract_ref_no = decode(gmr.internal_contract_ref_no,
                                                  null,
                                                  cur_gmr.internal_contract_ref_no,
-                                                 gmr.internal_contract_ref_no)
+                                                 gmr.internal_contract_ref_no),
+          gmr.is_tolling_contract       = cur_gmr.is_tolling_contract,
+          gmr.pcm_contract_type = cur_gmr.pcm_contract_type
      where gmr.dbd_id = pc_dbd_id
        and gmr.internal_gmr_ref_no = cur_gmr.internal_gmr_ref_no;
   end loop;
@@ -13485,6 +13500,71 @@ sp_gather_stats('phd_profileheaderdetails');
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of GMR Contract Details Update');
+                          
+for cur_gmr in (select gmr.internal_gmr_ref_no,
+                         pcm.contract_ref_no,
+                         pcm.internal_contract_ref_no,
+                         pcm.contract_type,
+                         pcm.cp_id,
+                         phd.companyname cp_name,
+                         cm.cur_id,
+                         cm.cur_code,
+                         cm.decimals,
+                         pcm.is_tolling_contract,
+                         decode(pcm.purchase_sales,'P','Purchase', 'Sales') pcm_contract_type
+                    from gmr_goods_movement_record  gmr,
+                         dgrd_delivered_grd         grd,
+                         pci_physical_contract_item pci,
+                         pcdi_pc_delivery_item      pcdi,
+                         pcm_physical_contract_main pcm,
+                         phd_profileheaderdetails   phd,
+                         cm_currency_master cm
+                   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                     and grd.internal_contract_item_ref_no =
+                         pci.internal_contract_item_ref_no
+                     and pci.pcdi_id = pcdi.pcdi_id
+                     and pcdi.internal_contract_ref_no =
+                         pcm.internal_contract_ref_no
+                     and gmr.dbd_id = pc_dbd_id
+                     and grd.dbd_id = pc_dbd_id
+                     and pci.dbd_id = pc_dbd_id
+                     and pcdi.dbd_id = pc_dbd_id
+                     and pcm.dbd_id = pc_dbd_id
+                     and pcm.cp_id = phd.profileid
+                     and pcm.invoice_currency_id = cm.cur_id
+                   group by gmr.internal_gmr_ref_no,
+                            pcm.contract_ref_no,
+                            pcm.internal_contract_ref_no,
+                            pcm.contract_type,
+                            pcm.cp_id,
+                            phd.companyname,
+                            cm.cur_id,
+                            cm.cur_code,
+                            cm.decimals,
+                            pcm.is_tolling_contract,
+                            decode(pcm.purchase_sales,'P','Purchase', 'Sales'))
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.contract_ref_no          = cur_gmr.contract_ref_no,
+           gmr.gmr_type                 = cur_gmr.contract_type,
+           gmr.cp_id                    = cur_gmr.cp_id,
+           gmr.cp_name                  = cur_gmr.cp_name,
+           gmr.invoice_cur_id           = cur_gmr.cur_id,
+           gmr.invoice_cur_code         = cur_gmr.cur_code,
+           gmr.invoice_cur_decimals     = cur_gmr.decimals,
+           gmr.is_tolling_contract       = cur_gmr.is_tolling_contract,
+           gmr.pcm_contract_type = cur_gmr.pcm_contract_type
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.internal_gmr_ref_no = cur_gmr.internal_gmr_ref_no;
+  end loop;
+commit;
+  gvn_log_counter :=  gvn_log_counter + 1;
+  
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GMR Contract Details Update Sales');                            
 
 --
 -- GRD to GMR Conversion Factor
@@ -13584,6 +13664,10 @@ update grd_goods_record_detail grd
    set grd.quality_name = cur_grd_quality.quality_name
  where grd.dbd_id = pc_dbd_id
    and grd.quality_id = cur_grd_quality.quality_id;
+update dgrd_delivered_grd dgrd
+   set dgrd.quality_name = cur_grd_quality.quality_name
+ where dgrd.dbd_id = pc_dbd_id
+   and dgrd.quality_id = cur_grd_quality.quality_id;   
 end loop;
 commit;
  gvn_log_counter :=  gvn_log_counter + 1;
@@ -13601,6 +13685,11 @@ update grd_goods_record_detail grd
        grd.profit_center_name       = cur_profit_center.profit_center_name
  where grd.profit_center_id = cur_profit_center.profit_center_id
    and grd.dbd_id = pc_dbd_id;
+update dgrd_delivered_grd dgrd
+   set dgrd.profit_center_short_name = cur_profit_center.profit_center_short_name,
+       dgrd.profit_center_name       = cur_profit_center.profit_center_name
+ where dgrd.profit_center_id = cur_profit_center.profit_center_id
+   and dgrd.dbd_id = pc_dbd_id;
 end loop;
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;
@@ -13841,6 +13930,12 @@ sp_precheck_process_log(pc_corporate_id,
      where grd.dbd_id = gvc_dbd_id
      and grd.status ='Active'
       and grd.pcdi_id = cur_pcdi.pcdi_id;
+ update dgrd_delivered_grd dgrd
+       set dgrd.conc_product_id   = cur_pcdi.product_id,
+           dgrd.conc_product_name = cur_pcdi.product_desc
+     where dgrd.dbd_id = gvc_dbd_id
+     and dgrd.status ='Active'
+      and dgrd.pcdi_id = cur_pcdi.pcdi_id;      
   end loop;       
 commit;       
 gvn_log_counter :=  gvn_log_counter + 1;
@@ -13924,7 +14019,12 @@ sp_precheck_process_log(pc_corporate_id,
        set pcpd.product_name = cur_grd_pdm.product_name
      where pcpd.dbd_id = pc_dbd_id
        and pcpd.product_id = cur_grd_pdm.product_id;
-      
+      update dgrd_delivered_grd dgrd
+       set dgrd.product_name = cur_grd_pdm.product_name,
+       dgrd.base_qty_unit_id = cur_grd_pdm.base_qty_unit_id,
+       dgrd.base_qty_unit = cur_grd_pdm.base_qty_unit 
+     where dgrd.dbd_id = pc_dbd_id
+       and dgrd.product_id = cur_grd_pdm.product_id; 
   end loop;
 commit;
    gvn_log_counter :=  gvn_log_counter + 1;
