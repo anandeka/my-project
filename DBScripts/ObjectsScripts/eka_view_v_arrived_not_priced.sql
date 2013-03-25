@@ -151,7 +151,8 @@ select phd.companyname cp_name,
    and pcpq.quality_template_id = grd.quality_id
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+  -- and pcpd.pcpd_id = pcpq.pcpd_id
+   and pci.pcpq_id=pcpq.pcpq_id
    and pcpd.input_output = 'Input'
    and phd.profileid = pcm.cp_id
    and pdm.product_id = pcpd.product_id
@@ -338,7 +339,8 @@ select phd.companyname cp_name,
    and pocd.pocd_id = pofh.pocd_id
    and pcm.internal_contract_ref_no = cont_qty.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+  -- and pcpd.pcpd_id = pcpq.pcpd_id
+   and pci.pcpq_id=pcpq.pcpq_id
    and pcpd.input_output = 'Input'
    and qat.quality_id = pcpq.quality_template_id
    and phd.profileid = pcm.cp_id
@@ -507,7 +509,8 @@ select phd.companyname cp_name,
    and pcpq.quality_template_id = dgrd.quality_id
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+  -- and pcpd.pcpd_id = pcpq.pcpd_id
+  and pci.pcpq_id=pcpq.pcpq_id
    and pcpd.input_output = 'Input'
    and phd.profileid = pcm.cp_id
    and pdm.product_id = pcpd.product_id
@@ -686,7 +689,8 @@ select phd.companyname cp_name,
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
    and pcdb.pcdb_id = pci.pcdb_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   and pci.pcpq_id=pcpq.pcpq_id
    and qat.quality_id = pcpq.quality_template_id
    and pcpd.input_output = 'Input'
    and phd.profileid = pcm.cp_id
@@ -826,7 +830,8 @@ select phd.companyname cp_name,
    and pcdi.pcdi_id = pci.pcdi_id
    and pcm.internal_contract_ref_no = cont_qty.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   and pci.pcpq_id=pcpq.pcpq_id
    and pcpd.input_output = 'Input'
    and qat.quality_id = pcpq.quality_template_id
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
@@ -957,7 +962,8 @@ select phd.companyname cp_name,
    and pcdi.pcdi_id = pci.pcdi_id
    and pcm.internal_contract_ref_no = cont_qty.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+  -- and pcpd.pcpd_id = pcpq.pcpd_id
+  and pci.pcpq_id=pcpq.pcpq_id
    and pcpd.input_output = 'Input'
    and qat.quality_id = pcpq.quality_template_id
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
@@ -1115,7 +1121,8 @@ select phd.companyname cp_name,
    and pcpq.quality_template_id = grd.quality_id
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+  -- and pcpd.pcpd_id = pcpq.pcpd_id
+  and pci.pcpq_id=pcpq.pcpq_id
    and pcpd.input_output = 'Input'
    and phd.profileid = pcm.cp_id
    and pdm.product_id = pcpd.product_id
@@ -1267,7 +1274,8 @@ select phd.companyname cp_name,
    and pcpq.quality_template_id = dgrd.quality_id
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+  -- and pcpd.pcpd_id = pcpq.pcpd_id
+  and pci.pcpq_id=pcpq.pcpq_id
    and pcpd.input_output = 'Input'
    and phd.profileid = pcm.cp_id
    and pdm.product_id = pcpd.product_id
@@ -1528,7 +1536,8 @@ select phd.companyname cp_name,
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
    and pcdb.pcdb_id = pci.pcdb_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+  -- and pcpd.pcpd_id = pcpq.pcpd_id
+  and pci.pcpq_id=pcpq.pcpq_id
    and pcpd.input_output = 'Input'
    and phd.profileid = pcm.cp_id
    and pdm.product_id = pcpd.product_id
@@ -1759,7 +1768,8 @@ select phd.companyname cp_name,
    and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
    and pcdb.pcdb_id = pci.pcdb_id
    and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcpd.pcpd_id = pcpq.pcpd_id
+   --and pcpd.pcpd_id = pcpq.pcpd_id
+   and pci.pcpq_id=pcpq.pcpq_id
    and pcpd.input_output = 'Input'
    and phd.profileid = pcm.cp_id
    and pdm.product_id = pcpd.product_id
