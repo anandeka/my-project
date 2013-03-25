@@ -13583,7 +13583,6 @@ select grd.internal_gmr_ref_no,
    and grd.is_deleted = 'N'
    and grd.dbd_id = pc_dbd_id
    and gmr.dbd_id = pc_dbd_id
-   and grd.qty_unit_id = gmr.qty_unit_id
    and ucm.from_qty_unit_id = grd.qty_unit_id
    and ucm.to_qty_unit_id = gmr.qty_unit_id
    and grd.qty_unit_id <> gmr.qty_unit_id
@@ -13601,6 +13600,40 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of Update GRD GMR Factor');
+                          
+--
+-- DGRD to GMR Conversion Factor
+--
+for cur_grd_convert in(
+select dgrd.internal_gmr_ref_no,
+       dgrd.net_weight_unit_id grd_qty_unit_id,
+       gmr.qty_unit_id gmr_qty_unit_id,
+       ucm.multiplication_factor
+  from dgrd_delivered_grd   dgrd,
+       gmr_goods_movement_record gmr,
+       ucm_unit_conversion_master ucm
+ where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+   and gmr.is_deleted = 'N'
+   and dgrd.status = 'Active'
+   and dgrd.dbd_id = pc_dbd_id
+   and gmr.dbd_id = pc_dbd_id
+   and ucm.from_qty_unit_id = dgrd.net_weight_unit_id
+   and ucm.to_qty_unit_id = gmr.qty_unit_id
+   and dgrd.net_weight_unit_id <> gmr.qty_unit_id
+   ) loop
+Update dgrd_delivered_grd dgrd
+set dgrd.dgrd_to_gmr_qty_factor = cur_grd_convert.multiplication_factor
+where dgrd.internal_gmr_ref_no = cur_grd_convert.internal_gmr_ref_no
+and dgrd.net_weight_unit_id =cur_grd_convert.grd_qty_unit_id
+and dgrd.dbd_id = pc_dbd_id; 
+end loop;   
+commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of Update DGRD GMR Factor');                          
   --
   -- Update Dry Qty in GRD
   --
@@ -13624,6 +13657,7 @@ sp_precheck_process_log(pc_corporate_id,
            grd.weg_avg_pricing_assay_id = cur_grd_dry_qty.weg_avg_pricing_assay_id
      where grd.dbd_id = gvc_dbd_id
        and grd.internal_grd_ref_no = cur_grd_dry_qty.internal_grd_ref_no;
+       
   end loop;
   commit;
   gvn_log_counter :=  gvn_log_counter + 1;
@@ -13633,7 +13667,8 @@ sp_precheck_process_log(pc_corporate_id,
                           gvn_log_counter,
                           'End of Update GRD Dry Qty');
 for cur_dgrd in (select spq.internal_dgrd_ref_no,
-                                 max(spq.weg_avg_pricing_assay_id) weg_avg_pricing_assay_id
+                                 max(spq.weg_avg_pricing_assay_id) weg_avg_pricing_assay_id,
+                                 min((nvl(asm.dry_wet_qty_ratio, 100) / 100)) dry_wet_qty_ratio
                             from spq_stock_payable_qty    spq,
                                  asm_assay_sublot_mapping asm
                            where spq.is_stock_split = 'N'
@@ -13643,7 +13678,8 @@ for cur_dgrd in (select spq.internal_dgrd_ref_no,
                            group by spq.internal_dgrd_ref_no)
   loop
     update dgrd_delivered_grd dgrd
-       set dgrd.weg_avg_pricing_assay_id = cur_dgrd.weg_avg_pricing_assay_id
+       set dgrd.weg_avg_pricing_assay_id = cur_dgrd.weg_avg_pricing_assay_id,
+       dgrd.dry_qty = cur_dgrd.dry_wet_qty_ratio * dgrd.net_weight
      where dgrd.dbd_id = gvc_dbd_id
        and dgrd.internal_dgrd_ref_no = cur_dgrd.internal_dgrd_ref_no;
   end loop;
@@ -13726,6 +13762,32 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of GMR Containers ');
+                          
+for cur_dgrd in (
+  select dgrd.internal_gmr_ref_no,
+       sum(nvl(dgrd.no_of_containers, 0)) no_of_containers,
+       sum(dgrd.net_weight * nvl(dgrd.dgrd_to_gmr_qty_factor, 1)) wet_qty,
+       sum(dgrd.net_weight * nvl(dgrd.dgrd_to_gmr_qty_factor, 1)) dry_qty
+  from dgrd_delivered_grd dgrd
+ where dgrd.dbd_id = pc_dbd_id
+   and dgrd.status = 'Active'
+ group by dgrd.internal_gmr_ref_no)
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.no_of_containers = cur_dgrd.no_of_containers,
+           gmr.dry_qty          = cur_dgrd.dry_qty,
+           gmr.wet_qty          = cur_dgrd.wet_qty
+     where gmr.dbd_id = pc_dbd_id
+       and gmr.internal_gmr_ref_no = cur_dgrd.internal_gmr_ref_no;
+  end loop;
+  commit;
+  gvn_log_counter :=  gvn_log_counter + 1;
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of Sales GMR Qty Update');
+                                                    
 for cur_gmr_bags in(                          
 select agmr.internal_gmr_ref_no,
        sum(nvl(agrd.no_of_bags,0)) no_of_bags
@@ -13894,7 +13956,10 @@ set gmr.gmr_arrival_status = (case
                      when (gmr.wns_status = 'Partial') then
                       'Partial Weight Finalized'
                      else
-                      'Arrived'
+                     case when gmr.pcm_contract_type ='Purchase' then 'Arrived'
+                     else
+                     'Delivered'
+                     end 
                    end)
 where gmr.dbd_id = pc_dbd_id;
 commit;   
@@ -13994,6 +14059,10 @@ sp_precheck_process_log(pc_corporate_id,
     set spq.qty_unit = cur_qum.qty_unit
     where spq.dbd_id = pc_dbd_id
     and spq.qty_unit_id = cur_qum.qty_unit_id;
+ update dgrd_delivered_grd dgrd
+       set dgrd.net_weight_unit = cur_qum.qty_unit
+     where dgrd.dbd_id = pc_dbd_id
+       and dgrd.net_weight_unit_id = cur_qum.qty_unit_id;    
   end loop;
   commit;
    gvn_log_counter :=  gvn_log_counter + 1;
@@ -14168,6 +14237,12 @@ set grd.base_qty_conv_factor =  cur_ucm.multiplication_factor
 where grd.qty_unit_id = cur_ucm.from_qty_unit_id
 and grd.base_qty_unit_id = cur_ucm.to_qty_unit_id
 and grd.dbd_id = pc_dbd_id;
+update dgrd_delivered_grd dgrd
+set dgrd.base_qty_conv_factor =  cur_ucm.multiplication_factor
+where dgrd.net_weight_unit_id = cur_ucm.from_qty_unit_id
+and dgrd.base_qty_unit_id = cur_ucm.to_qty_unit_id
+and dgrd.dbd_id = pc_dbd_id;
+
 end loop;
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;

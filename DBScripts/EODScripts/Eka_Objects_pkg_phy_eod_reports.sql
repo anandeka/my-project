@@ -13029,7 +13029,85 @@ begin
                         pd_trade_date,
                         pc_process_id,
                         vn_log_counter,
-                        'insert PED over');
+                        'insert PED over Purchase');
+ 
+
+ insert into ped_penalty_element_details
+    (process_id,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     element_id,
+     element_name,
+     weg_avg_pricing_assay_id,
+     assay_qty,
+     assay_qty_unit_id,
+     grd_wet_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     parent_stock_ref_no)
+    select pc_process_id,
+           gmr.internal_gmr_ref_no,
+           dgrd.internal_grd_ref_no,
+           pqca.element_id,
+           aml.attribute_name,
+           dgrd.weg_avg_pricing_assay_id,
+           (case
+             when rm.ratio_name = '%' then
+              (pqca.typical * (case
+             when pqca.is_deductible = 'Y' then
+              dgrd.net_weight
+             else
+              dgrd.net_weight * (asm.dry_wet_qty_ratio / 100)
+           end)) / 100 else(dgrd.net_weight * (asm.dry_wet_qty_ratio / 100) * ucm.multiplication_factor * pqca.typical) end) assay_qty,
+           (case
+             when rm.ratio_name = '%' then
+              dgrd.net_weight_unit_id
+             else
+              rm.qty_unit_id_numerator
+           end) assay_qty_unit_id,
+           dgrd.net_weight,
+           dgrd.net_weight * asm.dry_wet_qty_ratio / 100 dry_qty,
+           dgrd.net_weight_unit_id as grd_qty_unit_id,
+           ash.internal_grd_ref_no
+      from gmr_goods_movement_record   gmr,
+           dgrd_delivered_grd     dgrd,
+           pcpd_pc_product_definition  pcpd,
+           ash_assay_header            ash,
+           asm_assay_sublot_mapping    asm,
+           pqca_pq_chemical_attributes pqca,
+           rm_ratio_master             rm,
+           ucm_unit_conversion_master  ucm,
+           aml_attribute_master_list   aml
+     where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+       and dgrd.status = 'Active'
+       and gmr.process_id = pc_process_id
+       and dgrd.process_id = pc_process_id
+       and gmr.is_deleted = 'N'
+       and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.input_output = 'Input'
+       and pcpd.process_id = pc_process_id
+       and pcpd.is_active = 'Y'
+       and dgrd.weg_avg_pricing_assay_id = ash.ash_id
+       and ash.ash_id = asm.ash_id
+       and asm.asm_id = pqca.asm_id
+       and pqca.is_elem_for_pricing = 'N'
+       and pqca.unit_of_measure = rm.ratio_id
+       and rm.is_active = 'Y'
+       and pqca.element_id = aml.attribute_id
+       and ucm.from_qty_unit_id = dgrd.net_weight_unit_id
+       and ucm.to_qty_unit_id =
+           (case when rm.ratio_name = '%' then ash.net_weight_unit else
+            rm.qty_unit_id_denominator end)
+       and ash.assay_type in
+           ('Weighted Avg Pricing Assay', 'Shipment Assay');
+  commit;
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'insert PED over Sales');                       
+                        
   sp_gather_stats('ped_penalty_element_details');
   insert into gpq_gmr_payable_qty
     (process_id, internal_gmr_ref_no, element_id, payable_qty, qty_unit_id)
@@ -13203,13 +13281,17 @@ begin
                         'End of GMR Is New Update');
 
   --
-  -- Flag Updation for Arrival Report     
+  -- Flag Updation for Arrival Report And Delivery Report
   -- 
+  -- For Purchase Warehouse Receipt Status will be 'In Warehouse'
+  -- For Sales Release Order Status will be 'Released'
+  -- For Purchase or Sales Landing status will be 'Landed'
+  --
   update gmr_goods_movement_record gmr
      set gmr.is_new_mtd_ar = 'Y'
    where gmr.process_id = pc_process_id
      and gmr.is_deleted = 'N'
-     and gmr.gmr_status in ('In Warehouse', 'Landed')
+     and gmr.gmr_status in ('In Warehouse', 'Landed','Released')
      and not exists
    (select *
             from gmr_goods_movement_record gmr_prev
@@ -13228,7 +13310,7 @@ begin
      set gmr.is_new_ytd_ar = 'Y'
    where gmr.process_id = pc_process_id
      and gmr.is_deleted = 'N'
-     and gmr.gmr_status in ('In Warehouse', 'Landed')
+     and gmr.gmr_status in ('In Warehouse', 'Landed','Released')
      and not exists
    (select *
             from gmr_goods_movement_record gmr_prev
@@ -14748,134 +14830,10 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
            qty_type,
            dense_rank() over(partition by internal_grd_ref_no order by section_name, element_id) ele_rank, -- Let the Penalty element be at end,
            grd_to_gmr_qty_factor,
-           gmr_wet_qty
-      from (select gmr.gmr_ref_no,
-                   gmr.internal_gmr_ref_no,
-                   grd.internal_grd_ref_no,
-                   grd.internal_stock_ref_no,
-                   gmr.corporate_id,
-                   gmr.warehouse_profile_id,
-                   gmr.warehouse_name,
-                   gmr.shed_id,
-                   gmr.shed_name storage_location_name,
-                   grd.product_id,
-                   grd.product_name,
-                   grd.quality_id,
-                   grd.quality_name,
-                   grd.qty wet_qty,
-                   grd.dry_qty,
-                   grd.qty_unit_id qty_unit_id,
-                   grd.qty_unit qty_unit,
-                   spq.element_id,
-                   aml.attribute_name,
-                   aml.underlying_product_id,
-                   pdm_und.product_desc underlying_product_name,
-                   pdm_und.base_quantity_unit base_quantity_unit_id,
-                   qum_und.qty_unit base_quantity_unit,
-                   spq.assay_content assay_content,
-                   spq.qty_unit_id assay_qty_unit_id,
-                   spq.qty_unit assay_qty_unit,
-                   spq.payable_qty payable_qty,
-                   spq.qty_unit_id payable_qty_unit_id,
-                   spq.qty_unit payable_qty_unit,
-                   gmr.gmr_arrival_status arrival_status,
-                   grd.base_qty_unit_id conc_base_qty_unit_id,
-                   grd.base_qty_unit conc_base_qty_unit,
-                   nvl(grd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
-                   grd.pcdi_id,
-                   gmr.invoice_cur_id pay_cur_id,
-                   gmr.invoice_cur_code pay_cur_code,
-                   gmr.invoice_cur_decimals pay_cur_decimals,
-                   'Non Penalty' section_name,
-                   nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
-                   spq.qty_type,
-                   gmr.wet_qty gmr_wet_qty
-              from gmr_goods_movement_record gmr,
-                   grd_goods_record_detail   grd,
-                   spq_stock_payable_qty     spq,
-                   aml_attribute_master_list aml,
-                   pdm_productmaster         pdm_und,
-                   qum_quantity_unit_master  qum_und
-             where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and grd.status = 'Active'
-               and grd.tolling_stock_type = 'None Tolling'
-               and gmr.is_internal_movement = 'N'
-               and gmr.tolling_service_type = 'S'
-               and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-               and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
-               and spq.is_stock_split = 'N'
-               and spq.element_id = aml.attribute_id
-               and aml.underlying_product_id = pdm_und.product_id
-               and pdm_und.base_quantity_unit = qum_und.qty_unit_id
-               and gmr.gmr_status in ('In Warehouse', 'Landed')
-               and gmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id
-               and spq.process_id = pc_process_id
-               and grd.process_id = pc_process_id
-               and spq.is_active = 'Y'
-               and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or gmr.is_assay_updated_mtd_ar = 'Y' or gmr.is_assay_updated_ytd_ar = 'Y')
-            union all
-            select gmr.gmr_ref_no,
-                   gmr.internal_gmr_ref_no,
-                   grd.internal_grd_ref_no,
-                   grd.internal_stock_ref_no,
-                   gmr.corporate_id,
-                   gmr.warehouse_profile_id,
-                   gmr.warehouse_name,
-                   gmr.shed_id,
-                   gmr.shed_name storage_location_name,
-                   grd.product_id,
-                   grd.product_name,
-                   grd.quality_id,
-                   grd.quality_name,
-                   grd.qty wet_qty,
-                   grd.dry_qty,
-                   grd.qty_unit_id qty_unit_id,
-                   grd.qty_unit qty_unit,
-                   ped.element_id,
-                   aml.attribute_name,
-                   null underlying_product_id,
-                   null underlying_product_name,
-                   null base_quantity_unit_id,
-                   null base_quantity_unit,
-                   ped.assay_qty assay_content,
-                   ped.assay_qty_unit_id assay_qty_unit_id,
-                   qum_ped.qty_unit assay_qty_unit,
-                   0 payable_qty,
-                   ped.assay_qty_unit_id payable_qty_unit_id,
-                   qum_ped.qty_unit payable_qty_unit,
-                   gmr.gmr_arrival_status arrival_status,
-                   grd.base_qty_unit_id conc_base_qty_unit_id,
-                   grd.base_qty_unit conc_base_qty_unit,
-                   nvl(grd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
-                   grd.pcdi_id,
-                   gmr.invoice_cur_id pay_cur_id,
-                   gmr.invoice_cur_code pay_cur_code,
-                   gmr.invoice_cur_decimals pay_cur_decimals,
-                   'Penalty' section_name,
-                   nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
-                   'Penalty' qty_type,
-                   gmr.wet_qty
-              from gmr_goods_movement_record   gmr,
-                   grd_goods_record_detail     grd,
-                   ped_penalty_element_details ped,
-                   aml_attribute_master_list   aml,
-                   qum_quantity_unit_master    qum_ped
-             where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and grd.status = 'Active'
-               and grd.tolling_stock_type = 'None Tolling'
-               and gmr.is_internal_movement = 'N'
-               and gmr.tolling_service_type = 'S'
-               and gmr.gmr_status in ('In Warehouse', 'Landed')
-               and gmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id
-               and grd.process_id = pc_process_id
-               and ped.process_id = pc_process_id
-               and ped.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and ped.internal_grd_ref_no = grd.internal_grd_ref_no
-               and ped.element_id = aml.attribute_id
-               and ped.assay_qty_unit_id = qum_ped.qty_unit_id
-               and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or gmr.is_assay_updated_mtd_ar = 'Y' or gmr.is_assay_updated_ytd_ar = 'Y'));
+           gmr_wet_qty,
+           arrival_or_delivery
+      from  art_arrival_report_temp art
+      where art.corporate_id = pc_corporate_id;
   vobj_error_log                tableofpelerrorlog := tableofpelerrorlog();
   vn_eel_error_count            number := 1;
   vn_counter                    number := 1;
@@ -14932,6 +14890,491 @@ begin
     when no_data_found then
       vd_acc_start_date := null;
   end;
+
+delete from art_arrival_report_temp where corporate_id = pc_corporate_id;
+commit;
+gvn_log_counter := gvn_log_counter + 1; 
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Delete ART Over');    
+--
+-- Payable Data for Purchase Contracts (SCT and Concentrate Purchase)
+--
+insert into art_arrival_report_temp
+  (gmr_ref_no,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   internal_stock_ref_no,
+   corporate_id,
+   warehouse_profile_id,
+   warehouse_name,
+   shed_id,
+   storage_location_name,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   wet_qty,
+   dry_qty,
+   qty_unit_id,
+   qty_unit,
+   element_id,
+   attribute_name,
+   underlying_product_id,
+   underlying_product_name,
+   base_quantity_unit_id,
+   base_quantity_unit,
+   assay_content,
+   assay_qty_unit_id,
+   assay_qty_unit,
+   payable_qty,
+   payable_qty_unit_id,
+   payable_qty_unit,
+   arrival_status,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   grd_base_qty_conv_factor,
+   pcdi_id,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimals,
+   section_name,
+   grd_to_gmr_qty_factor,
+   qty_type,
+   gmr_wet_qty,
+   arrival_or_delivery)
+  select gmr.gmr_ref_no,
+         gmr.internal_gmr_ref_no,
+         grd.internal_grd_ref_no,
+         grd.internal_stock_ref_no,
+         gmr.corporate_id,
+         gmr.warehouse_profile_id,
+         gmr.warehouse_name,
+         gmr.shed_id,
+         gmr.shed_name storage_location_name,
+         grd.product_id,
+         grd.product_name,
+         grd.quality_id,
+         grd.quality_name,
+         grd.qty wet_qty,
+         grd.dry_qty,
+         grd.qty_unit_id qty_unit_id,
+         grd.qty_unit qty_unit,
+         spq.element_id,
+         aml.attribute_name,
+         aml.underlying_product_id,
+         pdm_und.product_desc underlying_product_name,
+         pdm_und.base_quantity_unit base_quantity_unit_id,
+         qum_und.qty_unit base_quantity_unit,
+         spq.assay_content assay_content,
+         spq.qty_unit_id assay_qty_unit_id,
+         spq.qty_unit assay_qty_unit,
+         spq.payable_qty payable_qty,
+         spq.qty_unit_id payable_qty_unit_id,
+         spq.qty_unit payable_qty_unit,
+         gmr.gmr_arrival_status arrival_status,
+         grd.base_qty_unit_id conc_base_qty_unit_id,
+         grd.base_qty_unit conc_base_qty_unit,
+         nvl(grd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
+         grd.pcdi_id,
+         gmr.invoice_cur_id pay_cur_id,
+         gmr.invoice_cur_code pay_cur_code,
+         gmr.invoice_cur_decimals pay_cur_decimals,
+         'Non Penalty' section_name,
+         nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
+         spq.qty_type,
+         gmr.wet_qty gmr_wet_qty,
+         'Arrival' arrival_or_delivery
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail   grd,
+         spq_stock_payable_qty     spq,
+         aml_attribute_master_list aml,
+         pdm_productmaster         pdm_und,
+         qum_quantity_unit_master  qum_und
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and grd.status = 'Active'
+     and grd.tolling_stock_type = 'None Tolling'
+     and gmr.is_internal_movement = 'N'
+     and nvl(gmr.tolling_service_type, 'NA') in ('S', 'NA')
+     and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+     and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
+     and spq.is_stock_split = 'N'
+     and spq.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm_und.product_id
+     and pdm_und.base_quantity_unit = qum_und.qty_unit_id
+     and gmr.gmr_status in ('In Warehouse', 'Landed')
+     and gmr.is_deleted = 'N'
+     and gmr.process_id = pc_process_id
+     and spq.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and spq.is_active = 'Y'
+     and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or
+         gmr.is_assay_updated_mtd_ar = 'Y' or
+         gmr.is_assay_updated_ytd_ar = 'Y');
+commit;
+gvn_log_counter := gvn_log_counter + 1; 
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Payable For Purchase Over');                  
+--
+-- Penalty Data for Purchase Contracts (SCT and Concentrate Purchase)
+--               
+insert into art_arrival_report_temp
+  (gmr_ref_no,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   internal_stock_ref_no,
+   corporate_id,
+   warehouse_profile_id,
+   warehouse_name,
+   shed_id,
+   storage_location_name,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   wet_qty,
+   dry_qty,
+   qty_unit_id,
+   qty_unit,
+   element_id,
+   attribute_name,
+   underlying_product_id,
+   underlying_product_name,
+   base_quantity_unit_id,
+   base_quantity_unit,
+   assay_content,
+   assay_qty_unit_id,
+   assay_qty_unit,
+   payable_qty,
+   payable_qty_unit_id,
+   payable_qty_unit,
+   arrival_status,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   grd_base_qty_conv_factor,
+   pcdi_id,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimals,
+   section_name,
+   grd_to_gmr_qty_factor,
+   qty_type,
+   gmr_wet_qty,
+   arrival_or_delivery)
+  select gmr.gmr_ref_no,
+         gmr.internal_gmr_ref_no,
+         grd.internal_grd_ref_no,
+         grd.internal_stock_ref_no,
+         gmr.corporate_id,
+         gmr.warehouse_profile_id,
+         gmr.warehouse_name,
+         gmr.shed_id,
+         gmr.shed_name storage_location_name,
+         grd.product_id,
+         grd.product_name,
+         grd.quality_id,
+         grd.quality_name,
+         grd.qty wet_qty,
+         grd.dry_qty,
+         grd.qty_unit_id qty_unit_id,
+         grd.qty_unit qty_unit,
+         ped.element_id,
+         aml.attribute_name,
+         null underlying_product_id,
+         null underlying_product_name,
+         null base_quantity_unit_id,
+         null base_quantity_unit,
+         ped.assay_qty assay_content,
+         ped.assay_qty_unit_id assay_qty_unit_id,
+         qum_ped.qty_unit assay_qty_unit,
+         0 payable_qty,
+         ped.assay_qty_unit_id payable_qty_unit_id,
+         qum_ped.qty_unit payable_qty_unit,
+         gmr.gmr_arrival_status arrival_status,
+         grd.base_qty_unit_id conc_base_qty_unit_id,
+         grd.base_qty_unit conc_base_qty_unit,
+         nvl(grd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
+         grd.pcdi_id,
+         gmr.invoice_cur_id pay_cur_id,
+         gmr.invoice_cur_code pay_cur_code,
+         gmr.invoice_cur_decimals pay_cur_decimals,
+         'Penalty' section_name,
+         nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
+         'Penalty' qty_type,
+         gmr.wet_qty,
+         'Arrival' arrival_or_delivery
+    from gmr_goods_movement_record   gmr,
+         grd_goods_record_detail     grd,
+         ped_penalty_element_details ped,
+         aml_attribute_master_list   aml,
+         qum_quantity_unit_master    qum_ped
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and grd.status = 'Active'
+     and grd.tolling_stock_type = 'None Tolling'
+     and gmr.is_internal_movement = 'N'
+     and nvl(gmr.tolling_service_type, 'NA') in ('S', 'NA')
+     and gmr.gmr_status in ('In Warehouse', 'Landed')
+     and gmr.is_deleted = 'N'
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and ped.process_id = pc_process_id
+     and ped.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and ped.internal_grd_ref_no = grd.internal_grd_ref_no
+     and ped.element_id = aml.attribute_id
+     and ped.assay_qty_unit_id = qum_ped.qty_unit_id
+     and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or
+         gmr.is_assay_updated_mtd_ar = 'Y' or
+         gmr.is_assay_updated_ytd_ar = 'Y');
+commit;
+gvn_log_counter := gvn_log_counter + 1; 
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Penalty For Purchase Over');      
+--
+-- Payable Data for Concentrate Sales
+--
+insert into art_arrival_report_temp
+  (gmr_ref_no,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   internal_stock_ref_no,
+   corporate_id,
+   warehouse_profile_id,
+   warehouse_name,
+   shed_id,
+   storage_location_name,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   wet_qty,
+   dry_qty,
+   qty_unit_id,
+   qty_unit,
+   element_id,
+   attribute_name,
+   underlying_product_id,
+   underlying_product_name,
+   base_quantity_unit_id,
+   base_quantity_unit,
+   assay_content,
+   assay_qty_unit_id,
+   assay_qty_unit,
+   payable_qty,
+   payable_qty_unit_id,
+   payable_qty_unit,
+   arrival_status,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   grd_base_qty_conv_factor,
+   pcdi_id,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimals,
+   section_name,
+   grd_to_gmr_qty_factor,
+   qty_type,
+   gmr_wet_qty,
+   arrival_or_delivery)
+  select gmr.gmr_ref_no,
+         gmr.internal_gmr_ref_no,
+         dgrd.internal_dgrd_ref_no,
+         dgrd.internal_stock_ref_no,
+         gmr.corporate_id,
+         gmr.warehouse_profile_id,
+         gmr.warehouse_name,
+         gmr.shed_id,
+         gmr.shed_name storage_location_name,
+         dgrd.product_id,
+         dgrd.product_name,
+         dgrd.quality_id,
+         dgrd.quality_name,
+         dgrd.net_weight wet_qty,
+         dgrd.dry_qty,
+         dgrd.net_weight_unit_id qty_unit_id,
+         dgrd.net_weight_unit qty_unit,
+         spq.element_id,
+         aml.attribute_name,
+         aml.underlying_product_id,
+         pdm_und.product_desc underlying_product_name,
+         pdm_und.base_quantity_unit base_quantity_unit_id,
+         qum_und.qty_unit base_quantity_unit,
+         spq.assay_content assay_content,
+         spq.qty_unit_id assay_qty_unit_id,
+         spq.qty_unit assay_qty_unit,
+         spq.payable_qty payable_qty,
+         spq.qty_unit_id payable_qty_unit_id,
+         spq.qty_unit payable_qty_unit,
+         gmr.gmr_arrival_status arrival_status,
+         dgrd.base_qty_unit_id conc_base_qty_unit_id,
+         dgrd.base_qty_unit conc_base_qty_unit,
+         nvl(dgrd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
+         dgrd.pcdi_id,
+         gmr.invoice_cur_id pay_cur_id,
+         gmr.invoice_cur_code pay_cur_code,
+         gmr.invoice_cur_decimals pay_cur_decimals,
+         'Non Penalty' section_name,
+         nvl(dgrd.dgrd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
+         spq.qty_type,
+         gmr.wet_qty gmr_wet_qty,
+         'Delivery' arrival_or_delivery
+    from gmr_goods_movement_record gmr,
+         dgrd_delivered_grd        dgrd,
+         spq_stock_payable_qty     spq,
+         aml_attribute_master_list aml,
+         pdm_productmaster         pdm_und,
+         qum_quantity_unit_master  qum_und
+   where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+     and dgrd.status = 'Active'
+     and dgrd.tolling_stock_type = 'None Tolling'
+     and nvl(gmr.tolling_service_type, 'NA') = ('NA')
+     and dgrd.internal_dgrd_ref_no = spq.internal_dgrd_ref_no
+     and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
+     and spq.is_stock_split = 'N'
+     and spq.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm_und.product_id
+     and pdm_und.base_quantity_unit = qum_und.qty_unit_id
+     and gmr.gmr_status in ('Released', 'Landed')
+     and gmr.is_deleted = 'N'
+     and gmr.process_id = pc_process_id
+     and spq.process_id = pc_process_id
+     and dgrd.process_id = pc_process_id
+     and spq.is_active = 'Y'
+     and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or
+         gmr.is_assay_updated_mtd_ar = 'Y' or
+         gmr.is_assay_updated_ytd_ar = 'Y');
+
+commit;
+gvn_log_counter := gvn_log_counter + 1; 
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Penalty For Sales Over');                    
+--
+-- Penalty Data for Concentrate Sales
+--               
+insert into art_arrival_report_temp
+  (gmr_ref_no,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   internal_stock_ref_no,
+   corporate_id,
+   warehouse_profile_id,
+   warehouse_name,
+   shed_id,
+   storage_location_name,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   wet_qty,
+   dry_qty,
+   qty_unit_id,
+   qty_unit,
+   element_id,
+   attribute_name,
+   underlying_product_id,
+   underlying_product_name,
+   base_quantity_unit_id,
+   base_quantity_unit,
+   assay_content,
+   assay_qty_unit_id,
+   assay_qty_unit,
+   payable_qty,
+   payable_qty_unit_id,
+   payable_qty_unit,
+   arrival_status,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   grd_base_qty_conv_factor,
+   pcdi_id,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimals,
+   section_name,
+   grd_to_gmr_qty_factor,
+   qty_type,
+   gmr_wet_qty,
+   arrival_or_delivery)
+  select gmr.gmr_ref_no,
+         gmr.internal_gmr_ref_no,
+         dgrd.internal_dgrd_ref_no,
+         dgrd.internal_stock_ref_no,
+         gmr.corporate_id,
+         gmr.warehouse_profile_id,
+         gmr.warehouse_name,
+         gmr.shed_id,
+         gmr.shed_name storage_location_name,
+         dgrd.product_id,
+         dgrd.product_name,
+         dgrd.quality_id,
+         dgrd.quality_name,
+         dgrd.net_weight wet_qty,
+         dgrd.dry_qty,
+         dgrd.net_weight_unit_id qty_unit_id,
+         dgrd.net_weight_unit qty_unit,
+         ped.element_id,
+         aml.attribute_name,
+         null underlying_product_id,
+         null underlying_product_name,
+         null base_quantity_unit_id,
+         null base_quantity_unit,
+         ped.assay_qty assay_content,
+         ped.assay_qty_unit_id assay_qty_unit_id,
+         qum_ped.qty_unit assay_qty_unit,
+         0 payable_qty,
+         ped.assay_qty_unit_id payable_qty_unit_id,
+         qum_ped.qty_unit payable_qty_unit,
+         gmr.gmr_arrival_status arrival_status,
+         dgrd.base_qty_unit_id conc_base_qty_unit_id,
+         dgrd.base_qty_unit conc_base_qty_unit,
+         nvl(dgrd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
+         dgrd.pcdi_id,
+         gmr.invoice_cur_id pay_cur_id,
+         gmr.invoice_cur_code pay_cur_code,
+         gmr.invoice_cur_decimals pay_cur_decimals,
+         'Penalty' section_name,
+         nvl(dgrd.dgrd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
+         'Penalty' qty_type,
+         gmr.wet_qty,
+         'Delivery' arrival_or_delivery
+    from gmr_goods_movement_record   gmr,
+         dgrd_delivered_grd     dgrd,
+         ped_penalty_element_details ped,
+         aml_attribute_master_list   aml,
+         qum_quantity_unit_master    qum_ped
+   where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+     and dgrd.status = 'Active'
+     and dgrd.tolling_stock_type = 'None Tolling'
+     and nvl(gmr.tolling_service_type, 'NA') = ('NA')
+     and gmr.gmr_status in ('Released', 'Landed')
+     and gmr.is_deleted = 'N'
+     and gmr.process_id = pc_process_id
+     and dgrd.process_id = pc_process_id
+     and ped.process_id = pc_process_id
+     and ped.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+     and ped.internal_grd_ref_no = dgrd.internal_grd_ref_no
+     and ped.element_id = aml.attribute_id
+     and ped.assay_qty_unit_id = qum_ped.qty_unit_id
+     and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or
+         gmr.is_assay_updated_mtd_ar = 'Y' or
+         gmr.is_assay_updated_ytd_ar = 'Y');
+         
+commit;
+gvn_log_counter := gvn_log_counter + 1; 
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Penalty For Sales Over');                    
   --
   -- Previous EOM ID
   --
@@ -15098,7 +15541,8 @@ insert into arg_arrival_report_gmr
          pay_cur_code,
          pay_cur_decimal,
          grd_to_gmr_qty_factor,
-         gmr_qty)
+         gmr_qty,
+         arrival_or_delivery)
       values
         (pc_process_id,
          pd_trade_date,
@@ -15128,7 +15572,8 @@ insert into arg_arrival_report_gmr
          cur_arrival_rows.pay_cur_code,
          cur_arrival_rows.pay_cur_decimals,
          cur_arrival_rows.grd_to_gmr_qty_factor,
-         cur_arrival_rows.gmr_wet_qty);
+         cur_arrival_rows.gmr_wet_qty,
+         cur_arrival_rows.arrival_or_delivery);
     
     end if;
     --
@@ -15558,7 +16003,8 @@ insert into arg_arrival_report_gmr
      pay_cur_code,
      pay_cur_decimal,
      grd_to_gmr_qty_factor,
-     gmr_qty)
+     gmr_qty,
+     arrival_or_delivery)
     select pc_process_id,
            pd_trade_date,
            corporate_id,
@@ -15589,7 +16035,8 @@ insert into arg_arrival_report_gmr
            pay_cur_code,
            pay_cur_decimal,
            grd_to_gmr_qty_factor,
-           gmr_qty
+           gmr_qty,
+           arrival_or_delivery
       from aro_ar_original aro
      where aro.process_id = pc_process_id
        and exists
@@ -15631,7 +16078,8 @@ insert into arg_arrival_report_gmr
      pc_charges_amt,
      element_base_qty_unit_id,
      element_base_qty_unit,
-     price_in_pay_in)
+     price_in_pay_in
+     )
     select pc_process_id,
            internal_gmr_ref_no,
            internal_grd_ref_no,
@@ -15712,7 +16160,8 @@ insert into ar_arrival_report
    pay_cur_code,
    pay_cur_decimal,
    grd_to_gmr_qty_factor,
-   gmr_qty)
+   gmr_qty,
+   arrival_or_delivery)
   select pc_process_id,
          pd_trade_date,
          corporate_id,
@@ -15743,7 +16192,8 @@ insert into ar_arrival_report
          pay_cur_code,
          pay_cur_decimal,
          grd_to_gmr_qty_factor,
-         sum(gmr_qty)
+         sum(gmr_qty),
+         arrival_or_delivery
     from (select aro_current.corporate_id,
                  aro_current.corporate_name,
                  aro_current.gmr_ref_no,
@@ -15772,7 +16222,8 @@ insert into ar_arrival_report
                  aro_current.pay_cur_code,
                  aro_current.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
-                 aro_current.gmr_qty
+                 aro_current.gmr_qty,
+                 aro_current.arrival_or_delivery
             from aro_ar_original aro_current
            where (aro_current.internal_gmr_ref_no, aro_current.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -15798,7 +16249,8 @@ insert into ar_arrival_report
                     aro_current.pay_cur_id,
                     aro_current.pay_cur_code,
                     aro_current.pay_cur_decimal,
-                    aro_current.gmr_qty
+                    aro_current.gmr_qty,
+                    aro_current.arrival_or_delivery
           union all
           select are_prev.corporate_id,
                  are_prev.corporate_name,
@@ -15828,7 +16280,8 @@ insert into ar_arrival_report
                  are_prev.pay_cur_code,
                  are_prev.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
-                 0 gmr_qty
+                 0 gmr_qty,
+                 are_prev.arrival_or_delivery
             from aro_ar_original are_prev
    where (are_prev.internal_gmr_ref_no, are_prev.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -15853,7 +16306,8 @@ insert into ar_arrival_report
                     are_prev.pay_cur_id,
                     are_prev.pay_cur_code,
                     are_prev.pay_cur_decimal,
-                    are_prev.gmr_qty)
+                    are_prev.gmr_qty,
+                    are_prev.arrival_or_delivery)
    group by corporate_id,
             corporate_name,
             gmr_ref_no,
@@ -15877,7 +16331,8 @@ insert into ar_arrival_report
             pay_cur_id,
             pay_cur_code,
             pay_cur_decimal,
-            grd_to_gmr_qty_factor;
+            grd_to_gmr_qty_factor,
+            arrival_or_delivery;
   commit;
   
 insert into are_arrival_report_element
@@ -16074,7 +16529,8 @@ insert into are_arrival_report_element
      pay_cur_code,
      pay_cur_decimal,
      grd_to_gmr_qty_factor,
-     gmr_qty)
+     gmr_qty,
+     arrival_or_delivery)
     select pc_process_id,
            pd_trade_date,
            corporate_id,
@@ -16105,7 +16561,8 @@ insert into are_arrival_report_element
            pay_cur_code,
            pay_cur_decimal,
            grd_to_gmr_qty_factor,
-           gmr_qty
+           gmr_qty,
+           arrival_or_delivery
       from aro_ar_original aro
      where aro.process_id = pc_process_id
        and exists
@@ -16229,7 +16686,8 @@ insert into are_arrival_report_element
    pay_cur_code,
    pay_cur_decimal,
    grd_to_gmr_qty_factor,
-   gmr_qty)
+   gmr_qty,
+   arrival_or_delivery)
   select pc_process_id,
          pd_trade_date,
          corporate_id,
@@ -16260,7 +16718,8 @@ insert into are_arrival_report_element
          pay_cur_code,
          pay_cur_decimal,
          grd_to_gmr_qty_factor,
-         SUM(gmr_qty)
+         SUM(gmr_qty),
+         arrival_or_delivery
     from (select aro_current.corporate_id,
                  aro_current.corporate_name,
                  aro_current.gmr_ref_no,
@@ -16289,7 +16748,8 @@ insert into are_arrival_report_element
                  aro_current.pay_cur_code,
                  aro_current.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
-                 aro_current.gmr_qty
+                 aro_current.gmr_qty,
+                 aro_current.arrival_or_delivery
             from aro_ar_original aro_current
            where  (aro_current.internal_gmr_ref_no, aro_current.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -16315,7 +16775,8 @@ insert into are_arrival_report_element
                     aro_current.pay_cur_id,
                     aro_current.pay_cur_code,
                     aro_current.pay_cur_decimal,
-                    aro_current.gmr_qty
+                    aro_current.gmr_qty,
+                    aro_current.arrival_or_delivery
           union all
           select are_prev.corporate_id,
                  are_prev.corporate_name,
@@ -16345,7 +16806,8 @@ insert into are_arrival_report_element
                  are_prev.pay_cur_code,
                  are_prev.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
-                 0 gmr_qty
+                 0 gmr_qty,
+                 are_prev.arrival_or_delivery
             from aro_ar_original are_prev
            where (are_prev.internal_gmr_ref_no, are_prev.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -16370,7 +16832,8 @@ insert into are_arrival_report_element
                     are_prev.pay_cur_id,
                     are_prev.pay_cur_code,
                     are_prev.pay_cur_decimal,
-                    are_prev.gmr_qty)
+                    are_prev.gmr_qty,
+                    are_prev.arrival_or_delivery)
    group by pc_process_id,
             pd_trade_date,
             corporate_id,
@@ -16396,7 +16859,8 @@ insert into are_arrival_report_element
             pay_cur_id,
             pay_cur_code,
             pay_cur_decimal,
-            grd_to_gmr_qty_factor;
+            grd_to_gmr_qty_factor,
+            arrival_or_delivery;
 
 
 insert into are_arrival_report_element
