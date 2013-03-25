@@ -504,7 +504,8 @@ select 'Invoice' section_name,
        -- VAT Details
        vat.our_vat_no our_vat_reg_no,
        vat.cp_vat_no cp_vat_reg_no,
-       vat.main_inv_vat_code vat_code,
+       --vat.main_inv_vat_code vat_code,
+       vat.vat_code_name vat_code,
        vat.vat_rate,
        vat.vat_amount_in_inv_cur vat_amount,
        -- Bank Details
