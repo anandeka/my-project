@@ -1,0 +1,69 @@
+Patch No*          		:  EKA_METALS_PATCH_1444
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  25-Mar-2012
+
+Bug / Enhancement*              :  Bugs
+
+Bug ID*            		:  76222, 75935 & 74942
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Docs
+
+Sub-Module  			 :  Output Docs
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 120915
+Author: rajuga
+Date: 7:22:53 PM, Monday, March 25, 2013
+Message:
+Bug: 76222
+VAT Code field has been changed.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_DOC_OTHER_CHARGES_INVOICE.sql
+
+Revision: 120914
+Author: rajuga
+Date: 7:22:05 PM, Monday, March 25, 2013
+Message:
+Bug: 76222
+INVOICE DETAILS header has been added. 
+Freight section has been removed. 
+Tax Rate % symbol has been shown. 
+VAT Code has been shown instead of hard coded text, "VAT Details"
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/OCInvoiceDocument.rpt
+
+
+Revision: 120917
+Author: rajuga
+Date: 7:25:46 PM, Monday, March 25, 2013
+Message:
+Bug: 75935 & 74942
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TotalInvoiceUtilityReport.rpt
+
+==================================================================
