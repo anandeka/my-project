@@ -2,7 +2,7 @@ Patch No*          		:  EKA_METALS_PATCH_1440
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  RSuresh Gottipati
+Created by*        		:  Suresh Gottipati
  
 Created on*        		:  25-Mar-2012
 
