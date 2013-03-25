@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1440
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  RSuresh Gottipati
+ 
+Created on*        		:  25-Mar-2012
+
+Bug / Enhancement*              :  BUG
+
+Bug ID*            		:  76003
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 120880
+Author: suresh.gottipati
+Date: 5:38:32 PM, Monday, March 25, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_arrived_not_priced.sql
+
