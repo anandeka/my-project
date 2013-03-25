@@ -6,7 +6,8 @@ Created by*        		:  Janna
 Created on*        		:  25-Mar-2012
 
 Bug / Enhancement*              :  Bug
-Bug ID*            		:  
+Bug ID*            		:  75810, 75951
+
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -32,4 +33,26 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
+
+
+Revision: 120848
+Author: janna
+Date: 3:35:10 PM, Monday, March 25, 2013
+Message:
+Created Delivery Report 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_112_RFC_RPC.sql
+
+
+Revision: 120862
+Author: janna
+Date: 4:10:31 PM, Monday, March 25, 2013
+Message:
+Delivery Report Created
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyDeliveryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyDeliveryReport_Excel.rpt
+
 

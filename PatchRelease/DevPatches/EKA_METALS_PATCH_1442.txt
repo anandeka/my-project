@@ -6,7 +6,7 @@ Created by*        		:  Janna
 Created on*        		:  25-Mar-2012
 
 Bug / Enhancement*              :  Bug
-Bug ID*            		:  
+Bug ID*            		:  75810, 75951
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -32,4 +32,16 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+
+Revision: 120861
+Author: janna
+Date: 4:10:02 PM, Monday, March 25, 2013
+Message:
+Delivery Report Created
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/127_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
 
