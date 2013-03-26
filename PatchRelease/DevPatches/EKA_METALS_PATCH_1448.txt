@@ -43,6 +43,16 @@ Metal Balance Changes committed
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
 
 
+Revision: 121056
+Author: janna
+Date: 6:58:35 PM, Tuesday, March 26, 2013
+Message:
+CET Corporate ID Filter Added
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+
+
+
 
 
 
