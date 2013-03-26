@@ -10932,9 +10932,9 @@ procedure sp_metal_balance_qty_summary(pc_corporate_id varchar2,
   vc_prev_process_id number;
 
 begin
-  --
-  -- Get the Previous EOM Date for Calcualting New Stock
-  --
+ --
+ -- Get the Previous EOM Date for Calcualting New Stock
+ --
   begin
     select tdc.trade_date,
            tdc.process_id
@@ -10948,1440 +10948,1516 @@ begin
                                 and t.process = 'EOM')
        and tdc.corporate_id = pc_corporate_id
        and tdc.process = 'EOM';
-  
+    
   exception
     when no_data_found then
       vc_prev_process_id := null;
-      vd_prev_eom_date   := to_date('01-Jan-2000', 'dd-Mon-yyyy');
+      vd_prev_eom_date   := to_date('01-Jan-2000','dd-Mon-yyyy');
   end;
-  delete from temp_mas t where t.corporate_id = pc_corporate_id;
+delete from temp_mas t where t.corporate_id = pc_corporate_id;
+commit;
+
+delete from temp_stock_latest_assay where corporate_id = pc_corporate_id;
   commit;
-  --
-  -- Raw Material New Stock
-  --
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Raw Material New Stock',
-           aml.underlying_product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'Raw Material Stock' stock_type,
-           'New Stocks' section_name,
-           '2' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           case
-             when rm.ratio_name = '%' then
-              ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
-              pqcapd.payable_percentage / 100)
-             else
-              ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
-              pqcapd.payable_percentage)
-           end stock_qty,
-           (case
-             when rm.ratio_name = '%' then
-              grd.qty_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) stock_qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('landingDetail', 'warehouseReceipt')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           spq_stock_payable_qty spq,
-           ash_assay_header ash,
-           asm_assay_sublot_mapping asm,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pqca_pq_chemical_attributes pqca,
-           pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-           rm_ratio_master rm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type = 'None Tolling'
-       and grd.warehouse_profile_id = phd.profileid
-       and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-       and spq.is_stock_split = 'N'
-       and spq.element_id = aml.attribute_id
-       and aml.underlying_product_id = pdm.product_id
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and spq.process_id = pc_process_id
-       and spq.weg_avg_pricing_assay_id = ash.ash_id
-       and ash.ash_id = asm.ash_id
-       and pqca.element_id = aml.attribute_id
-       and pqca.asm_id = asm.asm_id
-       and pqcapd.pqca_id = pqca.pqca_id
-       and pqcapd.pcdi_id = grd.pcdi_id
-       and pqca.is_active = 'Y'
-       and pqcapd.is_active = 'Y'
-       and pqca.unit_of_measure = rm.ratio_id
-       and rm.is_active = 'Y'
-       and rm.is_deleted = 'N'
-          -- and agmr.eff_date > vd_prev_eom_date
-          -- and agmr.eff_date <= pd_trade_date;
-       and gmr.is_new_mtd_ar = 'Y';
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
+gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'Raw Material New Stock End');
-  --
-  -- Raw Material Exisitng Stock
-  --                          
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Raw Material Existing Stock',
-           aml.underlying_product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'Raw Material Stock' stock_type,
-           'Existing Stock' section_name,
-           '1' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           case
-             when rm.ratio_name = '%' then
-              ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
-              pqcapd.payable_percentage / 100)
-             else
-              ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
-              pqcapd.payable_percentage)
-           end stock_qty,
-           (case
-             when rm.ratio_name = '%' then
-              grd.qty_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) stock_qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('landingDetail', 'warehouseReceipt')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           spq_stock_payable_qty spq,
-           ash_assay_header ash,
-           asm_assay_sublot_mapping asm,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pqca_pq_chemical_attributes pqca,
-           pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-           rm_ratio_master rm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type = 'None Tolling'
-       and grd.warehouse_profile_id = phd.profileid
-       and grd.internal_grd_ref_no = spq.internal_grd_ref_no
-       and spq.is_stock_split = 'N'
-       and spq.element_id = aml.attribute_id
-       and aml.underlying_product_id = pdm.product_id
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and spq.process_id = pc_process_id
-       and spq.internal_grd_ref_no = ash.internal_grd_ref_no
-       and spq.weg_avg_pricing_assay_id = ash.ash_id
-       and ash.ash_id = asm.ash_id
-       and ash.is_active = 'Y'
-       and asm.is_active = 'Y'
-       and pqca.element_id = aml.attribute_id
-       and pqca.asm_id = asm.asm_id
-       and pqcapd.pqca_id = pqca.pqca_id
-       and pqcapd.pcdi_id = grd.pcdi_id
-       and pqca.is_active = 'Y'
-       and pqcapd.is_active = 'Y'
-       and pqca.unit_of_measure = rm.ratio_id
-       and rm.is_active = 'Y'
-       and rm.is_deleted = 'N'
-       and gmr.is_new_mtd_ar = 'N';
-  -- and agmr.eff_date <= vd_prev_eom_date;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Raw Material Existing Stock End');
-  --
-  -- Raw Material New Stock Internal Movement
-  --
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Raw Material Stock IM New Stock',
-           aml.underlying_product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'Raw Material Stock' stock_type,
-           'New Stocks' section_name,
-           '2' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           case
-             when rm.ratio_name = '%' then
-              ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
-              pqcapd.payable_percentage / 100)
-             else
-              ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
-              pqcapd.payable_percentage)
-           end stock_qty,
-           (case
-             when rm.ratio_name = '%' then
-              grd.qty_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) stock_qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from grd_goods_record_detail grd,
+                        'CB Delete TEMP_STOCK_LATEST_ASSAY Over');    
+  -- For records with Pricing Assay
+  insert into temp_stock_latest_assay
+    (corporate_id,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     element_id,
+     latest_ash_id)
+    select gmr.corporate_id,
+           gmr.internal_gmr_ref_no,
+           grd.internal_grd_ref_no,
+           spq.element_id,
+           ash_pricing.ash_id latest_ash_id
+      from grd_goods_record_detail   grd,
            gmr_goods_movement_record gmr,
-           sam_stock_assay_mapping sam,
-           ash_assay_header ash,
-           spq_stock_payable_qty spq,
-           ash_assay_header ash_pricing,
-           asm_assay_sublot_mapping asm,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm,
-           pqca_pq_chemical_attributes pqca,
-           pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-           ak_corporate akc,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('landingDetail', 'warehouseReceipt')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           qum_quantity_unit_master qum,
-           rm_ratio_master rm
+           sam_stock_assay_mapping   sam,
+           ash_assay_header          ash,
+           spq_stock_payable_qty     spq,
+           ash_assay_header          ash_pricing,
+           asm_assay_sublot_mapping  asm
      where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-       and gmr.is_internal_movement = 'Y'
        and sam.internal_grd_ref_no = grd.internal_grd_ref_no
-       and grd.tolling_stock_type = 'None Tolling'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and sam.is_active = 'Y'
        and spq.is_active = 'Y'
        and gmr.is_deleted = 'N'
        and grd.status = 'Active'
        and spq.is_stock_split = 'N'
        and sam.ash_id = ash.ash_id
        and ash.internal_grd_ref_no = spq.internal_grd_ref_no
-       and spq.weg_avg_pricing_assay_id = ash_pricing.ash_id
-       and asm.ash_id = ash_pricing.ash_id
-       and aml.attribute_id = spq.element_id
-       and aml.underlying_product_id = pdm.product_id
-       and pqca.element_id = aml.attribute_id
-       and pqca.asm_id = asm.asm_id
-       and pqcapd.pqca_id = pqca.pqca_id
-       and pqcapd.pcdi_id = grd.pcdi_id
-       and pqca.is_active = 'Y'
-       and pqcapd.is_active = 'Y'
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and grd.process_id = pc_process_id
-       and gmr.process_id = pc_process_id
+       and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
+       and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
        and spq.process_id = pc_process_id
-       and pqca.unit_of_measure = rm.ratio_id
-       and rm.is_active = 'Y'
-       and rm.is_deleted = 'N'
-          --  and agmr.eff_date > vd_prev_eom_date
-          -- and agmr.eff_date <= pd_trade_date
-       and gmr.is_new_mtd_ar = 'Y'
-       and ash.assay_type in ('Pricing Assay', 'Shipment Assay')
-       and spq.assay_header_id = ash.ash_id;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Raw Material Stock IM New Stock End');
-  --
-  -- Raw Material Existing Stock Internal Movement 
-  --
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Raw Material Stock IM',
-           aml.underlying_product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'Raw Material Stock' stock_type,
-           'Existing Stock' section_name,
-           '1' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           case
-             when rm.ratio_name = '%' then
-              ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
-              pqcapd.payable_percentage / 100)
-             else
-              ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
-              pqcapd.payable_percentage)
-           end stock_qty,
-           (case
-             when rm.ratio_name = '%' then
-              grd.qty_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) stock_qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from grd_goods_record_detail grd,
-           gmr_goods_movement_record gmr,
-           sam_stock_assay_mapping sam,
-           ash_assay_header ash,
-           spq_stock_payable_qty spq,
-           ash_assay_header ash_pricing,
-           asm_assay_sublot_mapping asm,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm,
-           pqca_pq_chemical_attributes pqca,
-           pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
-           ak_corporate akc,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('landingDetail', 'warehouseReceipt')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           qum_quantity_unit_master qum,
-           rm_ratio_master rm
-     where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-       and gmr.is_internal_movement = 'Y'
-       and sam.internal_grd_ref_no = grd.internal_grd_ref_no
-       and grd.tolling_stock_type = 'None Tolling'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and sam.is_active = 'Y'
-       and spq.is_active = 'Y'
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and spq.is_stock_split = 'N'
-       and sam.ash_id = ash.ash_id
-       and ash.internal_grd_ref_no = spq.internal_grd_ref_no
-       and spq.weg_avg_pricing_assay_id = ash_pricing.ash_id
+       and grd.process_id = pc_process_id
+       and gmr.process_id = pc_process_id
+       and gmr.corporate_id = pc_corporate_id
        and asm.ash_id = ash_pricing.ash_id
-       and aml.attribute_id = spq.element_id
-       and aml.underlying_product_id = pdm.product_id
-       and pqca.element_id = aml.attribute_id
-       and pqca.asm_id = asm.asm_id
-       and pqcapd.pqca_id = pqca.pqca_id
-       and pqcapd.pcdi_id = grd.pcdi_id
-       and pqca.is_active = 'Y'
-       and pqcapd.is_active = 'Y'
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and grd.process_id = pc_process_id
-       and gmr.process_id = pc_process_id
-       and spq.process_id = pc_process_id
-       and pqca.unit_of_measure = rm.ratio_id
-       and rm.is_active = 'Y'
-       and rm.is_deleted = 'N'
-       and gmr.is_new_mtd_ar = 'N'
-          -- and agmr.eff_date <= vd_prev_eom_date
-       and ash.assay_type in ('Pricing Assay', 'Shipment Assay')
-       and spq.assay_header_id = ash.ash_id;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
+     group by gmr.corporate_id,
+              gmr.internal_gmr_ref_no,
+              grd.internal_grd_ref_no,
+              spq.element_id,
+              ash_pricing.ash_id;
+commit;
+gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'Raw Material Existing Stock IM End');
-  --
-  -- In Process Stock
-  --
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'In Process Stock' query_section_name,
-           aml.underlying_product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'In Process Stock' stock_type,
-           (case
-           /* when agmr.eff_date > vd_prev_eom_date and
-                           agmr.eff_date <= pd_trade_date then*/
-             when axs.eff_date > vd_prev_eom_date and
-                  axs.eff_date <= pd_trade_date then
-              (case
-             when grd.tolling_stock_type in
-                  ('Free Metal IP Stock', 'Delta FM IP Stock') then
-              'New Stock - Free Metal Stocks'
-             else
-              'New Stock - In Process Stocks'
-           end) else 'Existing Stock' end) section_name,
-           (case
-           /* when agmr.eff_date > vd_prev_eom_date and
-                           agmr.eff_date <= pd_trade_date then*/
-             when axs.eff_date > vd_prev_eom_date and
-                  axs.eff_date <= pd_trade_date then
-              '3'
-             else
-              '2'
-           end) section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           grd.qty stock_qty,
-           grd.qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           aml_attribute_master_list aml,
-           axs_action_summary axs,
-           dbd_database_dump dbd,
-           pdm_productmaster pdm,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in ('MARK_FOR_TOLLING')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           qum_quantity_unit_master qum,
-           phd_profileheaderdetails phd,
-           ak_corporate akc
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.product_id = aml.underlying_product_id
-       and aml.underlying_product_id = pdm.product_id
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and grd.warehouse_profile_id = phd.profileid
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and grd.internal_action_ref_no = axs.internal_action_ref_no
-       and axs.dbd_id = dbd.dbd_id
-       and dbd.process = 'EOM'
-       and agmr.eff_date <= pd_trade_date
-       and grd.tolling_stock_type in
-           ('MFT In Process Stock', 'Free Metal IP Stock',
-            'Delta FM IP Stock', 'Delta MFT IP Stock');
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
+                        'CB Insert TEMP_STOCK_LATEST_ASSAY 1 Over');  
+-- Records with No Pricing Assay, Consider Shipment Assay
+insert into temp_stock_latest_assay
+  (corporate_id,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   element_id,
+   latest_ash_id)
+  select gmr.corporate_id,
+         gmr.internal_gmr_ref_no,
+         grd.internal_grd_ref_no,
+         spq.element_id,
+         ash.ash_id latest_ash_id
+    from grd_goods_record_detail   grd,
+         gmr_goods_movement_record gmr,
+         sam_stock_assay_mapping   sam,
+         ash_assay_header          ash,
+         spq_stock_payable_qty     spq,
+         asm_assay_sublot_mapping  asm
+   where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+     and sam.internal_grd_ref_no = grd.internal_grd_ref_no
+     and spq.is_active = 'Y'
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and spq.is_stock_split = 'N'
+     and sam.ash_id = ash.ash_id
+     and ash.internal_grd_ref_no = spq.internal_grd_ref_no
+     and spq.weg_avg_pricing_assay_id = ash.ash_id
+     and ash.assay_type = 'Shipment Assay'
+     and spq.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and gmr.process_id = pc_process_id
+     and asm.ash_id = ash.ash_id
+     and not exists
+   (select *
+            from temp_stock_latest_assay t
+           where t.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and t.internal_grd_ref_no = grd.internal_grd_ref_no
+             and t.element_id = spq.element_id
+             and t.corporate_id = pc_corporate_id)
+   group by gmr.corporate_id,
+            gmr.internal_gmr_ref_no,
+            grd.internal_grd_ref_no,
+            spq.element_id,
+            ash.ash_id;
+       commit;
+gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'In process Stock End');
-  --
-  -- Finished New Stock For Concentrate Products
-  --    
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Finished Stock',
-           pdm_aml.product_id,
-           pdm_aml.product_desc,
-           'Inventory' position_type,
-           'Raw Material Stock' stock_type,
-           'New Stocks' section_name,
-           '2' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           case
-             when rm.ratio_name = '%' then
-              ((((grd.qty - grd.moved_out_qty) *
-              nvl(asm.dry_wet_qty_ratio, 100) / 100)) * pqca.typical / 100)
-             else
-              ((((grd.qty - grd.moved_out_qty) *
-              nvl(asm.dry_wet_qty_ratio, 0) / 100)) * pqca.typical)
-           end stock_qty,
-           (case
-             when rm.ratio_name = '%' then
-              grd.qty_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) stock_qty_unit_id,
-           pdm_aml.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           sam_stock_assay_mapping sam,
-           asm_assay_sublot_mapping asm,
-           pqca_pq_chemical_attributes pqca,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm_aml,
-           rm_ratio_master rm,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('RECORD_OUT_PUT_TOLLING')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pdtm_product_type_master pdtm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type = 'RM Out Process Stock'
-       and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-       and sam.is_output_assay = 'Y'
-       and asm.ash_id = sam.ash_id
-       and asm.asm_id = pqca.asm_id
-       and pqca.element_id = aml.attribute_id
-       and aml.underlying_product_id = pdm_aml.product_id
-       and rm.ratio_id = pqca.unit_of_measure
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm_aml.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and pdm.product_type_id = pdtm.product_type_id
-       and pdtm.product_type_name = 'Composite'
-       and grd.product_id = pdm.product_id
-       and agmr.eff_date > vd_prev_eom_date
-       and agmr.eff_date <= pd_trade_date;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
+                        'CB Insert TEMP_STOCK_LATEST_ASSAY 2 Over'); 
+--
+-- Raw Material New Stock
+--
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Raw Material New Stock',
+         aml.underlying_product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'New Stocks' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage / 100)
+           else
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage)
+         end stock_qty,
+         (case
+           when rm.ratio_name = '%' then
+            grd.qty_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('landingDetail', 'warehouseReceipt')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         spq_stock_payable_qty spq,
+         ash_assay_header ash,
+         asm_assay_sublot_mapping asm,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pqca_pq_chemical_attributes pqca,
+         pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+         rm_ratio_master rm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'None Tolling'
+     and grd.warehouse_profile_id = phd.profileid
+     and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+     and spq.is_stock_split = 'N'
+     and spq.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm.product_id
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and spq.process_id = pc_process_id
+     and spq.weg_avg_pricing_assay_id = ash.ash_id
+     and ash.ash_id = asm.ash_id
+     and pqca.element_id = aml.attribute_id
+     and pqca.asm_id = asm.asm_id
+     and pqcapd.pqca_id = pqca.pqca_id
+     and pqcapd.pcdi_id = grd.pcdi_id
+     and pqca.is_active = 'Y'
+     and pqcapd.is_active = 'Y'
+     and pqca.unit_of_measure = rm.ratio_id
+     and rm.is_active = 'Y'
+     and rm.is_deleted = 'N'    
+     and gmr.is_new_mtd_ar='Y';
+     commit;
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Raw Material New Stock End');   
+--
+-- Raw Material Exisitng Stock
+--                          
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Raw Material Existing Stock',
+         aml.underlying_product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'Existing Stock' section_name,
+         '1' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage / 100)
+           else
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage)
+         end stock_qty,
+         (case
+           when rm.ratio_name = '%' then
+            grd.qty_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('landingDetail', 'warehouseReceipt')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         spq_stock_payable_qty spq,
+         ash_assay_header ash,
+         asm_assay_sublot_mapping asm,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pqca_pq_chemical_attributes pqca,
+         pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+         rm_ratio_master rm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'None Tolling'
+     and grd.warehouse_profile_id = phd.profileid
+     and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+     and spq.is_stock_split = 'N'
+     and spq.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm.product_id
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and spq.process_id = pc_process_id
+     and spq.internal_grd_ref_no = ash.internal_grd_ref_no
+     and spq.weg_avg_pricing_assay_id = ash.ash_id
+     and ash.ash_id = asm.ash_id    
+     and pqca.element_id = aml.attribute_id
+     and pqca.asm_id = asm.asm_id
+     and pqcapd.pqca_id = pqca.pqca_id
+     and pqcapd.pcdi_id = grd.pcdi_id
+     and pqca.is_active = 'Y'
+     and pqcapd.is_active = 'Y'
+     and pqca.unit_of_measure = rm.ratio_id
+     and rm.is_active = 'Y'
+     and rm.is_deleted = 'N'
+     and gmr.is_new_mtd_ar='N';    
+commit;     
+   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Finished New Stock Composite End');
-  --
-  -- Finished Existing Stock For Concentrate Products
-  --                             
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Finished Stock Conc Existing',
-           pdm_aml.product_id,
-           pdm_aml.product_desc,
-           'Inventory' position_type,
-           'Raw Material Stock' stock_type,
-           'Existing Stock' section_name,
-           '2' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           case
-             when rm.ratio_name = '%' then
-              ((((grd.qty - grd.moved_out_qty) *
-              nvl(asm.dry_wet_qty_ratio, 100) / 100)) * pqca.typical / 100)
-             else
-              ((((grd.qty - grd.moved_out_qty) *
-              nvl(asm.dry_wet_qty_ratio, 0) / 100)) * pqca.typical)
-           end stock_qty,
-           (case
-             when rm.ratio_name = '%' then
-              grd.qty_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) stock_qty_unit_id,
-           pdm_aml.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           sam_stock_assay_mapping sam,
-           asm_assay_sublot_mapping asm,
-           pqca_pq_chemical_attributes pqca,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm_aml,
-           rm_ratio_master rm,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('RECORD_OUT_PUT_TOLLING')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pdtm_product_type_master pdtm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type = 'RM Out Process Stock'
-       and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-       and sam.is_output_assay = 'Y'
-       and asm.ash_id = sam.ash_id
-       and asm.asm_id = pqca.asm_id
-       and pqca.element_id = aml.attribute_id
-       and aml.underlying_product_id = pdm_aml.product_id
-       and rm.ratio_id = pqca.unit_of_measure
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm_aml.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and agmr.eff_date <= pd_trade_date
-       and pdm.product_type_id = pdtm.product_type_id
-       and pdtm.product_type_name = 'Composite'
-       and grd.product_id = pdm.product_id
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Raw Material Existing Stock End');        
+--
+-- Raw Material New Stock Internal Movement
+--
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Raw Material Stock IM New Stock',
+         aml.underlying_product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'New Stocks' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage / 100)
+           else
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage)
+         end stock_qty,
+         (case
+           when rm.ratio_name = '%' then
+            grd.qty_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from grd_goods_record_detail grd,
+         gmr_goods_movement_record gmr,
+         temp_stock_latest_assay tspq,        
+         ash_assay_header ash,       
+         asm_assay_sublot_mapping asm,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm,
+         pqca_pq_chemical_attributes pqca,
+         pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+         ak_corporate akc,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('landingDetail', 'warehouseReceipt')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         qum_quantity_unit_master qum,
+         rm_ratio_master rm
+   where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+     and gmr.is_internal_movement = 'Y'   
+     and grd.tolling_stock_type = 'None Tolling'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'   
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and tspq.corporate_id = gmr.corporate_id
+     and tspq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+     and tspq.internal_grd_ref_no = grd.internal_grd_ref_no
+     and tspq.latest_ash_id = ash.ash_id
+     and ash.ash_id = asm.ash_id
+     and tspq.element_id = aml.attribute_id 
+     and aml.underlying_product_id = pdm.product_id
+     and pqca.element_id = aml.attribute_id
+     and pqca.asm_id = asm.asm_id
+     and pqcapd.pqca_id = pqca.pqca_id
+     and pqcapd.pcdi_id = grd.pcdi_id
+     and pqca.is_active = 'Y'
+     and pqcapd.is_active = 'Y'
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and grd.process_id = pc_process_id
+     and gmr.process_id = pc_process_id 
+     and pqca.unit_of_measure = rm.ratio_id
+     and rm.is_active = 'Y'
+     and rm.is_deleted = 'N'   
+     and gmr.is_new_mtd_ar='Y';   
+     commit;
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Raw Material Stock IM New Stock End');       
+--
+-- Raw Material Existing Stock Internal Movement 
+--
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Raw Material Stock IM',
+         aml.underlying_product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'Existing Stock' section_name,
+         '1' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage / 100)
+           else
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage)
+         end stock_qty,
+         (case
+           when rm.ratio_name = '%' then
+            grd.qty_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from grd_goods_record_detail grd,
+         gmr_goods_movement_record gmr,
+          temp_stock_latest_assay tspq,  
+         ash_assay_header ash,        
+         asm_assay_sublot_mapping asm,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm,
+         pqca_pq_chemical_attributes pqca,
+         pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+         ak_corporate akc,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('landingDetail', 'warehouseReceipt')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         qum_quantity_unit_master qum,
+         rm_ratio_master rm
+   where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+     and gmr.is_internal_movement = 'Y'   
+     and grd.tolling_stock_type = 'None Tolling'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N' 
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and tspq.corporate_id = gmr.corporate_id
+     and tspq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+     and tspq.internal_grd_ref_no = grd.internal_grd_ref_no
+     and tspq.latest_ash_id = ash.ash_id
+     and ash.ash_id = asm.ash_id
+     and tspq.element_id = aml.attribute_id   
+     and aml.underlying_product_id = pdm.product_id
+     and pqca.element_id = aml.attribute_id
+     and pqca.asm_id = asm.asm_id
+     and pqcapd.pqca_id = pqca.pqca_id
+     and pqcapd.pcdi_id = grd.pcdi_id
+     and pqca.is_active = 'Y'
+     and pqcapd.is_active = 'Y'
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and grd.process_id = pc_process_id
+     and gmr.process_id = pc_process_id    
+     and pqca.unit_of_measure = rm.ratio_id
+     and rm.is_active = 'Y'
+     and rm.is_deleted = 'N'
+     and gmr.is_new_mtd_ar='N';   
+     commit;
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                              pd_trade_date,
+                              pc_process_id,
+                              gvn_log_counter,
+                              'Raw Material Existing Stock IM End');                                     
+--
+-- In Process Stock
+--
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'In Process Stock' query_section_name,
+         aml.underlying_product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'In Process Stock' stock_type,
+         (case         
+           when axs.eff_date > vd_prev_eom_date and
+                axs.eff_date <= pd_trade_date then
+          (case when grd.tolling_stock_type in
+          ('Free Metal IP Stock', 'Delta FM IP Stock') then
+            'New Stock - Free Metal Stocks'
+            else
+            'New Stock - In Process Stocks'
+            end) 
+           else
+            'Existing Stock'
+         end) section_name,
+         (case         
+            when axs.eff_date > vd_prev_eom_date and
+                axs.eff_date <= pd_trade_date then
+            '3'
+           else
+            '2'
+         end) section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         grd.qty stock_qty,
+         grd.qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         aml_attribute_master_list aml,
+         axs_action_summary  axs,
+         dbd_database_dump   dbd,
+         pdm_productmaster pdm,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in ('MARK_FOR_TOLLING')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         qum_quantity_unit_master qum,
+         phd_profileheaderdetails phd,
+         ak_corporate akc
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.product_id = aml.underlying_product_id
+     and aml.underlying_product_id = pdm.product_id
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and grd.warehouse_profile_id = phd.profileid
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and grd.internal_action_ref_no=axs.internal_action_ref_no
+     and axs.dbd_id=dbd.dbd_id
+     and dbd.process='EOM'          
+     and agmr.eff_date <= pd_trade_date
+     and grd.tolling_stock_type in
+         ('MFT In Process Stock', 'Free Metal IP Stock', 'Delta FM IP Stock',
+          'Delta MFT IP Stock');
+     commit;
+     gvn_log_counter := gvn_log_counter + 1;     
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'In process Stock End');          
+--
+-- Finished New Stock For Concentrate Products
+--    
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Finished Stock',
+         pdm_aml.product_id,
+         pdm_aml.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'New Stocks' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
+            pqca.typical / 100)
+           else
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
+            pqca.typical)
+         end stock_qty,
+         (case
+           when rm.ratio_name = '%' then
+            grd.qty_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm_aml.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         sam_stock_assay_mapping sam,
+         asm_assay_sublot_mapping asm,
+         pqca_pq_chemical_attributes pqca,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm_aml,
+         rm_ratio_master rm,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('RECORD_OUT_PUT_TOLLING')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pdtm_product_type_master pdtm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'RM Out Process Stock'
+     and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+     and sam.is_output_assay = 'Y'
+     and asm.ash_id = sam.ash_id
+     and asm.asm_id = pqca.asm_id
+     and pqca.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm_aml.product_id
+     and rm.ratio_id = pqca.unit_of_measure
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm_aml.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and pdm.product_type_id = pdtm.product_type_id
+     and pdtm.product_type_name = 'Composite'
+     and grd.product_id = pdm.product_id
+     and agmr.eff_date > vd_prev_eom_date
+     and agmr.eff_date <= pd_trade_date;
+     commit;
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Finished New Stock Composite End');    
+--
+-- Finished Existing Stock For Concentrate Products
+--                             
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Finished Stock Conc Existing',
+         pdm_aml.product_id,
+         pdm_aml.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'Existing Stock' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
+            pqca.typical / 100)
+           else
+            ((((grd.qty - grd.moved_out_qty ) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
+            pqca.typical)
+         end stock_qty,
+         (case
+           when rm.ratio_name = '%' then
+            grd.qty_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm_aml.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         sam_stock_assay_mapping sam,
+         asm_assay_sublot_mapping asm,
+         pqca_pq_chemical_attributes pqca,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm_aml,
+         rm_ratio_master rm,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('RECORD_OUT_PUT_TOLLING')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pdtm_product_type_master pdtm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'RM Out Process Stock'
+     and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+     and sam.is_output_assay = 'Y'
+     and asm.ash_id = sam.ash_id
+     and asm.asm_id = pqca.asm_id
+     and pqca.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm_aml.product_id
+     and rm.ratio_id = pqca.unit_of_measure
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm_aml.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and agmr.eff_date <= pd_trade_date
+     and pdm.product_type_id = pdtm.product_type_id
+     and pdtm.product_type_name = 'Composite'
+     and grd.product_id = pdm.product_id
+     
+     and agmr.eff_date <= vd_prev_eom_date;
+     commit;
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Finished Existing Stock Composite End');        
+--    
+-- Finsihed For Concentrates Internal Movement Startes
+--
+--
+-- Finished New Stock For Concentrate Products IM 
+--    
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Finished Stock',
+         pdm_aml.product_id,
+         pdm_aml.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'New Stocks' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
+            pqca.typical / 100)
+           else
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
+            pqca.typical)
+         end stock_qty,
+         (case
+           when rm.ratio_name = '%' then
+            grd.qty_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm_aml.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         sam_stock_assay_mapping sam,
+         asm_assay_sublot_mapping asm,
+         pqca_pq_chemical_attributes pqca,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm_aml,
+         rm_ratio_master rm,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('RECORD_OUT_PUT_TOLLING' ,'warehouseReceipt')--Internal Movement is updated as warehouseReceipt
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pdtm_product_type_master pdtm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type in ('RM Out Process Stock', 'None Tolling')
+     and gmr.is_internal_movement = 'Y'
+     and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+     and sam.is_output_assay = 'Y'
+     and asm.ash_id = sam.ash_id
+     and asm.asm_id = pqca.asm_id
+     and pqca.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm_aml.product_id
+     and rm.ratio_id = pqca.unit_of_measure
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm_aml.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and pdm.product_type_id = pdtm.product_type_id
+     and pdtm.product_type_name = 'Composite'
+     and grd.product_id = pdm.product_id
+     and agmr.eff_date > vd_prev_eom_date
+     and agmr.eff_date <= pd_trade_date;
+     commit;
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Finished New Stock Composite End');    
+--
+-- Finished Existing Stock For Concentrate Products IM
+--                             
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Finished Stock Conc Existing',
+         pdm_aml.product_id,
+         pdm_aml.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'Existing Stock' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
+            pqca.typical / 100)
+           else
+            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
+            pqca.typical)
+         end stock_qty,
+         (case
+           when rm.ratio_name = '%' then
+            grd.qty_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm_aml.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         sam_stock_assay_mapping sam,
+         asm_assay_sublot_mapping asm,
+         pqca_pq_chemical_attributes pqca,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm_aml,
+         rm_ratio_master rm,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('RECORD_OUT_PUT_TOLLING','warehouseReceipt')--Internal Movement is updated as warehouseReceipt
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pdtm_product_type_master pdtm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type in ('RM Out Process Stock', 'None Tolling')
+     and gmr.is_internal_movement = 'Y'
+     and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+     and sam.is_output_assay = 'Y'
+     and asm.ash_id = sam.ash_id
+     and asm.asm_id = pqca.asm_id
+     and pqca.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm_aml.product_id
+     and rm.ratio_id = pqca.unit_of_measure
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm_aml.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and pdm.product_type_id = pdtm.product_type_id
+     and pdtm.product_type_name = 'Composite'
+     and grd.product_id = pdm.product_id
+     
+     and agmr.eff_date <= vd_prev_eom_date;
+--- Finished for concentrates internal movement end
+commit;
+gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Finished Existing Stock Composite IM End');       
+                          
+--
+-- Finished New Stock For Base Metal Products
+--    
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Finished Stock',
+         grd.product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Finished Stock' stock_type,
+         'New Stocks' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         grd.qty stock_qty,
+         grd.qty_unit_id stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('RECORD_OUT_PUT_TOLLING')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pdtm_product_type_master pdtm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'RM Out Process Stock'
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and pdm.product_type_id = pdtm.product_type_id
+     and pdtm.product_type_name = 'Standard'
+     and grd.product_id = pdm.product_id
+     and agmr.eff_date > vd_prev_eom_date
+     and agmr.eff_date <= pd_trade_date;
+     commit;
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Finished New Stock Standard End');  
+                          
+--
+-- Finished New Stock For Base Metal Products with tolling stock type = 'RM In Process Stock' (Prachir)
+-- This is to create In Process Stock Consumed Section
+--    
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Test ',
+         grd.product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'In Process Stock' stock_type,
+         'Create Consumed From This' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         grd.qty stock_qty,
+         grd.qty_unit_id stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('RECORD_OUT_PUT_TOLLING','IN_PROCESS_ADJUSTMENT')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pdtm_product_type_master pdtm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type in( 'RM In Process Stock','In Process Adjustment Stock')
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and pdm.product_type_id = pdtm.product_type_id
+     and pdtm.product_type_name = 'Standard'
+     and grd.product_id = pdm.product_id
+     and agmr.eff_date > vd_prev_eom_date
+     and agmr.eff_date <= pd_trade_date;
+     commit;     
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Create Consumed From This');  
+
+                                                    
+--
+-- Finished Existing Stock For Base Metal Products
+--  
+
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Finished Stock',
+         grd.product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Finished Stock' stock_type,
+         'Existing Stock' section_name,
+         '1' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         grd.qty - grd.moved_out_qty stock_qty,
+         grd.qty_unit_id stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('RECORD_OUT_PUT_TOLLING')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pdtm_product_type_master pdtm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'RM Out Process Stock'
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and agmr.eff_date <= pd_trade_date
+     and pdm.product_type_id = pdtm.product_type_id
+     and pdtm.product_type_name = 'Standard'
+     and grd.product_id = pdm.product_id
+     
+     and agmr.eff_date <= vd_prev_eom_date;
+     commit;     
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                              pd_trade_date,
+                              pc_process_id,
+                              gvn_log_counter,
+                              'Finished Existing Stock Standard End');       
+--     
+-- Finished Stock Existing has to reduce the In Process Open Balance
+-- Due to this we are making In Process Stock Existing Stock with negative qty
+--
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'In Process Stock',
+         grd.product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'In Process Stock' stock_type,
+         'Existing Stock' section_name,
+         '1' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         (grd.qty) * -1 stock_qty,
+         grd.qty_unit_id stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in
+                 ('RECORD_OUT_PUT_TOLLING')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         phd_profileheaderdetails phd,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum,
+         ak_corporate akc,
+         pdtm_product_type_master pdtm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'RM In Process Stock'
+     and grd.warehouse_profile_id = phd.profileid
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and pdm.product_type_id = pdtm.product_type_id
+     and pdtm.product_type_name = 'Standard'
+     and grd.product_id = pdm.product_id
+     
+     and agmr.eff_date <= vd_prev_eom_date;
+     commit;
+     gvn_log_counter := gvn_log_counter + 1;
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'In Process Stock Existing Section Manipulation');           
           
-       and agmr.eff_date <= vd_prev_eom_date;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Finished Existing Stock Composite End');
-  --    
-  -- Finsihed For Concentrates Internal Movement Startes
-  --
-  --
-  -- Finished New Stock For Concentrate Products IM 
-  --    
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
+--
+-- Raw Material Existing Stock section has to be get reduced by In Process Stock 
+-- Hence marking them with negative only for Tolling Type = 'MFT In Process Stock' and 'Delta MFT IP Stock'
+-- Between Accounting Start Date and Last EOM Date
+-- 
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit)
     select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Finished Stock',
-           pdm_aml.product_id,
-           pdm_aml.product_desc,
-           'Inventory' position_type,
-           'Raw Material Stock' stock_type,
-           'New Stocks' section_name,
-           '2' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           case
-             when rm.ratio_name = '%' then
-              ((((grd.qty - grd.moved_out_qty) *
-              nvl(asm.dry_wet_qty_ratio, 100) / 100)) * pqca.typical / 100)
-             else
-              ((((grd.qty - grd.moved_out_qty) *
-              nvl(asm.dry_wet_qty_ratio, 0) / 100)) * pqca.typical)
-           end stock_qty,
-           (case
-             when rm.ratio_name = '%' then
-              grd.qty_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) stock_qty_unit_id,
-           pdm_aml.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           sam_stock_assay_mapping sam,
-           asm_assay_sublot_mapping asm,
-           pqca_pq_chemical_attributes pqca,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm_aml,
-           rm_ratio_master rm,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('RECORD_OUT_PUT_TOLLING', 'warehouseReceipt') --Internal Movement is updated as warehouseReceipt
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pdtm_product_type_master pdtm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type in
-           ('RM Out Process Stock', 'None Tolling')
-       and gmr.is_internal_movement = 'Y'
-       and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-       and sam.is_output_assay = 'Y'
-       and asm.ash_id = sam.ash_id
-       and asm.asm_id = pqca.asm_id
-       and pqca.element_id = aml.attribute_id
-       and aml.underlying_product_id = pdm_aml.product_id
-       and rm.ratio_id = pqca.unit_of_measure
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm_aml.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and pdm.product_type_id = pdtm.product_type_id
-       and pdtm.product_type_name = 'Composite'
-       and grd.product_id = pdm.product_id
-       and agmr.eff_date > vd_prev_eom_date
-       and agmr.eff_date <= pd_trade_date;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Raw Material Stock Negative' query_section_name,
+         aml.underlying_product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'Existing Stock' section_name,
+         1 section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+        -1 * grd.qty stock_qty,
+         grd.qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail grd,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm,
+         (select gmr.internal_gmr_ref_no,
+                 agmr.eff_date
+            from gmr_goods_movement_record gmr,
+                 agmr_action_gmr           agmr
+           where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+             and agmr.gmr_latest_action_action_id in ('MARK_FOR_TOLLING')
+             and agmr.is_deleted = 'N'
+             and gmr.process_id = pc_process_id) agmr,
+         qum_quantity_unit_master qum,
+         phd_profileheaderdetails phd,
+         ak_corporate akc
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.product_id = aml.underlying_product_id
+     and aml.underlying_product_id = pdm.product_id
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and grd.warehouse_profile_id = phd.profileid
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+      
+     and agmr.eff_date <= vd_prev_eom_date
+     and grd.tolling_stock_type in ('MFT In Process Stock', 'Delta MFT IP Stock');
+commit;
+     
+--
+-- Now we have to convert payable qty to Product Base Quantity Unit
+--
+for cur_stock_qty in
+(
+select product_id,
+       stock_qty_unit_id,
+       product_base_qty_unit_id
+  from temp_mas t
+ where t.corporate_id = pc_corporate_id
+   and t.stock_qty_unit_id <> t.product_base_qty_unit_id
+ group by product_id,
+          stock_qty_unit_id,
+          product_base_qty_unit_id
+) loop
+update temp_mas t
+   set t.stock_qty = pkg_general.f_get_converted_quantity(cur_stock_qty.product_id,
+                                                          cur_stock_qty.stock_qty_unit_id,
+                                                          cur_stock_qty.product_base_qty_unit_id,
+                                                          1) * t.stock_qty
+ where t.stock_qty_unit_id = cur_stock_qty.stock_qty_unit_id
+   and t.product_base_qty_unit_id = cur_stock_qty.product_base_qty_unit_id
+   and t.product_id = cur_stock_qty.product_id
+   and t.corporate_id = pc_corporate_id;
+end loop;
+commit;
+gvn_log_counter := gvn_log_counter + 1;
+   sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Qty conversion End');  
+                          
+insert into mas_metal_account_summary
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   qty_unit_id,
+   qty_unit)
+  select pc_process_id,
+         pd_trade_date,
+         corporate_id,
+         corporate_name,
+         product_id,
+         product_desc,
+         position_type,
+         stock_type,
+         section_name,
+         section_order,
+         warehouse_profile_id,
+         warehousename,
+         stock_qty,
+         product_base_qty_unit_id,
+         qty_unit
+    from temp_mas
+   where corporate_id = pc_corporate_id
+   and section_name <> 'Create Consumed From This';
+   commit; 
+   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Finished New Stock Composite End');
-  --
-  -- Finished Existing Stock For Concentrate Products IM
-  --                             
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Finished Stock Conc Existing',
-           pdm_aml.product_id,
-           pdm_aml.product_desc,
-           'Inventory' position_type,
-           'Raw Material Stock' stock_type,
-           'Existing Stock' section_name,
-           '2' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           case
-             when rm.ratio_name = '%' then
-              ((((grd.qty - grd.moved_out_qty) *
-              nvl(asm.dry_wet_qty_ratio, 100) / 100)) * pqca.typical / 100)
-             else
-              ((((grd.qty - grd.moved_out_qty) *
-              nvl(asm.dry_wet_qty_ratio, 0) / 100)) * pqca.typical)
-           end stock_qty,
-           (case
-             when rm.ratio_name = '%' then
-              grd.qty_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) stock_qty_unit_id,
-           pdm_aml.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           sam_stock_assay_mapping sam,
-           asm_assay_sublot_mapping asm,
-           pqca_pq_chemical_attributes pqca,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm_aml,
-           rm_ratio_master rm,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('RECORD_OUT_PUT_TOLLING', 'warehouseReceipt') --Internal Movement is updated as warehouseReceipt
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pdtm_product_type_master pdtm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type in
-           ('RM Out Process Stock', 'None Tolling')
-       and gmr.is_internal_movement = 'Y'
-       and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-       and sam.is_output_assay = 'Y'
-       and asm.ash_id = sam.ash_id
-       and asm.asm_id = pqca.asm_id
-       and pqca.element_id = aml.attribute_id
-       and aml.underlying_product_id = pdm_aml.product_id
-       and rm.ratio_id = pqca.unit_of_measure
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm_aml.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and pdm.product_type_id = pdtm.product_type_id
-       and pdtm.product_type_name = 'Composite'
-       and grd.product_id = pdm.product_id
-          
-       and agmr.eff_date <= vd_prev_eom_date;
-  --- Finished for concentrates internal movement end
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Finished Existing Stock Composite IM End');
-
-  --
-  -- Finished New Stock For Base Metal Products
-  --    
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Finished Stock',
-           grd.product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'Finished Stock' stock_type,
-           'New Stocks' section_name,
-           '2' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           grd.qty stock_qty,
-           grd.qty_unit_id stock_qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('RECORD_OUT_PUT_TOLLING')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pdtm_product_type_master pdtm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type = 'RM Out Process Stock'
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and pdm.product_type_id = pdtm.product_type_id
-       and pdtm.product_type_name = 'Standard'
-       and grd.product_id = pdm.product_id
-       and agmr.eff_date > vd_prev_eom_date
-       and agmr.eff_date <= pd_trade_date;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Finished New Stock Standard End');
-
-  --
-  -- Finished New Stock For Base Metal Products with tolling stock type = 'RM In Process Stock' (Prachir)
-  -- This is to create In Process Stock Consumed Section
-  --    
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Test ',
-           grd.product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'In Process Stock' stock_type,
-           'Create Consumed From This' section_name,
-           '2' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           grd.qty stock_qty,
-           grd.qty_unit_id stock_qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('RECORD_OUT_PUT_TOLLING', 'IN_PROCESS_ADJUSTMENT')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pdtm_product_type_master pdtm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type in
-           ('RM In Process Stock', 'In Process Adjustment Stock')
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and pdm.product_type_id = pdtm.product_type_id
-       and pdtm.product_type_name = 'Standard'
-       and grd.product_id = pdm.product_id
-       and agmr.eff_date > vd_prev_eom_date
-       and agmr.eff_date <= pd_trade_date;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Create Consumed From This');
-
-  --
-  -- Finished Existing Stock For Base Metal Products
-  --  
-
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Finished Stock',
-           grd.product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'Finished Stock' stock_type,
-           'Existing Stock' section_name,
-           '1' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           grd.qty - grd.moved_out_qty stock_qty,
-           grd.qty_unit_id stock_qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('RECORD_OUT_PUT_TOLLING')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pdtm_product_type_master pdtm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type = 'RM Out Process Stock'
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and agmr.eff_date <= pd_trade_date
-       and pdm.product_type_id = pdtm.product_type_id
-       and pdtm.product_type_name = 'Standard'
-       and grd.product_id = pdm.product_id
-          
-       and agmr.eff_date <= vd_prev_eom_date;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Finished Existing Stock Standard End');
-  --     
-  -- Finished Stock Existing has to reduce the In Process Open Balance
-  -- Due to this we are making In Process Stock Existing Stock with negative qty
-  --
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'In Process Stock',
-           grd.product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'In Process Stock' stock_type,
-           'Existing Stock' section_name,
-           '1' section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           (grd.qty) * -1 stock_qty,
-           grd.qty_unit_id stock_qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in
-                   ('RECORD_OUT_PUT_TOLLING')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           phd_profileheaderdetails phd,
-           pdm_productmaster pdm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           pdtm_product_type_master pdtm
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no /*(+)*/
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.tolling_stock_type = 'RM In Process Stock'
-       and grd.warehouse_profile_id = phd.profileid
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and pdm.product_type_id = pdtm.product_type_id
-       and pdtm.product_type_name = 'Standard'
-       and grd.product_id = pdm.product_id
-          
-       and agmr.eff_date <= vd_prev_eom_date;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'In Process Stock Existing Section Manipulation');
-
-  --
-  -- Raw Material Existing Stock section has to be get reduced by In Process Stock 
-  -- Hence marking them with negative only for Tolling Type = 'MFT In Process Stock' and 'Delta MFT IP Stock'
-  -- Between Accounting Start Date and Last EOM Date
-  -- 
-  insert into temp_mas
-    (process_id,
-     corporate_id,
-     corporate_name,
-     query_section_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     stock_qty_unit_id,
-     product_base_qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           gmr.corporate_id,
-           akc.corporate_name,
-           'Raw Material Stock Negative' query_section_name,
-           aml.underlying_product_id,
-           pdm.product_desc,
-           'Inventory' position_type,
-           'Raw Material Stock' stock_type,
-           'Existing Stock' section_name,
-           1 section_order,
-           grd.warehouse_profile_id,
-           phd.companyname,
-           -1 * grd.qty stock_qty,
-           grd.qty_unit_id,
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from gmr_goods_movement_record gmr,
-           grd_goods_record_detail grd,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm,
-           (select gmr.internal_gmr_ref_no,
-                   agmr.eff_date
-              from gmr_goods_movement_record gmr,
-                   agmr_action_gmr           agmr
-             where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agmr.gmr_latest_action_action_id in ('MARK_FOR_TOLLING')
-               and agmr.is_deleted = 'N'
-               and gmr.process_id = pc_process_id) agmr,
-           qum_quantity_unit_master qum,
-           phd_profileheaderdetails phd,
-           ak_corporate akc
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and grd.is_afloat = 'N'
-       and grd.is_trans_ship = 'N'
-       and grd.product_id = aml.underlying_product_id
-       and aml.underlying_product_id = pdm.product_id
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and grd.warehouse_profile_id = phd.profileid
-       and gmr.corporate_id = akc.corporate_id
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-          
-       and agmr.eff_date <= vd_prev_eom_date
-       and grd.tolling_stock_type in
-           ('MFT In Process Stock', 'Delta MFT IP Stock');
-  commit;
-
-  --
-  -- Now we have to convert payable qty to Product Base Quantity Unit
-  --
-  for cur_stock_qty in (select product_id,
-                               stock_qty_unit_id,
-                               product_base_qty_unit_id
-                          from temp_mas t
-                         where t.corporate_id = pc_corporate_id
-                           and t.stock_qty_unit_id <>
-                               t.product_base_qty_unit_id
-                         group by product_id,
-                                  stock_qty_unit_id,
-                                  product_base_qty_unit_id)
-  loop
-    update temp_mas t
-       set t.stock_qty = pkg_general.f_get_converted_quantity(cur_stock_qty.product_id,
-                                                              cur_stock_qty.stock_qty_unit_id,
-                                                              cur_stock_qty.product_base_qty_unit_id,
-                                                              1) *
-                         t.stock_qty
-     where t.stock_qty_unit_id = cur_stock_qty.stock_qty_unit_id
-       and t.product_base_qty_unit_id =
-           cur_stock_qty.product_base_qty_unit_id
-       and t.product_id = cur_stock_qty.product_id
-       and t.corporate_id = pc_corporate_id;
-  end loop;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Qty conversion End');
-
-  insert into mas_metal_account_summary
-    (process_id,
-     eod_trade_date,
-     corporate_id,
-     corporate_name,
-     product_id,
-     product_desc,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           pd_trade_date,
-           corporate_id,
-           corporate_name,
-           product_id,
-           product_desc,
-           position_type,
-           stock_type,
-           section_name,
-           section_order,
-           warehouse_profile_id,
-           warehousename,
-           stock_qty,
-           product_base_qty_unit_id,
-           qty_unit
-      from temp_mas
-     where corporate_id = pc_corporate_id
-       and section_name <> 'Create Consumed From This';
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Mas Insertion Over');
-  --
-  -- Consumed for Raw Material Stock  Take From In Process New Stock
-  --
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Mas Insertion Over');  
+ --
+ -- Consumed for Raw Material Stock  Take From In Process New Stock
+ --
 
   insert into mas_metal_account_summary
     (process_id,
@@ -12416,73 +12492,72 @@ begin
            mas.qty_unit
       from mas_metal_account_summary mas
      where mas.stock_type = 'In Process Stock'
-       and mas.section_name in
-           ('New Stocks', 'New Stock - In Process Stocks') -- Should not contain Free Metal
+       and mas.section_name IN ('New Stocks','New Stock - In Process Stocks') -- Should not contain Free Metal
        and mas.process_id = pc_process_id;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Consumed For Raw Material End');
-  --                           
-  -- Iron Stock for In Process Stock 
-  --
-  insert into mas_metal_account_summary
-    (process_id,
-     eod_trade_date,
-     product_id,
-     product_desc,
-     corporate_id,
-     corporate_name,
-     position_type,
-     stock_type,
-     section_name,
-     section_order,
-     warehouse_profile_id,
-     warehousename,
-     stock_qty,
-     qty_unit_id,
-     qty_unit)
-    select pc_process_id,
-           pd_trade_date,
-           sbs.product_id,
-           pdm.product_desc,
-           sbs.corporate_id,
-           akc.corporate_name,
-           'Inventory' position_type,
-           'In Process Stock' stock_type,
-           'Iron Stock',
-           '1' section_order,
-           sbs.warehouse_profile_id,
-           phd.companyname,
-           pkg_general.f_get_converted_quantity(sbs.product_id,
-                                                sbs.qty_unit_id,
-                                                pdm.base_quantity_unit,
-                                                sbs.qty),
-           pdm.base_quantity_unit qty_unit_id,
-           qum.qty_unit
-      from sbs_smelter_base_stock   sbs,
-           pdm_productmaster        pdm,
-           ak_corporate             akc,
-           phd_profileheaderdetails phd,
-           qum_quantity_unit_master qum
-     where sbs.product_id = pdm.product_id
-       and sbs.corporate_id = akc.corporate_id
-       and sbs.warehouse_profile_id = phd.profileid
-       and pdm.base_quantity_unit = qum.qty_unit_id
-       and akc.corporate_id = pc_corporate_id;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Iron Stock For Process Stock End');
-  --
-  -- Populate In Process Stock Consumed From Finished New Stock                          
-  --
+       commit;
+       gvn_log_counter := gvn_log_counter + 1;
+       sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Consumed For Raw Material End');   
+--                           
+-- Iron Stock for In Process Stock 
+--
+ insert into mas_metal_account_summary
+   (process_id,
+    eod_trade_date,
+    product_id,
+    product_desc,
+    corporate_id,
+    corporate_name,
+    position_type,
+    stock_type,
+    section_name,
+    section_order,
+    warehouse_profile_id,
+    warehousename,
+    stock_qty,
+    qty_unit_id,
+    qty_unit)
+   select pc_process_id,
+          pd_trade_date,
+          sbs.product_id,
+          pdm.product_desc,
+          sbs.corporate_id,
+          akc.corporate_name,
+          'Inventory' position_type,
+          'In Process Stock' stock_type,
+          'Iron Stock',
+          '1' section_order,
+          sbs.warehouse_profile_id,
+          phd.companyname,
+          pkg_general.f_get_converted_quantity(sbs.product_id,
+                                               sbs.qty_unit_id,
+                                               pdm.base_quantity_unit,
+                                               sbs.qty),
+          pdm.base_quantity_unit qty_unit_id,
+          qum.qty_unit
+     from sbs_smelter_base_stock   sbs,
+          pdm_productmaster        pdm,
+          ak_corporate             akc,
+          phd_profileheaderdetails phd,
+          qum_quantity_unit_master qum
+    where sbs.product_id = pdm.product_id
+      and sbs.corporate_id = akc.corporate_id
+      and sbs.warehouse_profile_id = phd.profileid
+      and pdm.base_quantity_unit = qum.qty_unit_id
+      and akc.corporate_id = pc_corporate_id;
+      commit;
+      gvn_log_counter := gvn_log_counter + 1;
+      sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Iron Stock For Process Stock End');  
+--
+-- Populate In Process Stock Consumed From Finished New Stock                          
+--
   insert into mas_metal_account_summary
     (process_id,
      eod_trade_date,
@@ -12518,13 +12593,13 @@ begin
      where mas.stock_type = 'In Process Stock'
        and mas.section_name = 'Create Consumed From This'
        and mas.process_id = pc_process_id;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Consumed In Process Sotck End');
+       commit;
+       gvn_log_counter := gvn_log_counter + 1;
+       sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Consumed In Process Sotck End');  
 
   -- Afloat
   insert into mas_metal_account_summary
@@ -12613,7 +12688,7 @@ begin
        and grd.process_id = pc_process_id
        and spq.process_id = pc_process_id
        and agmr.eff_date <= pd_trade_date
-    
+       
      group by aml.underlying_product_id,
               pdm.product_desc,
               pdm.base_quantity_unit,
@@ -12634,14 +12709,14 @@ begin
                 else
                  '1'
               end);
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Afloat End');
-
+              commit;
+              gvn_log_counter := gvn_log_counter + 1;
+              sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Afloat End');  
+  
   insert into md_metal_debt
     (process_id,
      corporate_id,
@@ -12846,9 +12921,7 @@ begin
                           'Existing Stock' then
                       mas.stock_qty
                      when mas.section_name in
-                          ('New Stocks',
-                           'New Stock - In Process Stocks',
-                           'New Stock - Free Metal Stocks') then
+                          ('New Stocks','New Stock - In Process Stocks','New Stock - Free Metal Stocks') then
                       mas.stock_qty
                      when mas.section_name =
                           'Consumed' then
@@ -12884,14 +12957,15 @@ begin
               qty_unit_id,
               qty_unit;
 
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'End of Metal Balance');
+    commit;
+    gvn_log_counter := gvn_log_counter + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'End of Metal Balance');  
 end;
+
 
 procedure sp_misc_updates(pc_corporate_id varchar2,
                           pd_trade_date   date,
@@ -19539,113 +19613,7 @@ begin
     into vc_corporate_name
     from ak_corporate akc
    where akc.corporate_id = pc_corporate_id;
-
-  vn_rno := 0;
-  delete from temp_stock_latest_assay where corporate_id = pc_corporate_id;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'CB Delete TEMP_STOCK_LATEST_ASSAY Over');
-  -- For records with Pricing Assay
-  insert into temp_stock_latest_assay
-    (corporate_id,
-     internal_gmr_ref_no,
-     internal_grd_ref_no,
-     element_id,
-     latest_ash_id)
-    select gmr.corporate_id,
-           gmr.internal_gmr_ref_no,
-           grd.internal_grd_ref_no,
-           spq.element_id,
-           ash_pricing.ash_id latest_ash_id
-      from grd_goods_record_detail   grd,
-           gmr_goods_movement_record gmr,
-           sam_stock_assay_mapping   sam,
-           ash_assay_header          ash,
-           spq_stock_payable_qty     spq,
-           ash_assay_header          ash_pricing,
-           asm_assay_sublot_mapping  asm
-     where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-       and sam.internal_grd_ref_no = grd.internal_grd_ref_no
-       and spq.is_active = 'Y'
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and spq.is_stock_split = 'N'
-       and sam.ash_id = ash.ash_id
-       and ash.internal_grd_ref_no = spq.internal_grd_ref_no
-       and spq.assay_header_id = ash_pricing.pricing_assay_ash_id
-       and ash_pricing.assay_type = 'Weighted Avg Pricing Assay'
-       and spq.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and gmr.process_id = pc_process_id
-       and gmr.corporate_id = pc_corporate_id
-       and asm.ash_id = ash_pricing.ash_id
-     group by gmr.corporate_id,
-              gmr.internal_gmr_ref_no,
-              grd.internal_grd_ref_no,
-              spq.element_id,
-              ash_pricing.ash_id;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'CB Insert TEMP_STOCK_LATEST_ASSAY 1 Over');
-  -- Records with No Pricing Assay, Consider Shipment Assay
-  insert into temp_stock_latest_assay
-    (corporate_id,
-     internal_gmr_ref_no,
-     internal_grd_ref_no,
-     element_id,
-     latest_ash_id)
-    select gmr.corporate_id,
-           gmr.internal_gmr_ref_no,
-           grd.internal_grd_ref_no,
-           spq.element_id,
-           ash.ash_id latest_ash_id
-      from grd_goods_record_detail   grd,
-           gmr_goods_movement_record gmr,
-           sam_stock_assay_mapping   sam,
-           ash_assay_header          ash,
-           spq_stock_payable_qty     spq,
-           asm_assay_sublot_mapping  asm
-     where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-       and sam.internal_grd_ref_no = grd.internal_grd_ref_no
-       and spq.is_active = 'Y'
-       and gmr.is_deleted = 'N'
-       and grd.status = 'Active'
-       and spq.is_stock_split = 'N'
-       and sam.ash_id = ash.ash_id
-       and ash.internal_grd_ref_no = spq.internal_grd_ref_no
-       and spq.weg_avg_pricing_assay_id = ash.ash_id
-       and ash.assay_type = 'Shipment Assay'
-       and spq.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and gmr.process_id = pc_process_id
-       and asm.ash_id = ash.ash_id
-       and not exists
-     (select *
-              from temp_stock_latest_assay t
-             where t.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-               and t.internal_grd_ref_no = grd.internal_grd_ref_no
-               and t.element_id = spq.element_id
-               and t.corporate_id = pc_corporate_id)
-     group by gmr.corporate_id,
-              gmr.internal_gmr_ref_no,
-              grd.internal_grd_ref_no,
-              spq.element_id,
-              ash.ash_id;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'CB Insert TEMP_STOCK_LATEST_ASSAY 2 Over');
+  vn_rno := 0;  
   delete from cbt_cb_temp t where t.corporate_id = pc_corporate_id;
   commit;
   gvn_log_counter := gvn_log_counter + 1;
