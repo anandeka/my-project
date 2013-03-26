@@ -962,7 +962,8 @@ create or replace package body pkg_phy_cog_price is
           into vn_cfx_price_to_pay
           from cet_corporate_exch_rate cet
          where cet.from_cur_id = cur_corp_fx_rate.price_unit_cur_id
-           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id;
+           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id
+           and cet.corporate_id = pc_corporate_id;
       exception
         when others then
           vn_cfx_price_to_pay := -1;
@@ -1783,7 +1784,8 @@ create or replace package body pkg_phy_cog_price is
           into vn_cfx_price_to_pay
           from cet_corporate_exch_rate cet
          where cet.from_cur_id = cur_corp_fx_rate.price_unit_cur_id
-           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id;
+           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id
+           and cet.corporate_id = pc_corporate_id;
       exception
         when others then
           vn_cfx_price_to_pay := -1;
@@ -2855,7 +2857,8 @@ create or replace package body pkg_phy_cog_price is
           into vn_cfx_price_to_pay
           from cet_corporate_exch_rate cet
          where cet.from_cur_id = cur_corp_fx_rate.price_unit_cur_id
-           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id;
+           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id
+           and cet.corporate_id = pc_corporate_id;
       exception
         when others then
           vn_cfx_price_to_pay := -1;
@@ -4638,7 +4641,8 @@ create or replace package body pkg_phy_cog_price is
           into vn_cfx_price_to_pay
           from cet_corporate_exch_rate cet
          where cet.from_cur_id = cur_corp_fx_rate.price_unit_cur_id
-           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id;
+           and cet.to_cur_id = cur_corp_fx_rate.pay_in_cur_id
+           and cet.corporate_id = pc_corporate_id;
       exception
         when others then
           vn_cfx_price_to_pay := -1;
