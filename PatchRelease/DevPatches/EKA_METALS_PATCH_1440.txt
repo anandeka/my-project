@@ -41,5 +41,5 @@ Date: 5:38:32 PM, Monday, March 25, 2013
 Message:
 Bug Fixes
 ----
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_arrived_not_priced.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_arrived_not_priced.sql(Revision: 120954)
 
