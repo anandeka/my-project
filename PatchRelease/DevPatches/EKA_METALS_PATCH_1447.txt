@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1447
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan
+ 
+Created on*        		:  26-Mar-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Weighing and Sampling 
+
+Sub-Module  			 : 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 120993
+Author: srinivasanmurugesan
+Date: 3:49:25 PM, Tuesday, March 26, 2013
+Message:
+Data correction script for 'GMR-2875-BLD' &  'GMR-2512-BLD' becaz of WnS cancellation issue.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_44.sql
+
+

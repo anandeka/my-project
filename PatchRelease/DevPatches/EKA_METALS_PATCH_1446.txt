@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1446
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan
+ 
+Created on*        		:  26-Mar-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Weighing and Sampling Interface
+
+Sub-Module  			 : 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 120992
+Author: srinivasanmurugesan
+Date: 3:49:08 PM, Tuesday, March 26, 2013
+Message:
+Script to update the WnGroupId,AssayRefNo,WnSRefNo of child assays of WnS created using Migration GMR
+Script to insert WSISM mapping for WnS created through interface.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_42.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_43.sql
+
+
