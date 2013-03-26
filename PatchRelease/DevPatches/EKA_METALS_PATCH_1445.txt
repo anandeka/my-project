@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1445
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan
+ 
+Created on*        		:  26-Mar-2012
+
+Bug / Enhancement*              :  Bug
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Weighing and Sampling Interface
+
+Sub-Module  			 : 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 120230
+Author: srinivasanmurugesan
+Date: 12:59:55 PM, Wednesday, March 20, 2013
+Message:
+Data correction script to update ordering of elements in PQCA for Sublots of GMR created through interface.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_41.sql
+
+
