@@ -7,7 +7,7 @@ with price_fixation as(select pfd.pofh_id,
  and pfd.is_exposure='Y'
  group by pfd.pofh_id)
 
--- 1. SCT Traxys Event Based Query + Conc:
+-- 1. SCT+PC(CONC)+PCT Traxys Event Based Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
        'GMR Level Pricing' section_name,
@@ -169,7 +169,7 @@ select phd.companyname cp_name,
    and pdm_under.base_quantity_unit=ucm.to_qty_unit_id
    and pdm_under.base_quantity_unit=qum_under.qty_unit_id
    and pcm.is_active = 'Y'
-   and pcm.purchase_sales = 'P'
+  -- and pcm.purchase_sales = 'P'
    and pcdi.is_active = 'Y'
    and pci.is_active = 'Y'
    and gmr.is_deleted = 'N'
@@ -229,7 +229,7 @@ select phd.companyname cp_name,
 
 union all
 
--- 2. SCT Traxys Non Event Based(DI) Query + Conc:
+-- 2. SCT+PC(CONC)+PCT  Traxys Non Event Based(DI) Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
        'DI Level Pricing' section_name,
@@ -361,7 +361,7 @@ select phd.companyname cp_name,
    and pdm_under.base_quantity_unit=ucm.to_qty_unit_id
    and pdm_under.base_quantity_unit=qum_under.qty_unit_id
    and pcm.is_active = 'Y'
-   and pcm.purchase_sales = 'P'
+ --  and pcm.purchase_sales = 'P'
    and pcdi.is_active = 'Y'
    and pci.is_active = 'Y'
    and poch.is_active = 'Y'
@@ -375,7 +375,7 @@ select phd.companyname cp_name,
        round((nvl(pfd.priced_qty, 0)), 4) > 0
   and nvl(diqs.title_transferred_qty, 0)<>0  --- it should not show when Gmr is not created.   
 union all
--- 3. PCT Traxys Event Based Query + Conc:
+-- 3. SC(CONC)Traxys Event Based Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
        'GMR Level Pricing' section_name,
@@ -527,7 +527,7 @@ select phd.companyname cp_name,
    and pdm_under.base_quantity_unit=ucm.to_qty_unit_id
    and pdm_under.base_quantity_unit=qum_under.qty_unit_id
    and pcm.is_active = 'Y'
-   and pcm.purchase_sales = 'S'
+  -- and pcm.purchase_sales = 'S'
    and pcdi.is_active = 'Y'
    and pci.is_active = 'Y'
    and gmr.is_deleted = 'N'
@@ -585,7 +585,7 @@ select phd.companyname cp_name,
           qum_under.qty_unit,
           (case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)
 union all
--- 4. PCT Traxys Non Event Based(DI) Query + Conc:
+-- 4. SC(CONC) Traxys Non Event Based(DI) Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
        'DI Level Pricing' section_name,
@@ -719,7 +719,7 @@ select phd.companyname cp_name,
    and pdm_under.base_quantity_unit=ucm.to_qty_unit_id
    and pdm_under.base_quantity_unit=qum_under.qty_unit_id
    and pcm.is_active = 'Y'
-   and pcm.purchase_sales = 'S'
+ --  and pcm.purchase_sales = 'S'
    and pcdi.is_active = 'Y'
    and pci.is_active = 'Y'
    and poch.is_active = 'Y'
@@ -1563,7 +1563,7 @@ select phd.companyname cp_name,
    and pdm_under.base_quantity_unit=ucm.to_qty_unit_id
    and pdm_under.base_quantity_unit=qum_under.qty_unit_id
    and pcm.is_active = 'Y'
-   and pcm.purchase_sales = 'P'
+  -- and pcm.purchase_sales = 'P'
    and pcdi.is_active = 'Y'
    and pci.is_active = 'Y'
    and gmr.is_deleted = 'N'
@@ -1789,7 +1789,7 @@ select phd.companyname cp_name,
    and pdm.base_quantity_unit=ucm.to_qty_unit_id
    and pdm.base_quantity_unit=qum_under.qty_unit_id
    and pcm.is_active = 'Y'
-   and pcm.purchase_sales = 'P'
+  -- and pcm.purchase_sales = 'P'
    and pcdi.is_active = 'Y'
    and pci.is_active = 'Y'
    and gmr.is_deleted = 'N'
