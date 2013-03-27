@@ -35,14 +35,15 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
-Revision: 121130
-Author: rajuga
-Date: 1:08:40 PM, Wednesday, March 27, 2013
+SQL Files
+=======================
+Revision: 121192
+Author: sivachalabathi.s
+Date: 8:15:52 PM, Wednesday, March 27, 2013
 Message:
-Bug: 63566
-(New format according to updated FS has been implemented including self billing and Draft symbol)
+
 ----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_45.sql
 
 ==================================================================
 
@@ -56,7 +57,7 @@ In physical position report it is showing WMT instead of DMT
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_concentrate_details.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details.sql
 
-==================================================================
+======RPT Files============================================================
 
 Revision: 121132
 Author: rajuga
@@ -76,3 +77,12 @@ Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/Phy
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition_Excel.rpt
 
 ==================================================================
+
+Revision: 121130
+Author: rajuga
+Date: 1:08:40 PM, Wednesday, March 27, 2013
+Message:
+Bug: 63566
+(New format according to updated FS has been implemented including self billing and Draft symbol)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
