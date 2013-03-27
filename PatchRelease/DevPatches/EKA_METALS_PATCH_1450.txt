@@ -1,0 +1,78 @@
+Patch No*          		:  EKA_METALS_PATCH_1450
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  27-Mar-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  63566 & 75976
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 121130
+Author: rajuga
+Date: 1:08:40 PM, Wednesday, March 27, 2013
+Message:
+Bug: 63566
+(New format according to updated FS has been implemented including self billing and Draft symbol)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+
+==================================================================
+
+Revision: 121131
+Author: rajuga
+Date: 1:10:48 PM, Wednesday, March 27, 2013
+Message:
+Bug: 75976
+In physical position report it is showing WMT instead of DMT
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_concentrate_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details.sql
+
+==================================================================
+
+Revision: 121132
+Author: rajuga
+Date: 1:11:59 PM, Wednesday, March 27, 2013
+Message:
+Bug: 75976
+In physical position report it is showing WMT instead of DMT
+
+For Contractual Assay Type Dry Wet Quantity ratio is not getting populating from APP side.
+That is why it is showing Wet quantity only.
+
+Other than this issue remaining all below issues were fixed from Report side.
+1) Taken care of Wet to Dry conversion
+2) Made all filters to work appropriately
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPosition_Excel.rpt
+
+==================================================================
