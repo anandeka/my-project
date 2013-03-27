@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1451
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  27-Mar-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75699
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 121189
+Author: sivachalabathi.s
+Date: 7:54:18 PM, Wednesday, March 27, 2013
+Message:
+bug fixes for canceled section
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_daily_hedge_correction.sql
