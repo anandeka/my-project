@@ -160,7 +160,7 @@ select subsectionname,
                                                        nvl(grd.title_transfer_out_qty,
                                                             0))
                 else
-                (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1) 
+                (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,100) /100
                 end)item_open_qty,   
                (case when rm.ratio_name = '%' then  
                      (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical 
@@ -385,7 +385,7 @@ select subsectionname,
                (case when pcpq.unit_of_measure = 'Dry'
                then grd.current_qty
                else
-               grd.current_qty * nvl(asm.dry_wet_qty_ratio,1)
+               grd.current_qty * nvl(asm.dry_wet_qty_ratio,100)/100
                                                        end) item_open_qty,
                (case when rm.ratio_name = '%' then  
                      grd.current_qty * nvl(asm.dry_wet_qty_ratio,100)/100 * pqca.typical
@@ -615,7 +615,7 @@ select subsectionname,
                                                        nvl(grd.title_transfer_out_qty,
                                                             0))
                else
-               (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,1)
+               (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,100)/100
                                                        end) item_open_qty,
                (case when rm.ratio_name = '%' then  
                      (nvl(grd.current_qty,0) +nvl(grd.release_shipped_qty,0) -nvl(grd.title_transfer_out_qty,0)) * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
@@ -840,7 +840,7 @@ select subsectionname,
                (case when pcpq.unit_of_measure = 'Dry'
                then grd.current_qty
                else
-               grd.current_qty * nvl(asm.dry_wet_qty_ratio,1)
+               grd.current_qty * nvl(asm.dry_wet_qty_ratio,100)/100
                                                        end) item_open_qty,
                (case when rm.ratio_name = '%' then  
                      grd.current_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical

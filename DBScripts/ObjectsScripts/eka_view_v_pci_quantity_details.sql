@@ -202,7 +202,7 @@ select pcdi.pcdi_id,
        (case when pcpq.unit_of_measure = 'Dry'
        then ciqs.open_qty
        else
-       ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,1)
+       ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,100)/100
                                                end) item_open_qty,
         (case when rm.ratio_name = '%' then  
                      ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
