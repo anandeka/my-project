@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1454
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  28-Mar-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  COG price
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 121258
+Author: janba
+Date: 5:15:54 PM, Thursday, March 28, 2013
+Message:
+COG Price Package
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_gad_gmr_aloc_data .sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_ged_gmr_exchange_detail.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_gmr_exchange_detail .sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_page_price_alloc_gmr.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pcdi_exchange_detail.sql
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+
+
