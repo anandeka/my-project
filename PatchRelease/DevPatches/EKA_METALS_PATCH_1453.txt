@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_14523
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  28-Mar-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 121197
+Author: abhishek.vijay
+Date: 10:30:23 AM, Thursday, March 28, 2013
+Message:
+gmr ref no should be come for allocated price fixation  
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+
+Revision: 119072
+Author: abhishek.vijay
+Date: 5:05:26 PM, Monday, March 11, 2013
+Message:
+ Bug 71938 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PREPAREAMENDCONTRACTOUTPUTDOC.sql
+
