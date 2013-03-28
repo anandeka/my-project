@@ -1,0 +1,64 @@
+Patch No*          		:  EKA_METALS_PATCH_1455
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  28-Mar-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 121283
+Author: ramachandran.r
+Date: 7:25:50 PM, Thursday, March 28, 2013
+Message:
+Receive Material For Mine.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_110.sql
+
+
+
+Revision: 121284
+Author: ramachandran.r
+Date: 7:28:01 PM, Thursday, March 28, 2013
+Message:
+Receive Material For Mine.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_534.sql
+
+
+Revision: 121285
+Author: ramachandran.r
+Date: 7:31:01 PM, Thursday, March 28, 2013
+Message:
+Receive Material For Mine.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_419.sql
+
