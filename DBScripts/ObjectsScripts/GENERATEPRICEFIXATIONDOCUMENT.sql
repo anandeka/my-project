@@ -1,4 +1,4 @@
-/* Formatted on 2013/02/21 18:08 (Formatter Plus v4.8.8) */
+/* Formatted on 2013/03/19 15:16 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE PROCEDURE "GENERATEPRICEFIXATIONDOCUMENT" (
    p_pfd_id           VARCHAR2,
    p_docrefno         VARCHAR2,
@@ -199,7 +199,12 @@ BEGIN
            END
            END
           ),
-          gmr.gmr_ref_no,
+          (CASE
+              WHEN pocd.qp_period_type = 'Event'
+                 THEN gmr.gmr_ref_no
+              ELSE pfd.allocated_gmr_ref_no
+           END
+          ),
           (   TO_CHAR (pofh.qp_start_date, 'dd-Mon-YYYY')
            || ' to '
            || TO_CHAR (pofh.qp_end_date, 'dd-Mon-YYYY')
