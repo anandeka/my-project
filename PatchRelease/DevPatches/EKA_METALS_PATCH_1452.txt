@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1452
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  27-Mar-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75809
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 121229
+Author: suresh.gottipati
+Date: 2:50:26 PM, Thursday, March 28, 2013
+Message:
+Swap Report Released
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_113_RFC_RPC.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_114_SLS_SLV.sql
+
+
+
+Revision: 121231
+Author: suresh.gottipati
+Date: 2:51:55 PM, Thursday, March 28, 2013
+Message:
+Swap Report Released
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SwapReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SwapReport_Excel.rpt
