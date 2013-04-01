@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1461
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  01-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  69758
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 121469
+Author: rajuga
+Date: 7:34:06 PM, Monday, April 01, 2013
+Message:
+Bug 69758 - Instead of Invoice amount system is taking Accrual amount in the document of Service Invoice
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+
+==================================================================
