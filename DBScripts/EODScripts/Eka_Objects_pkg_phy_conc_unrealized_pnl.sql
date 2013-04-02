@@ -1781,9 +1781,23 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       sam.ash_id assay_header_id,
                       ceqs.assay_qty,
                       ceqs.assay_qty_unit_id,
-                      gmr_qty.payable_qty,
-                      gmr_qty.qty_unit_id payable_qty_unit_id,
+                      --Added Suresh                   
+                      (case
+                        when rm.ratio_name = '%' then
+                         ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                         (pqcapd.payable_percentage / 100))
+                        else
+                         ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                         pqcapd.payable_percentage)
+                      end) payable_qty,
+                      (case
+                        when rm.ratio_name = '%' then
+                         grd.qty_unit_id
+                        else
+                         rm.qty_unit_id_numerator
+                      end) payable_qty_unit_id,
                       gmr_qum.qty_unit payable_qty_unit,
+                      -----
                       cipde.contract_price,
                       cipde.price_unit_id,
                       cipde.price_unit_weight_unit_id,
@@ -1927,10 +1941,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       qum_quantity_unit_master qum_pdm_conc,
                       pum_price_unit_master pum_loc_base,
                       pum_price_unit_master pum_base_price_id,
-                      v_gmr_stockpayable_qty gmr_qty,
-                      qum_quantity_unit_master gmr_qum,
-                      v_ppu_pum tc_ppu_pum,
-                      v_ppu_pum rc_ppu_pum,
+                      -- added Suresh 
+                      ash_assay_header               ash,
+                      asm_assay_sublot_mapping       asm,
+                      pqca_pq_chemical_attributes    pqca,
+                      rm_ratio_master                rm,
+                      pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+                      qum_quantity_unit_master       gmr_qum,
+                      ---                                      
+                      v_ppu_pum                    tc_ppu_pum,
+                      v_ppu_pum                    rc_ppu_pum,
                       ceqs_contract_ele_qty_status ceqs,
                       sam_stock_assay_mapping sam,
                       gscs_gmr_sec_cost_summary gscs,
@@ -1986,10 +2006,21 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pum_base_price_id.price_unit_id
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
-                 and gmr.internal_gmr_ref_no = gmr_qty.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = gmr_qty.internal_grd_ref_no
-                 and cipde.element_id = gmr_qty.element_id
-                 and gmr_qty.qty_unit_id = gmr_qum.qty_unit_id
+                    -- added Suresh
+                 and grd.weg_avg_pricing_assay_id = ash.ash_id
+                 and ash.ash_id = asm.ash_id
+                 and asm.asm_id = pqca.asm_id
+                 and pqca.is_elem_for_pricing = 'Y'
+                 and pqca.element_id = aml.attribute_id
+                 and pqca.unit_of_measure = rm.ratio_id
+                 and gmr_qum.qty_unit_id =
+                     (case when rm.ratio_name = '%' then grd.qty_unit_id else
+                      rm.qty_unit_id_numerator end)
+                 and pqca.pqca_id = pqcapd.pqca_id
+                 and rm.is_active = 'Y'
+                 and pqca.is_active = 'Y'
+                 and pqcapd.is_active = 'Y'
+                    ---
                  and pci.internal_contract_item_ref_no =
                      ceqs.internal_contract_item_ref_no
                  and aml.attribute_id = ceqs.element_id
@@ -2004,7 +2035,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and ciqs.process_id = pc_process_id
                  and cipde.process_id = pc_process_id
                  and pcdb.process_id = pc_process_id
-                 and gmr_qty.process_id = pc_process_id
                  and ceqs.process_id = pc_process_id
                  and pcm.purchase_sales = 'P'
                  and pcm.contract_status = 'In Position'
@@ -2106,9 +2136,23 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      sam.ash_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
-                     gmr_qty.payable_qty,
-                     gmr_qty.qty_unit_id payable_qty_unit_id,
+                     --- added Suresh
+                     (case
+                       when rm.ratio_name = '%' then
+                        ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                        (pqcapd.payable_percentage / 100))
+                       else
+                        ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                        pqcapd.payable_percentage)
+                     end) payable_qty,
+                     (case
+                       when rm.ratio_name = '%' then
+                        grd.qty_unit_id
+                       else
+                        rm.qty_unit_id_numerator
+                     end) payable_qty_unit_id,
                      gmr_qum.qty_unit payable_qty_unit,
+                     ---                                    
                      gpd.contract_price,
                      gpd.price_unit_id,
                      gpd.price_unit_weight_unit_id,
@@ -2258,10 +2302,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      qum_quantity_unit_master qum_pdm_conc,
                      pum_price_unit_master pum_loc_base,
                      pum_price_unit_master pum_base_price_id,
-                     v_gmr_stockpayable_qty gmr_qty,
-                     qum_quantity_unit_master gmr_qum,
-                     v_ppu_pum tc_ppu_pum,
-                     v_ppu_pum rc_ppu_pum,
+                     ---- Added Suresh                   
+                     ash_assay_header               ash,
+                     asm_assay_sublot_mapping       asm,
+                     pqca_pq_chemical_attributes    pqca,
+                     rm_ratio_master                rm,
+                     pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+                     qum_quantity_unit_master       gmr_qum,
+                     ---
+                     v_ppu_pum                    tc_ppu_pum,
+                     v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
                      sam_stock_assay_mapping sam,
                      gscs_gmr_sec_cost_summary gscs,
@@ -2317,10 +2367,21 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pum_base_price_id.price_unit_id
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
-                 and gmr.internal_gmr_ref_no = gmr_qty.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = gmr_qty.internal_grd_ref_no
-                 and gpd.element_id = gmr_qty.element_id
-                 and gmr_qty.qty_unit_id = gmr_qum.qty_unit_id
+                    ---Added Suresh
+                 and grd.weg_avg_pricing_assay_id = ash.ash_id
+                 and ash.ash_id = asm.ash_id
+                 and asm.asm_id = pqca.asm_id
+                 and pqca.is_elem_for_pricing = 'Y'
+                 and pqca.element_id = aml.attribute_id
+                 and pqca.unit_of_measure = rm.ratio_id
+                 and gmr_qum.qty_unit_id =
+                     (case when rm.ratio_name = '%' then grd.qty_unit_id else
+                      rm.qty_unit_id_numerator end)
+                 and pqca.pqca_id = pqcapd.pqca_id
+                 and rm.is_active = 'Y'
+                 and pqca.is_active = 'Y'
+                 and pqcapd.is_active = 'Y'
+                    ----
                  and pci.internal_contract_item_ref_no =
                      ceqs.internal_contract_item_ref_no
                  and aml.attribute_id = ceqs.element_id
@@ -2335,7 +2396,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and ciqs.process_id = pc_process_id
                  and gpd.process_id = pc_process_id
                  and pcdb.process_id = pc_process_id
-                 and gmr_qty.process_id = pc_process_id
                  and ceqs.process_id = pc_process_id
                  and pcm.purchase_sales = 'P'
                  and pcm.contract_status = 'In Position'
@@ -2431,9 +2491,23 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      sam.ash_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
-                     gmr_qty.payable_qty,
-                     gmr_qty.qty_unit_id payable_qty_unit_id,
+                     --- added Suresh
+                     (case
+                       when rm.ratio_name = '%' then
+                        ((dgrd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                        (pqcapd.payable_percentage / 100))
+                       else
+                        ((dgrd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                        pqcapd.payable_percentage)
+                     end) payable_qty,
+                     (case
+                       when rm.ratio_name = '%' then
+                        dgrd.net_weight_unit_id
+                       else
+                        rm.qty_unit_id_numerator
+                     end) payable_qty_unit_id,
                      gmr_qum.qty_unit payable_qty_unit,
+                     -----
                      cipde.contract_price,
                      cipde.price_unit_id,
                      cipde.price_unit_weight_unit_id,
@@ -2579,10 +2653,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      qum_quantity_unit_master qum_pdm_conc,
                      pum_price_unit_master pum_loc_base,
                      pum_price_unit_master pum_base_price_id,
-                     v_gmr_stockpayable_qty gmr_qty,
-                     qum_quantity_unit_master gmr_qum,
-                     v_ppu_pum tc_ppu_pum,
-                     v_ppu_pum rc_ppu_pum,
+                     --- Added Suresh
+                     ash_assay_header               ash,
+                     asm_assay_sublot_mapping       asm,
+                     pqca_pq_chemical_attributes    pqca,
+                     rm_ratio_master                rm,
+                     pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+                     qum_quantity_unit_master       gmr_qum,
+                     ---
+                     v_ppu_pum                    tc_ppu_pum,
+                     v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
                      sam_stock_assay_mapping sam,
                      gscs_gmr_sec_cost_summary gscs,
@@ -2640,10 +2720,21 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pum_base_price_id.price_unit_id
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
-                 and gmr.internal_gmr_ref_no = gmr_qty.internal_gmr_ref_no
-                 and dgrd.internal_dgrd_ref_no = gmr_qty.internal_dgrd_ref_no
-                 and cipde.element_id = gmr_qty.element_id
-                 and gmr_qty.qty_unit_id = gmr_qum.qty_unit_id
+                    --- Added Suresh
+                 and dgrd.weg_avg_pricing_assay_id = ash.ash_id
+                 and ash.ash_id = asm.ash_id
+                 and asm.asm_id = pqca.asm_id
+                 and pqca.is_elem_for_pricing = 'Y'
+                 and pqca.element_id = aml.attribute_id
+                 and pqca.unit_of_measure = rm.ratio_id
+                 and gmr_qum.qty_unit_id =
+                     (case when rm.ratio_name = '%' then
+                      dgrd.net_weight_unit_id else rm.qty_unit_id_numerator end)
+                 and pqca.pqca_id = pqcapd.pqca_id
+                 and rm.is_active = 'Y'
+                 and pqca.is_active = 'Y'
+                 and pqcapd.is_active = 'Y'
+                    ----
                  and pci.internal_contract_item_ref_no =
                      ceqs.internal_contract_item_ref_no
                  and aml.attribute_id = ceqs.element_id
@@ -2682,7 +2773,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and pcpq.process_id = pc_process_id
                  and ciqs.process_id = pc_process_id
                  and pcdb.process_id = pc_process_id
-                 and gmr_qty.process_id = pc_process_id
                  and ceqs.process_id = pc_process_id
                  and upper(dgrd.realized_status) in
                      ('UNREALIZED', 'REVERSEREALIZED')
@@ -2762,9 +2852,23 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      sam.ash_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
-                     gmr_qty.payable_qty,
-                     gmr_qty.qty_unit_id payable_qty_unit_id,
+                     -- added Suresh
+                     (case
+                       when rm.ratio_name = '%' then
+                        ((dgrd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                        (pqcapd.payable_percentage / 100))
+                       else
+                        ((dgrd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                        pqcapd.payable_percentage)
+                     end) payable_qty,
+                     (case
+                       when rm.ratio_name = '%' then
+                        dgrd.net_weight_unit_id
+                       else
+                        rm.qty_unit_id_numerator
+                     end) payable_qty_unit_id,
                      gmr_qum.qty_unit payable_qty_unit,
+                     ---
                      gpd.contract_price,
                      gpd.price_unit_id,
                      gpd.price_unit_weight_unit_id,
@@ -2916,10 +3020,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      qum_quantity_unit_master qum_pdm_conc,
                      pum_price_unit_master pum_loc_base,
                      pum_price_unit_master pum_base_price_id,
-                     v_gmr_stockpayable_qty gmr_qty,
-                     qum_quantity_unit_master gmr_qum,
-                     v_ppu_pum tc_ppu_pum,
-                     v_ppu_pum rc_ppu_pum,
+                     -- Added Suresh
+                     ash_assay_header               ash,
+                     asm_assay_sublot_mapping       asm,
+                     pqca_pq_chemical_attributes    pqca,
+                     rm_ratio_master                rm,
+                     pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+                     qum_quantity_unit_master       gmr_qum,
+                     --
+                     v_ppu_pum                    tc_ppu_pum,
+                     v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
                      sam_stock_assay_mapping sam,
                      gscs_gmr_sec_cost_summary gscs,
@@ -2971,10 +3081,21 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pum_base_price_id.price_unit_id
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
-                 and gmr.internal_gmr_ref_no = gmr_qty.internal_gmr_ref_no
-                 and dgrd.internal_dgrd_ref_no = gmr_qty.internal_dgrd_ref_no
-                 and gpd.element_id = gmr_qty.element_id
-                 and gmr_qty.qty_unit_id = gmr_qum.qty_unit_id
+                    --- Added Suresh
+                 and dgrd.weg_avg_pricing_assay_id = ash.ash_id
+                 and ash.ash_id = asm.ash_id
+                 and asm.asm_id = pqca.asm_id
+                 and pqca.is_elem_for_pricing = 'Y'
+                 and pqca.element_id = aml.attribute_id
+                 and pqca.unit_of_measure = rm.ratio_id
+                 and gmr_qum.qty_unit_id =
+                     (case when rm.ratio_name = '%' then
+                      dgrd.net_weight_unit_id else rm.qty_unit_id_numerator end)
+                 and pqca.pqca_id = pqcapd.pqca_id
+                 and rm.is_active = 'Y'
+                 and pqca.is_active = 'Y'
+                 and pqcapd.is_active = 'Y'
+                    ---
                  and pci.internal_contract_item_ref_no =
                      ceqs.internal_contract_item_ref_no
                  and aml.attribute_id = ceqs.element_id
@@ -3013,7 +3134,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and pcpq.process_id = pc_process_id
                  and ciqs.process_id = pc_process_id
                  and pcdb.process_id = pc_process_id
-                 and gmr_qty.process_id = pc_process_id
                  and ceqs.process_id = pc_process_id
                  and upper(dgrd.realized_status) in
                      ('UNREALIZED', 'REVERSEREALIZED')
@@ -4543,10 +4663,24 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      aml.attribute_name,
                      sam.ash_id assay_header_id,
                      ceqs.assay_qty,
-                     ceqs.assay_qty_unit_id,
-                     gmr_qty.payable_qty,
-                     gmr_qty.qty_unit_id payable_qty_unit_id,
+                     ceqs.assay_qty_unit_id,                     
+                     --  added suresh                
+                     (case
+                       when rm.ratio_name = '%' then
+                        ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                        (pqcapd.payable_percentage / 100))
+                       else
+                        ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+                        pqcapd.payable_percentage)
+                     end) payable_qty,
+                     (case
+                       when rm.ratio_name = '%' then
+                        grd.qty_unit_id
+                       else
+                        rm.qty_unit_id_numerator
+                     end) payable_qty_unit_id,
                      gmr_qum.qty_unit payable_qty_unit,
+                     ---
                      invme.mc_per_unit contract_price,
                      invme.mc_price_unit_id price_unit_id,
                      invme.mc_price_unit_weight_unit_id price_unit_weight_unit_id,
@@ -4700,10 +4834,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      qum_quantity_unit_master qum_pdm_conc,
                      pum_price_unit_master pum_loc_base,
                      pum_price_unit_master pum_base_price_id,
-                     v_gmr_stockpayable_qty gmr_qty,
-                     qum_quantity_unit_master gmr_qum,
-                     v_ppu_pum tc_ppu_pum,
-                     v_ppu_pum rc_ppu_pum,
+                     --- added suresh
+                     ash_assay_header               ash,
+                     asm_assay_sublot_mapping       asm,
+                     pqca_pq_chemical_attributes    pqca,
+                     rm_ratio_master                rm,
+                     pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+                     qum_quantity_unit_master       gmr_qum,
+                     -----
+                     v_ppu_pum                    tc_ppu_pum,
+                     v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
                      sam_stock_assay_mapping sam,
                      gscs_gmr_sec_cost_summary gscs,
@@ -4755,10 +4895,21 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      pum_base_price_id.price_unit_id
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
-                 and gmr.internal_gmr_ref_no = gmr_qty.internal_gmr_ref_no
-                 and grd.internal_grd_ref_no = gmr_qty.internal_grd_ref_no
-                 and ceqs.element_id = gmr_qty.element_id
-                 and gmr_qty.qty_unit_id = gmr_qum.qty_unit_id
+                    -- added suresh 
+                 and grd.weg_avg_pricing_assay_id = ash.ash_id
+                 and ash.ash_id = asm.ash_id
+                 and asm.asm_id = pqca.asm_id
+                 and pqca.is_elem_for_pricing = 'Y'
+                 and pqca.element_id = aml.attribute_id
+                 and pqca.unit_of_measure = rm.ratio_id
+                 and gmr_qum.qty_unit_id =
+                     (case when rm.ratio_name = '%' then grd.qty_unit_id else
+                      rm.qty_unit_id_numerator end)
+                 and pqca.pqca_id = pqcapd.pqca_id
+                 and rm.is_active = 'Y'
+                 and pqca.is_active = 'Y'
+                 and pqcapd.is_active = 'Y'
+                    ---  
                  and pci.internal_contract_item_ref_no =
                      ceqs.internal_contract_item_ref_no
                  and aml.attribute_id = ceqs.element_id
@@ -4772,7 +4923,6 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and pcpd.process_id = pc_process_id
                  and ciqs.process_id = pc_process_id
                  and pcdb.process_id = pc_process_id
-                 and gmr_qty.process_id = pc_process_id
                  and ceqs.process_id = pc_process_id
                  and pcm.purchase_sales = 'P'
                  and pcm.contract_status = 'In Position'
