@@ -1145,7 +1145,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        mode_of_transport,
        arrival_date,
        wns_status,
-       
+       base_conc_mix_type,
        dbd_id)
       select ul.internal_action_ref_no,
              ul.internal_gmr_ref_no,
@@ -1239,10 +1239,10 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.pledge_input_gmr,
              ul.is_apply_freight_allowance,
              ul.is_apply_container_charge,
-             mode_of_transport,
-             arrival_date,
-             wns_status,
-             
+             ul.mode_of_transport,
+             ul.arrival_date,
+             ul.wns_status,
+             ul.base_conc_mix_type,
              pc_dbd_id
         from gmrul_gmr_ul@eka_appdb       ul,
              axs_action_summary@eka_appdb axs

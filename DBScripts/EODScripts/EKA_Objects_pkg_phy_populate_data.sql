@@ -3076,9 +3076,7 @@ insert into gmr_goods_movement_record
    place_of_delivery_country_id,
    place_of_delivery_state_id,
    place_of_delivery_city_id,
-   --total_gross_weight,
-   -- total_tare_weight,
-   tolling_qty,
+    tolling_qty,
    tolling_gmr_type,
    pool_id,
    is_warrant,
@@ -3088,6 +3086,7 @@ insert into gmr_goods_movement_record
    is_apply_container_charge,
    mode_of_transport,
    wns_status,
+   base_conc_mix_type,
    dbd_id)
   select decode(internal_gmr_ref_no,
                 'Empty_String',
@@ -3272,7 +3271,7 @@ insert into gmr_goods_movement_record
                 is_apply_container_charge),
          decode(mode_of_transport, 'Empty_String', null, mode_of_transport) mode_of_transport,
          decode(wns_status, 'Empty_String', null, wns_status) wns_status,
-         
+         decode(base_conc_mix_type, 'Empty_String', null, base_conc_mix_type) base_conc_mix_type,
          gvc_dbd_id
     from (select gmrul.internal_gmr_ref_no,
                  substr(max(case
@@ -3763,18 +3762,6 @@ insert into gmr_goods_movement_record
                                gmrul.place_of_delivery_city_id
                             end),
                         24) place_of_delivery_city_id,
-                 /* substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                when gmrul.total_gross_weight is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 gmrul.total_gross_weight
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          24) total_gross_weight,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                when gmrul.total_tare_weight is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 gmrul.total_tare_weight
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          24) total_tare_weight,*/
                  substr(max(case
                               when gmrul.tolling_qty is not null then
                                to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -3835,6 +3822,12 @@ insert into gmr_goods_movement_record
                                gmrul.wns_status
                             end),
                         24) wns_status,
+                 substr(max(case
+                              when gmrul.base_conc_mix_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               gmrul.base_conc_mix_type
+                            end),
+                        24) base_conc_mix_type,                        
                  gvc_dbd_id
             from gmrul_gmr_ul       gmrul,
                  axs_action_summary axs,
@@ -3888,7 +3881,8 @@ SELECT   iid.internal_gmr_ref_no,
                   || is1.invoice_ref_no
                  ),
              24
-            ) invoice_ref_no
+            ) invoice_ref_no,
+            is1.is_invoice_new
     FROM is_invoice_summary is1,
          iid_invoicable_item_details iid,
          iam_invoice_action_mapping@eka_appdb iam,
@@ -3900,12 +3894,13 @@ SELECT   iid.internal_gmr_ref_no,
      AND iam.internal_invoice_ref_no = is1.internal_invoice_ref_no
      AND iam.invoice_action_ref_no = axs.internal_action_ref_no
      AND NVL (is1.is_free_metal, 'N') <> 'Y'
-GROUP BY iid.internal_gmr_ref_no)loop
+GROUP BY iid.internal_gmr_ref_no,is1.is_invoice_new)loop
 update gmr_goods_movement_record gmr
    set gmr.is_provisional_invoiced        = cur_gmr_invoice.pi_done,
        gmr.is_final_invoiced              = cur_gmr_invoice.fi_done,
        gmr.latest_internal_invoice_ref_no = cur_gmr_invoice.latest_internal_invoice_ref_no,
-       gmr.invoice_ref_no = cur_gmr_invoice.invoice_ref_no
+       gmr.invoice_ref_no                 = cur_gmr_invoice.invoice_ref_no,
+       gmr.is_new_final_invoice           = case when cur_gmr_invoice.fi_done = 'Y' and cur_gmr_invoice.is_invoice_new = 'Y' then 'Y' else 'N' end
  where gmr.dbd_id = gvc_dbd_id
    and gmr.internal_gmr_ref_no = cur_gmr_invoice.internal_gmr_ref_no;
 end loop;
@@ -13825,9 +13820,11 @@ commit;
                                      from agmr_action_gmr agmr
                                     where agmr.eff_date <= pd_trade_date
                                       and agmr.is_deleted = 'N'
-                                    group by agmr.internal_gmr_ref_no)) loop update gmr_goods_movement_record gmr set gmr.shipped_qty = cur_shipped_qty.shipped_qty
- where gmr.dbd_id = pc_dbd_id
-   and gmr.internal_gmr_ref_no = cur_shipped_qty.internal_gmr_ref_no;
+                                    group by agmr.internal_gmr_ref_no)) loop 
+ update gmr_goods_movement_record gmr
+    set gmr.shipped_qty = cur_shipped_qty.shipped_qty
+  where gmr.dbd_id = pc_dbd_id
+    and gmr.internal_gmr_ref_no = cur_shipped_qty.internal_gmr_ref_no;
   end loop;
   commit;
   gvn_log_counter :=  gvn_log_counter + 1;
@@ -14404,7 +14401,57 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of MFT Stock Invoice Currency Update'); 
-                          
+--
+-- GMR Shipment Date
+--                          
+for cur_gmr_sd in(
+select t.internal_gmr_ref_no,
+       t.eff_date gmr_shipment_date
+  from agmr_action_gmr t
+ where action_no = 1
+   and is_deleted = 'N') loop
+Update gmr_goods_movement_record gmr
+set gmr.gmr_shipment_date =cur_gmr_sd.gmr_shipment_date
+where gmr.dbd_id = pc_dbd_id
+and gmr.internal_gmr_ref_no = cur_gmr_sd.internal_gmr_ref_no
+and gmr.is_deleted ='N';
+end loop;
+commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GMR Shipment Date Update');     
+--
+-- GMR Landing Date Update
+--
+for cur_gmr_ld in(
+select agmr.internal_gmr_ref_no,
+       agmr.eff_date gmr_landing_date
+  from agmr_action_gmr agmr
+ where (agmr.internal_gmr_ref_no, agmr.action_no) in
+       (select agmr.internal_gmr_ref_no,
+               max(agmr.action_no) action_no
+          from agmr_action_gmr agmr
+         where agmr.eff_date <= pd_trade_date
+           and agmr.is_deleted = 'N'
+         group by agmr.internal_gmr_ref_no)) loop
+ Update gmr_goods_movement_record gmr
+set gmr.gmr_landed_date =cur_gmr_ld.gmr_landing_date
+where gmr.dbd_id = pc_dbd_id
+and gmr.is_deleted ='N'
+and gmr.internal_gmr_ref_no = cur_gmr_ld.internal_gmr_ref_no
+and gmr.gmr_status in ('In Warehouse', 'Landed','Released');        
+end loop;
+commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GMR Landing Date Update');     
+                                    
   sp_gather_stats('GRD_GOODS_RECORD_DETAIL');
   sp_gather_stats('GMR_GOODS_MOVEMENT_RECORD');
   sp_gather_stats('SPQ_STOCK_PAYABLE_QTY');

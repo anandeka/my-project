@@ -6627,7 +6627,7 @@ begin
    where akc.corporate_id = pc_corporate_id;
 
   --
-  -- Concentrates Non Event Based GMRS with Inventory
+  -- Purchase Concentrates Non Event Based GMRS with Inventory
   --
   insert into isr1_isr_inventory
     (process_id,
@@ -6690,69 +6690,78 @@ begin
      import_date,
      incoterm_id,
      incoterm,
-     no_of_containers)
-    select /*+  ordered */
-     pc_process_id process_id,
-     'Concentrate Normal GMR',
-     pc_corporate_id,
-     spq.element_id,
-     gmr.contract_ref_no,
-     gmr.contract_ref_no || '-' || pcdi.delivery_item_no contract_ref_no_del_item_no,
-     gmr.internal_gmr_ref_no,
-     gmr.gmr_ref_no,
-     grd.internal_grd_ref_no,
-     pcpd.product_id,
-     pcpd.product_name product_desc,
-     gmr.cp_id,
-     gmr.cp_name supplier_name,
-     grd.quality_id,
-     grd.quality_name,
-     grd.qty qty,
-     grd.dry_qty qty,
-     grd.qty_unit_id,
-     cccp.contract_price,
-     cccp.price_unit_id,
-     cccp.price_unit_cur_id,
-     cccp.price_unit_cur_code,
-     gmr.bl_date shipment_date,
-     gmr.bl_date invoice_date,
-     gmr.loading_country_id,
-     gmr.loading_country_name loading_country_name,
-     gmr.loading_city_id,
-     gmr.loading_city_name,
-     gmr.loading_state_id,
-     gmr.loading_state_name,
-     gmr.loading_region_id loading_region_id,
-     gmr.loading_region_name loading_region,
-     gmr.discharge_country_id,
-     gmr.discharge_country_name,
-     gmr.discharge_city_id,
-     gmr.discharge_city_name,
-     gmr.discharge_state_id,
-     gmr.discharge_state_name,
-     gmr.discharge_region_id,
-     gmr.discharge_region_name,
-     gmr.mode_of_transport,
-     gmr.bl_no,
-     spq.qty_unit_id,
-     spq.payable_qty,
-     gmr.loading_country_cur_id,
-     gmr.loading_country_cur_code,
-     gmr.discharge_country_cur_id,
-     gmr.discharge_country_cur_code,
-     vc_base_cur_id,
-     vc_base_cur_code,
-     1 price_to_base_exch_rate,
-     1 base_to_load_country_ex_rate,
-     1 base_to_disc_country_ex_rate,
-     ucm.multiplication_factor payable_qty_conv_factor,
-     qat_ppm.attribute_value,
-     gmr.gmr_type,
-     gmr.loading_date export_date,
-     gmr.eff_date import_date,
-     pci.m2m_inco_term,
-     pci.m2m_incoterm_desc incoterm,
-     nvl(gmr.no_of_containers, 0)
+     no_of_containers,
+     gmr_shipment_date,        
+     gmr_landed_date,        
+     is_new_shipment,        
+     is_new_landing,
+     purchase_sales )
+    select pc_process_id process_id,
+           'Concentrate Normal GMR',
+           pc_corporate_id,
+           spq.element_id,
+           gmr.contract_ref_no,
+           gmr.contract_ref_no || '-' || pcdi.delivery_item_no contract_ref_no_del_item_no,
+           gmr.internal_gmr_ref_no,
+           gmr.gmr_ref_no,
+           grd.internal_grd_ref_no,
+           pcpd.product_id,
+           pcpd.product_name product_desc,
+           gmr.cp_id,
+           gmr.cp_name supplier_name,
+           grd.quality_id,
+           grd.quality_name,
+           grd.qty qty,
+           grd.dry_qty qty,
+           grd.qty_unit_id,
+           cccp.contract_price,
+           cccp.price_unit_id,
+           cccp.price_unit_cur_id,
+           cccp.price_unit_cur_code,
+           gmr.bl_date shipment_date,
+           gmr.bl_date invoice_date,
+           gmr.loading_country_id,
+           gmr.loading_country_name loading_country_name,
+           gmr.loading_city_id,
+           gmr.loading_city_name,
+           gmr.loading_state_id,
+           gmr.loading_state_name,
+           gmr.loading_region_id loading_region_id,
+           gmr.loading_region_name loading_region,
+           gmr.discharge_country_id,
+           gmr.discharge_country_name,
+           gmr.discharge_city_id,
+           gmr.discharge_city_name,
+           gmr.discharge_state_id,
+           gmr.discharge_state_name,
+           gmr.discharge_region_id,
+           gmr.discharge_region_name,
+           gmr.mode_of_transport,
+           gmr.bl_no,
+           spq.qty_unit_id,
+           spq.payable_qty,
+           gmr.loading_country_cur_id,
+           gmr.loading_country_cur_code,
+           gmr.discharge_country_cur_id,
+           gmr.discharge_country_cur_code,
+           vc_base_cur_id,
+           vc_base_cur_code,
+           1 price_to_base_exch_rate,
+           1 base_to_load_country_ex_rate,
+           1 base_to_disc_country_ex_rate,
+           ucm.multiplication_factor payable_qty_conv_factor,
+           qat_ppm.attribute_value,
+           gmr.gmr_type,
+           gmr.loading_date export_date,
+           gmr.eff_date import_date,
+           pci.m2m_inco_term,
+           pci.m2m_incoterm_desc incoterm,
+           nvl(gmr.no_of_containers, 0),
+           gmr.gmr_shipment_date,        
+           gmr.gmr_landed_date,        
+           gmr.is_new_shipment,        
+           gmr.is_new_landing,
+           'Purchase'
       from pcdi_pc_delivery_item          pcdi,
            pci_physical_contract_item     pci,
            gmr_goods_movement_record      gmr,
@@ -6762,8 +6771,6 @@ begin
            cccp_conc_contract_cog_price   cccp,
            v_qat_ppm                      qat_ppm,
            v_ppu_pum                      ppu,
-           poch_price_opt_call_off_header poch,
-           pocd_price_option_calloff_dtls pocd,
            ucm_unit_conversion_master     ucm
      where gmr.internal_contract_ref_no = pcdi.internal_contract_ref_no
        and pcdi.pcdi_id = pci.pcdi_id
@@ -6794,24 +6801,17 @@ begin
        and spq.element_id = cccp.element_id
        and cccp.price_unit_id = ppu.product_price_unit_id
        and grd.quality_id = qat_ppm.quality_id
-       and pcdi.pcdi_id = poch.pcdi_id
-       and poch.poch_id = pocd.poch_id
-       and spq.element_id = poch.element_id
-          -- GMRS should not be event based nor Price Allocation
-       and nvl(pocd.qp_period_type, 'NA') <> 'Event'
-       and pcdi.price_allocation_method <> 'Price Allocation'
-       and poch.is_active = 'Y'
-       and pocd.is_active = 'Y'
+       -- GMRS should not be event based nor Price Allocation
+       and not exists
+       (select * from cgcp_conc_gmr_cog_price cgcp
+       where cgcp.process_id = pc_process_id
+       and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no
+       and cgcp.element_id = spq.element_id)
        and gmr.loading_country_id <> gmr.discharge_country_id
        and ucm.from_qty_unit_id = spq.qty_unit_id
        and ucm.to_qty_unit_id = ppu.weight_unit_id
        and gmr.latest_internal_invoice_ref_no is null
-       and 'TRUE' =
-           (case when
-            trunc(gmr.eff_date, 'Mon') = trunc(pd_trade_date, 'Mon') and
-            gmr.eff_date is not null then 'TRUE' when
-            trunc(gmr.loading_date, 'Mon') = trunc(pd_trade_date, 'Mon') and
-            gmr.loading_date is not null then 'TRUE' else 'FALSE' end);
+       and (gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y');
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -6819,9 +6819,204 @@ begin
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'End of Concentrates Non Event Inventory');
+                        'End of Purchase Concentrates Non Event Inventory');
+
   --
-  -- Concentrate Event Based GMRs with Inventory
+  -- Sales Concentrates Non Event Based GMRS with Inventory
+  --
+  insert into isr1_isr_inventory
+    (process_id,
+     section_name,
+     corporate_id,
+     element_id,
+     contract_ref_no,
+     contract_ref_no_del_item_no,
+     internal_gmr_ref_no,
+     gmr_ref_no,
+     internal_grd_ref_no,
+     product_id,
+     product_desc,
+     cp_id,
+     supplier_name,
+     quality_id,
+     quality_name,
+     grd_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     contract_price,
+     contract_price_unit_id,
+     contract_price_unit_cur_id,
+     contract_price_unit_cur_code,
+     shipment_date,
+     invoice_date,
+     loading_country_id,
+     loading_country_name,
+     loading_city_id,
+     loading_city_name,
+     loading_state_id,
+     loading_state_name,
+     loading_region_id,
+     loading_region,
+     discharge_country_id,
+     discharge_country_name,
+     discharge_city_id,
+     discharge_city_name,
+     discharge_state_id,
+     discharge_state_name,
+     discharge_region_id,
+     discharge_region,
+     mode_of_transport,
+     bl_no,
+     payable_qty_unit_id,
+     payable_qty,
+     loading_country_cur_id,
+     loading_country_cur_code,
+     discharge_country_cur_id,
+     discharge_country_cur_code,
+     base_cur_id,
+     base_cur_code,
+     price_to_base_exch_rate,
+     base_to_load_country_ex_rate,
+     base_to_disc_country_ex_rate,
+     payable_qty_conv_factor,
+     attribute_value,
+     contract_type,
+     export_date,
+     import_date,
+     incoterm_id,
+     incoterm,
+     no_of_containers,
+     gmr_shipment_date,        
+     gmr_landed_date,        
+     is_new_shipment,        
+     is_new_landing,
+     purchase_sales )
+    select pc_process_id process_id,
+           'Concentrate Normal GMR',
+           pc_corporate_id,
+           spq.element_id,
+           gmr.contract_ref_no,
+           gmr.contract_ref_no || '-' || pcdi.delivery_item_no contract_ref_no_del_item_no,
+           gmr.internal_gmr_ref_no,
+           gmr.gmr_ref_no,
+           dgrd.internal_dgrd_ref_no,
+           pcpd.product_id,
+           pcpd.product_name product_desc,
+           gmr.cp_id,
+           gmr.cp_name supplier_name,
+           dgrd.quality_id,
+           dgrd.quality_name,
+           dgrd.net_weight qty,
+           dgrd.dry_qty qty,
+           dgrd.net_weight_unit_id,
+           cccp.contract_price,
+           cccp.price_unit_id,
+           cccp.price_unit_cur_id,
+           cccp.price_unit_cur_code,
+           gmr.bl_date shipment_date,
+           gmr.bl_date invoice_date,
+           gmr.loading_country_id,
+           gmr.loading_country_name loading_country_name,
+           gmr.loading_city_id,
+           gmr.loading_city_name,
+           gmr.loading_state_id,
+           gmr.loading_state_name,
+           gmr.loading_region_id loading_region_id,
+           gmr.loading_region_name loading_region,
+           gmr.discharge_country_id,
+           gmr.discharge_country_name,
+           gmr.discharge_city_id,
+           gmr.discharge_city_name,
+           gmr.discharge_state_id,
+           gmr.discharge_state_name,
+           gmr.discharge_region_id,
+           gmr.discharge_region_name,
+           gmr.mode_of_transport,
+           gmr.bl_no,
+           spq.qty_unit_id,
+           spq.payable_qty,
+           gmr.loading_country_cur_id,
+           gmr.loading_country_cur_code,
+           gmr.discharge_country_cur_id,
+           gmr.discharge_country_cur_code,
+           vc_base_cur_id,
+           vc_base_cur_code,
+           1 price_to_base_exch_rate,
+           1 base_to_load_country_ex_rate,
+           1 base_to_disc_country_ex_rate,
+           ucm.multiplication_factor payable_qty_conv_factor,
+           qat_ppm.attribute_value,
+           gmr.gmr_type,
+           gmr.loading_date export_date,
+           gmr.eff_date import_date,
+           pci.m2m_inco_term,
+           pci.m2m_incoterm_desc incoterm,
+           nvl(gmr.no_of_containers, 0),
+           gmr.gmr_shipment_date,        
+           gmr.gmr_landed_date,        
+           gmr.is_new_shipment,        
+           gmr.is_new_landing,
+           'Sales'
+      from pcdi_pc_delivery_item          pcdi,
+           pci_physical_contract_item     pci,
+           gmr_goods_movement_record      gmr,
+           dgrd_delivered_grd             dgrd,
+           pcpd_pc_product_definition     pcpd,
+           spq_stock_payable_qty          spq,
+           cccp_conc_contract_cog_price   cccp,
+           v_qat_ppm                      qat_ppm,
+           v_ppu_pum                      ppu,
+           ucm_unit_conversion_master     ucm
+     where gmr.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = pci.pcdi_id
+       and pci.internal_contract_item_ref_no =
+           dgrd.internal_contract_item_ref_no
+       and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+       and gmr.is_deleted = 'N'
+       and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.input_output = 'Input'
+       and pci.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and gmr.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and dgrd.process_id = pc_process_id
+       and dgrd.status = 'Active'
+       and spq.process_id = pc_process_id
+       and spq.is_stock_split = 'N'
+       and spq.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+       and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and spq.is_active = 'Y'
+       and gmr.gmr_type = 'CONCENTRATES'
+       and pcdi.is_active = 'Y'
+       and pci.is_active = 'Y'
+       and pcpd.is_active = 'Y'
+       and cccp.process_id = pc_process_id
+       and cccp.pcdi_id = pci.pcdi_id
+       and spq.element_id = cccp.element_id
+       and cccp.price_unit_id = ppu.product_price_unit_id
+       and dgrd.quality_id = qat_ppm.quality_id
+       -- GMRS should not be event based nor Price Allocation
+       and not exists
+       (select * from cgcp_conc_gmr_cog_price cgcp
+       where cgcp.process_id = pc_process_id
+       and cgcp.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+       and cgcp.element_id = spq.element_id)
+       and gmr.loading_country_id <> gmr.discharge_country_id
+       and ucm.from_qty_unit_id = spq.qty_unit_id
+       and ucm.to_qty_unit_id = ppu.weight_unit_id
+       and gmr.latest_internal_invoice_ref_no is null
+       and (gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y');
+
+  commit;
+  gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'End of Sales Concentrates Non Event Inventory');
+
+  --
+  -- Purchase Concentrate Event Based GMRs with Inventory
   --
 
   insert into isr1_isr_inventory
@@ -6885,69 +7080,78 @@ begin
      import_date,
      incoterm_id,
      incoterm,
-     no_of_containers)
-    select /*+ ordered */
-     pc_process_id process_id,
-     'Concentrate Event GMR',
-     gmr.corporate_id,
-     spq.element_id,
-     gmr.contract_ref_no,
-     gmr.contract_ref_no || '-' || pcdi.delivery_item_no contract_ref_no_del_item_no,
-     gmr.internal_gmr_ref_no,
-     gmr.gmr_ref_no,
-     grd.internal_grd_ref_no,
-     pcpd.product_id,
-     pcpd.product_name product_desc,
-     gmr.cp_id,
-     gmr.cp_name supplier_name,
-     grd.quality_id,
-     grd.quality_name,
-     grd.qty qty,
-     grd.dry_qty qty,
-     grd.qty_unit_id,
-     cccp.contract_price,
-     cccp.price_unit_id,
-     cccp.price_unit_cur_id,
-     cccp.price_unit_cur_code,
-     gmr.bl_date shipment_date,
-     gmr.bl_date invoice_date,
-     gmr.loading_country_id,
-     gmr.loading_country_name,
-     gmr.loading_city_id,
-     gmr.loading_city_name,
-     gmr.loading_state_id,
-     gmr.loading_state_name,
-     gmr.loading_region_id,
-     gmr.loading_region_name,
-     gmr.discharge_country_id,
-     gmr.discharge_country_name,
-     gmr.discharge_city_id,
-     gmr.discharge_city_name,
-     gmr.discharge_state_id,
-     gmr.discharge_state_name,
-     gmr.discharge_region_id,
-     gmr.discharge_region_name,
-     gmr.mode_of_transport,
-     gmr.bl_no,
-     spq.qty_unit_id,
-     spq.payable_qty,
-     gmr.loading_country_cur_id,
-     gmr.loading_country_cur_code,
-     gmr.discharge_country_cur_id,
-     gmr.discharge_country_cur_code,
-     vc_base_cur_id,
-     vc_base_cur_code,
-     1 price_to_base_exch_rate,
-     1 base_to_load_country_ex_rate,
-     1 base_to_disc_country_ex_rate,
-     ucm.multiplication_factor payable_qty_conv_factor,
-     qat_ppm.attribute_value,
-     gmr.gmr_type,
-     gmr.loading_date export_date,
-     gmr.eff_date import_date,
-     pci.m2m_inco_term,
-     pci.m2m_incoterm_desc incoterm,
-     nvl(gmr.no_of_containers, 0)
+     no_of_containers,
+     gmr_shipment_date,        
+     gmr_landed_date,        
+     is_new_shipment,        
+     is_new_landing,
+     purchase_sales )
+    select pc_process_id process_id,
+           'Concentrate Event GMR',
+           gmr.corporate_id,
+           spq.element_id,
+           gmr.contract_ref_no,
+           gmr.contract_ref_no || '-' || pcdi.delivery_item_no contract_ref_no_del_item_no,
+           gmr.internal_gmr_ref_no,
+           gmr.gmr_ref_no,
+           grd.internal_grd_ref_no,
+           pcpd.product_id,
+           pcpd.product_name product_desc,
+           gmr.cp_id,
+           gmr.cp_name supplier_name,
+           grd.quality_id,
+           grd.quality_name,
+           grd.qty qty,
+           grd.dry_qty qty,
+           grd.qty_unit_id,
+           cccp.contract_price,
+           cccp.price_unit_id,
+           cccp.price_unit_cur_id,
+           cccp.price_unit_cur_code,
+           gmr.bl_date shipment_date,
+           gmr.bl_date invoice_date,
+           gmr.loading_country_id,
+           gmr.loading_country_name,
+           gmr.loading_city_id,
+           gmr.loading_city_name,
+           gmr.loading_state_id,
+           gmr.loading_state_name,
+           gmr.loading_region_id,
+           gmr.loading_region_name,
+           gmr.discharge_country_id,
+           gmr.discharge_country_name,
+           gmr.discharge_city_id,
+           gmr.discharge_city_name,
+           gmr.discharge_state_id,
+           gmr.discharge_state_name,
+           gmr.discharge_region_id,
+           gmr.discharge_region_name,
+           gmr.mode_of_transport,
+           gmr.bl_no,
+           spq.qty_unit_id,
+           spq.payable_qty,
+           gmr.loading_country_cur_id,
+           gmr.loading_country_cur_code,
+           gmr.discharge_country_cur_id,
+           gmr.discharge_country_cur_code,
+           vc_base_cur_id,
+           vc_base_cur_code,
+           1 price_to_base_exch_rate,
+           1 base_to_load_country_ex_rate,
+           1 base_to_disc_country_ex_rate,
+           ucm.multiplication_factor payable_qty_conv_factor,
+           qat_ppm.attribute_value,
+           gmr.gmr_type,
+           gmr.loading_date export_date,
+           gmr.eff_date import_date,
+           pci.m2m_inco_term,
+           pci.m2m_incoterm_desc incoterm,
+           nvl(gmr.no_of_containers, 0),
+           gmr.gmr_shipment_date,        
+           gmr.gmr_landed_date,        
+           gmr.is_new_shipment,        
+           gmr.is_new_landing,
+           'Purchase'
       from pcdi_pc_delivery_item      pcdi,
            pci_physical_contract_item pci,
            gmr_goods_movement_record  gmr,
@@ -6986,18 +7190,12 @@ begin
        and cccp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
        and spq.element_id = cccp.element_id
        and cccp.price_unit_id = ppu.product_price_unit_id
-          --  and cccp.internal_grd_ref_no = grd.internal_grd_ref_no
        and grd.quality_id = qat_ppm.quality_id(+)
        and gmr.loading_country_id <> gmr.discharge_country_id
        and ucm.from_qty_unit_id = spq.qty_unit_id
        and ucm.to_qty_unit_id = ppu.weight_unit_id
        and gmr.latest_internal_invoice_ref_no is null
-       and 'TRUE' =
-           (case when
-            trunc(gmr.eff_date, 'Mon') = trunc(pd_trade_date, 'Mon') and
-            gmr.eff_date is not null then 'TRUE' when
-            trunc(gmr.loading_date, 'Mon') = trunc(pd_trade_date, 'Mon') and
-            gmr.loading_date is not null then 'TRUE' else 'FALSE' end);
+       and (gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y');
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -7005,7 +7203,197 @@ begin
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'End of Concentrates Event Inventory');
+                        'End of Purchase Concentrates Event Inventory');
+
+  --
+  -- Sales Concentrate Event Based GMRs with Inventory
+  --
+
+  insert into isr1_isr_inventory
+    (process_id,
+     section_name,
+     corporate_id,
+     element_id,
+     contract_ref_no,
+     contract_ref_no_del_item_no,
+     internal_gmr_ref_no,
+     gmr_ref_no,
+     internal_grd_ref_no,
+     product_id,
+     product_desc,
+     cp_id,
+     supplier_name,
+     quality_id,
+     quality_name,
+     grd_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     contract_price,
+     contract_price_unit_id,
+     contract_price_unit_cur_id,
+     contract_price_unit_cur_code,
+     shipment_date,
+     invoice_date,
+     loading_country_id,
+     loading_country_name,
+     loading_city_id,
+     loading_city_name,
+     loading_state_id,
+     loading_state_name,
+     loading_region_id,
+     loading_region,
+     discharge_country_id,
+     discharge_country_name,
+     discharge_city_id,
+     discharge_city_name,
+     discharge_state_id,
+     discharge_state_name,
+     discharge_region_id,
+     discharge_region,
+     mode_of_transport,
+     bl_no,
+     payable_qty_unit_id,
+     payable_qty,
+     loading_country_cur_id,
+     loading_country_cur_code,
+     discharge_country_cur_id,
+     discharge_country_cur_code,
+     base_cur_id,
+     base_cur_code,
+     price_to_base_exch_rate,
+     base_to_load_country_ex_rate,
+     base_to_disc_country_ex_rate,
+     payable_qty_conv_factor,
+     attribute_value,
+     contract_type,
+     export_date,
+     import_date,
+     incoterm_id,
+     incoterm,
+     no_of_containers,
+     gmr_shipment_date,        
+     gmr_landed_date,        
+     is_new_shipment,        
+     is_new_landing,
+     purchase_sales )
+    select pc_process_id process_id,
+           'Concentrate Event GMR',
+           gmr.corporate_id,
+           spq.element_id,
+           gmr.contract_ref_no,
+           gmr.contract_ref_no || '-' || pcdi.delivery_item_no contract_ref_no_del_item_no,
+           gmr.internal_gmr_ref_no,
+           gmr.gmr_ref_no,
+           dgrd.internal_dgrd_ref_no,
+           pcpd.product_id,
+           pcpd.product_name product_desc,
+           gmr.cp_id,
+           gmr.cp_name supplier_name,
+           dgrd.quality_id,
+           dgrd.quality_name,
+           dgrd.net_weight qty,
+           dgrd.dry_qty qty,
+           dgrd.net_weight_unit_id qty_unit_id,
+           cccp.contract_price,
+           cccp.price_unit_id,
+           cccp.price_unit_cur_id,
+           cccp.price_unit_cur_code,
+           gmr.bl_date shipment_date,
+           gmr.bl_date invoice_date,
+           gmr.loading_country_id,
+           gmr.loading_country_name,
+           gmr.loading_city_id,
+           gmr.loading_city_name,
+           gmr.loading_state_id,
+           gmr.loading_state_name,
+           gmr.loading_region_id,
+           gmr.loading_region_name,
+           gmr.discharge_country_id,
+           gmr.discharge_country_name,
+           gmr.discharge_city_id,
+           gmr.discharge_city_name,
+           gmr.discharge_state_id,
+           gmr.discharge_state_name,
+           gmr.discharge_region_id,
+           gmr.discharge_region_name,
+           gmr.mode_of_transport,
+           gmr.bl_no,
+           spq.qty_unit_id,
+           spq.payable_qty,
+           gmr.loading_country_cur_id,
+           gmr.loading_country_cur_code,
+           gmr.discharge_country_cur_id,
+           gmr.discharge_country_cur_code,
+           vc_base_cur_id,
+           vc_base_cur_code,
+           1 price_to_base_exch_rate,
+           1 base_to_load_country_ex_rate,
+           1 base_to_disc_country_ex_rate,
+           ucm.multiplication_factor payable_qty_conv_factor,
+           qat_ppm.attribute_value,
+           gmr.gmr_type,
+           gmr.loading_date export_date,
+           gmr.eff_date import_date,
+           pci.m2m_inco_term,
+           pci.m2m_incoterm_desc incoterm,
+           nvl(gmr.no_of_containers, 0),
+           gmr.gmr_shipment_date,        
+           gmr.gmr_landed_date,        
+           gmr.is_new_shipment,        
+           gmr.is_new_landing,
+           'Sales'
+      from pcdi_pc_delivery_item      pcdi,
+           pci_physical_contract_item pci,
+           gmr_goods_movement_record  gmr,
+           dgrd_delivered_grd         dgrd,
+           pcpd_pc_product_definition pcpd,
+           spq_stock_payable_qty      spq,
+           cgcp_conc_gmr_cog_price    cccp,
+           v_qat_ppm                  qat_ppm,
+           v_ppu_pum                  ppu,
+           ucm_unit_conversion_master ucm
+     where gmr.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = pci.pcdi_id
+       and pci.internal_contract_item_ref_no =
+           dgrd.internal_contract_item_ref_no
+       and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+       and gmr.is_deleted = 'N'
+       and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.input_output = 'Input'
+       and pci.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and gmr.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and dgrd.process_id = pc_process_id
+       and dgrd.status = 'Active'
+       and spq.process_id = pc_process_id
+       and spq.is_stock_split = 'N'
+       and spq.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
+       and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and spq.is_active = 'Y'
+       and gmr.gmr_type = 'CONCENTRATES'
+       and pcdi.is_active = 'Y'
+       and pci.is_active = 'Y'
+       and pcpd.is_active = 'Y'
+       and cccp.process_id = pc_process_id
+       and cccp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and spq.element_id = cccp.element_id
+       and cccp.price_unit_id = ppu.product_price_unit_id
+       and dgrd.quality_id = qat_ppm.quality_id(+)
+       and gmr.loading_country_id <> gmr.discharge_country_id
+       and ucm.from_qty_unit_id = spq.qty_unit_id
+       and ucm.to_qty_unit_id = ppu.weight_unit_id
+       and gmr.latest_internal_invoice_ref_no is null
+       and (gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y');
+
+  commit;
+  gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'End of Sales Concentrates Event Inventory');
+
   sp_gather_stats('ISR1_ISR_INVENTORY');
 
   --
@@ -7151,7 +7539,13 @@ begin
      incoterm_id,
      incoterm,
      no_of_containers,
-     corporate_name)
+     corporate_name,
+     is_new_final_invoice,
+     gmr_shipment_date,        
+     gmr_landed_date,        
+     is_new_shipment,        
+     is_new_landing,
+     purchase_sales)
     select corporate_id,
            process_id,
            pd_trade_date,
@@ -7208,7 +7602,13 @@ begin
            incoterm_id,
            incoterm,
            no_of_containers,
-           vc_corporate_name
+           vc_corporate_name,
+           'N',
+           gmr_shipment_date,        
+           gmr_landed_date,        
+           is_new_shipment,        
+           is_new_landing,
+           purchase_sales
       from (select isr1.corporate_id,
                    isr1.process_id,
                    isr1.contract_ref_no,
@@ -7276,7 +7676,12 @@ begin
                    isr1.import_date,
                    isr1.incoterm_id,
                    isr1.incoterm,
-                   isr1.no_of_containers
+                   isr1.no_of_containers,
+                   isr1.gmr_shipment_date,        
+                   isr1.gmr_landed_date,        
+                   isr1.is_new_shipment,        
+                   isr1.is_new_landing,
+                   isr1.purchase_sales
               from isr1_isr_inventory isr1
              where isr1.process_id = pc_process_id) t
      group by corporate_id,
@@ -7328,7 +7733,12 @@ begin
               incoterm_id,
               incoterm,
               no_of_containers,
-              invoice_or_invenotry;
+              invoice_or_invenotry,
+              gmr_shipment_date,        
+              gmr_landed_date,        
+              is_new_shipment,        
+              is_new_landing,
+              purchase_sales;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -7339,7 +7749,7 @@ begin
                         'Concentrates Inventory Insert into ISR Over');
 
   --
-  -- Concentrates GMRS with Invoice
+  -- Purchase Concentrates GMRS with Invoice
   --
   insert into isr2_isr_invoice
     (process_id,
@@ -7407,74 +7817,85 @@ begin
      no_of_containers,
      internal_invoice_ref_no,
      invoice_ref_no,
-     internal_grd_ref_no)
-    select /*+  ordered */
-     pc_process_id process_id,
-     'Concentrates',
-     gmr.corporate_id,
-     spq.element_id,
-     gmr.contract_ref_no,
-     gmr.contract_ref_no || '-' || pcdi.delivery_item_no contract_ref_no_del_item_no,
-     gmr.internal_gmr_ref_no,
-     gmr.gmr_ref_no,
-     pcpd.product_id,
-     pcpd.product_name product_desc,
-     gmr.cp_id,
-     gmr.cp_name supplier_name,
-     grd.quality_id,
-     grd.quality_name,
-     (grd.qty) qty,
-     (grd.dry_qty) dry_qty,
-     grd.qty_unit_id,
-     gmr.bl_date shipment_date,
-     tgi.invoice_issue_date invoice_date,
-     gmr.loading_country_id,
-     gmr.loading_country_name,
-     gmr.loading_city_id,
-     gmr.loading_city_name,
-     gmr.loading_state_id,
-     gmr.loading_state_name,
-     gmr.loading_region_id,
-     gmr.loading_region_name,
-     gmr.discharge_country_id,
-     gmr.discharge_country_name,
-     gmr.discharge_city_id,
-     gmr.discharge_city_name,
-     gmr.discharge_state_id,
-     gmr.discharge_state_name,
-     gmr.discharge_region_id,
-     gmr.discharge_region_name,
-     gmr.mode_of_transport,
-     gmr.bl_no,
-     'INVOICE' invoice_or_invenotry,
-     ppu.product_price_unit_id,
-     aml.underlying_product_id,
-     spq.qty_unit_id,
-     pdm_aml.base_quantity_unit under_product_base_qty_unit,
-     spq.payable_qty * ucm.multiplication_factor payable_qty,
-     gmr.loading_country_cur_id,
-     gmr.loading_country_cur_code,
-     gmr.discharge_country_cur_id,
-     gmr.discharge_country_cur_code,
-     vc_base_cur_id base_cur_id,
-     vc_base_cur_code base_cur_code,
-     1 base_to_load_country_ex_rate,
-     1 base_to_disc_country_ex_rate,
-     qat_ppm.attribute_value,
-     gmr.gmr_type,
-     gmr.loading_date export_date,
-     gmr.eff_date import_date,
-     tgi.invoice_item_amount,
-     tgi.invoice_cur_id,
-     tgi.invoice_cur_code,
-     1 invoice_to_base_ex_rate,
-     pci.m2m_inco_term,
-     pci.m2m_incoterm_desc,
-     decode(gmr.is_final_invoiced, 'Y', tgi.invoice_issue_date, null) final_invoice_date,
-     nvl(gmr.no_of_containers, 0) no_of_containers,
-     tgi.internal_invoice_ref_no,
-     tgi.invoice_ref_no,
-     grd.internal_grd_ref_no
+     internal_grd_ref_no,
+     is_new_final_invoice,
+     gmr_shipment_date,        
+     gmr_landed_date,        
+     is_new_shipment,        
+     is_new_landing,
+     purchase_sales )
+    select pc_process_id process_id,
+           'Concentrates',
+           gmr.corporate_id,
+           spq.element_id,
+           gmr.contract_ref_no,
+           gmr.contract_ref_no || '-' || pcdi.delivery_item_no contract_ref_no_del_item_no,
+           gmr.internal_gmr_ref_no,
+           gmr.gmr_ref_no,
+           pcpd.product_id,
+           pcpd.product_name product_desc,
+           gmr.cp_id,
+           gmr.cp_name supplier_name,
+           grd.quality_id,
+           grd.quality_name,
+           (grd.qty) qty,
+           (grd.dry_qty) dry_qty,
+           grd.qty_unit_id,
+           gmr.bl_date shipment_date,
+           tgi.invoice_issue_date invoice_date,
+           gmr.loading_country_id,
+           gmr.loading_country_name,
+           gmr.loading_city_id,
+           gmr.loading_city_name,
+           gmr.loading_state_id,
+           gmr.loading_state_name,
+           gmr.loading_region_id,
+           gmr.loading_region_name,
+           gmr.discharge_country_id,
+           gmr.discharge_country_name,
+           gmr.discharge_city_id,
+           gmr.discharge_city_name,
+           gmr.discharge_state_id,
+           gmr.discharge_state_name,
+           gmr.discharge_region_id,
+           gmr.discharge_region_name,
+           gmr.mode_of_transport,
+           gmr.bl_no,
+           'INVOICE' invoice_or_invenotry,
+           ppu.product_price_unit_id,
+           aml.underlying_product_id,
+           spq.qty_unit_id,
+           pdm_aml.base_quantity_unit under_product_base_qty_unit,
+           spq.payable_qty * ucm.multiplication_factor payable_qty,
+           gmr.loading_country_cur_id,
+           gmr.loading_country_cur_code,
+           gmr.discharge_country_cur_id,
+           gmr.discharge_country_cur_code,
+           vc_base_cur_id base_cur_id,
+           vc_base_cur_code base_cur_code,
+           1 base_to_load_country_ex_rate,
+           1 base_to_disc_country_ex_rate,
+           qat_ppm.attribute_value,
+           gmr.gmr_type,
+           gmr.loading_date export_date,
+           gmr.eff_date import_date,
+           tgi.invoice_item_amount,
+           tgi.invoice_cur_id,
+           gmr.invoice_cur_code,
+           1 invoice_to_base_ex_rate,
+           pci.m2m_inco_term,
+           pci.m2m_incoterm_desc,
+           decode(gmr.is_final_invoiced, 'Y', tgi.invoice_issue_date, null) final_invoice_date,
+           nvl(gmr.no_of_containers, 0) no_of_containers,
+           tgi.internal_invoice_ref_no,
+           tgi.invoice_ref_no,
+           grd.internal_grd_ref_no,
+           gmr.is_new_final_invoice,
+           gmr.gmr_shipment_date,        
+           gmr.gmr_landed_date,        
+           gmr.is_new_mtd,        
+           gmr.is_new_landing,
+           'Purchase'
       from pcdi_pc_delivery_item      pcdi,
            pci_physical_contract_item pci,
            gmr_goods_movement_record  gmr,
@@ -7525,12 +7946,7 @@ begin
        and tgi.process_id = pc_process_id
        and tgi.internal_gmr_ref_no = gmr.internal_gmr_ref_no
        and tgi.internal_invoice_ref_no = gmr.latest_internal_invoice_ref_no
-       and 'TRUE' =
-           (case when
-            trunc(gmr.eff_date, 'Mon') = trunc(pd_trade_date, 'Mon') and
-            gmr.eff_date is not null then 'TRUE' when
-            trunc(gmr.loading_date, 'Mon') = trunc(pd_trade_date, 'Mon') and
-            gmr.loading_date is not null then 'TRUE' else 'FALSE' end);
+       and ( gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y' or gmr.is_new_final_invoice ='Y');
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -7538,7 +7954,213 @@ begin
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'Concentrates Invoice Over');
+                        'Purchase Concentrates Invoice Over');
+ --
+  -- Sales Concentrates GMRS with Invoice
+  --
+  insert into isr2_isr_invoice
+    (process_id,
+     section_name,
+     corporate_id,
+     element_id,
+     contract_ref_no,
+     contract_ref_no_del_item_no,
+     internal_gmr_ref_no,
+     gmr_ref_no,
+     product_id,
+     product_desc,
+     cp_id,
+     supplier_name,
+     quality_id,
+     quality_name,
+     grd_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     shipment_date,
+     invoice_date,
+     loading_country_id,
+     loading_country_name,
+     loading_city_id,
+     loading_city_name,
+     loading_state_id,
+     loading_state_name,
+     loading_region_id,
+     loading_region,
+     discharge_country_id,
+     discharge_country_name,
+     discharge_city_id,
+     discharge_city_name,
+     discharge_state_id,
+     discharge_state_name,
+     discharge_region_id,
+     discharge_region,
+     mode_of_transport,
+     bl_no,
+     invoice_or_invenotry,
+     product_price_unit_id,
+     underlying_product_id,
+     spq_qty_unit_id,
+     under_product_base_qty_unit,
+     payable_qty,
+     loading_country_cur_id,
+     loading_country_cur_code,
+     dischagre_country_cur_id,
+     dischagre_country_cur_code,
+     base_cur_id,
+     base_cur_code,
+     base_to_load_country_ex_rate,
+     base_to_disc_country_ex_rate,
+     attribute_value,
+     contract_type,
+     export_date,
+     import_date,
+     invoice_amt,
+     invoice_cur_id,
+     invoice_cur_code,
+     invoice_to_base_ex_rate,
+     incoterm_id,
+     incoterm,
+     final_invoice_date,
+     no_of_containers,
+     internal_invoice_ref_no,
+     invoice_ref_no,
+     internal_grd_ref_no,
+     is_new_final_invoice,
+     gmr_shipment_date,        
+     gmr_landed_date,        
+     is_new_shipment,        
+     is_new_landing,
+     purchase_sales )
+    select pc_process_id process_id,
+           'Concentrates',
+           gmr.corporate_id,
+           spq.element_id,
+           gmr.contract_ref_no,
+           gmr.contract_ref_no || '-' || pcdi.delivery_item_no contract_ref_no_del_item_no,
+           gmr.internal_gmr_ref_no,
+           gmr.gmr_ref_no,
+           pcpd.product_id,
+           pcpd.product_name product_desc,
+           gmr.cp_id,
+           gmr.cp_name supplier_name,
+           dgrd.quality_id,
+           dgrd.quality_name,
+           dgrd.net_weight qty,
+           dgrd.dry_qty dry_qty,
+           dgrd.net_weight_unit_id qty_unit_id,
+           gmr.bl_date shipment_date,
+           tgi.invoice_issue_date invoice_date,
+           gmr.loading_country_id,
+           gmr.loading_country_name,
+           gmr.loading_city_id,
+           gmr.loading_city_name,
+           gmr.loading_state_id,
+           gmr.loading_state_name,
+           gmr.loading_region_id,
+           gmr.loading_region_name,
+           gmr.discharge_country_id,
+           gmr.discharge_country_name,
+           gmr.discharge_city_id,
+           gmr.discharge_city_name,
+           gmr.discharge_state_id,
+           gmr.discharge_state_name,
+           gmr.discharge_region_id,
+           gmr.discharge_region_name,
+           gmr.mode_of_transport,
+           gmr.bl_no,
+           'INVOICE' invoice_or_invenotry,
+           ppu.product_price_unit_id,
+           aml.underlying_product_id,
+           spq.qty_unit_id,
+           pdm_aml.base_quantity_unit under_product_base_qty_unit,
+           spq.payable_qty * ucm.multiplication_factor payable_qty,
+           gmr.loading_country_cur_id,
+           gmr.loading_country_cur_code,
+           gmr.discharge_country_cur_id,
+           gmr.discharge_country_cur_code,
+           vc_base_cur_id base_cur_id,
+           vc_base_cur_code base_cur_code,
+           1 base_to_load_country_ex_rate,
+           1 base_to_disc_country_ex_rate,
+           qat_ppm.attribute_value,
+           gmr.gmr_type,
+           gmr.loading_date export_date,
+           gmr.eff_date import_date,
+           tgi.invoice_item_amount,
+           tgi.invoice_cur_id,
+           gmr.invoice_cur_code,
+           1 invoice_to_base_ex_rate,
+           pci.m2m_inco_term,
+           pci.m2m_incoterm_desc,
+           decode(gmr.is_final_invoiced, 'Y', tgi.invoice_issue_date, null) final_invoice_date,
+           nvl(gmr.no_of_containers, 0) no_of_containers,
+           tgi.internal_invoice_ref_no,
+           tgi.invoice_ref_no,
+           dgrd.internal_dgrd_ref_no,
+           gmr.is_new_final_invoice,
+           gmr.gmr_shipment_date,        
+           gmr.gmr_landed_date,        
+           gmr.is_new_mtd,        
+           gmr.is_new_landing,
+           'Sales'
+      from pcdi_pc_delivery_item      pcdi,
+           pci_physical_contract_item pci,
+           gmr_goods_movement_record  gmr,
+           dgrd_delivered_grd         dgrd,
+           pcpd_pc_product_definition pcpd,
+           spq_stock_payable_qty      spq,
+           aml_attribute_master_list  aml,
+           v_qat_ppm                  qat_ppm,
+           v_ppu_pum                  ppu,
+           pdm_productmaster          pdm_aml,
+           ucm_unit_conversion_master ucm,
+           tgi_temp_gmr_invoice       tgi
+     where gmr.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = pci.pcdi_id
+       and pci.internal_contract_item_ref_no =
+           dgrd.internal_contract_item_ref_no
+       and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+       and gmr.is_deleted = 'N'
+       and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.input_output = 'Input'
+       and pci.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and gmr.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and dgrd.process_id = pc_process_id
+       and dgrd.status = 'Active'
+       and spq.process_id = pc_process_id
+       and spq.is_stock_split = 'N'
+       and spq.internal_dgrd_ref_no = dgrd.internal_grd_ref_no
+       and spq.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and spq.element_id = aml.attribute_id
+       and spq.is_active = 'Y'
+       and gmr.gmr_type = 'CONCENTRATES'
+       and pcdi.is_active = 'Y'
+       and pci.is_active = 'Y'
+       and pcpd.is_active = 'Y'
+       and dgrd.quality_id = qat_ppm.quality_id(+)
+       and ppu.product_id = aml.underlying_product_id
+       and ppu.weight_unit_id = pdm_aml.base_quantity_unit
+       and nvl(ppu.weight, 1) = 1
+       and ppu.cur_id = tgi.invoice_cur_id
+       and aml.underlying_product_id = pdm_aml.product_id
+       and gmr.discharge_country_id <> gmr.loading_country_id
+       and ucm.from_qty_unit_id = spq.qty_unit_id
+       and ucm.to_qty_unit_id = pdm_aml.base_quantity_unit
+       and gmr.latest_internal_invoice_ref_no is not null
+       and tgi.process_id = pc_process_id
+       and tgi.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and tgi.internal_invoice_ref_no = gmr.latest_internal_invoice_ref_no
+       and ( gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y' or gmr.is_new_final_invoice ='Y');
+
+  commit;
+  gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Sales Concentrates Invoice Over');
 
   sp_gather_stats('ISR2_ISR_INVOICE');
   --                          
@@ -7676,7 +8298,6 @@ begin
      ex_rate_base_to_nat_dis,
      comb_nome_item_code,
      contract_type,
-     is_new,
      export_date,
      import_date,
      ex_rate_to_base,
@@ -7686,7 +8307,13 @@ begin
      no_of_containers,
      internal_invoice_ref_no,
      invoice_ref_no,
-     corporate_name)
+     corporate_name,
+     is_new_final_invoice,
+     gmr_shipment_date,
+     gmr_landed_date,
+     is_new_shipment,
+     is_new_landing,
+     purchase_sales)
     select corporate_id,
            process_id,
            pd_trade_date,
@@ -7737,7 +8364,6 @@ begin
            base_to_disc_country_ex_rate,
            attribute_value,
            contract_type,
-           is_new,
            export_date,
            import_date,
            invoice_to_base_ex_rate,
@@ -7747,7 +8373,13 @@ begin
            no_of_containers,
            internal_invoice_ref_no,
            invoice_ref_no,
-           vc_corporate_name
+           vc_corporate_name,
+           is_new_final_invoice,
+           gmr_shipment_date,
+           gmr_landed_date,
+           is_new_shipment,
+           is_new_landing,
+           purchase_sales
       from (select isr2.corporate_id,
                    isr2.process_id,
                    pd_trade_date,
@@ -7761,7 +8393,6 @@ begin
                    isr2.supplier_name,
                    isr2.quality_id,
                    isr2.quality_name,
-                   
                    (case
                      when dense_rank()
                       over(partition by isr2.internal_grd_ref_no order by
@@ -7813,7 +8444,6 @@ begin
                    isr2.base_to_disc_country_ex_rate,
                    isr2.attribute_value,
                    isr2.contract_type,
-                   'N' is_new,
                    isr2.export_date,
                    isr2.import_date,
                    isr2.invoice_to_base_ex_rate,
@@ -7822,7 +8452,13 @@ begin
                    isr2.final_invoice_date,
                    isr2.no_of_containers,
                    isr2.internal_invoice_ref_no,
-                   isr2.invoice_ref_no
+                   isr2.invoice_ref_no,
+                   isr2.is_new_final_invoice,
+                   isr2.gmr_shipment_date,
+                   isr2.gmr_landed_date,
+                   isr2.is_new_shipment,
+                   isr2.is_new_landing,
+                   isr2.purchase_sales
               from isr2_isr_invoice isr2
              where isr2.process_id = pc_process_id) t
      group by corporate_id,
@@ -7872,7 +8508,6 @@ begin
               base_to_disc_country_ex_rate,
               attribute_value,
               contract_type,
-              is_new,
               export_date,
               import_date,
               invoice_to_base_ex_rate,
@@ -7881,7 +8516,13 @@ begin
               final_invoice_date,
               no_of_containers,
               internal_invoice_ref_no,
-              invoice_ref_no;
+              invoice_ref_no,
+              is_new_final_invoice,
+              gmr_shipment_date,
+              gmr_landed_date,
+              is_new_shipment,
+              is_new_landing,
+              purchase_sales;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -7927,34 +8568,14 @@ begin
                            from qum_quantity_unit_master qum
                           where qum.qty_unit_id = isr.qty_unit_id)
    where isr.process_id = pc_process_id;
-
   commit;
 
-  select tdc.process_id
-    into vc_previous_process_id
-    from tdc_trade_date_closure tdc
-   where tdc.corporate_id = pc_corporate_id
-     and process = pc_process
-     and tdc.trade_date = (select max(trade_date)
-                             from tdc_trade_date_closure
-                            where corporate_id = pc_corporate_id
-                              and trade_date < pd_trade_date
-                              and process = pc_process);
-
-  update isr_intrastat_grd isr
-     set isr.is_new = 'Y'
-   where isr.internal_gmr_ref_no not in
-         (select isr_prev.internal_gmr_ref_no
-            from isr_intrastat_grd isr_prev
-           where isr_prev.process_id = vc_previous_process_id)
-     and isr.process_id = pc_process_id;
-  commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'Update IS New Flag,Intrastat End');
+                        'Update Stock Unit in ISR, Intrastat End');
 exception
   when others then
     vobj_error_log.extend;
@@ -13521,6 +14142,127 @@ begin
     end loop;
   end;
   commit;
+ 
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'End of GMR Assay Updated YTR AR Flag'); 
+--
+-- Update GMR Is New Landing Flag
+--  
+-- a) When GMR is landed in this EOD
+--
+
+ update gmr_goods_movement_record gmr
+     set gmr.is_new_landing = 'Y'
+   where gmr.process_id = pc_process_id
+     and gmr.is_deleted = 'N'
+     and gmr.gmr_status in ('In Warehouse', 'Landed','Released')
+     and not exists
+   (select *
+            from gmr_goods_movement_record gmr_prev
+           where gmr_prev.process_id = vc_previous_eom_id
+             and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no);
+commit;
+ vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'End of GMR Is New Landing Flag 1'); 
+--             
+-- b) When GMR Landing is recreated this EOM and Landing Date Month are different
+-- (i.e. Previous Data and Current EOM Date)
+--
+ update gmr_goods_movement_record gmr
+     set gmr.is_new_landing = 'Y'
+   where gmr.process_id = pc_process_id
+     and gmr.is_deleted = 'N'
+     and gmr.gmr_status in ('In Warehouse', 'Landed','Released')
+     and exists
+   (select *
+            from gmr_goods_movement_record gmr_prev
+           where gmr_prev.process_id = vc_previous_eom_id
+             and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and gmr_prev.gmr_status = gmr.gmr_status
+             and trunc(gmr.gmr_landed_date) <> trunc(gmr_prev.gmr_landed_date));
+commit;
+ vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'End of GMR Is New Landing Flag 2'); 
+                        
+--             
+-- c) When GMR Landing is created this EOM, Last EOM only shipment was done
+--
+ update gmr_goods_movement_record gmr
+     set gmr.is_new_landing = 'Y'
+   where gmr.process_id = pc_process_id
+     and gmr.is_deleted = 'N'
+     and gmr.gmr_status in ('In Warehouse', 'Landed','Released')
+     and exists
+   (select *
+            from gmr_goods_movement_record gmr_prev
+           where gmr_prev.process_id = vc_previous_eom_id
+             and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and gmr_prev.gmr_status <> gmr.gmr_status);
+commit;
+ vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'End of GMR Is New Landing Flag 3');
+                        
+--
+-- Update GMR IS New Shipment Flag
+--                        
+-- a) When New GMR Case
+--
+update gmr_goods_movement_record gmr
+     set gmr.is_new_shipment = 'Y'
+   where gmr.process_id = pc_process_id
+     and gmr.is_deleted = 'N'
+     and not exists
+   (select *
+            from gmr_goods_movement_record gmr_prev
+           where gmr_prev.process_id = vc_previous_eom_id
+             and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no);
+commit;
+ vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'End of GMR Is New Shipment Flag 1'); 
+--
+-- b) When Shipment is Modified with New EOM Month
+--
+update gmr_goods_movement_record gmr
+     set gmr.is_new_shipment = 'Y'
+   where gmr.process_id = pc_process_id
+     and gmr.is_deleted = 'N'
+     and exists 
+   (select *
+            from gmr_goods_movement_record gmr_prev, agmr_action_gmr agmr
+           where gmr_prev.process_id = vc_previous_eom_id
+             and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and agmr.internal_gmr_ref_no = gmr_prev.internal_gmr_ref_no
+             and agmr.is_deleted ='N'
+             and agmr.action_no = 1-- We are checking shipment date with Previous EOM GMR and AGMR(AGMR has current shipment date)
+             and trunc(agmr.eff_date,'mm') <> trunc(gmr_prev.gmr_shipment_date,'mm'));
+             
+commit;
+ vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'End of GMR Is New Shipment Flag 2'); 
 
   gvn_log_counter := vn_log_counter;
 exception
@@ -14534,8 +15276,6 @@ end;
 procedure sp_insert_temp_gmr(pc_corporate_id varchar2,
                              pd_trade_date   date,
                              pc_process_id   varchar2) as
-  vc_inv_cur_id   varchar2(15);
-  vc_inv_cur_code varchar2(15);
 begin
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -14608,58 +15348,7 @@ begin
                         pc_process_id,
                         gvn_log_counter,
                         'inside sp_insert_temp_gmr stats ends');
-
-  delete from temp_gmr_invoice where corporate_id = pc_corporate_id;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'delete temp_gmr_invoice over');
-
-  insert into temp_gmr_invoice
-    (process_id,
-     corporate_id,
-     invoice_ref_no,
-     internal_invoice_ref_no,
-     stock_id,
-     invoice_item_amount,
-     invoice_currency_id,
-     new_invoice_price,
-     invoice_type,
-     invoice_issue_date,
-     new_invoice_price_unit_id)
-    select gmr.process_id,
-           gmr.corporate_id,
-           iss.invoice_ref_no,
-           iid.internal_invoice_ref_no,
-           iid.stock_id,
-           iid.invoice_item_amount,
-           iid.invoice_currency_id,
-           new_invoice_price,
-           iss.invoice_type,
-           iss.invoice_issue_date,
-           iid.new_invoice_price_unit_id
-      from iid_invoicable_item_details iid,
-           is_invoice_summary          iss,
-           gmr_goods_movement_record   gmr
-     where iid.internal_invoice_ref_no = iss.internal_invoice_ref_no
-       and iss.is_active = 'Y'
-       and gmr.process_id = pc_process_id
-       and gmr.process_id = iss.process_id
-       and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-       and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no;
-
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'insert temp_gmr_invoice over');
-
-  delete from tgi_temp_gmr_invoice t
+delete from tgi_temp_gmr_invoice t
    where t.corporate_id = pc_corporate_id;
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -14670,7 +15359,7 @@ begin
                         'delete from tgi_temp_gmr_invoice Over');
 
   --
-  -- Invoice Amount For GMR
+  -- Invoice Amount For Base Metal GMR
   --
   insert into tgi_temp_gmr_invoice
     (corporate_id,
@@ -14678,10 +15367,9 @@ begin
      internal_gmr_ref_no,
      internal_invoice_ref_no,
      invoice_item_amount,
-     invoice_currency_id,
+     invoice_cur_id,
      invoice_type,
      invoice_issue_date,
-     new_invoice_price_unit_id,
      invoice_ref_no)
     select gmr.corporate_id,
            pc_process_id,
@@ -14691,7 +15379,6 @@ begin
            iid.invoice_currency_id,
            iss.invoice_type_name,
            iss.invoice_issue_date,
-           iid.new_invoice_price_unit_id,
            iss.invoice_ref_no
       from iid_invoicable_item_details iid,
            is_invoice_summary          iss,
@@ -14702,53 +15389,72 @@ begin
        and gmr.process_id = iss.process_id
        and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
        and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no
+       and gmr.base_conc_mix_type ='BASEMETAL'
      group by gmr.corporate_id,
               iid.internal_gmr_ref_no,
               iss.invoice_ref_no,
               iid.internal_invoice_ref_no,
               iid.invoice_currency_id,
               iss.invoice_type_name,
-              iss.invoice_issue_date,
-              iid.new_invoice_price_unit_id;
+              iss.invoice_issue_date;
   commit;
+  
+  --
+  -- Invoice Amount For Concentrate GMR
+  --
+ insert into tgi_temp_gmr_invoice
+   (corporate_id,
+    process_id,
+    internal_gmr_ref_no,
+    internal_invoice_ref_no,
+    invoice_item_amount,
+    invoice_cur_id,
+    invoice_type,
+    invoice_issue_date,
+    invoice_ref_no)
+   select gmr.corporate_id,
+          gmr.process_id,
+          gmr.internal_gmr_ref_no,
+          gmr.latest_internal_invoice_ref_no,
+          sum(iied.element_payable_amount),
+          gmr.invoice_cur_id,
+          is1.invoice_type_name,
+          is1.invoice_issue_date,
+          is1.invoice_ref_no
+     from iied_inv_item_element_details iied,
+          gmr_goods_movement_record     gmr,
+          grd_goods_record_detail       grd,
+          is_invoice_summary            is1
+    where iied.internal_invoice_ref_no = gmr.latest_internal_invoice_ref_no
+      and gmr.latest_internal_invoice_ref_no = is1.internal_invoice_ref_no
+      and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+      and grd.process_id = pc_process_id
+      and gmr.process_id = pc_process_id
+      and is1.process_id = pc_process_id
+      and gmr.is_deleted ='N'
+      and grd.status ='Active'
+      and is1.is_active ='Y'
+      and iied.grd_id = grd.internal_grd_ref_no
+    group by gmr.corporate_id,
+             gmr.process_id,
+             gmr.internal_gmr_ref_no,
+             gmr.latest_internal_invoice_ref_no,
+             gmr.invoice_cur_id,
+             is1.invoice_type_name,
+             is1.invoice_issue_date,
+             is1.invoice_ref_no;
+commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
                         'Invoice Amt Over For Normal GMRS');
-
-  -- Update Invoice Currency 
-  for cur_inv_currency in (select tgi.new_invoice_price_unit_id
-                             from tgi_temp_gmr_invoice tgi
-                            where tgi.corporate_id = pc_corporate_id
-                            group by tgi.new_invoice_price_unit_id)
-  loop
-  
-    select cm.cur_id,
-           cm.cur_code
-      into vc_inv_cur_id,
-           vc_inv_cur_code
-      from cm_currency_master cm
-     where cm.cur_id =
-           (select ppu.cur_id
-              from v_ppu_pum ppu
-             where ppu.product_price_unit_id =
-                   cur_inv_currency.new_invoice_price_unit_id);
-  
-    update tgi_temp_gmr_invoice tgi
-       set tgi.invoice_cur_id   = vc_inv_cur_id,
-           tgi.invoice_cur_code = vc_inv_cur_code
-     where tgi.new_invoice_price_unit_id =
-           cur_inv_currency.new_invoice_price_unit_id;
-  end loop;
-  commit;
-
-  delete from tgc_temp_gmr_charges t
+  Delete from tgc_temp_gmr_charges t
    where t.corporate_id = pc_corporate_id;
   commit;
   --         
-  -- Update TC/RC/Penalty Charges         
+  -- Update TC/RC/Penalty Charges from Invoice Per GMR/Element/Invoice      
   --
   insert into tgc_temp_gmr_charges
     (corporate_id,
@@ -14827,7 +15533,6 @@ begin
   commit;
   sp_gather_stats('tgi_temp_gmr_invoice');
   sp_gather_stats('tgc_temp_gmr_charges');
-  sp_gather_stats('temp_gmr_invoice');
   --
   -- Update Provisional Payment % from IS directly
   --
