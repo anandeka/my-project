@@ -35,3 +35,30 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
+Revision: 121578
+Author: janna
+Date: 6:08:01 PM, Tuesday, April 02, 2013
+Message:
+Transfer : Added Base Conc Mix Type to GMRUL
+Populate : Added Base Conc Mix Type to GMR
+GMR : Is New Final Invoice Flag Updated
+GMR : Shipment / Landed Date Updated
+EOD Reports : Bug Fix for Intrastat and Customs
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/128_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+Revision: 121596
+Author: suresh.gottipati
+Date: 6:54:07 PM, Tuesday, April 02, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
+
+
+
+
+

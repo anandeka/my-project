@@ -34,3 +34,53 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
+
+Revision: 121575
+Author: janna
+Date: 5:56:34 PM, Tuesday, April 02, 2013
+Message:
+Bug Fix for Intrastat and Custom Report
+Created Sales Report for Both Reports Excluding Base Metals
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_115_RFC_RPC.sql
+
+Revision: 121581
+Author: janna
+Date: 6:15:56 PM, Tuesday, April 02, 2013
+Message:
+Line alignment changes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyCustomsReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SalesMonthlyCustomsReport.rpt
+
+
+
+Revision: 121574
+Author: jana
+Date: 5:55:02 PM, Tuesday, April 02, 2013
+Message:
+Bug Fix for Intrastat and Custom Report
+Created Sales Report for Both Reports Excluding Base Metals
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/IntrastatReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyCustomsReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SalesIntrastatReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SalesIntrastatReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SalesMonthlyCustomsReport_Excel.rpt
+
+
+Revision: 121595
+Author: suresh.gottipati
+Date: 6:53:12 PM, Tuesday, April 02, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+
+
+
+
+
+
+
