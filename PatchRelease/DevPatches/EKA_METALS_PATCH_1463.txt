@@ -44,15 +44,15 @@ Created Sales Report for Both Reports Excluding Base Metals
 ----
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_115_RFC_RPC.sql
 
-Revision: 121581
+
+Revision: 121606
 Author: janna
-Date: 6:15:56 PM, Tuesday, April 02, 2013
+Date: 7:35:47 PM, Tuesday, April 02, 2013
 Message:
-Line alignment changes
+Added Currency after amount and changed the position of fx columns
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyCustomsReport.rpt
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SalesMonthlyCustomsReport.rpt
-
 
 
 Revision: 121574
@@ -77,10 +77,3 @@ Message:
 Bug Fixes
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
-
-
-
-
-
-
-
