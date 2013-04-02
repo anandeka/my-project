@@ -5,8 +5,77 @@ with price_fixation as(select pfd.pofh_id,
  where pfd.user_price is not null
  and pfd.is_active='Y'
  and pfd.is_exposure='Y'
- group by pfd.pofh_id)
-
+ group by pfd.pofh_id),
+contract_quantities as
+(select pcdi.internal_contract_ref_no,
+               sum(diqs.total_qty) contract_qty
+          from pcdi_pc_delivery_item         pcdi,
+               diqs_delivery_item_qty_status diqs
+         where pcdi.pcdi_id = diqs.pcdi_id
+           and pcdi.is_active = 'Y'
+           and diqs.is_active = 'Y'
+         group by pcdi.internal_contract_ref_no),
+agmr_details as
+(select gmr.internal_gmr_ref_no,
+               agmr.eff_date
+          from gmr_goods_movement_record gmr,
+               agmr_action_gmr           agmr
+         where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+           and agmr.gmr_latest_action_action_id in
+               ('landingDetail', 'warehouseReceipt', 'releaseOrder')
+           and agmr.is_deleted = 'N'),
+gpah_details as
+(select sum(gpah.total_allocated_qty) total_allocated_qty,
+               gpah.element_id,
+               gpah.pocd_id
+          from gpah_gmr_price_alloc_header gpah
+         where gpah.is_active = 'Y'
+         group by gpah.pocd_id,
+                  gpah.element_id),
+gpah_details_2 as
+(select gmr.internal_gmr_ref_no,
+               sum(case
+                     when pfd.user_price is null then
+                      0
+                     else
+                      gpad.allocated_qty
+                   end) priced_qty,
+               gpah.element_id,
+               gpah.total_allocated_qty
+          from gmr_goods_movement_record   gmr,
+               gpah_gmr_price_alloc_header gpah,
+               gpad_gmr_price_alloc_dtls   gpad,
+               pfd_price_fixation_details  pfd
+         where gmr.internal_gmr_ref_no = gpah.internal_gmr_ref_no
+           and gpah.gpah_id = gpad.gpah_id
+           and gpad.pfd_id = pfd.pfd_id
+           and gmr.is_deleted = 'N'
+           and gpah.is_active = 'Y'
+           and gpad.is_active = 'Y'
+           and pfd.is_active = 'Y'
+           and pfd.is_exposure='Y'
+         group by gmr.internal_gmr_ref_no,
+                  gpah.element_id,
+                  gpah.total_allocated_qty),
+gpah_details_3 as
+(select gpah.internal_gmr_ref_no,
+               sum(case
+                     when pfd.user_price is null then
+                      0
+                     else
+                      gpad.allocated_qty
+                   end) priced_qty,
+               sum(gpah.total_allocated_qty) total_allocated_qty
+          from gpah_gmr_price_alloc_header gpah,
+               gpad_gmr_price_alloc_dtls   gpad,
+               pfd_price_fixation_details  pfd
+         where gpah.gpah_id = gpad.gpah_id
+           and gpad.pfd_id = pfd.pfd_id
+           and gpah.is_active = 'Y'
+           and gpad.is_active = 'Y'
+           and pfd.is_active = 'Y'
+           and pfd.is_exposure='Y'
+         group by gpah.internal_gmr_ref_no)                                              
 -- 1. SCT+PC(CONC)+PCT Traxys Event Based Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
@@ -84,25 +153,11 @@ select phd.companyname cp_name,
        diqs_delivery_item_qty_status diqs,
        ak_corporate akc,
        pci_physical_contract_item pci,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        grd_goods_record_detail grd,
        gmr_goods_movement_record gmr,
        axs_action_summary axs,
-       (select gmr.internal_gmr_ref_no,
-               agmr.eff_date
-          from gmr_goods_movement_record gmr,
-               agmr_action_gmr           agmr
-         where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-           and agmr.gmr_latest_action_action_id in
-               ('landingDetail', 'warehouseReceipt')
-           and agmr.is_deleted = 'N') agmr,
+       agmr_details agmr,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
        pofh_price_opt_fixation_header pofh,
@@ -293,27 +348,14 @@ select phd.companyname cp_name,
        diqs_delivery_item_qty_status diqs,
        dipq_delivery_item_payable_qty dipq,
        pofh_price_opt_fixation_header pofh,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        qat_quality_attributes qat,
        pcdb_pc_delivery_basis pcdb,
        pcpd_pc_product_definition pcpd,
        pcpq_pc_product_quality pcpq,
        phd_profileheaderdetails phd,
        pdm_productmaster pdm,
-       (select sum(gpah.total_allocated_qty) total_allocated_qty,
-               gpah.element_id,
-               gpah.pocd_id
-          from gpah_gmr_price_alloc_header gpah
-         where gpah.is_active = 'Y'
-         group by gpah.pocd_id,
-                  gpah.element_id) gpah,
+       gpah_details gpah,
        pcbph_pc_base_price_header pcbph,
        pcbpd_pc_base_price_detail pcbpd,
        qum_quantity_unit_master qum_payable_qty,
@@ -442,25 +484,11 @@ select phd.companyname cp_name,
        diqs_delivery_item_qty_status diqs,
        ak_corporate akc,
        pci_physical_contract_item pci,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        dgrd_delivered_grd dgrd,
        gmr_goods_movement_record gmr,
        axs_action_summary axs,
-       (select gmr.internal_gmr_ref_no,
-               agmr.eff_date
-          from gmr_goods_movement_record gmr,
-               agmr_action_gmr           agmr
-         where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-           and agmr.gmr_latest_action_action_id in
-               ('landingDetail', 'releaseOrder')
-           and agmr.is_deleted = 'N') agmr,
+       agmr_details agmr,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
        pofh_price_opt_fixation_header pofh,
@@ -644,14 +672,7 @@ select phd.companyname cp_name,
        ak_corporate akc,
        pcdi_pc_delivery_item pcdi,
        pci_physical_contract_item pci,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        qat_quality_attributes qat,
        pcdb_pc_delivery_basis pcdb,
        pcpd_pc_product_definition pcpd,
@@ -663,13 +684,7 @@ select phd.companyname cp_name,
        dipq_delivery_item_payable_qty dipq,
        diqs_delivery_item_qty_status diqs,
        pofh_price_opt_fixation_header pofh,
-       (select sum(gpah.total_allocated_qty) total_allocated_qty,
-               gpah.element_id,
-               gpah.pocd_id
-          from gpah_gmr_price_alloc_header gpah
-         where gpah.is_active = 'Y'
-         group by gpah.pocd_id,
-                  gpah.element_id) gpah,
+       gpah_details gpah,
        pcbph_pc_base_price_header pcbph,
        pcbpd_pc_base_price_detail pcbpd,
        qum_quantity_unit_master qum_payable_qty,
@@ -792,14 +807,7 @@ select phd.companyname cp_name,
        ak_corporate akc,
        diqs_delivery_item_qty_status diqs,
        pci_physical_contract_item pci,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        pcpq_pc_product_quality pcpq,
        pcpd_pc_product_definition pcpd,
        qat_quality_attributes qat,
@@ -809,13 +817,7 @@ select phd.companyname cp_name,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
        pofh_price_opt_fixation_header pofh,
-       (select sum(gpah.total_allocated_qty) total_allocated_qty,
-               gpah.element_id,
-               gpah.pocd_id
-          from gpah_gmr_price_alloc_header gpah
-         where gpah.is_active = 'Y'
-         group by gpah.pocd_id,
-                  gpah.element_id) gpah,
+       gpah_details gpah,
        pcbpd_pc_base_price_detail pcbpd,
        pcbph_pc_base_price_header pcbph,
        qum_quantity_unit_master qum_itm_qty,
@@ -924,14 +926,7 @@ select phd.companyname cp_name,
        ak_corporate akc,
        diqs_delivery_item_qty_status diqs,
        pci_physical_contract_item pci,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        pcpq_pc_product_quality pcpq,
        pcpd_pc_product_definition pcpd,
        qat_quality_attributes qat,
@@ -941,13 +936,7 @@ select phd.companyname cp_name,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
        pofh_price_opt_fixation_header pofh,
-       (select sum(gpah.total_allocated_qty) total_allocated_qty,
-               gpah.element_id,
-               gpah.pocd_id
-          from gpah_gmr_price_alloc_header gpah
-         where gpah.is_active = 'Y'
-         group by gpah.pocd_id,
-                  gpah.element_id) gpah,
+       gpah_details gpah,
        pcbpd_pc_base_price_detail pcbpd,
        pcbph_pc_base_price_header pcbph,
        qum_quantity_unit_master qum_itm_qty,
@@ -1063,25 +1052,11 @@ select phd.companyname cp_name,
        diqs_delivery_item_qty_status diqs,
        ak_corporate akc,
        pci_physical_contract_item pci,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        grd_goods_record_detail grd,
        gmr_goods_movement_record gmr,
        axs_action_summary axs,
-       (select gmr.internal_gmr_ref_no,
-               agmr.eff_date
-          from gmr_goods_movement_record gmr,
-               agmr_action_gmr           agmr
-         where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-           and agmr.gmr_latest_action_action_id in
-               ('landingDetail', 'warehouseReceipt')
-           and agmr.is_deleted = 'N') agmr,
+       agmr_details agmr,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
        pofh_price_opt_fixation_header pofh,
@@ -1216,25 +1191,11 @@ select phd.companyname cp_name,
        diqs_delivery_item_qty_status diqs,
        ak_corporate akc,
        pci_physical_contract_item pci,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        dgrd_delivered_grd dgrd,
        gmr_goods_movement_record gmr,
        axs_action_summary axs,
-       (select gmr.internal_gmr_ref_no,
-               agmr.eff_date
-          from gmr_goods_movement_record gmr,
-               agmr_action_gmr           agmr
-         where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-           and agmr.gmr_latest_action_action_id in
-               ('landingDetail', 'releaseOrder')
-           and agmr.is_deleted = 'N') agmr,
+       agmr_details agmr,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
        pofh_price_opt_fixation_header pofh,
@@ -1454,25 +1415,11 @@ select phd.companyname cp_name,
        pcdi_pc_delivery_item pcdi,
        diqs_delivery_item_qty_status diqs,
        pci_physical_contract_item pci,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        qat_quality_attributes qat,
        axs_action_summary axs,
        gmr_goods_movement_record gmr,
-       (select gmr.internal_gmr_ref_no,
-               agmr.eff_date
-          from gmr_goods_movement_record gmr,
-               agmr_action_gmr           agmr
-         where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-           and agmr.gmr_latest_action_action_id in
-               ('landingDetail', 'releaseOrder')
-           and agmr.is_deleted = 'N') agmr,
+       agmr_details agmr,
        gsm_gmr_stauts_master gsm,
        grd_goods_record_detail grd,
        pcdb_pc_delivery_basis pcdb,
@@ -1483,30 +1430,7 @@ select phd.companyname cp_name,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
        pofh_price_opt_fixation_header pofh,
-       (select gmr.internal_gmr_ref_no,
-               sum(case
-                     when pfd.user_price is null then
-                      0
-                     else
-                      gpad.allocated_qty
-                   end) priced_qty,
-               gpah.element_id,
-               gpah.total_allocated_qty
-          from gmr_goods_movement_record   gmr,
-               gpah_gmr_price_alloc_header gpah,
-               gpad_gmr_price_alloc_dtls   gpad,
-               pfd_price_fixation_details  pfd
-         where gmr.internal_gmr_ref_no = gpah.internal_gmr_ref_no
-           and gpah.gpah_id = gpad.gpah_id
-           and gpad.pfd_id = pfd.pfd_id
-           and gmr.is_deleted = 'N'
-           and gpah.is_active = 'Y'
-           and gpad.is_active = 'Y'
-           and pfd.is_active = 'Y'
-           and pfd.is_exposure='Y'
-         group by gmr.internal_gmr_ref_no,
-                  gpah.element_id,
-                  gpah.total_allocated_qty) gpah,
+       gpah_details_2 gpah,
        pcbph_pc_base_price_header pcbph,
        pcbpd_pc_base_price_detail pcbpd,
        spq_stock_payable_qty spq,
@@ -1695,25 +1619,11 @@ select phd.companyname cp_name,
        pcdi_pc_delivery_item pcdi,
        diqs_delivery_item_qty_status diqs,
        pci_physical_contract_item pci,
-       (select pcdi.internal_contract_ref_no,
-               sum(diqs.total_qty) contract_qty
-          from pcdi_pc_delivery_item         pcdi,
-               diqs_delivery_item_qty_status diqs
-         where pcdi.pcdi_id = diqs.pcdi_id
-           and pcdi.is_active = 'Y'
-           and diqs.is_active = 'Y'
-         group by pcdi.internal_contract_ref_no) cont_qty,
+       contract_quantities cont_qty,
        qat_quality_attributes qat,
        axs_action_summary axs,
        gmr_goods_movement_record gmr,
-       (select gmr.internal_gmr_ref_no,
-               agmr.eff_date
-          from gmr_goods_movement_record gmr,
-               agmr_action_gmr           agmr
-         where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-           and agmr.gmr_latest_action_action_id in
-               ('landingDetail', 'releaseOrder')
-           and agmr.is_deleted = 'N') agmr,
+       agmr_details agmr,
        gsm_gmr_stauts_master gsm,
        grd_goods_record_detail grd,
        pcdb_pc_delivery_basis pcdb,
@@ -1725,24 +1635,7 @@ select phd.companyname cp_name,
        pocd_price_option_calloff_dtls pocd,
        pofh_price_opt_fixation_header pofh,
        pfd_price_fixation_details pfd,
-       (select gpah.internal_gmr_ref_no,
-               sum(case
-                     when pfd.user_price is null then
-                      0
-                     else
-                      gpad.allocated_qty
-                   end) priced_qty,
-               sum(gpah.total_allocated_qty) total_allocated_qty
-          from gpah_gmr_price_alloc_header gpah,
-               gpad_gmr_price_alloc_dtls   gpad,
-               pfd_price_fixation_details  pfd
-         where gpah.gpah_id = gpad.gpah_id
-           and gpad.pfd_id = pfd.pfd_id
-           and gpah.is_active = 'Y'
-           and gpad.is_active = 'Y'
-           and pfd.is_active = 'Y'
-           and pfd.is_exposure='Y'
-         group by gpah.internal_gmr_ref_no) gpah,
+       gpah_details_3 gpah,
        pcbph_pc_base_price_header pcbph,
        pcbpd_pc_base_price_detail pcbpd,
        qum_quantity_unit_master qum_del,
