@@ -35,10 +35,14 @@ Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
 
-Revision: 121651
+Revision: 121674
 Author: janna
-Date: 12:34:43 PM, Wednesday, April 03, 2013
+Date: 3:25:44 PM, Wednesday, April 03, 2013
 Message:
+Bank FX Rate added as it was required for app
 valuation Price % Put NVL 100
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+
+
+
