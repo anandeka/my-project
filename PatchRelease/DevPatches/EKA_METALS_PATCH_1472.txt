@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1472
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Nishikant Gupta
+ 
+Created on*        		:  03-Apr-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 121752
+Author: nishikant.gupta
+Date: 9:29:39 PM, Wednesday, April 03, 2013
+Message:
+Additional Charges setup screen: Save Operation
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_422.sql
+
+Revision: 121753
+Author: nishikant.gupta
+Date: 9:31:15 PM, Wednesday, April 03, 2013
+Message:
+Additional Charges setup screen: Save Operation
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_540.sql
+
