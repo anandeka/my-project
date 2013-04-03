@@ -1,0 +1,55 @@
+Patch No*          		:  EKA_METALS_PATCH_1469
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  03-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  76722,67205
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  Report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 121720
+Author: suresh.gottipati
+Date: 7:26:39 PM, Wednesday, April 03, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_116_RFC_RPC.sql
+
+Revision: 121721
+Author: suresh.gottipati
+Date: 7:27:20 PM, Wednesday, April 03, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractedVsDeliveredReport.rpt
+
+
+
+
