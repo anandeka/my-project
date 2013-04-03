@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1470
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Baiju K
+ 
+Created on*        		:  03-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Interface
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 121743
+Author: baijukaimala
+Date: Wednesday, April 03, 2013 8:42:10 PM
+Message:
+Patch for #75648 -  SDUL table - increase the internal remarks column width to be in synch with SD table
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_421.sql
+
