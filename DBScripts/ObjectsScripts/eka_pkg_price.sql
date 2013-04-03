@@ -33,8 +33,7 @@ create or replace package pkg_price is
   function f_is_day_holiday(pc_instrumentid in varchar2,
                             pc_trade_date   date) return boolean;
   function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
-                                        pd_trade_date       date)
-    return date;                                
+                                        pd_trade_date       date) return date;
 end;
 /
 create or replace package body pkg_price is
@@ -161,7 +160,7 @@ create or replace package body pkg_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail pcbpd,
@@ -193,7 +192,7 @@ create or replace package body pkg_price is
              pcbpd.fx_to_base,
              pcbpd.qty_to_be_priced,
              pcbph.price_description,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
         from pci_physical_contract_item pci,
              pcipf_pci_pricing_formula  pcipf,
              pcbph_pc_base_price_header pcbph,
@@ -568,15 +567,15 @@ create or replace package body pkg_price is
                 vn_unfixed_val_price         := 0;
                 vc_unfixed_val_price_unit_id := null;
             end;
-            vn_fixed_qty            := 0;
-            vn_unfixed_qty          := vn_total_quantity;
-            vn_total_contract_value := vn_total_contract_value +
-                                       ((vn_qty_to_be_priced / 100) *
-                                       (vn_total_quantity *
-                                       vn_unfixed_val_price));
-             vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
-                                            vn_fixed_qty + vn_unfixed_qty;                            
-                                                  
+            vn_fixed_qty               := 0;
+            vn_unfixed_qty             := vn_total_quantity;
+            vn_total_contract_value    := vn_total_contract_value +
+                                          ((vn_qty_to_be_priced / 100) *
+                                          (vn_total_quantity *
+                                          vn_unfixed_val_price));
+            vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
+                                          vn_fixed_qty + vn_unfixed_qty;
+          
             begin
               select ppu.product_price_unit_id
                 into vc_price_unit_id
@@ -586,7 +585,7 @@ create or replace package body pkg_price is
             exception
               when others then
                 vc_price_unit_id := null;
-            end;            
+            end;
           end if;
         end loop;
         if vn_total_qty_for_avg_price <> 0 then
@@ -759,7 +758,7 @@ create or replace package body pkg_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -1189,7 +1188,7 @@ create or replace package body pkg_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail pcbpd,
@@ -1218,7 +1217,7 @@ create or replace package body pkg_price is
              pcbpd.price_unit_id,
              pcbpd.qty_to_be_priced,
              pcbph.price_description,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
         from pci_physical_contract_item pci,
              pcipf_pci_pricing_formula  pcipf,
              pcbph_pc_base_price_header pcbph,
@@ -1717,7 +1716,7 @@ create or replace package body pkg_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             pcbph.valuation_price_percentage / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -2337,7 +2336,7 @@ create or replace package body pkg_price is
     when others then
       return 0;
   end;
-function f_is_day_holiday(pc_instrumentid in varchar2,
+  function f_is_day_holiday(pc_instrumentid in varchar2,
                             pc_trade_date   date) return boolean is
     vn_counter    number(1);
     vb_result_val boolean;
@@ -2387,8 +2386,8 @@ function f_is_day_holiday(pc_instrumentid in varchar2,
       end if;
     end;
     return vb_result_val;
-  end; 
-function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
+  end;
+  function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                         pd_trade_date       date) return date is
     cursor cur_monthly_prompt_rule is
       select mpc.*
@@ -2460,6 +2459,6 @@ function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                 'dd-Mon-yyyy');
     end if;
     return vd_prompt_date;
-  end;   
+  end;
 end;
 /
