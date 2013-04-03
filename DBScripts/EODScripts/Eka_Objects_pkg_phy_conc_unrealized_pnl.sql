@@ -5265,11 +5265,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         begin
           select round((case
                          when getc.weight_type = 'Dry' then
-                          vn_dry_qty * ucm.multiplication_factor *
-                          getc.base_tc_value
+                          vn_dry_qty * ucm.multiplication_factor * getc.tc_value
                          else
-                          vn_wet_qty * ucm.multiplication_factor *
-                          getc.base_tc_value
+                          vn_wet_qty * ucm.multiplication_factor * getc.tc_value
                        end),
                        2),
                  getc.tc_cur_id
@@ -5395,7 +5393,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           vc_contract_pc_cur_id);*/
         
           begin
-            select round((case
+            select round(sum(case
                            when gepc.weight_type = 'Dry' then
                             vn_dry_qty * ucm.multiplication_factor * gepc.pc_value
                            else
@@ -5411,10 +5409,10 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                and gepc.internal_gmr_ref_no =
                    cur_grd_rows.internal_gmr_ref_no
                and gepc.internal_grd_ref_no =
-                   cur_grd_rows.internal_grd_dgrd_ref_no
-               and gepc.element_id = cur_grd_rows.element_id
+                   cur_grd_rows.internal_grd_dgrd_ref_no               
                and ucm.from_qty_unit_id = cur_grd_rows.qty_unit_id
-               and ucm.to_qty_unit_id = gepc.pc_weight_unit_id;
+               and ucm.to_qty_unit_id = gepc.pc_weight_unit_id
+               group by  gepc.pc_cur_id;
           exception
             when others then
               vn_contract_pc_charges := 0;

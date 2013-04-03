@@ -24,7 +24,7 @@ create or replace package pkg_phy_conc_realized_pnl is
                                         pc_dbd_id       varchar2,
                                         pc_user_id      varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_conc_realized_pnl is
   procedure sp_calc_phy_conc_realize_today(pc_corporate_id varchar2,
@@ -242,8 +242,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              qum_payable.qty_unit payable_qty_unit,
              pcdb.premium location_premium_per_unit,
              pcdb.premium_unit_id location_premium_unit_id,
-             null location_premium_fw_exch_rate,
-             1 ratio
+             null location_premium_fw_exch_rate
         from agh_alloc_group_header             agh,
              dgrd_delivered_grd                 dgrd,
              pci_physical_contract_item         pci,
@@ -496,8 +495,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              qum_payable.qty_unit payable_qty_unit,
              invs.product_premium_per_unit location_premium_per_unit,
              invs.price_unit_id location_premium_price_unit_id,
-             invs.contract_pp_fw_exch_rate location_premium_fw_exch_rate,
-             (agd.qty / (grd.qty * ucm.multiplication_factor)) ratio
+             invs.contract_pp_fw_exch_rate location_premium_fw_exch_rate
         from agh_alloc_group_header       agh,
              agd_alloc_group_detail       agd,
              grd_goods_record_detail      grd,
@@ -943,12 +941,12 @@ create or replace package body pkg_phy_conc_realized_pnl is
       -- Get the payable element value in base currency
       vn_contract_value_in_price_cur := round((vn_contract_price /
                                               nvl(vn_price_unit_weight, 1)) *
-                                              vn_ele_qty_in_base *
+                                              cur_realized_rows.payable_qty *
                                               vn_cont_price_cur_id_factor *
                                               pkg_general.f_get_converted_quantity(cur_realized_rows.underlying_product_id,
                                                                                    cur_realized_rows.payable_qty_unit_id,
-                                                                                   cur_realized_rows.under_base_qty_unit_id,
-                                                                                   cur_realized_rows.item_qty),
+                                                                                   cur_realized_rows.price_unit_weight_unit_id,
+                                                                                   1) ,
                                               cur_realized_rows.base_cur_decimal);
       vc_error_msg                   := '777';
       if vc_price_cur_id <> cur_realized_rows.base_cur_id then
@@ -962,16 +960,13 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                     pc_process,
                                     vn_price_to_base_fw_rate,
                                     vn_forward_points);
+                                    
+        else
+       vn_price_to_base_fw_rate :=1;
+       end if; 
         vn_contract_value_in_base_cur := vn_contract_value_in_price_cur *
                                          vn_price_to_base_fw_rate;
-        vc_price_to_base_fw_rate      := '1 ' ||
-                                         cur_realized_rows.base_cur_code || '= ' ||
-                                         vn_price_to_base_fw_rate || ' ' ||
-                                         vc_price_cur_code;
-      else
-        vn_contract_value_in_base_cur := vn_contract_price *
-                                         vn_ele_qty_in_base;
-      end if;
+    
       vn_contract_value_in_base_cur := round(vn_contract_value_in_base_cur,
                                              cur_realized_rows.base_cur_decimal);
       --
@@ -985,10 +980,10 @@ create or replace package body pkg_phy_conc_realized_pnl is
         select round((case
                        when getc.weight_type = 'Dry' then
                         vn_dry_qty * ucm.multiplication_factor *
-                        getc.base_tc_value
+                        getc.tc_value
                        else
                         vn_wet_qty * ucm.multiplication_factor *
-                        getc.base_tc_value
+                        getc.tc_value
                      end),
                      2),
                getc.tc_cur_id
@@ -1010,8 +1005,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
           vc_con_treatment_cur_id := null;
       end;
     
-      vn_con_treatment_charge := vn_con_treatment_charge *
-                                 cur_realized_rows.ratio;
+      vn_con_treatment_charge := vn_con_treatment_charge;
       -- Converted treatment charges to base currency
       if vc_con_treatment_cur_id <> cur_realized_rows.base_cur_id then
         -- Bank FX Rate from TC to Base Currency
@@ -1071,8 +1065,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
           vc_con_refine_cur_id := null;
       end;
     
-      vn_con_refine_charge := vn_con_refine_charge *
-                              cur_realized_rows.ratio;
+      vn_con_refine_charge := vn_con_refine_charge;
     
       --- Converted Refine Charges To Base Currency                                              
       if vc_con_refine_cur_id <> cur_realized_rows.base_cur_id then
@@ -1115,7 +1108,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
         vc_error_msg := '913';
       
         begin
-          select round((case
+          select round(sum(case
                          when gepc.weight_type = 'Dry' then
                           vn_dry_qty * ucm.multiplication_factor * gepc.pc_value
                          else
@@ -1132,9 +1125,10 @@ create or replace package body pkg_phy_conc_realized_pnl is
                  cur_realized_rows.internal_gmr_ref_no
              and gepc.internal_grd_ref_no =
                  cur_realized_rows.internal_grd_ref_no
-             and gepc.element_id = cur_realized_rows.element_id
+             --and gepc.element_id = cur_realized_rows.element_id
              and ucm.from_qty_unit_id = cur_realized_rows.qty_unit_id
-             and ucm.to_qty_unit_id = gepc.pc_weight_unit_id;
+             and ucm.to_qty_unit_id = gepc.pc_weight_unit_id
+             group by  gepc.pc_cur_id;
         exception
           when others then
             vn_con_penality_charge := 0;
@@ -1143,8 +1137,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
       
         -- Convert to Base with Bank FX Rate
         vc_error_msg           := '914';
-        vn_con_penality_charge := vn_con_penality_charge *
-                                  cur_realized_rows.ratio;
+        vn_con_penality_charge := vn_con_penality_charge;
         if vn_con_penality_charge <> 0 then
           pkg_general.sp_get_base_cur_detail(vc_con_penality_cur_id,
                                              vc_con_pc_main_cur_id,
@@ -1581,6 +1574,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
                 and prce.payable_qty_unit_id = qum.qty_unit_id
                 and prce.price_unit_id = ppu.product_price_unit_id
                 and prch.int_alloc_group_id = prce.int_alloc_group_id
+                and prch.process_id=prce.process_id
                 and prch.sales_internal_gmr_ref_no =
                     prce.sales_internal_gmr_ref_no)
      where prch.process_id = pc_process_id;
@@ -2798,16 +2792,11 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                     pc_process,
                                     vn_price_to_base_fw_rate,
                                     vn_forward_points);
+       else
+       vn_price_to_base_fw_rate:=1;
+       end if;
         vn_contract_value_in_base_cur := vn_contract_value_in_price_cur *
                                          vn_price_to_base_fw_rate;
-        vc_price_to_base_fw_rate      := '1 ' ||
-                                         cur_not_fixed_rows.base_cur_code || '= ' ||
-                                         vn_price_to_base_fw_rate || ' ' ||
-                                         vc_price_cur_code;
-      else
-        vn_contract_value_in_base_cur := vn_contract_price *
-                                         vn_ele_qty_in_base;
-      end if;
     
       if cur_not_fixed_rows.ele_rank = 1 then
       
@@ -4190,31 +4179,48 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                     pc_process,
                                     vn_price_to_base_fw_rate,
                                     vn_forward_points);
+                                    
+      else
+        vn_price_to_base_fw_rate :=1;
+      end if;                       
         vn_contract_value_in_base_cur := vn_contract_value_in_price_cur *
                                          vn_price_to_base_fw_rate;
-        vc_price_to_base_fw_rate      := '1 ' ||
-                                         cur_realized_rows.base_cur_code || '= ' ||
-                                         vn_price_to_base_fw_rate || ' ' ||
-                                         vc_price_cur_code;
-      else
-        vn_contract_value_in_base_cur := vn_contract_price *
-                                         vn_ele_qty_in_base;
-      end if;
-    
+       
       --
       -- Calcualte the TC, RC and Penalty
       --
       --
       --- contract refine chrges
       --
-      pkg_metals_general.sp_get_gmr_treatment_charge(cur_realized_rows.internal_gmr_ref_no,
-                                                     cur_realized_rows.internal_grd_ref_no,
-                                                     cur_realized_rows.element_id,
-                                                     pc_dbd_id,
-                                                     vn_contract_price,
-                                                     vc_price_unit_id,
-                                                     vn_con_treatment_charge,
-                                                     vc_con_treatment_cur_id);
+      begin
+        select round((case
+                       when getc.weight_type = 'Dry' then
+                        vn_dry_qty * ucm.multiplication_factor *
+                        getc.tc_value
+                       else
+                        vn_wet_qty * ucm.multiplication_factor *
+                        getc.tc_value
+                     end),
+                     2),
+               getc.tc_cur_id
+          into vn_con_treatment_charge,
+               vc_con_treatment_cur_id
+          from getc_gmr_element_tc_charges getc,
+               ucm_unit_conversion_master  ucm
+         where getc.process_id = pc_process_id
+           and getc.internal_gmr_ref_no =
+               cur_realized_rows.internal_gmr_ref_no
+           and getc.internal_grd_ref_no =
+               cur_realized_rows.internal_grd_ref_no
+           and getc.element_id = cur_realized_rows.element_id
+           and ucm.from_qty_unit_id = cur_realized_rows.qty_unit_id
+           and ucm.to_qty_unit_id = getc.tc_weight_unit_id;
+      exception
+        when others then
+          vn_con_treatment_charge := 0;
+          vc_con_treatment_cur_id := null;
+      end;
+      vn_con_treatment_charge := vn_con_treatment_charge;
     
       -- Converted treatment charges to base currency
       if vc_con_treatment_cur_id <> cur_realized_rows.base_cur_id then
@@ -4251,14 +4257,30 @@ create or replace package body pkg_phy_conc_realized_pnl is
       --
       --- contract refine chrges
       --
-      pkg_metals_general.sp_get_gmr_refine_charge(cur_realized_rows.internal_gmr_ref_no,
-                                                  cur_realized_rows.internal_grd_ref_no,
-                                                  cur_realized_rows.element_id,
-                                                  pc_dbd_id,
-                                                  vn_contract_price,
-                                                  vc_price_unit_id,
-                                                  vn_con_refine_charge,
-                                                  vc_con_refine_cur_id);
+     
+      begin
+        select round(gerc.rc_value * ucm.multiplication_factor *
+                     cur_realized_rows.payable_qty,
+                     2),
+               gerc.rc_cur_id
+          into vn_con_refine_charge,
+               vc_con_refine_cur_id
+          from gerc_gmr_element_rc_charges gerc,
+               ucm_unit_conversion_master  ucm
+         where gerc.process_id = pc_process_id
+           and gerc.internal_gmr_ref_no =
+               cur_realized_rows.internal_gmr_ref_no
+           and gerc.internal_grd_ref_no =
+               cur_realized_rows.internal_grd_ref_no
+           and gerc.element_id = cur_realized_rows.element_id
+           and ucm.from_qty_unit_id = cur_realized_rows.payable_qty_unit_id
+           and ucm.to_qty_unit_id = gerc.rc_weight_unit_id;
+      exception
+        when others then
+          vn_con_refine_charge := 0;
+          vc_con_refine_cur_id := null;
+      end;
+        vn_con_refine_charge := vn_con_refine_charge;
       --- Converted refine charges to base currency                                              
       if vc_con_refine_cur_id <> cur_realized_rows.base_cur_id then
         pkg_general.sp_get_base_cur_detail(vc_con_refine_cur_id,
@@ -4385,15 +4407,37 @@ create or replace package body pkg_phy_conc_realized_pnl is
       if cur_realized_rows.ele_rank = 1 then
         vc_error_msg := '911';
         vc_error_msg := '913';
-        pkg_metals_general.sp_get_gmr_penalty_charge_new(cur_realized_rows.internal_gmr_ref_no,
-                                                         cur_realized_rows.internal_grd_ref_no,
-                                                         pc_dbd_id,
-                                                         vn_con_penality_charge,
-                                                         vc_con_penality_cur_id);
+        begin
+          select round(sum(case
+                         when gepc.weight_type = 'Dry' then
+                          vn_dry_qty * ucm.multiplication_factor * gepc.pc_value
+                         else
+                          vn_wet_qty * ucm.multiplication_factor * gepc.pc_value
+                       end),
+                       2),
+                 gepc.pc_cur_id
+            into vn_con_penality_charge,
+                 vc_con_penality_cur_id
+            from gepc_gmr_element_pc_charges gepc,
+                 ucm_unit_conversion_master  ucm
+           where gepc.process_id = pc_process_id
+             and gepc.internal_gmr_ref_no =
+                 cur_realized_rows.internal_gmr_ref_no
+             and gepc.internal_grd_ref_no =
+                 cur_realized_rows.internal_grd_ref_no
+             --and gepc.element_id = cur_realized_rows.element_id
+             and ucm.from_qty_unit_id = cur_realized_rows.qty_unit_id
+             and ucm.to_qty_unit_id = gepc.pc_weight_unit_id
+             group by  gepc.pc_cur_id;
+        exception
+          when others then
+            vn_con_penality_charge := 0;
+            vc_con_penality_cur_id := null;
+        end;
       
         -- Convert to Base with Bank FX Rate
         vc_error_msg := '914';
-      
+        vn_con_penality_charge := vn_con_penality_charge;
         if vn_con_penality_charge <> 0 then
           pkg_general.sp_get_base_cur_detail(vc_con_penality_cur_id,
                                              vc_con_pc_main_cur_id,
@@ -4912,5 +4956,5 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /

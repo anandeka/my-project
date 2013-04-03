@@ -22833,17 +22833,14 @@ begin
                     gmr.gmr_ref_no,
                     aml.attribute_name
                from gmr_goods_movement_record   gmr,
-                    dgrd_delivered_grd          dgrd,
-                    sam_stock_assay_mapping     sam,
+                    dgrd_delivered_grd          dgrd,                  
                     ash_assay_header            ash,
                     asm_assay_sublot_mapping    asm,
                     pqca_pq_chemical_attributes pqca,
                     aml_attribute_master_list   aml,
-                    pci_physical_contract_item  pci,
-                    spq_stock_payable_qty       spq
+                    pci_physical_contract_item  pci
               where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-                and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
-                and sam.ash_id = ash.ash_id
+                and dgrd.weg_avg_pricing_assay_id = ash.ash_id
                 and ash.ash_id = asm.ash_id
                 and asm.asm_id = pqca.asm_id
                 and aml.attribute_id = pqca.element_id
@@ -22853,12 +22850,6 @@ begin
                 and pci.dbd_id = pc_dbd_id
                 and dgrd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
-                and gmr.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                and dgrd.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
-                and spq.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
-                and spq.element_id = pqca.element_id
-                and spq.dbd_id = pc_dbd_id
-                and spq.weg_avg_pricing_assay_id = ash.ash_id
                 and exists
               (select *
                        from pcaph_pc_attr_penalty_header  pcaph,
