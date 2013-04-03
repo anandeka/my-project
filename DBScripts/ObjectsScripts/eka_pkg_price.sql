@@ -34,6 +34,13 @@ create or replace package pkg_price is
                             pc_trade_date   date) return boolean;
   function f_get_next_month_prompt_date(pc_promp_del_cal_id varchar2,
                                         pd_trade_date       date) return date;
+
+  procedure sp_bank_fx_rate(pc_corporate_id     in varchar2,
+                            pd_trade_date       in date,
+                            pc_from_cur_id      in varchar2,
+                            pc_to_cur_id        in varchar2,
+                            pc_settlement_price out number);
+
 end;
 /
 create or replace package body pkg_price is
@@ -2460,5 +2467,152 @@ create or replace package body pkg_price is
     end if;
     return vd_prompt_date;
   end;
+
+  procedure sp_bank_fx_rate(pc_corporate_id     in varchar2,
+                            pd_trade_date       in date,
+                            pc_from_cur_id      in varchar2,
+                            pc_to_cur_id        in varchar2,
+                            pc_settlement_price out number) is
+  
+    vd_maturity_date date;
+  begin
+    if pc_from_cur_id = pc_to_cur_id then
+      pc_settlement_price := 1;
+    else
+      select max(cfq.trade_date)
+        into vd_maturity_date
+        from cfq_currency_forward_quotes    cfq,
+             cfqd_currency_fwd_quote_detail cfqd,
+             div_der_instrument_valuation   div,
+             dim_der_instrument_master      dim,
+             cci_corp_currency_instrument   cci,
+             pdd_product_derivative_def     pdd,
+             pdm_productmaster              pdm
+       where cfq.cfq_id = cfqd.cfq_id
+         and cfq.instrument_id = div.instrument_id
+         and cfq.price_source_id = div.price_source_id
+         and cfq.instrument_id = cci.instrument_id
+         and cfq.instrument_id = dim.instrument_id
+         and dim.product_derivative_id = pdd.derivative_def_id
+         and pdd.product_id = pdm.product_id
+         and pdm.base_cur_id = pc_from_cur_id
+         and pdm.quote_cur_id = pc_to_cur_id
+         and cfq.corporate_id = pc_corporate_id
+         and cfq.is_deleted = 'N'
+         and cfqd.is_deleted = 'N'
+         and div.is_deleted = 'N'
+         and dim.is_active = 'Y'
+         and cci.is_deleted = 'N'
+         and pdd.is_deleted = 'N'
+         and pdm.is_deleted = 'N'
+         and cci.corporate_id = pc_corporate_id
+         and cfq.trade_date <= pd_trade_date;
+    
+      begin
+        select cfqd.rate
+          into pc_settlement_price
+          from cfq_currency_forward_quotes    cfq,
+               cfqd_currency_fwd_quote_detail cfqd,
+               div_der_instrument_valuation   div,
+               dim_der_instrument_master      dim,
+               cci_corp_currency_instrument   cci,
+               pdd_product_derivative_def     pdd,
+               pdm_productmaster              pdm
+         where cfq.cfq_id = cfqd.cfq_id
+           and cfq.instrument_id = div.instrument_id
+           and cfq.price_source_id = div.price_source_id
+           and cfq.instrument_id = cci.instrument_id
+           and cfq.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.product_id = pdm.product_id
+           and pdm.base_cur_id = pc_from_cur_id
+           and pdm.quote_cur_id = pc_to_cur_id
+           and cfq.corporate_id = pc_corporate_id
+           and cfq.is_deleted = 'N'
+           and cfqd.is_deleted = 'N'
+           and div.is_deleted = 'N'
+           and dim.is_active = 'Y'
+           and cci.is_deleted = 'N'
+           and pdd.is_deleted = 'N'
+           and pdm.is_deleted = 'N'
+           and cfqd.is_spot = 'Y'
+           and cci.corporate_id = pc_corporate_id
+           and cfq.trade_date = vd_maturity_date;
+      exception
+        when no_data_found then
+          pc_settlement_price := 0;
+      end;
+    
+      if vd_maturity_date is null then
+        select max(cfq.trade_date)
+          into vd_maturity_date
+          from cfq_currency_forward_quotes    cfq,
+               cfqd_currency_fwd_quote_detail cfqd,
+               div_der_instrument_valuation   div,
+               dim_der_instrument_master      dim,
+               cci_corp_currency_instrument   cci,
+               pdd_product_derivative_def     pdd,
+               pdm_productmaster              pdm
+         where cfq.cfq_id = cfqd.cfq_id
+           and cfq.instrument_id = div.instrument_id
+           and cfq.price_source_id = div.price_source_id
+           and cfq.instrument_id = cci.instrument_id
+           and cfq.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.product_id = pdm.product_id
+           and pdm.base_cur_id = pc_to_cur_id
+           and pdm.quote_cur_id = pc_from_cur_id
+           and cfq.corporate_id = pc_corporate_id
+           and cfq.is_deleted = 'N'
+           and cfqd.is_deleted = 'N'
+           and div.is_deleted = 'N'
+           and dim.is_active = 'Y'
+           and cci.is_deleted = 'N'
+           and pdd.is_deleted = 'N'
+           and pdm.is_deleted = 'N'
+           and cfqd.is_spot = 'Y'
+           and cci.corporate_id = pc_corporate_id
+           and cfq.trade_date <= pd_trade_date;
+        begin
+          select 1 / cfqd.rate
+            into pc_settlement_price
+            from cfq_currency_forward_quotes    cfq,
+                 cfqd_currency_fwd_quote_detail cfqd,
+                 div_der_instrument_valuation   div,
+                 dim_der_instrument_master      dim,
+                 cci_corp_currency_instrument   cci,
+                 pdd_product_derivative_def     pdd,
+                 pdm_productmaster              pdm
+           where cfq.cfq_id = cfqd.cfq_id
+             and cfq.instrument_id = div.instrument_id
+             and cfq.price_source_id = div.price_source_id
+             and cfq.instrument_id = cci.instrument_id
+             and cfq.instrument_id = dim.instrument_id
+             and dim.product_derivative_id = pdd.derivative_def_id
+             and pdd.product_id = pdm.product_id
+             and pdm.base_cur_id = pc_to_cur_id
+             and pdm.quote_cur_id = pc_from_cur_id
+             and cfq.corporate_id = pc_corporate_id
+             and cfq.is_deleted = 'N'
+             and cfqd.is_deleted = 'N'
+             and div.is_deleted = 'N'
+             and dim.is_active = 'Y'
+             and cci.is_deleted = 'N'
+             and pdd.is_deleted = 'N'
+             and pdm.is_deleted = 'N'
+             and cfqd.is_spot = 'Y'
+             and cci.corporate_id = pc_corporate_id
+             and cfqd.is_spot = 'Y'
+             and cfq.trade_date = vd_maturity_date;
+        exception
+          when no_data_found then
+            pc_settlement_price := 0;
+        end;
+      end if;
+      pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
+    end if;
+  
+  end;
+
 end;
 /
