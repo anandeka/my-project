@@ -14,9 +14,9 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Online Reports
+Module  		   	 :  Online Price
 
-Sub-Module  			 :  Online Reports
+Sub-Module  			 :  Online COG Price
  
 Section   		   	 :  N/A
  
