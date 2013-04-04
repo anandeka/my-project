@@ -13740,6 +13740,7 @@ sp_precheck_process_log(pc_corporate_id,
  where grd.dbd_id = pc_dbd_id
    and grd.status = 'Active'
    and grd.is_deleted = 'N'
+   and grd.tolling_stock_type in ('Clone Stock','None Tolling')
  group by grd.internal_gmr_ref_no)
   loop
     update gmr_goods_movement_record gmr
@@ -13762,7 +13763,7 @@ for cur_dgrd in (
   select dgrd.internal_gmr_ref_no,
        sum(nvl(dgrd.no_of_containers, 0)) no_of_containers,
        sum(dgrd.net_weight * nvl(dgrd.dgrd_to_gmr_qty_factor, 1)) wet_qty,
-       sum(dgrd.net_weight * nvl(dgrd.dgrd_to_gmr_qty_factor, 1)) dry_qty
+       sum(dgrd.dry_qty * nvl(dgrd.dgrd_to_gmr_qty_factor, 1)) dry_qty
   from dgrd_delivered_grd dgrd
  where dgrd.dbd_id = pc_dbd_id
    and dgrd.status = 'Active'
@@ -13794,7 +13795,7 @@ select agmr.internal_gmr_ref_no,
    and agrd.is_deleted = 'N'
    and agmr.gmr_latest_action_action_id in
        ('airDetail', 'shipmentDetail', 'railDetail', 'truckDetail',
-        'warehouseReceipt')
+        'warehouseReceipt','shipmentAdvise','railAdvice','truckAdvice','airAdvice','releaseOrder')
    and agmr.is_internal_movement = 'N'
    and agmr.is_deleted = 'N'
    group by agmr.internal_gmr_ref_no) loop
@@ -13810,7 +13811,7 @@ commit;
                           pd_trade_date,
                           pc_dbd_id,
                           gvn_log_counter,
-                          'End of GMR Bahs Update ');
+                          'End of GMR No of Bags Update ');
    for cur_shipped_qty in (select agmr.internal_gmr_ref_no,
                                   nvl(agmr.qty, 0) shipped_qty
                              from agmr_action_gmr agmr

@@ -1952,10 +1952,10 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       v_ppu_pum                    tc_ppu_pum,
                       v_ppu_pum                    rc_ppu_pum,
                       ceqs_contract_ele_qty_status ceqs,
-                      sam_stock_assay_mapping sam,
-                      gscs_gmr_sec_cost_summary gscs,
-                      itm_incoterm_master itm,
-                      phd_profileheaderdetails phd_cp
+                      sam_stock_assay_mapping      sam,
+                      gscs_gmr_sec_cost_summary    gscs,
+                      itm_incoterm_master          itm,
+                      phd_profileheaderdetails     phd_cp
                where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
@@ -2313,10 +2313,10 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum                    tc_ppu_pum,
                      v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
-                     sam_stock_assay_mapping sam,
-                     gscs_gmr_sec_cost_summary gscs,
-                     itm_incoterm_master itm,
-                     phd_profileheaderdetails phd_cp
+                     sam_stock_assay_mapping      sam,
+                     gscs_gmr_sec_cost_summary    gscs,
+                     itm_incoterm_master          itm,
+                     phd_profileheaderdetails     phd_cp
                where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
@@ -2664,10 +2664,10 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum                    tc_ppu_pum,
                      v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
-                     sam_stock_assay_mapping sam,
-                     gscs_gmr_sec_cost_summary gscs,
-                     itm_incoterm_master itm,
-                     phd_profileheaderdetails phd_cp
+                     sam_stock_assay_mapping      sam,
+                     gscs_gmr_sec_cost_summary    gscs,
+                     itm_incoterm_master          itm,
+                     phd_profileheaderdetails     phd_cp
                where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and dgrd.int_alloc_group_id = agh.int_alloc_group_id
                  and pcdi.internal_contract_ref_no =
@@ -3031,10 +3031,10 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum                    tc_ppu_pum,
                      v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
-                     sam_stock_assay_mapping sam,
-                     gscs_gmr_sec_cost_summary gscs,
-                     itm_incoterm_master itm,
-                     phd_profileheaderdetails phd_cp
+                     sam_stock_assay_mapping      sam,
+                     gscs_gmr_sec_cost_summary    gscs,
+                     itm_incoterm_master          itm,
+                     phd_profileheaderdetails     phd_cp
                where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and dgrd.int_alloc_group_id = agh.int_alloc_group_id
                  and pcdi.internal_contract_ref_no =
@@ -4663,7 +4663,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      aml.attribute_name,
                      sam.ash_id assay_header_id,
                      ceqs.assay_qty,
-                     ceqs.assay_qty_unit_id,                     
+                     ceqs.assay_qty_unit_id,
                      --  added suresh                
                      (case
                        when rm.ratio_name = '%' then
@@ -4845,12 +4845,12 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum                    tc_ppu_pum,
                      v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
-                     sam_stock_assay_mapping sam,
-                     gscs_gmr_sec_cost_summary gscs,
-                     invm_cog invm,
-                     itm_incoterm_master itm,
-                     phd_profileheaderdetails phd_cp,
-                     invme_cog_element invme
+                     sam_stock_assay_mapping      sam,
+                     gscs_gmr_sec_cost_summary    gscs,
+                     invm_cog                     invm,
+                     itm_incoterm_master          itm,
+                     phd_profileheaderdetails     phd_cp,
+                     invme_cog_element            invme
                where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
                  and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
@@ -5269,8 +5269,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                          else
                           vn_wet_qty * ucm.multiplication_factor * getc.tc_value
                        end),
-                       2),
-                 getc.tc_cur_id
+                       2) * getc.currency_factor,
+                 getc.tc_main_cur_id
             into vn_ele_tc_charges,
                  vc_ele_tc_cur_id
             from getc_gmr_element_tc_charges getc,
@@ -5333,8 +5333,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         begin
           select round(gerc.rc_value * ucm.multiplication_factor *
                        cur_grd_rows.payable_qty,
-                       2),
-                 gerc.rc_cur_id
+                       2) * gerc.currency_factor,
+                 gerc.rc_main_cur_id
             into vn_ele_rc_charges,
                  vc_ele_rc_cur_id
             from gerc_gmr_element_rc_charges gerc,
@@ -5394,13 +5394,13 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         
           begin
             select round(sum(case
-                           when gepc.weight_type = 'Dry' then
-                            vn_dry_qty * ucm.multiplication_factor * gepc.pc_value
-                           else
-                            vn_wet_qty * ucm.multiplication_factor * gepc.pc_value
-                         end),
-                         2),
-                   gepc.pc_cur_id
+                               when gepc.weight_type = 'Dry' then
+                                vn_dry_qty * ucm.multiplication_factor * gepc.pc_value
+                               else
+                                vn_wet_qty * ucm.multiplication_factor * gepc.pc_value
+                             end),
+                         2) * gepc.currency_factor,
+                   gepc.pc_main_cur_id
               into vn_contract_pc_charges,
                    vc_contract_pc_cur_id
               from gepc_gmr_element_pc_charges gepc,
@@ -5409,10 +5409,11 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                and gepc.internal_gmr_ref_no =
                    cur_grd_rows.internal_gmr_ref_no
                and gepc.internal_grd_ref_no =
-                   cur_grd_rows.internal_grd_dgrd_ref_no               
+                   cur_grd_rows.internal_grd_dgrd_ref_no
                and ucm.from_qty_unit_id = cur_grd_rows.qty_unit_id
                and ucm.to_qty_unit_id = gepc.pc_weight_unit_id
-               group by  gepc.pc_cur_id;
+             group by gepc.pc_main_cur_id,
+                      gepc.currency_factor;
           exception
             when others then
               vn_contract_pc_charges := 0;

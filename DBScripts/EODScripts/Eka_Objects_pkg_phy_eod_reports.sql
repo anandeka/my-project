@@ -2616,7 +2616,7 @@ create or replace package body pkg_phy_eod_reports is
                  else
                   cur_pur_accural_temp_rows.wet_qty *
                   ucm.multiplication_factor * getc.tc_value
-               end
+               end * getc.currency_factor
           into vn_gmr_treatment_charge
           from getc_gmr_element_tc_charges getc,
                ucm_unit_conversion_master  ucm
@@ -2671,7 +2671,7 @@ create or replace package body pkg_phy_eod_reports is
     
       begin
         select gerc.rc_value * ucm.multiplication_factor *
-               cur_pur_accural_temp_rows.payable_qty
+               cur_pur_accural_temp_rows.payable_qty * gerc.currency_factor
           into vn_gmr_refine_charge
           from gerc_gmr_element_rc_charges gerc,
                ucm_unit_conversion_master  ucm
@@ -2730,7 +2730,7 @@ create or replace package body pkg_phy_eod_reports is
                  else
                   cur_pur_accural_temp_rows.wet_qty *
                   ucm.multiplication_factor * gepc.pc_value
-               end
+               end * gepc.currency_factor
           into vn_gmr_penality_charge
           from gepc_gmr_element_pc_charges gepc,
                ucm_unit_conversion_master  ucm
@@ -11603,8 +11603,7 @@ gvn_log_counter := gvn_log_counter + 1;
            sam_stock_assay_mapping   sam,
            ash_assay_header          ash,
            spq_stock_payable_qty     spq,
-           ash_assay_header          ash_pricing,
-           asm_assay_sublot_mapping  asm
+           ash_assay_header          ash_pricing
      where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
        and sam.internal_grd_ref_no = grd.internal_grd_ref_no
        and spq.is_active = 'Y'
@@ -11619,7 +11618,7 @@ gvn_log_counter := gvn_log_counter + 1;
        and grd.process_id = pc_process_id
        and gmr.process_id = pc_process_id
        and gmr.corporate_id = pc_corporate_id
-       and asm.ash_id = ash_pricing.ash_id
+       and sam.is_active ='Y'
      group by gmr.corporate_id,
               gmr.internal_gmr_ref_no,
               grd.internal_grd_ref_no,
@@ -11648,8 +11647,7 @@ insert into temp_stock_latest_assay
          gmr_goods_movement_record gmr,
          sam_stock_assay_mapping   sam,
          ash_assay_header          ash,
-         spq_stock_payable_qty     spq,
-         asm_assay_sublot_mapping  asm
+         spq_stock_payable_qty     spq
    where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
      and sam.internal_grd_ref_no = grd.internal_grd_ref_no
      and spq.is_active = 'Y'
@@ -11663,7 +11661,7 @@ insert into temp_stock_latest_assay
      and spq.process_id = pc_process_id
      and grd.process_id = pc_process_id
      and gmr.process_id = pc_process_id
-     and asm.ash_id = ash.ash_id
+     and sam.is_active ='Y'
      and not exists
    (select *
             from temp_stock_latest_assay t
@@ -16491,7 +16489,7 @@ insert into arg_arrival_report_gmr
                         cur_arrival_rows.wet_qty * ucm.multiplication_factor *
                         getc.base_tc_value
                      end),
-                     cur_arrival_rows.pay_cur_decimals),
+                     cur_arrival_rows.pay_cur_decimals) * getc.currency_factor,
                round((case
                        when getc.weight_type = 'Dry' then
                         cur_arrival_rows.dry_qty * ucm.multiplication_factor *
@@ -16500,7 +16498,7 @@ insert into arg_arrival_report_gmr
                         cur_arrival_rows.wet_qty * ucm.multiplication_factor *
                         getc.esc_desc_tc_value
                      end),
-                     cur_arrival_rows.pay_cur_decimals)
+                     cur_arrival_rows.pay_cur_decimals) * getc.currency_factor
           into vn_gmr_base_tc,
                vn_gmr_esc_descalator_tc
           from getc_gmr_element_tc_charges getc,
@@ -16546,7 +16544,7 @@ insert into arg_arrival_report_gmr
                         cur_arrival_rows.wet_qty * ucm.multiplication_factor *
                         getc.base_tc_value
                      end),
-                     cur_arrival_rows.pay_cur_decimals),
+                     cur_arrival_rows.pay_cur_decimals) * getc.currency_factor,
                round((case
                        when getc.weight_type = 'Dry' then
                         cur_arrival_rows.dry_qty * ucm.multiplication_factor *
@@ -16555,7 +16553,7 @@ insert into arg_arrival_report_gmr
                         cur_arrival_rows.wet_qty * ucm.multiplication_factor *
                         getc.esc_desc_tc_value
                      end),
-                     cur_arrival_rows.pay_cur_decimals)
+                     cur_arrival_rows.pay_cur_decimals) * getc.currency_factor
           into vn_gmr_base_tc,
                vn_gmr_esc_descalator_tc
           from getc_gmr_element_tc_charges getc,
@@ -16587,7 +16585,7 @@ insert into arg_arrival_report_gmr
                         cur_arrival_rows.wet_qty * ucm.multiplication_factor *
                         gepc.pc_value
                      end),
-                     cur_arrival_rows.pay_cur_decimals)
+                     cur_arrival_rows.pay_cur_decimals) * gepc.currency_factor
           into vn_gmr_penality_charge
           from gepc_gmr_element_pc_charges gepc,
                ucm_unit_conversion_master  ucm
@@ -16630,7 +16628,7 @@ insert into arg_arrival_report_gmr
       begin
         select round(gerc.rc_value * ucm.multiplication_factor *
                      cur_arrival_rows.payable_qty,
-                     cur_arrival_rows.pay_cur_decimals)
+                     cur_arrival_rows.pay_cur_decimals) * gerc.currency_factor
           into vn_gmr_refine_charge
           from gerc_gmr_element_rc_charges gerc,
                ucm_unit_conversion_master  ucm
@@ -18414,7 +18412,7 @@ begin
                         cur_feed_rows.wet_qty * ucm.multiplication_factor *
                         getc.base_tc_value
                      end),
-                     cur_feed_rows.pay_cur_decimals),
+                     cur_feed_rows.pay_cur_decimals) * getc.currency_factor,
                round((case
                        when getc.weight_type = 'Dry' then
                         cur_feed_rows.dry_qty * ucm.multiplication_factor *
@@ -18423,7 +18421,7 @@ begin
                         cur_feed_rows.wet_qty * ucm.multiplication_factor *
                         getc.esc_desc_tc_value
                      end),
-                     cur_feed_rows.pay_cur_decimals)
+                     cur_feed_rows.pay_cur_decimals) * getc.currency_factor
           into vn_gmr_base_tc,
                vn_gmr_esc_descalator_tc
           from getc_gmr_element_tc_charges getc,
@@ -18468,7 +18466,7 @@ begin
                         cur_feed_rows.wet_qty * ucm.multiplication_factor *
                         getc.base_tc_value
                      end),
-                     cur_feed_rows.pay_cur_decimals),
+                     cur_feed_rows.pay_cur_decimals) * getc.currency_factor,
                round((case
                        when getc.weight_type = 'Dry' then
                         cur_feed_rows.dry_qty * ucm.multiplication_factor *
@@ -18477,7 +18475,7 @@ begin
                         cur_feed_rows.wet_qty * ucm.multiplication_factor *
                         getc.esc_desc_tc_value
                      end),
-                     cur_feed_rows.pay_cur_decimals)
+                     cur_feed_rows.pay_cur_decimals) * getc.currency_factor
           into vn_gmr_base_tc,
                vn_gmr_esc_descalator_tc
           from getc_gmr_element_tc_charges getc,
@@ -18509,7 +18507,7 @@ begin
                         cur_feed_rows.wet_qty * ucm.multiplication_factor *
                         gepc.pc_value
                      end),
-                     cur_feed_rows.pay_cur_decimals)
+                     cur_feed_rows.pay_cur_decimals)* gepc.currency_factor
           into vn_gmr_penality_charge
           from gepc_gmr_element_pc_charges gepc,
                ucm_unit_conversion_master  ucm
@@ -18553,7 +18551,7 @@ begin
       begin
         select round(gerc.rc_value * ucm.multiplication_factor *
                      cur_feed_rows.payable_qty,
-                     cur_feed_rows.pay_cur_decimals)
+                     cur_feed_rows.pay_cur_decimals) * gerc.currency_factor
           into vn_gmr_refine_charge
           from gerc_gmr_element_rc_charges gerc,
                ucm_unit_conversion_master  ucm
@@ -21145,7 +21143,7 @@ begin
                         cur_closing_rows.wet_qty * ucm.multiplication_factor *
                         getc.base_tc_value
                      end),
-                     cur_closing_rows.pay_cur_decimal),
+                     cur_closing_rows.pay_cur_decimal)* getc.currency_factor,
                round((case
                        when getc.weight_type = 'Dry' then
                         cur_closing_rows.dry_qty * ucm.multiplication_factor *
@@ -21154,7 +21152,7 @@ begin
                         cur_closing_rows.wet_qty * ucm.multiplication_factor *
                         getc.esc_desc_tc_value
                      end),
-                     cur_closing_rows.pay_cur_decimal)
+                     cur_closing_rows.pay_cur_decimal) * getc.currency_factor
           into vn_gmr_base_tc,
                vn_gmr_esc_descalator_tc
           from getc_gmr_element_tc_charges getc,
@@ -21199,7 +21197,7 @@ begin
                         cur_closing_rows.wet_qty * ucm.multiplication_factor *
                         getc.base_tc_value
                      end),
-                     cur_closing_rows.pay_cur_decimal),
+                     cur_closing_rows.pay_cur_decimal)* getc.currency_factor,
                round((case
                        when getc.weight_type = 'Dry' then
                         cur_closing_rows.dry_qty * ucm.multiplication_factor *
@@ -21208,7 +21206,7 @@ begin
                         cur_closing_rows.wet_qty * ucm.multiplication_factor *
                         getc.esc_desc_tc_value
                      end),
-                     cur_closing_rows.pay_cur_decimal)
+                     cur_closing_rows.pay_cur_decimal) * getc.currency_factor
           into vn_gmr_base_tc,
                vn_gmr_esc_descalator_tc
           from getc_gmr_element_tc_charges getc,
@@ -21240,7 +21238,7 @@ begin
                         cur_closing_rows.wet_qty * ucm.multiplication_factor *
                         gepc.pc_value
                      end),
-                     cur_closing_rows.pay_cur_decimal)
+                     cur_closing_rows.pay_cur_decimal) * gepc.currency_factor
           into vn_gmr_penality_charge
           from gepc_gmr_element_pc_charges gepc,
                ucm_unit_conversion_master  ucm
@@ -21284,7 +21282,7 @@ begin
       begin
         select round(gerc.rc_value * ucm.multiplication_factor *
                      cur_closing_rows.payable_qty,
-                     cur_closing_rows.pay_cur_decimal)
+                     cur_closing_rows.pay_cur_decimal) * gerc.currency_factor
           into vn_gmr_refine_charge
           from gerc_gmr_element_rc_charges gerc,
                ucm_unit_conversion_master  ucm
@@ -22027,6 +22025,7 @@ begin
        price_weight_unit_id,
        tc_value,
        tc_cur_id,
+       tc_main_cur_id,
        tc_weight_unit_id,
        weight_type,
        base_tc_value,
@@ -22045,6 +22044,7 @@ begin
        vc_gmr_price_unit_cur_id,
        vc_price_unit_weight_unit_id,
        vn_total_treatment_charge,
+       vc_cur_id,
        vc_cur_id,
        vc_tc_weight_unit_id,
        vc_weight_type,
@@ -22082,6 +22082,22 @@ begin
        and getc.element_id = cur_update.element_id;
   end loop;
   commit;
+  --
+  -- Update Main Currency and Sub Currency Factor
+  --
+for cur_scd in (
+select scd.sub_cur_id,
+       scd.cur_id,
+       scd.factor
+  from scd_sub_currency_detail scd
+   where scd.is_deleted = 'N') loop  
+update getc_gmr_element_tc_charges getc
+   set getc.tc_main_cur_id = cur_scd.cur_id,
+    getc.currency_factor = cur_scd.factor
+ where getc.process_id = pc_process_id
+ and getc.tc_cur_id = cur_scd.sub_cur_id ;
+ end loop;
+commit;
 exception
   when others then
     vobj_error_log.extend;
@@ -22715,6 +22731,7 @@ begin
        price_weight_unit_id,
        rc_value,
        rc_cur_id,
+       rc_main_cur_id,
        rc_weight_unit_id)
     values
       (pc_process_id,
@@ -22729,6 +22746,7 @@ begin
        vc_price_unit_weight_unit_id,
        vn_refine_charge,
        vc_cur_id,
+       vc_cur_id,
        vc_rc_weight_unit_id);
     vn_commit_count := vn_commit_count + 1;
     if vn_commit_count = 500 then
@@ -22737,6 +22755,22 @@ begin
     end if;
   end loop;
   commit;
+ --
+  -- Update Main Currency and Sub Currency Factor
+  --
+for cur_scd in (
+select scd.sub_cur_id,
+       scd.cur_id,
+       scd.factor
+  from scd_sub_currency_detail scd
+   where scd.is_deleted = 'N') loop  
+update gerc_gmr_element_rc_charges gerc
+   set gerc.rc_main_cur_id = cur_scd.cur_id,
+    gerc.currency_factor = cur_scd.factor
+ where gerc.process_id = pc_process_id
+ and gerc.rc_cur_id = cur_scd.sub_cur_id ;
+ end loop;
+commit;  
 exception
   when others then
     vobj_error_log.extend;
@@ -23066,6 +23100,7 @@ begin
        element_name,
        pc_value,
        pc_cur_id,
+       pc_main_cur_id,
        pc_weight_unit_id,
        weight_type)
     values
@@ -23077,6 +23112,7 @@ begin
        cc.element_name,
        vn_element_pc_charge,
        vc_cur_id,
+       vc_cur_id,
        vc_pc_weight_unit_id,
        vc_penalty_weight_type);
     if vn_commit_count = 500 then
@@ -23085,6 +23121,22 @@ begin
     end if;
   end loop;
   commit;
+  --
+  -- Update Main Currency and Sub Currency Factor
+  --
+for cur_scd in (
+select scd.sub_cur_id,
+       scd.cur_id,
+       scd.factor
+  from scd_sub_currency_detail scd
+   where scd.is_deleted = 'N') loop  
+update gepc_gmr_element_pc_charges gepc
+   set gepc.pc_main_cur_id = cur_scd.cur_id,
+    gepc.currency_factor = cur_scd.factor
+ where gepc.process_id = pc_process_id
+ and gepc.pc_cur_id = cur_scd.sub_cur_id ;
+ end loop;
+commit;  
 exception
   when others then
     vobj_error_log.extend;
@@ -23389,7 +23441,7 @@ begin
                and agmr.is_apply_container_charge = 'Y'
                and agmr.gmr_latest_action_action_id in
                    ('airDetail', 'shipmentDetail', 'railDetail',
-                    'truckDetail', 'warehouseReceipt')
+                    'truckDetail', 'warehouseReceipt','shipmentAdvise','railAdvice','truckAdvice','airAdvice','releaseOrder')
                and agmr.is_internal_movement = 'N'
                and agmr.is_deleted = 'N'
                and agmr.internal_gmr_ref_no =
