@@ -15,10 +15,10 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  EOD
+Module  		   	 :  APP
 
-Sub-Module  			 :  EOD
- 
+Sub-Module  			 :  App
+
 Section   		   	 :  N/A
  
 Screen		           	 :  N/A
@@ -32,7 +32,7 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* :EOD
+Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
 Revision: 121869
