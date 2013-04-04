@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1476
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Nishikant Gupta
+ 
+Created on*        		:  04-Apr-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction 
+==================================================================
+
+Revision: 121935
+Author: nishikant.gupta
+Date: 10:23:03 PM, Thursday, April 04, 2013
+Message:
+Updated for operation button in additional charges listing. 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_541.sql
+
+
+
+
