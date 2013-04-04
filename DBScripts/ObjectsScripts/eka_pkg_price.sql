@@ -41,7 +41,7 @@ create or replace package pkg_price is
                             pc_to_cur_id        in varchar2,
                             pc_settlement_price out number);
 
-end;
+end; 
 /
 create or replace package body pkg_price is
   procedure sp_base_contract_cog_price(pc_int_contract_item_ref_no varchar2,
@@ -1301,6 +1301,7 @@ create or replace package body pkg_price is
         loop
           vc_price_basis := cur_called_off_rows.price_basis;
           if cur_called_off_rows.price_basis = 'Fixed' then
+            vn_qty_to_be_priced := cur_called_off_rows.qty_to_be_priced;
             vn_contract_price          := cur_called_off_rows.price_value;
             vn_total_quantity          := cur_pcdi_rows.payable_qty;
             vn_total_contract_value    := vn_total_quantity *
@@ -2614,5 +2615,5 @@ create or replace package body pkg_price is
   
   end;
 
-end;
+end; 
 /
