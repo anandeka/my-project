@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1475
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  04-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  76820 76819 76838 76246
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+
+Revision: 121882
+Author: janna
+Date: 6:51:24 PM, Thursday, April 04, 2013
+Message:
+76820 - TC/RC/Penalty should be handled in EOD, even if they set up in Pay in Sub currency
+76819 - In Sales accrual Report,other charges are coming wrong
+76838 - In Sales accrual report penalty is not displayed and in other charges container and handling is not considered
+76246 - In Metal balance summary report after creating internal landing by moving stocks into pile(different smelter location) then data is not displayed in that warehouse 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/130_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_objects_pkg_phy_conc_realized_pnl.sql
+
+
+
