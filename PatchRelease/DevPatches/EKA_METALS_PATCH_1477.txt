@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1477
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  05-Apr-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Receive Material Mine
+
+Sub-Module  			 :  Receive Material Mine
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction 
+==================================================================
+
+Revision: 121977
+Author: ramachandran.r
+Date: 12:34:53 PM, Friday, April 05, 2013
+Message:
+Receive Material Mine for Cancellation.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_542.sql
+
+
+Revision: 121979
+Author: ramachandran.r
+Date: 12:38:27 PM, Friday, April 05, 2013
+Message:
+Receive Material Mine for Cancellation.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_111.sql
+
+
+
+
