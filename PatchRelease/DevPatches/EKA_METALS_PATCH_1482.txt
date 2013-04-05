@@ -2,13 +2,13 @@ Patch No*          		:  EKA_METALS_PATCH_1482
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Ravi Kumar B
+Created by*        		:  Varaprasad B
  
 Created on*        		:  05-Apr-2013
 
-Bug / Enhancement*              :  Bug
+Bug / Enhancement*              :  Enhancement
 
-Bug ID*            		:  76222
+Bug ID*            		:  
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -17,7 +17,7 @@ Module / Feature Group:
 ==================================================================
 Module  		   	 :  Invoice
 
-Sub-Module  			 :  Invoice O/P docs
+Sub-Module  			 :  N/A
  
 Section   		   	 :  N/A
  
@@ -35,12 +35,11 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction 
 ==================================================================
 
-Revision: 122155
-Author: b.ravikumar
-Date: 8:49:40 PM, Friday, April 05, 2013
+Revision: 122158
+Author: varaprasad.b
+Date: 20:58:28, 05 April 2013
 Message:
-OutputChargeInvoice issue: 76222
+Added to export selected invoices to excel.
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_544.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_545.sql
 
-==================================================================
