@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1480
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Nishikant Gupta
+ 
+Created on*        		:  05-Apr-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Additional Charge Setup
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction 
+==================================================================
+
+Revision: 122141
+Author: nishikant.gupta
+Date: 8:26:40 PM, Friday, April 05, 2013
+Message:
+Added for additional charges listing. 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_543.sql
+
+
+==================================================================
