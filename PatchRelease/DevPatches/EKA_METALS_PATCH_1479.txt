@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1479
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  05-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  76721
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Docs
+
+Sub-Module  			 :  Output Docs
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction 
+==================================================================
+
+Revision: 122123
+Author: rajuga
+Date: 7:53:48 PM, Friday, April 05, 2013
+Message:
+Bug 76721 - Issue in Assay output document-Provisional,W&S,Self,CP,Umpire and Final Assay
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighingandSampling.rpt
+
+==================================================================
