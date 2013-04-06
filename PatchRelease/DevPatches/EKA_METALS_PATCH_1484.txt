@@ -50,4 +50,6 @@ Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_p
 
 
 
+Take the latest RPT files
+
 
