@@ -3648,10 +3648,13 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         vn_ele_m2m_total_amount := vn_ele_m2m_amount_in_base -
                                    vn_ele_m2m_treatment_charge -
                                    vn_ele_m2m_refine_charge;
-      
-        vn_ele_m2m_amt_per_unit := round(vn_ele_m2m_total_amount /
-                                         vn_ele_qty_in_base,
-                                         cur_grd_rows.base_cur_decimal);
+        if vn_ele_qty_in_base <> 0 then
+          vn_ele_m2m_amt_per_unit := round(vn_ele_m2m_total_amount /
+                                           vn_ele_qty_in_base,
+                                           cur_grd_rows.base_cur_decimal);
+        else
+          vn_ele_m2m_amt_per_unit := 0;
+        end if;
       
         pkg_general.sp_get_main_cur_detail(nvl(vc_cont_price_unit_cur_id,
                                                cur_grd_rows.base_cur_id),
@@ -5632,10 +5635,13 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         vn_ele_m2m_total_amount := vn_ele_m2m_amount_in_base -
                                    vn_ele_m2m_treatment_charge -
                                    vn_ele_m2m_refine_charge;
-      
-        vn_ele_m2m_amt_per_unit := round(vn_ele_m2m_total_amount /
-                                         vn_ele_qty_in_base,
-                                         cur_grd_rows.base_cur_decimal);
+        if vn_ele_qty_in_base <> 0 then
+          vn_ele_m2m_amt_per_unit := round(vn_ele_m2m_total_amount /
+                                           vn_ele_qty_in_base,
+                                           cur_grd_rows.base_cur_decimal);
+        else
+          vn_ele_m2m_amt_per_unit := 0;
+        end if;
         pkg_general.sp_get_main_cur_detail(nvl(vc_cont_price_unit_cur_id,
                                                cur_grd_rows.base_cur_id),
                                            vc_price_cur_id,

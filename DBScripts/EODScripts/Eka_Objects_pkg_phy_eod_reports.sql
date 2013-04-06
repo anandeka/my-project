@@ -2026,7 +2026,6 @@ create or replace package body pkg_phy_eod_reports is
              pqca_pq_chemical_attributes pqca,
              rm_ratio_master             rm,
              pcm_physical_contract_main  pcm,
-             -- ii_invoicable_item          ii,
              pci_physical_contract_item pci,
              aml_attribute_master_list  aml,
              ucm_unit_conversion_master ucm
@@ -3105,14 +3104,9 @@ create or replace package body pkg_phy_eod_reports is
              grd.profit_center_id,
              iid.invoice_currency_id,
              iied.element_id,
-             gmr.pcm_contract_type,
+             decode(gmr.gmr_latest_action_action_id,'MARK_FOR_TOLLING', gmr.pcm_contract_type, 'Purchase'),
              0 assay_qty,
-             (case
-               when rm.ratio_name = '%' then
-                ash.net_weight_unit
-               else
-                rm.qty_unit_id_numerator
-             end) assay_qty_unit,
+             iied.element_inv_qty_unit_id assay_qty_unit,
              iied.element_invoiced_qty payble_qty,
              iied.element_inv_qty_unit_id payable_qty_unit,
              iied.element_payable_amount,
@@ -3127,28 +3121,26 @@ create or replace package body pkg_phy_eod_reports is
              grd_goods_record_detail       grd,
              iid_invoicable_item_details   iid,
              is_invoice_summary            is1,
-             iied_inv_item_element_details iied,
-             iam_invoice_assay_mapping     iam,
-             ash_assay_header              ash,
-             asm_assay_sublot_mapping      asm,
-             pqca_pq_chemical_attributes   pqca,
-             rm_ratio_master               rm
+             (select iied.internal_invoice_ref_no,
+                     iied.grd_id,
+                     iied.element_id,
+                     sum(iied.element_invoiced_qty) element_invoiced_qty,
+                     iied.element_inv_qty_unit_id,
+                     sum(iied.element_payable_amount) element_payable_amount
+                  from iied_inv_item_element_details iied
+                   group by iied.internal_invoice_ref_no,
+                            iied.grd_id,
+                            iied.element_id,
+                            iied.element_inv_qty_unit_id) iied
        where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
          and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
          and grd.internal_grd_ref_no = iid.stock_id
          and iid.internal_invoice_ref_no = iied.internal_invoice_ref_no
          and iid.stock_id = iied.grd_id
-         and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
          and iid.internal_invoice_ref_no = is1.internal_invoice_ref_no
          and gmr.latest_internal_invoice_ref_no =
-             is1.internal_invoice_ref_no(+)
-         and pc_process_id = is1.process_id(+)
-         and iid.stock_id = iam.internal_grd_ref_no
-         and iam.ash_id = ash.ash_id
-         and ash.ash_id = asm.ash_id
-         and asm.asm_id = pqca.asm_id
-         and iied.element_id = pqca.element_id
-         and pqca.unit_of_measure = rm.ratio_id
+             is1.internal_invoice_ref_no
+         and pc_process_id = is1.process_id
          and gmr.latest_internal_invoice_ref_no =
              iid.internal_invoice_ref_no(+)
          and grd.process_id = pc_process_id
@@ -3200,14 +3192,9 @@ create or replace package body pkg_phy_eod_reports is
              dgrd.profit_center_id,
              iid.invoice_currency_id,
              iied.element_id,
-             gmr.pcm_contract_type,
+             'Sales',
              0 assay_qty,
-             (case
-               when rm.ratio_name = '%' then
-                ash.net_weight_unit
-               else
-                rm.qty_unit_id_numerator
-             end) assay_qty_unit,
+             iied.element_inv_qty_unit_id assay_qty_unit,
              iied.element_invoiced_qty payble_qty,
              iied.element_inv_qty_unit_id payable_qty_unit,
              iied.element_payable_amount,
@@ -3222,28 +3209,26 @@ create or replace package body pkg_phy_eod_reports is
              dgrd_delivered_grd            dgrd,
              iid_invoicable_item_details   iid,
              is_invoice_summary            is1,
-             iied_inv_item_element_details iied,
-             iam_invoice_assay_mapping     iam,
-             ash_assay_header              ash,
-             asm_assay_sublot_mapping      asm,
-             pqca_pq_chemical_attributes   pqca,
-             rm_ratio_master               rm
+             (select iied.internal_invoice_ref_no,
+                     iied.grd_id,
+                     iied.element_id,
+                     sum(iied.element_invoiced_qty) element_invoiced_qty,
+                     iied.element_inv_qty_unit_id,
+                     sum(iied.element_payable_amount) element_payable_amount
+                  from iied_inv_item_element_details iied
+                   group by iied.internal_invoice_ref_no,
+                            iied.grd_id,
+                            iied.element_id,
+                            iied.element_inv_qty_unit_id) iied
        where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
          and dgrd.internal_dgrd_ref_no = iid.stock_id
          and iid.internal_invoice_ref_no = iied.internal_invoice_ref_no
          and iid.stock_id = iied.grd_id
-         and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
          and iid.internal_invoice_ref_no = is1.internal_invoice_ref_no
          and gmr.latest_internal_invoice_ref_no =
-             is1.internal_invoice_ref_no(+)
-         and pc_process_id = is1.process_id(+)
-         and iid.stock_id = iam.internal_grd_ref_no
-         and iam.ash_id = ash.ash_id
-         and ash.ash_id = asm.ash_id
-         and asm.asm_id = pqca.asm_id
-         and iied.element_id = pqca.element_id
-         and pqca.unit_of_measure = rm.ratio_id
+             is1.internal_invoice_ref_no
+         and pc_process_id = is1.process_id
          and gmr.latest_internal_invoice_ref_no =
              iid.internal_invoice_ref_no(+)
          and dgrd.process_id = pc_process_id
@@ -3297,7 +3282,7 @@ create or replace package body pkg_phy_eod_reports is
              grd.profit_center_id,
              iid.invoice_currency_id,
              gepd.element_id,
-             gmr.pcm_contract_type,
+             decode(gmr.gmr_latest_action_action_id,'MARK_FOR_TOLLING', gmr.pcm_contract_type, 'Purchase'),
              0 assay_qty,
              null assay_qty_unit,
              iid.invoiced_qty payble_qty,
@@ -3378,7 +3363,7 @@ create or replace package body pkg_phy_eod_reports is
              dgrd.profit_center_id,
              iid.invoice_currency_id,
              gepd.element_id,
-             gmr.pcm_contract_type,
+             'Sales',
              0 assay_qty,
              null assay_qty_unit,
              iid.invoiced_qty payble_qty,
@@ -3458,7 +3443,7 @@ create or replace package body pkg_phy_eod_reports is
              grd.profit_center_id,
              iid.invoice_currency_id,
              pqca.element_id,
-             gmr.pcm_contract_type,
+             decode(gmr.gmr_latest_action_action_id,'MARK_FOR_TOLLING', gmr.pcm_contract_type, 'Purchase'),
              (case
                when rm.ratio_name = '%' then
                 (pqca.typical * asm.dry_weight) / 100
@@ -3516,7 +3501,31 @@ create or replace package body pkg_phy_eod_reports is
          and gmr.process_id = pc_process_id
          and gmr.is_deleted = 'N'
          and nvl(gmr.is_final_invoiced, 'N') = 'N'
-         and gmr.is_pass_through = 'N';
+         and gmr.is_pass_through = 'N'
+       group by grd.internal_gmr_ref_no,
+                grd.internal_grd_ref_no,
+                gmr.internal_contract_ref_no,
+                gmr.gmr_ref_no,
+                gmr.corporate_id,
+                grd.product_id,
+                grd.quality_id,
+                grd.profit_center_id,
+                iid.invoice_currency_id,
+                pqca.element_id,
+                rm.ratio_name,
+                pqca.typical,
+                asm.dry_weight,
+                aml.underlying_product_id,
+                asm.net_weight_unit,
+                rm.qty_unit_id_denominator,
+                asm.dry_weight,
+                ash.net_weight_unit,
+                rm.qty_unit_id_numerator,
+                gmr.latest_internal_invoice_ref_no,
+                gmr.invoice_ref_no,
+                grd.is_afloat,
+                gmr.gmr_latest_action_action_id,
+                gmr.pcm_contract_type;
     commit;
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -3562,7 +3571,7 @@ create or replace package body pkg_phy_eod_reports is
              dgrd.profit_center_id,
              iid.invoice_currency_id,
              pqca.element_id,
-             gmr.pcm_contract_type,
+             'Sales',
              (case
                when rm.ratio_name = '%' then
                 (pqca.typical * asm.dry_weight) / 100
@@ -3620,7 +3629,31 @@ create or replace package body pkg_phy_eod_reports is
          and gmr.process_id = pc_process_id
          and gmr.is_deleted = 'N'
          and nvl(gmr.is_final_invoiced, 'N') = 'N'
-         and gmr.is_pass_through = 'N';
+         and gmr.is_pass_through = 'N'
+       group by dgrd.internal_gmr_ref_no,
+                dgrd.internal_grd_ref_no,
+                gmr.internal_contract_ref_no,
+                gmr.gmr_ref_no,
+                gmr.corporate_id,
+                dgrd.product_id,
+                dgrd.quality_id,
+                dgrd.profit_center_id,
+                iid.invoice_currency_id,
+                pqca.element_id,
+                rm.ratio_name,
+                pqca.typical,
+                asm.dry_weight,
+                aml.underlying_product_id,
+                asm.net_weight_unit,
+                rm.qty_unit_id_denominator,
+                asm.dry_weight,
+                pqca.typical,
+                ash.net_weight_unit,
+                rm.qty_unit_id_numerator,
+                gmr.latest_internal_invoice_ref_no,
+                gmr.invoice_ref_no,
+                dgrd.is_afloat,
+                'N';
     commit;
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -4354,7 +4387,7 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
              grd.profit_center_name profit_center_name,
              grd.profit_center_short_name profit_center_short_name,
              pc_process_id process_id,
-             gmr.pcm_contract_type contract_type,
+             'Purchase' contract_type,
              vc_base_cur_id base_cur_id,
              vc_base_cur_code base_cur_code,
              vn_base_currency_decimals base_cur_decimal,
@@ -4475,7 +4508,7 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
              dgrd.profit_center_name profit_center_name,
              dgrd.profit_center_short_name profit_center_short_name,
              pc_process_id process_id,
-             gmr.pcm_contract_type contract_type,
+             'Sales' contract_type,
              vc_base_cur_id base_cur_id,
              vc_base_cur_code base_cur_code,
              vn_base_currency_decimals base_cur_decimal,
@@ -5416,6 +5449,7 @@ commit;
                        grd.quality_name
                   from grd_goods_record_detail grd
                  where grd.process_id = pc_process_id
+                 and grd.tolling_stock_type in ('Clone Stock','None Tolling')
                  group by grd.internal_gmr_ref_no,
                           grd.quality_id,
                           grd.quality_name)

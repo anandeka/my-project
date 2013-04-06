@@ -1299,7 +1299,7 @@ create or replace package body pkg_phy_cog_price is
          and pocd.is_active = 'Y'
          and pcbpd.is_active = 'Y'
          and pcbph.is_active = 'Y'
-         and pocd.pay_in_cur_id = cm.cur_code
+         and pocd.pay_in_cur_id = cm.cur_id
          and ppu.product_price_unit_id = pocd.pay_in_price_unit_id
          and ppu.weight_unit_id = qum.qty_unit_id
       
