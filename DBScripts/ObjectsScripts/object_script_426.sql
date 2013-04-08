@@ -1,0 +1,1 @@
+alter table AS_ASSAY_CHILD_D  add(IS_ELEM_FOR_PRICING char(1));
