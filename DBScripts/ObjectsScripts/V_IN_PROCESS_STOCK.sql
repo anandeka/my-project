@@ -134,7 +134,9 @@ select ips_temp.corporate_id,
            and grd_cloned.internal_grd_ref_no =
                grd.parent_internal_grd_ref_no
            and grd_cloned.is_deleted = 'N'
-           and grd_cloned.status = 'Active'
+         AND (   grd_cloned.status = 'Active'
+                   OR grd_cloned.is_clone_stock_spilt = 'Y'
+                  )
            and pdm_consc.product_id = grd_cloned.product_id
         
         union all

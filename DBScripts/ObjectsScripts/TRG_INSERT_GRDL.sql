@@ -135,7 +135,8 @@ begin
            carry_over_qty,
            internal_action_ref_no,
            entry_type,
-           is_deleted)
+           is_deleted,
+           is_clone_stock_spilt)
         values
           (:new.internal_grd_ref_no,
            :new.internal_gmr_ref_no,
@@ -249,7 +250,8 @@ begin
            :new.carry_over_qty - :old.carry_over_qty,
            :new.internal_action_ref_no,
            'Update',
-           'N');
+           'N',
+           :new.is_clone_stock_spilt);
       else
         --Qty Unit is Updated
         insert into grdl_goods_record_detail_log
@@ -363,7 +365,8 @@ begin
            carry_over_qty,
            internal_action_ref_no,
            entry_type,
-           is_deleted)
+           is_deleted,
+           is_clone_stock_spilt)
         values
           (:new.internal_grd_ref_no,
            :new.internal_gmr_ref_no,
@@ -601,7 +604,8 @@ begin
                                                 :old.carry_over_qty),
            :new.internal_action_ref_no,
            'Update',
-           'N');
+           'N',
+           :new.is_clone_stock_spilt);
       end if;
     else
       -- IsDelete is yes
@@ -716,7 +720,8 @@ begin
          carry_over_qty,
          internal_action_ref_no,
          entry_type,
-         is_deleted)
+         is_deleted,
+         is_clone_stock_spilt)
       values
         (:new.internal_grd_ref_no,
          :new.internal_gmr_ref_no,
@@ -830,7 +835,8 @@ begin
          :new.carry_over_qty - :old.carry_over_qty,
          :new.internal_action_ref_no,
          'Update',
-         'Y');
+         'Y',
+         :new.is_clone_stock_spilt);
     end if;
   else
     --
@@ -947,7 +953,8 @@ begin
        carry_over_qty,
        internal_action_ref_no,
        entry_type,
-       is_deleted)
+       is_deleted,
+       is_clone_stock_spilt)
     values
       (:new.internal_grd_ref_no,
        :new.internal_gmr_ref_no,
@@ -1059,7 +1066,8 @@ begin
        :new.carry_over_qty,
        :new.internal_action_ref_no,
        'Insert',
-       'N');
+       'N',
+       :new.is_clone_stock_spilt);
   end if;
 
   insert into aci_assay_content_update_input
