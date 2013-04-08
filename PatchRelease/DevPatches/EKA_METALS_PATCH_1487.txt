@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1487
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Rajeshwar Reddy
+ 
+Created on*        		:  08-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 : O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 122292
+Author: rajeshwar.reddy
+Date: 12:53:48, 08 April 2013
+Message:
+Bug fix: 76721 Issue in Assay output documents
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_426.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_546.sql
+
+
+
+
+
+
+
+
+
