@@ -2476,9 +2476,50 @@ create or replace package body pkg_price is
                             pc_settlement_price out number) is
   
     vd_maturity_date date;
+    vc_from_main_cur_id          varchar2(30);
+    vc_to_main_cur_id            varchar2(30);
+    vn_from_main_currency_factor number := 1;
+    vn_to_main_currency_factor   number := 1;
   begin
-    if pc_from_cur_id = pc_to_cur_id then
-      pc_settlement_price := 1;
+
+--Code added to handle sub-currencies also...         8th April, 2013          ::Raj...
+    begin
+          select scd.cur_id,
+                 scd.factor
+            into vc_from_main_cur_id,
+                 vn_from_main_currency_factor
+            from cm_currency_master      cm,
+                 scd_sub_currency_detail scd
+           where cm.cur_id = scd.cur_id
+             and scd.sub_cur_id = pc_from_cur_id
+             and cm.is_deleted = 'N'
+             and scd.is_deleted = 'N';
+        exception
+          when no_data_found then
+            vn_from_main_currency_factor := 1;
+            vc_from_main_cur_id          := pc_from_cur_id;
+        end;
+        
+        begin
+          select scd.cur_id,
+                 scd.factor
+            into vc_to_main_cur_id,
+                 vn_to_main_currency_factor
+            from cm_currency_master      cm,
+                 scd_sub_currency_detail scd
+           where cm.cur_id = scd.cur_id
+             and scd.sub_cur_id = pc_to_cur_id
+             and cm.is_deleted = 'N'
+             and scd.is_deleted = 'N';
+        exception
+          when no_data_found then
+            vn_to_main_currency_factor := 1;
+            vc_to_main_cur_id          := pc_to_cur_id;
+        end;
+  
+   -- if pc_from_cur_id = pc_to_cur_id then
+   if vc_from_main_cur_id = vc_to_main_cur_id then
+      pc_settlement_price := (1 /NVL(vn_to_main_currency_factor,1))* NVL(vn_from_main_currency_factor,1);
     else
       select max(cfq.trade_date)
         into vd_maturity_date
@@ -2496,8 +2537,8 @@ create or replace package body pkg_price is
          and cfq.instrument_id = dim.instrument_id
          and dim.product_derivative_id = pdd.derivative_def_id
          and pdd.product_id = pdm.product_id
-         and pdm.base_cur_id = pc_from_cur_id
-         and pdm.quote_cur_id = pc_to_cur_id
+         and pdm.base_cur_id = vc_from_main_cur_id--pc_from_cur_id
+         and pdm.quote_cur_id = vc_to_main_cur_id--pc_to_cur_id
          and cfq.corporate_id = pc_corporate_id
          and cfq.is_deleted = 'N'
          and cfqd.is_deleted = 'N'
@@ -2526,8 +2567,8 @@ create or replace package body pkg_price is
            and cfq.instrument_id = dim.instrument_id
            and dim.product_derivative_id = pdd.derivative_def_id
            and pdd.product_id = pdm.product_id
-           and pdm.base_cur_id = pc_from_cur_id
-           and pdm.quote_cur_id = pc_to_cur_id
+           and pdm.base_cur_id = vc_from_main_cur_id--pc_from_cur_id
+           and pdm.quote_cur_id = vc_to_main_cur_id--pc_to_cur_id
            and cfq.corporate_id = pc_corporate_id
            and cfq.is_deleted = 'N'
            and cfqd.is_deleted = 'N'
@@ -2561,8 +2602,8 @@ create or replace package body pkg_price is
            and cfq.instrument_id = dim.instrument_id
            and dim.product_derivative_id = pdd.derivative_def_id
            and pdd.product_id = pdm.product_id
-           and pdm.base_cur_id = pc_to_cur_id
-           and pdm.quote_cur_id = pc_from_cur_id
+           and pdm.base_cur_id = vc_to_main_cur_id--pc_to_cur_id
+           and pdm.quote_cur_id = vc_from_main_cur_id--pc_from_cur_id
            and cfq.corporate_id = pc_corporate_id
            and cfq.is_deleted = 'N'
            and cfqd.is_deleted = 'N'
@@ -2591,8 +2632,8 @@ create or replace package body pkg_price is
              and cfq.instrument_id = dim.instrument_id
              and dim.product_derivative_id = pdd.derivative_def_id
              and pdd.product_id = pdm.product_id
-             and pdm.base_cur_id = pc_to_cur_id
-             and pdm.quote_cur_id = pc_from_cur_id
+             and pdm.base_cur_id = vc_to_main_cur_id--pc_to_cur_id
+           and pdm.quote_cur_id = vc_from_main_cur_id--pc_from_cur_id
              and cfq.corporate_id = pc_corporate_id
              and cfq.is_deleted = 'N'
              and cfqd.is_deleted = 'N'
@@ -2610,7 +2651,7 @@ create or replace package body pkg_price is
             pc_settlement_price := 0;
         end;
       end if;
-      pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
+      pc_settlement_price := ROUND(( nvl(pc_settlement_price, 0)/NVL(vn_to_main_currency_factor,1))*NVL(vn_from_main_currency_factor,1),10) ;
     end if;
   
   end;
