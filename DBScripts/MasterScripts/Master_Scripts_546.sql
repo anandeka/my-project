@@ -334,12 +334,12 @@ DECLARE
           END bl_date, gmr.vessel_name AS vessel_name,
           gmr.mode_of_transport AS mode_of_transport,
           grdcontainer.containernostring AS container_no, gmr.senders_ref_no,
-          (SELECT SUM (agrd.tare_weight)
-             FROM agrd_action_grd agrd
-            WHERE agrd.internal_gmr_ref_no =
+          (SELECT SUM (grd.tare_weight)
+          FROM grd_goods_record_detail grd
+         WHERE grd.internal_gmr_ref_no =
                                  gmr.internal_gmr_ref_no
-              AND agrd.internal_gmr_ref_no = ash.internal_gmr_ref_no)
-                                                         AS total_tare_weight,
+           AND grd.internal_gmr_ref_no = ash.internal_gmr_ref_no
+           AND grd.is_deleted = ''N'') AS total_tare_weight,
           (SELECT SUM (agrd.no_of_pieces)
              FROM agrd_action_grd agrd
             WHERE agrd.internal_gmr_ref_no =
@@ -400,11 +400,12 @@ ASSAY_UOM,
 INTERNAL_DOC_REF_NO           
 )
 SELECT DISTINCT 
-                (CASE WHEN  ASM.SUB_LOT_NO is not null THEN 
-                ASM.SUB_LOT_NO
-                ELSE
-                ASH.LOT_NO
-                END)  AS LOT_REF_NO,
+               (CASE
+                    WHEN ash.assay_type = ''Final Assay''
+                       THEN asm.sub_lot_no
+                    ELSE asm.sublot_ref_no
+                 END
+                ) AS lot_ref_no,
                 ASM.ORDERING AS SUBLOTORDERING,
                 PQCA.ORDERING AS ELEMENTORDERING,
                 (CASE WHEN (ASH.ASSAY_TYPE) not in(''Provisional Assay'',''Secondary Provisional Assay'')THEN 
