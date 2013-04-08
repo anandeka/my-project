@@ -1,5 +1,5 @@
-CREATE OR REPLACE FUNCTION getPayableContentDetails (pContractNo number)
-   RETURN VARCHAR2
+CREATE OR REPLACE FUNCTION "GETPAYABLECONTENTDETAILS" (pContractNo number)
+   RETURN CLOB
 IS
     
     cursor cr_pc_quality          
@@ -89,18 +89,18 @@ IS
      AND pqd.is_active = 'Y'
      AND pcm.internal_contract_ref_no = pContractNo;
  
-   PC_DETAILS   VARCHAR2(4000) :='';     
+   PC_DETAILS   CLOB :='';     
     begin
             for pc_quality_rec in cr_pc_quality
             loop
                 
-                 PC_DETAILS:= PC_DETAILS ||''|| pc_quality_rec.quality_name ||chr(10);    
+                 PC_DETAILS:= PC_DETAILS ||''|| pc_quality_rec.quality_name ||chr(10000);    
             
                  for pc_rec in cr_pc
                  loop
                     
                     if (pc_quality_rec.quality_name = pc_rec.quality_name) then 
-                        PC_DETAILS:= PC_DETAILS ||''|| pc_rec.payable_content ||' '|| chr(10);
+                        PC_DETAILS:= PC_DETAILS ||''|| pc_rec.payable_content ||' '|| chr(10000);
                     end if;
                     
                  end loop;
