@@ -1,5 +1,5 @@
- create or replace view v_page_price_alloc_gmr as     
-      select gpah.internal_gmr_ref_no,
+create or replace view v_page_price_alloc_gmr as
+select gpah.internal_gmr_ref_no,
              ppfd.instrument_id,
              dim.instrument_name,
              pdd.derivative_def_id,
@@ -85,7 +85,7 @@
                 pdc.is_daily_cal_applicable,
                 pdc.is_monthly_cal_applicable
       union all
-      
+
       select grd.internal_gmr_ref_no,
              ppfd.instrument_id,
              dim.instrument_name,
@@ -149,13 +149,13 @@
          and dim.instrument_id = vdip.instrument_id
          and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id
             -- Though DI is Price Allocation, there could be some elements with Event Based Pricing
-            -- For Which Price is Already Calcualted  in sp_conc_gmr_cog_price       
+            -- For Which Price is Already Calcualted  in sp_conc_gmr_cog_price
          and pocd.qp_period_type <> 'Event'
          and not exists
        (select *
                 from gpah_gmr_price_alloc_header gpah
                where gpah.is_active = 'Y'
-                 and gpah.element_id = poch.element_id
+                 and nvl(gpah.element_id,'NA') = nvl(poch.element_id,'NA')
                  and gpah.internal_gmr_ref_no = grd.internal_gmr_ref_no)
        group by grd.internal_gmr_ref_no,
                 ppfd.instrument_id,
@@ -174,4 +174,4 @@
                 div.price_unit_id,
                 dim.delivery_calender_id,
                 pdc.is_daily_cal_applicable,
-                pdc.is_monthly_cal_applicable
+                pdc.is_monthly_cal_applicable;
