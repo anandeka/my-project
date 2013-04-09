@@ -12301,7 +12301,7 @@ insert into temp_mas
                  agmr_action_gmr           agmr
            where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
              and agmr.gmr_latest_action_action_id in
-                 ('RECORD_OUT_PUT_TOLLING')
+                 ('RECORD_OUT_PUT_TOLLING' ,'RECORD_MINING_OUTPUT')
              and agmr.is_deleted = 'N'
              and gmr.process_id = pc_process_id) agmr,
          phd_profileheaderdetails phd,
@@ -12315,7 +12315,7 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type = 'RM Out Process Stock'
+     and grd.tolling_stock_type in( 'RM Out Process Stock','RM Mining Stock')
      and grd.internal_grd_ref_no = sam.internal_grd_ref_no
      and sam.is_output_assay = 'Y'
      and asm.ash_id = sam.ash_id
@@ -12402,7 +12402,7 @@ insert into temp_mas
                  agmr_action_gmr           agmr
            where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
              and agmr.gmr_latest_action_action_id in
-                 ('RECORD_OUT_PUT_TOLLING')
+                 ('RECORD_OUT_PUT_TOLLING' ,'RECORD_MINING_OUTPUT')
              and agmr.is_deleted = 'N'
              and gmr.process_id = pc_process_id) agmr,
          phd_profileheaderdetails phd,
@@ -12416,7 +12416,7 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type = 'RM Out Process Stock'
+     and grd.tolling_stock_type in( 'RM Out Process Stock','RM Mining Stock')
      and grd.internal_grd_ref_no = sam.internal_grd_ref_no
      and sam.is_output_assay = 'Y'
      and asm.ash_id = sam.ash_id
@@ -12433,7 +12433,6 @@ insert into temp_mas
      and pdm.product_type_id = pdtm.product_type_id
      and pdtm.product_type_name = 'Composite'
      and grd.product_id = pdm.product_id
-     
      and agmr.eff_date <= vd_prev_eom_date;
      commit;
      gvn_log_counter := gvn_log_counter + 1;
@@ -12618,7 +12617,7 @@ insert into temp_mas
          ak_corporate akc,
          pdtm_product_type_master pdtm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no/*(+)*/
+     and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
      and gmr.is_deleted = 'N'
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
@@ -12640,7 +12639,6 @@ insert into temp_mas
      and pdm.product_type_id = pdtm.product_type_id
      and pdtm.product_type_name = 'Composite'
      and grd.product_id = pdm.product_id
-     
      and agmr.eff_date <= vd_prev_eom_date;
 --- Finished for concentrates internal movement end
 commit;
@@ -12876,7 +12874,6 @@ insert into temp_mas
      and pdm.product_type_id = pdtm.product_type_id
      and pdtm.product_type_name = 'Standard'
      and grd.product_id = pdm.product_id
-     
      and agmr.eff_date <= vd_prev_eom_date;
      commit;     
      gvn_log_counter := gvn_log_counter + 1;
@@ -12953,7 +12950,6 @@ insert into temp_mas
      and pdm.product_type_id = pdtm.product_type_id
      and pdtm.product_type_name = 'Standard'
      and grd.product_id = pdm.product_id
-     
      and agmr.eff_date <= vd_prev_eom_date;
      commit;
      gvn_log_counter := gvn_log_counter + 1;
@@ -13029,7 +13025,6 @@ insert into temp_mas
      and gmr.corporate_id = akc.corporate_id
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
-      
      and agmr.eff_date <= vd_prev_eom_date
      and grd.tolling_stock_type in ('MFT In Process Stock', 'Delta MFT IP Stock');
 commit;
@@ -13185,22 +13180,22 @@ insert into mas_metal_account_summary
           '1' section_order,
           sbs.warehouse_profile_id,
           phd.companyname,
-          pkg_general.f_get_converted_quantity(sbs.product_id,
-                                               sbs.qty_unit_id,
-                                               pdm.base_quantity_unit,
-                                               sbs.qty),
+          ucm.multiplication_factor * sbs.qty,
           pdm.base_quantity_unit qty_unit_id,
           qum.qty_unit
      from sbs_smelter_base_stock   sbs,
           pdm_productmaster        pdm,
           ak_corporate             akc,
           phd_profileheaderdetails phd,
-          qum_quantity_unit_master qum
+          qum_quantity_unit_master qum,
+          ucm_unit_conversion_master ucm
     where sbs.product_id = pdm.product_id
       and sbs.corporate_id = akc.corporate_id
       and sbs.warehouse_profile_id = phd.profileid
       and pdm.base_quantity_unit = qum.qty_unit_id
-      and akc.corporate_id = pc_corporate_id;
+      and akc.corporate_id = pc_corporate_id
+      and ucm.from_qty_unit_id = sbs.qty_unit_id
+      and ucm.to_qty_unit_id = pdm.base_quantity_unit;
       commit;
       gvn_log_counter := gvn_log_counter + 1;
       sp_eodeom_process_log(pc_corporate_id,
@@ -13341,7 +13336,6 @@ insert into mas_metal_account_summary
        and grd.process_id = pc_process_id
        and spq.process_id = pc_process_id
        and agmr.eff_date <= pd_trade_date
-       
      group by aml.underlying_product_id,
               pdm.product_desc,
               pdm.base_quantity_unit,
