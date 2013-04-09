@@ -346,7 +346,7 @@ select tt.pcdi_id,
                      tt.total_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
                 else
                      tt.total_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
-		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+             tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
                 end
                )
          else
@@ -358,7 +358,7 @@ select tt.pcdi_id,
                      tt.open_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
                 else
                      tt.open_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
-		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+             tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
                 end
                )
          else
@@ -371,7 +371,7 @@ select tt.pcdi_id,
                      tt.price_fixed_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
                 else
                      tt.price_fixed_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
-		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+             tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
                 end
                )         
          else
@@ -383,7 +383,7 @@ select tt.pcdi_id,
                      tt.unfixed_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
                 else
                      tt.unfixed_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
-		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+             tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
                 end
                )         
          else
@@ -425,7 +425,7 @@ select tt.pcdi_id,
                      tt.open_qty * nvl(tt.dry_wet_qty_ratio,100)/100 *  tt.typical
                 else
                      tt.open_qty * nvl(tt.dry_wet_qty_ratio,100)/100 * 
-		     tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
+             tt.typical * pkg_general.f_get_converted_quantity(tt.product_id, tt.item_qty_unit_id, tt.qty_unit_id_denominator, 1)
                 end
                )
          else
@@ -636,7 +636,7 @@ select pcdi.pcdi_id,
            and pdm.base_quantity_unit = qum.qty_unit_id
            and pcm.contract_status = 'In Position'
            and pcm.contract_type = 'CONCENTRATES'
-           and nvl(pcm.is_tolling_contract, 'N') = 'N'
+--           and nvl(pcm.is_tolling_contract, 'N') = 'N'
            and akc.groupid = gcd.groupid
            and pcm.trader_id = akcu.user_id(+)
            and cpc.business_line_id = blm.business_line_id(+)
@@ -854,7 +854,7 @@ select pcdi.pcdi_id,
            and pdm.base_quantity_unit = qum.qty_unit_id
            and pcm.contract_status = 'In Position'
            and pcm.contract_type = 'CONCENTRATES'
-           and nvl(pcm.is_tolling_contract, 'N') = 'N'
+--           and nvl(pcm.is_tolling_contract, 'N') = 'N'
            and akc.groupid = gcd.groupid
            and pcm.trader_id = akcu.user_id(+)
            and cpc.business_line_id = blm.business_line_id(+)
