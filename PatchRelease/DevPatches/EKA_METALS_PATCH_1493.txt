@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1493
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  10-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  -
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Free Metal
+
+Sub-Module  			 :  -
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 122610
+Author: sriveenam
+Date: Wednesday, April 10, 2013 4:04:25 PM
+Message:
+utility refno column size increased
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_429.sql
+
+
+
+
