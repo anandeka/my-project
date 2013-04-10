@@ -1,0 +1,1 @@
+alter table FMUH_FREE_METAL_UTILITY_HEADER modify  UTILITY_REF_NO varchar2(50);
