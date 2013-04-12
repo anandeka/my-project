@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1496
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  12-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  77013
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  O/P Doc
+
+Sub-Module  			 :  O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 122814
+Author: rajuga
+Date: 12:39:51 PM, Friday, April 12, 2013
+Message:
+Bug 77013 - Unable to print output document for sales contract
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractPreview.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TATA_ContractPreview.rpt
+
+==================================================================
