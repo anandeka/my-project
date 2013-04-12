@@ -34,3 +34,17 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
+Revision: 122827
+Author: janna
+Date: 1:51:35 PM, Friday, April 12, 2013
+Message:
+Base GMR Price Calcualtion Released
+ISR Contract Item Ref No Column altered as it was giving EOM error
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/132_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_tata.sql
+
+
+

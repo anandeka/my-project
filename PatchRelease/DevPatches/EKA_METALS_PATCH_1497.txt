@@ -34,3 +34,12 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
 
+Revision: 122846
+Author: janna
+Date: 3:14:07 PM, Friday, April 12, 2013
+Message:
+Price Basis Out Param Added
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+
+
