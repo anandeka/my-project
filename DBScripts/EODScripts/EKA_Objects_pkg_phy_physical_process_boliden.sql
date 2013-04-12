@@ -452,6 +452,29 @@ create or replace package body pkg_phy_physical_process is
        'Cancel' then
       goto cancel_process;
     end if;
+  
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'sp_base_gmr_allocation_price');
+  
+    vc_err_msg := 'sp_base_gmr_allocation_price';
+  
+    pkg_phy_cog_price.sp_base_gmr_allocation_price(pc_corporate_id,
+                                                   pd_trade_date,
+                                                   pc_process_id,
+                                                   pc_user_id,
+                                                   pc_dbd_id,
+                                                   pc_process);
+    commit;
+  
+    if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
+       'Cancel' then
+      goto cancel_process;
+    end if;
+  
     vn_logno := vn_logno + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -1696,8 +1719,8 @@ create or replace package body pkg_phy_physical_process is
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
-               
-      update cod_call_off_details cod
+  
+    update cod_call_off_details cod
        set process_id = pc_process_id
      where process_id is null
        and (cod.internal_action_ref_no) in
@@ -1706,12 +1729,12 @@ create or replace package body pkg_phy_physical_process is
              where axs.internal_action_ref_no = cod.internal_action_ref_no
                and axs.eff_date <= pd_trade_date
                and axs.corporate_id = pc_corporate_id)
-         and cod.dbd_id in
+       and cod.dbd_id in
            (select dbd.dbd_id
               from dbd_database_dump dbd
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
-               and dbd.trade_date <= pd_trade_date);            
+               and dbd.trade_date <= pd_trade_date);
   exception
     when others then
       vobj_error_log.extend;
