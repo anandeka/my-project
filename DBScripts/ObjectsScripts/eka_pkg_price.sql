@@ -2,27 +2,32 @@ create or replace package pkg_price is
   procedure sp_base_contract_cog_price(pc_int_contract_item_ref_no varchar2,
                                        pd_trade_date               date,
                                        pn_price                    out number,
-                                       pc_price_unit_id            out varchar2);
+                                       pc_price_unit_id            out varchar2,
+                                       pc_price_type               out varchar2);
   procedure sp_base_gmr_cog_price(pc_internal_gmr_ref_no varchar2,
                                   pd_trade_date          date,
                                   pn_price               out number,
-                                  pc_price_unit_id       out varchar2);
+                                  pc_price_unit_id       out varchar2,
+                                  pc_price_type          out varchar2);
   procedure sp_conc_contract_cog_price(pc_int_contract_item_ref_no varchar2,
                                        pd_trade_date               date,
                                        pc_element_id               varchar2,
                                        pn_price                    out number,
-                                       pc_price_unit_id            out varchar2);
+                                       pc_price_unit_id            out varchar2,
+                                       pc_price_type               out varchar2);
 
   procedure sp_conc_gmr_cog_price(pc_internal_gmr_ref_no varchar2,
                                   pd_trade_date          date,
                                   pc_element_id          varchar2,
                                   pn_price               out number,
-                                  pc_price_unit_id       out varchar2);
+                                  pc_price_unit_id       out varchar2,
+                                  pc_price_type          out varchar2);
   procedure sp_conc_gmr_allocation_price(pc_internal_gmr_ref_no varchar2,
                                          pd_trade_date          date,
                                          pc_element_id          varchar2,
                                          pn_price               out number,
-                                         pc_price_unit_id       out varchar2);
+                                         pc_price_unit_id       out varchar2,
+                                         pc_price_type          out varchar2);
   function f_get_converted_price_pum(pc_corporate_id       varchar2,
                                      pn_price              number,
                                      pc_from_price_unit_id varchar2,
@@ -43,15 +48,17 @@ create or replace package pkg_price is
   procedure sp_base_gmr_allocation_price(pc_internal_gmr_ref_no varchar2,
                                          pd_trade_date          date,
                                          pn_price               out number,
-                                         pc_price_unit_id       out varchar2);
+                                         pc_price_unit_id       out varchar2,
+                                         pc_price_type          out varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_price is
   procedure sp_base_contract_cog_price(pc_int_contract_item_ref_no varchar2,
                                        pd_trade_date               date,
                                        pn_price                    out number,
-                                       pc_price_unit_id            out varchar2) is
+                                       pc_price_unit_id            out varchar2,
+                                       pc_price_type               out varchar2) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_base_contract_cog_price
     --        Author                                    : Suresh Gottipati
@@ -596,11 +603,13 @@ create or replace package body pkg_price is
     end loop;
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
+    pc_price_type    := vc_price_basis;
   end;
   procedure sp_base_gmr_cog_price(pc_internal_gmr_ref_no varchar2,
                                   pd_trade_date          date,
                                   pn_price               out number,
-                                  pc_price_unit_id       out varchar2) is
+                                  pc_price_unit_id       out varchar2,
+                                  pc_price_type          out varchar2) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_base_gmr_cog_price
     --        Author                                    : Suresh Gottipati
@@ -1004,12 +1013,14 @@ create or replace package body pkg_price is
     end loop;
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
+    pc_price_type    := vc_price_basis;
   end;
   procedure sp_conc_contract_cog_price(pc_int_contract_item_ref_no varchar2,
                                        pd_trade_date               date,
                                        pc_element_id               varchar2,
                                        pn_price                    out number,
-                                       pc_price_unit_id            out varchar2) is
+                                       pc_price_unit_id            out varchar2,
+                                       pc_price_type               out varchar2) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_conc_contract_cog_price
     --        Author                                    : Suresh Gottipato
@@ -1628,12 +1639,14 @@ create or replace package body pkg_price is
     end loop;
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
+    pc_price_type    := vc_price_basis;
   end;
   procedure sp_conc_gmr_cog_price(pc_internal_gmr_ref_no varchar2,
                                   pd_trade_date          date,
                                   pc_element_id          varchar2,
                                   pn_price               out number,
-                                  pc_price_unit_id       out varchar2) is
+                                  pc_price_unit_id       out varchar2,
+                                  pc_price_type          out varchar2) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_conc_gmr_cog_price
     --        Author                                    : Suresh Gottipati
@@ -1952,13 +1965,15 @@ create or replace package body pkg_price is
     end loop;
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
+    pc_price_type    := vc_price_basis;
   end;
 
   procedure sp_conc_gmr_allocation_price(pc_internal_gmr_ref_no varchar2,
                                          pd_trade_date          date,
                                          pc_element_id          varchar2,
                                          pn_price               out number,
-                                         pc_price_unit_id       out varchar2) is
+                                         pc_price_unit_id       out varchar2,
+                                         pc_price_type          out varchar2) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_conc_gmr_allocation_price
     --        Author                                    : Suresh gottipati
@@ -2257,6 +2272,7 @@ create or replace package body pkg_price is
     end loop;
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
+    pc_price_type    := vc_price_basis;
   end;
 
   function f_get_converted_price_pum(pc_corporate_id       varchar2,
@@ -2616,7 +2632,8 @@ create or replace package body pkg_price is
   procedure sp_base_gmr_allocation_price(pc_internal_gmr_ref_no varchar2,
                                          pd_trade_date          date,
                                          pn_price               out number,
-                                         pc_price_unit_id       out varchar2) is
+                                         pc_price_unit_id       out varchar2,
+                                         pc_price_type          out varchar2) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_base_gmr_allocation_price
     --        Author                                    : Janna
@@ -2909,6 +2926,7 @@ create or replace package body pkg_price is
     end loop;
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
+    pc_price_type    := vc_price_basis;
   end;
-end;
+end; 
 /
