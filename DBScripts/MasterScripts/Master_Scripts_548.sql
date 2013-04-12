@@ -96,7 +96,7 @@ GROUP BY invs.internal_invoice_ref_no,
 
 
 
-declare fetchQueryISTC CLOB := 'INSERT INTO IS_CONC_TC_CHILD (
+fetchQueryISTC CLOB := 'INSERT INTO IS_CONC_TC_CHILD (
 INTERNAL_INVOICE_REF_NO,
 TC_AMOUNT,
 ELEMENT_ID,
