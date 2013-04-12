@@ -375,9 +375,17 @@ select 'Invoice' section_name,
        ictc.quantity_unit_name wet_qty_unit,
        ictc.moisture,
        '%' moisture_unit,
-       null fixed_tc_amount,
-       null fixed_tc_amount_unit,
-       null escalator_descalator,
+       (case when nvl(ictc.baseescdesc_type,'NA') in ('Fixed','Assay','NA') then
+            ''
+         else 
+            ictc.base_tc
+         end) fixed_tc_amount,
+       isd.invoice_amount_unit fixed_tc_amount_unit,
+       (case when nvl(ictc.baseescdesc_type,'NA') in ('Fixed','Assay','NA') then
+            ''
+         else 
+            ictc.esc_desc_amount
+         end) escalator_descalator,
        -- Penalty Details
        null penalty_rate,
        null penalty_rate_unit,
@@ -497,13 +505,21 @@ select 'Invoice' section_name,
        end) total_amount,
        isd.invoice_amount_unit total_amount_unit,
        -- TC Details
-       null wet_qty,
-       null wet_qty_unit,
+       icrc.payable_qty wet_qty,
+       icrc.payable_qty_unit wet_qty_unit,
        null moisture,
        null moisture_unit,
-       icrc.net_rc fixed_tc_amount,
-       null fixed_tc_amount_unit,
-       icrc.rc_es_ds escalator_descalator,
+       (case when nvl(icrc.baseescdesc_type,'NA') in ('Fixed','Assay','NA') then
+            ''
+         else 
+            icrc.base_rc
+         end) fixed_tc_amount,
+       isd.invoice_amount_unit fixed_tc_amount_unit,
+       (case when nvl(icrc.baseescdesc_type,'NA') in ('Fixed','Assay','NA') then
+            ''
+         else 
+            icrc.rc_es_ds
+         end) escalator_descalator,
        -- Penalty Details
        null penalty_rate,
        null penalty_rate_unit,
@@ -1314,7 +1330,7 @@ select 'Invoice' section_name,
        -- VAT Details
        vat.our_vat_no our_vat_reg_no,
        vat.cp_vat_no cp_vat_reg_no,
-       vat.main_inv_vat_code vat_code,
+       vat.vat_code_name vat_code,
        vat.vat_rate,
        vat.vat_amount_in_inv_cur vat_amount,
        -- Bank Details
@@ -1323,7 +1339,7 @@ select 'Invoice' section_name,
        null account_no,
        null iban,
        null aba_rtn,
-       null instruction,
+       vat.special_inst instruction,
        null remarks,
        -- Summary Details
        isd.total_premium_amount,
