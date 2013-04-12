@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1499
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  12-Apr-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  65998
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 122949
+Author: anandp
+Date: 21:21:05, 12 April 2013
+Message:
+For bug no. 65998
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_431.sql
+
+Revision: 122948
+Author: anandp
+Date: 21:19:49, 12 April 2013
+Message:
+For bug no. 65998
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_548.sql
+
+
+
+
+
