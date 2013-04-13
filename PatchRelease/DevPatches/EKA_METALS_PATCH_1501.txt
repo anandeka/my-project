@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1501
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy
+ 
+Created on*        		:  13-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  77265
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Assay
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 123037
+Author: rajeshwar.reddy
+Date: 18:30:56, 13 April 2013
+Message:
+Bug fix: 77265 - While generating output doc for Assays for physical sales conc contract getting error
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_549.sql
+
