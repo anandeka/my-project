@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_1502
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy
+ 
+Created on*        		:  15-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  77049,77053
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 123189
+Author: suresh.gottipati
+Date: 5:14:35 PM, Monday, April 15, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_117_RFC_RPC.sql
+
+
+
+Revision: 123190
+Author: suresh.gottipati
+Date: 5:16:05 PM, Monday, April 15, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SwapReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SwapReport_Excel.rpt
+
+
+
