@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1508
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan.
+ 
+Created on*        		:  17-Apr-2013
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  76302 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics & Pricing
+
+Sub-Module  			 :  Pledge GMR pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 123446
+Author: srinivasanmurugesan
+Date: 10:18:41 AM, Wednesday, April 17, 2013
+Message:
+1. Script to add internal_pledge_gmr_ref_no column in GPAH and PFD table.
+2. Procedure GENERATEPRICEFIXATIONDOCUMENT updated to fetch pledge party name if the GMR is pledged.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATEPRICEFIXATIONDOCUMENT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_433.sql
+
+
