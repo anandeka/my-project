@@ -1,4 +1,3 @@
-/* Formatted on 2013/03/19 15:16 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE PROCEDURE "GENERATEPRICEFIXATIONDOCUMENT" (
    p_pfd_id           VARCHAR2,
    p_docrefno         VARCHAR2,
@@ -39,7 +38,8 @@ IS
    fx_rate                 NUMBER (25, 10);
 BEGIN
    SELECT ak.corporate_name, pad.address, cim.city_name, cym.country_name,
-          pad.zip, sm.state_name, phd.companyname,
+          pad.zip, sm.state_name,
+          NVL (pledge_cp.companyname, phd.companyname) companyname,
           gab.firstname || ' ' || gab.lastname, pcm.contract_type,
           pcm.contract_ref_no,
           (pcm.contract_ref_no || '-' || pcdi.delivery_item_no
@@ -233,7 +233,8 @@ BEGIN
           getpremuimdetails (pcdi.pcdi_id), pofh.priced_qty,
           pocd.is_any_day_pricing
      INTO corporate_name, cp_address, cp_city, cp_country,
-          cp_zip, cp_state, cp_name,
+          cp_zip, cp_state,
+          cp_name,
           cp_person_in_charge, contract_type,
           contract_ref_no,
           delivery_item_ref_no,
@@ -272,7 +273,9 @@ BEGIN
           ppfh_phy_price_formula_header ppfh,
           pfqpp_phy_formula_qp_pricing pfqpp,
           pdm_productmaster pdm_curr,
-          aml_attribute_master_list aml
+          aml_attribute_master_list aml,
+          gepd_gmr_element_pledge_detail gepd,
+          phd_profileheaderdetails pledge_cp
     WHERE pfd.pofh_id = pofh.pofh_id
       AND pofh.pocd_id = pocd.pocd_id
       AND pocd.poch_id = poch.poch_id
@@ -302,6 +305,8 @@ BEGIN
       AND ppfh.is_active = 'Y'
       AND ppfh.ppfh_id = pfqpp.ppfh_id
       AND NVL (pfd.is_hedge_correction, 'N') = 'N'
+      AND pfd.internal_pledge_gmr_ref_no = gepd.internal_gmr_ref_no(+)
+      AND gepd.pledge_cp_id = pledge_cp.profileid(+)
       AND pfd.pfd_id = p_pfd_id;
 
    /** for weighted avg price */
