@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1511
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  17-Apr-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  77211
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Doc
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 123539
+Author: rajuga
+Date: 6:37:51 PM, Wednesday, April 17, 2013
+Message:
+Bug 77211 - No payable details coming in Debit credit o/p document of base metal FI
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+
+==================================================================
