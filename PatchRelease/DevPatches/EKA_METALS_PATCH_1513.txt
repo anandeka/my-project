@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1513
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Nishikant Gupta
+ 
+Created on*        		:  17-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  77045
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  Contract
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 123567
+Author: nishikant.gupta
+Date: 7:53:40 PM, Wednesday, April 17, 2013
+Message:
+Added for bug fixation.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
+
