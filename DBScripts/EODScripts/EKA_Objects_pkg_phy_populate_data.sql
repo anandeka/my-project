@@ -1109,8 +1109,6 @@ create or replace package body PKG_PHY_POPULATE_DATA is
        internal_stock_ref_no,
        sales_qty_unit_id,
        is_deleted,
-       --no_of_bales,
-       --pool_id,
        internal_action_ref_no,
        no_of_units,
        packing_size_id,
@@ -1162,8 +1160,6 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                     null,
                     sales_qty_unit_id),
              decode(is_deleted, 'Empty_String', null, is_deleted),
-             --decode(no_of_bales, 'Empty_String', null, no_of_bales),
-             -- decode(pool_id, 'Empty_String', null, pool_id),
              decode(internal_action_ref_no,
                     'Empty_String',
                     null,
@@ -1264,18 +1260,6 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                                    agdul.is_deleted
                                 end),
                             24) is_deleted,
-                     /*substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when agdul.no_of_bales is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            agdul.no_of_bales
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) no_of_bales,*/
-                     /* substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           when agdul.pool_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            agdul.pool_id
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     24) pool_id,*/
                      substr(max(case
                                   when agdul.internal_action_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -1303,10 +1287,8 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                      gvc_dbd_id
                 from agdul_alloc_group_detail_ul agdul,
                      axs_action_summary          axs,
-                     dbd_database_dump           dbd,
                      dbd_database_dump           dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and agdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -1560,10 +1542,8 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                      gvc_dbd_id
                 from aghul_alloc_group_header_ul aghul,
                      axs_action_summary          axs,
-                     dbd_database_dump           dbd,
                      dbd_database_dump           dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and aghul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -1572,7 +1552,6 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by aghul.int_alloc_group_id) t;
-  
   exception
     when others then
       vobj_error_log.extend;
@@ -1719,10 +1698,8 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                      gvc_dbd_id
                 from cigcul_contrct_itm_gmr_cost_ul cigcul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and cigcul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -1805,9 +1782,7 @@ insert into cs_cost_store
    acc_over_accrual,
    acc_under_accrual,
    delta_cost_in_base_price_id,
-   reversal_type
-   
-   )
+   reversal_type)
   select decode(internal_cost_id, 'Empty_String', null, internal_cost_id),
          decode(internal_action_ref_no,
                 'Empty_String',
@@ -2087,13 +2062,10 @@ insert into cs_cost_store
                                csul.reversal_type
                             end),
                         24) reversal_type
-          
             from csul_cost_store_ul csul,
                  axs_action_summary axs,
-                 dbd_database_dump  dbd,
                  dbd_database_dump  dbd_ul
-           where dbd.dbd_id = axs.dbd_id
-             and dbd.process = gvc_process
+           where axs.process = gvc_process
              and csul.internal_action_ref_no = axs.internal_action_ref_no
              and axs.eff_date <= pd_trade_date
              and axs.corporate_id = pc_corporate_id
@@ -2437,7 +2409,6 @@ insert into cs_cost_store
              gvc_dbd_id,
              decode(tolling_stock_type, 'Empty_String', null, tolling_stock_type),
              decode(pcdi_id, 'Empty_String', null, pcdi_id)
-             
         from (select dgrdul.internal_dgrd_ref_no,
                      substr(max(case
                                   when dgrdul.action_no is not null then
@@ -2926,10 +2897,8 @@ insert into cs_cost_store
                             24) pcdi_id
                 from dgrdul_delivered_grd_ul dgrdul,
                      axs_action_summary      axs,
-                     dbd_database_dump       dbd,
                      dbd_database_dump       dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and dgrdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -3831,10 +3800,8 @@ insert into gmr_goods_movement_record
                  gvc_dbd_id
             from gmrul_gmr_ul       gmrul,
                  axs_action_summary axs,
-                 dbd_database_dump  dbd,
                  dbd_database_dump  dbd_ul
-           where dbd.dbd_id = axs.dbd_id
-             and dbd.process = gvc_process
+           where axs.process = gvc_process
              and gmrul.internal_action_ref_no = axs.internal_action_ref_no
              and axs.eff_date <= pd_trade_date
              and axs.corporate_id = pc_corporate_id
@@ -4032,10 +3999,8 @@ commit;
                      gvc_dbd_id
                 from mogrdul_moved_out_grd_ul mogrdul,
                      axs_action_summary       axs,
-                     dbd_database_dump        dbd,
                      dbd_database_dump        dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and mogrdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -4233,10 +4198,8 @@ commit;
                      gvc_dbd_id
                 from pcadul_pc_agency_detail_ul pcadul,
                      axs_action_summary         axs,
-                     dbd_database_dump          dbd,
                      dbd_database_dump          dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcadul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -4383,10 +4346,8 @@ commit;
                      gvc_dbd_id
                 from pcbpdul_pc_base_price_dtl_ul pcbpdul,
                      axs_action_summary           axs,
-                     dbd_database_dump            dbd,
                      dbd_database_dump            dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcbpdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -4435,7 +4396,6 @@ commit;
   begin
     insert into pcbph_pc_base_price_header
       (pcbph_id,
-       --   optionality_desc,
        version,
        is_active,
        internal_contract_ref_no,
@@ -4516,10 +4476,8 @@ commit;
                      gvc_dbd_id
                 from pcbphul_pc_base_prc_header_ul pcbphul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcbphul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -4702,10 +4660,8 @@ commit;
                      gvc_dbd_id
                 from pcdbul_pc_delivery_basis_ul pcdbul,
                      axs_action_summary          axs,
-                     dbd_database_dump           dbd,
                      dbd_database_dump           dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcdbul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -4800,14 +4756,11 @@ commit;
                                    pcddul.internal_contract_ref_no
                                 end),
                             24) internal_contract_ref_no,
-                     
                      gvc_dbd_id
                 from pcddul_document_details_ul pcddul,
                      axs_action_summary         axs,
-                     dbd_database_dump          dbd,
                      dbd_database_dump          dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcddul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -4891,10 +4844,8 @@ commit;
                      gvc_dbd_id
                 from pcdiobul_di_optional_basis_ul pcdiobul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcdiobul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -4982,10 +4933,8 @@ commit;
                      gvc_dbd_id
                 from pcdipeul_di_pricing_elemnt_ul pcdipeul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcdipeul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -5074,10 +5023,8 @@ commit;
                      gvc_dbd_id
                 from pcdiqdul_di_quality_detail_ul pcdiqdul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcdiqdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -5542,10 +5489,8 @@ commit;
                      gvc_dbd_id
                 from pcdiul_pc_delivery_item_ul pcdiul,
                      axs_action_summary         axs,
-                     dbd_database_dump          dbd,
                      dbd_database_dump          dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcdiul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -5637,10 +5582,8 @@ commit;
                      gvc_dbd_id
                 from pcipful_pci_pricing_formula_ul pcipful,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcipful.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -5938,10 +5881,8 @@ commit;
                      gvc_dbd_id
                 from pciul_phy_contract_item_ul pciul,
                      axs_action_summary         axs,
-                     dbd_database_dump          dbd,
                      dbd_database_dump          dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pciul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -6063,10 +6004,8 @@ commit;
                      gvc_dbd_id
                 from pcjvul_pc_jv_detail_ul pcjvul,
                      axs_action_summary     axs,
-                     dbd_database_dump      dbd,
                      dbd_database_dump      dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcjvul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -6577,10 +6516,8 @@ commit;
                      gvc_dbd_id
                 from pcmul_phy_contract_main_ul pcmul,
                      axs_action_summary         axs,
-                     dbd_database_dump          dbd,
                      dbd_database_dump          dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcmul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -6685,10 +6622,8 @@ commit;
                      gvc_dbd_id
                 from pcpdqdul_pd_quality_dtl_ul pcpdqdul,
                      axs_action_summary         axs,
-                     dbd_database_dump          dbd,
                      dbd_database_dump          dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcpdqdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -6955,10 +6890,8 @@ commit;
                      gvc_dbd_id
                 from pcpdul_pc_product_defintn_ul pcpdul,
                      axs_action_summary           axs,
-                     dbd_database_dump            dbd,
                      dbd_database_dump            dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcpdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -7155,10 +7088,8 @@ commit;
                      gvc_dbd_id
                 from pcpqul_pc_product_quality_ul pcpqul,
                      axs_action_summary           axs,
-                     dbd_database_dump            dbd,
                      dbd_database_dump            dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcpqul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -7292,10 +7223,8 @@ commit;
                      gvc_dbd_id
                 from pcqpdul_pc_qual_prm_discnt_ul pcqpdul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcqpdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -7561,10 +7490,8 @@ commit;
                      gvc_dbd_id
                 from pffxdul_phy_formula_fx_dtl_ul pffxdul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pffxdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -7835,19 +7762,11 @@ commit;
                                    pfqppul.is_spot_pricing
                                 end),
                             24) is_spot_pricing,
-                     /* substr(max(case
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    when pfqppul.event_id is not null then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     pfqppul.event_id
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  end),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              24) event_id, */
                      gvc_dbd_id
                 from pfqppul_phy_formula_qp_prc_ul pfqppul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pfqppul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -8021,10 +7940,8 @@ commit;
                      gvc_dbd_id
                 from ppfdul_phy_price_frmula_dtl_ul ppfdul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and ppfdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -8150,10 +8067,8 @@ commit;
                      gvc_dbd_id
                 from ppfhul_phy_price_frmla_hdr_ul ppfhul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and ppfhul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -8220,7 +8135,6 @@ commit;
        unallocated_qty,
        version,
        is_active,
-       --latest_internal_action_ref_no,
        dbd_id)
       select ciqsul.ciqs_id,
              substr(max(case
@@ -8263,10 +8177,8 @@ commit;
              gvc_dbd_id
         from ciqsl_contract_itm_qty_sts_log ciqsul,
              axs_action_summary             axs,
-             dbd_database_dump              dbd,
              dbd_database_dump              dbd_ul
-       where dbd.dbd_id = axs.dbd_id
-         and dbd.process = gvc_process
+       where axs.process = gvc_process
          and ciqsul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.eff_date <= pd_trade_date
          and axs.corporate_id = pc_corporate_id
@@ -8374,10 +8286,8 @@ commit;
              gvc_dbd_id
         from diqsl_delivery_itm_qty_sts_log diqsul,
              axs_action_summary             axs,
-             dbd_database_dump              dbd,
              dbd_database_dump              dbd_ul
-       where dbd.dbd_id = axs.dbd_id
-         and dbd.process = gvc_process
+       where axs.process = gvc_process
          and diqsul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.eff_date <= pd_trade_date
          and axs.corporate_id = pc_corporate_id
@@ -8485,10 +8395,8 @@ commit;
              gvc_dbd_id
         from cqsl_contract_qty_status_log cqsul,
              axs_action_summary           axs,
-             dbd_database_dump            dbd,
              dbd_database_dump            dbd_ul
-       where dbd.dbd_id = axs.dbd_id
-         and dbd.process = gvc_process
+       where axs.process = gvc_process
          and cqsul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.eff_date <= pd_trade_date
          and axs.corporate_id = pc_corporate_id
@@ -8557,7 +8465,6 @@ commit;
        warehouse_profile_id,
        shed_id,
        origin_id,
-      -- crop_year_id,
        parent_id,
        is_released_shipped,
        release_shipped_no_of_units,
@@ -8613,11 +8520,6 @@ commit;
        allocated_no_of_units,
        current_no_of_units,
        stock_condition,
-      /* gravity_type_id,
-       gravity,
-       density_mass_qty_unit_id,
-       density_volume_qty_unit_id,
-       gravity_type,*/
        customs_id,
        tax_id,
        duty_id,
@@ -8747,12 +8649,6 @@ commit;
                            grdul.origin_id
                         end),
                     24) origin_id,
-            /* substr(max(case
-                          when grdul.crop_year_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           grdul.crop_year_id
-                        end),
-                    24) crop_year_id,*/
              substr(max(case
                           when grdul.parent_id is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -8979,31 +8875,6 @@ commit;
                            grdul.stock_condition
                         end),
                     24) stock_condition,
-             /*substr(max(case
-                          when grdul.gravity_type_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           grdul.gravity_type_id
-                        end),
-                    24) gravity_type_id,
-             round(sum(nvl(grdul.gravity_delta, 0)), 10),
-             substr(max(case
-                          when grdul.density_mass_qty_unit_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           grdul.density_mass_qty_unit_id
-                        end),
-                    24) density_mass_qty_unit_id,
-             substr(max(case
-                          when grdul.density_volume_qty_unit_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           grdul.density_volume_qty_unit_id
-                        end),
-                    24) density_volume_qty_unit_id,
-             substr(max(case
-                          when grdul.gravity_type is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           grdul.gravity_type
-                        end),
-                    24) gravity_type,*/
              substr(max(case
                           when grdul.customs_id is not null then
                            to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -9152,13 +9023,10 @@ commit;
                         end),
                     24) supp_internal_gmr_ref_no,        
                     gvc_dbd_id
-
         from grdl_goods_record_detail_log grdul,
              axs_action_summary           axs,
-             dbd_database_dump            dbd,
              dbd_database_dump            dbd_ul
-       where dbd.dbd_id = axs.dbd_id
-         and dbd.process = gvc_process
+       where axs.process = gvc_process
          and grdul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.eff_date <= pd_trade_date
          and axs.corporate_id = pc_corporate_id
@@ -9178,10 +9046,7 @@ commit;
                                       and pcdi.dbd_id = gvc_dbd_id
                                       and pci.internal_contract_item_ref_no =
                                           grd.internal_contract_item_ref_no
-                                      and grd.dbd_id = gvc_dbd_id
-                                   
-                                   )
-    
+                                      and grd.dbd_id = gvc_dbd_id)
      where grd.dbd_id = gvc_dbd_id;
     update grd_goods_record_detail grd
        set grd.payment_due_date = pd_trade_date
@@ -9271,7 +9136,6 @@ and grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
 and grd.is_deleted ='N'
 and grd.status ='Active')
 where gmr.dbd_id = gvc_dbd_id;
-       
   exception
     when others then
       vobj_error_log.extend;
@@ -9852,10 +9716,8 @@ where gmr.dbd_id = gvc_dbd_id;
                      gvc_dbd_id
                 from vdul_voyage_detail_ul vdul,
                      axs_action_summary    axs,
-                     dbd_database_dump     dbd,
                      dbd_database_dump     dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and vdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -9978,10 +9840,8 @@ where gmr.dbd_id = gvc_dbd_id;
                      gvc_dbd_id
                 from pcpchul_payble_contnt_headr_ul pcpchul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcpchul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -9990,7 +9850,6 @@ where gmr.dbd_id = gvc_dbd_id;
                  and dbd_ul.corporate_id = pc_corporate_id
                  and dbd_ul.process = gvc_process
                group by pcpchul.pcpch_id) t;
-  
   exception
     when others then
       vobj_error_log.extend;
@@ -10069,13 +9928,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) quality_name,
                      gvc_dbd_id
-              
                 from pqdul_payable_quality_dtl_ul pqdul,
                      axs_action_summary           axs,
-                     dbd_database_dump            dbd,
                      dbd_database_dump            dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pqdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -10276,13 +10132,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) position,
                      gvc_dbd_id
-              
                 from pcepcul_elem_payble_content_ul pcepcul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcepcul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -10396,13 +10249,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) is_active,
                      gvc_dbd_id
-              
                 from pcthul_treatment_header_ul pcthul,
                      axs_action_summary         axs,
-                     dbd_database_dump          dbd,
                      dbd_database_dump          dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcthul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -10496,13 +10346,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) element_name,
                      gvc_dbd_id
-              
                 from tedul_treatment_element_dtl_ul tedul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and tedul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -10590,13 +10437,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) quality_name,
                      gvc_dbd_id
-              
                 from tqdul_treatment_quality_dtl_ul tqdul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and tqdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -10782,13 +10626,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) is_active,
                      gvc_dbd_id
-              
                 from pcetcul_elem_treatmnt_chrg_ul pcetcul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcetcul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -10944,13 +10785,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) quality_id,
                      gvc_dbd_id
-              
                 from pcarul_assaying_rules_ul pcarul,
                      axs_action_summary       axs,
-                     dbd_database_dump        dbd,
                      dbd_database_dump        dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcarul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -11073,13 +10911,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) is_active,
                      gvc_dbd_id
-              
                 from pcaeslul_assay_elm_splt_lmt_ul pcaeslul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcaeslul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -11166,13 +11001,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) quality_name,
                      gvc_dbd_id
-              
                 from arqdul_assay_quality_dtl_ul arqdul,
                      axs_action_summary          axs,
-                     dbd_database_dump           dbd,
                      dbd_database_dump           dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and arqdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -11275,13 +11107,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) is_active,
                      gvc_dbd_id
-              
                 from pcaphul_attr_penalty_header_ul pcaphul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcaphul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -11508,13 +11337,10 @@ where gmr.dbd_id = gvc_dbd_id;
                                 end),
                             24) position,
                      gvc_dbd_id
-              
                 from pcapul_attribute_penalty_ul pcapul,
                      axs_action_summary          axs,
-                     dbd_database_dump           dbd,
                      dbd_database_dump           dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcapul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -11597,13 +11423,10 @@ where gmr.dbd_id = gvc_dbd_id;
                             24) is_active,
                      
                      gvc_dbd_id
-              
                 from pqdul_penalty_quality_dtl_ul pcdul,
                      axs_action_summary           axs,
-                     dbd_database_dump            dbd,
                      dbd_database_dump            dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -11691,15 +11514,11 @@ where gmr.dbd_id = gvc_dbd_id;
                                    padul.is_active
                                 end),
                             24) is_active,
-                     
                      gvc_dbd_id
-              
                 from padul_penalty_attribute_dtl_ul padul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and padul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -11811,15 +11630,11 @@ where gmr.dbd_id = gvc_dbd_id;
                                    pcrhul.is_active
                                 end),
                             24) is_active,
-                     
                      gvc_dbd_id
-              
                 from pcrhul_refining_header_ul pcrhul,
                      axs_action_summary        axs,
-                     dbd_database_dump         dbd,
                      dbd_database_dump         dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcrhul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -11905,15 +11720,11 @@ where gmr.dbd_id = gvc_dbd_id;
                                    rqdul.quality_name
                                 end),
                             24) quality_name,
-                     
                      gvc_dbd_id
-              
                 from rqdul_refining_quality_dtl_ul rqdul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and rqdul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -12006,15 +11817,11 @@ where gmr.dbd_id = gvc_dbd_id;
                                    redul.element_name
                                 end),
                             24) element_name,
-                     
                      gvc_dbd_id
-              
                 from redul_refining_element_dtl_ul redul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and redul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -12193,15 +12000,11 @@ where gmr.dbd_id = gvc_dbd_id;
                                    pcercul.is_active
                                 end),
                             24) is_active,
-                     
                      gvc_dbd_id
-              
                 from pcercul_elem_refing_charge_ul pcercul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and pcercul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -12283,10 +12086,8 @@ where gmr.dbd_id = gvc_dbd_id;
                      gvc_dbd_id
                 from dithul_di_treatment_header_ul dithul,
                      axs_action_summary            axs,
-                     dbd_database_dump             dbd,
                      dbd_database_dump             dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and dithul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -12368,10 +12169,8 @@ where gmr.dbd_id = gvc_dbd_id;
                      gvc_dbd_id
                 from dirhul_di_refining_header_ul dirhul,
                      axs_action_summary           axs,
-                     dbd_database_dump            dbd,
                      dbd_database_dump            dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and dirhul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -12454,10 +12253,8 @@ where gmr.dbd_id = gvc_dbd_id;
                      gvc_dbd_id
                 from diphul_di_penalty_header_ul diphul,
                      axs_action_summary          axs,
-                     dbd_database_dump           dbd,
                      dbd_database_dump           dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and diphul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -12561,10 +12358,8 @@ where gmr.dbd_id = gvc_dbd_id;
              gvc_dbd_id
         from cipql_ctrt_itm_payable_qty_log cipqul,
              axs_action_summary             axs,
-             dbd_database_dump              dbd,
              dbd_database_dump              dbd_ul
-       where dbd.dbd_id = axs.dbd_id
-         and dbd.process = gvc_process
+       where axs.process = gvc_process
          and cipqul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.eff_date <= pd_trade_date
          and axs.corporate_id = pc_corporate_id
@@ -12681,10 +12476,8 @@ where gmr.dbd_id = gvc_dbd_id;
              gvc_dbd_id
         from dipql_del_itm_payble_qty_log dipqul,
              axs_action_summary           axs,
-             dbd_database_dump            dbd,
              dbd_database_dump            dbd_ul
-       where dbd.dbd_id = axs.dbd_id
-         and dbd.process = gvc_process
+       where axs.process = gvc_process
          and dipqul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.eff_date <= pd_trade_date
          and axs.corporate_id = pc_corporate_id
@@ -12729,228 +12522,225 @@ where gmr.dbd_id = gvc_dbd_id;
     vn_eel_error_count number := 1;
   
   begin
-    insert into spq_stock_payable_qty
-      (spq_id,
-       internal_gmr_ref_no,
-       action_no,
-       stock_type,
-       internal_grd_ref_no,
-       internal_dgrd_ref_no,
-       element_id,
-       payable_qty,
-       qty_unit_id,
-       version,
-       is_active,
-       qty_type,
-       activity_action_id,
-       is_stock_split,
-       supplier_id,
-       smelter_id,
-       in_process_stock_id,
-       free_metal_stock_id,
-       free_metal_qty,
-       assay_content,
-       pledge_stock_id,
-       gepd_id,
-       assay_header_id,
-       is_final_assay,
-       corporate_id,
-       internal_action_ref_no,
-       weg_avg_pricing_assay_id,
-       weg_avg_invoice_assay_id,
-       dbd_id)
-select spq_id,
-internal_gmr_ref_no,
-action_no,
-stock_type,
-internal_grd_ref_no,
-internal_dgrd_ref_no,
-element_id,
-payable_qty,
-qty_unit_id,
-version,
-is_active,
-qty_type,
-activity_action_id,
-is_stock_split,
-supplier_id,
-smelter_id,
-in_process_stock_id,
-free_metal_stock_id,
-free_metal_qty,
-assay_content, 
-decode(pledge_stock_id,'Empty_String',null,pledge_stock_id) pledge_stock_id,
-decode(gepd_id,'Empty_String',null,gepd_id) gepd_id,
-assay_header_id,  
-is_final_assay, 
-corporate_id,  
-internal_action_ref_no,  
-weg_avg_pricing_assay_id, 
-weg_avg_invoice_assay_id,                                          
-gvc_dbd_id
-from (
-      select spqul.spq_id,
-             substr(max(case
-                          when spqul.internal_gmr_ref_no is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.internal_gmr_ref_no
-                        end),
-                    24) internal_gmr_ref_no,
-             substr(max(case
-                          when spqul.action_no is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.action_no
-                        end),
-                    24) action_no,
-             substr(max(case
-                          when spqul.stock_type is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.stock_type
-                        end),
-                    24) stock_type,
-             substr(max(case
-                          when spqul.internal_grd_ref_no is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.internal_grd_ref_no
-                        end),
-                    24) internal_grd_ref_no,
-             substr(max(case
-                          when spqul.internal_dgrd_ref_no is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.internal_dgrd_ref_no
-                        end),
-                    24) internal_dgrd_ref_no,
-             substr(max(case
-                          when spqul.element_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.element_id
-                        end),
-                    24) element_id,
-             round(sum(nvl(spqul.payable_qty_delta, 0)), 10) payable_qty,
-             substr(max(case
-                          when spqul.qty_unit_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.qty_unit_id
-                        end),
-                    24) qty_unit_id,
-             substr(max(case
-                          when spqul.version is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.version
-                        end),
-                    24) version,
-             substr(max(case
-                          when spqul.is_active is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.is_active
-                        end),
-                    24) is_active,
-             substr(max(case
-                          when spqul.qty_type is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.qty_type
-                        end),
-                    24) qty_type,
-             substr(max(case
-                          when spqul.activity_action_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.activity_action_id
-                        end),
-                    24) activity_action_id,
-             substr(max(case
-                          when spqul.is_stock_split is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.is_stock_split
-                        end),
-                    24) is_stock_split,
-             substr(max(case
-                          when spqul.supplier_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.supplier_id
-                        end),
-                    24) supplier_id,
-             substr(max(case
-                          when spqul.smelter_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.smelter_id
-                        end),
-                    24) smelter_id,
-             substr(max(case
-                          when spqul.in_process_stock_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.in_process_stock_id
-                        end),
-                    24) in_process_stock_id,
-             substr(max(case
-                          when spqul.free_metal_stock_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.free_metal_stock_id
-                        end),
-                    24) free_metal_stock_id,
-             round(sum(nvl(spqul.free_metal_qty, 0)), 10) free_metal_qty,
-             round(sum(nvl(spqul.assay_content, 0)), 10) assay_content, 
-             substr(max(case
-                          when spqul.pledge_stock_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.pledge_stock_id
-                        end),
-                    24) pledge_stock_id, 
-             substr(max(case
-                          when spqul.gepd_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.gepd_id
-                        end),
-                    24) gepd_id, 
-            substr(max(case
-                          when spqul.assay_header_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.assay_header_id
-                        end),
-                    24) assay_header_id,  
-            substr(max(case
-                          when spqul.is_final_assay is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.is_final_assay
-                        end),
-                    24) is_final_assay, 
-            substr(max(case
-                          when spqul.corporate_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.corporate_id
-                        end),
-                    24) corporate_id,  
-             substr(max(case
-                          when spqul.internal_action_ref_no is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.internal_action_ref_no
-                        end),
-                    24) internal_action_ref_no,  
-              substr(max(case
-                          when spqul.weg_avg_pricing_assay_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.weg_avg_pricing_assay_id
-                        end),
-                    24) weg_avg_pricing_assay_id, 
-              substr(max(case
-                          when spqul.weg_avg_invoice_assay_id is not null then
-                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
-                           spqul.weg_avg_invoice_assay_id
-                        end),
-                    24) weg_avg_invoice_assay_id,                                          
-             gvc_dbd_id
-        from spql_stock_payable_qty_log spqul,
-             axs_action_summary         axs,
-             dbd_database_dump          dbd,
-             dbd_database_dump          dbd_ul
-       where dbd.dbd_id = axs.dbd_id
-         and dbd.process = gvc_process
-         and spqul.internal_action_ref_no = axs.internal_action_ref_no
-         and axs.eff_date <= pd_trade_date
-         and axs.corporate_id = pc_corporate_id
-         and spqul.dbd_id = dbd_ul.dbd_id
-         and dbd_ul.corporate_id = pc_corporate_id
-         and dbd_ul.process = gvc_process
-       group by spqul.spq_id);
+insert into spq_stock_payable_qty
+  (spq_id,
+   internal_gmr_ref_no,
+   action_no,
+   stock_type,
+   internal_grd_ref_no,
+   internal_dgrd_ref_no,
+   element_id,
+   payable_qty,
+   qty_unit_id,
+   version,
+   is_active,
+   qty_type,
+   activity_action_id,
+   is_stock_split,
+   supplier_id,
+   smelter_id,
+   in_process_stock_id,
+   free_metal_stock_id,
+   free_metal_qty,
+   assay_content,
+   pledge_stock_id,
+   gepd_id,
+   assay_header_id,
+   is_final_assay,
+   corporate_id,
+   internal_action_ref_no,
+   weg_avg_pricing_assay_id,
+   weg_avg_invoice_assay_id,
+   dbd_id)
+  select spq_id,
+         internal_gmr_ref_no,
+         action_no,
+         stock_type,
+         internal_grd_ref_no,
+         internal_dgrd_ref_no,
+         element_id,
+         payable_qty,
+         qty_unit_id,
+         version,
+         is_active,
+         qty_type,
+         activity_action_id,
+         is_stock_split,
+         supplier_id,
+         smelter_id,
+         in_process_stock_id,
+         free_metal_stock_id,
+         free_metal_qty,
+         assay_content,
+         decode(pledge_stock_id, 'Empty_String', null, pledge_stock_id) pledge_stock_id,
+         decode(gepd_id, 'Empty_String', null, gepd_id) gepd_id,
+         assay_header_id,
+         is_final_assay,
+         corporate_id,
+         internal_action_ref_no,
+         weg_avg_pricing_assay_id,
+         weg_avg_invoice_assay_id,
+         gvc_dbd_id
+    from (select spqul.spq_id,
+                 substr(max(case
+                              when spqul.internal_gmr_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.internal_gmr_ref_no
+                            end),
+                        24) internal_gmr_ref_no,
+                 substr(max(case
+                              when spqul.action_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.action_no
+                            end),
+                        24) action_no,
+                 substr(max(case
+                              when spqul.stock_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.stock_type
+                            end),
+                        24) stock_type,
+                 substr(max(case
+                              when spqul.internal_grd_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.internal_grd_ref_no
+                            end),
+                        24) internal_grd_ref_no,
+                 substr(max(case
+                              when spqul.internal_dgrd_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.internal_dgrd_ref_no
+                            end),
+                        24) internal_dgrd_ref_no,
+                 substr(max(case
+                              when spqul.element_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.element_id
+                            end),
+                        24) element_id,
+                 round(sum(nvl(spqul.payable_qty_delta, 0)), 10) payable_qty,
+                 substr(max(case
+                              when spqul.qty_unit_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.qty_unit_id
+                            end),
+                        24) qty_unit_id,
+                 substr(max(case
+                              when spqul.version is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.version
+                            end),
+                        24) version,
+                 substr(max(case
+                              when spqul.is_active is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.is_active
+                            end),
+                        24) is_active,
+                 substr(max(case
+                              when spqul.qty_type is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.qty_type
+                            end),
+                        24) qty_type,
+                 substr(max(case
+                              when spqul.activity_action_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.activity_action_id
+                            end),
+                        24) activity_action_id,
+                 substr(max(case
+                              when spqul.is_stock_split is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.is_stock_split
+                            end),
+                        24) is_stock_split,
+                 substr(max(case
+                              when spqul.supplier_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.supplier_id
+                            end),
+                        24) supplier_id,
+                 substr(max(case
+                              when spqul.smelter_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.smelter_id
+                            end),
+                        24) smelter_id,
+                 substr(max(case
+                              when spqul.in_process_stock_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.in_process_stock_id
+                            end),
+                        24) in_process_stock_id,
+                 substr(max(case
+                              when spqul.free_metal_stock_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.free_metal_stock_id
+                            end),
+                        24) free_metal_stock_id,
+                 round(sum(nvl(spqul.free_metal_qty, 0)), 10) free_metal_qty,
+                 round(sum(nvl(spqul.assay_content, 0)), 10) assay_content,
+                 substr(max(case
+                              when spqul.pledge_stock_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.pledge_stock_id
+                            end),
+                        24) pledge_stock_id,
+                 substr(max(case
+                              when spqul.gepd_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.gepd_id
+                            end),
+                        24) gepd_id,
+                 substr(max(case
+                              when spqul.assay_header_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.assay_header_id
+                            end),
+                        24) assay_header_id,
+                 substr(max(case
+                              when spqul.is_final_assay is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.is_final_assay
+                            end),
+                        24) is_final_assay,
+                 substr(max(case
+                              when spqul.corporate_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.corporate_id
+                            end),
+                        24) corporate_id,
+                 substr(max(case
+                              when spqul.internal_action_ref_no is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.internal_action_ref_no
+                            end),
+                        24) internal_action_ref_no,
+                 substr(max(case
+                              when spqul.weg_avg_pricing_assay_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.weg_avg_pricing_assay_id
+                            end),
+                        24) weg_avg_pricing_assay_id,
+                 substr(max(case
+                              when spqul.weg_avg_invoice_assay_id is not null then
+                               to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                               spqul.weg_avg_invoice_assay_id
+                            end),
+                        24) weg_avg_invoice_assay_id,
+                 gvc_dbd_id
+            from spql_stock_payable_qty_log spqul,
+                 axs_action_summary         axs,
+                 dbd_database_dump          dbd_ul
+           where axs.process = gvc_process
+             and spqul.internal_action_ref_no = axs.internal_action_ref_no
+             and axs.eff_date <= pd_trade_date
+             and axs.corporate_id = pc_corporate_id
+             and spqul.dbd_id = dbd_ul.dbd_id
+             and dbd_ul.corporate_id = pc_corporate_id
+             and dbd_ul.process = gvc_process
+           group by spqul.spq_id);
    commit;
 
 for cur_spq_update in(
@@ -13039,10 +12829,8 @@ commit;
                      gvc_dbd_id
                 from dipchul_di_payblecon_header_ul dipchul,
                      axs_action_summary             axs,
-                     dbd_database_dump              dbd,
                      dbd_database_dump              dbd_ul
-               where dbd.dbd_id = axs.dbd_id
-                 and dbd.process = gvc_process
+               where axs.process = gvc_process
                  and dipchul.internal_action_ref_no =
                      axs.internal_action_ref_no
                  and axs.eff_date <= pd_trade_date
@@ -13235,59 +13023,59 @@ commit;
     -- Update Pricing QP Start Date and End Date in PCI
     for cur_price_qp in ( --Called off
                          select t.pcdi_id,
-                                 t.internal_contract_item_ref_no,
-                                 min(qp_start_date) qp_start_date,
-                                 min(qp_end_date) qp_end_date
+                                t.internal_contract_item_ref_no,
+                                min(qp_start_date) qp_start_date,
+                                min(qp_end_date) qp_end_date
                            from (select pcdi.pcdi_id,
-                                         pci.internal_contract_item_ref_no,
-                                         pofh.qp_start_date,
-                                         pofh.qp_end_date
-                                    from pcm_physical_contract_main     pcm,
-                                         pcdi_pc_delivery_item          pcdi,
-                                         pci_physical_contract_item     pci,
-                                         poch_price_opt_call_off_header poch,
-                                         pocd_price_option_calloff_dtls pocd,
-                                         pofh_price_opt_fixation_header pofh
-                                   where pcm.internal_contract_ref_no =
-                                         pcdi.internal_contract_ref_no
-                                     and pcdi.pcdi_id = poch.pcdi_id
-                                     and poch.poch_id = pocd.poch_id
-                                     and pocd.pocd_id = pofh.pocd_id
-                                     and pci.pcdi_id = pcdi.pcdi_id
-                                     and pocd.qp_period_type <> 'Event'
-                                     and pcdi.is_active = 'Y'
-                                     and poch.is_active = 'Y'
-                                     and pocd.is_active = 'Y'
-                                     and pofh.is_active = 'Y'
-                                     and pci.is_active = 'Y'
-                                     and pcm.dbd_id = pc_dbd_id
-                                     and pcm.contract_type = 'BASEMETAL'
-                                     and pcdi.dbd_id = pc_dbd_id
-                                     and pci.dbd_id = pc_dbd_id
-                                     and pcdi.price_option_call_off_status in
-                                         ('Called Off', 'Not Applicable')
-                                  union -- All with Event Based
-                                  select pcdi.pcdi_id,
-                                         pci.internal_contract_item_ref_no,
-                                         di.expected_qp_start_date qp_start_date,
-                                         di.expected_qp_end_date qp_end_date
-                                    from pcm_physical_contract_main pcm,
-                                         pcdi_pc_delivery_item      pcdi,
-                                         di_del_item_exp_qp_details di,
-                                         pci_physical_contract_item pci
-                                   where pcm.internal_contract_ref_no =
-                                         pcdi.internal_contract_ref_no
-                                     and pcdi.pcdi_id = di.pcdi_id
-                                     and pci.pcdi_id = pcdi.pcdi_id
-                                     and di.is_active = 'Y'
-                                     and pcdi.is_active = 'Y'
-                                     and pci.is_active = 'Y'
-                                     and pcm.dbd_id = pc_dbd_id
-                                     and pcm.contract_type = 'BASEMETAL'
-                                     and pcdi.dbd_id = pc_dbd_id
-                                     and pci.dbd_id = pc_dbd_id) t
+                                        pci.internal_contract_item_ref_no,
+                                        pofh.qp_start_date,
+                                        pofh.qp_end_date
+                                   from pcm_physical_contract_main     pcm,
+                                        pcdi_pc_delivery_item          pcdi,
+                                        pci_physical_contract_item     pci,
+                                        poch_price_opt_call_off_header poch,
+                                        pocd_price_option_calloff_dtls pocd,
+                                        pofh_price_opt_fixation_header pofh
+                                  where pcm.internal_contract_ref_no =
+                                        pcdi.internal_contract_ref_no
+                                    and pcdi.pcdi_id = poch.pcdi_id
+                                    and poch.poch_id = pocd.poch_id
+                                    and pocd.pocd_id = pofh.pocd_id
+                                    and pci.pcdi_id = pcdi.pcdi_id
+                                    and pocd.qp_period_type <> 'Event'
+                                    and pcdi.is_active = 'Y'
+                                    and poch.is_active = 'Y'
+                                    and pocd.is_active = 'Y'
+                                    and pofh.is_active = 'Y'
+                                    and pci.is_active = 'Y'
+                                    and pcm.dbd_id = pc_dbd_id
+                                    and pcm.contract_type = 'BASEMETAL'
+                                    and pcdi.dbd_id = pc_dbd_id
+                                    and pci.dbd_id = pc_dbd_id
+                                    and pcdi.price_option_call_off_status in
+                                        ('Called Off', 'Not Applicable')
+                                 union -- All with Event Based
+                                 select pcdi.pcdi_id,
+                                        pci.internal_contract_item_ref_no,
+                                        di.expected_qp_start_date qp_start_date,
+                                        di.expected_qp_end_date qp_end_date
+                                   from pcm_physical_contract_main pcm,
+                                        pcdi_pc_delivery_item      pcdi,
+                                        di_del_item_exp_qp_details di,
+                                        pci_physical_contract_item pci
+                                  where pcm.internal_contract_ref_no =
+                                        pcdi.internal_contract_ref_no
+                                    and pcdi.pcdi_id = di.pcdi_id
+                                    and pci.pcdi_id = pcdi.pcdi_id
+                                    and di.is_active = 'Y'
+                                    and pcdi.is_active = 'Y'
+                                    and pci.is_active = 'Y'
+                                    and pcm.dbd_id = pc_dbd_id
+                                    and pcm.contract_type = 'BASEMETAL'
+                                    and pcdi.dbd_id = pc_dbd_id
+                                    and pci.dbd_id = pc_dbd_id) t
                           group by t.pcdi_id,
-                                    t.internal_contract_item_ref_no
+                                   t.internal_contract_item_ref_no
                          -- not called off
                          union all
                          
@@ -13342,7 +13130,8 @@ commit;
                                     and pcbph.pcbph_id = pcbpd.pcbph_id
                                     and pcbpd.pcbpd_id = ppfh.pcbpd_id
                                     and ppfh.ppfh_id = pfqpp.ppfh_id
-                                    and pfqpp.qp_pricing_period_type <> 'Event'
+                                    and pfqpp.qp_pricing_period_type <>
+                                        'Event'
                                     and pci.is_active = 'Y'
                                     and pcipf.is_active = 'Y'
                                     and pcbph.is_active = 'Y'
@@ -13569,8 +13358,8 @@ select grd.internal_gmr_ref_no,
        grd.qty_unit_id grd_qty_unit_id,
        gmr.qty_unit_id gmr_qty_unit_id,
        ucm.multiplication_factor
-  from grd_goods_record_detail   grd,
-       gmr_goods_movement_record gmr,
+  from grd_goods_record_detail    grd,
+       gmr_goods_movement_record  gmr,
        ucm_unit_conversion_master ucm
  where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
    and gmr.is_deleted = 'N'
@@ -13580,13 +13369,14 @@ select grd.internal_gmr_ref_no,
    and gmr.dbd_id = pc_dbd_id
    and ucm.from_qty_unit_id = grd.qty_unit_id
    and ucm.to_qty_unit_id = gmr.qty_unit_id
-   and grd.qty_unit_id <> gmr.qty_unit_id
-   ) loop
-Update grd_goods_record_detail grd
-set grd.grd_to_gmr_qty_factor = cur_grd_convert.multiplication_factor
-where grd.internal_gmr_ref_no = cur_grd_convert.internal_gmr_ref_no
-and grd.qty_unit_id =cur_grd_convert.grd_qty_unit_id
-and grd.dbd_id = pc_dbd_id; 
+   and grd.qty_unit_id <> gmr.qty_unit_id) loop
+   
+update grd_goods_record_detail grd
+   set grd.grd_to_gmr_qty_factor = cur_grd_convert.multiplication_factor
+ where grd.internal_gmr_ref_no = cur_grd_convert.internal_gmr_ref_no
+   and grd.qty_unit_id = cur_grd_convert.grd_qty_unit_id
+   and grd.dbd_id = pc_dbd_id;
+   
 end loop;   
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;
@@ -13604,8 +13394,8 @@ select dgrd.internal_gmr_ref_no,
        dgrd.net_weight_unit_id grd_qty_unit_id,
        gmr.qty_unit_id gmr_qty_unit_id,
        ucm.multiplication_factor
-  from dgrd_delivered_grd   dgrd,
-       gmr_goods_movement_record gmr,
+  from dgrd_delivered_grd         dgrd,
+       gmr_goods_movement_record  gmr,
        ucm_unit_conversion_master ucm
  where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
    and gmr.is_deleted = 'N'
@@ -13614,13 +13404,12 @@ select dgrd.internal_gmr_ref_no,
    and gmr.dbd_id = pc_dbd_id
    and ucm.from_qty_unit_id = dgrd.net_weight_unit_id
    and ucm.to_qty_unit_id = gmr.qty_unit_id
-   and dgrd.net_weight_unit_id <> gmr.qty_unit_id
-   ) loop
-Update dgrd_delivered_grd dgrd
-set dgrd.dgrd_to_gmr_qty_factor = cur_grd_convert.multiplication_factor
-where dgrd.internal_gmr_ref_no = cur_grd_convert.internal_gmr_ref_no
-and dgrd.net_weight_unit_id =cur_grd_convert.grd_qty_unit_id
-and dgrd.dbd_id = pc_dbd_id; 
+   and dgrd.net_weight_unit_id <> gmr.qty_unit_id) loop
+update dgrd_delivered_grd dgrd
+   set dgrd.dgrd_to_gmr_qty_factor = cur_grd_convert.multiplication_factor
+ where dgrd.internal_gmr_ref_no = cur_grd_convert.internal_gmr_ref_no
+   and dgrd.net_weight_unit_id = cur_grd_convert.grd_qty_unit_id
+   and dgrd.dbd_id = pc_dbd_id;
 end loop;   
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;
@@ -14288,19 +14077,19 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of Delete EUD'); 
-INSERT INTO eud_element_underlying_details
-select pc_corporate_id,
-       aml.attribute_id     element_id,
-       aml.attribute_name   element_name,
-       pdm_und.product_id   underlying_product_id,
-       pdm_und.product_desc underlying_product_name,
-       qum_und.qty_unit_id  underlying_base_qty_unit_id,
-       qum_und.qty_unit     underlying_base_qty_unit
-  from aml_attribute_master_list aml,
-       pdm_productmaster         pdm_und,
-       qum_quantity_unit_master  qum_und
- where aml.underlying_product_id = pdm_und.product_id
-   and pdm_und.base_quantity_unit = qum_und.qty_unit_id;
+insert into eud_element_underlying_details
+  select pc_corporate_id,
+         aml.attribute_id element_id,
+         aml.attribute_name element_name,
+         pdm_und.product_id underlying_product_id,
+         pdm_und.product_desc underlying_product_name,
+         qum_und.qty_unit_id underlying_base_qty_unit_id,
+         qum_und.qty_unit underlying_base_qty_unit
+    from aml_attribute_master_list aml,
+         pdm_productmaster         pdm_und,
+         qum_quantity_unit_master  qum_und
+   where aml.underlying_product_id = pdm_und.product_id
+     and pdm_und.base_quantity_unit = qum_und.qty_unit_id;
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
@@ -14522,221 +14311,221 @@ sp_precheck_process_log(pc_corporate_id,
                           'Delete from ced over');
 commit;
 insert into ced_contract_exchange_detail
-      (corporate_id,
-       internal_contract_item_ref_no,
-       pcdi_id,
-       element_id,
-       instrument_id,
-       instrument_name,
-       derivative_def_id,
-       derivative_def_name,
-       exchange_id,
-       exchange_name)
-      select pc_corporate_id,
-             tt.internal_contract_item_ref_no,
-             tt.pcdi_id,
-             tt.element_id,
-             tt.instrument_id,
-             dim.instrument_name,
-             pdd.derivative_def_id,
-             pdd.derivative_def_name,
-             emt.exchange_id,
-             emt.exchange_name
-        from (select pci.internal_contract_item_ref_no,
-                     poch.element_id,
-                     ppfd.instrument_id,
-                     pci.pcdi_id
-                from pci_physical_contract_item     pci,
-                     pcdi_pc_delivery_item          pcdi,
-                     poch_price_opt_call_off_header poch,
-                     pocd_price_option_calloff_dtls pocd,
-                     pcbpd_pc_base_price_detail     pcbpd,
-                     ppfh_phy_price_formula_header  ppfh,
-                     ppfd_phy_price_formula_details ppfd,
-                     pcm_physical_contract_main     pcm
-               where pci.pcdi_id = pcdi.pcdi_id
-                 and pcdi.pcdi_id = poch.pcdi_id
-                 and poch.poch_id = pocd.poch_id
-                 and pocd.pcbpd_id = pcbpd.pcbpd_id
-                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
-                 and ppfh.ppfh_id = ppfd.ppfh_id
-                 and pcdi.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and pci.dbd_id = pcdi.dbd_id
-                 and pcdi.dbd_id = pcbpd.dbd_id
-                 and pcbpd.dbd_id = ppfh.dbd_id
-                 and ppfh.dbd_id = ppfd.dbd_id
-                 and ppfd.dbd_id = pcm.dbd_id
-                 and pcm.dbd_id = pc_dbd_id
-                 and pcm.is_active = 'Y'
-                 and pci.is_active = 'Y'
-                 and pcdi.is_active = 'Y'
-                 and poch.is_active = 'Y'
-                 and pocd.is_active = 'Y'
-                 and pcbpd.is_active = 'Y'
-                 and ppfh.is_active = 'Y'
-                 and ppfd.is_active = 'Y'
-                 and pcm.product_group_type = 'BASEMETAL'
-                 and pcdi.price_option_call_off_status in
-                     ('Called Off', 'Not Applicable')
-               group by pci.internal_contract_item_ref_no,
-                        ppfd.instrument_id,
-                        poch.element_id,
-                        pci.pcdi_id
-              union all
-              select pci.internal_contract_item_ref_no,
-                     pcbpd.element_id,
-                     ppfd.instrument_id,
-                     pci.pcdi_id
-                from pci_physical_contract_item     pci,
-                     pcdi_pc_delivery_item          pcdi,
-                     pcipf_pci_pricing_formula      pcipf,
-                     pcbph_pc_base_price_header     pcbph,
-                     pcbpd_pc_base_price_detail     pcbpd,
-                     ppfh_phy_price_formula_header  ppfh,
-                     ppfd_phy_price_formula_details ppfd,
-                     pcm_physical_contract_main     pcm
-               where pci.internal_contract_item_ref_no =
-                     pcipf.internal_contract_item_ref_no
-                 and pcipf.pcbph_id = pcbph.pcbph_id
-                 and pcbph.pcbph_id = pcbpd.pcbph_id
-                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
-                 and ppfh.ppfh_id = ppfd.ppfh_id
-                 and pci.pcdi_id = pcdi.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and pci.dbd_id = pcdi.dbd_id
-                 and pcdi.dbd_id = pcipf.dbd_id
-                 and pcipf.dbd_id = pcbph.dbd_id
-                 and pcbph.dbd_id = ppfh.dbd_id
-                 and ppfh.dbd_id = ppfd.dbd_id
-                 and ppfd.dbd_id = pcm.dbd_id
-                 and pcbpd.dbd_id = pcm.dbd_id
-                 and pcm.dbd_id = pc_dbd_id
-                 and pcdi.is_active = 'Y'
-                 and pcm.product_group_type = 'BASEMETAL'
-                 and pcdi.price_option_call_off_status = 'Not Called Off'
-                 and pci.is_active = 'Y'
-                 and pcipf.is_active = 'Y'
-                 and pcbph.is_active = 'Y'
-                 and pcbpd.is_active = 'Y'
-                 and ppfh.is_active = 'Y'
-                 and ppfd.is_active = 'Y'
-               group by pci.internal_contract_item_ref_no,
-                        ppfd.instrument_id,
-                        pcbpd.element_id,
-                        pci.pcdi_id
-              union all
-              select pci.internal_contract_item_ref_no,
-                     pcbpd.element_id,
-                     ppfd.instrument_id,
-                     pci.pcdi_id
-                from pci_physical_contract_item     pci,
-                     pcdi_pc_delivery_item          pcdi,
-                     poch_price_opt_call_off_header poch,
-                     pocd_price_option_calloff_dtls pocd,
-                     pcbpd_pc_base_price_detail     pcbpd,
-                     ppfh_phy_price_formula_header  ppfh,
-                     ppfd_phy_price_formula_details ppfd,
-                     dipq_delivery_item_payable_qty dipq,
-                     pcm_physical_contract_main     pcm
-               where pci.pcdi_id = pcdi.pcdi_id
-                 and pcdi.pcdi_id = poch.pcdi_id
-                 and poch.poch_id = pocd.poch_id
-                 and pocd.pcbpd_id = pcbpd.pcbpd_id
-                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
-                 and ppfh.ppfh_id = ppfd.ppfh_id
-                 and pcdi.pcdi_id = dipq.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and pci.dbd_id = pc_dbd_id
-                 and pcdi.dbd_id = pc_dbd_id
-                 and pcbpd.dbd_id = pc_dbd_id
-                 and ppfh.dbd_id = pc_dbd_id
-                 and ppfd.dbd_id = pc_dbd_id
-                 and dipq.dbd_id = pc_dbd_id
-                 and pcbpd.dbd_id = pc_dbd_id
-                 and pcm.dbd_id = pc_dbd_id
-                 and dipq.element_id = pcbpd.element_id
-                 and pcdi.is_active = 'Y'
-                 and dipq.price_option_call_off_status in
-                     ('Called Off', 'Not Applicable')
-                 and pcm.product_group_type = 'CONCENTRATES'
-                 and pcm.is_active = 'Y'
-                 and dipq.is_active = 'Y'
-                 and pci.is_active = 'Y'
-                 and pcbpd.is_active = 'Y'
-                 and poch.is_active = 'Y'
-                 and pocd.is_active = 'Y'
-                 and ppfh.is_active = 'Y'
-                 and ppfd.is_active = 'Y'
-               group by pci.internal_contract_item_ref_no,
-                        ppfd.instrument_id,
-                        pcbpd.element_id,
-                        pci.pcdi_id
-              union all
-              select pci.internal_contract_item_ref_no,
-                     pcbpd.element_id,
-                     ppfd.instrument_id,
-                     pci.pcdi_id
-                from pci_physical_contract_item     pci,
-                     pcdi_pc_delivery_item          pcdi,
-                     pcipf_pci_pricing_formula      pcipf,
-                     pcbph_pc_base_price_header     pcbph,
-                     pcbpd_pc_base_price_detail     pcbpd,
-                     ppfh_phy_price_formula_header  ppfh,
-                     ppfd_phy_price_formula_details ppfd,
-                     dipq_delivery_item_payable_qty dipq,
-                     pcm_physical_contract_main     pcm
-               where pci.internal_contract_item_ref_no =
-                     pcipf.internal_contract_item_ref_no
-                 and pcipf.pcbph_id = pcbph.pcbph_id
-                 and pcbph.pcbph_id = pcbpd.pcbph_id
-                 and pcbpd.pcbpd_id = ppfh.pcbpd_id
-                 and ppfh.ppfh_id = ppfd.ppfh_id
-                 and pci.pcdi_id = pcdi.pcdi_id
-                 and pcdi.pcdi_id = dipq.pcdi_id
-                 and pcdi.internal_contract_ref_no =
-                     pcm.internal_contract_ref_no
-                 and pci.dbd_id = pc_dbd_id
-                 and pcdi.dbd_id = pc_dbd_id
-                 and pcipf.dbd_id = pc_dbd_id
-                 and pcbph.dbd_id = pc_dbd_id
-                 and ppfh.dbd_id = pc_dbd_id
-                 and ppfd.dbd_id = pc_dbd_id
-                 and dipq.dbd_id = pc_dbd_id
-                 and pcm.dbd_id = pc_dbd_id
-                 and dipq.element_id = pcbpd.element_id
-                 and pcdi.is_active = 'Y'
-                 and dipq.price_option_call_off_status = 'Not Called Off'
-                 and pcm.product_group_type = 'CONCENTRATES'
-                 and pcm.is_active = 'Y'
-                 and dipq.is_active = 'Y'
-                 and pci.is_active = 'Y'
-                 and pcipf.is_active = 'Y'
-                 and pcbph.is_active = 'Y'
-                 and pcbpd.is_active = 'Y'
-                 and ppfh.is_active = 'Y'
-                 and ppfd.is_active = 'Y'
-               group by pci.internal_contract_item_ref_no,
-                        ppfd.instrument_id,
-                        pcbpd.element_id,
-                        pci.pcdi_id) tt,
-             dim_der_instrument_master dim,
-             pdd_product_derivative_def pdd,
-             emt_exchangemaster emt
-       where tt.instrument_id = dim.instrument_id
-         and dim.product_derivative_id = pdd.derivative_def_id
-         and pdd.exchange_id = emt.exchange_id(+)
-       group by tt.internal_contract_item_ref_no,
-                tt.element_id,
-                tt.instrument_id,
-                dim.instrument_name,
-                pdd.derivative_def_id,
-                pdd.derivative_def_name,
-                emt.exchange_id,
-                emt.exchange_name,
-                tt.pcdi_id;
+  (corporate_id,
+   internal_contract_item_ref_no,
+   pcdi_id,
+   element_id,
+   instrument_id,
+   instrument_name,
+   derivative_def_id,
+   derivative_def_name,
+   exchange_id,
+   exchange_name)
+  select pc_corporate_id,
+         tt.internal_contract_item_ref_no,
+         tt.pcdi_id,
+         tt.element_id,
+         tt.instrument_id,
+         dim.instrument_name,
+         pdd.derivative_def_id,
+         pdd.derivative_def_name,
+         emt.exchange_id,
+         emt.exchange_name
+    from (select pci.internal_contract_item_ref_no,
+                 poch.element_id,
+                 ppfd.instrument_id,
+                 pci.pcdi_id
+            from pci_physical_contract_item     pci,
+                 pcdi_pc_delivery_item          pcdi,
+                 poch_price_opt_call_off_header poch,
+                 pocd_price_option_calloff_dtls pocd,
+                 pcbpd_pc_base_price_detail     pcbpd,
+                 ppfh_phy_price_formula_header  ppfh,
+                 ppfd_phy_price_formula_details ppfd,
+                 pcm_physical_contract_main     pcm
+           where pci.pcdi_id = pcdi.pcdi_id
+             and pcdi.pcdi_id = poch.pcdi_id
+             and poch.poch_id = pocd.poch_id
+             and pocd.pcbpd_id = pcbpd.pcbpd_id
+             and pcbpd.pcbpd_id = ppfh.pcbpd_id
+             and ppfh.ppfh_id = ppfd.ppfh_id
+             and pcdi.internal_contract_ref_no =
+                 pcm.internal_contract_ref_no
+             and pci.dbd_id = pcdi.dbd_id
+             and pcdi.dbd_id = pcbpd.dbd_id
+             and pcbpd.dbd_id = ppfh.dbd_id
+             and ppfh.dbd_id = ppfd.dbd_id
+             and ppfd.dbd_id = pcm.dbd_id
+             and pcm.dbd_id = pc_dbd_id
+             and pcm.is_active = 'Y'
+             and pci.is_active = 'Y'
+             and pcdi.is_active = 'Y'
+             and poch.is_active = 'Y'
+             and pocd.is_active = 'Y'
+             and pcbpd.is_active = 'Y'
+             and ppfh.is_active = 'Y'
+             and ppfd.is_active = 'Y'
+             and pcm.product_group_type = 'BASEMETAL'
+             and pcdi.price_option_call_off_status in
+                 ('Called Off', 'Not Applicable')
+           group by pci.internal_contract_item_ref_no,
+                    ppfd.instrument_id,
+                    poch.element_id,
+                    pci.pcdi_id
+          union all
+          select pci.internal_contract_item_ref_no,
+                 pcbpd.element_id,
+                 ppfd.instrument_id,
+                 pci.pcdi_id
+            from pci_physical_contract_item     pci,
+                 pcdi_pc_delivery_item          pcdi,
+                 pcipf_pci_pricing_formula      pcipf,
+                 pcbph_pc_base_price_header     pcbph,
+                 pcbpd_pc_base_price_detail     pcbpd,
+                 ppfh_phy_price_formula_header  ppfh,
+                 ppfd_phy_price_formula_details ppfd,
+                 pcm_physical_contract_main     pcm
+           where pci.internal_contract_item_ref_no =
+                 pcipf.internal_contract_item_ref_no
+             and pcipf.pcbph_id = pcbph.pcbph_id
+             and pcbph.pcbph_id = pcbpd.pcbph_id
+             and pcbpd.pcbpd_id = ppfh.pcbpd_id
+             and ppfh.ppfh_id = ppfd.ppfh_id
+             and pci.pcdi_id = pcdi.pcdi_id
+             and pcdi.internal_contract_ref_no =
+                 pcm.internal_contract_ref_no
+             and pci.dbd_id = pcdi.dbd_id
+             and pcdi.dbd_id = pcipf.dbd_id
+             and pcipf.dbd_id = pcbph.dbd_id
+             and pcbph.dbd_id = ppfh.dbd_id
+             and ppfh.dbd_id = ppfd.dbd_id
+             and ppfd.dbd_id = pcm.dbd_id
+             and pcbpd.dbd_id = pcm.dbd_id
+             and pcm.dbd_id = pc_dbd_id
+             and pcdi.is_active = 'Y'
+             and pcm.product_group_type = 'BASEMETAL'
+             and pcdi.price_option_call_off_status = 'Not Called Off'
+             and pci.is_active = 'Y'
+             and pcipf.is_active = 'Y'
+             and pcbph.is_active = 'Y'
+             and pcbpd.is_active = 'Y'
+             and ppfh.is_active = 'Y'
+             and ppfd.is_active = 'Y'
+           group by pci.internal_contract_item_ref_no,
+                    ppfd.instrument_id,
+                    pcbpd.element_id,
+                    pci.pcdi_id
+          union all
+          select pci.internal_contract_item_ref_no,
+                 pcbpd.element_id,
+                 ppfd.instrument_id,
+                 pci.pcdi_id
+            from pci_physical_contract_item     pci,
+                 pcdi_pc_delivery_item          pcdi,
+                 poch_price_opt_call_off_header poch,
+                 pocd_price_option_calloff_dtls pocd,
+                 pcbpd_pc_base_price_detail     pcbpd,
+                 ppfh_phy_price_formula_header  ppfh,
+                 ppfd_phy_price_formula_details ppfd,
+                 dipq_delivery_item_payable_qty dipq,
+                 pcm_physical_contract_main     pcm
+           where pci.pcdi_id = pcdi.pcdi_id
+             and pcdi.pcdi_id = poch.pcdi_id
+             and poch.poch_id = pocd.poch_id
+             and pocd.pcbpd_id = pcbpd.pcbpd_id
+             and pcbpd.pcbpd_id = ppfh.pcbpd_id
+             and ppfh.ppfh_id = ppfd.ppfh_id
+             and pcdi.pcdi_id = dipq.pcdi_id
+             and pcdi.internal_contract_ref_no =
+                 pcm.internal_contract_ref_no
+             and pci.dbd_id = pc_dbd_id
+             and pcdi.dbd_id = pc_dbd_id
+             and pcbpd.dbd_id = pc_dbd_id
+             and ppfh.dbd_id = pc_dbd_id
+             and ppfd.dbd_id = pc_dbd_id
+             and dipq.dbd_id = pc_dbd_id
+             and pcbpd.dbd_id = pc_dbd_id
+             and pcm.dbd_id = pc_dbd_id
+             and dipq.element_id = pcbpd.element_id
+             and pcdi.is_active = 'Y'
+             and dipq.price_option_call_off_status in
+                 ('Called Off', 'Not Applicable')
+             and pcm.product_group_type = 'CONCENTRATES'
+             and pcm.is_active = 'Y'
+             and dipq.is_active = 'Y'
+             and pci.is_active = 'Y'
+             and pcbpd.is_active = 'Y'
+             and poch.is_active = 'Y'
+             and pocd.is_active = 'Y'
+             and ppfh.is_active = 'Y'
+             and ppfd.is_active = 'Y'
+           group by pci.internal_contract_item_ref_no,
+                    ppfd.instrument_id,
+                    pcbpd.element_id,
+                    pci.pcdi_id
+          union all
+          select pci.internal_contract_item_ref_no,
+                 pcbpd.element_id,
+                 ppfd.instrument_id,
+                 pci.pcdi_id
+            from pci_physical_contract_item     pci,
+                 pcdi_pc_delivery_item          pcdi,
+                 pcipf_pci_pricing_formula      pcipf,
+                 pcbph_pc_base_price_header     pcbph,
+                 pcbpd_pc_base_price_detail     pcbpd,
+                 ppfh_phy_price_formula_header  ppfh,
+                 ppfd_phy_price_formula_details ppfd,
+                 dipq_delivery_item_payable_qty dipq,
+                 pcm_physical_contract_main     pcm
+           where pci.internal_contract_item_ref_no =
+                 pcipf.internal_contract_item_ref_no
+             and pcipf.pcbph_id = pcbph.pcbph_id
+             and pcbph.pcbph_id = pcbpd.pcbph_id
+             and pcbpd.pcbpd_id = ppfh.pcbpd_id
+             and ppfh.ppfh_id = ppfd.ppfh_id
+             and pci.pcdi_id = pcdi.pcdi_id
+             and pcdi.pcdi_id = dipq.pcdi_id
+             and pcdi.internal_contract_ref_no =
+                 pcm.internal_contract_ref_no
+             and pci.dbd_id = pc_dbd_id
+             and pcdi.dbd_id = pc_dbd_id
+             and pcipf.dbd_id = pc_dbd_id
+             and pcbph.dbd_id = pc_dbd_id
+             and ppfh.dbd_id = pc_dbd_id
+             and ppfd.dbd_id = pc_dbd_id
+             and dipq.dbd_id = pc_dbd_id
+             and pcm.dbd_id = pc_dbd_id
+             and dipq.element_id = pcbpd.element_id
+             and pcdi.is_active = 'Y'
+             and dipq.price_option_call_off_status = 'Not Called Off'
+             and pcm.product_group_type = 'CONCENTRATES'
+             and pcm.is_active = 'Y'
+             and dipq.is_active = 'Y'
+             and pci.is_active = 'Y'
+             and pcipf.is_active = 'Y'
+             and pcbph.is_active = 'Y'
+             and pcbpd.is_active = 'Y'
+             and ppfh.is_active = 'Y'
+             and ppfd.is_active = 'Y'
+           group by pci.internal_contract_item_ref_no,
+                    ppfd.instrument_id,
+                    pcbpd.element_id,
+                    pci.pcdi_id) tt,
+         dim_der_instrument_master dim,
+         pdd_product_derivative_def pdd,
+         emt_exchangemaster emt
+   where tt.instrument_id = dim.instrument_id
+     and dim.product_derivative_id = pdd.derivative_def_id
+     and pdd.exchange_id = emt.exchange_id(+)
+   group by tt.internal_contract_item_ref_no,
+            tt.element_id,
+            tt.instrument_id,
+            dim.instrument_name,
+            pdd.derivative_def_id,
+            pdd.derivative_def_name,
+            emt.exchange_id,
+            emt.exchange_name,
+            tt.pcdi_id;
     commit;
 gvn_log_counter := gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
@@ -14784,15 +14573,15 @@ sp_precheck_process_log(pc_corporate_id,
              emt.exchange_name,
              pcbpd.element_id,
              ps.price_source_id,
-                     ps.price_source_name,
-                     apm.available_price_id,
-                     apm.available_price_name,
-                     pum.price_unit_name,
-                     vdip.ppu_price_unit_id,
-                     div.price_unit_id,
-                     dim.delivery_calender_id,
-                     pdc.is_daily_cal_applicable,
-                     pdc.is_monthly_cal_applicable
+             ps.price_source_name,
+             apm.available_price_id,
+             apm.available_price_name,
+             pum.price_unit_name,
+             vdip.ppu_price_unit_id,
+             div.price_unit_id,
+             dim.delivery_calender_id,
+             pdc.is_daily_cal_applicable,
+             pdc.is_monthly_cal_applicable
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -14801,12 +14590,12 @@ sp_precheck_process_log(pc_corporate_id,
              dim_der_instrument_master      dim,
              pdd_product_derivative_def     pdd,
              emt_exchangemaster             emt,
-                     div_der_instrument_valuation div,
-                     ps_price_source              ps,
-                     apm_available_price_master   apm,
-                     pum_price_unit_master        pum,
-                     v_der_instrument_price_unit  vdip,
-                     pdc_prompt_delivery_calendar pdc
+             div_der_instrument_valuation   div,
+             ps_price_source                ps,
+             apm_available_price_master     apm,
+             pum_price_unit_master          pum,
+             v_der_instrument_price_unit    vdip,
+             pdc_prompt_delivery_calendar   pdc
        where pofh.pocd_id = pocd.pocd_id
          and pocd.pcbpd_id = pcbpd.pcbpd_id
          and pcbpd.pcbpd_id = ppfh.pcbpd_id
@@ -14827,7 +14616,7 @@ sp_precheck_process_log(pc_corporate_id,
          and div.is_deleted = 'N'
          and div.price_source_id = ps.price_source_id
          and div.available_price_id = apm.available_price_id
-         And div.price_unit_id = pum.price_unit_id
+         and div.price_unit_id = pum.price_unit_id
          and dim.instrument_id = vdip.instrument_id
          and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id
        group by pofh.internal_gmr_ref_no,
@@ -14838,16 +14627,16 @@ sp_precheck_process_log(pc_corporate_id,
                 emt.exchange_id,
                 emt.exchange_name,
                 pcbpd.element_id,
-             ps.price_source_id,
-                     ps.price_source_name,
-                     apm.available_price_id,
-                     apm.available_price_name,
-                     pum.price_unit_name,
-                     vdip.ppu_price_unit_id,
-                     div.price_unit_id,
-                     dim.delivery_calender_id,
-                     pdc.is_daily_cal_applicable,
-                     pdc.is_monthly_cal_applicable;    
+                ps.price_source_id,
+                ps.price_source_name,
+                apm.available_price_id,
+                apm.available_price_name,
+                pum.price_unit_name,
+                vdip.ppu_price_unit_id,
+                div.price_unit_id,
+                dim.delivery_calender_id,
+                pdc.is_daily_cal_applicable,
+                pdc.is_monthly_cal_applicable;
 commit;
 gvn_log_counter := gvn_log_counter + 1;  
 sp_precheck_process_log(pc_corporate_id,
