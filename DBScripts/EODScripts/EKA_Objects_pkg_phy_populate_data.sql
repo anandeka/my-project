@@ -3872,6 +3872,37 @@ update gmr_goods_movement_record gmr
    and gmr.internal_gmr_ref_no = cur_gmr_invoice.internal_gmr_ref_no;
 end loop;
 commit;
+--- update debit credit note invoice details
+
+for cur_gmr_invoice in(        
+SELECT   iid.internal_gmr_ref_no,
+        
+         SUBSTR
+            (MAX (   TO_CHAR (axs.created_date, 'yyyymmddhh24missff9')
+                  || iam.internal_invoice_ref_no
+                 ),
+             24
+            ) latest_internal_invoice_ref_no,           
+            is1.is_invoice_new
+    FROM is_invoice_summary is1,
+         iid_invoicable_item_details iid,
+         iam_invoice_action_mapping@eka_appdb iam,
+         axs_action_summary axs
+   WHERE is1.is_active = 'Y'
+     AND is1.invoice_type_name ='DebitCredit'
+     AND is1.dbd_id = gvc_dbd_id
+     AND is1.internal_invoice_ref_no = iid.internal_invoice_ref_no
+     AND iam.internal_invoice_ref_no = is1.internal_invoice_ref_no
+     AND iam.invoice_action_ref_no = axs.internal_action_ref_no
+     AND NVL (is1.is_free_metal, 'N') <> 'Y'
+GROUP BY iid.internal_gmr_ref_no,is1.is_invoice_new)loop
+update gmr_goods_movement_record gmr   set 
+       gmr.debit_credit_invoice_no = cur_gmr_invoice.latest_internal_invoice_ref_no,
+       gmr.is_new_debit_credit_invoice=cur_gmr_invoice.is_invoice_new
+ where gmr.dbd_id = gvc_dbd_id
+   and gmr.internal_gmr_ref_no = cur_gmr_invoice.internal_gmr_ref_no;
+end loop;
+commit;
   exception
     when others then
       vobj_error_log.extend;

@@ -1585,6 +1585,12 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
     vc_price_unit_weight_unit_id   varchar2(15);
     vc_price_unit_weight_unit      varchar2(15);
     vn_price_unit_weight           number;
+    vn_debit_credit_qty            number;
+    vc_debit_credit_qty_unit_id    varchar2(50); 
+    vc_debit_credit_qty_unit       varchar2(15);
+    vn_item_qty                    number;
+    vn_item_qty_unit_id            varchar2(15);
+    vn_item_qty_unit               varchar2(15); 
   
     cursor cur_realized is
       select pd_trade_date trade_date,
@@ -1749,7 +1755,8 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
              prd.contract_pp_fw_exch_rate p_contract_pp_fw_exch_rate,
              prd.accrual_to_base_fw_exch_rate p_accrual_to_base_fw_exch_rate,
              rgmrd.latest_internal_invoice_ref_no,
-             prd.sales_gmr_ref_no
+             prd.sales_gmr_ref_no,
+             rgmrd.is_new_debit_credit_invoice
         from prd_physical_realized_daily    prd,
              rgmr_realized_gmr              rgmr,
              cipd_contract_item_price_daily cipd,
@@ -1933,7 +1940,8 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
              prd.contract_pp_fw_exch_rate p_contract_pp_fw_exch_rate,
              prd.accrual_to_base_fw_exch_rate p_accrual_to_base_fw_exch_rate,
              rgmrd.latest_internal_invoice_ref_no,
-             prd.sales_gmr_ref_no
+             prd.sales_gmr_ref_no,
+             rgmrd.is_new_debit_credit_invoice
         from prd_physical_realized_daily prd,
              rgmr_realized_gmr           rgmr,
              invm_cogs                   invs,
@@ -2148,9 +2156,11 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
     vc_error_msg := '5';
   
     update rgmrd_realized_gmr_detail t
-       set (t.is_invoiced, t.latest_internal_invoice_ref_no) = --
-            (select decode(gmr.latest_internal_invoice_ref_no, null, 'N', 'Y'),
-                    gmr.latest_internal_invoice_ref_no
+       set (t.is_invoiced, t.latest_internal_invoice_ref_no,is_new_debit_credit_invoice) = --
+            (select  decode(gmr.latest_internal_invoice_ref_no, null, 'N', 'Y'),
+              case when gmr.is_new_debit_credit_invoice ='Y' then gmr.debit_credit_invoice_no else
+                    gmr.latest_internal_invoice_ref_no end ,
+                    gmr.is_new_debit_credit_invoice
                from gmr_goods_movement_record gmr
               where gmr.process_id = pc_process_id
                 and gmr.internal_gmr_ref_no = t.realized_internal_gmr_ref_no)
@@ -2182,6 +2192,11 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
   
     for cur_realized_rows in cur_realized
     loop
+    
+    vn_item_qty:=cur_realized_rows.item_qty;
+    vn_item_qty_unit_id:=cur_realized_rows.qty_unit_id;
+    vn_item_qty_unit:=cur_realized_rows.qty_unit;
+    
       if cur_realized_rows.item_qty > 0 then
         -- Contract Price Details  
         if cur_realized_rows.contract_type = 'S' then
@@ -2208,18 +2223,25 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                      cm.cur_code,
                      ppu.weight_unit_id,
                      qum.qty_unit,
-                     nvl(ppu.weight, 1) weight
+                     nvl(ppu.weight, 1) weight,
+                     iid.new_invoiced_qty,
+                     nvl(new_invoiced_qty_unit_id,iid.invoiced_qty_unit_id),
+                     qum_qty.qty_unit
                 into vn_contract_price,
                      vc_price_unit_id,
                      vc_price_unit_cur_id,
                      vc_price_unit_cur_code,
                      vc_price_unit_weight_unit_id,
                      vc_price_unit_weight_unit,
-                     vn_price_unit_weight
+                     vn_price_unit_weight,
+                     vn_debit_credit_qty,
+                     vc_debit_credit_qty_unit_id,
+                     vc_debit_credit_qty_unit 
                 from iid_invoicable_item_details iid,
                      v_ppu_pum                   ppu,
                      cm_currency_master          cm,
-                     qum_quantity_unit_master    qum
+                     qum_quantity_unit_master    qum,
+                     qum_quantity_unit_master    qum_qty
                where iid.internal_invoice_ref_no =
                      cur_realized_rows.latest_internal_invoice_ref_no
                  and iid.new_invoice_price_unit_id =
@@ -2227,7 +2249,8 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
                  and ppu.cur_id = cm.cur_id
                  and ppu.weight_unit_id = qum.qty_unit_id
                  and iid.internal_gmr_ref_no =
-                     cur_realized_rows.internal_gmr_ref_no;
+                     cur_realized_rows.internal_gmr_ref_no
+                 and nvl(new_invoiced_qty_unit_id,iid.invoiced_qty_unit_id)=qum_qty.qty_unit_id;
             
             exception
               when others then
@@ -2261,7 +2284,7 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
         -- If there is quantity change, this qty is used in this EOD
         --
         if cur_realized_rows.contract_type = 'S' and
-           cur_realized_rows.is_mc_change_for_sales = 'Y' then
+           cur_realized_rows.is_mc_change_for_sales = 'Y' and cur_realized_rows.is_new_debit_credit_invoice<>'Y'  then
           vc_error_msg := '11';
           if cur_realized_rows.qty_unit_id <>
              cur_realized_rows.base_qty_unit_id then
@@ -2277,6 +2300,25 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
           end if;
         else
           vn_qty_in_base_qty_unit_id := cur_realized_rows.item_qty_in_base_qty_unit;
+        end if;
+        --- Debit credit note
+        if cur_realized_rows.contract_type = 'S' and cur_realized_rows.is_new_debit_credit_invoice='Y'  then
+          vc_error_msg := '11';
+          if vc_debit_credit_qty_unit_id <>
+             cur_realized_rows.base_qty_unit_id then
+            select pkg_general.f_get_converted_quantity(cur_realized_rows.product_id,
+                                                        vc_debit_credit_qty_unit_id,
+                                                        cur_realized_rows.base_qty_unit_id,
+                                                        vn_debit_credit_qty)
+              into vn_qty_in_base_qty_unit_id
+              from dual;
+          
+          else
+            vn_qty_in_base_qty_unit_id := vn_debit_credit_qty;
+          end if;
+        vn_item_qty:=vn_debit_credit_qty;
+        vn_item_qty_unit_id:=vc_debit_credit_qty_unit_id;
+        vn_item_qty_unit:=vc_debit_credit_qty_unit;
         end if;
         --
         -- Calcualte the New Quality Premium (Sales from Contract and Purchase from INVS)
@@ -2633,9 +2675,12 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
            cur_realized_rows.realized_type,
            cur_realized_rows.realized_date,
            cur_realized_rows.container_no,
-           cur_realized_rows.item_qty,
-           cur_realized_rows.qty_unit_id,
-           cur_realized_rows.qty_unit,
+          -- cur_realized_rows.item_qty,
+          -- cur_realized_rows.qty_unit_id,
+          -- cur_realized_rows.qty_unit,
+           vn_item_qty,
+           vn_item_qty_unit_id,
+           vn_item_qty_unit,
            vn_contract_price,
            vc_price_unit_id,
            vc_price_unit_cur_id,
