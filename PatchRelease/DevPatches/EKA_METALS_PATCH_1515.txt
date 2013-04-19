@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1515
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena
+ 
+Created on*        		:  19-Apr-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  -
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Email
+
+Sub-Module  			 :  Documents
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 123769
+Author: sriveenam
+Date: Friday, April 19, 2013 12:06:46 PM
+Message:
+function added to get cpid for activities based on their refnos
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/EKA_PKG_GENERAL.sql
+
+
+
