@@ -9592,8 +9592,7 @@ begin
            gmr_goods_movement_record gmr,
            agmr_action_gmr           agmr,
            aml_attribute_master_list aml,
-           pdm_productmaster         pdm,
-           dbd_database_dump         dbd
+           pdm_productmaster         pdm
      where ypd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
        and ypd.internal_action_ref_no = axs.internal_action_ref_no
        and ypd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
@@ -9601,8 +9600,7 @@ begin
        and aml.underlying_product_id = pdm.product_id(+)
        and gmr.process_id = pc_process_id
        and gmr.corporate_id = pc_corporate_id
-       and axs.dbd_id = dbd.dbd_id
-       and dbd.process = 'EOM'
+       and axs.process = 'EOM'
        and gmr.is_deleted = 'N'
        and aml.is_active = 'Y'
        and pdm.is_active = 'Y'
@@ -13430,6 +13428,7 @@ insert into mas_metal_account_summary
                                and prrqs.corporate_id = pc_corporate_id
                                and axs.corporate_id = pc_corporate_id
                                and axs.eff_date <= pd_trade_date
+                               and axs.process ='EOM'
                              group by axs.corporate_id,
                                       prrqs.cp_id,
                                       prrqs.product_id,
@@ -13498,6 +13497,7 @@ insert into mas_metal_account_summary
                                and spq.process_id = pc_process_id
                                and grd.process_id = pc_process_id
                                and axs.corporate_id = pc_corporate_id
+                               and axs.process ='EOM'
                              group by axs.corporate_id,
                                       spq.supplier_id,
                                       product_temp.underlying_product_id,
@@ -13540,6 +13540,7 @@ insert into mas_metal_account_summary
                        and cpm.corporate_id = axs.corporate_id
                        and prrqs.corporate_id = pc_corporate_id
                        and axs.eff_date <= pd_trade_date
+                       and axs.process ='EOM'
                      group by axs.corporate_id,
                               prrqs.cp_id,
                               prrqs.product_id,
