@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1516
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  19-Apr-2013
+
+Bug / Enhancement*              :  
+
+Bug ID*            		:  EOM Performnace Issue
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :EOD
+==================================================================
+Revision: 123786
+Author: janna
+Date: 1:06:40 PM, Friday, April 19, 2013
+Message:
+DBD Table removed from Yield Report and MBS Metal and Made AXS.PROCESS=EOM
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
