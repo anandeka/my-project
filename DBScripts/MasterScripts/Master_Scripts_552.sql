@@ -137,11 +137,90 @@ INVS.CP_ID = PHD.PROFILEID
 AND INVS.INVOICE_CUR_ID = CM.CUR_ID
 and PYM.PAYMENT_TERM_ID = INVS.CREDIT_TERM 
 and INVS.INTERNAL_INVOICE_REF_NO = ?';
+
+
+fetchQueryISPEN CLOB :=
+'INSERT INTO IS_CONC_PENALTY_CHILD(
+INTERNAL_INVOICE_REF_NO,
+PENALTY_AMOUNT,
+ELEMENT_NAME,
+ELEMENT_ID,
+AMOUNT_UNIT,
+penalty_qty,
+assay_details,
+STOCK_REF_NO,
+uom,
+penalty_rate,
+price_name,
+wet_qty,
+DRY_QUANTITY,
+QUANTITY_UOM,
+INTERNAL_DOC_REF_NO
+)
+SELECT invs.internal_invoice_ref_no AS internal_invoice_ref_no,
+       iepd.element_penalty_amount AS penalty_amount,
+       aml.attribute_name AS element_name, aml.attribute_id AS element_id,
+       cm.cur_code AS amount_unit, iepd.element_qty AS penalty_qty,
+       pqca.typical AS assay_details, grd.internal_stock_ref_no AS stock_ref_no,
+       rm.ratio_name AS uom, iepd.element_penalty_price AS penalty_rate,
+       pum.price_unit_name AS price_name, iid.invoiced_qty AS wet_qty,
+       ROUND
+           ((  iid.invoiced_qty
+             - (  iid.invoiced_qty
+                * (SELECT pqca_mos.typical
+                     FROM pqca_pq_chemical_attributes pqca_mos,
+                          aml_attribute_master_list aml_mos,
+                          asm_assay_sublot_mapping asm_mos,
+                          ash_assay_header ash_mos
+                    WHERE pqca_mos.asm_id = asm_mos.asm_id
+                      AND ash_mos.ash_id = asm_mos.ash_id
+                      AND pqca_mos.element_id = aml_mos.attribute_id
+                      AND ash_mos.ash_id = ash.ash_id
+                      AND aml_mos.attribute_name = ''H2O'')
+                / 100
+               )
+            ),
+            10
+           ) AS dry_quantity,
+       qum.qty_unit AS quantity_uom, ?
+  FROM is_invoice_summary invs,
+       iepd_inv_epenalty_details iepd,
+       aml_attribute_master_list aml,
+       cm_currency_master cm,
+       iam_invoice_assay_mapping iam,
+       pqca_pq_chemical_attributes pqca,
+       ash_assay_header ash,
+       asm_assay_sublot_mapping asm,
+       grd_goods_record_detail grd,
+       rm_ratio_master rm,
+       ppu_product_price_units ppu,
+       qum_quantity_unit_master qum,
+       pum_price_unit_master pum,
+       iid_invoicable_item_details iid
+ WHERE invs.internal_invoice_ref_no = iepd.internal_invoice_ref_no
+   AND iepd.element_id = aml.attribute_id(+)
+   AND invs.invoice_cur_id = cm.cur_id
+   AND invs.internal_invoice_ref_no = iam.internal_invoice_ref_no
+   AND iam.internal_grd_ref_no = iepd.stock_id
+   AND iepd.stock_id = grd.internal_grd_ref_no
+   AND aml.attribute_id = pqca.element_id
+   AND iam.ash_id = ash.ash_id
+   AND ash.ash_id = asm.ash_id
+   AND asm.asm_id = pqca.asm_id
+   AND asm.net_weight_unit = qum.qty_unit_id
+   AND pqca.unit_of_measure = rm.ratio_id
+   AND iepd.element_price_unit_id = ppu.internal_price_unit_id
+   AND ppu.price_unit_id = pum.price_unit_id
+   AND invs.internal_invoice_ref_no = iid.internal_invoice_ref_no
+   AND iid.stock_id = iepd.stock_id
+   AND invs.internal_invoice_ref_no = ?';
       
 begin
 INSERT INTO DGM_DOCUMENT_GENERATION_MASTER(DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, FETCH_QUERY, IS_CONCENTRATE) VALUES('DGM_OCI_IOC','CREATE_OCI','Output Charge Invoice','CREATE_OCI',2,fetchQueryOCI,'N');
 
 INSERT INTO DGM_DOCUMENT_GENERATION_MASTER(DGM_ID, DOC_ID, DOC_NAME, ACTIVITY_ID, SEQUENCE_ORDER, FETCH_QUERY, IS_CONCENTRATE) VALUES('DGM_OCI_1','CREATE_OCI','Output Charge Invoice','CREATE_OCI',1,fetchQueryISOCI,'N');
+
+UPDATE DGM_DOCUMENT_GENERATION_MASTER dgm set DGM.FETCH_QUERY = fetchQueryISPEN where DGM.DOC_ID IN ('CREATE_PI','CREATE_FI','CREATE_DFI') and DGM.DGM_ID IN ('DGM-PIC-C4 ','DGM-FIC-C4 ','DGM-DFIC-C4 ') and DGM.IS_CONCENTRATE = 'Y' and DGM.SEQUENCE_ORDER = 5;
 
 commit;
 end;
