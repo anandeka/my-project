@@ -84,6 +84,9 @@ CREATE OR REPLACE PACKAGE "PKG_GENERAL" is
                                                          pd_from_date    date,
                                                          pd_to_date      date)
   return number;
+
+  function f_get_cp_id(pc_internal_ref_no varchar2,pc_action_id varchar2)
+    return varchar2;
 end;
 /
 
@@ -819,6 +822,103 @@ exception
     vn_trading_days := -1;
     return vn_trading_days;
 end;
+
+FUNCTION f_get_cp_id (pc_internal_ref_no VARCHAR2, pc_action_id VARCHAR2)
+   RETURN VARCHAR2
+IS
+   vc_cp_id   VARCHAR2 (50);
+BEGIN
+   SELECT (CASE
+              WHEN pc_action_id = 'CREATE_PC'
+               OR pc_action_id = 'CREATE_SC'
+               OR pc_action_id = 'CONTRACT_APPROVED'
+               OR pc_action_id = 'AMEND_PC'
+               OR pc_action_id = 'AMEND_SC'
+                 THEN (SELECT pcm.cp_id
+                         FROM pcm_physical_contract_main pcm
+                        WHERE pcm.internal_contract_ref_no =
+                                                            pc_internal_ref_no)
+              WHEN pc_action_id = 'CREATE_PRICE_FIXATION'
+                 THEN (SELECT (CASE
+                                  WHEN pfd_outer.internal_pledge_gmr_ref_no IS NULL
+                                     THEN (SELECT pcm.cp_id
+                                             FROM pcm_physical_contract_main pcm,
+                                                  pcdi_pc_delivery_item pcdi,
+                                                  poch_price_opt_call_off_header poch,
+                                                  pocd_price_option_calloff_dtls pocd,
+                                                  pofh_price_opt_fixation_header pofh,
+                                                  pfd_price_fixation_details pfd
+                                            WHERE pfd.pofh_id = pofh.pofh_id
+                                              AND pofh.pocd_id = pocd.pocd_id
+                                              AND pocd.poch_id = poch.poch_id
+                                              AND poch.pcdi_id = pcdi.pcdi_id
+                                              AND pcdi.internal_contract_ref_no =
+                                                     pcm.internal_contract_ref_no
+                                              AND pfd.pfd_id =
+                                                            pc_internal_ref_no)
+                                  ELSE (SELECT gepd.pledge_cp_id
+                                          FROM pfd_price_fixation_details pfd,
+                                               gepd_gmr_element_pledge_detail gepd
+                                         WHERE pfd.internal_pledge_gmr_ref_no =
+                                                      gepd.internal_gmr_ref_no
+                                           AND pfd.pfd_id = pc_internal_ref_no)
+                               END
+                              )
+                         FROM pfd_price_fixation_details pfd_outer
+                        WHERE pfd_outer.pfd_id = pc_internal_ref_no)
+              WHEN pc_action_id = 'CREATE_PI'
+               OR pc_action_id = 'CREATE_FI'
+               OR pc_action_id = 'CREATE_DFI'
+               OR pc_action_id = 'CREATE_API'
+               OR pc_action_id = 'CREATE_VAT'
+               OR pc_action_id = 'CREATE_DC'
+               OR pc_action_id = 'CREATE_OCI'
+               OR pc_action_id = 'CREATE_SI'
+                 THEN (SELECT invs.bill_to_cp_id
+                         FROM is_invoice_summary invs
+                        WHERE invs.internal_invoice_ref_no =
+                                                            pc_internal_ref_no)
+              WHEN pc_action_id = 'pledgeTransfer'
+                 THEN (SELECT gepd.pledge_cp_id
+                         FROM gepd_gmr_element_pledge_detail gepd
+                        WHERE gepd.gepd_id = pc_internal_ref_no)
+              WHEN pc_action_id = 'shipmentDetail'
+               OR pc_action_id = 'railDetail'
+               OR pc_action_id = 'truckDetail'
+               OR pc_action_id = 'warehouseReceipt'
+               OR pc_action_id = 'landingDetail'
+               OR pc_action_id = 'weightNote'
+               OR pc_action_id = 'shipmentAdvise'
+               OR pc_action_id = 'releaseOrder'
+               OR pc_action_id = 'salesLandingDetail'
+               OR pc_action_id = 'shipmentBackToBack'
+               OR pc_action_id = 'airAdvice'
+               OR pc_action_id = 'railAdvice'
+               OR pc_action_id = 'salesWeightNote'
+                 THEN (SELECT pcm.cp_id
+                         FROM gmr_goods_movement_record gmr,
+                              pcm_physical_contract_main pcm
+                        WHERE gmr.internal_contract_ref_no =
+                                                  pcm.internal_contract_ref_no
+                          AND gmr.internal_gmr_ref_no = pc_internal_ref_no)
+              ELSE (SELECT pcm.cp_id
+                      FROM ash_assay_header ash,
+                           pcm_physical_contract_main pcm
+                     WHERE ash.internal_contract_ref_no =
+                                                  pcm.internal_contract_ref_no
+                       AND ash.ash_id = pc_internal_ref_no)
+           END
+          )
+     INTO vc_cp_id
+     FROM DUAL;
+
+   RETURN vc_cp_id;
+EXCEPTION
+   WHEN NO_DATA_FOUND
+   THEN
+      vc_cp_id := '';
+      RETURN vc_cp_id;
+END;
 
 end;
 /
