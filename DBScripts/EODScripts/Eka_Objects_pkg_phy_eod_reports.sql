@@ -12204,7 +12204,6 @@ insert into temp_mas
          grd_goods_record_detail grd,
          aml_attribute_master_list aml,
          axs_action_summary  axs,
-         dbd_database_dump   dbd,
          pdm_productmaster pdm,
          (select gmr.internal_gmr_ref_no,
                  agmr.eff_date
@@ -12231,8 +12230,7 @@ insert into temp_mas
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
      and grd.internal_action_ref_no=axs.internal_action_ref_no
-     and axs.dbd_id=dbd.dbd_id
-     and dbd.process='EOM'          
+     and axs.process='EOM'          
      and agmr.eff_date <= pd_trade_date
      and grd.tolling_stock_type in
          ('MFT In Process Stock', 'Free Metal IP Stock', 'Delta FM IP Stock',
