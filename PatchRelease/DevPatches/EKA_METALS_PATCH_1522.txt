@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1522
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  22-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75479
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 124138
+Author: b.ravikumar
+Date: 6:52:24 PM, Monday, April 22, 2013
+Message:
+-added our-reference no for VAT,Profoma,CommercialFee,Premium invoices
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_555.sql
+
+
+
