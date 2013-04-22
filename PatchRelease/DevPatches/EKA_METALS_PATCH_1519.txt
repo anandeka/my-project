@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1519
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  22-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75653
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Tolling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 124098
+Author: anupkumar.agarwal
+Date: 4:50:54 PM, Monday, April 22, 2013
+Message:
+Bug 75653 - In Metal balance Summary Report-After assay update, delta qty is showing Incorrect under raw material stock
+
+Added New Column CotInternalAction In Grd,GRDUL,GRDl As A Part Of This Bug Fix.
+----
+Modified : Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_434.sql
+/7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_GRDL.sql
+
+
