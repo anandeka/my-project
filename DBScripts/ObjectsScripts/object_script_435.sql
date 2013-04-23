@@ -1,0 +1,2 @@
+ALTER TABLE PFI_D
+ ADD (IS_INV_DRAFT  CHAR(1 CHAR)                    DEFAULT 'N');
