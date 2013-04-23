@@ -680,7 +680,7 @@ create or replace package body pkg_metals_general is
                 vn_tier_penalty := vn_tier_penalty + vn_penalty_charge;
                 /** vn_range_gap;*/
               /* dbms_output.put_line(' Variable  Penalty charge for this ' ||                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     vn_penalty_charge);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              dbms_output.put_line('---------------------------');*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    dbms_output.put_line('---------------------------');*/
               --calculate total Penalty charge
               end loop;
             end if;
@@ -1897,6 +1897,7 @@ create or replace package body pkg_metals_general is
                                    and gth.internal_gmr_ref_no =
                                        pc_inter_gmr_ref_no
                                    and gth.pcth_id = pcth.pcth_id
+                                   and gth.dbd_id = pc_dbd_id
                                    and gth.is_active = 'Y'
                                    and pcetc.is_active = 'Y'
                                    and pcth.is_active = 'Y'
@@ -2274,6 +2275,7 @@ create or replace package body pkg_metals_general is
                                    and gth.internal_gmr_ref_no =
                                        pc_inter_gmr_ref_no
                                    and gth.pcth_id = pcth.pcth_id
+                                   and gth.dbd_id = pc_dbd_id
                                    and gth.is_active = 'Y'
                                    and pcetc.is_active = 'Y'
                                    and pcth.is_active = 'Y'
@@ -2706,6 +2708,7 @@ create or replace package body pkg_metals_general is
                                     and pcdi.dbd_id = pc_dbd_id
                                     and pcpch.dbd_id = pc_dbd_id
                                     and pcepc.dbd_id = pc_dbd_id
+                                    and grh.dbd_id = pc_dbd_id
                                     and pci.is_active = 'Y'
                                     and pcdi.is_active = 'Y'
                                     and pcpch.is_active = 'Y'
@@ -2791,6 +2794,7 @@ create or replace package body pkg_metals_general is
                                     and red.dbd_id = pc_dbd_id
                                     and pcerc.dbd_id = pc_dbd_id
                                     and rqd.dbd_id = pc_dbd_id
+                                    and grh.dbd_id = pc_dbd_id
                                     and red.element_id = pc_element_id
                                     and ppu.internal_price_unit_id =
                                         pcerc.refining_charge_unit_id
@@ -3162,6 +3166,7 @@ create or replace package body pkg_metals_general is
                                and pcap.dbd_id = pc_dbd_id
                                and pqd.dbd_id = pc_dbd_id
                                and pad.dbd_id = pc_dbd_id
+                               and gph.dbd_id = pc_dbd_id
                                and pcaph.is_active = 'Y'
                                and pcap.is_active = 'Y'
                                and pqd.is_active = 'Y'
@@ -3581,6 +3586,7 @@ create or replace package body pkg_metals_general is
                                     and pcdi.dbd_id = pc_dbd_id
                                     and pcpch.dbd_id = pc_dbd_id
                                     and pcepc.dbd_id = pc_dbd_id
+                                    and grh.dbd_id = pc_dbd_id
                                     and pci.is_active = 'Y'
                                     and pcdi.is_active = 'Y'
                                     and pcpch.is_active = 'Y'
@@ -3666,7 +3672,8 @@ create or replace package body pkg_metals_general is
                                     and red.dbd_id = pc_dbd_id
                                     and pcerc.dbd_id = pc_dbd_id
                                     and rqd.dbd_id = pc_dbd_id
-                                    and red.element_id = pc_element_id
+                                    and rqd.dbd_id = pc_dbd_id
+                                    and grh.dbd_id = pc_dbd_id
                                     and ppu.internal_price_unit_id =
                                         pcerc.refining_charge_unit_id
                                     and ppu.price_unit_id =
@@ -4047,6 +4054,7 @@ create or replace package body pkg_metals_general is
                                and pcap.dbd_id = pc_dbd_id
                                and pqd.dbd_id = pc_dbd_id
                                and pad.dbd_id = pc_dbd_id
+                               and gph.dbd_id = pc_dbd_id
                                and pcaph.is_active = 'Y'
                                and pcap.is_active = 'Y'
                                and pqd.is_active = 'Y'
@@ -4367,6 +4375,7 @@ create or replace package body pkg_metals_general is
                                and pcap.dbd_id = pc_dbd_id
                                and pqd.dbd_id = pc_dbd_id
                                and pad.dbd_id = pc_dbd_id
+                               and gph.dbd_id = pc_dbd_id
                                and pcaph.is_active = 'Y'
                                and pcap.is_active = 'Y'
                                and pqd.is_active = 'Y'

@@ -551,9 +551,6 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('II_INVOICABLE_ITEM', 'f');
       dbms_mview.refresh('IID_INVOICABLE_ITEM_DETAILS', 'f');
       dbms_mview.refresh('SCM_STOCK_COST_MAPPING', 'f');
-      dbms_mview.refresh('GTH_GMR_TREATMENT_HEADER', 'f');
-      dbms_mview.refresh('GRH_GMR_REFINING_HEADER', 'f');
-      dbms_mview.refresh('GPH_GMR_PENALTY_HEADER', 'f');
       dbms_mview.refresh('SAC_STOCK_ASSAY_CONTENT', 'f');
       dbms_mview.refresh('IIED_INV_ITEM_ELEMENT_DETAILS', 'f');
       dbms_mview.refresh('INTC_INV_TREATMENT_CHARGES', 'f');
@@ -2614,7 +2611,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        payable_returnable_type,
        carry_over_qty,
        supp_internal_gmr_ref_no,
-       dbd_id)
+       dbd_id,
+       process)
       select ul.internal_grd_ref_no,
              ul.internal_action_ref_no,
              ul.entry_type,
@@ -2725,14 +2723,248 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.payable_returnable_type,
              ul.carry_over_qty,
              ul.supp_internal_gmr_ref_no,
-             pc_dbd_id
+             pc_dbd_id,
+             pc_process
         from grdl_goods_record_detail_log@eka_appdb ul,
              axs_action_summary@eka_appdb           axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.created_date > pt_previous_pull_date
-         and axs.created_date <= pt_current_pull_date;
-  
+         and axs.created_date <= pt_current_pull_date
+         and ul.cot_int_action_ref_no is null;
+    commit;
+    insert into grdl_goods_record_detail_log
+      (internal_grd_ref_no,
+       internal_action_ref_no,
+       entry_type,
+       internal_gmr_ref_no,
+       product_id,
+       is_afloat,
+       status,
+       qty_delta,
+       qty_unit_id,
+       gross_weight_delta,
+       tare_weight_delta,
+       internal_contract_item_ref_no,
+       int_alloc_group_id,
+       packing_size_id,
+       container_no,
+       seal_no,
+       mark_no,
+       warehouse_ref_no,
+       no_of_units_delta,
+       quality_id,
+       warehouse_profile_id,
+       shed_id,
+       origin_id,
+       crop_year_id,
+       parent_id,
+       is_released_shipped,
+       release_shipped_no_units_delta,
+       is_write_off,
+       write_off_no_of_units_delta,
+       is_deleted,
+       is_moved_out,
+       moved_out_no_of_units_delta,
+       total_no_of_units_delta,
+       total_qty_delta,
+       moved_out_qty_delta,
+       release_shipped_qty_delta,
+       write_off_qty_delta,
+       title_transfer_out_qty_delta,
+       title_transfr_out_no_unt_delta,
+       warehouse_receipt_no,
+       warehouse_receipt_date,
+       container_size,
+       remarks,
+       is_added_to_pool,
+       loading_date,
+       loading_country_id,
+       loading_port_id,
+       is_entire_item_loaded,
+       is_weight_final,
+       bl_number,
+       bl_date,
+       parent_internal_grd_ref_no,
+       discharged_qty_delta,
+       is_voyage_stock,
+       allocated_qty_delta,
+       internal_stock_ref_no,
+       landed_no_of_units_delta,
+       landed_net_qty_delta,
+       landed_gross_qty_delta,
+       shipped_no_of_units_delta,
+       shipped_net_qty_delta,
+       shipped_gross_qty_delta,
+       current_qty_delta,
+       stock_status,
+       product_specs,
+       source_type,
+       source_int_stock_ref_no,
+       source_int_purchase_ref_no,
+       source_int_pool_ref_no,
+       is_fulfilled,
+       inventory_status,
+       truck_rail_number,
+       truck_rail_type,
+       packing_type_id,
+       handled_as,
+       allocated_no_of_units_delta,
+       current_no_of_units_delta,
+       stock_condition,
+       gravity_type_id,
+       gravity_delta,
+       density_mass_qty_unit_id,
+       density_volume_qty_unit_id,
+       gravity_type,
+       customs_id,
+       tax_id,
+       duty_id,
+       customer_seal_no,
+       brand,
+       no_of_containers_delta,
+       no_of_bags_delta,
+       no_of_pieces_delta,
+       rail_car_no,
+       sdcts_id,
+       partnership_type,
+       is_trans_ship,
+       is_mark_for_tolling,
+       tolling_qty,
+       tolling_stock_type,
+       element_id,
+       expected_sales_ccy,
+       profit_center_id,
+       strategy_id,
+       is_warrant,
+       warrant_no,
+       pcdi_id,
+       supp_contract_item_ref_no,
+       supplier_pcdi_id,
+       payable_returnable_type,
+       carry_over_qty,
+       supp_internal_gmr_ref_no,
+       dbd_id,
+       process)
+      select ul.internal_grd_ref_no,
+             ul.internal_action_ref_no,
+             ul.entry_type,
+             ul.internal_gmr_ref_no,
+             ul.product_id,
+             ul.is_afloat,
+             ul.status,
+             ul.qty_delta,
+             ul.qty_unit_id,
+             ul.gross_weight_delta,
+             ul.tare_weight_delta,
+             ul.internal_contract_item_ref_no,
+             ul.int_alloc_group_id,
+             ul.packing_size_id,
+             ul.container_no,
+             ul.seal_no,
+             ul.mark_no,
+             ul.warehouse_ref_no,
+             ul.no_of_units_delta,
+             ul.quality_id,
+             ul.warehouse_profile_id,
+             ul.shed_id,
+             ul.origin_id,
+             ul.crop_year_id,
+             ul.parent_id,
+             ul.is_released_shipped,
+             ul.release_shipped_no_units_delta,
+             ul.is_write_off,
+             ul.write_off_no_of_units_delta,
+             ul.is_deleted,
+             ul.is_moved_out,
+             ul.moved_out_no_of_units_delta,
+             ul.total_no_of_units_delta,
+             ul.total_qty_delta,
+             ul.moved_out_qty_delta,
+             ul.release_shipped_qty_delta,
+             ul.write_off_qty_delta,
+             ul.title_transfer_out_qty_delta,
+             ul.title_transfr_out_no_unt_delta,
+             ul.warehouse_receipt_no,
+             ul.warehouse_receipt_date,
+             ul.container_size,
+             ul.remarks,
+             ul.is_added_to_pool,
+             ul.loading_date,
+             ul.loading_country_id,
+             ul.loading_port_id,
+             ul.is_entire_item_loaded,
+             ul.is_weight_final,
+             ul.bl_number,
+             ul.bl_date,
+             ul.parent_internal_grd_ref_no,
+             ul.discharged_qty_delta,
+             ul.is_voyage_stock,
+             ul.allocated_qty_delta,
+             ul.internal_stock_ref_no,
+             ul.landed_no_of_units_delta,
+             ul.landed_net_qty_delta,
+             ul.landed_gross_qty_delta,
+             ul.shipped_no_of_units_delta,
+             ul.shipped_net_qty_delta,
+             ul.shipped_gross_qty_delta,
+             ul.current_qty_delta,
+             ul.stock_status,
+             ul.product_specs,
+             ul.source_type,
+             ul.source_int_stock_ref_no,
+             ul.source_int_purchase_ref_no,
+             ul.source_int_pool_ref_no,
+             ul.is_fulfilled,
+             ul.inventory_status,
+             ul.truck_rail_number,
+             ul.truck_rail_type,
+             ul.packing_type_id,
+             ul.handled_as,
+             ul.allocated_no_of_units_delta,
+             ul.current_no_of_units_delta,
+             ul.stock_condition,
+             ul.gravity_type_id,
+             ul.gravity_delta,
+             ul.density_mass_qty_unit_id,
+             ul.density_volume_qty_unit_id,
+             ul.gravity_type,
+             ul.customs_id,
+             ul.tax_id,
+             ul.duty_id,
+             ul.customer_seal_no,
+             ul.brand,
+             ul.no_of_containers_delta,
+             ul.no_of_bags_delta,
+             ul.no_of_pieces_delta,
+             ul.rail_car_no,
+             ul.sdcts_id,
+             ul.partnership_type,
+             ul.is_trans_ship,
+             ul.is_mark_for_tolling,
+             ul.tolling_qty,
+             ul.tolling_stock_type,
+             ul.element_id,
+             ul.expected_sales_ccy,
+             ul.profit_center_id,
+             ul.strategy_id,
+             ul.is_warrant,
+             ul.warrant_no,
+             ul.pcdi_id,
+             ul.supp_contract_item_ref_no,
+             ul.supplier_pcdi_id,
+             ul.payable_returnable_type,
+             ul.carry_over_qty,
+             ul.supp_internal_gmr_ref_no,
+             pc_dbd_id,
+             pc_process
+        from grdl_goods_record_detail_log@eka_appdb ul,
+             axs_action_summary@eka_appdb           axs
+       where ul.cot_int_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date
+         and ul.cot_int_action_ref_no is not null;
     commit;
     insert into vdul_voyage_detail_ul
       (internal_gmr_ref_no,
@@ -3663,7 +3895,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        weg_avg_invoice_assay_id,
        cot_int_action_ref_no,
        orig_internal_action_ref_no,
-       dbd_id)
+       dbd_id,
+       process)
       select ul.spq_id,
              ul.internal_action_ref_no,
              ul.entry_type,
@@ -3695,7 +3928,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.weg_avg_invoice_assay_id,
              null, -- ul.cot_int_action_ref_no,
              null, -- Original internal action ref no, only if toggle case, for reference only
-             pc_dbd_id
+             pc_dbd_id,
+             pc_process
         from spql_stock_payable_qty_log@eka_appdb ul,
              axs_action_summary@eka_appdb         axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
@@ -3736,7 +3970,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        weg_avg_invoice_assay_id,
        cot_int_action_ref_no,
        orig_internal_action_ref_no,
-       dbd_id)
+       dbd_id,
+       process)
       select ul.spq_id,
              ul.internal_action_ref_no,
              ul.entry_type,
@@ -3768,7 +4003,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.weg_avg_invoice_assay_id,
              ul.cot_int_action_ref_no,
              ul.internal_action_ref_no, -- Original internal action ref no, only if toggle case, for reference only
-             pc_dbd_id
+             pc_dbd_id,
+             pc_process
         from spql_stock_payable_qty_log@eka_appdb ul,
              axs_action_summary@eka_appdb         axs
        where ul.cot_int_action_ref_no = axs.internal_action_ref_no
@@ -3941,6 +4177,90 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
          and axs.created_date > pt_previous_pull_date
          and axs.created_date <= pt_current_pull_date;
     commit;
+    insert into gthul_gmr_treatment_header_ul
+      (gthul_id,
+       gth_id,
+       entry_type,
+       internal_gmr_ref_no,
+       pcdi_id,
+       pcth_id,
+       internal_action_ref_no,
+       is_active,
+       process,
+       dbd_id)
+      select ul.gthul_id,
+             ul.gth_id,
+             ul.entry_type,
+             ul.internal_gmr_ref_no,
+             ul.pcdi_id,
+             ul.pcth_id,
+             ul.internal_action_ref_no,
+             ul.is_active,
+             pc_process,
+             pc_dbd_id
+        from gthul_gmr_treatment_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb            axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
+    insert into grhul_gmr_refining_header_ul
+      (grhul_id,
+       grh_id,
+       entry_type,
+       internal_gmr_ref_no,
+       pcdi_id,
+       pcrh_id,
+       internal_action_ref_no,
+       is_active,
+       process,
+       dbd_id)
+      select ul.grhul_id,
+             ul.grh_id,
+             ul.entry_type,
+             ul.internal_gmr_ref_no,
+             ul.pcdi_id,
+             ul.pcrh_id,
+             ul.internal_action_ref_no,
+             ul.is_active,
+             pc_process,
+             pc_dbd_id
+        from grhul_gmr_refining_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb           axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+    commit;
+    insert into gphul_gmr_penalty_header_ul
+      (gphul_id,
+       gph_id,
+       entry_type,
+       internal_gmr_ref_no,
+       pcdi_id,
+       pcaph_id,
+       internal_action_ref_no,
+       is_active,
+       process,
+       dbd_id)
+      select ul.gphul_id,
+             ul.gph_id,
+             ul.entry_type,
+             ul.internal_gmr_ref_no,
+             ul.pcdi_id,
+             ul.pcaph_id,
+             ul.internal_action_ref_no,
+             ul.is_active,
+             pc_process,
+             pc_dbd_id
+        from gphul_gmr_penalty_header_ul@eka_appdb ul,
+             axs_action_summary@eka_appdb          axs
+       where ul.internal_action_ref_no = axs.internal_action_ref_no
+         and axs.corporate_id = pc_corporate_id
+         and axs.created_date > pt_previous_pull_date
+         and axs.created_date <= pt_current_pull_date;
+  
   exception
     when others then
       vobj_error_log.extend;

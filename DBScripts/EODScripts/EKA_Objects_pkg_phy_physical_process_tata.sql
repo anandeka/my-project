@@ -1538,6 +1538,18 @@ create or replace package body pkg_phy_physical_process is
        set process_id = pc_process_id
      where process_id is null
        and dbd_id = vc_dbd_id;
+    update gth_gmr_treatment_header
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;
+    update grh_gmr_refining_header
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;
+    update gph_gmr_penalty_header
+       set process_id = pc_process_id
+     where process_id is null
+       and dbd_id = vc_dbd_id;
     --- added suresh   
     update pca_physical_contract_action pca
        set process_id = pc_process_id
@@ -4149,6 +4161,9 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     delete from pca_physical_contract_action where dbd_id = vc_dbd_id;
     delete from cod_call_off_details where dbd_id = vc_dbd_id;
+    delete from gth_gmr_treatment_header where dbd_id = vc_dbd_id;
+    delete from grh_gmr_refining_header where dbd_id = vc_dbd_id;
+    delete from gph_gmr_penalty_header where dbd_id = vc_dbd_id;
     commit;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,

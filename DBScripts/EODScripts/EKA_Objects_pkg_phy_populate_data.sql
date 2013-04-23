@@ -206,872 +206,845 @@ create or replace package pkg_phy_populate_data is
                                     pc_user_id      varchar2,
                                     pc_dbd_id       varchar2,
                                     pc_process      varchar2);
+  procedure sp_phy_create_gth_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
+  procedure sp_phy_create_grh_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
+  procedure sp_phy_create_gph_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2);
 
 end pkg_phy_populate_data;
 /
 create or replace package body PKG_PHY_POPULATE_DATA is
 
-  procedure sp_phy_populate_table_data
-  /*******************************************************************************************************************************************
-    procedure name                           : sp_populate_table_data
-    author                                   : 
-    created date                             : 12TH JAN 2011
-    purpose                                  : populate transfer transaction data
-    parameters
-    pc_corporate_id                          : corporate id
-    pt_previous_pull_date                    : last dump date
-    pt_current_pull_date                     : current sys time(when called)
-    pd_trade_date                            : eod data
-    pc_user_id                               : user id
-    pc_process                               : process = 'eod'
-    modified date  :
-    modify description :
-    ******************************************************************************************************************************************/
-  (pc_corporate_id varchar2,
-   pd_trade_date   date,
-   pc_user_id      varchar2,
-   pc_dbd_id       varchar2,
-   pc_process      varchar2) is
+ procedure sp_phy_populate_table_data
+ /*******************************************************************************************************************************************
+   procedure name                           : sp_populate_table_data
+   author                                   : 
+   created date                             : 12TH JAN 2011
+   purpose                                  : populate transfer transaction data
+   parameters
+   pc_corporate_id                          : corporate id
+   pt_previous_pull_date                    : last dump date
+   pt_current_pull_date                     : current sys time(when called)
+   pd_trade_date                            : eod data
+   pc_user_id                               : user id
+   pc_process                               : process = 'eod'
+   modified date  :
+   modify description :
+   ******************************************************************************************************************************************/
+ (pc_corporate_id varchar2,
+  pd_trade_date   date,
+  pc_user_id      varchar2,
+  pc_dbd_id       varchar2,
+  pc_process      varchar2) is
    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
    vn_eel_error_count number := 1;
-  begin
+ begin
  
-    gvc_dbd_id  := pc_dbd_id;
-    gvc_process := pc_process;
-    select tdc.process_id
-      into gvc_process_id
-      from tdc_trade_date_closure tdc
-     where tdc.corporate_id = pc_corporate_id
-       and tdc.trade_date = pd_trade_date
-       and tdc.process = pc_process;
-  
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_agd_data');
-    sp_phy_create_agd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_agh_data');
-    sp_phy_create_agh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_cigc_data');
-    sp_phy_create_cigc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_cs_data');
-    sp_phy_create_cs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_dgrd_data');
-    sp_phy_create_dgrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_gmr_data');
-    sp_phy_create_gmr_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_mogrd_data');
-    sp_phy_create_mogrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcad_data');
-    sp_phy_create_pcad_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcbpd_data');
-    sp_phy_create_pcbpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcbph_data');
-    sp_phy_create_pcbph_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcdb_data');
-    sp_phy_create_pcdb_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcdd_data');
-    sp_phy_create_pcdd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcdiob_data');
-    sp_phy_create_pcdiob_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcdipe_data');
-    sp_phy_create_pcdipe_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcdiqd_data');
-    sp_phy_create_pcdiqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcdi_data');
-    sp_phy_create_pcdi_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcipf_data');
-    sp_phy_create_pcipf_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pci_data');
-    sp_phy_create_pci_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcjv_data');
-    sp_phy_create_pcjv_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcm_data');
-    sp_phy_create_pcm_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcpdqd_data');
-    sp_phy_create_pcpdqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcpd_data');
-    sp_phy_create_pcpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcpq_data');
-    sp_phy_create_pcpq_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcqpd_data');
-    sp_phy_create_pcqpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pffxd_data');
-    sp_phy_create_pffxd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pfqpp_data');
-    sp_phy_create_pfqpp_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_ppfd_data');
-    sp_phy_create_ppfd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_ppfh_data');
-    sp_phy_create_ppfh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_ciqs_data');
-    sp_phy_create_ciqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_diqs_data');
-    sp_phy_create_diqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_cqs_data');
-    sp_phy_create_cqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_grd_data');
-    sp_phy_create_grd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_vd_data');
-    sp_phy_create_vd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcpch_data');
-    sp_phy_create_pcpch_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pqd_data');
-    sp_phy_create_pqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcepc_data');
-    sp_phy_create_pcepc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcth_data');
-    sp_phy_create_pcth_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_ted_data');
-    sp_phy_create_ted_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_tqd_data');
-    sp_phy_create_tqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcetc_data');
-    sp_phy_create_pcetc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcar_data');
-    sp_phy_create_pcar_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcaesl_data');
-    sp_phy_create_pcaesl_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_arqd_data');
-    sp_phy_create_arqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcaph_data');
-    sp_phy_create_pcaph_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcap_data');
-    sp_phy_create_pcap_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pqdp_data');
-    sp_phy_create_pqdp_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pad_data');
-    sp_phy_create_pad_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcrh_data');
-    sp_phy_create_pcrh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_rqd_data');
-    sp_phy_create_rqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_red_data');
-    sp_phy_create_red_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_pcerc_data');
-    sp_phy_create_pcerc_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_dith_data');
-    sp_phy_create_dith_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-  
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_dirh_data');
-    sp_phy_create_dirh_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-  
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_diph_data');
-    sp_phy_create_diph_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-  
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_cipq_data');
-    sp_phy_create_cipq_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-  
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_dipq_data');
-    sp_phy_create_dipq_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-  
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_spq_data');
-    sp_phy_create_spq_data(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-  
-    if pkg_process_status.sp_get(pc_corporate_id,
-                                 gvc_process,
-                                 pd_trade_date) = 'Cancel' then
-      goto cancel_process;
-    end if;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_dipch_data');
-    sp_phy_create_dipch_data(pc_corporate_id, pd_trade_date, pc_user_id);
-  
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_create_invs');
-    sp_phy_create_invs(pc_corporate_id, pd_trade_date, pc_user_id);
-    commit;
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'sp_phy_update_contract_details');
-     sp_phy_update_contract_details(pc_corporate_id,
-                                           pd_trade_date,
-                                           pc_dbd_id,
-                                           pc_process,
-                                           pc_user_id);
-    commit;                                                                                      
-    gvn_log_counter := gvn_log_counter + 1;
-    sp_precheck_process_log(pc_corporate_id,
-                            pd_trade_date,
-                            pc_dbd_id,
-                            gvn_log_counter,
-                            'End of Populate Data');
-  
-    <<cancel_process>>
-    dbms_output.put_line('EOD/EOM Process Cancelled while populate table data');
-  exception
-    when others then
-      vobj_error_log.extend;
-      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure sp_Phy_populate_table_data',
-                                                           'M2M-013',
-                                                           'Code:' ||
-                                                           sqlcode ||
-                                                           'Message:' ||
-                                                           sqlerrm,
-                                                           '',
-                                                           gvc_process,
-                                                           pc_user_id,
-                                                           sysdate,
-                                                           pd_trade_date);
-      sp_insert_error_log(vobj_error_log);
-  end;
+   gvc_dbd_id  := pc_dbd_id;
+   gvc_process := pc_process;
+   select tdc.process_id
+     into gvc_process_id
+     from tdc_trade_date_closure tdc
+    where tdc.corporate_id = pc_corporate_id
+      and tdc.trade_date = pd_trade_date
+      and tdc.process = pc_process;
+ 
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_agd_data');
+   sp_phy_create_agd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_agh_data');
+   sp_phy_create_agh_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_cigc_data');
+   sp_phy_create_cigc_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_cs_data');
+   sp_phy_create_cs_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_dgrd_data');
+   sp_phy_create_dgrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_gmr_data');
+   sp_phy_create_gmr_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_mogrd_data');
+   sp_phy_create_mogrd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcad_data');
+   sp_phy_create_pcad_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcbpd_data');
+   sp_phy_create_pcbpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcbph_data');
+   sp_phy_create_pcbph_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcdb_data');
+   sp_phy_create_pcdb_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcdd_data');
+   sp_phy_create_pcdd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcdiob_data');
+   sp_phy_create_pcdiob_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcdipe_data');
+   sp_phy_create_pcdipe_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcdiqd_data');
+   sp_phy_create_pcdiqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcdi_data');
+   sp_phy_create_pcdi_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcipf_data');
+   sp_phy_create_pcipf_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pci_data');
+   sp_phy_create_pci_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcjv_data');
+   sp_phy_create_pcjv_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcm_data');
+   sp_phy_create_pcm_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcpdqd_data');
+   sp_phy_create_pcpdqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcpd_data');
+   sp_phy_create_pcpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcpq_data');
+   sp_phy_create_pcpq_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcqpd_data');
+   sp_phy_create_pcqpd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pffxd_data');
+   sp_phy_create_pffxd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pfqpp_data');
+   sp_phy_create_pfqpp_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_ppfd_data');
+   sp_phy_create_ppfd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_ppfh_data');
+   sp_phy_create_ppfh_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_ciqs_data');
+   sp_phy_create_ciqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_diqs_data');
+   sp_phy_create_diqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_cqs_data');
+   sp_phy_create_cqs_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_grd_data');
+   sp_phy_create_grd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_vd_data');
+   sp_phy_create_vd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcpch_data');
+   sp_phy_create_pcpch_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pqd_data');
+   sp_phy_create_pqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcepc_data');
+   sp_phy_create_pcepc_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcth_data');
+   sp_phy_create_pcth_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_ted_data');
+   sp_phy_create_ted_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_tqd_data');
+   sp_phy_create_tqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcetc_data');
+   sp_phy_create_pcetc_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcar_data');
+   sp_phy_create_pcar_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcaesl_data');
+   sp_phy_create_pcaesl_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_arqd_data');
+   sp_phy_create_arqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcaph_data');
+   sp_phy_create_pcaph_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcap_data');
+   sp_phy_create_pcap_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pqdp_data');
+   sp_phy_create_pqdp_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pad_data');
+   sp_phy_create_pad_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcrh_data');
+   sp_phy_create_pcrh_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_rqd_data');
+   sp_phy_create_rqd_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_red_data');
+   sp_phy_create_red_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_pcerc_data');
+   sp_phy_create_pcerc_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_dith_data');
+   sp_phy_create_dith_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+ 
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_dirh_data');
+   sp_phy_create_dirh_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+ 
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_diph_data');
+   sp_phy_create_diph_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+ 
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_cipq_data');
+   sp_phy_create_cipq_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+ 
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_dipq_data');
+   sp_phy_create_dipq_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+ 
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_spq_data');
+   sp_phy_create_spq_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+ 
+   if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
+      'Cancel' then
+     goto cancel_process;
+   end if;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_dipch_data');
+   sp_phy_create_dipch_data(pc_corporate_id, pd_trade_date, pc_user_id);
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_invs');
+   sp_phy_create_invs(pc_corporate_id, pd_trade_date, pc_user_id);
+   commit;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_gth_data');
+ 
+   sp_phy_create_gth_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_grh_data');
+   sp_phy_create_grh_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_create_gph_data');
+   sp_phy_create_gph_data(pc_corporate_id, pd_trade_date, pc_user_id);
+ 
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'sp_phy_update_contract_details');
+   sp_phy_update_contract_details(pc_corporate_id,
+                                  pd_trade_date,
+                                  pc_dbd_id,
+                                  pc_process,
+                                  pc_user_id);
+   commit;
+   gvn_log_counter := gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                           pd_trade_date,
+                           pc_dbd_id,
+                           gvn_log_counter,
+                           'End of Populate Data');
+ 
+   <<cancel_process>>
+   dbms_output.put_line('EOD/EOM Process Cancelled while populate table data');
+ exception
+   when others then
+     vobj_error_log.extend;
+     vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                          'procedure sp_Phy_populate_table_data',
+                                                          'M2M-013',
+                                                          'Code:' || sqlcode ||
+                                                          'Message:' ||
+                                                          sqlerrm,
+                                                          '',
+                                                          gvc_process,
+                                                          pc_user_id,
+                                                          sysdate,
+                                                          pd_trade_date);
+     sp_insert_error_log(vobj_error_log);
+ end;
 
 
   procedure sp_phy_create_agd_data(pc_corporate_id varchar2,
@@ -8482,6 +8455,7 @@ commit;
        status,
        qty,
        qty_unit_id,
+       gmr_qty_unit_id,
        gross_weight,
        tare_weight,
        internal_contract_item_ref_no,
@@ -8611,6 +8585,12 @@ commit;
                            grdul.qty_unit_id
                         end),
                     24) qty_unit_id,
+             substr(max(case
+                          when grdul.qty_unit_id is not null then
+                           to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                           grdul.qty_unit_id
+                        end),
+                    24) gmr_qty_unit_id,
              round(sum(nvl(grdul.gross_weight_delta, 0)), 10),
              round(sum(nvl(grdul.tare_weight_delta, 0)), 10),
              substr(max(case
@@ -9055,15 +9035,12 @@ commit;
                     24) supp_internal_gmr_ref_no,        
                     gvc_dbd_id
         from grdl_goods_record_detail_log grdul,
-             axs_action_summary           axs,
-             dbd_database_dump            dbd_ul
+             axs_action_summary           axs
        where axs.process = gvc_process
          and grdul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.eff_date <= pd_trade_date
          and axs.corporate_id = pc_corporate_id
-         and grdul.dbd_id = dbd_ul.dbd_id
-         and dbd_ul.corporate_id = pc_corporate_id
-         and dbd_ul.process = gvc_process
+         and grdul.process = gvc_process
        group by grdul.internal_grd_ref_no;
     --
     -- Update Payment Due Date From Contract
@@ -12762,15 +12739,12 @@ insert into spq_stock_payable_qty
                         24) weg_avg_invoice_assay_id,
                  gvc_dbd_id
             from spql_stock_payable_qty_log spqul,
-                 axs_action_summary         axs,
-                 dbd_database_dump          dbd_ul
+                 axs_action_summary         axs
            where axs.process = gvc_process
              and spqul.internal_action_ref_no = axs.internal_action_ref_no
              and axs.eff_date <= pd_trade_date
              and axs.corporate_id = pc_corporate_id
-             and spqul.dbd_id = dbd_ul.dbd_id
-             and dbd_ul.corporate_id = pc_corporate_id
-             and dbd_ul.process = gvc_process
+             and spqul.process = gvc_process
            group by spqul.spq_id);
    commit;
 
@@ -13051,138 +13025,171 @@ commit;
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
   begin
+  delete from cqpd_contract_qp_detail where corporate_id = pc_corporate_id;
+  commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_dbd_id,
+                        gvn_log_counter,
+                        'Delete CQPD Over ');
+  
+   -- Called off 
+insert into cqpd_contract_qp_detail
+  (corporate_id,
+   pcdi_id,
+   internal_contract_item_ref_no,
+   qp_start_date,
+   qp_end_date)
+  select pc_corporate_id,
+         pcdi.pcdi_id,
+         pci.internal_contract_item_ref_no,
+         pofh.qp_start_date,
+         pofh.qp_end_date
+    from pcm_physical_contract_main     pcm,
+         pcdi_pc_delivery_item          pcdi,
+         pci_physical_contract_item     pci,
+         poch_price_opt_call_off_header poch,
+         pocd_price_option_calloff_dtls pocd,
+         pofh_price_opt_fixation_header pofh
+   where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and pcdi.pcdi_id = poch.pcdi_id
+     and poch.poch_id = pocd.poch_id
+     and pocd.pocd_id = pofh.pocd_id
+     and pci.pcdi_id = pcdi.pcdi_id
+     and pocd.qp_period_type <> 'Event'
+     and pcdi.is_active = 'Y'
+     and poch.is_active = 'Y'
+     and pocd.is_active = 'Y'
+     and pofh.is_active = 'Y'
+     and pci.is_active = 'Y'
+     and pcm.dbd_id = pc_dbd_id
+     and pcm.contract_type = 'BASEMETAL'
+     and pcdi.dbd_id = pc_dbd_id
+     and pci.dbd_id = pc_dbd_id
+     and pcdi.price_option_call_off_status in
+         ('Called Off', 'Not Applicable');
+commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_dbd_id,
+                        gvn_log_counter,
+                        'Insert CQPD Called Off Over ');  
+  -- All with Event Based
+  insert into cqpd_contract_qp_detail
+    (corporate_id,
+     pcdi_id,
+     internal_contract_item_ref_no,
+     qp_start_date,
+     qp_end_date)
+    select pc_corporate_id,
+           pcdi.pcdi_id,
+           pci.internal_contract_item_ref_no,
+           di.expected_qp_start_date qp_start_date,
+           di.expected_qp_end_date qp_end_date
+      from pcm_physical_contract_main pcm,
+           pcdi_pc_delivery_item      pcdi,
+           di_del_item_exp_qp_details di,
+           pci_physical_contract_item pci
+     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = di.pcdi_id
+       and pci.pcdi_id = pcdi.pcdi_id
+       and di.is_active = 'Y'
+       and pcdi.is_active = 'Y'
+       and pci.is_active = 'Y'
+       and pcm.dbd_id = pc_dbd_id
+       and pcm.contract_type = 'BASEMETAL'
+       and pcdi.dbd_id = pc_dbd_id
+       and pci.dbd_id = pc_dbd_id;
+commit; 
+ gvn_log_counter :=  gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_dbd_id,
+                        gvn_log_counter,
+                        'Insert CQPD Event Based Over ');                                   
+ -- not called off
+  insert into cqpd_contract_qp_detail
+    (corporate_id,
+     pcdi_id,
+     internal_contract_item_ref_no,
+     qp_start_date,
+     qp_end_date)
+    select pc_corporate_id,
+           pci.pcdi_id,
+           pci.internal_contract_item_ref_no,
+           (case
+             when pfqpp.qp_pricing_period_type = 'Period' then
+              pfqpp.qp_period_from_date
+             when pfqpp.qp_pricing_period_type = 'Month' then
+              to_date('01-' || pfqpp.qp_month || '-' || pfqpp.qp_year,
+                      'dd-Mon-yyyy')
+             when pfqpp.qp_pricing_period_type = 'Date' then
+              pfqpp.qp_date
+           end) qp_start_date,
+           (case
+             when pfqpp.qp_pricing_period_type = 'Period' then
+              pfqpp.qp_period_to_date
+             when pfqpp.qp_pricing_period_type = 'Month' then
+              last_day(to_date('01-' || pfqpp.qp_month || '-' ||
+                               pfqpp.qp_year,
+                               'dd-Mon-yyyy'))
+             when pfqpp.qp_pricing_period_type = 'Date' then
+              pfqpp.qp_date
+           end) qp_end_date
+      from pcm_physical_contract_main    pcm,
+           pci_physical_contract_item    pci,
+           pcdi_pc_delivery_item         pcdi,
+           pcipf_pci_pricing_formula     pcipf,
+           pcbph_pc_base_price_header    pcbph,
+           pcbpd_pc_base_price_detail    pcbpd,
+           ppfh_phy_price_formula_header ppfh,
+           pfqpp_phy_formula_qp_pricing  pfqpp
+     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pci.internal_contract_item_ref_no =
+           pcipf.internal_contract_item_ref_no
+       and pci.pcdi_id = pcdi.pcdi_id
+       and pcipf.pcbph_id = pcbph.pcbph_id
+       and pcbph.pcbph_id = pcbpd.pcbph_id
+       and pcbpd.pcbpd_id = ppfh.pcbpd_id
+       and ppfh.ppfh_id = pfqpp.ppfh_id
+       and pfqpp.qp_pricing_period_type <> 'Event'
+       and pci.is_active = 'Y'
+       and pcipf.is_active = 'Y'
+       and pcbph.is_active = 'Y'
+       and pcbpd.is_active = 'Y'
+       and ppfh.is_active = 'Y'
+       and pfqpp.is_active = 'Y'
+       and pcdi.is_active = 'Y'
+       and pcm.dbd_id = pc_dbd_id
+       and pcm.contract_type = 'BASEMETAL'
+       and pci.dbd_id = pc_dbd_id
+       and pcdi.dbd_id = pc_dbd_id
+       and pcipf.dbd_id = pc_dbd_id
+       and pcbph.dbd_id = pc_dbd_id
+       and pcbpd.dbd_id = pc_dbd_id
+       and ppfh.dbd_id = pc_dbd_id
+       and pfqpp.dbd_id = pc_dbd_id
+       and pcdi.price_option_call_off_status = 'Not Called Off';
+
+commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_dbd_id,
+                        gvn_log_counter,
+                        'Insert CQPD Not Called Off Over ');                                          
     -- Update Pricing QP Start Date and End Date in PCI
-    for cur_price_qp in ( --Called off
-                         select t.pcdi_id,
-                                t.internal_contract_item_ref_no,
-                                min(qp_start_date) qp_start_date,
-                                min(qp_end_date) qp_end_date
-                           from (select pcdi.pcdi_id,
-                                        pci.internal_contract_item_ref_no,
-                                        pofh.qp_start_date,
-                                        pofh.qp_end_date
-                                   from pcm_physical_contract_main     pcm,
-                                        pcdi_pc_delivery_item          pcdi,
-                                        pci_physical_contract_item     pci,
-                                        poch_price_opt_call_off_header poch,
-                                        pocd_price_option_calloff_dtls pocd,
-                                        pofh_price_opt_fixation_header pofh
-                                  where pcm.internal_contract_ref_no =
-                                        pcdi.internal_contract_ref_no
-                                    and pcdi.pcdi_id = poch.pcdi_id
-                                    and poch.poch_id = pocd.poch_id
-                                    and pocd.pocd_id = pofh.pocd_id
-                                    and pci.pcdi_id = pcdi.pcdi_id
-                                    and pocd.qp_period_type <> 'Event'
-                                    and pcdi.is_active = 'Y'
-                                    and poch.is_active = 'Y'
-                                    and pocd.is_active = 'Y'
-                                    and pofh.is_active = 'Y'
-                                    and pci.is_active = 'Y'
-                                    and pcm.dbd_id = pc_dbd_id
-                                    and pcm.contract_type = 'BASEMETAL'
-                                    and pcdi.dbd_id = pc_dbd_id
-                                    and pci.dbd_id = pc_dbd_id
-                                    and pcdi.price_option_call_off_status in
-                                        ('Called Off', 'Not Applicable')
-                                 union -- All with Event Based
-                                 select pcdi.pcdi_id,
-                                        pci.internal_contract_item_ref_no,
-                                        di.expected_qp_start_date qp_start_date,
-                                        di.expected_qp_end_date qp_end_date
-                                   from pcm_physical_contract_main pcm,
-                                        pcdi_pc_delivery_item      pcdi,
-                                        di_del_item_exp_qp_details di,
-                                        pci_physical_contract_item pci
-                                  where pcm.internal_contract_ref_no =
-                                        pcdi.internal_contract_ref_no
-                                    and pcdi.pcdi_id = di.pcdi_id
-                                    and pci.pcdi_id = pcdi.pcdi_id
-                                    and di.is_active = 'Y'
-                                    and pcdi.is_active = 'Y'
-                                    and pci.is_active = 'Y'
-                                    and pcm.dbd_id = pc_dbd_id
-                                    and pcm.contract_type = 'BASEMETAL'
-                                    and pcdi.dbd_id = pc_dbd_id
-                                    and pci.dbd_id = pc_dbd_id) t
-                          group by t.pcdi_id,
-                                   t.internal_contract_item_ref_no
-                         -- not called off
-                         union all
-                         
-                         select t.pcdi_id,
-                                t.internal_contract_item_ref_no,
-                                min(t.qp_start_date) qp_start_date,
-                                min(t.qp_end_date) qp_end_date
-                           from (select pci.pcdi_id,
-                                        pci.internal_contract_item_ref_no,
-                                        (case
-                                          when pfqpp.qp_pricing_period_type =
-                                               'Period' then
-                                           pfqpp.qp_period_from_date
-                                          when pfqpp.qp_pricing_period_type =
-                                               'Month' then
-                                           to_date('01-' || pfqpp.qp_month || '-' ||
-                                                   pfqpp.qp_year,
-                                                   'dd-Mon-yyyy')
-                                          when pfqpp.qp_pricing_period_type =
-                                               'Date' then
-                                           pfqpp.qp_date
-                                        end) qp_start_date,
-                                        (case
-                                          when pfqpp.qp_pricing_period_type =
-                                               'Period' then
-                                           pfqpp.qp_period_to_date
-                                          when pfqpp.qp_pricing_period_type =
-                                               'Month' then
-                                           last_day(to_date('01-' ||
-                                                            pfqpp.qp_month || '-' ||
-                                                            pfqpp.qp_year,
-                                                            'dd-Mon-yyyy'))
-                                          when pfqpp.qp_pricing_period_type =
-                                               'Date' then
-                                           pfqpp.qp_date
-                                        end) qp_end_date
-                                 
-                                   from pcm_physical_contract_main    pcm,
-                                        pci_physical_contract_item    pci,
-                                        pcdi_pc_delivery_item         pcdi,
-                                        pcipf_pci_pricing_formula     pcipf,
-                                        pcbph_pc_base_price_header    pcbph,
-                                        pcbpd_pc_base_price_detail    pcbpd,
-                                        ppfh_phy_price_formula_header ppfh,
-                                        pfqpp_phy_formula_qp_pricing  pfqpp
-                                  where pcm.internal_contract_ref_no =
-                                        pcdi.internal_contract_ref_no
-                                    and pci.internal_contract_item_ref_no =
-                                        pcipf.internal_contract_item_ref_no
-                                    and pci.pcdi_id = pcdi.pcdi_id
-                                    and pcipf.pcbph_id = pcbph.pcbph_id
-                                    and pcbph.pcbph_id = pcbpd.pcbph_id
-                                    and pcbpd.pcbpd_id = ppfh.pcbpd_id
-                                    and ppfh.ppfh_id = pfqpp.ppfh_id
-                                    and pfqpp.qp_pricing_period_type <>
-                                        'Event'
-                                    and pci.is_active = 'Y'
-                                    and pcipf.is_active = 'Y'
-                                    and pcbph.is_active = 'Y'
-                                    and pcbpd.is_active = 'Y'
-                                    and ppfh.is_active = 'Y'
-                                    and pfqpp.is_active = 'Y'
-                                    and pcdi.is_active = 'Y'
-                                    and pcm.dbd_id = pc_dbd_id
-                                    and pcm.contract_type = 'BASEMETAL'
-                                    and pci.dbd_id = pc_dbd_id
-                                    and pcdi.dbd_id = pc_dbd_id
-                                    and pcipf.dbd_id = pc_dbd_id
-                                    and pcbph.dbd_id = pc_dbd_id
-                                    and pcbpd.dbd_id = pc_dbd_id
-                                    and ppfh.dbd_id = pc_dbd_id
-                                    and pfqpp.dbd_id = pc_dbd_id
-                                    and pcdi.price_option_call_off_status =
-                                        'Not Called Off') t
-                          group by t.pcdi_id,
-                                   t.internal_contract_item_ref_no)
+    for cur_price_qp in (
+    select t.pcdi_id,
+       t.internal_contract_item_ref_no,
+       min(qp_start_date) qp_start_date,
+       min(qp_end_date) qp_end_date
+  from cqpd_contract_qp_detail t
+ where t.corporate_id = pc_corporate_id
+ group by t.pcdi_id,
+          t.internal_contract_item_ref_no)
     loop
       update pci_physical_contract_item pci
          set pci.qp_start_date = cur_price_qp.qp_start_date,
@@ -13257,7 +13264,8 @@ sp_gather_stats('phd_profileheaderdetails');
                          cm.cur_code,
                          cm.decimals,
                          pcm.is_tolling_contract,
-                         decode(pcm.purchase_sales,'P','Purchase', 'Sales') pcm_contract_type
+                         decode(pcm.purchase_sales,'P','Purchase', 'Sales') pcm_contract_type,
+                         gmr.qty_unit_id
                     from gmr_goods_movement_record  gmr,
                          grd_goods_record_detail    grd,
                          pci_physical_contract_item pci,
@@ -13288,7 +13296,8 @@ sp_gather_stats('phd_profileheaderdetails');
                             cm.cur_code,
                             cm.decimals,
                             pcm.is_tolling_contract,
-                            decode(pcm.purchase_sales,'P','Purchase', 'Sales'))
+                            decode(pcm.purchase_sales,'P','Purchase', 'Sales'),
+                            gmr.qty_unit_id)
   loop
     update gmr_goods_movement_record gmr
        set gmr.contract_ref_no          = cur_gmr.contract_ref_no,
@@ -13306,6 +13315,11 @@ sp_gather_stats('phd_profileheaderdetails');
           gmr.pcm_contract_type = cur_gmr.pcm_contract_type
      where gmr.dbd_id = pc_dbd_id
        and gmr.internal_gmr_ref_no = cur_gmr.internal_gmr_ref_no;
+       Update grd_goods_record_detail grd
+       set grd.gmr_qty_unit_id = cur_gmr.qty_unit_id
+       where grd.dbd_id = pc_dbd_id
+       and grd.internal_gmr_ref_no = cur_gmr.internal_gmr_ref_no
+       and grd.status ='Active';
   end loop;
   commit;
   gvn_log_counter :=  gvn_log_counter + 1;
@@ -13326,7 +13340,8 @@ for cur_gmr in (select gmr.internal_gmr_ref_no,
                          cm.cur_code,
                          cm.decimals,
                          pcm.is_tolling_contract,
-                         decode(pcm.purchase_sales,'P','Purchase', 'Sales') pcm_contract_type
+                         decode(pcm.purchase_sales,'P','Purchase', 'Sales') pcm_contract_type,
+                         gmr.qty_unit_id
                     from gmr_goods_movement_record  gmr,
                          dgrd_delivered_grd         grd,
                          pci_physical_contract_item pci,
@@ -13357,7 +13372,8 @@ for cur_gmr in (select gmr.internal_gmr_ref_no,
                             cm.cur_code,
                             cm.decimals,
                             pcm.is_tolling_contract,
-                            decode(pcm.purchase_sales,'P','Purchase', 'Sales'))
+                            decode(pcm.purchase_sales,'P','Purchase', 'Sales'),
+                            gmr.qty_unit_id)
   loop
     update gmr_goods_movement_record gmr
        set gmr.contract_ref_no          = cur_gmr.contract_ref_no,
@@ -13371,6 +13387,11 @@ for cur_gmr in (select gmr.internal_gmr_ref_no,
            gmr.pcm_contract_type = cur_gmr.pcm_contract_type
      where gmr.dbd_id = pc_dbd_id
        and gmr.internal_gmr_ref_no = cur_gmr.internal_gmr_ref_no;
+        Update dgrd_delivered_grd grd
+       set grd.gmr_qty_unit_id = cur_gmr.qty_unit_id
+       where grd.dbd_id = pc_dbd_id
+       and grd.internal_gmr_ref_no = cur_gmr.internal_gmr_ref_no
+       and grd.status ='Active';
   end loop;
 commit;
   gvn_log_counter :=  gvn_log_counter + 1;
@@ -13387,20 +13408,17 @@ commit;
 for cur_grd_convert in(
 select grd.internal_gmr_ref_no,
        grd.qty_unit_id grd_qty_unit_id,
-       gmr.qty_unit_id gmr_qty_unit_id,
+       grd.gmr_qty_unit_id gmr_qty_unit_id,
        ucm.multiplication_factor
   from grd_goods_record_detail    grd,
-       gmr_goods_movement_record  gmr,
        ucm_unit_conversion_master ucm
- where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-   and gmr.is_deleted = 'N'
-   and grd.status = 'Active'
+ where grd.status = 'Active'
    and grd.is_deleted = 'N'
    and grd.dbd_id = pc_dbd_id
-   and gmr.dbd_id = pc_dbd_id
    and ucm.from_qty_unit_id = grd.qty_unit_id
-   and ucm.to_qty_unit_id = gmr.qty_unit_id
-   and grd.qty_unit_id <> gmr.qty_unit_id) loop
+   and ucm.to_qty_unit_id = grd.gmr_qty_unit_id
+   and grd.qty_unit_id <> grd.gmr_qty_unit_id
+   and grd.tolling_stock_type in ('None Tolling','Clone Stock')) loop
    
 update grd_goods_record_detail grd
    set grd.grd_to_gmr_qty_factor = cur_grd_convert.multiplication_factor
@@ -13423,19 +13441,15 @@ sp_precheck_process_log(pc_corporate_id,
 for cur_grd_convert in(
 select dgrd.internal_gmr_ref_no,
        dgrd.net_weight_unit_id grd_qty_unit_id,
-       gmr.qty_unit_id gmr_qty_unit_id,
+       dgrd.gmr_qty_unit_id gmr_qty_unit_id,
        ucm.multiplication_factor
   from dgrd_delivered_grd         dgrd,
-       gmr_goods_movement_record  gmr,
        ucm_unit_conversion_master ucm
- where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-   and gmr.is_deleted = 'N'
-   and dgrd.status = 'Active'
+ where dgrd.status = 'Active'
    and dgrd.dbd_id = pc_dbd_id
-   and gmr.dbd_id = pc_dbd_id
    and ucm.from_qty_unit_id = dgrd.net_weight_unit_id
-   and ucm.to_qty_unit_id = gmr.qty_unit_id
-   and dgrd.net_weight_unit_id <> gmr.qty_unit_id) loop
+   and ucm.to_qty_unit_id = dgrd.gmr_qty_unit_id
+   and dgrd.net_weight_unit_id <> dgrd.gmr_qty_unit_id) loop
 update dgrd_delivered_grd dgrd
    set dgrd.dgrd_to_gmr_qty_factor = cur_grd_convert.multiplication_factor
  where dgrd.internal_gmr_ref_no = cur_grd_convert.internal_gmr_ref_no
@@ -13614,8 +13628,7 @@ select agmr.internal_gmr_ref_no,
    and agrd.status = 'Active'
    and agrd.is_deleted = 'N'
    and agmr.gmr_latest_action_action_id in
-       ('airDetail', 'shipmentDetail', 'railDetail', 'truckDetail',
-        'warehouseReceipt','shipmentAdvise','railAdvice','truckAdvice','airAdvice','releaseOrder')
+       ('airDetail', 'shipmentDetail', 'railDetail', 'truckDetail','warehouseReceipt')
    and agmr.is_internal_movement = 'N'
    and agmr.is_deleted = 'N'
    group by agmr.internal_gmr_ref_no) loop
@@ -13631,7 +13644,36 @@ commit;
                           pd_trade_date,
                           pc_dbd_id,
                           gvn_log_counter,
-                          'End of GMR No of Bags Update ');
+                          'End of GMR No of Bags Update For GRD ');
+
+for cur_gmr_bags in(                          
+select agmr.internal_gmr_ref_no,
+       sum(nvl(agrd.no_of_bags,0)) no_of_bags
+  from agmr_action_gmr agmr,
+       adgrd_action_dgrd@eka_appdb agrd
+ where agrd.action_no = agmr.action_no
+   and agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+   and agrd.status = 'Active'
+   and agrd.status = 'Active'
+   and agmr.gmr_latest_action_action_id in
+       ('shipmentAdvise','railAdvice','truckAdvice','airAdvice','releaseOrder')
+   and agmr.is_internal_movement = 'N'
+   and agmr.is_deleted = 'N'
+   group by agmr.internal_gmr_ref_no) loop
+update gmr_goods_movement_record gmr
+   set gmr.no_of_bags = cur_gmr_bags.no_of_bags
+ where gmr.dbd_id = pc_dbd_id
+   and gmr.is_deleted = 'N'
+   and gmr.internal_gmr_ref_no = cur_gmr_bags.internal_gmr_ref_no;
+end loop;   
+commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
+ sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GMR No of Bags Update For DGRD ');
+                                                    
    for cur_shipped_qty in (select agmr.internal_gmr_ref_no,
                                   nvl(agmr.qty, 0) shipped_qty
                              from agmr_action_gmr agmr
@@ -13828,7 +13870,8 @@ gvn_log_counter :=  gvn_log_counter + 1;
                           gvn_log_counter,
                           'End of GRD Concentrate Product Update'); 
 update gepd_gmr_element_pledge_detail gepd
-   set gepd.pledge_input_gmr_ref_no = (select gmr.gmr_ref_no from gmr_goods_movement_record gmr
+   set (gepd.pledge_input_gmr_ref_no, gepd.pledge_input_gmr_wh_profile_id, gepd.pledge_input_gmr_wh_name) = --
+   (select gmr.gmr_ref_no, gmr.warehouse_profile_id, gmr.warehouse_name from gmr_goods_movement_record gmr
                                         where gmr.internal_gmr_ref_no =
                                               gepd.pledge_input_gmr
                                           and gmr.dbd_id = pc_dbd_id)
@@ -14694,5 +14737,170 @@ sp_gather_stats('ced_contract_exchange_detail');
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);                
 end;  
+
+procedure sp_phy_create_gth_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+is 
+begin 
+insert into gth_gmr_treatment_header
+  (gth_id,
+   internal_gmr_ref_no,
+   pcdi_id,
+   pcth_id,
+   is_active,
+   internal_action_ref_no,
+   dbd_id)
+  select gthul.gth_id,
+         substr(max(case
+                      when gthul.internal_gmr_ref_no is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gthul.internal_gmr_ref_no
+                    end),
+                24) internal_gmr_ref_no,
+         substr(max(case
+                      when gthul.pcdi_id is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gthul.pcdi_id
+                    end),
+                24) pcdi_id,
+         substr(max(case
+                      when gthul.pcth_id is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gthul.pcth_id
+                    end),
+                24) pcth_id,
+         substr(max(case
+                      when gthul.is_active is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gthul.is_active
+                    end),
+                24) is_active,
+         substr(max(case
+                      when gthul.internal_action_ref_no is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gthul.internal_action_ref_no
+                    end),
+                24) internal_action_ref_no,
+         gvc_dbd_id
+ from gthul_gmr_treatment_header_ul gthul,
+         axs_action_summary            axs
+   where axs.process = gvc_process
+     and gthul.internal_action_ref_no = axs.internal_action_ref_no
+     and axs.eff_date <= pd_trade_date
+     and axs.corporate_id = pc_corporate_id
+     and gthul.process = gvc_process
+   group by gthul.gth_id;
+commit;      
+end;
+procedure sp_phy_create_grh_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+is 
+begin 
+insert into grh_gmr_refining_header
+  (grh_id,
+   internal_gmr_ref_no,
+   pcdi_id,
+   pcrh_id,
+   is_active,
+   internal_action_ref_no,
+   dbd_id)
+  select grhul.grh_id,
+         substr(max(case
+                      when grhul.internal_gmr_ref_no is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       grhul.internal_gmr_ref_no
+                    end),
+                24) internal_gmr_ref_no,
+         substr(max(case
+                      when grhul.pcdi_id is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       grhul.pcdi_id
+                    end),
+                24) pcdi_id,
+         substr(max(case
+                      when grhul.pcrh_id is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       grhul.pcrh_id
+                    end),
+                24) pcth_id,
+         substr(max(case
+                      when grhul.is_active is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       grhul.is_active
+                    end),
+                24) is_active,
+         substr(max(case
+                      when grhul.internal_action_ref_no is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       grhul.internal_action_ref_no
+                    end),
+                24) internal_action_ref_no,
+         gvc_dbd_id
+ from grhul_gmr_refining_header_ul grhul,
+         axs_action_summary            axs
+   where axs.process = gvc_process
+     and grhul.internal_action_ref_no = axs.internal_action_ref_no
+     and axs.eff_date <= pd_trade_date
+     and axs.corporate_id = pc_corporate_id
+     and grhul.process = gvc_process
+   group by grhul.grh_id;
+   commit;
+end;
+procedure sp_phy_create_gph_data(pc_corporate_id varchar2,
+                                   pd_trade_date   date,
+                                   pc_user_id      varchar2)
+is 
+begin 
+insert into gph_gmr_penalty_header
+  (gph_id,
+   internal_gmr_ref_no,
+   pcdi_id,
+   pcaph_id,
+   is_active,
+   internal_action_ref_no,
+   dbd_id)
+  select gphul.gph_id,
+         substr(max(case
+                      when gphul.internal_gmr_ref_no is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gphul.internal_gmr_ref_no
+                    end),
+                24) internal_gmr_ref_no,
+         substr(max(case
+                      when gphul.pcdi_id is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gphul.pcdi_id
+                    end),
+                24) pcdi_id,
+         substr(max(case
+                      when gphul.pcaph_id is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gphul.pcaph_id
+                    end),
+                24) pcaph_id,
+         substr(max(case
+                      when gphul.is_active is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gphul.is_active
+                    end),
+                24) is_active,
+         substr(max(case
+                      when gphul.internal_action_ref_no is not null then
+                       to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                       gphul.internal_action_ref_no
+                    end),
+                24) internal_action_ref_no,
+         gvc_dbd_id
+ from gphul_gmr_penalty_header_ul gphul,
+         axs_action_summary            axs
+   where axs.process = gvc_process
+     and gphul.internal_action_ref_no = axs.internal_action_ref_no
+     and axs.eff_date <= pd_trade_date
+     and axs.corporate_id = pc_corporate_id
+     and gphul.process = gvc_process
+   group by gphul.gph_id;
+end;
 end pkg_phy_populate_data; 
 /

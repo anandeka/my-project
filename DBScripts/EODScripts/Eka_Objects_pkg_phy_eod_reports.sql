@@ -1683,7 +1683,9 @@ create or replace package body pkg_phy_eod_reports is
        no_of_sublots,
        shipped_qty,
        gmr_qty_unit_id,
-       grd_to_gmr_qty_factor)
+       grd_to_gmr_qty_factor,
+       warehouse_profile_id,
+       warehouse_name)
       select gmr.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.gmr_ref_no,
@@ -1732,7 +1734,9 @@ create or replace package body pkg_phy_eod_reports is
              0,
              nvl(gmr.shipped_qty, 0),
              gmr.qty_unit_id,
-             1
+             1,
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail   grd,
              spq_stock_payable_qty     spq,
@@ -1811,7 +1815,9 @@ create or replace package body pkg_phy_eod_reports is
        no_of_sublots,
        shipped_qty,
        gmr_qty_unit_id,
-       grd_to_gmr_qty_factor)
+       grd_to_gmr_qty_factor,
+       warehouse_profile_id,
+       warehouse_name)
       select gmr.internal_gmr_ref_no,
              dgrd.internal_dgrd_ref_no,
              gmr.gmr_ref_no,
@@ -1860,7 +1866,9 @@ create or replace package body pkg_phy_eod_reports is
              0,
              nvl(gmr.shipped_qty, 0),
              gmr.qty_unit_id,
-             1
+             1,
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record gmr,
              dgrd_delivered_grd        dgrd,
              spq_stock_payable_qty     spq,
@@ -1966,7 +1974,9 @@ create or replace package body pkg_phy_eod_reports is
        no_of_sublots,
        shipped_qty,
        gmr_qty_unit_id,
-       grd_to_gmr_qty_factor)
+       grd_to_gmr_qty_factor,
+       warehouse_profile_id,
+       warehouse_name)
       select gmr.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.gmr_ref_no,
@@ -2020,7 +2030,9 @@ create or replace package body pkg_phy_eod_reports is
              0,
              gmr.shipped_qty,
              gmr.qty_unit_id,
-             1
+             1,
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record   gmr,
              grd_goods_record_detail     grd,
              pcpd_pc_product_definition  pcpd,
@@ -2116,7 +2128,9 @@ create or replace package body pkg_phy_eod_reports is
        no_of_sublots,
        shipped_qty,
        gmr_qty_unit_id,
-       grd_to_gmr_qty_factor)
+       grd_to_gmr_qty_factor,
+       warehouse_profile_id,
+       warehouse_name)
       select gmr.internal_gmr_ref_no,
              dgrd.internal_dgrd_ref_no,
              gmr.gmr_ref_no,
@@ -2170,7 +2184,9 @@ create or replace package body pkg_phy_eod_reports is
              0,
              gmr.shipped_qty,
              gmr.qty_unit_id,
-             1
+             1,
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record   gmr,
              dgrd_delivered_grd          dgrd,
              pcpd_pc_product_definition  pcpd,
@@ -2266,7 +2282,9 @@ create or replace package body pkg_phy_eod_reports is
        supp_internal_gmr_ref_no,
        supp_gmr_ref_no,
        gmr_qty_unit_id,
-       grd_to_gmr_qty_factor)
+       grd_to_gmr_qty_factor,
+       warehouse_profile_id,
+       warehouse_name)
       select grd.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.gmr_ref_no,
@@ -2308,7 +2326,9 @@ create or replace package body pkg_phy_eod_reports is
              gepd.pledge_input_gmr supp_internal_gmr_ref_no,
              gepd.pledge_input_gmr_ref_no supp_gmr_ref_no,
              gmr.qty_unit_id,
-             1
+             1,
+             gepd.pledge_input_gmr_wh_profile_id,
+             gepd.pledge_input_gmr_wh_name
         from ii_invoicable_item             ii,
              grd_goods_record_detail        grd,
              gepd_gmr_element_pledge_detail gepd,
@@ -2375,7 +2395,9 @@ create or replace package body pkg_phy_eod_reports is
        supp_internal_gmr_ref_no,
        supp_gmr_ref_no,
        gmr_qty_unit_id,
-       grd_to_gmr_qty_factor)
+       grd_to_gmr_qty_factor,
+       warehouse_profile_id,
+       warehouse_name)
       select dgrd.internal_gmr_ref_no,
              dgrd.internal_grd_ref_no,
              gmr.gmr_ref_no,
@@ -2417,7 +2439,9 @@ create or replace package body pkg_phy_eod_reports is
              gepd.pledge_input_gmr supp_internal_gmr_ref_no,
              gepd.pledge_input_gmr_ref_no supp_gmr_ref_no,
              gmr.qty_unit_id,
-             1
+             1,
+             gepd.pledge_input_gmr_wh_profile_id,
+             gepd.pledge_input_gmr_wh_name
         from ii_invoicable_item             ii,
              dgrd_delivered_grd             dgrd,
              gepd_gmr_element_pledge_detail gepd,
@@ -2899,7 +2923,9 @@ create or replace package body pkg_phy_eod_reports is
          is_pledge,
          contract_price_in_pay_in,
          pay_in_price_unit_id,
-         pay_in_price_unit_name)
+         pay_in_price_unit_name,
+         warehouse_profile_id,
+         warehouse_name)
       values
         (cur_pur_accural_rows.corporate_id,
          pc_process_id,
@@ -2936,7 +2962,9 @@ create or replace package body pkg_phy_eod_reports is
          cur_pur_accural_rows.is_pledge,
          vn_gmr_price_in_pay_in_cur,
          vc_pay_in_price_unit_id,
-         cur_pur_accural_rows.pay_in_price_unit_name);
+         cur_pur_accural_rows.pay_in_price_unit_name,
+         cur_pur_accural_rows.warehouse_profile_id,
+         cur_pur_accural_rows.warehouse_name);
     end loop;
     commit;
     vn_log_counter := vn_log_counter + 1;
@@ -3026,7 +3054,9 @@ create or replace package body pkg_phy_eod_reports is
          supp_gmr_ref_no,
          contract_price_in_pay_in,
          pay_in_price_unit_id,
-         pay_in_price_unit_name)
+         pay_in_price_unit_name,
+         warehouse_profile_id,
+         warehouse_name)
       values
         (cur_pur_accural_rows.corporate_id,
          pc_process_id,
@@ -3062,7 +3092,9 @@ create or replace package body pkg_phy_eod_reports is
          cur_pur_accural_rows.supp_gmr_ref_no,
          vn_gmr_price_in_pay_in_cur,
          cur_pur_accural_rows.pay_in_price_unit_id,
-         cur_pur_accural_rows.pay_in_price_unit_name);
+         cur_pur_accural_rows.pay_in_price_unit_name,
+         cur_pur_accural_rows.warehouse_profile_id,
+         cur_pur_accural_rows.warehouse_name);
     end loop;
     -- End Loop for Pledge GMRs                  
     delete from pa_temp where corporate_id = pc_corporate_id;
@@ -3098,7 +3130,9 @@ create or replace package body pkg_phy_eod_reports is
        latest_internal_invoice_ref_no,
        invoice_ref_no,
        is_afloat,
-       is_pledge)
+       is_pledge,
+       warehouse_profile_id,
+       warehouse_name)
       select grd.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.internal_contract_ref_no,
@@ -3121,7 +3155,9 @@ create or replace package body pkg_phy_eod_reports is
              gmr.latest_internal_invoice_ref_no,
              is1.invoice_ref_no,
              grd.is_afloat,
-             'N'
+             'N',
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record     gmr,
              grd_goods_record_detail       grd,
              iid_invoicable_item_details   iid,
@@ -3186,7 +3222,9 @@ create or replace package body pkg_phy_eod_reports is
        latest_internal_invoice_ref_no,
        invoice_ref_no,
        is_afloat,
-       is_pledge)
+       is_pledge,
+       warehouse_profile_id,
+       warehouse_name)
       select dgrd.internal_gmr_ref_no,
              dgrd.internal_grd_ref_no,
              gmr.internal_contract_ref_no,
@@ -3209,7 +3247,9 @@ create or replace package body pkg_phy_eod_reports is
              gmr.latest_internal_invoice_ref_no,
              is1.invoice_ref_no,
              dgrd.is_afloat,
-             'N'
+             'N',
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record     gmr,
              dgrd_delivered_grd            dgrd,
              iid_invoicable_item_details   iid,
@@ -3276,7 +3316,9 @@ create or replace package body pkg_phy_eod_reports is
        is_afloat,
        is_pledge,
        supp_internal_gmr_ref_no,
-       supp_gmr_ref_no)
+       supp_gmr_ref_no,
+       warehouse_profile_id,
+       warehouse_name)
       select grd.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.internal_contract_ref_no,
@@ -3301,7 +3343,9 @@ create or replace package body pkg_phy_eod_reports is
              grd.is_afloat,
              'Y', -- Pledge
              gepd.pledge_input_gmr,
-             gepd.pledge_input_gmr_ref_no
+             gepd.pledge_input_gmr_ref_no,
+             gepd.pledge_input_gmr_wh_profile_id,
+             gepd.pledge_input_gmr_wh_name
         from ii_invoicable_item             ii,
              iid_invoicable_item_details    iid,
              grd_goods_record_detail        grd,
@@ -3357,7 +3401,9 @@ create or replace package body pkg_phy_eod_reports is
        is_afloat,
        is_pledge,
        supp_internal_gmr_ref_no,
-       supp_gmr_ref_no)
+       supp_gmr_ref_no,
+       warehouse_profile_id,
+       warehouse_name)
       select dgrd.internal_gmr_ref_no,
              dgrd.internal_grd_ref_no,
              gmr.internal_contract_ref_no,
@@ -3382,7 +3428,9 @@ create or replace package body pkg_phy_eod_reports is
              dgrd.is_afloat,
              'Y', -- Pledge
              gepd.pledge_input_gmr,
-             gepd.pledge_input_gmr_ref_no
+             gepd.pledge_input_gmr_ref_no,
+             gepd.pledge_input_gmr_wh_profile_id,
+             gepd.pledge_input_gmr_wh_name
         from ii_invoicable_item             ii,
              iid_invoicable_item_details    iid,
              dgrd_delivered_grd             dgrd,
@@ -3437,7 +3485,9 @@ create or replace package body pkg_phy_eod_reports is
        latest_internal_invoice_ref_no,
        invoice_ref_no,
        is_afloat,
-       is_pledge)
+       is_pledge,
+       warehouse_profile_id,
+       warehouse_name)
       select grd.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.internal_contract_ref_no,
@@ -3480,7 +3530,9 @@ create or replace package body pkg_phy_eod_reports is
              gmr.latest_internal_invoice_ref_no,
              gmr.invoice_ref_no,
              grd.is_afloat,
-             'N'
+             'N',
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record   gmr,
              grd_goods_record_detail     grd,
              iid_invoicable_item_details iid,
@@ -3530,7 +3582,9 @@ create or replace package body pkg_phy_eod_reports is
                 gmr.invoice_ref_no,
                 grd.is_afloat,
                 gmr.gmr_latest_action_action_id,
-                gmr.pcm_contract_type;
+                gmr.pcm_contract_type,
+                gmr.warehouse_profile_id,
+                gmr.warehouse_name;
     commit;
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -3565,7 +3619,9 @@ create or replace package body pkg_phy_eod_reports is
        latest_internal_invoice_ref_no,
        invoice_ref_no,
        is_afloat,
-       is_pledge)
+       is_pledge,
+       warehouse_profile_id,
+       warehouse_name)
       select dgrd.internal_gmr_ref_no,
              dgrd.internal_grd_ref_no,
              gmr.internal_contract_ref_no,
@@ -3608,7 +3664,9 @@ create or replace package body pkg_phy_eod_reports is
              gmr.latest_internal_invoice_ref_no,
              gmr.invoice_ref_no,
              dgrd.is_afloat,
-             'N'
+             'N',
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record   gmr,
              dgrd_delivered_grd          dgrd,
              iid_invoicable_item_details iid,
@@ -3658,7 +3716,9 @@ create or replace package body pkg_phy_eod_reports is
                 gmr.latest_internal_invoice_ref_no,
                 gmr.invoice_ref_no,
                 dgrd.is_afloat,
-                'N';
+                'N',
+                gmr.warehouse_profile_id,
+                gmr.warehouse_name;
     commit;
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -3696,7 +3756,9 @@ create or replace package body pkg_phy_eod_reports is
        is_afloat,
        is_pledge,
        supp_internal_gmr_ref_no,
-       supp_gmr_ref_no)
+       supp_gmr_ref_no,
+       warehouse_profile_id,
+       warehouse_name)
       select temp.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -3723,7 +3785,9 @@ create or replace package body pkg_phy_eod_reports is
              temp.is_afloat,
              temp.is_pledge,
              temp.supp_internal_gmr_ref_no,
-             temp.supp_gmr_ref_no
+             temp.supp_gmr_ref_no,
+             temp.warehouse_profile_id,
+             temp.warehouse_name
         from pa_temp temp,
              pdm_productmaster pdm_conc,
              cm_currency_master cm,
@@ -3769,7 +3833,9 @@ create or replace package body pkg_phy_eod_reports is
                 temp.is_afloat,
                 temp.is_pledge,
                 temp.supp_internal_gmr_ref_no,
-                temp.supp_gmr_ref_no;
+                temp.supp_gmr_ref_no,
+                temp.warehouse_profile_id,
+                temp.warehouse_name;
     commit;
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -3887,7 +3953,9 @@ create or replace package body pkg_phy_eod_reports is
        supp_gmr_ref_no,
        contract_price_in_pay_in,
        pay_in_price_unit_id,
-       pay_in_price_unit_name)
+       pay_in_price_unit_name,
+       warehouse_profile_id,
+       warehouse_name)
       select pa.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -3926,7 +3994,9 @@ create or replace package body pkg_phy_eod_reports is
              pa.supp_gmr_ref_no,
              pa.contract_price_in_pay_in,
              pa.pay_in_price_unit_id,
-             pa.pay_in_price_unit_name
+             pa.pay_in_price_unit_name,
+             pa.warehouse_profile_id,
+             pa.warehouse_name
         from pa_purchase_accural pa
        where pa.process_id = pc_process_id
          and pa.corporate_id = pc_corporate_id
@@ -3957,7 +4027,9 @@ create or replace package body pkg_phy_eod_reports is
                 pa.supp_gmr_ref_no,
                 pa.contract_price_in_pay_in,
                 pa.pay_in_price_unit_id,
-                pa.pay_in_price_unit_name;
+                pa.pay_in_price_unit_name,
+                pa.warehouse_profile_id,
+                pa.warehouse_name;
     commit;
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -4045,7 +4117,9 @@ create or replace package body pkg_phy_eod_reports is
        is_afloat,
        is_pledge,
        supp_internal_gmr_ref_no,
-       supp_gmr_ref_no)
+       supp_gmr_ref_no,
+       warehouse_profile_id,
+       warehouse_name)
       select pa.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -4166,7 +4240,9 @@ create or replace package body pkg_phy_eod_reports is
              pa.is_afloat,
              pa.is_pledge,
              pa.supp_internal_gmr_ref_no,
-             pa.supp_gmr_ref_no
+             pa.supp_gmr_ref_no,
+             pa.warehouse_profile_id,
+             pa.warehouse_name
         from pa_purchase_accural_gmr pa
        where pa.process_id = pc_process_id
        group by pa.corporate_id,
@@ -4188,7 +4264,9 @@ create or replace package body pkg_phy_eod_reports is
                 pa.is_afloat,
                 pa.is_pledge,
                 pa.supp_internal_gmr_ref_no,
-                pa.supp_gmr_ref_no;
+                pa.supp_gmr_ref_no,
+                pa.warehouse_profile_id,
+                pa.warehouse_name;
     commit;
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -4372,7 +4450,9 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
        shipped_qty,
        gmr_qty_unit_id,
        grd_to_gmr_qty_factor,
-       trade_type)
+       trade_type,
+       warehouse_profile_id,
+       warehouse_name)
       select gmr.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.gmr_ref_no,
@@ -4422,7 +4502,9 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
              nvl(gmr.shipped_qty, 0),
              gmr.qty_unit_id,
              1,
-             'Base Metal'
+             'Base Metal',
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record gmr,
              grd_goods_record_detail   grd
        where grd.status = 'Active'
@@ -4493,7 +4575,9 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
        shipped_qty,
        gmr_qty_unit_id,
        grd_to_gmr_qty_factor,
-       trade_type)
+       trade_type,
+       warehouse_profile_id,
+       warehouse_name)
       select gmr.internal_gmr_ref_no,
              dgrd.internal_dgrd_ref_no,
              gmr.gmr_ref_no,
@@ -4543,7 +4627,9 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
              nvl(gmr.shipped_qty, 0),
              gmr.qty_unit_id,
              1,
-             'Base Metal'
+             'Base Metal',
+             gmr.warehouse_profile_id,
+             gmr.warehouse_name
         from gmr_goods_movement_record gmr,
              dgrd_delivered_grd        dgrd
        where dgrd.status = 'Active'
@@ -4788,7 +4874,9 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
          contract_price_in_pay_in,
          pay_in_price_unit_id,
          pay_in_price_unit_name,
-         trade_type)
+         trade_type,
+         warehouse_profile_id,
+         warehouse_name)
       values
         (cur_pur_accural_rows.corporate_id,
          pc_process_id,
@@ -4826,7 +4914,9 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
          vn_gmr_price_in_pay_in_cur,
          vc_pay_in_price_unit_id,
          cur_pur_accural_rows.pay_in_price_unit_name,
-         'Base Metal');
+         'Base Metal',
+         cur_pur_accural_rows.warehouse_profile_id,
+         cur_pur_accural_rows.warehouse_name);
     end loop;
   commit;  
     vn_log_counter := vn_log_counter + 1;
@@ -4862,7 +4952,9 @@ insert into pa_temp
        invoice_ref_no,
        is_afloat,
        is_pledge,
-       trade_type)
+       trade_type,
+       warehouse_profile_id,
+       warehouse_name)
 select grd.internal_gmr_ref_no,
        grd.internal_grd_ref_no,
        gmr.internal_contract_ref_no,
@@ -4886,7 +4978,9 @@ select grd.internal_gmr_ref_no,
        is1.invoice_ref_no,
        grd.is_afloat,
        'N',
-       'Base Metal'
+       'Base Metal',
+       gmr.warehouse_profile_id,
+       gmr.warehouse_name
   from gmr_goods_movement_record     gmr,
        grd_goods_record_detail       grd,
        iid_invoicable_item_details   iid,
@@ -4938,7 +5032,9 @@ select grd.internal_gmr_ref_no,
        invoice_ref_no,
        is_afloat,
        is_pledge,
-       trade_type)
+       trade_type,
+       warehouse_profile_id,
+       warehouse_name)
    select dgrd.internal_gmr_ref_no,
        dgrd.internal_dgrd_ref_no,
        gmr.internal_contract_ref_no,
@@ -4962,7 +5058,9 @@ select grd.internal_gmr_ref_no,
        is1.invoice_ref_no,
        dgrd.is_afloat,
        'N',
-       'Base Metal'
+       'Base Metal',
+       gmr.warehouse_profile_id,
+       gmr.warehouse_name
   from gmr_goods_movement_record     gmr,
        dgrd_delivered_grd            dgrd,
        iid_invoicable_item_details   iid,
@@ -5018,7 +5116,9 @@ select grd.internal_gmr_ref_no,
        is_pledge,
        supp_internal_gmr_ref_no,
        supp_gmr_ref_no,
-       trade_type)
+       trade_type,
+       warehouse_profile_id,
+       warehouse_name)
       select temp.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -5046,7 +5146,9 @@ select grd.internal_gmr_ref_no,
              temp.is_pledge,
              temp.supp_internal_gmr_ref_no,
              temp.supp_gmr_ref_no,
-             'Base Metal'
+             'Base Metal',
+             temp.warehouse_profile_id,
+             temp.warehouse_name
         from pa_temp temp,
              pdm_productmaster pdm_conc,
              cm_currency_master cm,
@@ -5076,7 +5178,9 @@ select grd.internal_gmr_ref_no,
                 temp.is_afloat,
                 temp.is_pledge,
                 temp.supp_internal_gmr_ref_no,
-                temp.supp_gmr_ref_no;
+                temp.supp_gmr_ref_no,
+                temp.warehouse_profile_id,
+                temp.warehouse_name;
 
 --                         
 -- Update Freight and Other Charges from Invoice
@@ -5162,7 +5266,9 @@ insert into pa_purchase_accural_gmr
        contract_price_in_pay_in,
        pay_in_price_unit_id,
        pay_in_price_unit_name,
-       trade_type)
+       trade_type,
+       warehouse_profile_id,
+       warehouse_name)
       select pa.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -5202,7 +5308,9 @@ insert into pa_purchase_accural_gmr
              pa.contract_price_in_pay_in,
              pa.pay_in_price_unit_id,
              pa.pay_in_price_unit_name,
-             'Base Metal'
+             'Base Metal',
+             pa.warehouse_profile_id,
+             pa.warehouse_name
         from pa_purchase_accural pa
        where pa.process_id = pc_process_id
          and pa.corporate_id = pc_corporate_id
@@ -5233,7 +5341,9 @@ insert into pa_purchase_accural_gmr
                 pa.supp_gmr_ref_no,
                 pa.contract_price_in_pay_in,
                 pa.pay_in_price_unit_id,
-                pa.pay_in_price_unit_name;
+                pa.pay_in_price_unit_name,
+                pa.warehouse_profile_id,
+                pa.warehouse_name;
 commit;   
     --
     -- Difference Section at GMR level
@@ -5270,7 +5380,9 @@ commit;
        is_pledge,
        supp_internal_gmr_ref_no,
        supp_gmr_ref_no,
-       trade_type)
+       trade_type,
+       warehouse_profile_id,
+       warehouse_name)
       select pa.corporate_id,
              pc_process_id,
              pd_trade_date,
@@ -5392,7 +5504,9 @@ commit;
              pa.is_pledge,
              pa.supp_internal_gmr_ref_no,
              pa.supp_gmr_ref_no,
-             'Base Metal'
+             'Base Metal',
+             pa.warehouse_profile_id,
+             pa.warehouse_name
         from pa_purchase_accural_gmr pa
        where pa.process_id = pc_process_id
        and pa.trade_type ='Base Metal'
@@ -5415,7 +5529,9 @@ commit;
                 pa.is_afloat,
                 pa.is_pledge,
                 pa.supp_internal_gmr_ref_no,
-                pa.supp_gmr_ref_no;
+                pa.supp_gmr_ref_no,
+                pa.warehouse_profile_id,
+                pa.warehouse_name;
     commit;
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -5427,28 +5543,6 @@ commit;
   --
   -- Purchase Accrual update statements here
   --
-    for cc in (select gmr.internal_gmr_ref_no,
-                      gmr.warehouse_profile_id,
-                      gmr.warehouse_name companyname
-                 from gmr_goods_movement_record gmr
-                where gmr.is_deleted = 'N'
-                  and gmr.process_id = pc_process_id
-                  and gmr.warehouse_profile_id is not null)
-    loop
-      -- This update is for Non Pledge GMR
-      update pa_purchase_accural_gmr pa
-         set pa.warehouse_profile_id = cc.warehouse_profile_id,
-             pa.warehouse_name       = cc.companyname
-       where pa.internal_gmr_ref_no = cc.internal_gmr_ref_no
-         and pa.process_id = pc_process_id;
-      -- This update is for Pledge GMR
-      update pa_purchase_accural_gmr pa
-         set pa.warehouse_profile_id = cc.warehouse_profile_id,
-             pa.warehouse_name       = cc.companyname
-       where pa.supp_internal_gmr_ref_no = cc.internal_gmr_ref_no
-         and pa.process_id = pc_process_id;
-    end loop;
-    commit;
     for cc1 in (select grd.internal_gmr_ref_no,
                        grd.quality_id,
                        grd.quality_name
@@ -6649,7 +6743,6 @@ procedure sp_phy_intrstat(pc_corporate_id varchar2,
                           pc_process_id   varchar2) as
   vobj_error_log         tableofpelerrorlog := tableofpelerrorlog();
   vn_eel_error_count     number := 1;
-  vc_previous_process_id varchar2(15);
   vc_base_cur_id         varchar2(15);
   vc_base_cur_code       varchar2(15);
   vn_exch_rate           number;
@@ -8808,13 +8901,10 @@ select pc_corporate_id,
          spq.element_id,
          sum(spq.payable_qty) landed_qty
     from pcm_physical_contract_main pcm,
---         pcmte_pcm_tolling_ext      pcmte,
          gmr_goods_movement_record  gmr,
          spq_stock_payable_qty      spq,
          grd_goods_record_detail    grd
    where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
---     and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no
---     and pcmte.tolling_service_type = 'S'
      and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
      and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
      and spq.internal_grd_ref_no = grd.internal_grd_ref_no
@@ -8830,8 +8920,16 @@ select pc_corporate_id,
      and grd.process_id = pc_process_id
      and grd.status = 'Active'
    group by gmr.internal_contract_ref_no,
-            spq.element_id
-union all
+            spq.element_id;
+commit;
+gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Main Table tcs1_temp_cs_payable over 1');  
+insert into tcs1_temp_cs_payable
+  (corporate_id, internal_contract_ref_no, element_id, landed_qty)
 --Concentrates S contracts
 select pc_corporate_id,
          gmr.internal_contract_ref_no,
@@ -8857,49 +8955,57 @@ select pc_corporate_id,
      and dgrd.process_id = pc_process_id
      and dgrd.status = 'Active'
    group by gmr.internal_contract_ref_no,
-            spq.element_id       
-union all
+            spq.element_id ;
+commit;
+gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Main Table tcs1_temp_cs_payable over 2');                   
+insert into tcs1_temp_cs_payable
+  (corporate_id, internal_contract_ref_no, element_id, landed_qty)
 --Base Metals P contracts
 select pc_corporate_id,
          gmr.internal_contract_ref_no,
          null element_id,
          sum(grd.qty) landed_qty
-    from pcm_physical_contract_main pcm,
-         gmr_goods_movement_record  gmr,
+    from gmr_goods_movement_record  gmr,
          grd_goods_record_detail    grd
-   where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
-     and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no   
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no   
      and gmr.landed_qty > 0
-     and pcm.is_active = 'Y'
      and gmr.is_deleted = 'N'
-     and pcm.contract_type = 'BASEMETAL'
-     and pcm.process_id = pc_process_id
+     and gmr.gmr_type = 'BASEMETAL'
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
      and grd.status = 'Active'
-   group by gmr.internal_contract_ref_no
-union all
+   group by gmr.internal_contract_ref_no;
+commit;   
+gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Main Table tcs1_temp_cs_payable over 3');  
+insert into tcs1_temp_cs_payable
+  (corporate_id, internal_contract_ref_no, element_id, landed_qty)
 --Base Metals S contracts
 select pc_corporate_id,
          gmr.internal_contract_ref_no,
          null element_id,
          sum(dgrd.net_weight) landed_qty
-    from pcm_physical_contract_main pcm,
-         gmr_goods_movement_record  gmr,
+    from gmr_goods_movement_record  gmr,
          dgrd_delivered_grd         dgrd
-   where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
-     and gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no   
+   where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no   
      and gmr.landed_qty > 0
-     and pcm.is_active = 'Y'
      and gmr.is_deleted = 'N'
-     and pcm.contract_type = 'BASEMETAL'
-     and pcm.process_id = pc_process_id
+     and gmr.gmr_type = 'BASEMETAL'
      and gmr.process_id = pc_process_id
      and dgrd.process_id = pc_process_id
      and dgrd.status = 'Active'
    group by gmr.internal_contract_ref_no;
       commit;     
-      gvn_log_counter := gvn_log_counter + 1;
+gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
@@ -8913,15 +9019,12 @@ select pc_corporate_id,
          poch.element_id,
          sum(pfd.qty_fixed) priced_qty
     from pcm_physical_contract_main     pcm,
---         pcmte_pcm_tolling_ext          pcmte,
          pcdi_pc_delivery_item          pcdi,
          poch_price_opt_call_off_header poch,
          pocd_price_option_calloff_dtls pocd,
          pofh_price_opt_fixation_header pofh,
          pfd_price_fixation_details     pfd
    where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
---     and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no
---     and pcmte.tolling_service_type = 'S'
      and pocd.price_type <> 'Fixed'
      and pcdi.pcdi_id = poch.pcdi_id
      and poch.poch_id = pocd.poch_id
@@ -8938,23 +9041,29 @@ select pc_corporate_id,
      and pfd.hedge_correction_date <= pd_trade_date
      and nvl(pfd.is_cancel,'N')='N'
    group by pcm.internal_contract_ref_no,
-            poch.element_id
-  union all
+            poch.element_id;
+commit;
+ gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Main Table tcs2_temp_cs_priced over 1');     
+            
+ insert into tcs2_temp_cs_priced
+  (corporate_id, internal_contract_ref_no, element_id, priced_qty)
   --Price type =  Fixed, all Tolling and Concentrates
   select pc_corporate_id,
          pcm.internal_contract_ref_no,
          dipq.element_id,
          sum(dipq.payable_qty) priced_qty
     from pcm_physical_contract_main     pcm,
---         pcmte_pcm_tolling_ext          pcmte,
          pcdi_pc_delivery_item          pcdi,
          dipq_delivery_item_payable_qty dipq,
          poch_price_opt_call_off_header poch,
          pocd_price_option_calloff_dtls pocd,
          aml_attribute_master_list      aml
    where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
---     and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no
---     and pcmte.tolling_service_type = 'S'
      and dipq.pcdi_id = pcdi.pcdi_id
      and pcdi.pcdi_id = poch.pcdi_id
      and poch.poch_id = pocd.poch_id
@@ -8972,8 +9081,15 @@ select pc_corporate_id,
      and pcm.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
    group by pcm.internal_contract_ref_no,
-            dipq.element_id
- union all
+            dipq.element_id;
+  gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Main Table tcs2_temp_cs_priced over 2');              
+ insert into tcs2_temp_cs_priced
+  (corporate_id, internal_contract_ref_no, element_id, priced_qty)
 --Price type =  Fixed, all Base Metal contracts
   select pc_corporate_id,
          pcm.internal_contract_ref_no,
@@ -11737,7 +11853,9 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
@@ -11765,7 +11883,9 @@ insert into temp_mas
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          (select gmr.internal_gmr_ref_no,
@@ -11843,7 +11963,9 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
@@ -11871,7 +11993,9 @@ insert into temp_mas
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          (select gmr.internal_gmr_ref_no,
@@ -11950,7 +12074,9 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
@@ -11978,7 +12104,9 @@ insert into temp_mas
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from grd_goods_record_detail grd,
          gmr_goods_movement_record gmr,
          temp_stock_latest_assay tspq,        
@@ -12057,11 +12185,13 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
-         'Raw Material Stock IM',
+         'Raw Material Stock IM Existing Stock',
          aml.underlying_product_id,
          pdm.product_desc,
          'Inventory' position_type,
@@ -12085,7 +12215,9 @@ insert into temp_mas
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from grd_goods_record_detail grd,
          gmr_goods_movement_record gmr,
           temp_stock_latest_assay tspq,  
@@ -12164,7 +12296,9 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
@@ -12197,7 +12331,9 @@ insert into temp_mas
          grd.qty stock_qty,
          grd.qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          aml_attribute_master_list aml,
@@ -12230,6 +12366,7 @@ insert into temp_mas
      and grd.internal_action_ref_no=axs.internal_action_ref_no
      and axs.process='EOM'          
      and agmr.eff_date <= pd_trade_date
+     and gmr.is_pass_through ='Y' -- Only for PCT Internal
      and grd.tolling_stock_type in
          ('MFT In Process Stock', 'Free Metal IP Stock', 'Delta FM IP Stock',
           'Delta MFT IP Stock');
@@ -12259,11 +12396,13 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
-         'Finished Stock',
+         'Finished Stock Conc New',
          pdm_aml.product_id,
          pdm_aml.product_desc,
          'Inventory' position_type,
@@ -12287,7 +12426,9 @@ insert into temp_mas
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
          pdm_aml.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          sam_stock_assay_mapping sam,
@@ -12360,7 +12501,9 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
@@ -12388,7 +12531,9 @@ insert into temp_mas
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
          pdm_aml.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          sam_stock_assay_mapping sam,
@@ -12464,11 +12609,13 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
-         'Finished Stock',
+         'Finished Stock Conc IM New',
          pdm_aml.product_id,
          pdm_aml.product_desc,
          'Inventory' position_type,
@@ -12492,7 +12639,9 @@ insert into temp_mas
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
          pdm_aml.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          sam_stock_assay_mapping sam,
@@ -12566,11 +12715,13 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
-         'Finished Stock Conc Existing',
+         'Finished Stock Conc IM Existing',
          pdm_aml.product_id,
          pdm_aml.product_desc,
          'Inventory' position_type,
@@ -12594,7 +12745,9 @@ insert into temp_mas
             rm.qty_unit_id_numerator
          end) stock_qty_unit_id,
          pdm_aml.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          sam_stock_assay_mapping sam,
@@ -12669,11 +12822,13 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
-         'Finished Stock',
+         'Finished Stock BM',
          grd.product_id,
          pdm.product_desc,
          'Inventory' position_type,
@@ -12685,7 +12840,9 @@ insert into temp_mas
          grd.qty stock_qty,
          grd.qty_unit_id stock_qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          (select gmr.internal_gmr_ref_no,
@@ -12747,7 +12904,9 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
@@ -12763,7 +12922,9 @@ insert into temp_mas
          grd.qty stock_qty,
          grd.qty_unit_id stock_qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          (select gmr.internal_gmr_ref_no,
@@ -12826,11 +12987,13 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
-         'Finished Stock',
+         'Finished Stock BM Existing',
          grd.product_id,
          pdm.product_desc,
          'Inventory' position_type,
@@ -12842,7 +13005,9 @@ insert into temp_mas
          grd.qty - grd.moved_out_qty stock_qty,
          grd.qty_unit_id stock_qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          (select gmr.internal_gmr_ref_no,
@@ -12903,11 +13068,13 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
   select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
-         'In Process Stock',
+         'Finished Stock Existing Negative',
          grd.product_id,
          pdm.product_desc,
          'Inventory' position_type,
@@ -12919,7 +13086,9 @@ insert into temp_mas
          (grd.qty) * -1 stock_qty,
          grd.qty_unit_id stock_qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          (select gmr.internal_gmr_ref_no,
@@ -12981,7 +13150,9 @@ insert into temp_mas
    stock_qty,
    stock_qty_unit_id,
    product_base_qty_unit_id,
-   qty_unit)
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
     select pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
@@ -12997,7 +13168,9 @@ insert into temp_mas
         -1 * grd.qty stock_qty,
          grd.qty_unit_id,
          pdm.base_quantity_unit qty_unit_id,
-         qum.qty_unit
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          aml_attribute_master_list aml,
@@ -13029,31 +13202,338 @@ insert into temp_mas
      and agmr.eff_date <= vd_prev_eom_date
      and grd.tolling_stock_type in ('MFT In Process Stock', 'Delta MFT IP Stock');
 commit;
-     
+
+-- Added on Apr 18 2013 Start
 --
--- Now we have to convert payable qty to Product Base Quantity Unit
+-- Sales Concentrates New and Existing Stock
 --
-for cur_stock_qty in
-(
-select product_id,
-       stock_qty_unit_id,
-       product_base_qty_unit_id
-  from temp_mas t
- where t.corporate_id = pc_corporate_id
-   and t.stock_qty_unit_id <> t.product_base_qty_unit_id
- group by product_id,
-          stock_qty_unit_id,
-          product_base_qty_unit_id
-) loop
-update temp_mas t
-   set t.stock_qty = pkg_general.f_get_converted_quantity(cur_stock_qty.product_id,
-                                                          cur_stock_qty.stock_qty_unit_id,
-                                                          cur_stock_qty.product_base_qty_unit_id,
-                                                          1) * t.stock_qty
- where t.stock_qty_unit_id = cur_stock_qty.stock_qty_unit_id
-   and t.product_base_qty_unit_id = cur_stock_qty.product_base_qty_unit_id
-   and t.product_id = cur_stock_qty.product_id
-   and t.corporate_id = pc_corporate_id;
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Raw Material Stock Sales',
+         aml.underlying_product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'Sales' section_name,
+         '2' section_order,
+         dgrd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((dgrd.current_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage / 100)
+           else
+            ((((dgrd.current_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage)
+         end stock_qty,
+         
+         (case
+           when rm.ratio_name = '%' then
+            dgrd.net_weight_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
+    from gmr_goods_movement_record      gmr,
+         dgrd_delivered_grd             dgrd,
+         phd_profileheaderdetails       phd,
+         spq_stock_payable_qty          spq,
+         ash_assay_header               ash,
+         asm_assay_sublot_mapping       asm,
+         aml_attribute_master_list      aml,
+         pdm_productmaster              pdm,
+         qum_quantity_unit_master       qum,
+         ak_corporate                   akc,
+         pqca_pq_chemical_attributes    pqca,
+         pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+         rm_ratio_master                rm
+   where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and dgrd.status = 'Active'
+     and dgrd.is_afloat = 'N'
+     and dgrd.tolling_stock_type = 'None Tolling'
+     and dgrd.warehouse_profile_id = phd.profileid
+     and dgrd.internal_dgrd_ref_no = spq.internal_dgrd_ref_no
+     and spq.is_stock_split = 'N'
+     and spq.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm.product_id
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and dgrd.process_id = pc_process_id
+     and spq.process_id = pc_process_id
+     and spq.weg_avg_pricing_assay_id = ash.ash_id
+     and ash.ash_id = asm.ash_id
+     and pqca.element_id = aml.attribute_id
+     and pqca.asm_id = asm.asm_id
+     and pqcapd.pqca_id = pqca.pqca_id
+     and pqcapd.pcdi_id = dgrd.pcdi_id
+     and pqca.is_active = 'Y'
+     and pqcapd.is_active = 'Y'
+     and pqca.unit_of_measure = rm.ratio_id
+     and rm.is_active = 'Y'
+     and rm.is_deleted = 'N'
+     and gmr.gmr_landed_date is not null;
+     --  and gmr.is_new_mtd_ar = 'Y'
+
+--
+-- PCT External Contracts Under Raw Material Stock
+--
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'PCT External Contracts',
+         aml.underlying_product_id,
+         pdm.product_desc,
+         'Inventory' position_type,
+         'Raw Material Stock' stock_type,
+         'Sales' section_name,
+         '2' section_order,
+         grd.warehouse_profile_id,
+         phd.companyname,
+         case
+           when rm.ratio_name = '%' then
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage / 100)
+           else
+            ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
+            pqcapd.payable_percentage)
+         end stock_qty,
+         (case
+           when rm.ratio_name = '%' then
+            grd.qty_unit_id
+           else
+            rm.qty_unit_id_numerator
+         end) stock_qty_unit_id,
+         pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
+    from gmr_goods_movement_record      gmr,
+         grd_goods_record_detail        grd,
+         phd_profileheaderdetails       phd,
+         spq_stock_payable_qty          spq,
+         ash_assay_header               ash,
+         asm_assay_sublot_mapping       asm,
+         aml_attribute_master_list      aml,
+         pdm_productmaster              pdm,
+         qum_quantity_unit_master       qum,
+         ak_corporate                   akc,
+         pqca_pq_chemical_attributes    pqca,
+         pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
+         rm_ratio_master                rm
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'Clone Stock'
+     and grd.warehouse_profile_id = phd.profileid
+     and grd.internal_grd_ref_no = spq.internal_grd_ref_no
+     and spq.is_stock_split = 'N'
+     and spq.element_id = aml.attribute_id
+     and aml.underlying_product_id = pdm.product_id
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and spq.process_id = pc_process_id
+     and spq.weg_avg_pricing_assay_id = ash.ash_id
+     and ash.ash_id = asm.ash_id
+     and pqca.element_id = aml.attribute_id
+     and pqca.asm_id = asm.asm_id
+     and pqcapd.pqca_id = pqca.pqca_id
+     and pqcapd.pcdi_id = grd.pcdi_id
+     and pqca.is_active = 'Y'
+     and pqcapd.is_active = 'Y'
+     and pqca.unit_of_measure = rm.ratio_id
+     and rm.is_active = 'Y'
+     and rm.is_deleted = 'N'
+   --  and gmr.is_new_mtd_ar = 'Y'
+     and gmr.is_pass_through = 'N'
+     and gmr.gmr_latest_action_action_id = 'MARK_FOR_TOLLING';
+--
+-- Base Metal Purchase
+-- 
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Base Metal Purchase Stocks',
+         grd.product_id,
+         grd.product_name,
+         'Inventory' position_type,
+         'Base Metal Purchase' stock_type,
+         case
+           when gmr.is_new_mtd_ar = 'Y' then
+            'New Stock'
+           else
+            'Existing Stock'
+         end section_name,
+         '1' section_order,
+         gmr.warehouse_profile_id,
+         gmr.warehouse_name,
+         grd.qty - nvl(grd.moved_out_qty, 0) stock_qty,
+         grd.qty_unit_id stock_qty_unit_id,
+         grd.base_qty_unit_id qty_unit_id,
+         grd.base_qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
+    from gmr_goods_movement_record gmr,
+         grd_goods_record_detail   grd,
+         ak_corporate              akc
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and grd.status = 'Active'
+     and grd.is_afloat = 'N'
+     and grd.is_trans_ship = 'N'
+     and grd.tolling_stock_type = 'None Tolling'
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+   --  and gmr.is_new_mtd_ar = 'Y'
+     and gmr.gmr_type = 'BASEMETAL'
+     and gmr.gmr_landed_date is not null;
+--
+-- Base Metal Sales
+-- 
+insert into temp_mas
+  (process_id,
+   corporate_id,
+   corporate_name,
+   query_section_name,
+   product_id,
+   product_desc,
+   position_type,
+   stock_type,
+   section_name,
+   section_order,
+   warehouse_profile_id,
+   warehousename,
+   stock_qty,
+   stock_qty_unit_id,
+   product_base_qty_unit_id,
+   qty_unit,
+   internal_gmr_ref_no,
+   gmr_ref_no)
+  select pc_process_id,
+         gmr.corporate_id,
+         akc.corporate_name,
+         'Base Metal Sales Stocks',
+         dgrd.product_id,
+         dgrd.product_name,
+         'Inventory' position_type,
+         'Finished Stock' stock_type,
+         'Sales' section_name,
+         '1' section_order,
+         gmr.warehouse_profile_id,
+         gmr.warehouse_name,
+         dgrd.net_weight stock_qty,
+         dgrd.net_weight_unit_id stock_qty_unit_id,
+         dgrd.base_qty_unit_id qty_unit_id,
+         dgrd.base_qty_unit,
+         gmr.internal_gmr_ref_no,
+         gmr.gmr_ref_no
+    from gmr_goods_movement_record gmr,
+         dgrd_delivered_grd dgrd,
+         ak_corporate akc
+   where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+     and gmr.is_deleted = 'N'
+     and dgrd.status = 'Active'
+     and dgrd.is_afloat = 'N'
+     and dgrd.tolling_stock_type = 'None Tolling'
+     and gmr.corporate_id = akc.corporate_id
+     and gmr.process_id = pc_process_id
+     and dgrd.process_id = pc_process_id
+     and gmr.gmr_type ='BASEMETAL'
+     --  and gmr.is_new_mtd_ar = 'Y'
+     and gmr.gmr_landed_date is not null;
+  --     
+  -- Added on Apr 18 2013 End
+  --
+  -- Now we have to convert payable qty to Product Base Quantity Unit
+  --
+     for cur_stock_qty in (select product_id,
+                                  stock_qty_unit_id,
+                                  product_base_qty_unit_id
+                             from temp_mas t
+                            where t.corporate_id = pc_corporate_id
+                              and t.stock_qty_unit_id <>
+                                  t.product_base_qty_unit_id
+                            group by product_id,
+                                     stock_qty_unit_id,
+                                     product_base_qty_unit_id) loop --
+   update temp_mas t
+      set t.stock_qty = pkg_general.f_get_converted_quantity(cur_stock_qty.product_id,
+                                                             cur_stock_qty.stock_qty_unit_id,
+                                                             cur_stock_qty.product_base_qty_unit_id,
+                                                             1) *
+                        t.stock_qty
+    where t.stock_qty_unit_id = cur_stock_qty.stock_qty_unit_id
+      and t.product_base_qty_unit_id =
+          cur_stock_qty.product_base_qty_unit_id
+      and t.product_id = cur_stock_qty.product_id
+      and t.corporate_id = pc_corporate_id;
 end loop;
 commit;
 gvn_log_counter := gvn_log_counter + 1;
@@ -13294,15 +13774,9 @@ insert into mas_metal_account_summary
            sum(case
                  when agmr.eff_date > vd_prev_eom_date and
                       agmr.eff_date <= pd_trade_date then
-                  (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                        spq.qty_unit_id,
-                                                        pdm.base_quantity_unit,
-                                                        spq.payable_qty))
+                  ucm.multiplication_factor * spq.payable_qty
                  else
-                  (pkg_general.f_get_converted_quantity(aml.underlying_product_id,
-                                                        spq.qty_unit_id,
-                                                        pdm.base_quantity_unit,
-                                                        spq.payable_qty))
+                  ucm.multiplication_factor * spq.payable_qty
                end) stock_qty,
            pdm.base_quantity_unit qty_unit_id,
            qum.qty_unit
@@ -13320,7 +13794,8 @@ insert into mas_metal_account_summary
            aml_attribute_master_list aml,
            pdm_productmaster pdm,
            qum_quantity_unit_master qum,
-           ak_corporate akc
+           ak_corporate akc,
+           ucm_unit_conversion_master ucm
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
        and gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no(+)
        and gmr.is_deleted = 'N'
@@ -13337,6 +13812,8 @@ insert into mas_metal_account_summary
        and grd.process_id = pc_process_id
        and spq.process_id = pc_process_id
        and agmr.eff_date <= pd_trade_date
+       and ucm.from_qty_unit_id = spq.qty_unit_id
+       and ucm.to_qty_unit_id = pdm.base_quantity_unit
      group by aml.underlying_product_id,
               pdm.product_desc,
               pdm.base_quantity_unit,
@@ -13402,18 +13879,15 @@ insert into mas_metal_account_summary
                                    prrqs.cp_id supplier_id,
                                    prrqs.product_id product_id,
                                    pdm.product_desc product_name,
-                                   sum(prrqs.qty_sign *
-                                       pkg_general.f_get_converted_quantity(cpm.product_id,
-                                                                            prrqs.qty_unit_id,
-                                                                            cpm.inventory_qty_unit,
-                                                                            prrqs.qty)) total_qty,
+                                   sum(prrqs.qty_sign * ucm.multiplication_factor * prrqs.qty) total_qty,
                                    cpm.inventory_qty_unit qty_unit_id,
                                    prrqs.qty_type qty_type
                               from prrqs_prr_qty_status       prrqs,
                                    axs_action_summary         axs,
                                    aml_attribute_master_list  aml,
                                    pdm_productmaster          pdm,
-                                   cpm_corporateproductmaster cpm
+                                   cpm_corporateproductmaster cpm,
+                                   ucm_unit_conversion_master ucm
                              where prrqs.internal_action_ref_no =
                                    axs.internal_action_ref_no
                                and prrqs.cp_type = 'Supplier'
@@ -13429,6 +13903,8 @@ insert into mas_metal_account_summary
                                and axs.corporate_id = pc_corporate_id
                                and axs.eff_date <= pd_trade_date
                                and axs.process ='EOM'
+                               and ucm.from_qty_unit_id = prrqs.qty_unit_id
+                               and ucm.to_qty_unit_id = cpm.inventory_qty_unit
                              group by axs.corporate_id,
                                       prrqs.cp_id,
                                       prrqs.product_id,
@@ -13440,10 +13916,7 @@ insert into mas_metal_account_summary
                                    spq.supplier_id,
                                    product_temp.underlying_product_id product_id,
                                    product_temp.product_desc product_name,
-                                   sum(pkg_general.f_get_converted_quantity(cpm.product_id,
-                                                                            spq.qty_unit_id,
-                                                                            cpm.inventory_qty_unit,
-                                                                            spq.payable_qty)) total_qty,
+                                   sum(ucm.multiplication_factor * spq.payable_qty) total_qty,
                                    cpm.inventory_qty_unit qty_unit_id,
                                    spq.qty_type qty_type
                               from spq_stock_payable_qty spq,
@@ -13477,7 +13950,8 @@ insert into mas_metal_account_summary
                                        and pdm.product_id =
                                            aml.underlying_product_id) product_temp,
                                    cpm_corporateproductmaster cpm,
-                                   grd_goods_record_detail grd
+                                   grd_goods_record_detail grd,
+                                   ucm_unit_conversion_master ucm
                              where spq.internal_action_ref_no =
                                    axs.internal_action_ref_no
                                and spq.smelter_id is null
@@ -13498,6 +13972,8 @@ insert into mas_metal_account_summary
                                and grd.process_id = pc_process_id
                                and axs.corporate_id = pc_corporate_id
                                and axs.process ='EOM'
+                               and ucm.from_qty_unit_id = spq.qty_unit_id
+                               and ucm.to_qty_unit_id = cpm.inventory_qty_unit
                              group by axs.corporate_id,
                                       spq.supplier_id,
                                       product_temp.underlying_product_id,
@@ -13515,18 +13991,15 @@ insert into mas_metal_account_summary
                            prrqs.cp_id supplier_id,
                            prrqs.product_id product_id,
                            pdm.product_desc product_name,
-                           sum(prrqs.qty_sign *
-                               pkg_general.f_get_converted_quantity(cpm.product_id,
-                                                                    prrqs.qty_unit_id,
-                                                                    cpm.inventory_qty_unit,
-                                                                    prrqs.qty)) total_qty,
+                           sum(prrqs.qty_sign * prrqs.qty * ucm.multiplication_factor) total_qty,
                            cpm.inventory_qty_unit qty_unit_id,
                            prrqs.qty_type qty_type
                       from prrqs_prr_qty_status       prrqs,
                            axs_action_summary         axs,
                            aml_attribute_master_list  aml,
                            pdm_productmaster          pdm,
-                           cpm_corporateproductmaster cpm
+                           cpm_corporateproductmaster cpm,
+                           ucm_unit_conversion_master ucm
                      where prrqs.internal_action_ref_no =
                            axs.internal_action_ref_no
                        and prrqs.cp_type = 'Supplier'
@@ -13541,6 +14014,8 @@ insert into mas_metal_account_summary
                        and prrqs.corporate_id = pc_corporate_id
                        and axs.eff_date <= pd_trade_date
                        and axs.process ='EOM'
+                       and ucm.from_qty_unit_id = prrqs.qty_unit_id
+                       and ucm.to_qty_unit_id = cpm.inventory_qty_unit
                      group by axs.corporate_id,
                               prrqs.cp_id,
                               prrqs.product_id,
@@ -13567,7 +14042,12 @@ insert into mas_metal_account_summary
                            mas.stock_qty
                           when mas.section_name = 'New Stocks' then
                            mas.stock_qty
-                        end) when mas.stock_type = 'In Process Stock' then(case
+                           when mas.section_name = 'Sales' then
+                           -1 * mas.stock_qty
+                        end) 
+                        when mas.stock_type ='Base Metal Purchase' then
+                        mas.stock_qty
+                        when mas.stock_type = 'In Process Stock' then(case
                      when mas.section_name =
                           'Existing Stock' then
                       mas.stock_qty
@@ -15424,7 +15904,7 @@ delete from tgi_temp_gmr_invoice t
        and gmr.process_id = iss.process_id
        and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
        and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no
-       and gmr.base_conc_mix_type ='BASEMETAL'
+       and gmr.gmr_type ='BASEMETAL'
      group by gmr.corporate_id,
               iid.internal_gmr_ref_no,
               iss.invoice_ref_no,
@@ -21622,6 +22102,7 @@ begin
                         and red.dbd_id = pc_dbd_id
                         and pcetc.dbd_id = pc_dbd_id
                         and tqd.dbd_id = pc_dbd_id
+                        and gth.dbd_id = pc_dbd_id
                         and red.element_id = pqca.element_id
                         and gth.internal_gmr_ref_no = grd.internal_gmr_ref_no
                         and gth.pcth_id = pcth.pcth_id
@@ -21681,6 +22162,7 @@ begin
                         and red.dbd_id = pc_dbd_id
                         and pcetc.dbd_id = pc_dbd_id
                         and tqd.dbd_id = pc_dbd_id
+                        and gth.dbd_id = pc_dbd_id
                         and red.element_id = pqca.element_id
                         and gth.internal_gmr_ref_no =
                             dgrd.internal_gmr_ref_no
@@ -21761,6 +22243,7 @@ begin
                                  and red.dbd_id = pc_dbd_id
                                  and pcetc.dbd_id = pc_dbd_id
                                  and tqd.dbd_id = pc_dbd_id
+                                 and gth.dbd_id = pc_dbd_id
                                  and red.element_id = cc.element_id
                                  and pcetc.treatment_charge_unit_id =
                                      ppu.internal_price_unit_id
@@ -22291,6 +22774,7 @@ begin
                         and red.dbd_id = pc_dbd_id
                         and pcerc.dbd_id = pc_dbd_id
                         and rqd.dbd_id = pc_dbd_id
+                        and grh.dbd_id = pc_dbd_id
                         and red.element_id = pqca.element_id
                         and pcerc.is_active = 'Y'
                         and pcrh.is_active = 'Y'
@@ -22351,6 +22835,7 @@ begin
                               and red.dbd_id = pc_dbd_id
                               and pcerc.dbd_id = pc_dbd_id
                               and rqd.dbd_id = pc_dbd_id
+                              and grh.dbd_id = pc_dbd_id
                               and red.element_id = pqca.element_id
                               and pcerc.is_active = 'Y'
                               and pcrh.is_active = 'Y'
@@ -22479,6 +22964,7 @@ begin
                                   and pcdi.dbd_id = pc_dbd_id
                                   and pcpch.dbd_id = pc_dbd_id
                                   and pcepc.dbd_id = pc_dbd_id
+                                  and grh.dbd_id = pc_dbd_id
                                   and pci.is_active = 'Y'
                                   and pcdi.is_active = 'Y'
                                   and pcpch.is_active = 'Y'
@@ -22562,6 +23048,7 @@ begin
                                   and red.dbd_id = pc_dbd_id
                                   and pcerc.dbd_id = pc_dbd_id
                                   and rqd.dbd_id = pc_dbd_id
+                                  and grh.dbd_id = pc_dbd_id
                                   and red.element_id = cc.element_id
                                   and ppu.internal_price_unit_id =
                                       pcerc.refining_charge_unit_id
@@ -22998,6 +23485,7 @@ begin
                         and pcap.dbd_id = pc_dbd_id
                         and pqd.dbd_id = pc_dbd_id
                         and pad.dbd_id = pc_dbd_id
+                        and gph.dbd_id = pc_dbd_id
                         and pcaph.is_active = 'Y'
                         and pcap.is_active = 'Y'
                         and pqd.is_active = 'Y'
@@ -23051,6 +23539,7 @@ begin
                         and pcap.dbd_id = pc_dbd_id
                         and pqd.dbd_id = pc_dbd_id
                         and pad.dbd_id = pc_dbd_id
+                        and gph.dbd_id = pc_dbd_id
                         and pcaph.is_active = 'Y'
                         and pcap.is_active = 'Y'
                         and pqd.is_active = 'Y'
@@ -23095,6 +23584,7 @@ begin
                              and pcap.dbd_id = pc_dbd_id
                              and pqd.dbd_id = pc_dbd_id
                              and pad.dbd_id = pc_dbd_id
+                             and gph.dbd_id = pc_dbd_id
                              and pcaph.is_active = 'Y'
                              and pcap.is_active = 'Y'
                              and pqd.is_active = 'Y'
@@ -23454,7 +23944,8 @@ procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
            gmr.shipped_qty,
            gmr.qty_unit_id gmr_qty_unit_id,
            pcmac.*,
-           nvl(gmr.no_of_stocks_wns_done, 0) no_of_stocks_wns_done
+           nvl(gmr.no_of_stocks_wns_done, 0) no_of_stocks_wns_done,
+           gmr.pcm_contract_type
       from pcmac_pcm_addn_charges    pcmac,
            gmr_goods_movement_record gmr
      where gmr.internal_contract_ref_no = pcmac.int_contract_ref_no
@@ -23633,6 +24124,24 @@ begin
         if cur_each_gmr_rows.is_invoiced = 'N' or
            (cur_each_gmr_rows.is_invoiced = 'Y' and vn_dummy > 0) then
           begin
+            If cur_each_gmr_rows.pcm_contract_type ='Sales' Then
+            select count(distinct agrd.container_no)
+              into vn_total_containers
+              from agmr_action_gmr           agmr,
+                   adgrd_action_dgrd@eka_appdb agrd
+             where agrd.action_no = agmr.action_no
+               and agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
+               and agrd.status = 'Active'
+               and agrd.status = 'Active'
+               and agmr.is_apply_container_charge = 'Y'
+               and agmr.gmr_latest_action_action_id in
+                   ('shipmentAdvise','railAdvice','truckAdvice','airAdvice','releaseOrder')
+               and agmr.is_internal_movement = 'N'
+               and agmr.is_deleted = 'N'
+               and agmr.internal_gmr_ref_no =
+                   cur_each_gmr_rows.internal_gmr_ref_no
+               and agrd.container_size = cur_each_gmr_rows.container_size;
+               else
             select count(distinct agrd.container_no)
               into vn_total_containers
               from agmr_action_gmr           agmr,
@@ -23644,12 +24153,13 @@ begin
                and agmr.is_apply_container_charge = 'Y'
                and agmr.gmr_latest_action_action_id in
                    ('airDetail', 'shipmentDetail', 'railDetail',
-                    'truckDetail', 'warehouseReceipt','shipmentAdvise','railAdvice','truckAdvice','airAdvice','releaseOrder')
+                    'truckDetail', 'warehouseReceipt')
                and agmr.is_internal_movement = 'N'
                and agmr.is_deleted = 'N'
                and agmr.internal_gmr_ref_no =
                    cur_each_gmr_rows.internal_gmr_ref_no
                and agrd.container_size = cur_each_gmr_rows.container_size;
+               end if;
             -- We have multipe container sizes, we need to keep adding for this GMR                  
             vn_container_charge := vn_container_charge +
                                    (cur_each_gmr_rows.charge *
@@ -23758,6 +24268,8 @@ is
   vn_log_counter          number := 0;
   vc_previous_year_eom_id varchar2(15);
   vc_previous_eom_id      varchar2(15);
+  vobj_error_log          tableofpelerrorlog := tableofpelerrorlog();
+ 
 begin
 --
   -- Previous EOM ID
@@ -24112,6 +24624,20 @@ vn_log_counter := vn_log_counter + 1;
 --  
 -- End of Assay Updated Flag for Arrival Report for Arrival/Feed GMRS Based on TC/RC/PC
 --  
+exception
+  when others then
+    vobj_error_log.extend;
+    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                         'procedure sp_delta_updates',
+                                                         'M2M-013',
+                                                         'Code:' || sqlcode ||
+                                                         'Message:' ||
+                                                         sqlerrm,
+                                                         '',
+                                                         pc_process,
+                                                         pc_user_id,
+                                                         sysdate,
+                                                         pd_trade_date);
 end;                          
 end; 
 /
