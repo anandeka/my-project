@@ -1,0 +1,93 @@
+Patch No*          		:  EKA_METALS_PATCH_1529
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  23-Apr-2013
+
+Bug / Enhancement*              :  Bugs & Enhancements
+
+Bug ID*            		:  76946, 77665, 76014
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Docs
+
+Sub-Module  			 :  Output Docs
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 124122
+Author: rajuga
+Date: 5:48:59 PM, Monday, April 22, 2013
+Message:
+Bug: 76946
+(If no data for "Payment of Metals" section we are suppressing the entire section now onwards...)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+
+==================================================================
+
+Revision: 124123
+Author: rajuga
+Date: 5:49:53 PM, Monday, April 22, 2013
+Message:
+Draft water mark symbol has been shown if the invoice is a draft.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AdvancePaymentDocument.rpt
+
+==================================================================
+
+Revision: 124312
+Author: rajuga
+Date: 7:11:26 PM, Tuesday, April 23, 2013
+Message:
+Draft Water mark symbol related changes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/OCInvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProfomaDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+
+==================================================================
+
+Revision: 124313
+Author: rajuga
+Date: 7:12:13 PM, Tuesday, April 23, 2013
+Message:
+Bug 77665 - Display Issue in Tolling Invoice Utility report- for Additional charge,invoice showing rate with rounded value
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TotalInvoiceUtilityReport.rpt
+
+==================================================================
+
+Revision: 124315
+Author: rajuga
+Date: 7:18:27 PM, Tuesday, April 23, 2013
+Message:
+Bug 76014 - Self Assay certificate: All elements to fit in one page
+(Formatting issues and Ordering by Payable, Penalty type and Element name wise for Provision and Secondary assay case)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+
+==================================================================
