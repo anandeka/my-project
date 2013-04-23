@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1525
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  23-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  77498
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice o/p doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 124252
+Author: b.ravikumar
+Date: 3:21:38 PM, Tuesday, April 23, 2013
+Message:
+bds_d fetch query modified ass part of bug 77498 fix.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_557.sql
+
+
+
