@@ -12412,13 +12412,21 @@ insert into temp_mas
          grd.warehouse_profile_id,
          phd.companyname,
          case
-           when rm.ratio_name = '%' then
-            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
-            pqca.typical / 100)
+            when rm.ratio_name = '%' then
+             ((((grd.qty - grd.moved_out_qty) *
+             nvl(asm.dry_wet_qty_ratio, 100) / 100)) * pqca.typical / 100) * case
+            when grd.tolling_stock_type = 'RM Mining Stock' then
+             nvl(pqca.payable_percentage, 100) / 100
+            else
+             1
+          end else((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) * pqca.typical) *case
+           when grd.tolling_stock_type =
+                'RM Mining Stock' then
+            nvl(pqca.payable_percentage,
+                100) / 100
            else
-            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
-            pqca.typical)
-         end stock_qty,
+            1
+         end end stock_qty,
          (case
            when rm.ratio_name = '%' then
             grd.qty_unit_id
@@ -12443,7 +12451,7 @@ insert into temp_mas
                  agmr_action_gmr           agmr
            where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
              and agmr.gmr_latest_action_action_id in
-                 ('RECORD_OUT_PUT_TOLLING' ,'RECORD_MINING_OUTPUT')
+                 ('RECORD_OUT_PUT_TOLLING', 'RECORD_MINING_OUTPUT')
              and agmr.is_deleted = 'N'
              and gmr.process_id = pc_process_id) agmr,
          phd_profileheaderdetails phd,
@@ -12457,7 +12465,8 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type in( 'RM Out Process Stock','RM Mining Stock')
+     and grd.tolling_stock_type in
+         ('RM Out Process Stock', 'RM Mining Stock')
      and grd.internal_grd_ref_no = sam.internal_grd_ref_no
      and sam.is_output_assay = 'Y'
      and asm.ash_id = sam.ash_id
@@ -12517,13 +12526,21 @@ insert into temp_mas
          grd.warehouse_profile_id,
          phd.companyname,
          case
-           when rm.ratio_name = '%' then
-            ((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 100) / 100)) *
-            pqca.typical / 100)
+            when rm.ratio_name = '%' then
+             ((((grd.qty - grd.moved_out_qty) *
+             nvl(asm.dry_wet_qty_ratio, 100) / 100)) * pqca.typical / 100) * case
+            when grd.tolling_stock_type = 'RM Mining Stock' then
+             nvl(pqca.payable_percentage, 100) / 100
+            else
+             1
+          end else((((grd.qty - grd.moved_out_qty) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) * pqca.typical) *case
+           when grd.tolling_stock_type =
+                'RM Mining Stock' then
+            nvl(pqca.payable_percentage,
+                100) / 100
            else
-            ((((grd.qty - grd.moved_out_qty ) * nvl(asm.dry_wet_qty_ratio, 0) / 100)) *
-            pqca.typical)
-         end stock_qty,
+            1
+         end end stock_qty,
          (case
            when rm.ratio_name = '%' then
             grd.qty_unit_id
@@ -12548,7 +12565,7 @@ insert into temp_mas
                  agmr_action_gmr           agmr
            where gmr.internal_gmr_ref_no = agmr.internal_gmr_ref_no
              and agmr.gmr_latest_action_action_id in
-                 ('RECORD_OUT_PUT_TOLLING' ,'RECORD_MINING_OUTPUT')
+                 ('RECORD_OUT_PUT_TOLLING', 'RECORD_MINING_OUTPUT')
              and agmr.is_deleted = 'N'
              and gmr.process_id = pc_process_id) agmr,
          phd_profileheaderdetails phd,
@@ -12562,7 +12579,8 @@ insert into temp_mas
      and grd.status = 'Active'
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
-     and grd.tolling_stock_type in( 'RM Out Process Stock','RM Mining Stock')
+     and grd.tolling_stock_type in
+         ('RM Out Process Stock', 'RM Mining Stock')
      and grd.internal_grd_ref_no = sam.internal_grd_ref_no
      and sam.is_output_assay = 'Y'
      and asm.ash_id = sam.ash_id
