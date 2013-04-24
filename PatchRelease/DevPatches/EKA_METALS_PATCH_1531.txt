@@ -54,3 +54,14 @@ Message:
 RM Mining Stock To Get Stock Qty Multiply by Payable %/100
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+Revision: 124506
+Author: suresh.gottipati
+Date: 7:17:07 PM, Wednesday, April 24, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+
+
