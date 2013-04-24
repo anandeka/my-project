@@ -16,7 +16,7 @@ Module / Feature Group:
 ==================================================================
 Module  		   	 :  Transaction
 
-Sub-Module  			 :  Transaction
+Sub-Module  			 :  MV for GTH/GRH and GPH dropped 
  
 Section   		   	 :  N/A
  
@@ -33,4 +33,32 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
+
+Revision: 124398
+Author: janna
+Date: 9:49:46 AM, Wednesday, April 24, 2013
+Message:
+Dropped MV LogsS on GTH/GRH and CPH
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_436.sql
+
+
+Revision: 124427
+Author: janna
+Date: 12:35:13 PM, Wednesday, April 24, 2013
+Message:
+Detail a,b,c(Calculated, Invoiced and Difference) corrected suppress property for both reports
+Added Supplier Type(Counter Party Internal/External) Parameters to sub reports of Sales accrual
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/SalesAccrualReport.rpt
+
+
+Revision: 124301
+Author: janna
+Date: 6:49:14 PM, Tuesday, April 23, 2013
+Message:
+Added Sales and Base Metal 
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MetalBalanceSummaryReport.rpt
 

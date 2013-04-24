@@ -7,7 +7,7 @@ Created on*        		:  24-Apr-2013
 
 Bug / Enhancement*              :  
 
-Bug ID*            		:  
+Bug ID*            		:  77476 77413 76838 75653 75777
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,3 +33,18 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 124300
+Author: janna
+Date: 6:48:56 PM, Tuesday, April 23, 2013
+Message:
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/135_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_tata.sql
+
