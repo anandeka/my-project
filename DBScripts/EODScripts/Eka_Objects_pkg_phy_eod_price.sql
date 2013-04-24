@@ -4074,8 +4074,23 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     end loop;
     commit;
   exception
-    when others then
-      null; --TODO siva
+   when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure pkg_phy_eod_price.sp_calc_conc_gmr_price',
+                                                           'M2M-013',
+                                                           ' Code:' ||
+                                                           sqlcode ||
+                                                           ' Message:' ||
+                                                           sqlerrm ||
+                                                           dbms_utility.format_error_backtrace,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+      commit;
   end;
   procedure sp_calc_contract_conc_price(pc_corporate_id varchar2,
                                         pd_trade_date   date,
@@ -4224,7 +4239,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and pcdi.pcdi_id = dipq.pcdi_id
          and ceqs.element_id = dipq.element_id
          and dipq.process_id = pc_process_id
-         and nvl(dipq.payable_qty, 0) > 0;
+         and ceqs.payable_qty>0;
+        -- and nvl(dipq.payable_qty, 0) > 0;
   
     cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
       select poch.poch_id,
@@ -6134,8 +6150,23 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     end loop;
     commit;
   exception
-    when others then
-      null; --TODO siva
+ when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure pkg_phy_eod_price.sp_calc_contract_conc_price',
+                                                           'M2M-013',
+                                                           ' Code:' ||
+                                                           sqlcode ||
+                                                           ' Message:' ||
+                                                           sqlerrm ||
+                                                           dbms_utility.format_error_backtrace,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+      commit;
   end;
-end;
+end; 
 /
