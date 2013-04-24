@@ -7,7 +7,7 @@ Created on*        		:  24-Apr-2013
 
 Bug / Enhancement*              :  
 
-Bug ID*            		:  77476 77413 76838 75653 75777
+Bug ID*            		:  77476 77413 76838 75653 75777 77113
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -43,8 +43,14 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/135_DDL_EODDB_ALTER_
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_metals_general.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
-Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_tata.sql
 
+Revision: 124464
+Author: janna
+Date: 5:07:01 PM, Wednesday, April 24, 2013
+Message:
+RM Mining Stock To Get Stock Qty Multiply by Payable %/100
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
