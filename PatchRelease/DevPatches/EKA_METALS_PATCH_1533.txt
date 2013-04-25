@@ -1,0 +1,73 @@
+Patch No*          		:  EKA_METALS_PATCH_1533
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  25-Apr-2013
+
+Bug / Enhancement*              :  Enhancement
+
+Bug ID*            		:  77601
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice O/P Docs
+
+Sub-Module  			 :  Invoice O/P Docs
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 124644
+Author: rajuga
+Date: 3:14:34 PM, Thursday, April 25, 2013
+Message:
+Bug 77601 - Need to add extra text on each footer page below corporate address for Boliden Tara corporate
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_437.sql
+
+==================================================================
+
+Revision: 124646
+Author: rajuga
+Date: 3:15:25 PM, Thursday, April 25, 2013
+Message:
+Bug 77601 - Need to add extra text on each footer page below corporate address for Boliden Tara corporate
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_118.sql
+
+==================================================================
+
+Revision: 124650
+Author: rajuga
+Date: 3:17:13 PM, Thursday, April 25, 2013
+Message:
+Bug 77601 - Need to add extra text on each footer page below corporate address for Boliden Tara corporate
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AdvancePaymentDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/OCInvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProfomaDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+
+==================================================================
