@@ -9,6 +9,11 @@ create or replace package pkg_phy_mb_valuation is
                                      pc_process_id   varchar2,
                                      pc_process      varchar2,
                                      pc_user_id      varchar2);
+  procedure sp_calc_pf_data(pc_corporate_id varchar2,
+                            pd_trade_date   date,
+                            pc_process_id   varchar2,
+                            pc_process      varchar2,
+                            pc_user_id      varchar2);
 
 end;
 /
@@ -223,6 +228,111 @@ create or replace package body pkg_phy_mb_valuation is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
+  end;
+  procedure sp_calc_pf_data(pc_corporate_id varchar2,
+                            pd_trade_date   date,
+                            pc_process_id   varchar2,
+                            pc_process      varchar2,
+                            pc_user_id      varchar2) is
+    vc_corporate_name varchar2(100);
+  begin
+    --
+    -- Population of 2 sections below
+    -- New Price Fixations for this month
+    -- List of Balance Price Fixations
+    --
+    insert into pfrd_price_fix_report_detail
+      (process_id,
+       eod_trade_date,
+       section_name,
+       corporate_id,
+       corporate_name,
+       product_id,
+       product_name,
+       cp_id,
+       cp_name,
+       internal_contract_ref_no,
+       delivery_item_no,
+       contract_ref_no_del_item_no,
+       price_fixed_date,
+       pf_ref_no,
+       fixed_qty,
+       price,
+       price_unit_id,
+       price_unit_cur_id,
+       price_unit_cur_code,
+       price_unit_weight_unit_id,
+       price_unit_weight_unit,
+       price_unit_weight,
+       price_unit_name,
+       fx_price_to_base_cur,
+       price_in_base_cur,
+       consumed_qty,
+       purchase_sales)
+      select pc_process_id,
+             pd_trade_date,
+             decode(pfd.is_balance_pricing,
+                    'N',
+                    'New Price Fixations For This Month',
+                    'List Of Balance Price Fixations') section_name,
+             pc_corporate_id,
+             vc_corporate_name,
+             pdm_aml.product_id,
+             pdm_aml.product_desc,
+             pcm.cp_id,
+             pcm.cp_name,
+             pcm.internal_contract_ref_no,
+             pcdi.delivery_item_no,
+             pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
+             pfd.hedge_correction_date price_fixation_date,
+             null as pf_ref_no,
+             pfd.qty_fixed,
+             pfd.user_price,
+             pfd.price_unit_id,
+             ppu.cur_id,
+             cm.cur_code,
+             ppu.weight_unit_id,
+             qum.qty_unit,
+             ppu.weight,
+             ppu.price_unit_name,
+             nvl(pfd.fx_to_base, 1) fx_to_base,
+             pfd.user_price * nvl(pfd.fx_to_base, 1) price_in_base,
+             nvl(pfd.allocated_qty, 0) allocated_qty,
+             decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales
+        from pfd_price_fixation_details     pfd,
+             pofh_price_opt_fixation_header pofh,
+             pocd_price_option_calloff_dtls pocd,
+             poch_price_opt_call_off_header poch,
+             pcdi_pc_delivery_item          pcdi,
+             pcm_physical_contract_main     pcm,
+             v_ppu_pum                      ppu,
+             cm_currency_master             cm,
+             qum_quantity_unit_master       qum,
+             aml_attribute_master_list      aml,
+             pdm_productmaster              pdm_aml
+       where pfd.pofh_id = pofh.pofh_id
+         and pofh.pocd_id = pocd.pocd_id
+         and pocd.poch_id = poch.poch_id
+         and poch.pcdi_id = pcdi.pcdi_id
+         and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pocd.element_id = aml.attribute_id
+         and aml.underlying_product_id = pdm_aml.product_id
+         and poch.is_active = 'Y'
+         and pocd.is_active = 'Y'
+         and pofh.is_active = 'Y'
+         and pcdi.is_active = 'Y'
+         and pfd.is_active = 'Y'
+         and pcdi.process_id = pc_process_id
+         and pcm.process_id = pc_process_id
+         and trunc(pfd.hedge_correction_date, 'mm') =
+             trunc(pd_trade_date, 'mm')
+         and pfd.price_unit_id = ppu.product_price_unit_id
+         and ppu.cur_id = cm.cur_id
+         and ppu.weight_unit_id = qum.qty_unit_id;
+  
+    -- List of Consumed Fixations for Realization
+    -- List of Balance Price Fixations from previous Month
+  
   end;
 end;
 /
