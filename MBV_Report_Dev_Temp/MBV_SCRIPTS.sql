@@ -1,9 +1,11 @@
 CREATE TABLE PFRD_PRICE_FIX_REPORT_DETAIL(
 PROCESS_ID                         VARCHAR2(15),
 EOD_TRADE_DATE                     DATE,
+SECTION_NAME                       VARCHAR2(100),
+PURCHASE_SALES                     VARCHAR2(10),                      
 CORPORATE_ID                       VARCHAR2(15),
 CORPORATE_NAME                     VARCHAR2(100),
-PRODUCT_ID						   VARCHAR2(15),
+PRODUCT_ID                           VARCHAR2(15),
 PRODUCT_NAME                       VARCHAR2(200),
 CP_ID                              VARCHAR2(15),
 CP_NAME                            VARCHAR2(100),
