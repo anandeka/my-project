@@ -13801,7 +13801,63 @@ gvn_log_counter :=  gvn_log_counter + 1;
                           pd_trade_date,
                           pc_dbd_id,
                           gvn_log_counter,
-                          'End of Update GMR Assay Status');
+                          'End of Update GMR Assay Status For GRD');
+
+for cur_assay in( 
+SELECT   gmr.internal_gmr_ref_no,
+         CASE
+            WHEN COUNT (DISTINCT dgrd.internal_grd_ref_no) =
+                   SUM
+                      (CASE
+                          WHEN ash.is_final_assay_fully_finalized = 'Y'
+                             THEN 1
+                          ELSE 0
+                       END
+                      )
+               THEN 'Assay Finalized'
+            WHEN SUM (CASE
+                         WHEN ash.is_final_assay_fully_finalized = 'Y'
+                            THEN 1
+                         ELSE 0
+                      END
+                     ) <> 0
+               THEN 'Partial Assay Finalized'
+            WHEN SUM (CASE
+                         WHEN ash.assay_type = 'Final Assay'
+                         AND ( nvl(ash.is_final_assay_fully_finalized,'N') = 'N'
+                             )
+                            THEN 1
+                         ELSE 0
+                      END
+                     ) <> 0
+               THEN 'Partial Assay Finalized'
+            ELSE 'Not Assay Finalized'
+         END assay_final_status
+       FROM gmr_goods_movement_record gmr,
+            dgrd_delivered_grd dgrd,
+            ash_assay_header ash
+      WHERE gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+        AND gmr.internal_gmr_ref_no = ash.internal_gmr_ref_no
+        AND dgrd.internal_dgrd_ref_no = ash.internal_grd_ref_no
+        AND gmr.dbd_id = pc_dbd_id
+        and dgrd.dbd_id = pc_dbd_id
+        AND gmr.is_deleted = 'N'
+        AND dgrd.status = 'Active'
+        AND ash.is_active = 'Y'
+   GROUP BY gmr.internal_gmr_ref_no) loop
+   Update gmr_goods_movement_record gmr
+   set gmr.assay_final_status = cur_assay.assay_final_status
+   where gmr.internal_gmr_ref_no = cur_assay.internal_gmr_ref_no
+   and gmr.dbd_id = pc_dbd_id;
+end loop;
+commit;
+ gvn_log_counter :=  gvn_log_counter + 1;
+ sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of Update GMR Assay Status For DGRD');
+                         
 Update gmr_goods_movement_record gmr
 set gmr.gmr_arrival_status = (case
                      when (gmr.wns_status = 'Completed' and
@@ -13811,7 +13867,7 @@ set gmr.gmr_arrival_status = (case
                           gmr.assay_final_status = 'Partial Assay Finalized') then
                       'Partial Assay Finalized'
                      when (gmr.wns_status = 'Completed' and
-                          gmr.assay_final_status = 'Not Assay Finalized') then
+                          nvl(gmr.assay_final_status,'Not Assay Finalized') = 'Not Assay Finalized') then
                       'Weight Finalized'
                      when (gmr.wns_status = 'Partial') then
                       'Partial Weight Finalized'
