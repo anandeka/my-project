@@ -58,13 +58,16 @@ create or replace package body pkg_phy_mb_valuation is
     vc_prompt_date_text          varchar2(100);
     vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count           number := 1;
+    vc_instrument_id             varchar2(15);
   
   begin
-    delete from ip_instrument_price where corporate_id = pc_corporate_id;
+    delete from tip_temp_instrument_price
+     where corporate_id = pc_corporate_id;
     commit;
     for cur_price_rows in cur_price
     loop
       vc_data_missing_for := null;
+      vc_instrument_id    := cur_price_rows.instrument_id;
       if cur_price_rows.is_daily_cal_applicable = 'Y' then
         vn_forward_days := 0;
         vd_quotes_date  := pd_trade_date + 1;
@@ -190,7 +193,7 @@ create or replace package body pkg_phy_mb_valuation is
           
           end if;
       end;
-      insert into ip_instrument_price
+      insert into tip_temp_instrument_price
         (corporate_id,
          instrument_id,
          price,
@@ -211,7 +214,9 @@ create or replace package body pkg_phy_mb_valuation is
                                                            'procedure sp_calc_instrument_price',
                                                            'M2M-013',
                                                            sqlcode || ' ' ||
-                                                           sqlerrm,
+                                                           sqlerrm ||
+                                                           ' Instrument ID is ' ||
+                                                           vc_instrument_id,
                                                            '',
                                                            pc_process,
                                                            pc_user_id,
