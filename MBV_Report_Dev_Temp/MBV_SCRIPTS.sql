@@ -1,8 +1,11 @@
+DROP TABLE PFRD_PRICE_FIX_REPORT_DETAIL;
 CREATE TABLE PFRD_PRICE_FIX_REPORT_DETAIL(
 PROCESS_ID                         VARCHAR2(15),
 EOD_TRADE_DATE                     DATE,
 CORPORATE_ID                       VARCHAR2(15),
 CORPORATE_NAME                     VARCHAR2(100),
+PRODUCT_ID						   VARCHAR2(15),
+PRODUCT_NAME                       VARCHAR2(200),
 CP_ID                              VARCHAR2(15),
 CP_NAME                            VARCHAR2(100),
 INTERNAL_CONTRACT_REF_NO           VARCHAR2(15),
