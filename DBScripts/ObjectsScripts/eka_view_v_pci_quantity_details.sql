@@ -193,10 +193,10 @@ select pcdi.pcdi_id,
        end) else(pkg_general.f_get_converted_quantity(pcpd.product_id, pci.item_qty_unit_id, pdm.base_quantity_unit, 1)) end) baseqty_conv_rate,
        null price_fixation_status,
         (case when rm.ratio_name = '%' then  
-                     ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
+                     ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqcapd.payable_percentage/100
                 else
                      ciqs.total_qty * nvl(asm.dry_wet_qty_ratio,100)/100 * 
-             pqca.typical * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
+             pqcapd.payable_percentage * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )  total_qty,                                        
        (case when pcpq.unit_of_measure = 'Dry'
@@ -205,10 +205,10 @@ select pcdi.pcdi_id,
        ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,100)/100
                                                end) item_open_qty,
         (case when rm.ratio_name = '%' then  
-                     ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqca.typical
+                     ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,100)/100 *  pqcapd.payable_percentage/100
                 else
                      ciqs.open_qty * nvl(asm.dry_wet_qty_ratio,100)/100 * 
-             pqca.typical * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
+             pqcapd.payable_percentage * pkg_general.f_get_converted_quantity(pdm.product_id, ciqs.item_qty_unit_id, rm.qty_unit_id_denominator, 1)
                 end
                )    open_qty,
        0 price_fixed_qty,
@@ -280,6 +280,7 @@ select pcdi.pcdi_id,
        asm_assay_sublot_mapping    asm,
        aml_attribute_master_list   aml,
        pqca_pq_chemical_attributes pqca,
+       pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
        rm_ratio_master             rm,
        pdm_productmaster           pdm_under,
        qum_quantity_unit_master    qum_under,
@@ -308,6 +309,8 @@ select pcdi.pcdi_id,
    and pqca.element_id = aml.attribute_id
    and pqca.is_elem_for_pricing = 'Y'
    and pqca.unit_of_measure = rm.ratio_id
+   and pqca.pqca_id = pqcapd.pqca_id
+   and pqcapd.is_active = 'Y'
    and aml.underlying_product_id = pdm_under.product_id(+)
    and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
    and pcpd.product_id = ppm.product_id

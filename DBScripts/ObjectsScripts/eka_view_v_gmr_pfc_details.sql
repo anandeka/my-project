@@ -116,7 +116,8 @@ select pci.product_group_type,
        blm_business_line_master     blm,
        ak_corporate                 akc
  where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and grd.product_id = pdm.product_id
+      --AND grd.product_id = pdm.product_id
+   and pci.product_id = pdm.product_id --16th apr 13
    and pdm.product_type_id = pdtm.product_type_id
    and pdm.base_quantity_unit = qum.qty_unit_id
    and gmr.internal_gmr_ref_no = gmr_pfc.internal_gmr_ref_no
@@ -305,7 +306,8 @@ select pci.product_group_type,
        blm_business_line_master     blm,
        ak_corporate                 akc
  where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-   and dgrd.product_id = pdm.product_id
+      --AND dgrd.product_id = pdm.product_id
+   and pci.product_id = pdm.product_id --16th apr 2013
    and pdm.product_type_id = pdtm.product_type_id
    and pdm.base_quantity_unit = qum.qty_unit_id
    and gmr.internal_gmr_ref_no = gmr_pfc.internal_gmr_ref_no
@@ -408,7 +410,7 @@ select pci.product_group_type,
        gmr.corporate_id,
        nvl(cpc.profit_center_short_name, 'NA') profit_center,
        nvl(css.strategy_name, 'NA') strategy,
-       pdm.product_desc product_name,
+       pdm_und.product_desc product_name,
        qat.quality_name quality,
        (case
          when grd.is_afloat = 'Y' then
@@ -441,7 +443,7 @@ select pci.product_group_type,
        gmr_pfc.per_day_pricing_qty,
        pkg_general.f_get_converted_quantity(aml.underlying_product_id,
                                             gmr_pfc.qty_fixation_unit_id,
-                                            pdm.base_quantity_unit,
+                                            pdm_und.base_quantity_unit,
                                             1) baseqty_conv_rate,
        sum(nvl(grd.qty, 0)) total_qty,
        sum(nvl(grd.current_qty, 0)) open_qty,
@@ -463,7 +465,7 @@ select pci.product_group_type,
        blm.business_line_id,
        cpc.profit_center_id,
        css.strategy_id,
-       pdm.product_id,
+       pdm_und.product_id,
        qat.quality_id,
        pdtm.product_type_id,
        v_gmr.instrument_id,
@@ -494,7 +496,8 @@ select pci.product_group_type,
        cpc_corporate_profit_center  cpc,
        blm_business_line_master     blm,
        ak_corporate                 akc,
-       aml_attribute_master_list    aml
+       aml_attribute_master_list    aml,
+       pdm_productmaster            pdm_und
  where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
    and pdm.product_type_id = pdtm.product_type_id
    and pdm.base_quantity_unit = qum.qty_unit_id
@@ -523,9 +526,11 @@ select pci.product_group_type,
    and gmr_pfc.element_id is not null
    and gmr_pfc.element_id = v_gmr.element_id 
    and gmr_pfc.element_id = aml.attribute_id
-   and aml.underlying_product_id = pdm.product_id   
+   and aml.underlying_product_id = pdm_und.product_id
+   and pci.product_id = pdm.product_id --16th apr 2013
 -- and gmr.contract_type = 'Purchase'
- group by pci.product_group_type,grd.tolling_stock_type,
+ group by pci.product_group_type,
+          grd.tolling_stock_type,
           gmr.gmr_ref_no,
           gmr.internal_gmr_ref_no,
           pci.pcdi_id,
@@ -535,6 +540,7 @@ select pci.product_group_type,
           nvl(css.strategy_name, 'NA'),
           gmr.qty_unit_id,
           pdm.product_desc,
+          pdm_und.product_desc,
           qat.quality_name,
           (case
             when grd.is_afloat = 'Y' then
@@ -552,7 +558,8 @@ select pci.product_group_type,
           pci.purchase_sales,
           grd.product_id,
           pdm.base_quantity_unit,
-          aml.underlying_product_id,gmr_pfc.qty_fixation_unit_id,
+          aml.underlying_product_id,
+          gmr_pfc.qty_fixation_unit_id,
           qum.qty_unit,
           (case
             when grd.is_afloat = 'Y' then
@@ -570,7 +577,7 @@ select pci.product_group_type,
           blm.business_line_id,
           cpc.profit_center_id,
           css.strategy_id,
-          pdm.product_id,
+          pdm_und.product_id,
           gmr.qty,
           gmr_pfc.qty_to_be_fixed,
           gmr_pfc.no_of_prompt_days,
@@ -588,8 +595,9 @@ select pci.product_group_type,
           v_gmr.exchange_id,
           v_gmr.exchange_name,
           pci.incoterm,
-       aml.attribute_id,
-       aml.attribute_name
+          aml.attribute_id,
+          aml.attribute_name,
+          pdm_und.base_quantity_unit
 union all
 --concentrates- Sales GMR
 select pci.product_group_type,
@@ -600,7 +608,7 @@ select pci.product_group_type,
        gmr.corporate_id,
        nvl(cpc.profit_center_short_name, 'NA') profit_center,
        nvl(css.strategy_name, 'NA') strategy,
-       pdm.product_desc product_name,
+       pdm_und.product_desc product_name,
        qat.quality_name quality,
        (case
          when dgrd.is_afloat = 'Y' then
@@ -633,11 +641,13 @@ select pci.product_group_type,
        gmr_pfc.per_day_pricing_qty,
        pkg_general.f_get_converted_quantity(aml.underlying_product_id,
                                             gmr_pfc.qty_fixation_unit_id,
-                                            pdm.base_quantity_unit,
+                                            pdm_und.base_quantity_unit,
                                             1) baseqty_conv_rate,
+       
        -- sum(nvl(dgrd.qty, 0)) total_qty,
        sum(nvl(dgrd.net_weight, 0)) total_qty,
        sum(nvl(dgrd.current_qty, 0)) open_qty,
+       
        --dgrd.qty_unit_id item_qty_unit_id,
        gmr_pfc.qty_fixation_unit_id item_qty_unit_id,
        qum.qty_unit,
@@ -657,7 +667,7 @@ select pci.product_group_type,
        blm.business_line_id,
        cpc.profit_center_id,
        css.strategy_id,
-       pdm.product_id,
+       pdm_und.product_id,
        qat.quality_id,
        pdtm.product_type_id,
        v_gmr.instrument_id,
@@ -688,9 +698,10 @@ select pci.product_group_type,
        cpc_corporate_profit_center  cpc,
        blm_business_line_master     blm,
        ak_corporate                 akc,
-       aml_attribute_master_list    aml
+       aml_attribute_master_list    aml,
+       pdm_productmaster            pdm_und
  where dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
- --  and dgrd.product_id = pdm.product_id
+      --  and dgrd.product_id = pdm.product_id
    and pdm.product_type_id = pdtm.product_type_id
    and pdm.base_quantity_unit = qum.qty_unit_id
    and gmr.internal_gmr_ref_no = gmr_pfc.internal_gmr_ref_no
@@ -716,7 +727,8 @@ select pci.product_group_type,
    and gmr.internal_gmr_ref_no = v_gmr.internal_gmr_ref_no
    and pci.pcdi_id = v_gmr.pcdi_id
    and gmr_pfc.element_id = aml.attribute_id
-   and aml.underlying_product_id = pdm.product_id   
+   and aml.underlying_product_id = pdm_und.product_id
+   and pci.product_id = pdm.product_id --16th apr 2013
 --  and gmr.contract_type = 'Sales'
 -- and upper(nvl(dgrd.inventory_status, 'NA')) in ('NA', 'NONE')
  group by pci.product_group_type,
@@ -727,8 +739,11 @@ select pci.product_group_type,
           gmr.corporate_id,
           nvl(cpc.profit_center_short_name, 'NA'),
           nvl(css.strategy_name, 'NA'),
-          gmr.qty_unit_id,aml.underlying_product_id,gmr_pfc.qty_fixation_unit_id,
+          gmr.qty_unit_id,
+          aml.underlying_product_id,
+          gmr_pfc.qty_fixation_unit_id,
           pdm.product_desc,
+          pdm_und.product_desc,
           qat.quality_name,
           (case
             when dgrd.is_afloat = 'Y' then
@@ -764,7 +779,7 @@ select pci.product_group_type,
           blm.business_line_id,
           cpc.profit_center_id,
           css.strategy_id,
-          pdm.product_id,
+          pdm_und.product_id,
           gmr.qty,
           gmr_pfc.qty_to_be_fixed,
           gmr_pfc.no_of_prompt_days,
@@ -782,5 +797,6 @@ select pci.product_group_type,
           v_gmr.exchange_id,
           v_gmr.exchange_name,
           pci.incoterm,
-       aml.attribute_id,
-       aml.attribute_name
+          aml.attribute_id,
+          aml.attribute_name,
+          pdm_und.base_quantity_unit
