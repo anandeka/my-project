@@ -1,0 +1,59 @@
+Patch No*          		:  EKA_METALS_PATCH_1536
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  26-Apr-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75977, 76740
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 124785
+Author: suresh.gottipati
+Date: 11:16:54 AM, Friday, April 26, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_gmr_pfc_details.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_pci_quantity_details.sql
+
+==================================================================
+
+Revision: 124793
+Author: rajuga
+Date: 11:43:08 AM, Friday, April 26, 2013
+Message:
+Bug: 75977
+(Instead of payable qty, WMT quantity is displaying in the delivery section of 'Position-Delivery&Pricing&Derivative' section.)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricingDerivative.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PositionDeliveryPricingDerivative_Excel.rpt
+
+==================================================================
