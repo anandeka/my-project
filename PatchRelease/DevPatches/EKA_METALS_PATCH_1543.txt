@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1543
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  29-Apr-2013
+
+Bug / Enhancement*              :  
+
+Bug ID*            		:   
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 124969
+Author: b.ravikumar
+Date: 1:32:02 PM, Monday, April 29, 2013
+Message:
+-for provisional_percentage issue in PI.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_564.sql
+
+==================================================================
