@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1545
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Pradeep Kumar
+ 
+Created on*        		:  29-Apr-2013
+
+Bug / Enhancement*              :  
+
+Bug ID*            		:   
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  logistics
+
+Sub-Module  			 :  BL Weight
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 125041
+Author: pradeep.kumar
+Date: 7:43:58 PM, Monday, April 29, 2013
+Message:
+-- Feed On Bl Weights : Free Material Calculation Changes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_IN_PROCESS_STOCK.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_439.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_in_process_stock_exp.sql
+
+
