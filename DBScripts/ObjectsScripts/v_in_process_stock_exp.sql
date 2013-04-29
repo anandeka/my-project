@@ -315,7 +315,8 @@ select ips_temp.corporate_id,
            and ypd.element_id = agrd.element_id
            and ypd.is_active = 'Y'
            and agrd.is_deleted = 'N'
-           and agrd.status = 'Active'
+           and (agrd.status = 'Active'
+	       or agrd.is_clone_stock_spilt = 'Y')
            and wrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
            and pci.internal_contract_item_ref_no =
                agrd.internal_contract_item_ref_no

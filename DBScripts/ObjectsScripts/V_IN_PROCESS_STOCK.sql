@@ -312,7 +312,8 @@ select ips_temp.corporate_id,
                agrd_fm.parent_internal_grd_ref_no
            and agrd_fm.internal_grd_ref_no = agrd.parent_internal_grd_ref_no
            and agrd_cloned.is_deleted = 'N'
-           and agrd_cloned.status = 'Active'
+           and (agrd_cloned.status = 'Active'
+	       or agrd_cloned.is_clone_stock_spilt = 'Y')
            and pdm_consc.product_id = agrd_cloned.product_id
            and grd.internal_grd_ref_no = agrd.internal_grd_ref_no
         
