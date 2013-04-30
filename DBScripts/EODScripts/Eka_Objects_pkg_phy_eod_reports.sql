@@ -3678,7 +3678,7 @@ create or replace package body pkg_phy_eod_reports is
              aml_attribute_master_list   aml
        where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
          and gmr.internal_gmr_ref_no = iid.internal_gmr_ref_no
-         and dgrd.internal_grd_ref_no = iid.stock_id
+         and dgrd.internal_dgrd_ref_no = iid.stock_id
          and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
          and iid.stock_id = iam.internal_grd_ref_no
          and iam.ash_id = ash.ash_id
@@ -8843,7 +8843,7 @@ end;
                      pcm.contract_status,
                      pcpd.product_id,
                      pcpd.product_name,
-                     sum(dipq.open_qty) open_qty,
+                     sum(dipq.total_qty) open_qty, --According to FS, it should be sum of open and executed quantity
                      dipq.item_qty_unit_id qty_unit_id,
                      qum.qty_unit,
                      pcm.invoice_currency_id invoice_cur_id,
@@ -9094,7 +9094,7 @@ sp_eodeom_process_log(pc_corporate_id,
   select pc_corporate_id,
          pcm.internal_contract_ref_no,
          null element_id,
-         sum(diqs.total_qty) priced_qty
+         sum(diqs.price_fixed_qty) priced_qty
     from pcm_physical_contract_main     pcm,
          pcdi_pc_delivery_item          pcdi,
          diqs_delivery_item_qty_status diqs,
@@ -13254,8 +13254,8 @@ insert into temp_mas
          'Raw Material Stock' stock_type,
          'Sales' section_name,
          '2' section_order,
-         dgrd.warehouse_profile_id,
-         phd.companyname,
+         gmr.warehouse_profile_id,
+         gmr.warehouse_name,
          case
            when rm.ratio_name = '%' then
             ((((dgrd.current_qty) * asm.dry_wet_qty_ratio / 100)) *
@@ -13277,7 +13277,6 @@ insert into temp_mas
          gmr.gmr_ref_no
     from gmr_goods_movement_record      gmr,
          dgrd_delivered_grd             dgrd,
-         phd_profileheaderdetails       phd,
          spq_stock_payable_qty          spq,
          ash_assay_header               ash,
          asm_assay_sublot_mapping       asm,
@@ -13293,7 +13292,6 @@ insert into temp_mas
      and dgrd.status = 'Active'
      and dgrd.is_afloat = 'N'
      and dgrd.tolling_stock_type = 'None Tolling'
-     and dgrd.warehouse_profile_id = phd.profileid
      and dgrd.internal_dgrd_ref_no = spq.internal_dgrd_ref_no
      and spq.is_stock_split = 'N'
      and spq.element_id = aml.attribute_id
@@ -13349,8 +13347,8 @@ insert into temp_mas
          'Raw Material Stock' stock_type,
          'Sales' section_name,
          '2' section_order,
-         grd.warehouse_profile_id,
-         phd.companyname,
+         gmr.warehouse_profile_id,
+         gmr.warehouse_name,
          case
            when rm.ratio_name = '%' then
             ((((grd.qty - grd.moved_out_qty) * asm.dry_wet_qty_ratio / 100)) *
@@ -13371,7 +13369,6 @@ insert into temp_mas
          gmr.gmr_ref_no
     from gmr_goods_movement_record      gmr,
          grd_goods_record_detail        grd,
-         phd_profileheaderdetails       phd,
          spq_stock_payable_qty          spq,
          ash_assay_header               ash,
          asm_assay_sublot_mapping       asm,
@@ -13388,7 +13385,6 @@ insert into temp_mas
      and grd.is_afloat = 'N'
      and grd.is_trans_ship = 'N'
      and grd.tolling_stock_type = 'Clone Stock'
-     and grd.warehouse_profile_id = phd.profileid
      and grd.internal_grd_ref_no = spq.internal_grd_ref_no
      and spq.is_stock_split = 'N'
      and spq.element_id = aml.attribute_id
@@ -15977,6 +15973,50 @@ delete from tgi_temp_gmr_invoice t
              is1.invoice_issue_date,
              is1.invoice_ref_no;
 commit;
+
+-- added suresh
+insert into tgi_temp_gmr_invoice
+   (corporate_id,
+    process_id,
+    internal_gmr_ref_no,
+    internal_invoice_ref_no,
+    invoice_item_amount,
+    invoice_cur_id,
+    invoice_type,
+    invoice_issue_date,
+    invoice_ref_no)
+   select gmr.corporate_id,
+          gmr.process_id,
+          gmr.internal_gmr_ref_no,
+          gmr.latest_internal_invoice_ref_no,
+          sum(iied.element_payable_amount),
+          gmr.invoice_cur_id,
+          is1.invoice_type_name,
+          is1.invoice_issue_date,
+          is1.invoice_ref_no
+     from iied_inv_item_element_details iied,
+          gmr_goods_movement_record     gmr,
+          dgrd_delivered_grd            grd,
+          is_invoice_summary            is1
+    where iied.internal_invoice_ref_no = gmr.latest_internal_invoice_ref_no
+      and gmr.latest_internal_invoice_ref_no = is1.internal_invoice_ref_no
+      and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+      and grd.process_id = pc_process_id
+      and gmr.process_id = pc_process_id
+      and is1.process_id = pc_process_id
+      and gmr.is_deleted ='N'
+      and grd.status ='Active'
+      and is1.is_active ='Y'
+      and iied.grd_id = grd.internal_dgrd_ref_no
+    group by gmr.corporate_id,
+             gmr.process_id,
+             gmr.internal_gmr_ref_no,
+             gmr.latest_internal_invoice_ref_no,
+             gmr.invoice_cur_id,
+             is1.invoice_type_name,
+             is1.invoice_issue_date,
+             is1.invoice_ref_no;
+
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -16064,6 +16104,83 @@ commit;
               t.internal_invoice_ref_no,
               t.element_id;
   commit;
+  
+  --- added suresh  
+  insert into tgc_temp_gmr_charges
+    (corporate_id,
+     internal_gmr_ref_no,
+     internal_invoice_ref_no,
+     element_id,
+     tc_amt,
+     rc_amt,
+     penalty_amt)
+    select pc_corporate_id,
+           t.internal_gmr_ref_no,
+           t.internal_invoice_ref_no,
+           t.element_id,
+           nvl(sum(tc_amt), 0) tc_amt,
+           nvl(sum(rc_amt), 0),
+           nvl(sum(penalty_amt), 0)
+      from (select gmr.internal_gmr_ref_no,
+                   intc.internal_invoice_ref_no,
+                   intc.element_id,
+                   sum(tcharges_amount) tc_amt,
+                   0 rc_amt,
+                   0 penalty_amt
+              from gmr_goods_movement_record  gmr,
+                   intc_inv_treatment_charges intc,
+                   dgrd_delivered_grd       grd
+             where gmr.process_id = pc_process_id
+               and gmr.latest_internal_invoice_ref_no =
+                   intc.internal_invoice_ref_no
+               and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+               and grd.internal_dgrd_ref_no = intc.grd_id
+               and grd.process_id = pc_process_id
+             group by gmr.internal_gmr_ref_no,
+                      intc.internal_invoice_ref_no,
+                      intc.element_id
+            union all
+            select gmr.internal_gmr_ref_no,
+                   inrc.internal_invoice_ref_no,
+                   inrc.element_id,
+                   0 tc_amt,
+                   sum(rcharges_amount) rc_amt,
+                   0 penalty_amt
+              from gmr_goods_movement_record gmr,
+                   inrc_inv_refining_charges inrc,
+                   dgrd_delivered_grd         grd
+             where gmr.process_id = pc_process_id
+               and gmr.latest_internal_invoice_ref_no =
+                   inrc.internal_invoice_ref_no
+               and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+               and grd.internal_dgrd_ref_no = inrc.grd_id
+               and grd.process_id = pc_process_id
+             group by gmr.internal_gmr_ref_no,
+                      inrc.element_id,
+                      inrc.internal_invoice_ref_no
+            union all
+            select gmr.internal_gmr_ref_no,
+                   iepd.internal_invoice_ref_no,
+                   iepd.element_id,
+                   0 tc_amt,
+                   0 rc_amt,
+                   sum(iepd.element_penalty_amount) penalty_amt
+              from gmr_goods_movement_record gmr,
+                   iepd_inv_epenalty_details iepd,
+                   dgrd_delivered_grd        grd
+             where gmr.process_id = pc_process_id
+               and gmr.latest_internal_invoice_ref_no =
+                   iepd.internal_invoice_ref_no
+               and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+               and grd.internal_dgrd_ref_no = iepd.stock_id
+               and grd.process_id = pc_process_id
+             group by gmr.internal_gmr_ref_no,
+                      iepd.element_id,
+                      iepd.internal_invoice_ref_no) t
+     group by t.internal_gmr_ref_no,
+              t.internal_invoice_ref_no,
+              t.element_id;
+ --- end suresh
   sp_gather_stats('tgi_temp_gmr_invoice');
   sp_gather_stats('tgc_temp_gmr_charges');
   --
@@ -23862,6 +23979,7 @@ exception
                                                          '',
                                                          sysdate,
                                                          pd_trade_date);
+    sp_insert_error_log(vobj_error_log);
   
 end;
 
@@ -24141,7 +24259,7 @@ begin
         end if;
         if cur_each_gmr_rows.is_invoiced = 'N' or
            (cur_each_gmr_rows.is_invoiced = 'Y' and vn_dummy > 0) then
-          begin
+        --  begin
             If cur_each_gmr_rows.pcm_contract_type ='Sales' Then
             select count(distinct agrd.container_no)
               into vn_total_containers
@@ -24178,15 +24296,16 @@ begin
                    cur_each_gmr_rows.internal_gmr_ref_no
                and agrd.container_size = cur_each_gmr_rows.container_size;
                end if;
+               dbms_output.put_line(vn_total_containers|| ','||cur_each_gmr_rows.fx_rate|| ' '||cur_each_gmr_rows.internal_gmr_ref_no );
             -- We have multipe container sizes, we need to keep adding for this GMR                  
             vn_container_charge := vn_container_charge +
                                    (cur_each_gmr_rows.charge *
                                    cur_each_gmr_rows.fx_rate *
                                    vn_total_containers);
-          exception
+          /*exception
             when no_data_found then
               null;
-          end;
+          end;*/
         end if;
       end if;
     end loop;
@@ -24256,6 +24375,7 @@ exception
                                                          '',
                                                          sysdate,
                                                          pd_trade_date);
+  sp_insert_error_log(vobj_error_log);                                                         
 end;
                                          
 procedure sp_delta_updates(pc_corporate_id varchar2,
@@ -24656,6 +24776,8 @@ exception
                                                          pc_user_id,
                                                          sysdate,
                                                          pd_trade_date);
+    sp_insert_error_log(vobj_error_log);
+                                                         
 end;                          
 end; 
 /
