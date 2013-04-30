@@ -7,7 +7,7 @@ Created on*        		:  30-Apr-2013
 
 Bug / Enhancement*              :  
 
-Bug ID*            		:  
+Bug ID*            		:  78163 75777 76955 75805 75810 76587 78116 78113
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,3 +33,30 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 125178
+Author: janna
+Date: 7:01:57 PM, Tuesday, April 30, 2013
+Message:
+Changes
+Updated process_id during inserting itelf
+Removed marking from process
+Bug Fix for Metal Balance Summary
+Sales Arrival Status Correction 
+COG Price Fixes for Combo anf FX Rate Issue
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/137_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_tata.sql
+
+Revision: 125171
+Author: suresh.gottipati
+Date: 6:36:54 PM, Tuesday, April 30, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
