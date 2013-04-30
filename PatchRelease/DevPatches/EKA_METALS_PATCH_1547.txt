@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1547
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: G.A.Raju
+ 
+Created on*        		: 30-Apr-2013
+
+Bug / Enhancement*              : BUG
+
+Bug ID*            		: 78159
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice Document
+
+Sub-Module  			 :  Invoice Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 125128
+Author: rajuga
+Date: 4:05:09 PM, Tuesday, April 30, 2013
+Message:
+2.In FI o/p doc, 
+  i)System is not showing Payment of Metals section but Invoice Amount is showing with payment of metals values
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+
+==================================================================
