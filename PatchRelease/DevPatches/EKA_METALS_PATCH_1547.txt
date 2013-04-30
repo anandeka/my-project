@@ -8,7 +8,7 @@ Created on*        		: 30-Apr-2013
 
 Bug / Enhancement*              : BUG
 
-Bug ID*            		: 78159
+Bug ID*            		: 78159, 78164, 78168
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -38,10 +38,21 @@ Schema type (Transaction / EOD)* : Transaction
 Revision: 125128
 Author: rajuga
 Date: 4:05:09 PM, Tuesday, April 30, 2013
-Message:
+Message: Bugs - 78159 and 78168
 2.In FI o/p doc, 
   i)System is not showing Payment of Metals section but Invoice Amount is showing with payment of metals values
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+
+==================================================================
+
+Revision: 125143
+Author: rajuga
+Date: 4:49:39 PM, Tuesday, April 30, 2013
+Message:
+Bug: 78164 
+[ ii)System is not showing CP Vat Number ]
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AdvancePaymentDocument.rpt
 
 ==================================================================
