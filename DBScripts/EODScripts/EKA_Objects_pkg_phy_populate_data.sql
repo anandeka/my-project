@@ -1086,7 +1086,8 @@ create or replace package body PKG_PHY_POPULATE_DATA is
        no_of_units,
        packing_size_id,
        handled_as,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(int_alloc_group_detail_id,
                     'Empty_String',
                     null,
@@ -1140,7 +1141,8 @@ create or replace package body PKG_PHY_POPULATE_DATA is
              decode(no_of_units, 'Empty_String', null, no_of_units),
              decode(packing_size_id, 'Empty_String', null, packing_size_id),
              decode(handled_as, 'Empty_String', null, handled_as),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select agdul.int_alloc_group_detail_id,
                      substr(max(case
                                   when agdul.int_alloc_group_id is not null then
@@ -1329,7 +1331,8 @@ create or replace package body PKG_PHY_POPULATE_DATA is
        realized_creation_date,
        internal_action_ref_no,
        partnership_type,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(int_alloc_group_id,
                     'Empty_String',
                     null,
@@ -1388,7 +1391,8 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                     'Empty_String',
                     null,
                     partnership_type),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select aghul.int_alloc_group_id,
                      substr(max(case
                                   when aghul.int_sales_contract_item_ref_no is not null then
@@ -1575,7 +1579,8 @@ create or replace package body PKG_PHY_POPULATE_DATA is
        is_deleted,
        version,
        gmr_activity_type,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(cog_ref_no, 'Empty_String', null, cog_ref_no),
              decode(internal_gmr_ref_no,
                     'Empty_String',
@@ -1605,7 +1610,8 @@ create or replace package body PKG_PHY_POPULATE_DATA is
                     'Empty_String',
                     null,
                     gmr_activity_type),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select cigcul.cog_ref_no,
                      substr(max(case
                                   when cigcul.internal_gmr_ref_no is not null then
@@ -1755,7 +1761,8 @@ insert into cs_cost_store
    acc_over_accrual,
    acc_under_accrual,
    delta_cost_in_base_price_id,
-   reversal_type)
+   reversal_type,
+   process_id)
   select decode(internal_cost_id, 'Empty_String', null, internal_cost_id),
          decode(internal_action_ref_no,
                 'Empty_String',
@@ -1819,7 +1826,8 @@ insert into cs_cost_store
          nvl(acc_over_accrual, 'N'),
          nvl(acc_under_accrual, 'N'),
          delta_cost_in_base_price_id,
-         nvl(reversal_type, 'N')
+         nvl(reversal_type, 'N'),
+         pkg_phy_populate_data.gvc_process_id
     from (select csul.internal_cost_id,
                  substr(max(case
                               when csul.internal_action_ref_no is not null then
@@ -2066,7 +2074,8 @@ insert into cs_cost_store
              cost_ref_no,
              is_deleted,
              rate_price_unit_id_in_pum,
-             dbd_id)
+             dbd_id,
+             process_id)
             select element_cost_id,
                    internal_cost_id,
                    element_id,
@@ -2086,7 +2095,8 @@ insert into cs_cost_store
                    cost_ref_no,
                    ecs.is_deleted,
                    ppu.price_unit_id,-- PUM ID
-                   gvc_dbd_id
+                   gvc_dbd_id,
+                   pkg_phy_populate_data.gvc_process_id
               from ecs_element_cost_store@eka_appdb ecs,
               ppu_product_price_units ppu
               where ecs.internal_cost_id in
@@ -2213,7 +2223,8 @@ insert into cs_cost_store
        warrant_no,
        dbd_id,
        tolling_stock_type,
-       pcdi_id)
+       pcdi_id,
+       process_id)
       select decode(internal_dgrd_ref_no,
                     'Empty_String',
                     null,
@@ -2381,7 +2392,8 @@ insert into cs_cost_store
              decode(warrant_no, 'Empty_String', null, warrant_no),
              gvc_dbd_id,
              decode(tolling_stock_type, 'Empty_String', null, tolling_stock_type),
-             decode(pcdi_id, 'Empty_String', null, pcdi_id)
+             decode(pcdi_id, 'Empty_String', null, pcdi_id),
+             pkg_phy_populate_data.gvc_process_id
         from (select dgrdul.internal_dgrd_ref_no,
                      substr(max(case
                                   when dgrdul.action_no is not null then
@@ -2764,7 +2776,6 @@ insert into cs_cost_store
                                    dgrdul.phy_attribute_group_no
                                 end),
                             24) phy_attribute_group_no,
-                     
                      substr(max(case
                                   when dgrdul.assay_header_id is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -3029,7 +3040,8 @@ insert into gmr_goods_movement_record
    mode_of_transport,
    wns_status,
    base_conc_mix_type,
-   dbd_id)
+   dbd_id,
+   process_id)
   select decode(internal_gmr_ref_no,
                 'Empty_String',
                 null,
@@ -3214,7 +3226,8 @@ insert into gmr_goods_movement_record
          decode(mode_of_transport, 'Empty_String', null, mode_of_transport) mode_of_transport,
          decode(wns_status, 'Empty_String', null, wns_status) wns_status,
          decode(base_conc_mix_type, 'Empty_String', null, base_conc_mix_type) base_conc_mix_type,
-         gvc_dbd_id
+         gvc_dbd_id,
+         pkg_phy_populate_data.gvc_process_id
     from (select gmrul.internal_gmr_ref_no,
                  substr(max(case
                               when gmrul.gmr_ref_no is not null then
@@ -3924,7 +3937,8 @@ commit;
        status,
        tare_weight,
        gross_weight,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(internal_gmr_ref_no,
                     'Empty_String',
                     null,
@@ -3944,7 +3958,8 @@ commit;
              decode(status, 'Empty_String', null, status),
              decode(tare_weight, 'Empty_String', null, tare_weight),
              decode(gross_weight, 'Empty_String', null, gross_weight),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select substr(max(case
                                   when mogrdul.internal_gmr_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -4069,7 +4084,8 @@ commit;
        comments,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcad_id, 'Empty_String', null, pcad_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -4107,7 +4123,8 @@ commit;
              decode(comments, 'Empty_String', null, comments),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcadul.pcad_id,
                      substr(max(case
                                   when pcadul.internal_contract_ref_no is not null then
@@ -4263,7 +4280,8 @@ commit;
        fx_to_base,
        qty_to_be_priced,
        pcbph_id,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcbpd_id, 'Empty_String', null, pcbpd_id),
              decode(element_id, 'Empty_String', null, element_id),
              decode(price_basis, 'Empty_String', null, price_basis),
@@ -4279,7 +4297,8 @@ commit;
                     null,
                     qty_to_be_priced),
              decode(pcbph_id, 'Empty_String', null, pcbph_id),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcbpdul.pcbpd_id,
                      substr(max(case
                                   when pcbpdul.element_id is not null then
@@ -4408,7 +4427,8 @@ commit;
        is_free_metal_applicable,
        valuation_price_percentage,
        is_balance_pricing,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcbph_id, 'Empty_String', null, pcbph_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
@@ -4427,7 +4447,8 @@ commit;
                     is_free_metal_applicable),
                     nvl(valuation_price_percentage,100), 
                     nvl(is_balance_pricing,'N'), 
-                    gvc_dbd_id
+                    gvc_dbd_id,
+                    pkg_phy_populate_data.gvc_process_id
         from (select pcbphul.pcbph_id,
                      substr(max(case
                                   when pcbphul.internal_contract_ref_no is not null then
@@ -4545,7 +4566,8 @@ commit;
        tax_status,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcdb_id, 'Empty_String', null, pcdb_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -4568,7 +4590,8 @@ commit;
              decode(tax_status, 'Empty_String', null, tax_status),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcdbul.pcdb_id,
                      substr(max(case
                                   when pcdbul.internal_contract_ref_no is not null then
@@ -4718,7 +4741,8 @@ commit;
        version,
        is_active,
        internal_contract_ref_no,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcdd_id, 'Empty_String', null, pcdd_id),
              decode(doc_id, 'Empty_String', null, doc_id),
              decode(doc_type, 'Empty_String', null, doc_type),
@@ -4728,7 +4752,8 @@ commit;
                     'Empty_String',
                     null,
                     internal_contract_ref_no),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcddul.pcdd_id,
                      substr(max(case
                                   when pcddul.doc_id is not null then
@@ -4812,13 +4837,14 @@ commit;
   
   begin
     insert into pcdiob_di_optional_basis
-      (pcdiob_id, pcdi_id, pcdb_id, version, is_active, dbd_id)
+      (pcdiob_id, pcdi_id, pcdb_id, version, is_active, dbd_id, process_id)
       select decode(pcdiob_id, 'Empty_String', null, pcdiob_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcdb_id, 'Empty_String', null, pcdb_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcdiobul.pcdiob_id,
                      substr(max(case
                                   when pcdiobul.pcdi_id is not null then
@@ -4896,13 +4922,14 @@ commit;
   
   begin
     insert into pcdipe_di_pricing_elements
-      (pcdipe_id, pcdi_id, pcbph_id, version, is_active, dbd_id)
+      (pcdipe_id, pcdi_id, pcbph_id, version, is_active, dbd_id, process_id)
       select decode(pcdipe_id, 'Empty_String', null, pcdipe_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcbph_id, 'Empty_String', null, pcbph_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcdipeul.pcdipe_id,
                      substr(max(case
                                   when pcdipeul.pcdi_id is not null then
@@ -4986,13 +5013,14 @@ commit;
   
   begin
     insert into pcdiqd_di_quality_details
-      (pcdiqd_id, pcdi_id, pcpq_id, version, is_active, dbd_id)
+      (pcdiqd_id, pcdi_id, pcpq_id, version, is_active, dbd_id, process_id)
       select decode(pcdiqd_id, 'Empty_String', null, pcdiqd_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select substr(max(case
                                   when pcdiqdul.internal_action_ref_no is not null then
                                    to_char(axs.created_date, 'yyyymmddhh24missff9') ||
@@ -5119,7 +5147,8 @@ commit;
        quality_declaration_date,
        inco_location_declaration_date,
        price_allocation_method,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -5235,7 +5264,8 @@ commit;
                     'Empty_String',
                     null,
                     price_allocation_method),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcdiul.pcdi_id,
                      substr(max(case
                                   when pcdiul.internal_contract_ref_no is not null then
@@ -5546,7 +5576,8 @@ commit;
        pcbph_id,
        version,
        is_active,
-       dbd_id)
+       dbd_id, 
+       process_id)
       select decode(pcipf_id, 'Empty_String', null, pcipf_id),
              decode(internal_contract_item_ref_no,
                     'Empty_String',
@@ -5555,7 +5586,8 @@ commit;
              decode(pcbph_id, 'Empty_String', null, pcbph_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcipful.pcipf_id,
                      substr(max(case
                                   when pcipful.internal_contract_item_ref_no is not null then
@@ -5660,7 +5692,8 @@ commit;
        is_called_off,
        expected_qp_start_date,
        expected_qp_end_date,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(internal_contract_item_ref_no,
                     'Empty_String',
                     null,
@@ -5729,7 +5762,8 @@ commit;
                     'Empty_String',
                     null,
                     expected_qp_end_date),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pciul.internal_contract_item_ref_no,
                      substr(max(case
                                   when pciul.pcpq_id is not null then
@@ -5942,7 +5976,8 @@ commit;
        comments,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcjv_id, 'Empty_String', null, pcjv_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -5960,7 +5995,8 @@ commit;
              decode(comments, 'Empty_String', null, comments),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcjvul.pcjv_id,
                      substr(max(case
                                   when pcjvul.internal_contract_ref_no is not null then
@@ -6104,7 +6140,8 @@ commit;
        approval_status,
        cp_address_id,
        is_lot_level_invoice,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(internal_contract_ref_no,
                     'Empty_String',
                     null,
@@ -6226,7 +6263,8 @@ commit;
                     'Empty_String',
                     null,
                     is_lot_level_invoice),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcmul.internal_contract_ref_no,
                      substr(max(case
                                   when pcmul.contract_ref_no is not null then
@@ -6584,14 +6622,16 @@ commit;
        version,
        is_active,
        quality_name,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcpdqd_id, 'Empty_String', null, pcpdqd_id),
              decode(pcqpd_id, 'Empty_String', null, pcqpd_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(quality_name, 'Empty_String', null, quality_name),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcpdqdul.pcpdqd_id,
                      substr(max(case
                                   when pcpdqdul.pcqpd_id is not null then
@@ -6699,7 +6739,8 @@ commit;
        is_quality_print_name_req,
        quality_print_name,
        input_output,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcpd_id, 'Empty_String', null, pcpd_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -6751,7 +6792,8 @@ commit;
                     null,
                     quality_print_name),
              decode(input_output, 'Empty_String', null, input_output),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcpdul.pcpd_id,
                      substr(max(case
                                   when pcpdul.internal_contract_ref_no is not null then
@@ -6960,7 +7002,8 @@ commit;
        is_quality_print_name_req,
        quality_print_name,
        comments,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(pcpd_id, 'Empty_String', null, pcpd_id),
              decode(quality_template_id,
@@ -6990,7 +7033,8 @@ commit;
                     null,
                     quality_print_name),
              decode(comments, 'Empty_String', null, comments),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcpqul.pcpq_id,
                      substr(max(case
                                   when pcpqul.pcpd_id is not null then
@@ -7149,7 +7193,8 @@ commit;
        pffxd_id,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcqpd_id, 'Empty_String', null, pcqpd_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -7174,7 +7219,8 @@ commit;
              decode(pffxd_id, 'Empty_String', null, pffxd_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcqpdul.pcqpd_id,
                      substr(max(case
                                   when pcqpdul.internal_contract_ref_no is not null then
@@ -7299,7 +7345,8 @@ commit;
        version,
        is_active,
        internal_contract_ref_no,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pffxd_id, 'Empty_String', null, pffxd_id),
              decode(fx_rate_type, 'Empty_String', null, fx_rate_type),
              decode(fixed_fx_rate, 'Empty_String', null, fixed_fx_rate),
@@ -7356,7 +7403,8 @@ commit;
                     'Empty_String',
                     null,
                     internal_contract_ref_no),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pffxdul.pffxd_id,
                      substr(max(case
                                   when pffxdul.fx_rate_type is not null then
@@ -7568,7 +7616,8 @@ commit;
        event_name,
        no_of_event_months,
        is_spot_pricing,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pfqpp_id, 'Empty_String', null, pfqpp_id),
              decode(ppfh_id, 'Empty_String', null, ppfh_id),
              decode(qp_pricing_period_type,
@@ -7626,7 +7675,8 @@ commit;
                     null,
                     no_of_event_months),
              decode(is_spot_pricing, 'Empty_String', null, is_spot_pricing),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pfqppul.pfqpp_id,
                      substr(max(case
                                   when pfqppul.ppfh_id is not null then
@@ -7833,7 +7883,8 @@ commit;
        basis_price_unit_id,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(ppfd_id, 'Empty_String', null, ppfd_id),
              decode(ppfh_id, 'Empty_String', null, ppfh_id),
              decode(instrument_id, 'Empty_String', null, instrument_id),
@@ -7855,7 +7906,8 @@ commit;
                     basis_price_unit_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select ppfdul.ppfd_id,
                      substr(max(case
                                   when ppfdul.ppfh_id is not null then
@@ -8002,7 +8054,8 @@ commit;
        version,
        is_active,
        price_unit_id,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(ppfh_id, 'Empty_String', null, ppfh_id),
              decode(pcbpd_id, 'Empty_String', null, pcbpd_id),
              decode(formula_name, 'Empty_String', null, formula_name),
@@ -8018,7 +8071,8 @@ commit;
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(price_unit_id, 'Empty_String', null, price_unit_id),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select ppfhul.ppfh_id,
                      substr(max(case
                                   when ppfhul.pcbpd_id is not null then
@@ -8139,7 +8193,8 @@ commit;
        unallocated_qty,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select ciqsul.ciqs_id,
              substr(max(case
                           when ciqsul.internal_contract_item_ref_no is not null then
@@ -8178,7 +8233,8 @@ commit;
                            ciqsul.is_active
                         end),
                     24) is_active,
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from ciqsl_contract_itm_qty_sts_log ciqsul,
              axs_action_summary             axs,
              dbd_database_dump              dbd_ul
@@ -8247,7 +8303,8 @@ commit;
        version,
        is_active,
        called_off_qty,
-       dbd_id)
+       dbd_id,
+       process_id)
       select diqsul.diqs_id,
              substr(max(case
                           when diqsul.pcdi_id is not null then
@@ -8287,7 +8344,8 @@ commit;
                         end),
                     24) is_active,
              round(sum(nvl(diqsul.called_off_qty_delta, 0)), 10),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from diqsl_delivery_itm_qty_sts_log diqsul,
              axs_action_summary             axs,
              dbd_database_dump              dbd_ul
@@ -8356,7 +8414,8 @@ commit;
        version,
        is_active,
        called_off_qty,
-       dbd_id)
+       dbd_id,
+       process_id)
       select cqsul.cqs_id,
              substr(max(case
                           when cqsul.internal_contract_ref_no is not null then
@@ -8396,7 +8455,8 @@ commit;
                         end),
                     24) is_active,
              round(sum(nvl(cqsul.called_off_qty_delta, 0)), 10),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from cqsl_contract_qty_status_log cqsul,
              axs_action_summary           axs,
              dbd_database_dump            dbd_ul
@@ -8551,8 +8611,8 @@ commit;
        payable_returnable_type,
        carry_over_qty,
        supp_internal_gmr_ref_no,
-       dbd_id
-       )
+       dbd_id,
+       process_id)
       select grdul. internal_grd_ref_no,
              substr(max(case
                           when grdul.internal_gmr_ref_no is not null then
@@ -9033,7 +9093,8 @@ commit;
                            grdul.supp_internal_gmr_ref_no
                         end),
                     24) supp_internal_gmr_ref_no,        
-                    gvc_dbd_id
+                    gvc_dbd_id,
+                    pkg_phy_populate_data.gvc_process_id
         from grdl_goods_record_detail_log grdul,
              axs_action_summary           axs
        where axs.process = gvc_process
@@ -9042,6 +9103,7 @@ commit;
          and axs.corporate_id = pc_corporate_id
          and grdul.process = gvc_process
        group by grdul.internal_grd_ref_no;
+       commit;
     --
     -- Update Payment Due Date From Contract
     --
@@ -9060,6 +9122,7 @@ commit;
        set grd.payment_due_date = pd_trade_date
      where grd.dbd_id = gvc_dbd_id
        and grd.payment_due_date is null;
+       commit;
        
  -- Purchase from GRD      
  for cur_grd in (      
@@ -9076,8 +9139,8 @@ update gmr_goods_movement_record gmr
    set gmr.product_id =  cur_grd.product_id
  where gmr.dbd_id = gvc_dbd_id
  and gmr.internal_gmr_ref_no = cur_grd.internal_gmr_ref_no;
- 
  end loop;
+commit; 
 -- Sales from DGRD
 for cur_dgrd in (
 select dgrd.internal_gmr_ref_no,
@@ -9135,7 +9198,7 @@ commit;
 Update grd_goods_record_detail grd
 set grd.current_qty = (nvl(grd.current_qty,0) + nvl(grd.release_shipped_qty,0) - nvl(grd.title_transfer_out_qty,0))
 where grd.dbd_id = gvc_dbd_id;
-
+commit;
 Update gmr_goods_movement_record gmr
 set gmr.stock_current_qty =
 (select nvl(sum(nvl(grd.current_qty,0)),0) from grd_goods_record_detail grd
@@ -9144,6 +9207,7 @@ and grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
 and grd.is_deleted ='N'
 and grd.status ='Active')
 where gmr.dbd_id = gvc_dbd_id;
+commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -9237,7 +9301,8 @@ where gmr.dbd_id = gvc_dbd_id;
        nature_of_goods,
        dimensions,
        handling_instructions,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(internal_gmr_ref_no,
                     'Empty_String',
                     null,
@@ -9395,7 +9460,8 @@ where gmr.dbd_id = gvc_dbd_id;
                     'Empty_String',
                     null,
                     handling_instructions),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select vdul.internal_gmr_ref_no,
                      substr(max(case
                                   when vdul.action_no is not null then
@@ -9782,7 +9848,8 @@ where gmr.dbd_id = gvc_dbd_id;
        version,
        is_active,
        payable_type,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcpch_id, 'Empty_String', null, pcpch_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -9795,7 +9862,8 @@ where gmr.dbd_id = gvc_dbd_id;
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(payable_type, 'Empty_String', null, payable_type),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcpchul.pcpch_id,
                      substr(max(case
                                   when pcpchul.internal_contract_ref_no is not null then
@@ -9896,14 +9964,15 @@ where gmr.dbd_id = gvc_dbd_id;
   
   begin
     insert into pqd_payable_quality_details
-      (pqd_id, pcpch_id, pcpq_id, version, is_active, quality_name, dbd_id)
+      (pqd_id, pcpch_id, pcpq_id, version, is_active, quality_name, dbd_id,process_id)
       select decode(pqd_id, 'Empty_String', null, pqd_id),
              decode(pcpch_id, 'Empty_String', null, pcpch_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(quality_name, 'Empty_String', null, quality_name),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pqdul.pqd_id,
                      substr(max(case
                                   when pqdul.pcpch_id is not null then
@@ -10002,7 +10071,8 @@ where gmr.dbd_id = gvc_dbd_id;
        is_active,
        pcpch_id,
        position,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcepc_id, 'Empty_String', null, pcepc_id),
              decode(range_min_op, 'Empty_String', null, range_min_op),
              decode(range_min_value, 'Empty_String', null, range_min_value),
@@ -10041,7 +10111,8 @@ where gmr.dbd_id = gvc_dbd_id;
              decode(is_active, 'Empty_String', null, is_active),
              decode(pcpch_id, 'Empty_String', null, pcpch_id),
              decode(position, 'Empty_String', null, position),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcepcul.pcepc_id,
                      substr(max(case
                                   when pcepcul.range_min_op is not null then
@@ -10199,7 +10270,8 @@ where gmr.dbd_id = gvc_dbd_id;
        slab_tier,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -10211,7 +10283,8 @@ where gmr.dbd_id = gvc_dbd_id;
              decode(slab_tier, 'Empty_String', null, slab_tier),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcthul.pcth_id,
                      substr(max(case
                                   when pcthul.internal_contract_ref_no is not null then
@@ -10313,14 +10386,16 @@ where gmr.dbd_id = gvc_dbd_id;
        version,
        is_active,
        element_name,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(ted_id, 'Empty_String', null, ted_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(element_id, 'Empty_String', null, element_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(element_name, 'Empty_String', null, element_name),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select tedul.ted_id,
                      substr(max(case
                                   when tedul.pcth_id is not null then
@@ -10404,14 +10479,15 @@ where gmr.dbd_id = gvc_dbd_id;
   
   begin
     insert into tqd_treatment_quality_details
-      (tqd_id, pcth_id, pcpq_id, version, is_active, quality_name, dbd_id)
+      (tqd_id, pcth_id, pcpq_id, version, is_active, quality_name, dbd_id,process_id)
       select decode(tqd_id, 'Empty_String', null, tqd_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(quality_name, 'Empty_String', null, quality_name),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select tqdul.tqd_id,
                      substr(max(case
                                   when tqdul.pcth_id is not null then
@@ -10512,7 +10588,8 @@ where gmr.dbd_id = gvc_dbd_id;
        esc_desc_unit_id,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcetc_id, 'Empty_String', null, pcetc_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(range_min_op, 'Empty_String', null, range_min_op),
@@ -10538,7 +10615,8 @@ where gmr.dbd_id = gvc_dbd_id;
                     esc_desc_unit_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcetcul.pcetc_id,
                      substr(max(case
                                   when pcetcul.pcth_id is not null then
@@ -10697,7 +10775,8 @@ where gmr.dbd_id = gvc_dbd_id;
        is_active,
        element_name,
        quality_id,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcar_id, 'Empty_String', null, pcar_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -10722,7 +10801,8 @@ where gmr.dbd_id = gvc_dbd_id;
              decode(is_active, 'Empty_String', null, is_active),
              decode(element_name, 'Empty_String', null, element_name),
              decode(quality_id, 'Empty_String', null, quality_id),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcarul.pcar_id,
                      substr(max(case
                                   when pcarul.internal_contract_ref_no is not null then
@@ -10853,7 +10933,8 @@ where gmr.dbd_id = gvc_dbd_id;
        applicable_value,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcaesl_id, 'Empty_String', null, pcaesl_id),
              decode(pcar_id, 'Empty_String', null, pcar_id),
              decode(assay_min_op, 'Empty_String', null, assay_min_op),
@@ -10866,7 +10947,8 @@ where gmr.dbd_id = gvc_dbd_id;
                     applicable_value),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcaeslul.pcaesl_id,
                      substr(max(case
                                   when pcaeslul.pcar_id is not null then
@@ -10969,14 +11051,15 @@ where gmr.dbd_id = gvc_dbd_id;
   
   begin
     insert into arqd_assay_quality_details
-      (arqd_id, pcar_id, pcpq_id, version, is_active, quality_name, dbd_id)
+      (arqd_id, pcar_id, pcpq_id, version, is_active, quality_name, dbd_id,process_id)
       select decode(arqd_id, 'Empty_String', null, arqd_id),
              decode(pcar_id, 'Empty_String', null, pcar_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(quality_name, 'Empty_String', null, quality_name),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select arqdul.arqd_id,
                      substr(max(case
                                   when arqdul.pcar_id is not null then
@@ -11065,7 +11148,8 @@ where gmr.dbd_id = gvc_dbd_id;
        slab_tier,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcaph_id, 'Empty_String', null, pcaph_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -11076,7 +11160,8 @@ where gmr.dbd_id = gvc_dbd_id;
              decode(slab_tier, 'Empty_String', null, slab_tier),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcaphul.pcaph_id,
                      substr(max(case
                                   when pcaphul.internal_contract_ref_no is not null then
@@ -11186,7 +11271,8 @@ where gmr.dbd_id = gvc_dbd_id;
        is_active,
        pcaph_id,
        position,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcap_id, 'Empty_String', null, pcap_id),
              decode(range_min_op, 'Empty_String', null, range_min_op),
              decode(range_min_value, 'Empty_String', null, range_min_value),
@@ -11228,7 +11314,8 @@ where gmr.dbd_id = gvc_dbd_id;
              decode(is_active, 'Empty_String', null, is_active),
              decode(pcaph_id, 'Empty_String', null, pcaph_id),
              decode(position, 'Empty_String', null, position),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcapul.pcap_id,
                      substr(max(case
                                   when pcapul.range_min_op is not null then
@@ -11396,13 +11483,14 @@ where gmr.dbd_id = gvc_dbd_id;
   
   begin
     insert into pqd_penalty_quality_details
-      (pqd_id, pcaph_id, pcpq_id, version, is_active, dbd_id)
+      (pqd_id, pcaph_id, pcpq_id, version, is_active, dbd_id,process_id)
       select decode(pqd_id, 'Empty_String', null, pqd_id),
              decode(pcaph_id, 'Empty_String', null, pcaph_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcdul.pqd_id,
                      substr(max(case
                                   when pcdul.pcaph_id is not null then
@@ -11482,14 +11570,15 @@ where gmr.dbd_id = gvc_dbd_id;
   begin
   
     insert into pad_penalty_attribute_details
-      (pad_id, pcaph_id, element_id, pqpa_id, version, is_active, dbd_id)
+      (pad_id, pcaph_id, element_id, pqpa_id, version, is_active, dbd_id, process_id)
       select decode(pad_id, 'Empty_String', null, pad_id),
              decode(pcaph_id, 'Empty_String', null, pcaph_id),
              decode(element_id, 'Empty_String', null, element_id),
              decode(pqpa_id, 'Empty_String', null, pqpa_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select padul.pad_id,
                      substr(max(case
                                   when padul.pcaph_id is not null then
@@ -11581,7 +11670,8 @@ where gmr.dbd_id = gvc_dbd_id;
        slab_tier,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(internal_contract_ref_no,
                     'Empty_String',
@@ -11593,7 +11683,8 @@ where gmr.dbd_id = gvc_dbd_id;
              decode(slab_tier, 'Empty_String', null, slab_tier),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcrhul.pcrh_id,
                      substr(max(case
                                   when pcrhul.internal_contract_ref_no is not null then
@@ -11688,14 +11779,15 @@ where gmr.dbd_id = gvc_dbd_id;
   
   begin
     insert into rqd_refining_quality_details
-      (rqd_id, pcrh_id, pcpq_id, version, is_active, quality_name, dbd_id)
+      (rqd_id, pcrh_id, pcpq_id, version, is_active, quality_name, dbd_id,process_id)
       select decode(rqd_id, 'Empty_String', null, rqd_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(pcpq_id, 'Empty_String', null, pcpq_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(quality_name, 'Empty_String', null, quality_name),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select rqdul.rqd_id,
                      substr(max(case
                                   when rqdul.pcrh_id is not null then
@@ -11785,14 +11877,16 @@ where gmr.dbd_id = gvc_dbd_id;
        version,
        is_active,
        element_name,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(red_id, 'Empty_String', null, red_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(element_id, 'Empty_String', null, element_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
              decode(element_name, 'Empty_String', null, element_name),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select redul.red_id,
                      substr(max(case
                                   when redul.pcrh_id is not null then
@@ -11893,7 +11987,8 @@ where gmr.dbd_id = gvc_dbd_id;
        esc_desc_unit_id,
        version,
        is_active,
-       dbd_id)
+       dbd_id,
+       process_id)
       select decode(pcerc_id, 'Empty_String', null, pcerc_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(range_min_op, 'Empty_String', null, range_min_op),
@@ -11916,7 +12011,8 @@ where gmr.dbd_id = gvc_dbd_id;
                     esc_desc_unit_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select pcercul.pcerc_id,
                      substr(max(case
                                   when pcercul.pcrh_id is not null then
@@ -12059,13 +12155,14 @@ where gmr.dbd_id = gvc_dbd_id;
   
   begin
     insert into dith_di_treatment_header
-      (dith_id, pcdi_id, pcth_id, version, is_active, dbd_id)
+      (dith_id, pcdi_id, pcth_id, version, is_active, dbd_id, process_id)
       select decode(dith_id, 'Empty_String', null, dith_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcth_id, 'Empty_String', null, pcth_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select dithul.dith_id,
                      substr(max(case
                                   when dithul.pcdi_id is not null then
@@ -12142,13 +12239,14 @@ where gmr.dbd_id = gvc_dbd_id;
   
   begin
     insert into dirh_di_refining_header
-      (dirh_id, pcdi_id, pcrh_id, version, is_active, dbd_id)
+      (dirh_id, pcdi_id, pcrh_id, version, is_active, dbd_id, process_id)
       select decode(dirh_id, 'Empty_String', null, dirh_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcrh_id, 'Empty_String', null, pcrh_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select dirhul.dirh_id,
                      substr(max(case
                                   when dirhul.pcdi_id is not null then
@@ -12226,13 +12324,14 @@ where gmr.dbd_id = gvc_dbd_id;
   
   begin
     insert into diph_di_penalty_header
-      (diph_id, pcdi_id, pcaph_id, version, is_active, dbd_id)
+      (diph_id, pcdi_id, pcaph_id, version, is_active, dbd_id, process_id)
       select decode(diph_id, 'Empty_String', null, diph_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcaph_id, 'Empty_String', null, pcaph_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select diphul.diph_id,
                      substr(max(case
                                   when diphul.pcdi_id is not null then
@@ -12318,7 +12417,8 @@ where gmr.dbd_id = gvc_dbd_id;
        is_active,
        qty_type,
        internal_action_ref_no,
-       dbd_id)
+       dbd_id,
+       process_id)
       select cipqul.cipq_id,
              substr(max(case
                           when cipqul.internal_contract_item_ref_no is not null then
@@ -12363,7 +12463,8 @@ where gmr.dbd_id = gvc_dbd_id;
                            cipqul.internal_action_ref_no
                         end),
                     24) internal_action_ref_no,
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from cipql_ctrt_itm_payable_qty_log cipqul,
              axs_action_summary             axs,
              dbd_database_dump              dbd_ul
@@ -12424,7 +12525,8 @@ where gmr.dbd_id = gvc_dbd_id;
        is_price_optionality_present,
        qty_type,
        internal_action_ref_no,
-       dbd_id)
+       dbd_id,
+       process_id)
       select dipqul.dipq_id,
              substr(max(case
                           when dipqul.pcdi_id is not null then
@@ -12481,7 +12583,8 @@ where gmr.dbd_id = gvc_dbd_id;
                            dipqul.internal_action_ref_no
                         end),
                     24) internal_action_ref_no,
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from dipql_del_itm_payble_qty_log dipqul,
              axs_action_summary           axs,
              dbd_database_dump            dbd_ul
@@ -12559,7 +12662,8 @@ insert into spq_stock_payable_qty
    internal_action_ref_no,
    weg_avg_pricing_assay_id,
    weg_avg_invoice_assay_id,
-   dbd_id)
+   dbd_id,
+   process_id)
   select spq_id,
          internal_gmr_ref_no,
          action_no,
@@ -12588,7 +12692,8 @@ insert into spq_stock_payable_qty
          internal_action_ref_no,
          weg_avg_pricing_assay_id,
          weg_avg_invoice_assay_id,
-         gvc_dbd_id
+         gvc_dbd_id,
+         pkg_phy_populate_data.gvc_process_id
     from (select spqul.spq_id,
                  substr(max(case
                               when spqul.internal_gmr_ref_no is not null then
@@ -12798,13 +12903,14 @@ commit;
   
   begin
     insert into dipch_di_payablecontent_header
-      (dipch_id, pcdi_id, pcpch_id, version, is_active, dbd_id)
+      (dipch_id, pcdi_id, pcpch_id, version, is_active, dbd_id, process_id)
       select decode(dipch_id, 'Empty_String', null, dipch_id),
              decode(pcdi_id, 'Empty_String', null, pcdi_id),
              decode(pcpch_id, 'Empty_String', null, pcpch_id),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
-             gvc_dbd_id
+             gvc_dbd_id,
+             pkg_phy_populate_data.gvc_process_id
         from (select dipchul.dipch_id,
                      substr(max(case
                                   when dipchul.pcdi_id is not null then
@@ -12944,7 +13050,7 @@ commit;
                else
                 0
              end as quality_premium_per_unit,
-             gvc_process_id,
+             pkg_phy_populate_data.gvc_process_id,
              null --agd.qty
         from (select invd.inv_id,
                      nvl(sum(invd.transaction_qty), 0) cur_inv_qty,
@@ -13569,7 +13675,8 @@ sp_precheck_process_log(pc_corporate_id,
        sum(nvl(grd.no_of_containers, 0)) no_of_containers,
        sum(grd.qty * nvl(grd.grd_to_gmr_qty_factor, 1)) wet_qty,
        sum(grd.dry_qty * nvl(grd.grd_to_gmr_qty_factor, 1)) dry_qty,
-       max(grd.quality_name) quality_name
+       max(grd.quality_name) quality_name,
+       max(grd.pcdi_id) pcdi_id
   from grd_goods_record_detail grd
  where grd.dbd_id = pc_dbd_id
    and grd.status = 'Active'
@@ -13581,7 +13688,8 @@ sp_precheck_process_log(pc_corporate_id,
        set gmr.no_of_containers = cur_containers.no_of_containers,
            gmr.dry_qty          = cur_containers.dry_qty,
            gmr.wet_qty          = cur_containers.wet_qty,
-           gmr.quality_name     = cur_containers.quality_name
+           gmr.quality_name     = cur_containers.quality_name,
+           gmr.pcdi_id          = cur_containers.pcdi_id
      where gmr.dbd_id = pc_dbd_id
        and gmr.internal_gmr_ref_no = cur_containers.internal_gmr_ref_no;
   end loop;
@@ -13597,7 +13705,8 @@ for cur_dgrd in (
   select dgrd.internal_gmr_ref_no,
        sum(nvl(dgrd.no_of_containers, 0)) no_of_containers,
        sum(dgrd.net_weight * nvl(dgrd.dgrd_to_gmr_qty_factor, 1)) wet_qty,
-       sum(dgrd.dry_qty * nvl(dgrd.dgrd_to_gmr_qty_factor, 1)) dry_qty
+       sum(dgrd.dry_qty * nvl(dgrd.dgrd_to_gmr_qty_factor, 1)) dry_qty,
+       max(dgrd.pcdi_id) pcdi_id
   from dgrd_delivered_grd dgrd
  where dgrd.dbd_id = pc_dbd_id
    and dgrd.status = 'Active'
@@ -13606,7 +13715,8 @@ for cur_dgrd in (
     update gmr_goods_movement_record gmr
        set gmr.no_of_containers = cur_dgrd.no_of_containers,
            gmr.dry_qty          = cur_dgrd.dry_qty,
-           gmr.wet_qty          = cur_dgrd.wet_qty
+           gmr.wet_qty          = cur_dgrd.wet_qty,
+           gmr.pcdi_id          = cur_dgrd.pcdi_id
      where gmr.dbd_id = pc_dbd_id
        and gmr.internal_gmr_ref_no = cur_dgrd.internal_gmr_ref_no;
   end loop;
@@ -13806,7 +13916,7 @@ gvn_log_counter :=  gvn_log_counter + 1;
 for cur_assay in( 
 SELECT   gmr.internal_gmr_ref_no,
          CASE
-            WHEN COUNT (DISTINCT dgrd.internal_grd_ref_no) =
+            WHEN COUNT (DISTINCT dgrd.internal_dgrd_ref_no) =
                    SUM
                       (CASE
                           WHEN ash.is_final_assay_fully_finalized = 'Y'
@@ -14806,7 +14916,8 @@ insert into gth_gmr_treatment_header
    pcth_id,
    is_active,
    internal_action_ref_no,
-   dbd_id)
+   dbd_id,
+   process_id)
   select gthul.gth_id,
          substr(max(case
                       when gthul.internal_gmr_ref_no is not null then
@@ -14838,7 +14949,8 @@ insert into gth_gmr_treatment_header
                        gthul.internal_action_ref_no
                     end),
                 24) internal_action_ref_no,
-         gvc_dbd_id
+         gvc_dbd_id,
+         pkg_phy_populate_data.gvc_process_id
  from gthul_gmr_treatment_header_ul gthul,
          axs_action_summary            axs
    where axs.process = gvc_process
@@ -14861,7 +14973,8 @@ insert into grh_gmr_refining_header
    pcrh_id,
    is_active,
    internal_action_ref_no,
-   dbd_id)
+   dbd_id,
+   process_id)
   select grhul.grh_id,
          substr(max(case
                       when grhul.internal_gmr_ref_no is not null then
@@ -14893,7 +15006,8 @@ insert into grh_gmr_refining_header
                        grhul.internal_action_ref_no
                     end),
                 24) internal_action_ref_no,
-         gvc_dbd_id
+         gvc_dbd_id,
+         pkg_phy_populate_data.gvc_process_id
  from grhul_gmr_refining_header_ul grhul,
          axs_action_summary            axs
    where axs.process = gvc_process
@@ -14916,7 +15030,8 @@ insert into gph_gmr_penalty_header
    pcaph_id,
    is_active,
    internal_action_ref_no,
-   dbd_id)
+   dbd_id,
+   process_id)
   select gphul.gph_id,
          substr(max(case
                       when gphul.internal_gmr_ref_no is not null then
@@ -14948,7 +15063,8 @@ insert into gph_gmr_penalty_header
                        gphul.internal_action_ref_no
                     end),
                 24) internal_action_ref_no,
-         gvc_dbd_id
+         gvc_dbd_id,
+         pkg_phy_populate_data.gvc_process_id
  from gphul_gmr_penalty_header_ul gphul,
          axs_action_summary            axs
    where axs.process = gvc_process

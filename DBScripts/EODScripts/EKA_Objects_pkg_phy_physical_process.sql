@@ -406,7 +406,6 @@ create or replace package body pkg_phy_physical_process is
                                                  pd_trade_date,
                                                  pc_process_id,
                                                  pc_user_id,
-                                                 pc_dbd_id,
                                                  pc_process);
     commit;
   
@@ -426,7 +425,6 @@ create or replace package body pkg_phy_physical_process is
                                                  pd_trade_date,
                                                  pc_process_id,
                                                  pc_user_id,
-                                                 pc_dbd_id,
                                                  pc_process);
     commit;
   
@@ -447,7 +445,6 @@ create or replace package body pkg_phy_physical_process is
                                             pd_trade_date,
                                             pc_process_id,
                                             pc_user_id,
-                                            pc_dbd_id,
                                             pc_process);
     commit;
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -467,7 +464,6 @@ create or replace package body pkg_phy_physical_process is
                                                    pd_trade_date,
                                                    pc_process_id,
                                                    pc_user_id,
-                                                   pc_dbd_id,
                                                    pc_process);
     commit;
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
@@ -487,7 +483,6 @@ create or replace package body pkg_phy_physical_process is
                                                    pd_trade_date,
                                                    pc_process_id,
                                                    pc_user_id,
-                                                   pc_dbd_id,
                                                    pc_process);
     commit;
   
@@ -1359,336 +1354,6 @@ create or replace package body pkg_phy_physical_process is
       from tdc_trade_date_closure tdc
      where tdc.corporate_id = pc_corporate_id
        and tdc.process_id = vc_prev_process_id;
-  
-    update agd_alloc_group_detail
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update agh_alloc_group_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update cigc_contract_item_gmr_cost
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update cs_cost_store
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update ecs_element_cost_store
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update dgrd_delivered_grd
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update gmr_goods_movement_record
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update mogrd_moved_out_grd
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcad_pc_agency_detail
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcbpd_pc_base_price_detail
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcbph_pc_base_price_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcdb_pc_delivery_basis
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcdd_document_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcdiob_di_optional_basis
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcdipe_di_pricing_elements
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcdiqd_di_quality_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcdi_pc_delivery_item
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcipf_pci_pricing_formula
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pci_physical_contract_item
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcjv_pc_jv_detail
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcm_physical_contract_main
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcpdqd_pd_quality_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcpd_pc_product_definition
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcpq_pc_product_quality
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcqpd_pc_qual_premium_discount
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pffxd_phy_formula_fx_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pfqpp_phy_formula_qp_pricing
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update ppfd_phy_price_formula_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update ppfh_phy_price_formula_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update ciqs_contract_item_qty_status
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update diqs_delivery_item_qty_status
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update cqs_contract_qty_status
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update grd_goods_record_detail
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update vd_voyage_detail
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update invm_inventory_master
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcpch_pc_payble_content_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pqd_payable_quality_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcepc_pc_elem_payable_content
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcth_pc_treatment_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update ted_treatment_element_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update tqd_treatment_quality_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-    update tqd_treatment_quality_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcetc_pc_elem_treatment_charge
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcar_pc_assaying_rules
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcaesl_assay_elem_split_limits
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update arqd_assay_quality_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcaph_pc_attr_penalty_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcap_pc_attribute_penalty
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pqd_penalty_quality_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pad_penalty_attribute_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcrh_pc_refining_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update rqd_refining_quality_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update red_refining_element_details
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update pcerc_pc_elem_refining_charge
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update ceqs_contract_ele_qty_status
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update dith_di_treatment_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update dirh_di_refining_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update diph_di_penalty_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update cipq_contract_item_payable_qty
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update dipq_delivery_item_payable_qty
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update spq_stock_payable_qty
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update dipch_di_payablecontent_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-  
-    update is_invoice_summary
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-    update gepd_gmr_element_pledge_detail
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-    update gth_gmr_treatment_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-    update grh_gmr_refining_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
-    update gph_gmr_penalty_header
-       set process_id = pc_process_id
-     where process_id is null
-       and dbd_id = vc_dbd_id;
   
     --
     -- 1. AGH was not present in previous eod and became inventory out in this eod

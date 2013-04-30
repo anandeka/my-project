@@ -4,6 +4,8 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
   -- Created : 5/2/2011 3:09:18 PM
   -- Purpose : 
   gvc_previous_dbd_id varchar2(15);
+  gvc_process_id      varchar2(15);
+
   procedure sp_phy_transfer_data(pc_corporate_id       in varchar2,
                                  pt_previous_pull_date timestamp,
                                  pt_current_pull_date  timestamp,
@@ -78,6 +80,18 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     vc_err_msg         varchar2(10);
   begin
     vc_err_msg := '1';
+    begin
+      select tdc.process_id
+        into gvc_process_id
+        from tdc_trade_date_closure tdc
+       where tdc.process = pc_process
+         and tdc.trade_date = pd_trade_date
+         and tdc.corporate_id = pc_corporate_id;
+    exception
+      when others then
+        null;
+    end;
+  
     begin
       select dbd.dbd_id
         into gvc_previous_dbd_id
@@ -4384,7 +4398,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        price_unit_cur_code,
        price_unit_weight_unit_id,
        price_unit_weight_unit,
-       price_unit_weight)
+       price_unit_weight,
+       process_id)
       select t.inv_id,
              invm.inv_ref_no,
              invm.internal_gmr_ref_no,
@@ -4405,7 +4420,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              cm.cur_code,
              pum.weight_unit_id,
              qum.qty_unit,
-             pum.weight
+             pum.weight,
+             gvc_process_id
         from (select invd.inv_id,
                      nvl(sum(invd.transaction_qty), 0) cur_inv_qty
                 from invd_inventory_detail     invd,
@@ -4488,7 +4504,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        is_receive_material,
        payable_receivable,
        invoiced_qty_unit_id,
-       freight_allowance_amt)
+       freight_allowance_amt,
+       process_id)
       select internal_invoice_ref_no,
              invoice_type,
              invoice_type_name,
@@ -4548,7 +4565,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              is_receive_material,
              payable_receivable,
              invoiced_qty_unit_id,
-             freight_allowance_amt
+             freight_allowance_amt,
+             gvc_process_id
         from is_invoice_summary@eka_appdb is1
        where is1.invoice_issue_date <= pd_trade_date
          and is1.corporate_id = pc_corporate_id;
@@ -4639,7 +4657,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        is_active,
        quality_id,
        due_date,
-       dbd_id)
+       dbd_id,
+       process_id)
       select gepd.gepd_id,
              gepd.corporate_id,
              gepd.activity_action_id,
@@ -4659,7 +4678,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              gepd.is_active,
              gepd.quality_id,
              gepd.due_date,
-             pc_dbd_id
+             pc_dbd_id,
+             gvc_process_id
         from gepd_gmr_element_pledge_detail@eka_appdb gepd
        where gepd.corporate_id = pc_corporate_id
          and gepd.activity_date <= pd_trade_date;
