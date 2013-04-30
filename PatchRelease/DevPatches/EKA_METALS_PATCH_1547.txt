@@ -56,3 +56,14 @@ Bug: 78164
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AdvancePaymentDocument.rpt
 
 ==================================================================
+
+Revision: 125148
+Author: rajuga
+Date: 5:18:54 PM, Tuesday, April 30, 2013
+Message:
+Bug: 78164 related changes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+
+==================================================================
