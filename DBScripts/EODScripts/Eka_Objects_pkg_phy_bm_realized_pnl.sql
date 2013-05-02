@@ -239,7 +239,8 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
          and agh.process_id = pcpd.process_id
          and pcpd.is_active = 'Y'
          and pcpd.product_id = pdm.product_id
-         and pcpd.pcpd_id = pcpq.pcpd_id
+       --  and pcpd.pcpd_id = pcpq.pcpd_id
+         and pci.pcpq_id = pcpq.pcpq_id
          and agh.process_id = pcpq.process_id
          and pcpq.quality_template_id = qat.quality_id
          and pcpq.is_active = 'Y'
@@ -249,7 +250,8 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
          and pcm.cp_id = phd_cp.profileid
          and pcm.trader_id = akcu.user_id
          and akcu.gabid = gab.gabid
-         and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
+        -- and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
+         and pci.pcdb_id = pcdb.pcdb_id
          and agh.process_id = pcdb.process_id
          and pcm.payment_term_id = pym.payment_term_id
          and pcdb.inco_term_id = itm.incoterm_id
@@ -475,7 +477,8 @@ create or replace package body "PKG_PHY_BM_REALIZED_PNL" is
          and pcm.cp_id = phd_cp.profileid
          and pcm.trader_id = akcu.user_id
          and akcu.gabid = gab.gabid
-         and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
+        -- and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
+         and pci.pcdb_id = pcdb.pcdb_id
          and agh.process_id = pcdb.process_id
          and pci.pcdb_id = pcdb.pcdb_id
          and pcdb.is_active = 'Y'
