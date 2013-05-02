@@ -879,7 +879,7 @@ BEGIN
                         WHERE invs.internal_invoice_ref_no =
                                                             pc_internal_ref_no)
               WHEN pc_action_id = 'pledgeTransfer'
-                 THEN (SELECT gepd.pledge_cp_id
+                 THEN (SELECT gepd.supplier_cp_id 
                          FROM gepd_gmr_element_pledge_detail gepd
                         WHERE gepd.gepd_id = pc_internal_ref_no)
               WHEN pc_action_id = 'shipmentDetail'
