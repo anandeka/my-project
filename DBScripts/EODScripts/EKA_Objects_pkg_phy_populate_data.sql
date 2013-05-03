@@ -3835,7 +3835,12 @@ SELECT   iid.internal_gmr_ref_no,
                  ),
              24
             ) invoice_ref_no,
-            is1.is_invoice_new
+            SUBSTR
+            (MAX (   TO_CHAR (axs.created_date, 'yyyymmddhh24missff9')
+                  || is1.is_invoice_new
+                 ),
+             24
+            ) is_invoice_new
     FROM is_invoice_summary is1,
          iid_invoicable_item_details iid,
          iam_invoice_action_mapping@eka_appdb iam,
@@ -3847,7 +3852,7 @@ SELECT   iid.internal_gmr_ref_no,
      AND iam.internal_invoice_ref_no = is1.internal_invoice_ref_no
      AND iam.invoice_action_ref_no = axs.internal_action_ref_no
      AND NVL (is1.is_free_metal, 'N') <> 'Y'
-GROUP BY iid.internal_gmr_ref_no,is1.is_invoice_new)loop
+GROUP BY iid.internal_gmr_ref_no)loop
 update gmr_goods_movement_record gmr
    set gmr.is_provisional_invoiced        = cur_gmr_invoice.pi_done,
        gmr.is_final_invoiced              = cur_gmr_invoice.fi_done,
@@ -3869,7 +3874,12 @@ SELECT   iid.internal_gmr_ref_no,
                  ),
              24
             ) latest_internal_invoice_ref_no,           
-            is1.is_invoice_new
+         SUBSTR
+            (MAX (   TO_CHAR (axs.created_date, 'yyyymmddhh24missff9')
+                  || is1.is_invoice_new
+                 ),
+             24
+            ) is_invoice_new           
     FROM is_invoice_summary is1,
          iid_invoicable_item_details iid,
          iam_invoice_action_mapping@eka_appdb iam,
@@ -3881,7 +3891,7 @@ SELECT   iid.internal_gmr_ref_no,
      AND iam.internal_invoice_ref_no = is1.internal_invoice_ref_no
      AND iam.invoice_action_ref_no = axs.internal_action_ref_no
      AND NVL (is1.is_free_metal, 'N') <> 'Y'
-GROUP BY iid.internal_gmr_ref_no,is1.is_invoice_new)loop
+GROUP BY iid.internal_gmr_ref_no)loop
 update gmr_goods_movement_record gmr   set 
        gmr.debit_credit_invoice_no = cur_gmr_invoice.latest_internal_invoice_ref_no,
        gmr.is_new_debit_credit_invoice=cur_gmr_invoice.is_invoice_new

@@ -12279,7 +12279,10 @@ insert into temp_mas
                               'Raw Material Existing Stock IM End');                                     
 --
 -- In Process Stock
---
+-- May 3,2012, Modified By Janna
+-- If delta stocks created between EOM move them to Existing so as to appear in Delta and not under sections
+-- a) New Stock - Free Metal Stocks or b) New Stock - In Process Stocks
+-- 
 insert into temp_mas
   (process_id,
    corporate_id,
@@ -12307,21 +12310,22 @@ insert into temp_mas
          pdm.product_desc,
          'Inventory' position_type,
          'In Process Stock' stock_type,
-         (case         
+         (case
            when axs.eff_date > vd_prev_eom_date and
                 axs.eff_date <= pd_trade_date then
-          (case when grd.tolling_stock_type in
-          ('Free Metal IP Stock', 'Delta FM IP Stock') then
+            (case
+           when grd.tolling_stock_type = 'Free Metal IP Stock' then
             'New Stock - Free Metal Stocks'
-            else
+           when grd.tolling_stock_type = 'MFT In Process Stock' then
             'New Stock - In Process Stocks'
-            end) 
            else
-            'Existing Stock'
-         end) section_name,
-         (case         
-            when axs.eff_date > vd_prev_eom_date and
-                axs.eff_date <= pd_trade_date then
+            'Existing Stock'-- Delta FM and Delta MFT
+         end) else 'Existing Stock' end) section_name,
+         (case
+           when axs.eff_date > vd_prev_eom_date and
+                axs.eff_date <= pd_trade_date and
+                grd.tolling_stock_type in
+                ('Free Metal IP Stock', 'MFT In Process Stock') then
             '3'
            else
             '2'
@@ -12337,7 +12341,7 @@ insert into temp_mas
     from gmr_goods_movement_record gmr,
          grd_goods_record_detail grd,
          aml_attribute_master_list aml,
-         axs_action_summary  axs,
+         axs_action_summary axs,
          pdm_productmaster pdm,
          (select gmr.internal_gmr_ref_no,
                  agmr.eff_date
@@ -12363,10 +12367,10 @@ insert into temp_mas
      and gmr.corporate_id = akc.corporate_id
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
-     and grd.internal_action_ref_no=axs.internal_action_ref_no
-     and axs.process='EOM'          
+     and grd.internal_action_ref_no = axs.internal_action_ref_no
+     and axs.process = 'EOM'
      and agmr.eff_date <= pd_trade_date
-     and gmr.is_pass_through ='Y' -- Only for PCT Internal
+     and gmr.is_pass_through = 'Y' -- Only for PCT Internal
      and grd.tolling_stock_type in
          ('MFT In Process Stock', 'Free Metal IP Stock', 'Delta FM IP Stock',
           'Delta MFT IP Stock');
