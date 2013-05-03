@@ -503,7 +503,6 @@ create or replace package body pkg_phy_physical_process is
                                             pd_trade_date,
                                             pc_process_id,
                                             pc_user_id,
-                                            pc_dbd_id,
                                             pc_process);
     commit;
   
