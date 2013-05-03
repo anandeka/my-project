@@ -35,3 +35,31 @@ Schema type (Transaction / EOD)* :EOD
 ==================================================================
 
 
+Revision: 125407
+Author: janna
+Date: 3:11:46 PM, Friday, May 03, 2013
+Message:
+MBS Fix
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+Revision: 125237
+Author: suresh.gottipati
+Date: 2:16:25 PM, Thursday, May 02, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+
+
+Revision: 125234
+Author: sivachalabathi.s
+Date: 2:03:11 PM, Thursday, May 02, 2013
+Message:
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/eka_view_v_der_instrument_price_unit.sql
+
+
