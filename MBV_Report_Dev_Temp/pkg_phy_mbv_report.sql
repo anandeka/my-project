@@ -109,6 +109,8 @@ create or replace package body pkg_phy_mbv_report is
        internal_contract_ref_no,
        delivery_item_no,
        contract_ref_no_del_item_no,
+       internal_gmr_ref_no,
+       gmr_ref_no,
        price_fixed_date,
        pf_ref_no,
        fixed_qty,
@@ -139,6 +141,8 @@ create or replace package body pkg_phy_mbv_report is
              pcm.internal_contract_ref_no,
              pcdi.delivery_item_no,
              pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
+             gmr.internal_gmr_ref_no,
+             gmr.gmr_ref_no,
              pfd.hedge_correction_date price_fixation_date,
              axs.action_ref_no as pf_ref_no,
              pfd.qty_fixed,
@@ -154,21 +158,27 @@ create or replace package body pkg_phy_mbv_report is
              pfd.user_price * nvl(pfd.fx_to_base, 1) price_in_base,
              nvl(pfd.allocated_qty, 0) allocated_qty,
              decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales
-        from pfd_price_fixation_details     pfd,
+        from pfd_price_fixation_details pfd,
              pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              poch_price_opt_call_off_header poch,
-             pcdi_pc_delivery_item          pcdi,
-             pcm_physical_contract_main     pcm,
-             v_ppu_pum                      ppu,
-             axs_action_summary             axs,
-             cm_currency_master             cm,
-             qum_quantity_unit_master       qum,
-             aml_attribute_master_list      aml,
-             pdm_productmaster              pdm_aml,
-             ak_corporate                   akc
+             pcdi_pc_delivery_item pcdi,
+             pcm_physical_contract_main pcm,
+             v_ppu_pum ppu,
+             axs_action_summary axs,
+             cm_currency_master cm,
+             qum_quantity_unit_master qum,
+             aml_attribute_master_list aml,
+             pdm_productmaster pdm_aml,
+             ak_corporate akc,
+             (select gmr.internal_gmr_ref_no,
+                     gmr.gmr_ref_no
+                from gmr_goods_movement_record gmr
+               where gmr.process_id = pc_process_id
+                 and gmr.is_deleted = 'N') gmr
        where pfd.pofh_id = pofh.pofh_id
          and pofh.pocd_id = pocd.pocd_id
+         and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
          and pocd.poch_id = poch.poch_id
          and poch.pcdi_id = pcdi.pcdi_id
          and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
@@ -346,7 +356,8 @@ create or replace package body pkg_phy_mbv_report is
              end ref_price_diff,
              dpd.open_quantity * (case
                when dpd.trade_type = 'Sell' then
-                (tip.price * cet.exch_rate) - dpd.sett_price_in_base
+                (tip.price / nvl(dpd.trade_price_weight, 1) * cet.exch_rate) -
+                dpd.sett_price_in_base
                else
                 dpd.sett_price_in_base - (tip.price * cet.exch_rate)
              end) * ucm.multiplication_factor value_diff_ref_price_diff
