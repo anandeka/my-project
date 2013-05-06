@@ -1,0 +1,51 @@
+Patch No*          		:  EKA_METALS_PATCH_1555
+
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+ 
+Created on*        		:  6-May-2013
+
+Bug / Enhancement*              :  Bug 
+
+Bug ID*            		:   78393 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Toggling
+
+Sub-Module  			 :  Toggling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 125636
+Author: anupkumar.agarwal
+Date: 7:02:30 PM, Monday, May 06, 2013
+Message:
+Bug 78393 - Harjavalta : GMR’s not available and delta is incorrectly calculated in April MTD arrival report
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_SPQL.sql
+
+
+
+
+
+
+
