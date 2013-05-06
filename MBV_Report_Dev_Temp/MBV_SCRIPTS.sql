@@ -49,7 +49,8 @@ PRICE_UNIT_WEIGHT                  NUMBER(7,2),
 PRICE_UNIT_NAME                    VARCHAR2(50),
 FX_PRICE_TO_BASE_CUR               NUMBER(25,10),
 PRICE_IN_BASE_CUR                  NUMBER(25,10),
-CONSUMED_QTY                       NUMBER(25,10));
+CONSUMED_QTY                       NUMBER(25,10),
+FIXATION_VALUE                     NUMBER(25,10));
 
 CREATE TABLE DDR_DERIVATIVE_DIFF_REPORT(
 PROCESS_ID                         VARCHAR2(15),
