@@ -118,10 +118,18 @@ select t.corporate_id,
                 aml.attribute_name element_name,
                 pqca.typical assayvalue,
                 rm.ratio_name assayratio,
-                pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
+                (case
+                 when rm.ratio_name = '%' then
+                 ((asm.net_weight  * (asm.dry_wet_qty_ratio / 100)) *
+                 (pqca.typical / 100))
+                 else
+                  (((asm.net_weight  * (asm.dry_wet_qty_ratio / 100))) *
+                 pqca.typical)
+                 end) assay_content
+                /*pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
                                                                  ash.ash_id,
                                                                  asm.dry_weight,
-                                                                 asm.net_weight_unit) assay_content
+                                                                 asm.net_weight_unit) assay_content*/
           from gmr_goods_movement_record   gmr,
                 grd_goods_record_detail     grd,
                 pci_physical_contract_item  pci,
@@ -146,7 +154,7 @@ select t.corporate_id,
                 v_assay_excahnge            vae
          where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
-           and grd.status = 'Active'
+         --  and grd.status = 'Active'
            and gmr.corporate_id = akc.corporate_id
            and grd.profit_center_id = cpc.profit_center_id
            and cpc.business_line_id = blm.business_line_id(+)
@@ -257,10 +265,18 @@ select t.corporate_id,
                aml.attribute_name element_name,
                pqca.typical assayvalue,
                rm.ratio_name assayratio,
-               pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
+                (case
+                 when rm.ratio_name = '%' then
+                 ((asm.net_weight  * (asm.dry_wet_qty_ratio / 100)) *
+                 (pqca.typical / 100))
+                 else
+                  (((asm.net_weight  * (asm.dry_wet_qty_ratio / 100))) *
+                 pqca.typical)
+                 end) assay_content
+               /*pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
                                                                 ash.ash_id,
                                                                 asm.dry_weight,
-                                                                asm.net_weight_unit) assay_content
+                                                                asm.net_weight_unit) assay_content*/
           from gmr_goods_movement_record   gmr,
                dgrd_delivered_grd          dgrd,
                pci_physical_contract_item  pci,
@@ -285,7 +301,7 @@ select t.corporate_id,
                v_assay_excahnge            vae
          where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
-           and dgrd.status = 'Active'
+          -- and dgrd.status = 'Active'
            and gmr.corporate_id = akc.corporate_id
            and dgrd.profit_center_id = cpc.profit_center_id
            and cpc.business_line_id = blm.business_line_id(+)
@@ -396,10 +412,18 @@ select t.corporate_id,
                aml.attribute_name element_name,
                pqca.typical assayvalue,
                rm.ratio_name assayratio,
-               pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
+                (case
+                 when rm.ratio_name = '%' then
+                 ((asm.net_weight  * (asm.dry_wet_qty_ratio / 100)) *
+                 (pqca.typical / 100))
+                 else
+                  (((asm.net_weight  * (asm.dry_wet_qty_ratio / 100))) *
+                 pqca.typical)
+                 end) assay_content
+              /* pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
                                                                 ash.ash_id,
                                                                 asm.dry_weight,
-                                                                asm.net_weight_unit) assay_content
+                                                                asm.net_weight_unit) assay_content*/
           from gmr_goods_movement_record   gmr,
                grd_goods_record_detail     grd,
                pci_physical_contract_item  pci,
@@ -424,7 +448,7 @@ select t.corporate_id,
                v_assay_excahnge            vae
          where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
-           and grd.status = 'Active'
+         --  and grd.status = 'Active'
            and gmr.corporate_id = akc.corporate_id
            and grd.profit_center_id = cpc.profit_center_id
            and cpc.business_line_id = blm.business_line_id(+)
@@ -533,10 +557,18 @@ select t.corporate_id,
                aml.attribute_name element_name,
                pqca.typical assayvalue,
                rm.ratio_name assayratio,
-               pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
+                (case
+                 when rm.ratio_name = '%' then
+                 ((asm.net_weight  * (asm.dry_wet_qty_ratio / 100)) *
+                 (pqca.typical / 100))
+                 else
+                  (((asm.net_weight  * (asm.dry_wet_qty_ratio / 100))) *
+                 pqca.typical)
+                 end) assay_content
+             /*  pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
                                                                 ash.ash_id,
                                                                 asm.dry_weight,
-                                                                asm.net_weight_unit) assay_content
+                                                                asm.net_weight_unit) assay_content*/
           from gmr_goods_movement_record   gmr,
                dgrd_delivered_grd          dgrd,
                pci_physical_contract_item  pci,
@@ -561,7 +593,7 @@ select t.corporate_id,
                v_assay_excahnge            vae
          where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
            and gmr.is_deleted = 'N'
-           and dgrd.status = 'Active'
+         --  and dgrd.status = 'Active'
            and gmr.corporate_id = akc.corporate_id
            and dgrd.profit_center_id = cpc.profit_center_id
            and cpc.business_line_id = blm.business_line_id(+)
