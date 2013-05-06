@@ -134,7 +134,12 @@ BEGIN
                                   END
                                  )
                             FROM DUAL),
-                         :NEW.cot_int_action_ref_no
+                          CASE
+                            WHEN :NEW.cot_int_action_ref_no =
+                                                    :OLD.cot_int_action_ref_no
+                               THEN NULL
+                            ELSE :NEW.cot_int_action_ref_no
+                         END
                         );
          ELSE
             --Qty Unit is Updated
@@ -292,7 +297,12 @@ BEGIN
                                   END
                                  )
                             FROM DUAL),
-                         :NEW.cot_int_action_ref_no
+                          CASE
+                            WHEN :NEW.cot_int_action_ref_no =
+                                                    :OLD.cot_int_action_ref_no
+                               THEN NULL
+                            ELSE :NEW.cot_int_action_ref_no
+                         END
                         );
          END IF;
       ELSE
@@ -416,7 +426,12 @@ BEGIN
                                END
                               )
                          FROM DUAL),
-                      :NEW.cot_int_action_ref_no
+                       CASE
+                            WHEN :NEW.cot_int_action_ref_no =
+                                                    :OLD.cot_int_action_ref_no
+                               THEN NULL
+                            ELSE :NEW.cot_int_action_ref_no
+                         END
                      );
       END IF;
    ELSE
