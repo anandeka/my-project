@@ -3,6 +3,11 @@ create or replace package pkg_phy_mbv_report is
   -- Author  : JANARDHANA
   -- Created : 4/24/2013 6:00:32 PM
   -- Purpose : Metal Balance Valuation
+  procedure sp_run_mbv_report(pc_corporate_id varchar2,
+                              pd_trade_date   date,
+                              pc_process_id   varchar2,
+                              pc_process      varchar2,
+                              pc_user_id      varchar2);
   procedure sp_calc_pf_data(pc_corporate_id varchar2,
                             pd_trade_date   date,
                             pc_process_id   varchar2,
@@ -16,6 +21,45 @@ create or replace package pkg_phy_mbv_report is
 end;
 /
 create or replace package body pkg_phy_mbv_report is
+  procedure sp_run_mbv_report(pc_corporate_id varchar2,
+                              pd_trade_date   date,
+                              pc_process_id   varchar2,
+                              pc_process      varchar2,
+                              pc_user_id      varchar2) is
+    vn_eel_error_count number := 1;
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vc_error_msg       varchar2(100);
+  begin
+    vc_error_msg := 'sp_calc_pf_data';
+    sp_calc_pf_data(pc_corporate_id,
+                    pd_trade_date,
+                    pc_process_id,
+                    pc_process,
+                    pc_user_id);
+    vc_error_msg := 'sp_calc_derivative_diff_report';
+    sp_calc_derivative_diff_report(pc_corporate_id,
+                                   pd_trade_date,
+                                   pc_process_id,
+                                   pc_process,
+                                   pc_user_id);
+  exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure pkg_phy_mbv_report.sp_run_mbv_report',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm ||
+                                                           '  Error Msg: ' ||
+                                                           vc_error_msg,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+  end;
   procedure sp_calc_pf_data(pc_corporate_id varchar2,
                             pd_trade_date   date,
                             pc_process_id   varchar2,
@@ -24,11 +68,13 @@ create or replace package body pkg_phy_mbv_report is
     vn_eel_error_count number := 1;
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vc_previous_eom_id varchar2(15);
+    vc_error_msg       varchar2(100);
   
   begin
     --
     -- Previous EOM ID
     --
+    vc_error_msg := 'Get Previous EOM ID';
     begin
       select tdc.process_id
         into vc_previous_eom_id
@@ -42,7 +88,7 @@ create or replace package body pkg_phy_mbv_report is
                  and tdc_in.process = pc_process
                  and tdc_in.trade_date < pd_trade_date);
     exception
-      when no_data_found then
+      when others then
         null;
     end;
     --
@@ -215,7 +261,9 @@ create or replace package body pkg_phy_mbv_report is
                                                            'Code:' ||
                                                            sqlcode ||
                                                            'Message:' ||
-                                                           sqlerrm,
+                                                           sqlerrm ||
+                                                           '  Error Msg: ' ||
+                                                           vc_error_msg,
                                                            '',
                                                            pc_process,
                                                            pc_user_id,
@@ -229,7 +277,9 @@ create or replace package body pkg_phy_mbv_report is
                                            pc_user_id      varchar2) is
     vn_eel_error_count number := 1;
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vc_error_msg       varchar2(100);
   begin
+    vc_error_msg := 'Start';
     insert into ddr_derivative_diff_report
       (process_id,
        eod_trade_date,
@@ -299,8 +349,7 @@ create or replace package body pkg_phy_mbv_report is
                 (tip.price * cet.exch_rate) - dpd.sett_price_in_base
                else
                 dpd.sett_price_in_base - (tip.price * cet.exch_rate)
-             end) * ucm.multiplication_factor /
-             nvl(dpd.trade_price_weight, 1) value_diff_ref_price_diff
+             end) * ucm.multiplication_factor value_diff_ref_price_diff
         from dpd_derivative_pnl_daily   dpd,
              tip_temp_instrument_price  tip,
              cet_corporate_exch_rate    cet,
@@ -315,6 +364,7 @@ create or replace package body pkg_phy_mbv_report is
          and ucm.from_qty_unit_id = dpd.trade_price_weight_unit_id
          and ucm.to_qty_unit_id = dpd.quantity_unit_id;
     commit;
+    vc_error_msg := 'End';
   exception
     when others then
       vobj_error_log.extend;
@@ -324,7 +374,9 @@ create or replace package body pkg_phy_mbv_report is
                                                            'Code:' ||
                                                            sqlcode ||
                                                            'Message:' ||
-                                                           sqlerrm,
+                                                           sqlerrm ||
+                                                           '  Error Msg: ' ||
+                                                           vc_error_msg,
                                                            '',
                                                            pc_process,
                                                            pc_user_id,
