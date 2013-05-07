@@ -1588,7 +1588,7 @@ create or replace package body pkg_phy_eod_reports is
     vc_gmr_ref_no_for_price      varchar2(15);
     vn_log_counter               number;
     vn_base_currency_decimals    number;
-    vc_corporate_name            varchar2(15);
+    vc_corporate_name            varchar2(100);
     vc_base_cur_id               varchar2(15);
     vc_base_cur_code             varchar2(15);
     vn_gmr_price_in_pay_in_cur   number;
@@ -4361,7 +4361,7 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
     vc_payable_qty_unit_id       varchar2(15);
     vn_log_counter               number;
     vn_base_currency_decimals    number;
-    vc_corporate_name            varchar2(15);
+    vc_corporate_name            varchar2(100);
     vc_base_cur_id               varchar2(15);
     vc_base_cur_code             varchar2(15);
     vn_gmr_price_in_pay_in_cur   number;

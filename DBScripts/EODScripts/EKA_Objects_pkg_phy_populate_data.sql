@@ -13840,7 +13840,33 @@ gvn_log_counter :=  gvn_log_counter + 1;
                           pd_trade_date,
                           pc_dbd_id,
                           gvn_log_counter,
-                          'End of GMR Sublots Update');
+                          'End of GMR Sublots Update for GRD');
+                          
+for cur_sublots in(  
+ select ash.internal_gmr_ref_no,
+        count(*) no_of_stocks_wns_done
+   from ash_assay_header        ash,
+        dgrd_delivered_grd grd
+  where grd.dbd_id = pc_dbd_id
+    and grd.status = 'Active'
+    and ash.internal_grd_ref_no = grd.internal_dgrd_ref_no
+    and ash.is_active ='Y'
+    and ash.activity_date <= pd_trade_date
+    and ash.assay_type ='Weighing and Sampling Assay'
+  group by ash.internal_gmr_ref_no
+  ) loop
+ update gmr_goods_movement_record gmr
+    set gmr.no_of_stocks_wns_done = cur_sublots.no_of_stocks_wns_done
+  where gmr.internal_gmr_ref_no = cur_sublots.internal_gmr_ref_no
+    and gmr.dbd_id = pc_dbd_id;
+end loop;
+commit;
+gvn_log_counter :=  gvn_log_counter + 1;
+  sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of GMR Sublots Update for DGRD');                          
 
 for cur_gmr_whname in(
 select phd.* from phd_profileheaderdetails phd) loop
