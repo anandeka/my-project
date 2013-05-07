@@ -7,7 +7,7 @@ Created on*        		:  7-May-2013
 
 Bug / Enhancement*              :  
 
-Bug ID*            		:  
+Bug ID*            		:  78493, 76838
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -33,4 +33,16 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :EOD
 ==================================================================
+
+Revision: 125727
+Author: janna
+Date: 3:09:20 PM, Tuesday, May 07, 2013
+Message:
+EOD Reports : Corporate Variable Length Issue
+Populate Data : Sales, Update No of Stocks WNS Done
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
 
