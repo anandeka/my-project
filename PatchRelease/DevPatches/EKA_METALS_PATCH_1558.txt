@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_1558
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  7-May-2013
+
+Bug / Enhancement*              :  
+
+Bug ID*            		:  78208, 78428
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 125743
+Author: b.ravikumar
+Date: 4:10:10 PM, Tuesday, May 07, 2013
+Message:
+-Bug 78208 fix from invoice side, changes needs to be done from logistics side.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_442.sql
+-------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------
+Revision: 125744
+Author: b.ravikumar
+Date: 4:13:01 PM, Tuesday, May 07, 2013
+Message:
+Bug 78428 Fix: ServiceInvoiceDraft document was not getting generated.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_570.sql
+
+
+
+
+
