@@ -1,0 +1,52 @@
+Patch No*          		:  EKA_METALS_PATCH_1556
+
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  6-May-2013
+
+Bug / Enhancement*              :  Enh
+
+Bug ID*            		:   NA
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Hedge 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 125724
+Author: abhishek.vijay
+Date: 2:49:29 PM, Tuesday, May 07, 2013
+Message:
+List of hedge correction 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_569.sql
+
+
+
+
+
+
+
+
