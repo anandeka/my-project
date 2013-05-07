@@ -129,10 +129,7 @@ create or replace package body pkg_phy_mbv_report is
        fixation_value)
       select pc_process_id,
              pd_trade_date,
-             decode(pfd.is_balance_pricing,
-                    'N',
-                    'New Price Fixations For This Month',
-                    'List Of Balance Price Fixations') section_name,
+             decode(pfd.is_balance_pricing,'N','New Price Fixations For This Month','List Of Balance Price Fixations') section_name,
              pc_corporate_id,
              akc.corporate_name,
              pdm_aml.product_id,
@@ -271,7 +268,7 @@ create or replace package body pkg_phy_mbv_report is
          and pfrd.section_name = 'List Of Balance Price Fixations';
     commit;
     --
-    -- Insert Header Data
+    -- Insert Header Raw Data
     --
     insert into pfrh_price_fix_report_header
       (process_id,
@@ -350,8 +347,7 @@ create or replace package body pkg_phy_mbv_report is
       update pfrh_price_fix_report_header pfrh
          set pfrh.priced_arrived_qty   = cur_pcs.priced_arrived_qty,
              pfrh.priced_delivered_qty = cur_pcs.priced_delivered_qty,
-             pfrh.realized_qty         = least(cur_pcs.priced_arrived_qty,
-                                               cur_pcs.priced_delivered_qty)
+             pfrh.realized_qty         = least(cur_pcs.priced_arrived_qty, cur_pcs.priced_delivered_qty)
        where pfrh.process_id = pc_process_id
          and pfrh.product_id = cur_pcs.product_id;
     end loop;
@@ -364,8 +360,7 @@ create or replace package body pkg_phy_mbv_report is
                                           pfrh_prev.price_fix_qty_purchase_new price_fix_qty_purchase_ob,
                                           pfrh_prev.price_fix_qty_sales_new price_fix_qty_sales_ob
                                      from pfrh_price_fix_report_header pfrh_prev
-                                    where pfrh_prev.process_id =
-                                          vc_previous_eom_id)
+                                    where pfrh_prev.process_id = vc_previous_eom_id)
     loop
       update pfrh_price_fix_report_header pfrh
          set pfrh.realized_qty_prev_month = cur_pfhr_prev_real_qty.realized_qty_prev_month,
@@ -382,8 +377,7 @@ create or replace package body pkg_phy_mbv_report is
                                       sum(pfrd.fixation_value) fixation_value
                                  from pfrd_price_fix_report_detail pfrd
                                 where pfrd.process_id = pc_process_id
-                                  and pfrd.section_name =
-                                      'List of Consumed Fixations for Realization'
+                                  and pfrd.section_name = 'List of Consumed Fixations For Realization'
                                 group by pfrd.product_id)
     loop
       update pfrh_price_fix_report_header pfrh
@@ -397,7 +391,7 @@ create or replace package body pkg_phy_mbv_report is
     -- Open Purchase And Sales Price Fixation Qty
     --
     for cur_pf_qty in (
-select        pfrd.product_id,
+    select    pfrd.product_id,
               sum(nvl(case
                         when pfrd.purchase_sales = 'Purchase' then
                          pfrd.fixed_qty
@@ -412,30 +406,30 @@ select        pfrd.product_id,
                          0
                       end,
                       0)) opem_sales_price_fixq_ty,
+             case when  sum(nvl(case
+                        when pfrd.purchase_sales = 'Purchase' then
+                         pfrd.fixed_qty
+                        else
+                         0
+                      end,
+                      0)) = 0 then 0 
+             else
+                      sum(pfrd.fixation_value) / 
+                       sum(nvl(case
+                        when pfrd.purchase_sales = 'Purchase' then
+                         pfrd.fixed_qty
+                        else
+                         0
+                         end,
+             0)) end wap_purchase_price_fixations,
              case when   sum(nvl(case
-                        when pfrd.purchase_sales = 'Purchase' then
-                         pfrd.fixed_qty
-                        else
-                         0
-                      end,
-                      0)) = 0 then 0 
-                      else
-                      sum(pfrd.fixation_value) / 
-                       sum(nvl(case
-                        when pfrd.purchase_sales = 'Purchase' then
-                         pfrd.fixed_qty
-                        else
-                         0
-                      end,
-                      0)) end wap_purchase_price_fixations,
-                      case when   sum(nvl(case
                         when pfrd.purchase_sales = 'Sales' then
                          pfrd.fixed_qty
                         else
                          0
                       end,
                       0)) = 0 then 0 
-                      else
+             else
                       sum(pfrd.fixation_value) / 
                        sum(nvl(case
                         when pfrd.purchase_sales = 'Sales' then
@@ -443,12 +437,11 @@ select        pfrd.product_id,
                         else
                          0
                       end,
-                      0)) end     wap_sales_price_fixations                                 
-                         from pfrd_price_fix_report_detail pfrd
-                        where pfrd.process_id = pc_process_id
-                          and pfrd.section_name =
-                              'List of Balance Price Fixations'
-                        group by pfrd.product_id)
+             0)) end wap_sales_price_fixations                                 
+             from pfrd_price_fix_report_detail pfrd
+             where pfrd.process_id = pc_process_id
+             and pfrd.section_name = 'List of Balance Price Fixations'
+             group by pfrd.product_id)
     loop
       update pfrh_price_fix_report_header pfrh
          set pfrh.purchase_price_fix_qty   = cur_pf_qty.opem_purchase_price_fixq_ty,
@@ -470,19 +463,17 @@ select pfrd.product_id,
                  else
                   0
                end,
-               0)
-           ) purchase_price_fix_qty,
+               0)) purchase_price_fix_qty,
        sum(nvl(case
                  when pfrd.purchase_sales = 'Sales' then
                   pfrd.fixed_qty
                  else
                   0
                end,
-               0)
-           ) sales_price_fix_qty
+               0)) sales_price_fix_qty
   from pfrd_price_fix_report_detail pfrd
  where pfrd.process_id = pc_process_id
-   and pfrd.section_name = 'New Price Fixations for this month'
+   and pfrd.section_name = 'New Price Fixations For This Month'
  group by pfrd.product_id)
     loop
       update pfrh_price_fix_report_header pfrh
@@ -567,8 +558,7 @@ select pfrd.product_id,
              dpd.trade_type,
              dpd.open_quantity,
              dpd.trade_price,
-             dpd.trade_price_cur_code || '/' || dpd.trade_price_weight ||
-             dpd.trade_price_weight_unit trade_price_unit,
+             dpd.trade_price_cur_code || '/' || dpd.trade_price_weight || dpd.trade_price_weight_unit trade_price_unit,
              dpd.dr_id_name prompt_date,
              dpd.trade_cur_to_base_exch_rate fx_trade_to_base_ccy,
              dpd.trade_price_in_base trade_price_in_base_ccy,
@@ -598,9 +588,9 @@ select pfrd.product_id,
              tdc_trade_date_closure     tdc
        where dpd.process_id = pc_process_id
          and dpd.instrument_type in ('Future', 'Forwards')
+         and dpd.pnl_type = 'Unrealized'
          and dpd.instrument_id = tip.instrument_id
          and tip.corporate_id = pc_corporate_id
-         and dpd.pnl_type = 'Unrealized'
          and dpd.sett_price_cur_id = cet.from_cur_id
          and dpd.base_cur_id = cet.to_cur_id
          and ucm.from_qty_unit_id = dpd.trade_price_weight_unit_id
