@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1561
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ramachandran R
+ 
+Created on*        		:  8-May-2013
+
+Bug / Enhancement*              :  
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Audit Log
+
+Sub-Module  			 :  Audit Log
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 125987
+Author: ramachandran.r
+Date: 8:19:17 PM, Wednesday, May 08, 2013
+Message:
+Auditlog bug fix
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_571.sql
+
+
+
+
+
