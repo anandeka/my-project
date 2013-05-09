@@ -33,15 +33,14 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* :Transaction
 ==================================================================
-
-Revision: 126026
-Author: anandp
-Date: 22:06:08, 08 May 2013
+Revision: 126180
+Author: suresh.gottipati
+Date: 5:39:02 PM, Thursday, May 09, 2013
 Message:
-For bug no. 78357
+Bug Fixes
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PKG_PRICE.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_gad_gmr_aloc_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_gad_gmr_aloc_data .sql
 
 
 
