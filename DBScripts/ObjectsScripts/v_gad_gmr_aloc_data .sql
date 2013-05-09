@@ -9,7 +9,8 @@ select gpah.internal_gmr_ref_no,
              gpah.finalize_date,
              pocd.final_price_unit_id,
              nvl(pcbph.valuation_price_percentage,100) / 100 valuation_price_percentage,
-             pocd.final_price_unit_id pay_in_price_unit_id
+             pocd.final_price_unit_id pay_in_price_unit_id,
+             gpah.avg_fx fx_rate
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,
@@ -46,7 +47,8 @@ select gpah.internal_gmr_ref_no,
                 nvl(gpah.final_price_in_pricing_cur, 0),
                 gpah.finalize_date,
                 pocd.final_price_unit_id,
-                nvl(pcbph.valuation_price_percentage,100) / 100
+                nvl(pcbph.valuation_price_percentage,100) / 100,
+                gpah.avg_fx 
   union all
 
       select
@@ -60,7 +62,8 @@ select gpah.internal_gmr_ref_no,
              null finalize_date,
              pocd.final_price_unit_id final_price_unit_id,
              nvl(pcbph.valuation_price_percentage,100) / 100 valuation_price_percentage,
-             pocd.final_price_unit_id pay_in_price_unit_id
+             pocd.final_price_unit_id pay_in_price_unit_id,
+             null as fx_rate
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pofh_price_opt_fixation_header pofh,

@@ -3,31 +3,36 @@ create or replace package pkg_price is
                                        pd_trade_date               date,
                                        pn_price                    out number,
                                        pc_price_unit_id            out varchar2,
-                                       pc_price_type               out varchar2);
+                                       pc_price_type               out varchar2,
+                                       pn_fx_rate                  out number);
   procedure sp_base_gmr_cog_price(pc_internal_gmr_ref_no varchar2,
                                   pd_trade_date          date,
                                   pn_price               out number,
                                   pc_price_unit_id       out varchar2,
-                                  pc_price_type          out varchar2);
+                                  pc_price_type          out varchar2,
+                                  pn_fx_rate                  out number);
   procedure sp_conc_contract_cog_price(pc_int_contract_item_ref_no varchar2,
                                        pd_trade_date               date,
                                        pc_element_id               varchar2,
                                        pn_price                    out number,
                                        pc_price_unit_id            out varchar2,
-                                       pc_price_type               out varchar2);
+                                       pc_price_type               out varchar2,
+                                       pn_fx_rate                  out number);
 
   procedure sp_conc_gmr_cog_price(pc_internal_gmr_ref_no varchar2,
                                   pd_trade_date          date,
                                   pc_element_id          varchar2,
                                   pn_price               out number,
                                   pc_price_unit_id       out varchar2,
-                                  pc_price_type          out varchar2);
+                                  pc_price_type          out varchar2,
+                                  pn_fx_rate             out number);
   procedure sp_conc_gmr_allocation_price(pc_internal_gmr_ref_no varchar2,
                                          pd_trade_date          date,
                                          pc_element_id          varchar2,
                                          pn_price               out number,
                                          pc_price_unit_id       out varchar2,
-                                         pc_price_type          out varchar2);
+                                         pc_price_type          out varchar2,
+                                         pn_fx_rate             out number);
   function f_get_converted_price_pum(pc_corporate_id       varchar2,
                                      pn_price              number,
                                      pc_from_price_unit_id varchar2,
@@ -49,7 +54,8 @@ create or replace package pkg_price is
                                          pd_trade_date          date,
                                          pn_price               out number,
                                          pc_price_unit_id       out varchar2,
-                                         pc_price_type          out varchar2);
+                                         pc_price_type          out varchar2,
+                                         pn_fx_rate             out number);
 
 end; 
 /
@@ -58,7 +64,8 @@ create or replace package body pkg_price is
                                        pd_trade_date               date,
                                        pn_price                    out number,
                                        pc_price_unit_id            out varchar2,
-                                       pc_price_type               out varchar2) is
+                                       pc_price_type               out varchar2,
+                                       pn_fx_rate                  out number) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_base_contract_cog_price
     --        Author                                    : Suresh Gottipati
@@ -170,7 +177,8 @@ create or replace package body pkg_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage,
+             pofh.avg_fx fx_rate
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail pcbpd,
@@ -178,7 +186,8 @@ create or replace package body pkg_price is
              (select pofh.pocd_id,
                      pofh.pofh_id,
                      pofh.final_price_in_pricing_cur,
-                     pofh.finalize_date
+                     pofh.finalize_date,
+                     pofh.avg_fx
                 from pofh_price_opt_fixation_header pofh
                where pofh.is_active = 'Y'
                  and pofh.internal_gmr_ref_no is null) pofh
@@ -233,6 +242,7 @@ create or replace package body pkg_price is
     vc_fixed_price_unit_id     varchar2(15);
     vc_fixed_price_unit_id_pum varchar2(50);
     vn_total_qty_for_avg_price number;
+    vn_fx_rate                 number;
   
   begin
   
@@ -280,6 +290,7 @@ create or replace package body pkg_price is
               vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
                                             (vn_total_quantity *
                                             (vn_qty_to_be_priced / 100));
+              vn_fx_rate                 := cur_called_off_rows.fx_rate;                             
             else
               begin
                 select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
@@ -604,12 +615,14 @@ create or replace package body pkg_price is
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
     pc_price_type    := vc_price_basis;
+    pn_fx_rate       := vn_fx_rate;
   end;
   procedure sp_base_gmr_cog_price(pc_internal_gmr_ref_no varchar2,
                                   pd_trade_date          date,
                                   pn_price               out number,
                                   pc_price_unit_id       out varchar2,
-                                  pc_price_type          out varchar2) is
+                                  pc_price_type          out varchar2,
+                                  pn_fx_rate             out number) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_base_gmr_cog_price
     --        Author                                    : Suresh Gottipati
@@ -764,7 +777,8 @@ create or replace package body pkg_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage,
+             pofh.avg_fx fx_rate
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -799,6 +813,7 @@ create or replace package body pkg_price is
     vn_unfixed_value             number;
     vc_fixed_price_unit_id_pum   varchar2(50);
     vn_total_qty_for_avg_price   number;
+    vn_fx_rate                   number;
   begin
     for cur_gmr_rows in cur_gmr
     loop
@@ -828,6 +843,7 @@ create or replace package body pkg_price is
           vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
                                         (vn_total_quantity *
                                         (vn_qty_to_be_priced / 100));
+          vn_fx_rate                  := cur_gmr_ele_rows.fx_rate;                             
         else
           begin
             select nvl(sum(pfd.user_price * pfd.qty_fixed), 0),
@@ -1014,13 +1030,15 @@ create or replace package body pkg_price is
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
     pc_price_type    := vc_price_basis;
+    pn_fx_rate       := vn_fx_rate;
   end;
   procedure sp_conc_contract_cog_price(pc_int_contract_item_ref_no varchar2,
                                        pd_trade_date               date,
                                        pc_element_id               varchar2,
                                        pn_price                    out number,
                                        pc_price_unit_id            out varchar2,
-                                       pc_price_type               out varchar2) is
+                                       pc_price_type               out varchar2,
+                                       pn_fx_rate                  out number) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_conc_contract_cog_price
     --        Author                                    : Suresh Gottipato
@@ -1187,7 +1205,8 @@ create or replace package body pkg_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage,
+             pofh.avg_fx fx_rate
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail pcbpd,
@@ -1195,7 +1214,8 @@ create or replace package body pkg_price is
              (select pofh.pocd_id,
                      pofh.pofh_id,
                      pofh.final_price_in_pricing_cur,
-                     pofh.finalize_date
+                     pofh.finalize_date,
+                     pofh.avg_fx
                 from pofh_price_opt_fixation_header pofh
                where pofh.is_active = 'Y'
                  and pofh.internal_gmr_ref_no is null) pofh
@@ -1258,6 +1278,7 @@ create or replace package body pkg_price is
     vn_total_fixed_qty           number;
     vn_total_unfixed_qty         number;
     vn_total_qty_for_avg_price   number;
+    vn_fx_rate                   number;
   
   begin
   
@@ -1312,6 +1333,7 @@ create or replace package body pkg_price is
               vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
                                             (vn_total_quantity *
                                             (vn_qty_to_be_priced / 100));
+              vn_fx_rate:=cur_called_off_rows.fx_rate;                              
             else
               vc_error_message := ' Line 240 ';
               begin
@@ -1640,13 +1662,15 @@ create or replace package body pkg_price is
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
     pc_price_type    := vc_price_basis;
+    pn_fx_rate       := vn_fx_rate;
   end;
   procedure sp_conc_gmr_cog_price(pc_internal_gmr_ref_no varchar2,
                                   pd_trade_date          date,
                                   pc_element_id          varchar2,
                                   pn_price               out number,
                                   pc_price_unit_id       out varchar2,
-                                  pc_price_type          out varchar2) is
+                                  pc_price_type          out varchar2,
+                                  pn_fx_rate             out number) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_conc_gmr_cog_price
     --        Author                                    : Suresh Gottipati
@@ -1709,7 +1733,8 @@ create or replace package body pkg_price is
              nvl(pofh.final_price_in_pricing_cur, 0) final_price,
              pofh.finalize_date,
              pocd.final_price_unit_id,
-             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage
+             nvl(pcbph.valuation_price_percentage, 100) / 100 valuation_price_percentage,
+             pofh.avg_fx fx_rate
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
@@ -1751,6 +1776,7 @@ create or replace package body pkg_price is
     vn_total_fixed_qty           number;
     vn_total_unfixed_qty         number;
     vn_total_qty_for_avg_price   number;
+    vn_fx_rate                   number;
   
   begin
   
@@ -1787,6 +1813,7 @@ create or replace package body pkg_price is
           vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
                                         (vn_total_quantity *
                                         (vn_qty_to_be_priced / 100));
+          vn_fx_rate                 := cur_gmr_ele_rows.fx_rate;                             
         else
           vc_price_basis := cur_gmr_ele_rows.price_basis;
           begin
@@ -1966,6 +1993,7 @@ create or replace package body pkg_price is
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
     pc_price_type    := vc_price_basis;
+    pn_fx_rate       := vn_fx_rate;
   end;
 
   procedure sp_conc_gmr_allocation_price(pc_internal_gmr_ref_no varchar2,
@@ -1973,7 +2001,8 @@ create or replace package body pkg_price is
                                          pc_element_id          varchar2,
                                          pn_price               out number,
                                          pc_price_unit_id       out varchar2,
-                                         pc_price_type          out varchar2) is
+                                         pc_price_type          out varchar2,
+                                         pn_fx_rate             out number) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_conc_gmr_allocation_price
     --        Author                                    : Suresh gottipati
@@ -2027,7 +2056,8 @@ create or replace package body pkg_price is
              gad.final_price,
              gad.finalize_date,
              gad.final_price_unit_id,
-             gad.valuation_price_percentage
+             gad.valuation_price_percentage,
+             gad.fx_rate
         from v_gad_gmr_aloc_data gad
        where gad.internal_gmr_ref_no = pc_internal_gmr_ref_no
          and gad.element_id = pc_element_id;
@@ -2055,6 +2085,7 @@ create or replace package body pkg_price is
     vn_total_fixed_qty           number;
     vn_total_unfixed_qty         number;
     vn_total_qty_for_avg_price   number;
+    vn_fx_rate                   number;
   
   begin
     for cur_gmr_rows in cur_gmr
@@ -2090,6 +2121,7 @@ create or replace package body pkg_price is
           vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
                                         (vn_total_quantity *
                                         (vn_qty_to_be_priced / 100));
+          vn_fx_rate                 :=cur_gmr_ele_rows.fx_rate;                               
         else
           begin
             select nvl(sum((pfd.user_price * gpad.allocated_qty)), 0),
@@ -2273,6 +2305,7 @@ create or replace package body pkg_price is
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
     pc_price_type    := vc_price_basis;
+    pn_fx_rate       := vn_fx_rate;
   end;
 
   function f_get_converted_price_pum(pc_corporate_id       varchar2,
@@ -2633,7 +2666,8 @@ create or replace package body pkg_price is
                                          pd_trade_date          date,
                                          pn_price               out number,
                                          pc_price_unit_id       out varchar2,
-                                         pc_price_type          out varchar2) is
+                                         pc_price_type          out varchar2,
+                                         pn_fx_rate             out number) is
     ------------------------------------------------------------------------------------------
     --        Procedure Name                            : sp_base_gmr_allocation_price
     --        Author                                    : Janna
@@ -2681,7 +2715,8 @@ create or replace package body pkg_price is
              gad.final_price,
              gad.finalize_date,
              gad.final_price_unit_id,
-             gad.valuation_price_percentage
+             gad.valuation_price_percentage,
+             gad.fx_rate
         from v_gad_gmr_aloc_data gad
        where gad.internal_gmr_ref_no = pc_internal_gmr_ref_no
        order by nvl(gad.final_price, 0) desc;
@@ -2710,6 +2745,7 @@ create or replace package body pkg_price is
     vn_total_unfixed_qty         number;
     vc_is_final_priced           varchar2(1);
     vn_total_qty_for_avg_price   number;
+    vn_fx_rate                   number;
   
   begin
     for cur_gmr_rows in cur_gmr
@@ -2746,6 +2782,7 @@ create or replace package body pkg_price is
           vn_total_qty_for_avg_price := vn_total_qty_for_avg_price +
                                         (vn_total_quantity *
                                         (vn_qty_to_be_priced / 100));
+          vn_fx_rate                 :=  cur_gmr_ele_rows.fx_rate;                            
         
         else
           begin
@@ -2927,6 +2964,7 @@ create or replace package body pkg_price is
     pn_price         := vn_average_price;
     pc_price_unit_id := vc_price_unit_id;
     pc_price_type    := vc_price_basis;
+    pn_fx_rate       := vn_fx_rate;
   end;
 end; 
 /
