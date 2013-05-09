@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1563
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  9-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  78641,78646
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 126128
+Author: b.ravikumar
+Date: 4:06:51 PM, Thursday, May 09, 2013
+Message:
+78641, 78646 Fix
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_573.sql
+
+
+
+
+
+
+
