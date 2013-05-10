@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1566
+
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  10-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  75236
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+Revision: 126369
+Author: suresh.gottipati
+Date: 5:09:04 PM, Friday, May 10, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+
+
+
+
+
+
+
+
+
