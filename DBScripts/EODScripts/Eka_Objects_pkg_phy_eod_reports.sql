@@ -14270,7 +14270,7 @@ begin
      parent_stock_ref_no)
     select pc_process_id,
            gmr.internal_gmr_ref_no,
-           dgrd.internal_grd_ref_no,
+           dgrd.internal_dgrd_ref_no,
            pqca.element_id,
            aml.attribute_name,
            dgrd.weg_avg_pricing_assay_id,
@@ -16794,7 +16794,7 @@ insert into art_arrival_report_temp
      and dgrd.process_id = pc_process_id
      and ped.process_id = pc_process_id
      and ped.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-     and ped.internal_grd_ref_no = dgrd.internal_grd_ref_no
+     and ped.internal_grd_ref_no = dgrd.internal_dgrd_ref_no
      and ped.element_id = aml.attribute_id
      and ped.assay_qty_unit_id = qum_ped.qty_unit_id
      and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or
