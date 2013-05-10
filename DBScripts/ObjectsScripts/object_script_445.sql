@@ -1,0 +1,1 @@
+alter table SPSM_SALES_POOL_STOCK_MAPPING add agd_id varchar2(15);
