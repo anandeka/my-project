@@ -60,20 +60,7 @@ Insert into GM_GRID_MASTER
         mapping : "isHedgeCorrectionDuringQp"
     } 
 ]', NULL, '/private/jsp/physical/listing/listOfHedgeCorrection.jsp', '/private/js/physical/listing/listOfHedgeCorrection.js');
-Insert into GM_GRID_MASTER
-   (GRID_ID, GRID_NAME, DEFAULT_COLUMN_MODEL_STATE, TAB_ID, URL, 
-    DEFAULT_RECORD_MODEL_STATE, OTHER_URL, SCREEN_SPECIFIC_JSP, SCREEN_SPECIFIC_JS)
- Values
-   ('LOFM_UTILITY', 'List Of Free Metal Utility', '[{"dataIndex":"","fixed":true,"header":"<div class=\"x-grid3-hd-checker\">&#160;</div>","hideable":false,"id":"checker","sortable":false,"width":20},{"dataIndex":"freeMetalUtilityRefNo","header":"Free Metal Utility Ref. No","id":1,"sortable":true,"width":150},{"dataIndex":"cpName","header":"Smelter","id":2,"sortable":true,"width":150},{"header":"Free Metal","id":3,"sortable":false,"width":150},{"dataIndex":"qpMonthYear","header":"QP Pricing","id":4,"sortable":false,"width":150},{"dataIndex":"yearMonthOfConsumption","header":"Consumption Month/Year","id":5,"sortable":true,"width":150},{"dataIndex":"runBy","header":"Run By","id":6,"sortable":true,"width":150},{"dataIndex":"runOn","header":"Run On","id":7,"sortable":true,"width":150},{"dataIndex":"status","header":"Status","id":8,"sortable":true,"width":150}]', 'Finance', '/metals/loadListOfFreeMetalUtility.action', 
-    '[ {name : ''utilityHeaderId'',mapping : ''utilityHeaderId''}, 
-  {name : ''freeMetalUtilityRefNo'',mapping : ''freeMetalUtilityRefNo''},
-  {name : ''cpName'',mapping : ''cpName''},
-  {name : ''qpMonthYear'',mapping : ''qpMonthYear''},
-  {name : ''yearMonthOfConsumption'',mapping : ''yearMonthOfConsumption''},
-  {name : ''runBy'',mapping : ''runBy''},
-  {name : ''runOn'',mapping : ''runOn''},
-  {name : ''status'',mapping : ''status''} ]', NULL, '/private/jsp/mining/physical/pricing/freemetalpricing/listOfFreeMetalUtility.jsp', '/private/js/mining/physical/pricing/freemetalpricing/listOfFreeMetalUtility.js');
-COMMIT;
+
 
 
 SET DEFINE OFF;
