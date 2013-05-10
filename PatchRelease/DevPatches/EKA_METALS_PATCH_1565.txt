@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1565
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  10-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  78468
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction
+==================================================================
+
+Revision: 126352
+Author: b.ravikumar
+Date: 4:28:26 PM, Friday, May 10, 2013
+Message:
+Bug 78468 Fix- Issue in draft provisional invoice output document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_575.sql
+
+
+
+
+
+
+
