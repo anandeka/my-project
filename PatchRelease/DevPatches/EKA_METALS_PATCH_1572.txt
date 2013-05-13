@@ -1,0 +1,53 @@
+Patch No*          		:  EKA_METALS_PATCH_1572
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  13-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  76735
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 126604
+Author: suresh.gottipati
+Date: 7:47:38 PM, Monday, May 13, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_446.sql
+
+
+Revision: 126605
+Author: suresh.gottipati
+Date: 7:49:07 PM, Monday, May 13, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyContractStatusReport.rpt
