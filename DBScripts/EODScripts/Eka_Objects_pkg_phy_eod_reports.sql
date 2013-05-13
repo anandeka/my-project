@@ -9308,6 +9308,68 @@ sp_eodeom_process_log(pc_corporate_id,
                           pc_process_id,
                           gvn_log_counter,
                           'Contract Status Report over');      
+-- added suresh for freemetal
+
+insert into csfm_cont_status_free_metal
+  (process_id,
+   corporate_id,
+   corporate_name,
+   eod_trade_date,
+   utility_ref_no,
+   element_id,
+   element_name,
+   payable_qty,
+   payable_qty_unit_id,
+   payable_qty_unit,
+   priced_qty,
+   unpriced_qty,
+   element_desc,
+   smelter_id,
+   smelter_name)
+  select pc_process_id,
+         fmuh.corporate_id,
+         akc.corporate_name,
+         pd_trade_date,
+         fmuh.utility_ref_no,
+         fmed.element_id,
+         fmed.element_name,
+         fmpfh.qty_to_be_fixed,
+         fmed.qty_unit_id,
+         qum.qty_unit,
+         nvl(fmpfh.priced_qty, 0),
+         (fmpfh.qty_to_be_fixed - nvl(fmpfh.priced_qty, 0)),
+         pdm.product_desc,
+         fmuh.smelter_id,
+         phd.companyname
+    from fmuh_free_metal_utility_header fmuh,
+         fmed_free_metal_elemt_details  fmed,
+         fmpfh_price_fixation_header    fmpfh,
+         ak_corporate                   akc,
+         qum_quantity_unit_master       qum,
+         phd_profileheaderdetails       phd,
+         aml_attribute_master_list      aml,
+         pdm_productmaster              pdm,
+         axs_action_summary             axs
+  
+   where fmuh.fmuh_id = fmed.fmuh_id
+     and fmed.fmed_id = fmpfh.fmed_id
+     and fmed.element_id = fmpfh.element_id  
+     and fmuh.is_active = 'Y'
+     and fmed.is_active = 'Y'
+     and fmpfh.is_active = 'Y'
+     and fmuh.corporate_id=akc.corporate_id
+     and fmed.qty_unit_id=qum.qty_unit_id
+     and phd.profileid=fmuh.smelter_id
+     and fmed.element_id=aml.attribute_id
+     and aml.underlying_product_id=pdm.product_id
+     and fmuh.internal_action_ref_no=axs.internal_action_ref_no
+     and axs.corporate_id=pc_corporate_id
+     and axs.eff_date<=pd_trade_date
+     and aml.is_deleted='N'
+     and pdm.is_deleted='N'
+     and phd.is_deleted='N'
+     and axs.process='EOM';
+   commit;                             
   end;
 -- End of Contract Status   
 procedure sp_feed_consumption_report(pc_corporate_id varchar2,

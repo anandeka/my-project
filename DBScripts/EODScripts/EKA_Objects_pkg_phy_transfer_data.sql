@@ -583,6 +583,9 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('PM_POOL_MASTER', 'f');
       dbms_mview.refresh('GPAD_GMR_PRICE_ALLOC_DTLS', 'f');
       dbms_mview.refresh('GPAH_GMR_PRICE_ALLOC_HEADER', 'f');
+      dbms_mview.refresh('FMUH_FREE_METAL_UTILITY_HEADER', 'f');
+      dbms_mview.refresh('FMED_FREE_METAL_ELEMT_DETAILS', 'f');
+      dbms_mview.refresh('FMPFH_PRICE_FIXATION_HEADER', 'f');
     end if;
   exception
     when others then
