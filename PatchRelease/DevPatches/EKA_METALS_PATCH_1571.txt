@@ -1,0 +1,43 @@
+Patch No*          		:  EKA_METALS_PATCH_1571
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+ 
+Created on*        		:  13-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  77536,78466
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  assay upload
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+Revision: 126524
+Author: rajeshwar.reddy
+Date: 16:31:23, 13 May 2013
+Message:
+bug fix: 77536,78466 - upload assay.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_577.sql
